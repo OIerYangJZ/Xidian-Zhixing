@@ -100,6 +100,40 @@ BACKEND_SMTP_USE_STARTTLS=false \
 
 4. 可选：若你有域名，可用 Nginx/Caddy 反向代理到 `127.0.0.1:8080`，再启用 HTTPS。
 
+### 固定公网地址（GitHub + Render 免费版）
+
+如果你不希望再使用自己电脑作为服务器，可以用 Render 免费 Web Service 部署，拿到固定地址：
+
+- `https://<你的服务名>.onrender.com`
+
+项目已提供 Render 配置文件：`render.yaml`（仓库根目录）。
+
+1. 推送代码到 GitHub（`main` 分支）：
+
+```bash
+git remote add origin <你的GitHub仓库URL>
+git push -u origin main
+```
+
+2. 打开 Render 控制台：
+   - New -> Blueprint
+   - 选择你的 GitHub 仓库
+   - Render 会自动识别 `render.yaml`
+
+3. 在 Render 环境变量里补齐敏感配置（`sync: false` 的项）：
+   - `BACKEND_ADMIN_PASSWORD`
+   - `BACKEND_SMTP_USERNAME`
+   - `BACKEND_SMTP_PASSWORD`
+   - `BACKEND_SMTP_FROM_EMAIL`
+
+4. 等待部署完成后，直接访问：
+   - `https://<你的服务名>.onrender.com`
+   - `https://<你的服务名>.onrender.com/api/channels`
+
+注意：
+- Render 免费实例会休眠，首次访问会有冷启动延迟。
+- 免费实例文件系统非持久化，SQLite/本地图片存储不适合生产长期保存。
+
 ### 1) 启动后端（基础方式）
 
 在项目根目录执行：

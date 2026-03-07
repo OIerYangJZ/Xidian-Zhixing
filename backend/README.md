@@ -68,6 +68,27 @@ BACKEND_HOST=0.0.0.0 BACKEND_PORT=8080 ./scripts/run_backend_beta.sh
 - `http://<server-ip>:8080/`（前端页面）
 - `http://<server-ip>:8080/api/channels`（接口检查）
 
+## Render 免费部署（固定 onrender 地址）
+
+仓库根目录提供了 `render.yaml`，可直接用 Blueprint 部署。
+
+步骤：
+
+1. 推送项目到 GitHub `main` 分支。
+2. Render 控制台选择 New -> Blueprint -> 绑定该仓库。
+3. 在 Render 环境变量里填写敏感项：
+   - `BACKEND_ADMIN_PASSWORD`
+   - `BACKEND_SMTP_USERNAME`
+   - `BACKEND_SMTP_PASSWORD`
+   - `BACKEND_SMTP_FROM_EMAIL`
+4. 部署成功后访问：
+   - `https://<service-name>.onrender.com`
+   - `https://<service-name>.onrender.com/api/channels`
+
+说明：
+- Render 免费实例会休眠并存在冷启动。
+- 免费实例本地磁盘非持久化，SQLite/本地对象存储只适合内测演示。
+
 ## 默认测试账号
 
 - 普通用户：`demo@stu.xidian.edu.cn / 123456`
