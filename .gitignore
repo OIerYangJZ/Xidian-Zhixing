@@ -3,6 +3,10 @@
 .packages
 .pub/
 build/
+!build/
+build/*
+!build/web/
+!build/web/**
 
 # Flutter generated
 .flutter-plugins
