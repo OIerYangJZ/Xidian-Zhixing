@@ -1,0 +1,35 @@
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Flutter generated
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+
+# Backend local data
+backend/data/db.json
+backend/data/*.tmp
+backend/data/*.db
+backend/data/*.db-shm
+backend/data/*.db-wal
+backend/storage/
+backend/__pycache__/
+
+# Local env
+.venv/
+__pycache__/
+
+# Scratch notes
+zzzzz.txt
+1.txt

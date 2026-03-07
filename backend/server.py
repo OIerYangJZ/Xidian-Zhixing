@@ -1,0 +1,3897 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import base64
+import email.utils
+import json
+import mimetypes
+import os
+import random
+import re
+import secrets
+import hashlib
+import hmac
+import smtplib
+import threading
+import time
+from email.message import EmailMessage
+from collections import deque
+from datetime import datetime, timedelta, timezone
+from http import HTTPStatus
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs, unquote, urlparse
+
+from object_storage import build_object_storage_from_env
+from sql_repository import SqliteTreeholeRepository
+
+ROOT_DIR = Path(__file__).resolve().parent
+DATA_DIR = ROOT_DIR / "data"
+LEGACY_DB_FILE = DATA_DIR / "db.json"
+SQL_DB_FILE = Path(os.environ.get("BACKEND_DB_FILE", str(DATA_DIR / "treehole.db")))
+OBJECT_STORAGE_DIR = Path(os.environ.get("BACKEND_STORAGE_DIR", str(ROOT_DIR / "storage" / "objects")))
+WEB_ROOT_DIR = Path(os.environ.get("BACKEND_WEB_ROOT", str(ROOT_DIR.parent / "build" / "web"))).resolve()
+DB_LOCK = threading.Lock()
+
+REPOSITORY = SqliteTreeholeRepository(SQL_DB_FILE)
+OBJECT_STORAGE = build_object_storage_from_env(
+    local_root_dir=OBJECT_STORAGE_DIR,
+    local_public_prefix="/api/storage",
+)
+
+
+def env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    lowered = raw.strip().lower()
+    if lowered in {"1", "true", "yes", "on"}:
+        return True
+    if lowered in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw.strip())
+    except (TypeError, ValueError):
+        return default
+
+DEFAULT_CHANNELS = [
+    "找对象",
+    "找搭子",
+    "交友扩列",
+    "吐槽日常",
+    "八卦吃瓜",
+    "求助问答",
+    "失物招领",
+    "二手交易",
+    "学习交流",
+    "活动拼车",
+    "其他",
+]
+
+DEFAULT_TAGS = [
+    "学习",
+    "北校区",
+    "南校区",
+    "运动",
+    "周末",
+    "食堂",
+    "日常",
+    "数码",
+    "毕业季",
+]
+
+DEFAULT_SETTINGS = {
+    "postRateLimit": 10,
+    "commentRateLimit": 30,
+    "messageRateLimit": 40,
+    "imageMaxMB": 5,
+}
+
+DEFAULT_SENSITIVE_WORDS = ["引流", "广告", "辱骂", "诈骗"]
+DEMO_USER_ID = "u1"
+DEMO_USER_EMAIL = "demo@stu.xidian.edu.cn"
+DEMO_USER_PASSWORD = "123456"
+
+PASSWORD_HASH_SCHEME = "pbkdf2_sha256"
+PASSWORD_HASH_ITERATIONS = 240000
+PASSWORD_SALT_BYTES = 16
+
+ADMIN_USERNAME_SETTING_KEY = "adminUsername"
+ADMIN_PASSWORD_HASH_SETTING_KEY = "adminPasswordHash"
+DEFAULT_ADMIN_USERNAME = os.environ.get("BACKEND_ADMIN_USERNAME", "admin")
+DEFAULT_ADMIN_PASSWORD = os.environ.get("BACKEND_ADMIN_PASSWORD", "admin123456")
+ADMIN_SESSIONS: dict[str, str] = {}
+ADMIN_SESSION_LOCK = threading.Lock()
+
+SMTP_HOST = os.environ.get("BACKEND_SMTP_HOST", "").strip()
+SMTP_PORT = env_int("BACKEND_SMTP_PORT", 465)
+SMTP_USERNAME = os.environ.get("BACKEND_SMTP_USERNAME", "").strip()
+SMTP_PASSWORD = os.environ.get("BACKEND_SMTP_PASSWORD", "").strip()
+SMTP_FROM_EMAIL = os.environ.get("BACKEND_SMTP_FROM_EMAIL", SMTP_USERNAME).strip()
+SMTP_FROM_NAME = os.environ.get("BACKEND_SMTP_FROM_NAME", "西电树洞").strip() or "西电树洞"
+SMTP_USE_SSL = env_bool("BACKEND_SMTP_USE_SSL", True)
+SMTP_USE_STARTTLS = env_bool("BACKEND_SMTP_USE_STARTTLS", False)
+ALLOW_DEBUG_VERIFY_CODE = env_bool("BACKEND_ALLOW_DEBUG_VERIFY_CODE", False)
+INCLUDE_DEBUG_CODE_IN_RESPONSE = env_bool("BACKEND_INCLUDE_DEBUG_CODE", False)
+PASSWORD_RESET_CODE_PREFIX = "reset::"
+
+RATE_LIMIT_WINDOWS_SECONDS = {
+    "post": 3600,
+    "comment": 3600,
+    "message": 3600,
+    "upload": 3600,
+}
+RATE_LIMIT_EVENT_MAX = 300
+RATE_LIMIT_EVENTS: dict[tuple[str, str], deque[float]] = {}
+RATE_LIMIT_LOCK = threading.Lock()
+
+SPAM_REPEAT_REGEX = re.compile(r"(.)\1{8,}", re.DOTALL)
+
+SEED_POSTS = [
+    {
+        "title": "求助：图书馆哪里插座最多？",
+        "content": "这周赶大作业，想找一个相对安静而且插座多的位置，北校区优先。",
+        "channel": "求助问答",
+        "tags": ["学习", "北校区"],
+        "hasImage": False,
+        "status": "ongoing",
+        "allowComment": True,
+        "allowDm": True,
+        "authorAlias": "洞主-青橙",
+        "authorId": "seed-user-1",
+    },
+    {
+        "title": "找周末羽毛球搭子",
+        "content": "周六下午操场旁边羽毛球馆，水平一般，主打一起运动。",
+        "channel": "找搭子",
+        "tags": ["运动", "周末"],
+        "hasImage": True,
+        "status": "ongoing",
+        "allowComment": True,
+        "allowDm": True,
+        "authorAlias": "洞主-极光",
+        "authorId": "seed-user-1",
+    },
+    {
+        "title": "二手显示器出一个 24 寸",
+        "content": "毕业清东西，成色还不错，支持当面看货。",
+        "channel": "二手交易",
+        "tags": ["数码", "毕业季"],
+        "hasImage": True,
+        "status": "ongoing",
+        "allowComment": True,
+        "allowDm": True,
+        "authorAlias": "洞主-小行星",
+        "authorId": "seed-user-2",
+    },
+    {
+        "title": "吐槽：食堂晚高峰排队太久",
+        "content": "今天排了 25 分钟，想知道有没有错峰吃饭攻略。",
+        "channel": "吐槽日常",
+        "tags": ["食堂", "日常"],
+        "hasImage": False,
+        "status": "resolved",
+        "allowComment": True,
+        "allowDm": False,
+        "authorAlias": "洞主-银杏",
+        "authorId": "seed-user-2",
+    },
+]
+
+
+def now_utc() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def now_iso() -> str:
+    return now_utc().isoformat()
+
+
+def parse_iso(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value)
+    except ValueError:
+        return None
+
+
+def is_today_iso(value: str | None) -> bool:
+    dt = parse_iso(value)
+    if dt is None:
+        return False
+    return dt.astimezone(timezone.utc).date() == now_utc().date()
+
+
+def is_campus_email(email: str) -> bool:
+    lower = email.lower().strip()
+    return lower.endswith("@stu.xidian.edu.cn") or lower.endswith("@xidian.edu.cn")
+
+
+def random_code() -> str:
+    return "".join(random.choice("0123456789") for _ in range(6))
+
+
+def parse_bool(value: str | None) -> bool | None:
+    if value is None:
+        return None
+    lowered = value.strip().lower()
+    if lowered in {"1", "true", "yes"}:
+        return True
+    if lowered in {"0", "false", "no"}:
+        return False
+    return None
+
+
+def parse_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(x).strip() for x in value if str(x).strip()]
+    if isinstance(value, str):
+        return [x.strip() for x in value.split(",") if x.strip()]
+    return []
+
+
+def is_valid_student_id(student_id: str) -> bool:
+    return bool(re.fullmatch(r"[0-9A-Za-z]{6,20}", student_id.strip()))
+
+
+def student_id_from_email(email: str) -> str:
+    local = email.strip().split("@", 1)[0]
+    return local.strip()
+
+
+def normalize_avatar_url(value: str) -> str:
+    text = value.strip()
+    if not text:
+        return ""
+    lowered = text.lower()
+    if lowered.startswith("/api/storage/"):
+        return text
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        return text
+    return ""
+
+
+def extract_local_object_key_from_url(value: str) -> str:
+    text = value.strip()
+    if not text:
+        return ""
+    marker = "/api/storage/"
+    idx = text.find(marker)
+    if idx < 0:
+        return ""
+    key = text[idx + len(marker) :].strip().lstrip("/")
+    if not key or ".." in key:
+        return ""
+    return key
+
+
+def sanitize_alias(value: str, *, fallback: str = "匿名同学") -> str:
+    text = " ".join(value.strip().split())
+    if not text:
+        return fallback
+    if len(text) > 24:
+        return text[:24]
+    return text
+
+
+def password_reset_code_key(email: str) -> str:
+    return f"{PASSWORD_RESET_CODE_PREFIX}{email.strip().lower()}"
+
+
+def smtp_configured() -> bool:
+    return bool(SMTP_HOST and SMTP_PORT > 0 and SMTP_FROM_EMAIL)
+
+
+def verify_code_debug_enabled() -> bool:
+    return ALLOW_DEBUG_VERIFY_CODE or not smtp_configured()
+
+
+def is_email_not_found_error(error: Exception) -> bool:
+    if isinstance(error, smtplib.SMTPRecipientsRefused):
+        return True
+    if isinstance(error, smtplib.SMTPResponseException):
+        code = int(getattr(error, "smtp_code", 0) or 0)
+        raw = getattr(error, "smtp_error", b"")
+        if isinstance(raw, bytes):
+            msg = raw.decode("utf-8", errors="ignore").lower()
+        else:
+            msg = str(raw).lower()
+        if code in {550, 551, 553, 554}:
+            markers = (
+                "user unknown",
+                "unknown user",
+                "no such user",
+                "recipient address rejected",
+                "mailbox unavailable",
+                "not found",
+                "invalid recipient",
+            )
+            if any(marker in msg for marker in markers):
+                return True
+    text = str(error).lower()
+    return "user unknown" in text or "recipient address rejected" in text or "no such user" in text
+
+
+def verification_send_error_message(error: Exception) -> str:
+    if is_email_not_found_error(error):
+        return "该校园邮箱不存在或不可达，请检查邮箱是否真实有效"
+    return "验证码邮件发送失败，请稍后重试"
+
+
+def send_verification_email(*, to_email: str, code: str, expires_in_minutes: int = 10) -> None:
+    if not smtp_configured():
+        raise RuntimeError("邮件服务未配置，请设置 BACKEND_SMTP_* 环境变量")
+
+    msg = EmailMessage()
+    msg["Subject"] = "西电树洞邮箱验证码"
+    msg["From"] = email.utils.formataddr((SMTP_FROM_NAME, SMTP_FROM_EMAIL))
+    msg["To"] = to_email
+    msg.set_content(
+        (
+            "你好，\n\n"
+            "你的西电树洞验证码为："
+            f"{code}\n"
+            f"该验证码将在 {expires_in_minutes} 分钟后过期。\n\n"
+            "如果这不是你的操作，请忽略本邮件。"
+        )
+    )
+
+    timeout_seconds = 10
+    if SMTP_USE_SSL:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=timeout_seconds) as server:
+            if SMTP_USERNAME:
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(msg)
+        return
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=timeout_seconds) as server:
+        server.ehlo()
+        if SMTP_USE_STARTTLS:
+            server.starttls()
+            server.ehlo()
+        if SMTP_USERNAME:
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.send_message(msg)
+
+
+def send_password_reset_email(*, to_email: str, code: str, expires_in_minutes: int = 10) -> None:
+    if not smtp_configured():
+        raise RuntimeError("邮件服务未配置，请设置 BACKEND_SMTP_* 环境变量")
+
+    msg = EmailMessage()
+    msg["Subject"] = "西电树洞密码重置验证码"
+    msg["From"] = email.utils.formataddr((SMTP_FROM_NAME, SMTP_FROM_EMAIL))
+    msg["To"] = to_email
+    msg.set_content(
+        (
+            "你好，\n\n"
+            "你正在进行西电树洞密码重置，验证码为："
+            f"{code}\n"
+            f"该验证码将在 {expires_in_minutes} 分钟后过期。\n\n"
+            "如果这不是你的操作，请忽略本邮件。"
+        )
+    )
+
+    timeout_seconds = 10
+    if SMTP_USE_SSL:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=timeout_seconds) as server:
+            if SMTP_USERNAME:
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+            server.send_message(msg)
+        return
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=timeout_seconds) as server:
+        server.ehlo()
+        if SMTP_USE_STARTTLS:
+            server.starttls()
+            server.ehlo()
+        if SMTP_USERNAME:
+            server.login(SMTP_USERNAME, SMTP_PASSWORD)
+        server.send_message(msg)
+
+
+def decode_base64_payload(value: str) -> bytes:
+    text = value.strip()
+    if "," in text and "base64" in text[:64]:
+        text = text.split(",", 1)[1]
+    missing_padding = len(text) % 4
+    if missing_padding:
+        text += "=" * (4 - missing_padding)
+    return base64.b64decode(text, validate=False)
+
+
+def detect_image_type(data: bytes) -> str | None:
+    if len(data) < 12:
+        return None
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if data.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if data.startswith(b"GIF87a") or data.startswith(b"GIF89a"):
+        return "image/gif"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+def calc_sha256_hex(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def is_password_hashed(value: str | None) -> bool:
+    if not value:
+        return False
+    parts = value.split("$")
+    return len(parts) == 4 and parts[0] == PASSWORD_HASH_SCHEME
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(PASSWORD_SALT_BYTES)
+    digest = hashlib.pbkdf2_hmac(
+        "sha256",
+        password.encode("utf-8"),
+        salt,
+        PASSWORD_HASH_ITERATIONS,
+    )
+    return (
+        f"{PASSWORD_HASH_SCHEME}"
+        f"${PASSWORD_HASH_ITERATIONS}"
+        f"${salt.hex()}"
+        f"${digest.hex()}"
+    )
+
+
+def verify_password(stored: str | None, candidate: str) -> bool:
+    if not stored:
+        return False
+
+    # Legacy plain-text support during migration.
+    if not is_password_hashed(stored):
+        return hmac.compare_digest(stored, candidate)
+
+    parts = stored.split("$")
+    if len(parts) != 4 or parts[0] != PASSWORD_HASH_SCHEME:
+        return False
+
+    try:
+        iterations = int(parts[1])
+        salt = bytes.fromhex(parts[2])
+        expected = bytes.fromhex(parts[3])
+    except (TypeError, ValueError):
+        return False
+
+    actual = hashlib.pbkdf2_hmac(
+        "sha256",
+        candidate.encode("utf-8"),
+        salt,
+        iterations,
+    )
+    return hmac.compare_digest(actual, expected)
+
+
+def get_setting_int(db: dict[str, Any], key: str, default: int, *, minimum: int = 1) -> int:
+    settings = db.get("settings", {})
+    if isinstance(settings, dict):
+        try:
+            return max(minimum, int(settings.get(key, default)))
+        except (TypeError, ValueError):
+            return max(minimum, default)
+    return max(minimum, default)
+
+
+def ensure_admin_auth_settings(db: dict[str, Any]) -> bool:
+    settings = db.get("settings")
+    if not isinstance(settings, dict):
+        settings = {}
+        db["settings"] = settings
+
+    changed = False
+    username = str(settings.get(ADMIN_USERNAME_SETTING_KEY, "")).strip()
+    if not username:
+        settings[ADMIN_USERNAME_SETTING_KEY] = DEFAULT_ADMIN_USERNAME
+        changed = True
+
+    stored_password = str(settings.get(ADMIN_PASSWORD_HASH_SETTING_KEY, "")).strip()
+    if not stored_password:
+        settings[ADMIN_PASSWORD_HASH_SETTING_KEY] = hash_password(DEFAULT_ADMIN_PASSWORD)
+        changed = True
+    elif not is_password_hashed(stored_password):
+        settings[ADMIN_PASSWORD_HASH_SETTING_KEY] = hash_password(stored_password)
+        changed = True
+
+    return changed
+
+
+def get_admin_auth_credentials(db: dict[str, Any]) -> tuple[str, str]:
+    ensure_admin_auth_settings(db)
+    settings = db.get("settings", {})
+    username = str(settings.get(ADMIN_USERNAME_SETTING_KEY, DEFAULT_ADMIN_USERNAME)).strip() or DEFAULT_ADMIN_USERNAME
+    password_hash = str(settings.get(ADMIN_PASSWORD_HASH_SETTING_KEY, "")).strip()
+    if not password_hash:
+        password_hash = hash_password(DEFAULT_ADMIN_PASSWORD)
+        settings[ADMIN_PASSWORD_HASH_SETTING_KEY] = password_hash
+    return username, password_hash
+
+
+def consume_rate_limit(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    action: str,
+    setting_key: str,
+    default_limit: int,
+) -> tuple[bool, int]:
+    limit = get_setting_int(db, setting_key, default_limit, minimum=1)
+    window_seconds = RATE_LIMIT_WINDOWS_SECONDS.get(action, 3600)
+    now = time.time()
+    key = (user_id, action)
+
+    with RATE_LIMIT_LOCK:
+        queue = RATE_LIMIT_EVENTS.setdefault(key, deque())
+        while queue and now - queue[0] >= window_seconds:
+            queue.popleft()
+
+        if len(queue) >= limit:
+            retry_after = max(1, int(window_seconds - (now - queue[0])))
+            return False, retry_after
+
+        queue.append(now)
+        while len(queue) > RATE_LIMIT_EVENT_MAX:
+            queue.popleft()
+        return True, 0
+
+
+def send_rate_limit_error(
+    handler: BaseHTTPRequestHandler,
+    *,
+    action_text: str,
+    retry_after_seconds: int,
+) -> None:
+    send_json(
+        handler,
+        HTTPStatus.TOO_MANY_REQUESTS,
+        {
+            "message": f"{action_text}过于频繁，请在 {retry_after_seconds} 秒后重试",
+            "data": {"retryAfterSeconds": retry_after_seconds},
+        },
+    )
+
+
+def assess_text_risk(db: dict[str, Any], text: str) -> tuple[bool, bool, list[str]]:
+    normalized = text.strip()
+    if not normalized:
+        return False, False, []
+
+    reasons: list[str] = []
+    high_risk = False
+
+    hit_words = [
+        str(word).strip()
+        for word in db.get("sensitiveWords", [])
+        if str(word).strip() and str(word).strip() in normalized
+    ]
+    if hit_words:
+        reasons.append(f"命中敏感词: {','.join(hit_words[:3])}")
+
+    if SPAM_REPEAT_REGEX.search(normalized):
+        reasons.append("疑似重复刷屏文本")
+    if len(normalized) > 5000:
+        reasons.append("文本长度异常")
+
+    risk_marked = bool(reasons)
+    return risk_marked, high_risk, reasons
+
+
+def read_json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+    length_str = handler.headers.get("Content-Length", "0")
+    try:
+        length = int(length_str)
+    except ValueError:
+        length = 0
+    if length <= 0:
+        return {}
+
+    raw = handler.rfile.read(length)
+    if not raw:
+        return {}
+
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except json.JSONDecodeError:
+        return {}
+
+    if isinstance(data, dict):
+        return data
+    return {}
+
+
+def send_json(handler: BaseHTTPRequestHandler, status: int, payload: dict[str, Any]) -> None:
+    body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    handler.send_response(status)
+    handler.send_header("Content-Type", "application/json; charset=utf-8")
+    handler.send_header("Content-Length", str(len(body)))
+    handler.send_header("Access-Control-Allow-Origin", "*")
+    handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    handler.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+    handler.end_headers()
+    handler.wfile.write(body)
+
+
+def json_error(handler: BaseHTTPRequestHandler, status: int, message: str) -> None:
+    send_json(handler, status, {"message": message})
+
+
+def send_binary(handler: BaseHTTPRequestHandler, status: int, data: bytes, content_type: str) -> None:
+    handler.send_response(status)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(data)))
+    handler.send_header("Access-Control-Allow-Origin", "*")
+    handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    handler.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+    handler.end_headers()
+    handler.wfile.write(data)
+
+
+def send_static_file(handler: BaseHTTPRequestHandler, file_path: Path) -> None:
+    try:
+        data = file_path.read_bytes()
+    except OSError:
+        json_error(handler, HTTPStatus.NOT_FOUND, "Not Found")
+        return
+
+    content_type, _ = mimetypes.guess_type(str(file_path))
+    if file_path.suffix == ".wasm":
+        content_type = "application/wasm"
+    if not content_type:
+        content_type = "application/octet-stream"
+
+    handler.send_response(HTTPStatus.OK)
+    handler.send_header("Content-Type", content_type)
+    handler.send_header("Content-Length", str(len(data)))
+    handler.send_header("Access-Control-Allow-Origin", "*")
+    handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    handler.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+    # Beta deployment prefers freshness over caching to avoid stale Flutter bundles.
+    handler.send_header("Cache-Control", "no-cache")
+    handler.end_headers()
+    handler.wfile.write(data)
+
+
+def resolve_web_asset_path(path: str) -> Path | None:
+    raw = unquote(path or "/")
+    normalized = raw.lstrip("/")
+    if not normalized:
+        target = WEB_ROOT_DIR / "index.html"
+    else:
+        target = (WEB_ROOT_DIR / normalized).resolve()
+    try:
+        target.relative_to(WEB_ROOT_DIR)
+    except ValueError:
+        return None
+    if target.is_dir():
+        target = target / "index.html"
+    return target
+
+
+def should_fallback_to_spa(path: str) -> bool:
+    normalized = unquote(path or "/").lstrip("/")
+    if not normalized:
+        return True
+    last = normalized.split("/")[-1]
+    return "." not in last
+
+
+def default_db() -> dict[str, Any]:
+    created = now_iso()
+    db: dict[str, Any] = {
+        "seq": {
+            "user": 1,
+            "post": 0,
+            "comment": 0,
+            "report": 0,
+            "request": 0,
+            "conversation": 0,
+            "audit": 0,
+            "upload": 0,
+        },
+        "users": [
+            {
+                "id": DEMO_USER_ID,
+                "email": DEMO_USER_EMAIL,
+                "password": hash_password(DEMO_USER_PASSWORD),
+                "alias": "洞主-雾蓝",
+                "nickname": "洞主-雾蓝",
+                "studentId": "2023000001",
+                "avatarUrl": "",
+                "verified": True,
+                "verifiedAt": created,
+                "allowStrangerDm": True,
+                "showContactable": True,
+                "createdAt": created,
+                "deleted": False,
+                "isAdmin": False,
+                "banned": False,
+                "muted": False,
+            },
+            {
+                "id": "seed-user-1",
+                "email": "seed1@xidian.edu.cn",
+                "password": "",
+                "alias": "洞主-极光",
+                "nickname": "洞主-极光",
+                "studentId": "2023000002",
+                "avatarUrl": "",
+                "verified": True,
+                "verifiedAt": created,
+                "allowStrangerDm": False,
+                "showContactable": False,
+                "createdAt": created,
+                "deleted": False,
+                "isAdmin": False,
+                "banned": False,
+                "muted": False,
+            },
+            {
+                "id": "seed-user-2",
+                "email": "seed2@xidian.edu.cn",
+                "password": "",
+                "alias": "洞主-银杏",
+                "nickname": "洞主-银杏",
+                "studentId": "2023000003",
+                "avatarUrl": "",
+                "verified": True,
+                "verifiedAt": created,
+                "allowStrangerDm": False,
+                "showContactable": False,
+                "createdAt": created,
+                "deleted": False,
+                "isAdmin": False,
+                "banned": False,
+                "muted": False,
+            },
+        ],
+        "sessions": {},
+        "emailCodes": {},
+        "channels": list(DEFAULT_CHANNELS),
+        "tags": list(DEFAULT_TAGS),
+        "sensitiveWords": list(DEFAULT_SENSITIVE_WORDS),
+        "settings": {
+            **dict(DEFAULT_SETTINGS),
+            ADMIN_USERNAME_SETTING_KEY: DEFAULT_ADMIN_USERNAME,
+            ADMIN_PASSWORD_HASH_SETTING_KEY: hash_password(DEFAULT_ADMIN_PASSWORD),
+        },
+        "posts": [],
+        "comments": [],
+        "likes": [],
+        "favorites": [],
+        "reports": [],
+        "dmRequests": [],
+        "conversations": [],
+        "auditLogs": [],
+        "mediaUploads": [],
+    }
+
+    for row in SEED_POSTS:
+        db["seq"]["post"] += 1
+        post_id = f"p{db['seq']['post']}"
+        db["posts"].append(
+            {
+                "id": post_id,
+                "title": row["title"],
+                "content": row["content"],
+                "channel": row["channel"],
+                "tags": row["tags"],
+                "hasImage": row["hasImage"],
+                "status": row["status"],
+                "allowComment": row["allowComment"],
+                "allowDm": row["allowDm"],
+                "authorAlias": row["authorAlias"],
+                "authorId": row["authorId"],
+                "createdAt": created,
+                "updatedAt": created,
+                "deleted": False,
+                "reviewStatus": "approved",
+                "riskMarked": False,
+            }
+        )
+
+    db["favorites"].append({"userId": "u1", "postId": "p1"})
+    db["favorites"].append({"userId": "u1", "postId": "p2"})
+
+    db["dmRequests"].append(
+        {
+            "id": "req1",
+            "toUserId": "u1",
+            "fromAlias": "同学-海盐",
+            "fromUserId": "seed-user-1",
+            "fromAvatarUrl": "",
+            "reason": "想咨询图书馆座位信息",
+            "createdAt": created,
+            "status": "pending",
+        }
+    )
+    db["dmRequests"].append(
+        {
+            "id": "req2",
+            "toUserId": "u1",
+            "fromAlias": "同学-留白",
+            "fromUserId": "seed-user-2",
+            "fromAvatarUrl": "",
+            "reason": "想问二手显示器细节",
+            "createdAt": created,
+            "status": "pending",
+        }
+    )
+    db["seq"]["request"] = 2
+
+    db["conversations"].append(
+        {
+            "id": "c1",
+            "userId": "u1",
+            "peerUserId": "seed-user-1",
+            "name": "洞主-极光",
+            "avatarUrl": "",
+            "lastMessage": "谢谢，已经找到位置了。",
+            "updatedAt": created,
+        }
+    )
+    db["seq"]["conversation"] = 1
+
+    db["comments"].append(
+        {
+            "id": "cm1",
+            "postId": "p1",
+            "userId": "seed-user-2",
+            "authorAlias": "匿名同学-1",
+            "content": "教研楼三层东边插座比较多。",
+            "createdAt": created,
+            "deleted": False,
+            "likeCount": 0,
+            "reviewStatus": "approved",
+            "riskMarked": False,
+        }
+    )
+    db["comments"].append(
+        {
+            "id": "cm2",
+            "postId": "p1",
+            "userId": "seed-user-1",
+            "authorAlias": "匿名同学-2",
+            "content": "新图二层靠窗位置不错，但中午人多。",
+            "createdAt": created,
+            "deleted": False,
+            "likeCount": 0,
+            "reviewStatus": "approved",
+            "riskMarked": False,
+        }
+    )
+    db["seq"]["comment"] = 2
+
+    db["reports"].append(
+        {
+            "id": "r1",
+            "userId": "u1",
+            "reporterAlias": "洞主-雾蓝",
+            "targetType": "post",
+            "targetId": "p2",
+            "reason": "广告引流",
+            "description": "疑似卖课引流",
+            "status": "pending",
+            "result": "",
+            "createdAt": created,
+            "handledAt": "",
+            "handledBy": "",
+        }
+    )
+    db["seq"]["report"] = 1
+
+    return db
+
+
+def ensure_db() -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    first_boot = not SQL_DB_FILE.exists()
+    REPOSITORY.initialize(default_db)
+
+    if first_boot and LEGACY_DB_FILE.exists():
+        try:
+            with LEGACY_DB_FILE.open("r", encoding="utf-8") as f:
+                legacy_db = json.load(f)
+            if isinstance(legacy_db, dict):
+                migrate_db(legacy_db)
+                REPOSITORY.save_state(legacy_db)
+        except Exception:
+            # Keep seeded SQL database when legacy import fails.
+            pass
+
+
+def save_db(db: dict[str, Any]) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    REPOSITORY.save_state(db)
+
+
+def migrate_db(db: dict[str, Any]) -> bool:
+    changed = False
+
+    if "channels" not in db:
+        db["channels"] = list(DEFAULT_CHANNELS)
+        changed = True
+    elif not isinstance(db.get("channels"), list):
+        db["channels"] = list(DEFAULT_CHANNELS)
+        changed = True
+    else:
+        for default_channel in DEFAULT_CHANNELS:
+            if default_channel not in db["channels"]:
+                db["channels"].append(default_channel)
+                changed = True
+    if "tags" not in db:
+        db["tags"] = list(DEFAULT_TAGS)
+        changed = True
+    if "sensitiveWords" not in db:
+        db["sensitiveWords"] = list(DEFAULT_SENSITIVE_WORDS)
+        changed = True
+    if "settings" not in db or not isinstance(db["settings"], dict):
+        db["settings"] = dict(DEFAULT_SETTINGS)
+        changed = True
+    for key, value in DEFAULT_SETTINGS.items():
+        if key not in db["settings"]:
+            db["settings"][key] = value
+            changed = True
+    if ensure_admin_auth_settings(db):
+        changed = True
+
+    if "auditLogs" not in db:
+        db["auditLogs"] = []
+        changed = True
+    if "mediaUploads" not in db:
+        db["mediaUploads"] = []
+        changed = True
+    if "emailCodes" not in db or not isinstance(db.get("emailCodes"), dict):
+        db["emailCodes"] = {}
+        changed = True
+
+    if "seq" not in db:
+        db["seq"] = {}
+        changed = True
+    for key in ["user", "post", "comment", "report", "request", "conversation", "audit", "upload"]:
+        if key not in db["seq"]:
+            db["seq"][key] = 0
+            changed = True
+
+    for user in db.get("users", []):
+        if "nickname" not in user or not str(user.get("nickname", "")).strip():
+            user["nickname"] = sanitize_alias(str(user.get("alias", "")), fallback="匿名同学")
+            changed = True
+        if "alias" not in user or not str(user.get("alias", "")).strip():
+            user["alias"] = sanitize_alias(str(user.get("nickname", "")), fallback="匿名同学")
+            changed = True
+        if "studentId" not in user or not str(user.get("studentId", "")).strip():
+            user["studentId"] = student_id_from_email(str(user.get("email", "")))
+            changed = True
+        if "avatarUrl" not in user:
+            user["avatarUrl"] = ""
+            changed = True
+        else:
+            normalized_avatar = normalize_avatar_url(str(user.get("avatarUrl", "")))
+            if normalized_avatar != str(user.get("avatarUrl", "")):
+                user["avatarUrl"] = normalized_avatar
+                changed = True
+        if "isAdmin" not in user:
+            user["isAdmin"] = False
+            changed = True
+        if "banned" not in user:
+            user["banned"] = False
+            changed = True
+        if "muted" not in user:
+            user["muted"] = False
+            changed = True
+        if "deleted" not in user:
+            user["deleted"] = False
+            changed = True
+        current_password = str(user.get("password", ""))
+        if current_password and not is_password_hashed(current_password):
+            user["password"] = hash_password(current_password)
+            changed = True
+
+    demo_user: dict[str, Any] | None = None
+    for user in db.get("users", []):
+        if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
+            demo_user = user
+            break
+    if demo_user is not None:
+        if demo_user.get("deleted"):
+            demo_user["deleted"] = False
+            changed = True
+        if demo_user.get("banned"):
+            demo_user["banned"] = False
+            changed = True
+        if demo_user.get("muted"):
+            demo_user["muted"] = False
+            changed = True
+        if not str(demo_user.get("password", "")).strip():
+            demo_user["password"] = hash_password(DEMO_USER_PASSWORD)
+            changed = True
+
+    for post in db.get("posts", []):
+        if "tags" not in post or not isinstance(post.get("tags"), list):
+            post["tags"] = []
+            changed = True
+        if "hasImage" not in post:
+            post["hasImage"] = False
+            changed = True
+        if "reviewStatus" not in post:
+            post["reviewStatus"] = "approved"
+            changed = True
+        if "riskMarked" not in post:
+            post["riskMarked"] = False
+            changed = True
+
+    for comment in db.get("comments", []):
+        if "reviewStatus" not in comment:
+            comment["reviewStatus"] = "approved"
+            changed = True
+        if "riskMarked" not in comment:
+            comment["riskMarked"] = False
+            changed = True
+        if "likeCount" not in comment:
+            comment["likeCount"] = 0
+            changed = True
+        if "parentId" not in comment:
+            comment["parentId"] = ""
+            changed = True
+
+    for report in db.get("reports", []):
+        if "status" not in report:
+            report["status"] = "pending"
+            changed = True
+        if "result" not in report:
+            report["result"] = ""
+            changed = True
+        if "reporterAlias" not in report:
+            uid = report.get("userId")
+            alias = "匿名同学"
+            for user in db.get("users", []):
+                if user.get("id") == uid:
+                    alias = user_nickname(user)
+                    break
+            report["reporterAlias"] = alias
+            changed = True
+        if "handledAt" not in report:
+            report["handledAt"] = ""
+            changed = True
+        if "handledBy" not in report:
+            report["handledBy"] = ""
+            changed = True
+
+    for dm_request in db.get("dmRequests", []):
+        if "fromUserId" not in dm_request:
+            dm_request["fromUserId"] = ""
+            changed = True
+        if "fromAvatarUrl" not in dm_request:
+            dm_request["fromAvatarUrl"] = ""
+            changed = True
+
+    for conversation in db.get("conversations", []):
+        if "peerUserId" not in conversation:
+            conversation["peerUserId"] = ""
+            changed = True
+        if "avatarUrl" not in conversation:
+            conversation["avatarUrl"] = ""
+            changed = True
+
+    for upload in db.get("mediaUploads", []):
+        if "moderationReason" not in upload:
+            upload["moderationReason"] = ""
+            changed = True
+        if "reviewNote" not in upload:
+            upload["reviewNote"] = ""
+            changed = True
+        if "reviewedBy" not in upload:
+            upload["reviewedBy"] = ""
+            changed = True
+        if "reviewedAt" not in upload:
+            upload["reviewedAt"] = ""
+            changed = True
+        if "postId" not in upload:
+            upload["postId"] = ""
+            changed = True
+        if "deleted" not in upload:
+            upload["deleted"] = False
+            changed = True
+        if "status" not in upload:
+            upload["status"] = "pending"
+            changed = True
+
+    for post in db.get("posts", []):
+        post_id = str(post.get("id", "")).strip()
+        if not post_id:
+            continue
+        has_image = any(
+            (not upload.get("deleted"))
+            and upload.get("postId") == post_id
+            and str(upload.get("status", "pending")).lower() in {"pending", "approved", "risk"}
+            for upload in db.get("mediaUploads", [])
+        )
+        if bool(post.get("hasImage", False)) != has_image:
+            post["hasImage"] = has_image
+            changed = True
+
+    return changed
+
+
+def load_db() -> dict[str, Any]:
+    ensure_db()
+    db = REPOSITORY.load_state()
+    if migrate_db(db):
+        save_db(db)
+    return db
+
+
+def next_id(db: dict[str, Any], key: str, prefix: str) -> str:
+    db["seq"][key] += 1
+    return f"{prefix}{db['seq'][key]}"
+
+
+def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -> None:
+    db["auditLogs"].append(
+        {
+            "id": next_id(db, "audit", "a"),
+            "actorId": actor_id,
+            "action": action,
+            "detail": detail,
+            "createdAt": now_iso(),
+        }
+    )
+
+
+def find_user_by_email(
+    db: dict[str, Any],
+    email: str,
+    *,
+    include_deleted: bool = False,
+) -> dict[str, Any] | None:
+    target = email.lower().strip()
+    for user in db["users"]:
+        if user.get("deleted") and not include_deleted:
+            continue
+        if user.get("email", "").lower().strip() == target:
+            return user
+    return None
+
+
+def find_user_by_student_id(
+    db: dict[str, Any],
+    student_id: str,
+    *,
+    include_deleted: bool = False,
+) -> dict[str, Any] | None:
+    target = student_id.strip()
+    if not target:
+        return None
+    for user in db["users"]:
+        if user.get("deleted") and not include_deleted:
+            continue
+        if str(user.get("studentId", "")).strip() == target:
+            return user
+    return None
+
+
+def find_user_by_id(db: dict[str, Any], user_id: str) -> dict[str, Any] | None:
+    for user in db["users"]:
+        if user.get("deleted"):
+            continue
+        if user.get("id") == user_id:
+            return user
+    return None
+
+
+def user_nickname(user: dict[str, Any] | None) -> str:
+    if not user:
+        return "匿名同学"
+    nickname = sanitize_alias(str(user.get("nickname", "")), fallback="")
+    if nickname:
+        return nickname
+    return sanitize_alias(str(user.get("alias", "")), fallback="匿名同学")
+
+
+def user_avatar_url(user: dict[str, Any] | None) -> str:
+    if not user:
+        return ""
+    return normalize_avatar_url(str(user.get("avatarUrl", "")))
+
+
+def auth_user(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
+    auth_header = handler.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None, None
+
+    token = auth_header[7:].strip()
+    if not token:
+        return None, None
+
+    user_id = db["sessions"].get(token)
+    if not user_id:
+        return None, token
+
+    user = find_user_by_id(db, user_id)
+    return user, token
+
+
+def auth_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
+    auth_header = handler.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return None, None
+
+    token = auth_header[7:].strip()
+    if not token:
+        return None, None
+
+    with ADMIN_SESSION_LOCK:
+        username = ADMIN_SESSIONS.get(token)
+
+    if not username:
+        return None, token
+
+    current_username, _ = get_admin_auth_credentials(db)
+    if username != current_username:
+        with ADMIN_SESSION_LOCK:
+            ADMIN_SESSIONS.pop(token, None)
+        return None, token
+
+    return {"id": "", "username": username, "isAdmin": True}, token
+
+
+def iso_to_time_text(value: str | None) -> str:
+    if not value:
+        return "-"
+    dt = parse_iso(value)
+    if dt is None:
+        return value
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M")
+
+
+def post_counts(db: dict[str, Any], post_id: str) -> tuple[int, int, int]:
+    comment_count = sum(1 for c in db["comments"] if c.get("postId") == post_id and not c.get("deleted"))
+    like_count = sum(1 for x in db["likes"] if x.get("postId") == post_id)
+    favorite_count = sum(1 for x in db["favorites"] if x.get("postId") == post_id)
+    return comment_count, like_count, favorite_count
+
+
+def list_post_images(
+    db: dict[str, Any],
+    post_id: str,
+    *,
+    include_unapproved: bool = False,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for upload in db.get("mediaUploads", []):
+        if upload.get("deleted"):
+            continue
+        if upload.get("postId") != post_id:
+            continue
+        status = str(upload.get("status", "pending")).lower()
+        if not include_unapproved and status != "approved":
+            continue
+        rows.append(
+            {
+                "id": upload.get("id", ""),
+                "url": upload.get("url", ""),
+                "status": status,
+                "contentType": upload.get("contentType", ""),
+                "sizeBytes": int(upload.get("sizeBytes", 0)),
+            }
+        )
+    rows.sort(key=lambda x: str(x.get("id", "")))
+    return rows
+
+
+def recalc_post_has_image(db: dict[str, Any], post_id: str) -> bool:
+    post = next((p for p in db["posts"] if p.get("id") == post_id), None)
+    if post is None:
+        return False
+
+    has_image = any(
+        (not upload.get("deleted"))
+        and upload.get("postId") == post_id
+        and str(upload.get("status", "pending")).lower() in {"pending", "approved", "risk"}
+        for upload in db.get("mediaUploads", [])
+    )
+    if bool(post.get("hasImage", False)) != has_image:
+        post["hasImage"] = has_image
+        post["updatedAt"] = now_iso()
+    return has_image
+
+
+def serialize_post(
+    db: dict[str, Any],
+    post: dict[str, Any],
+    include_admin_fields: bool = False,
+    include_unapproved_images: bool = False,
+    viewer_user_id: str = "",
+) -> dict[str, Any]:
+    comment_count, like_count, favorite_count = post_counts(db, post["id"])
+    liked = bool(
+        viewer_user_id
+        and any(
+            x
+            for x in db["likes"]
+            if x.get("userId") == viewer_user_id and x.get("postId") == post["id"]
+        )
+    )
+    favorited = bool(
+        viewer_user_id
+        and any(
+            x
+            for x in db["favorites"]
+            if x.get("userId") == viewer_user_id and x.get("postId") == post["id"]
+        )
+    )
+    images = list_post_images(db, post.get("id", ""), include_unapproved=include_unapproved_images)
+    data: dict[str, Any] = {
+        "id": post["id"],
+        "title": post.get("title", ""),
+        "content": post.get("content", ""),
+        "channel": post.get("channel", "未分类"),
+        "tags": post.get("tags", []),
+        "authorAlias": post.get("authorAlias", "匿名同学"),
+        "createdAt": post.get("createdAt", now_iso()),
+        "hasImage": bool(post.get("hasImage", False)) or bool(images),
+        "images": images,
+        "commentCount": comment_count,
+        "likeCount": like_count,
+        "favoriteCount": favorite_count,
+        "liked": liked,
+        "favorited": favorited,
+        "status": post.get("status", "ongoing"),
+        "allowComment": bool(post.get("allowComment", True)),
+        "allowDm": bool(post.get("allowDm", False)),
+    }
+    if include_admin_fields:
+        data["reviewStatus"] = post.get("reviewStatus", "approved")
+        data["riskMarked"] = bool(post.get("riskMarked", False))
+        data["authorId"] = post.get("authorId", "")
+    return data
+
+
+def list_posts(db: dict[str, Any], include_rejected: bool = False) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for post in db["posts"]:
+        if post.get("deleted"):
+            continue
+        if not include_rejected and post.get("reviewStatus") == "rejected":
+            continue
+        rows.append(post)
+    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return rows
+
+
+def list_comments(db: dict[str, Any], include_rejected: bool = False) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for comment in db["comments"]:
+        if comment.get("deleted"):
+            continue
+        if not include_rejected and comment.get("reviewStatus") == "rejected":
+            continue
+        rows.append(comment)
+    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    return rows
+
+
+def target_owner(db: dict[str, Any], target_type: str, target_id: str) -> str | None:
+    if target_type == "post":
+        post = next((p for p in db["posts"] if p.get("id") == target_id), None)
+        return post.get("authorId") if post else None
+    if target_type == "comment":
+        comment = next((c for c in db["comments"] if c.get("id") == target_id), None)
+        return comment.get("userId") if comment else None
+    return None
+
+
+def require_authorized_user(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None]:
+    user, token = auth_user(handler, db)
+    if user is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
+        return None, token
+    if user.get("banned"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
+        return None, token
+    return user, token
+
+
+def require_admin_user(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None]:
+    admin, token = auth_admin(handler, db)
+    if admin is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员未登录或登录已过期")
+        return None, token
+    return admin, token
+
+
+def build_overview(db: dict[str, Any]) -> dict[str, Any]:
+    today_new_users = sum(1 for u in db["users"] if not u.get("deleted") and is_today_iso(u.get("createdAt")))
+    today_posts = sum(1 for p in db["posts"] if not p.get("deleted") and is_today_iso(p.get("createdAt")))
+    today_comments = sum(1 for c in db["comments"] if not c.get("deleted") and is_today_iso(c.get("createdAt")))
+    today_reports = sum(1 for r in db["reports"] if is_today_iso(r.get("createdAt")))
+    pending_text_reviews = sum(
+        1 for p in db["posts"] if not p.get("deleted") and p.get("reviewStatus") == "pending"
+    ) + sum(1 for c in db["comments"] if not c.get("deleted") and c.get("reviewStatus") == "pending")
+    pending_image_reviews = sum(
+        1
+        for upload in db.get("mediaUploads", [])
+        if not upload.get("deleted") and str(upload.get("status", "pending")).lower() == "pending"
+    )
+    pending_reviews = pending_text_reviews + pending_image_reviews
+    banned_users = sum(1 for u in db["users"] if not u.get("deleted") and u.get("banned"))
+
+    return {
+        "todayNewUsers": today_new_users,
+        "todayPosts": today_posts,
+        "todayComments": today_comments,
+        "todayReports": today_reports,
+        "pendingReviews": pending_reviews,
+        "pendingTextReviews": pending_text_reviews,
+        "pendingImageReviews": pending_image_reviews,
+        "bannedUsers": banned_users,
+    }
+
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+
+
+def get_image_max_bytes(db: dict[str, Any]) -> int:
+    settings = db.get("settings", {})
+    mb = DEFAULT_SETTINGS["imageMaxMB"]
+    if isinstance(settings, dict):
+        raw = settings.get("imageMaxMB")
+        try:
+            mb = max(1, int(raw))
+        except (TypeError, ValueError):
+            mb = DEFAULT_SETTINGS["imageMaxMB"]
+    return mb * 1024 * 1024
+
+
+def public_system_settings(db: dict[str, Any]) -> dict[str, Any]:
+    settings = db.get("settings", {})
+    if not isinstance(settings, dict):
+        return dict(DEFAULT_SETTINGS)
+    return {
+        "postRateLimit": get_setting_int(db, "postRateLimit", DEFAULT_SETTINGS["postRateLimit"]),
+        "commentRateLimit": get_setting_int(db, "commentRateLimit", DEFAULT_SETTINGS["commentRateLimit"]),
+        "messageRateLimit": get_setting_int(db, "messageRateLimit", DEFAULT_SETTINGS["messageRateLimit"]),
+        "imageMaxMB": get_setting_int(db, "imageMaxMB", DEFAULT_SETTINGS["imageMaxMB"]),
+    }
+
+
+def moderate_image_upload(
+    *,
+    file_name: str,
+    content_type: str,
+    size_bytes: int,
+    db: dict[str, Any],
+) -> tuple[str, str]:
+    if content_type not in ALLOWED_IMAGE_TYPES:
+        return "rejected", f"不支持的图片格式：{content_type}"
+
+    max_bytes = get_image_max_bytes(db)
+    if size_bytes > max_bytes:
+        return "rejected", f"图片超出大小限制（最大 {max_bytes // (1024 * 1024)}MB）"
+
+    lowered_name = file_name.lower()
+    hit_words = [word for word in db.get("sensitiveWords", []) if str(word).strip() and str(word) in lowered_name]
+    if hit_words:
+        return "risk", f"命中敏感词：{','.join(hit_words[:3])}"
+
+    return "pending", "等待管理员审核"
+
+
+def get_upload_by_id(db: dict[str, Any], upload_id: str) -> dict[str, Any] | None:
+    for row in db.get("mediaUploads", []):
+        if row.get("id") == upload_id:
+            return row
+    return None
+
+
+def serialize_upload(
+    db: dict[str, Any],
+    upload: dict[str, Any],
+    *,
+    include_admin_fields: bool = False,
+) -> dict[str, Any]:
+    uploader = find_user_by_id(db, str(upload.get("uploaderId", "")))
+    data: dict[str, Any] = {
+        "id": upload.get("id", ""),
+        "url": upload.get("url", ""),
+        "objectKey": upload.get("objectKey", ""),
+        "fileName": upload.get("fileName", ""),
+        "contentType": upload.get("contentType", ""),
+        "sizeBytes": int(upload.get("sizeBytes", 0)),
+        "sha256": upload.get("sha256", ""),
+        "status": upload.get("status", "pending"),
+        "moderationReason": upload.get("moderationReason", ""),
+        "createdAt": upload.get("createdAt", ""),
+        "postId": upload.get("postId", ""),
+        "uploaderId": upload.get("uploaderId", ""),
+        "uploaderAlias": user_nickname(uploader),
+    }
+    if include_admin_fields:
+        data["reviewNote"] = upload.get("reviewNote", "")
+        data["reviewedBy"] = upload.get("reviewedBy", "")
+        data["reviewedAt"] = upload.get("reviewedAt", "")
+        data["deleted"] = bool(upload.get("deleted", False))
+    return data
+
+
+class TreeholeHandler(BaseHTTPRequestHandler):
+    server_version = "XduTreeholeBackend/0.2"
+
+    def do_OPTIONS(self) -> None:  # noqa: N802
+        send_json(self, HTTPStatus.OK, {"message": "ok"})
+
+    def do_GET(self) -> None:  # noqa: N802
+        self._handle("GET")
+
+    def do_POST(self) -> None:  # noqa: N802
+        self._handle("POST")
+
+    def do_PATCH(self) -> None:  # noqa: N802
+        self._handle("PATCH")
+
+    def do_DELETE(self) -> None:  # noqa: N802
+        self._handle("DELETE")
+
+    def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
+        return
+
+    def _handle(self, method: str) -> None:
+        try:
+            parsed = urlparse(self.path)
+            path = parsed.path
+            query = parse_qs(parsed.query)
+            if not path.startswith("/api"):
+                if method == "GET":
+                    self._handle_web_get(path)
+                    return
+                json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+                return
+
+            if method == "GET":
+                self._handle_get(path, query)
+                return
+            if method == "POST":
+                self._handle_post(path)
+                return
+            if method == "PATCH":
+                self._handle_patch(path)
+                return
+            if method == "DELETE":
+                self._handle_delete(path)
+                return
+
+            json_error(self, HTTPStatus.METHOD_NOT_ALLOWED, "Method not allowed")
+        except Exception as error:  # pragma: no cover
+            json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, f"Internal server error: {error}")
+
+    def _handle_web_get(self, path: str) -> None:
+        index_file = WEB_ROOT_DIR / "index.html"
+        if not WEB_ROOT_DIR.exists() or not index_file.exists():
+            json_error(
+                self,
+                HTTPStatus.NOT_FOUND,
+                f"Web bundle not found, run flutter build web first ({WEB_ROOT_DIR})",
+            )
+            return
+
+        target = resolve_web_asset_path(path)
+        if target and target.exists() and target.is_file():
+            send_static_file(self, target)
+            return
+
+        if should_fallback_to_spa(path):
+            send_static_file(self, index_file)
+            return
+
+        json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+
+    def _handle_get(self, path: str, query: dict[str, list[str]]) -> None:
+        if path.startswith("/api/storage/"):
+            object_key = path[len("/api/storage/") :].strip("/")
+            if not object_key:
+                json_error(self, HTTPStatus.NOT_FOUND, "文件不存在")
+                return
+            try:
+                result = OBJECT_STORAGE.get_bytes(object_key)
+            except ValueError:
+                json_error(self, HTTPStatus.BAD_REQUEST, "非法文件路径")
+                return
+            if result is None:
+                json_error(self, HTTPStatus.NOT_FOUND, "文件不存在")
+                return
+            data, content_type = result
+            send_binary(self, HTTPStatus.OK, data, content_type)
+            return
+
+        with DB_LOCK:
+            db = load_db()
+
+            if path == "/api/channels":
+                send_json(self, HTTPStatus.OK, {"data": db.get("channels", DEFAULT_CHANNELS)})
+                return
+
+            if path == "/api/posts":
+                viewer, _ = auth_user(self, db)
+                viewer_user_id = str(viewer.get("id", "")) if viewer else ""
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+                channel = (query.get("channel", [""])[0] or "").strip()
+                has_image = parse_bool(query.get("hasImage", [None])[0])
+                allow_dm = parse_bool(query.get("allowDm", [None])[0])
+                status = (query.get("status", [""])[0] or "").strip().lower()
+                sort_by = (query.get("sort", ["latest"])[0] or "latest").strip().lower()
+
+                filtered_posts = []
+                for post in list_posts(db):
+                    if channel and post.get("channel") != channel:
+                        continue
+                    if status and str(post.get("status", "")).lower() != status:
+                        continue
+                    if has_image is not None and bool(post.get("hasImage", False)) != has_image:
+                        continue
+                    if allow_dm is not None and bool(post.get("allowDm", False)) != allow_dm:
+                        continue
+
+                    if keyword:
+                        text = " ".join(
+                            [
+                                str(post.get("title", "")).lower(),
+                                str(post.get("content", "")).lower(),
+                                str(post.get("channel", "")).lower(),
+                                " ".join(str(tag).lower() for tag in post.get("tags", [])),
+                            ]
+                        )
+                        if keyword not in text:
+                            continue
+
+                    filtered_posts.append(post)
+
+                if sort_by in {"likes", "hot"}:
+                    filtered_posts.sort(
+                        key=lambda row: (
+                            post_counts(db, row.get("id", ""))[1],
+                            row.get("createdAt", ""),
+                        ),
+                        reverse=True,
+                    )
+                else:
+                    filtered_posts.sort(key=lambda row: row.get("createdAt", ""), reverse=True)
+
+                rows = [serialize_post(db, post, viewer_user_id=viewer_user_id) for post in filtered_posts]
+
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/posts/mine":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                rows = [p for p in list_posts(db, include_rejected=True) if p.get("authorId") == user["id"]]
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": [
+                            serialize_post(
+                                db,
+                                p,
+                                include_unapproved_images=True,
+                                viewer_user_id=user["id"],
+                            )
+                            for p in rows
+                        ]
+                    },
+                )
+                return
+
+            if path == "/api/posts/favorites":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                fav_post_ids = {f["postId"] for f in db["favorites"] if f.get("userId") == user["id"]}
+                rows = [p for p in list_posts(db) if p.get("id") in fav_post_ids]
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"data": [serialize_post(db, p, viewer_user_id=user["id"]) for p in rows]},
+                )
+                return
+
+            if path == "/api/uploads/mine":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                rows = [
+                    serialize_upload(db, row)
+                    for row in db.get("mediaUploads", [])
+                    if not row.get("deleted") and row.get("uploaderId") == user["id"]
+                ]
+                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/comments/mine":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                result = []
+                for comment in db["comments"]:
+                    if comment.get("deleted"):
+                        continue
+                    if comment.get("userId") != user["id"]:
+                        continue
+                    post = next(
+                        (
+                            p
+                            for p in db["posts"]
+                            if p.get("id") == comment.get("postId") and not p.get("deleted")
+                        ),
+                        None,
+                    )
+                    result.append(
+                        {
+                            "id": comment.get("id"),
+                            "postTitle": post.get("title") if post else "原帖",
+                            "content": comment.get("content", ""),
+                            "timeText": iso_to_time_text(comment.get("createdAt")),
+                        }
+                    )
+                result.sort(key=lambda x: x.get("timeText", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": result})
+                return
+
+            if path == "/api/reports/mine":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                result = []
+                for report in db["reports"]:
+                    if report.get("userId") != user["id"]:
+                        continue
+                    target_type = str(report.get("targetType", "other"))
+                    target_id = str(report.get("targetId", "unknown"))
+                    target_title = ""
+                    if target_type == "post":
+                        post = next(
+                            (
+                                p
+                                for p in db["posts"]
+                                if p.get("id") == target_id and not p.get("deleted")
+                            ),
+                            None,
+                        )
+                        if post is not None:
+                            target_title = str(post.get("title", "")).strip()
+                    elif target_type == "comment":
+                        comment = next(
+                            (
+                                c
+                                for c in db["comments"]
+                                if c.get("id") == target_id and not c.get("deleted")
+                            ),
+                            None,
+                        )
+                        if comment is not None:
+                            target_title = str(comment.get("content", "")).strip()[:50]
+                    result.append(
+                        {
+                            "id": report.get("id"),
+                            "target": f"{target_type}: {target_id}",
+                            "targetType": target_type,
+                            "targetId": target_id,
+                            "targetTitle": target_title,
+                            "reason": report.get("reason", "-"),
+                            "status": report.get("status", "pending"),
+                            "description": report.get("description", ""),
+                            "result": report.get("result", ""),
+                            "createdAt": report.get("createdAt", ""),
+                            "handledAt": report.get("handledAt", ""),
+                        }
+                    )
+                result.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": result})
+                return
+
+            if path == "/api/messages/requests":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                requests = []
+                for row in db["dmRequests"]:
+                    if row.get("toUserId") != user["id"]:
+                        continue
+                    status = str(row.get("status", "pending")).strip().lower() or "pending"
+                    from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
+                    from_alias = user_nickname(from_user) if from_user else sanitize_alias(
+                        str(row.get("fromAlias", "")),
+                        fallback="匿名同学",
+                    )
+                    from_avatar_url = user_avatar_url(from_user)
+                    if not from_avatar_url:
+                        from_avatar_url = normalize_avatar_url(str(row.get("fromAvatarUrl", "")))
+                    status_label = {
+                        "pending": "待处理",
+                        "accepted": "已同意",
+                        "rejected": "已拒绝",
+                    }.get(status, status)
+                    requests.append(
+                        {
+                            "id": row.get("id"),
+                            "fromAlias": from_alias,
+                            "fromAvatarUrl": from_avatar_url,
+                            "reason": row.get("reason", "请求联系"),
+                            "timeText": iso_to_time_text(row.get("createdAt")),
+                            "status": status,
+                            "statusLabel": status_label,
+                            "createdAt": row.get("createdAt", ""),
+                            "updatedAt": row.get("updatedAt", ""),
+                        }
+                    )
+                requests.sort(
+                    key=lambda x: x.get("updatedAt", "") or x.get("createdAt", ""),
+                    reverse=True,
+                )
+                requests.sort(key=lambda x: 0 if x.get("status") == "pending" else 1)
+                send_json(self, HTTPStatus.OK, {"data": requests})
+                return
+
+            if path == "/api/messages/conversations":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                rows = [x for x in db["conversations"] if x.get("userId") == user["id"]]
+                rows.sort(key=lambda x: x.get("updatedAt", ""), reverse=True)
+                result = []
+                for row in rows:
+                    peer_user = find_user_by_id(db, str(row.get("peerUserId", "")))
+                    name = user_nickname(peer_user) if peer_user else sanitize_alias(
+                        str(row.get("name", "")),
+                        fallback="匿名同学",
+                    )
+                    avatar_url = user_avatar_url(peer_user)
+                    if not avatar_url:
+                        avatar_url = normalize_avatar_url(str(row.get("avatarUrl", "")))
+                    result.append(
+                        {
+                            "id": row.get("id"),
+                            "name": name,
+                            "avatarUrl": avatar_url,
+                            "lastMessage": row.get("lastMessage", "-"),
+                            "timeText": iso_to_time_text(row.get("updatedAt")),
+                        }
+                    )
+                send_json(self, HTTPStatus.OK, {"data": result})
+                return
+
+            if path == "/api/users/me":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                favorite_post_ids = {
+                    str(x.get("postId", ""))
+                    for x in db["favorites"]
+                    if x.get("userId") == user["id"]
+                }
+                favorite_count = sum(
+                    1
+                    for post in list_posts(db)
+                    if str(post.get("id", "")) in favorite_post_ids
+                )
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "alias": user_nickname(user),
+                            "nickname": user_nickname(user),
+                            "studentId": str(user.get("studentId", "")),
+                            "avatarUrl": user_avatar_url(user),
+                            "verified": bool(user.get("verified", False)),
+                            "verifiedAt": user.get("verifiedAt", "-"),
+                            "allowStrangerDm": bool(user.get("allowStrangerDm", True)),
+                            "showContactable": bool(user.get("showContactable", True)),
+                            "favoriteCount": favorite_count,
+                            "isAdmin": bool(user.get("isAdmin", False)),
+                            "email": user.get("email", ""),
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/admin/auth/me":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "username": admin.get("username", ""),
+                            "authenticated": True,
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/admin/overview":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                send_json(self, HTTPStatus.OK, {"data": build_overview(db)})
+                return
+
+            if path == "/api/admin/reviews":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                target_type = (query.get("type", ["post"])[0] or "post").strip().lower()
+                status = (query.get("status", ["pending"])[0] or "pending").strip().lower()
+                result = []
+                if target_type == "post":
+                    rows = list_posts(db, include_rejected=True)
+                    for post in rows:
+                        row_status = str(post.get("reviewStatus", "approved")).lower()
+                        if status != "all" and row_status != status:
+                            continue
+                        result.append(
+                            {
+                                "id": post.get("id"),
+                                "targetType": "post",
+                                "title": post.get("title", ""),
+                                "content": post.get("content", ""),
+                                "authorAlias": post.get("authorAlias", "匿名同学"),
+                                "createdAt": post.get("createdAt", ""),
+                                "reviewStatus": row_status,
+                                "riskMarked": bool(post.get("riskMarked", False)),
+                            }
+                        )
+                elif target_type == "comment":
+                    rows = list_comments(db, include_rejected=True)
+                    for comment in rows:
+                        row_status = str(comment.get("reviewStatus", "approved")).lower()
+                        if status != "all" and row_status != status:
+                            continue
+                        result.append(
+                            {
+                                "id": comment.get("id"),
+                                "targetType": "comment",
+                                "title": f"评论 @ 帖子 {comment.get('postId', '-')}",
+                                "content": comment.get("content", ""),
+                                "authorAlias": comment.get("authorAlias", "匿名同学"),
+                                "createdAt": comment.get("createdAt", ""),
+                                "reviewStatus": row_status,
+                                "riskMarked": bool(comment.get("riskMarked", False)),
+                            }
+                        )
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "type 仅支持 post/comment")
+                    return
+
+                send_json(self, HTTPStatus.OK, {"data": result})
+                return
+
+            if path == "/api/admin/reports":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["all"])[0] or "all").strip().lower()
+                reason = (query.get("reason", [""])[0] or "").strip()
+                rows = []
+                for report in db["reports"]:
+                    row_status = str(report.get("status", "pending")).lower()
+                    if status != "all" and row_status != status:
+                        continue
+                    if reason and str(report.get("reason", "")) != reason:
+                        continue
+                    rows.append(
+                        {
+                            "id": report.get("id"),
+                            "targetType": report.get("targetType", "other"),
+                            "targetId": report.get("targetId", "unknown"),
+                            "reason": report.get("reason", "其他"),
+                            "description": report.get("description", ""),
+                            "status": row_status,
+                            "result": report.get("result", ""),
+                            "reporterAlias": report.get("reporterAlias", "匿名同学"),
+                            "createdAt": report.get("createdAt", ""),
+                        }
+                    )
+                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/images/reviews":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["pending"])[0] or "pending").strip().lower()
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+
+                rows: list[dict[str, Any]] = []
+                for upload in db.get("mediaUploads", []):
+                    if upload.get("deleted"):
+                        continue
+                    row_status = str(upload.get("status", "pending")).lower()
+                    if status != "all" and row_status != status:
+                        continue
+                    if keyword:
+                        joined = " ".join(
+                            [
+                                str(upload.get("fileName", "")).lower(),
+                                str(upload.get("moderationReason", "")).lower(),
+                                str(upload.get("uploaderId", "")).lower(),
+                            ]
+                        )
+                        if keyword not in joined:
+                            continue
+                    rows.append(serialize_upload(db, upload, include_admin_fields=True))
+
+                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/users":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                rows = []
+                for user in db["users"]:
+                    if user.get("deleted"):
+                        continue
+                    uid = user.get("id")
+                    post_count = sum(1 for p in db["posts"] if not p.get("deleted") and p.get("authorId") == uid)
+                    comment_count = sum(
+                        1 for c in db["comments"] if not c.get("deleted") and c.get("userId") == uid
+                    )
+                    report_count = sum(1 for r in db["reports"] if r.get("userId") == uid)
+                    rows.append(
+                        {
+                            "id": uid,
+                            "email": user.get("email", ""),
+                            "alias": user_nickname(user),
+                            "verified": bool(user.get("verified", False)),
+                            "isAdmin": bool(user.get("isAdmin", False)),
+                            "banned": bool(user.get("banned", False)),
+                            "muted": bool(user.get("muted", False)),
+                            "postCount": post_count,
+                            "commentCount": comment_count,
+                            "reportCount": report_count,
+                            "createdAt": user.get("createdAt", ""),
+                        }
+                    )
+                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/channels-tags":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "channels": db.get("channels", []),
+                            "tags": db.get("tags", []),
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/admin/config":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "sensitiveWords": db.get("sensitiveWords", []),
+                            "settings": public_system_settings(db),
+                        }
+                    },
+                )
+                return
+
+            match_post_comments = re.fullmatch(r"/api/posts/([^/]+)/comments", path)
+            if match_post_comments:
+                post_id = match_post_comments.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                comments = []
+                for comment in list_comments(db):
+                    if comment.get("postId") != post_id:
+                        continue
+                    comments.append(
+                        {
+                            "id": comment.get("id"),
+                            "authorAlias": comment.get("authorAlias", "匿名同学"),
+                            "content": comment.get("content", ""),
+                            "createdAt": comment.get("createdAt", now_iso()),
+                            "likeCount": int(comment.get("likeCount", 0)),
+                        }
+                    )
+                comments.sort(key=lambda x: x.get("createdAt", ""))
+                send_json(self, HTTPStatus.OK, {"data": comments})
+                return
+
+            match_post = re.fullmatch(r"/api/posts/([^/]+)", path)
+            if match_post:
+                post_id = match_post.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                if post.get("reviewStatus") == "rejected":
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                viewer, _ = auth_user(self, db)
+                admin_viewer, _ = auth_admin(self, db)
+                include_unapproved = bool(
+                    admin_viewer
+                    or (viewer and viewer.get("id") == post.get("authorId"))
+                )
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": serialize_post(
+                            db,
+                            post,
+                            include_unapproved_images=include_unapproved,
+                            viewer_user_id=str(viewer.get("id", "")) if viewer else "",
+                        )
+                    },
+                )
+                return
+
+            match_report_detail = re.fullmatch(r"/api/reports/([^/]+)", path)
+            if match_report_detail:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                report_id = match_report_detail.group(1)
+                report = next(
+                    (
+                        row
+                        for row in db["reports"]
+                        if row.get("id") == report_id and row.get("userId") == user["id"]
+                    ),
+                    None,
+                )
+                if report is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "举报不存在")
+                    return
+
+                target_type = str(report.get("targetType", "other"))
+                target_id = str(report.get("targetId", "unknown"))
+                target_title = ""
+                if target_type == "post":
+                    post = next(
+                        (
+                            p
+                            for p in db["posts"]
+                            if p.get("id") == target_id and not p.get("deleted")
+                        ),
+                        None,
+                    )
+                    if post is not None:
+                        target_title = str(post.get("title", "")).strip()
+                elif target_type == "comment":
+                    comment = next(
+                        (
+                            c
+                            for c in db["comments"]
+                            if c.get("id") == target_id and not c.get("deleted")
+                        ),
+                        None,
+                    )
+                    if comment is not None:
+                        target_title = str(comment.get("content", "")).strip()[:80]
+
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "id": report.get("id"),
+                            "targetType": target_type,
+                            "targetId": target_id,
+                            "targetTitle": target_title,
+                            "reason": report.get("reason", "-"),
+                            "description": report.get("description", ""),
+                            "status": report.get("status", "pending"),
+                            "result": report.get("result", ""),
+                            "createdAt": report.get("createdAt", ""),
+                            "handledAt": report.get("handledAt", ""),
+                        }
+                    },
+                )
+                return
+
+            json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+
+    def _handle_post(self, path: str) -> None:
+        body = read_json_body(self)
+
+        with DB_LOCK:
+            db = load_db()
+
+            if path == "/api/admin/auth/login":
+                username = str(body.get("username", "")).strip()
+                password = str(body.get("password", "")).strip()
+                if not username or not password:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "管理员账号和密码不能为空")
+                    return
+
+                expected_username, expected_password_hash = get_admin_auth_credentials(db)
+                if username != expected_username or not verify_password(expected_password_hash, password):
+                    json_error(self, HTTPStatus.UNAUTHORIZED, "管理员账号或密码错误")
+                    return
+
+                token = secrets.token_urlsafe(24)
+                with ADMIN_SESSION_LOCK:
+                    ADMIN_SESSIONS[token] = expected_username
+                add_audit_log(db, "", "admin_login", f"管理员登录: {expected_username}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "token": token,
+                            "username": expected_username,
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/admin/auth/logout":
+                admin, token = require_admin_user(self, db)
+                if admin is None:
+                    return
+                if token:
+                    with ADMIN_SESSION_LOCK:
+                        ADMIN_SESSIONS.pop(token, None)
+                add_audit_log(db, "", "admin_logout", f"管理员退出: {admin.get('username', '')}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "管理员已退出", "data": {"ok": True}})
+                return
+
+            if path in {"/api/auth/send-code", "/api/auth/resend-code"}:
+                email = str(body.get("email", "")).strip().lower()
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                smtp_enabled = smtp_configured()
+                code = random_code() if smtp_enabled else "123456"
+                if smtp_enabled:
+                    try:
+                        send_verification_email(to_email=email, code=code, expires_in_minutes=10)
+                    except Exception as error:
+                        json_error(
+                            self,
+                            HTTPStatus.SERVICE_UNAVAILABLE,
+                            verification_send_error_message(error),
+                        )
+                        return
+                db["emailCodes"][email] = {
+                    "code": code,
+                    "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
+                }
+                save_db(db)
+                data: dict[str, Any] = {
+                    "email": email,
+                    "expiresInSeconds": 600,
+                }
+                if INCLUDE_DEBUG_CODE_IN_RESPONSE or not smtp_enabled:
+                    data["debugCode"] = code
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "验证码已发送" if smtp_enabled else "邮件服务未配置，已启用内测验证码",
+                        "data": data,
+                    },
+                )
+                return
+
+            if path == "/api/auth/password/send-code":
+                email = str(body.get("email", "")).strip().lower()
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                user = find_user_by_email(db, email, include_deleted=True)
+                if user is not None and user.get("deleted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+                    return
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+                    return
+                smtp_enabled = smtp_configured()
+                code = random_code() if smtp_enabled else "123456"
+                if smtp_enabled:
+                    try:
+                        send_password_reset_email(to_email=email, code=code, expires_in_minutes=10)
+                    except Exception as error:
+                        json_error(
+                            self,
+                            HTTPStatus.SERVICE_UNAVAILABLE,
+                            verification_send_error_message(error),
+                        )
+                        return
+                db["emailCodes"][password_reset_code_key(email)] = {
+                    "code": code,
+                    "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
+                }
+                save_db(db)
+                data: dict[str, Any] = {
+                    "email": email,
+                    "expiresInSeconds": 600,
+                }
+                if INCLUDE_DEBUG_CODE_IN_RESPONSE or not smtp_enabled:
+                    data["debugCode"] = code
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "重置密码验证码已发送"
+                        if smtp_enabled
+                        else "邮件服务未配置，已启用内测验证码",
+                        "data": data,
+                    },
+                )
+                return
+
+            if path == "/api/auth/password/reset":
+                email = str(body.get("email", "")).strip().lower()
+                code = str(body.get("code", "")).strip()
+                new_password = str(body.get("newPassword", "")).strip()
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                if len(code) != 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码格式错误")
+                    return
+                if len(new_password) < 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "新密码长度至少 6 位")
+                    return
+
+                user = find_user_by_email(db, email, include_deleted=True)
+                if user is not None and user.get("deleted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+                    return
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+                    return
+
+                code_row = db["emailCodes"].get(password_reset_code_key(email))
+                if not code_row:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "请先发送重置验证码")
+                    return
+                if code_row.get("code") != code and not (verify_code_debug_enabled() and code == "123456"):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码错误")
+                    return
+
+                expires_at = parse_iso(code_row.get("expiresAt", ""))
+                if expires_at is None or now_utc() > expires_at:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码已过期")
+                    return
+
+                user["password"] = hash_password(new_password)
+                db["emailCodes"].pop(password_reset_code_key(email), None)
+                add_audit_log(db, user["id"], "reset_password_by_email", f"邮箱重置密码 {email}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "密码重置成功", "data": {"ok": True}})
+                return
+
+            if path == "/api/auth/login":
+                identifier = (
+                    str(
+                        body.get(
+                            "identifier",
+                            body.get("studentId", body.get("email", "")),
+                        )
+                    )
+                    .strip()
+                )
+                password = str(body.get("password", "")).strip()
+                login_email = ""
+                login_student_id = ""
+                user: dict[str, Any] | None = None
+
+                if "@" in identifier:
+                    login_email = identifier.lower()
+                    if not is_campus_email(login_email):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                        return
+                    user = find_user_by_email(db, login_email, include_deleted=True)
+                else:
+                    login_student_id = identifier
+                    if not is_valid_student_id(login_student_id):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "请输入有效学号")
+                        return
+                    user = find_user_by_student_id(db, login_student_id, include_deleted=True)
+                    if user is not None:
+                        login_email = str(user.get("email", "")).strip().lower()
+                if not password:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "密码不能为空")
+                    return
+
+                if user is not None and user.get("deleted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+                    return
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+                    return
+                if not login_email:
+                    login_email = str(user.get("email", "")).strip().lower()
+                if not login_student_id:
+                    login_student_id = str(user.get("studentId", "")).strip() or student_id_from_email(login_email)
+
+                stored_password = str(user.get("password", ""))
+                if not stored_password:
+                    json_error(self, HTTPStatus.UNAUTHORIZED, "账号未设置密码，请先注册")
+                    return
+                if not verify_password(stored_password, password):
+                    json_error(self, HTTPStatus.UNAUTHORIZED, "账号或密码错误")
+                    return
+                if not is_password_hashed(stored_password):
+                    user["password"] = hash_password(password)
+
+                if user.get("banned"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
+                    return
+
+                if not user.get("verified", False):
+                    if login_email not in db["emailCodes"]:
+                        smtp_enabled = smtp_configured()
+                        code = random_code() if smtp_enabled else "123456"
+                        if smtp_enabled:
+                            try:
+                                send_verification_email(to_email=login_email, code=code, expires_in_minutes=10)
+                            except Exception as error:
+                                json_error(
+                                    self,
+                                    HTTPStatus.SERVICE_UNAVAILABLE,
+                                    verification_send_error_message(error),
+                                )
+                                return
+                        db["emailCodes"][login_email] = {
+                            "code": code,
+                            "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
+                        }
+                    save_db(db)
+                    response_data: dict[str, Any] = {
+                        "verified": False,
+                        "needVerify": True,
+                        "email": login_email,
+                        "studentId": login_student_id,
+                    }
+                    if not smtp_configured() or INCLUDE_DEBUG_CODE_IN_RESPONSE:
+                        current_code = (
+                            str(db["emailCodes"].get(login_email, {}).get("code", "")).strip()
+                            or "123456"
+                        )
+                        response_data["debugCode"] = current_code
+                    send_json(self, HTTPStatus.OK, {"data": response_data})
+                    return
+
+                token = secrets.token_urlsafe(24)
+                db["sessions"][token] = user["id"]
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "token": token,
+                            "verified": True,
+                            "isAdmin": bool(user.get("isAdmin", False)),
+                            "email": login_email,
+                            "studentId": login_student_id,
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/auth/register":
+                email = str(body.get("email", "")).strip().lower()
+                password = str(body.get("password", "")).strip()
+                nickname = sanitize_alias(str(body.get("nickname", "")), fallback="")
+                student_id = student_id_from_email(email)
+                avatar_url = normalize_avatar_url(str(body.get("avatarUrl", "")))
+                avatar_data_base64 = str(body.get("avatarDataBase64", "")).strip()
+                avatar_file_name = str(body.get("avatarFileName", "avatar.png")).strip() or "avatar.png"
+                avatar_content_type = str(body.get("avatarContentType", "")).strip().lower()
+
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                if len(password) < 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "密码长度至少 6 位")
+                    return
+                if not nickname:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "昵称不能为空")
+                    return
+                if not is_valid_student_id(student_id):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "邮箱前缀不符合学号格式（需为 6-20 位字母或数字）")
+                    return
+
+                user = find_user_by_email(db, email, include_deleted=True)
+                if user is not None and user.get("deleted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+                    return
+                if user is not None and user.get("verified"):
+                    json_error(self, HTTPStatus.CONFLICT, "账号已存在，请直接登录")
+                    return
+                existing_student = find_user_by_student_id(db, student_id, include_deleted=False)
+                if existing_student is not None and str(existing_student.get("email", "")).strip().lower() != email:
+                    json_error(self, HTTPStatus.CONFLICT, "该学号已绑定其他账号")
+                    return
+
+                uploaded_avatar_key = ""
+                if avatar_data_base64:
+                    try:
+                        avatar_bytes = decode_base64_payload(avatar_data_base64)
+                    except Exception:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "头像图片数据格式错误")
+                        return
+                    if not avatar_bytes:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "头像图片不能为空")
+                        return
+                    detected_content_type = detect_image_type(avatar_bytes)
+                    if detected_content_type is None:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
+                        return
+                    avatar_ct = detected_content_type
+                    if avatar_content_type and avatar_content_type in ALLOWED_IMAGE_TYPES:
+                        avatar_ct = avatar_content_type
+
+                    max_bytes = get_image_max_bytes(db)
+                    if len(avatar_bytes) > max_bytes:
+                        json_error(
+                            self,
+                            HTTPStatus.BAD_REQUEST,
+                            f"头像图片超出大小限制（最大 {max_bytes // (1024 * 1024)}MB）",
+                        )
+                        return
+                    try:
+                        stored_avatar = OBJECT_STORAGE.put_bytes(
+                            data=avatar_bytes,
+                            file_name=avatar_file_name,
+                            content_type=avatar_ct,
+                        )
+                    except Exception:
+                        json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "头像上传失败，请稍后重试")
+                        return
+                    avatar_url = stored_avatar.url
+                    uploaded_avatar_key = stored_avatar.key
+
+                old_avatar_key = ""
+                if user is not None:
+                    old_avatar_key = extract_local_object_key_from_url(normalize_avatar_url(str(user.get("avatarUrl", ""))))
+
+                if user is None:
+                    user = {
+                        "id": next_id(db, "user", "u"),
+                        "email": email,
+                        "password": hash_password(password),
+                        "alias": nickname,
+                        "nickname": nickname,
+                        "studentId": student_id,
+                        "avatarUrl": avatar_url,
+                        "verified": False,
+                        "verifiedAt": "",
+                        "allowStrangerDm": True,
+                        "showContactable": True,
+                        "createdAt": now_iso(),
+                        "deleted": False,
+                        "isAdmin": False,
+                        "banned": False,
+                        "muted": False,
+                    }
+                    db["users"].append(user)
+                else:
+                    user["password"] = hash_password(password)
+                    user["alias"] = nickname
+                    user["nickname"] = nickname
+                    user["studentId"] = student_id
+                    user["avatarUrl"] = avatar_url
+
+                smtp_enabled = smtp_configured()
+                code = random_code() if smtp_enabled else "123456"
+                if smtp_enabled:
+                    try:
+                        send_verification_email(to_email=email, code=code, expires_in_minutes=10)
+                    except Exception as error:
+                        json_error(
+                            self,
+                            HTTPStatus.SERVICE_UNAVAILABLE,
+                            verification_send_error_message(error),
+                        )
+                        return
+                db["emailCodes"][email] = {
+                    "code": code,
+                    "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
+                }
+
+                save_db(db)
+                if old_avatar_key and uploaded_avatar_key and old_avatar_key != uploaded_avatar_key:
+                    try:
+                        OBJECT_STORAGE.delete(old_avatar_key)
+                    except Exception:
+                        pass
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "注册成功，请完成邮箱验证"
+                        if smtp_enabled
+                        else "注册成功，邮件服务未配置，内测验证码为 123456",
+                        "data": {
+                            "needVerify": True,
+                            "verified": False,
+                            "email": email,
+                            "studentId": student_id,
+                            **(
+                                {"debugCode": code}
+                                if (INCLUDE_DEBUG_CODE_IN_RESPONSE or not smtp_enabled)
+                                else {}
+                            ),
+                        },
+                    },
+                )
+                return
+
+            if path == "/api/auth/verify":
+                email = str(body.get("email", "")).strip().lower()
+                code = str(body.get("code", "")).strip()
+                password = str(body.get("password", "")).strip()
+
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                if len(code) != 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码格式错误")
+                    return
+
+                code_row = db["emailCodes"].get(email)
+                if not code_row:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "请先发送验证码")
+                    return
+                if code_row.get("code") != code and not (verify_code_debug_enabled() and code == "123456"):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码错误")
+                    return
+
+                expires_at = parse_iso(code_row.get("expiresAt", ""))
+                if expires_at is None or now_utc() > expires_at:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "验证码已过期")
+                    return
+
+                user = find_user_by_email(db, email, include_deleted=True)
+                if user is not None and user.get("deleted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+                    return
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+                    return
+
+                if password:
+                    user["password"] = hash_password(password)
+                user["verified"] = True
+                user["verifiedAt"] = now_iso()
+                user["nickname"] = user_nickname(user)
+                user["alias"] = user_nickname(user)
+                user["studentId"] = str(user.get("studentId", "")).strip() or student_id_from_email(email)
+                user["avatarUrl"] = normalize_avatar_url(str(user.get("avatarUrl", "")))
+
+                db["emailCodes"].pop(email, None)
+                token = secrets.token_urlsafe(24)
+                db["sessions"][token] = user["id"]
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": {
+                            "token": token,
+                            "verified": True,
+                            "isAdmin": bool(user.get("isAdmin", False)),
+                        }
+                    },
+                )
+                return
+
+            if path == "/api/auth/logout":
+                user, token = auth_user(self, db)
+                if token:
+                    db["sessions"].pop(token, None)
+                if user:
+                    add_audit_log(db, user.get("id", "-"), "logout", "用户退出登录")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "已退出登录", "data": {"ok": True}})
+                return
+
+            if path == "/api/uploads/images":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if user.get("banned"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="upload",
+                    setting_key="messageRateLimit",
+                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="图片上传",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+
+                file_name = str(body.get("fileName", "upload.bin")).strip() or "upload.bin"
+                data_base64 = str(body.get("dataBase64", "")).strip()
+                client_content_type = str(body.get("contentType", "")).strip().lower()
+                if not data_base64:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "缺少图片数据")
+                    return
+
+                try:
+                    image_bytes = decode_base64_payload(data_base64)
+                except Exception:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "图片数据格式错误")
+                    return
+
+                if not image_bytes:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "图片不能为空")
+                    return
+
+                detected_content_type = detect_image_type(image_bytes)
+                if detected_content_type is None:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
+                    return
+                content_type = detected_content_type
+                if client_content_type and client_content_type in ALLOWED_IMAGE_TYPES:
+                    content_type = client_content_type
+
+                sha256_hex = calc_sha256_hex(image_bytes)
+                status, moderation_reason = moderate_image_upload(
+                    file_name=file_name,
+                    content_type=content_type,
+                    size_bytes=len(image_bytes),
+                    db=db,
+                )
+                same_hash_count = sum(
+                    1
+                    for row in db.get("mediaUploads", [])
+                    if not row.get("deleted")
+                    and row.get("uploaderId") == user["id"]
+                    and row.get("sha256") == sha256_hex
+                )
+                if same_hash_count >= 3:
+                    status = "risk"
+                    moderation_reason = "疑似重复上传相同图片"
+                if status == "rejected":
+                    json_error(self, HTTPStatus.BAD_REQUEST, moderation_reason)
+                    return
+
+                try:
+                    stored = OBJECT_STORAGE.put_bytes(
+                        data=image_bytes,
+                        file_name=file_name,
+                        content_type=content_type,
+                    )
+                except Exception:
+                    json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "对象存储写入失败")
+                    return
+
+                upload = {
+                    "id": next_id(db, "upload", "img"),
+                    "objectKey": stored.key,
+                    "url": stored.url,
+                    "uploaderId": user["id"],
+                    "fileName": file_name,
+                    "contentType": content_type,
+                    "sizeBytes": stored.size_bytes,
+                    "sha256": sha256_hex,
+                    "status": status,
+                    "moderationReason": moderation_reason,
+                    "reviewNote": "",
+                    "reviewedBy": "",
+                    "reviewedAt": "",
+                    "createdAt": now_iso(),
+                    "postId": "",
+                    "deleted": False,
+                }
+                db["mediaUploads"].append(upload)
+                if status == "risk":
+                    add_audit_log(db, user["id"], "risk_mark_upload", f"{upload['id']}:{moderation_reason}")
+                add_audit_log(db, user["id"], "upload_image", f"{upload['id']}:{upload['status']}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"message": "图片上传成功，等待审核", "data": serialize_upload(db, upload)},
+                )
+                return
+
+            if path == "/api/users/avatar":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+
+                file_name = str(body.get("fileName", "avatar.png")).strip() or "avatar.png"
+                data_base64 = str(body.get("dataBase64", "")).strip()
+                client_content_type = str(body.get("contentType", "")).strip().lower()
+                if not data_base64:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "缺少头像图片数据")
+                    return
+
+                try:
+                    image_bytes = decode_base64_payload(data_base64)
+                except Exception:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "头像图片数据格式错误")
+                    return
+
+                if not image_bytes:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "头像图片不能为空")
+                    return
+
+                detected_content_type = detect_image_type(image_bytes)
+                if detected_content_type is None:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
+                    return
+                content_type = detected_content_type
+                if client_content_type and client_content_type in ALLOWED_IMAGE_TYPES:
+                    content_type = client_content_type
+
+                max_bytes = get_image_max_bytes(db)
+                if len(image_bytes) > max_bytes:
+                    json_error(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        f"头像图片超出大小限制（最大 {max_bytes // (1024 * 1024)}MB）",
+                    )
+                    return
+
+                old_avatar_url = normalize_avatar_url(str(user.get("avatarUrl", "")))
+                old_object_key = extract_local_object_key_from_url(old_avatar_url)
+
+                try:
+                    stored = OBJECT_STORAGE.put_bytes(
+                        data=image_bytes,
+                        file_name=file_name,
+                        content_type=content_type,
+                    )
+                except Exception:
+                    json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "头像上传失败，请稍后重试")
+                    return
+
+                user["avatarUrl"] = stored.url
+                user["alias"] = user_nickname(user)
+                add_audit_log(db, user["id"], "upload_avatar", "上传头像")
+                save_db(db)
+
+                if old_object_key and old_object_key != stored.key:
+                    try:
+                        OBJECT_STORAGE.delete(old_object_key)
+                    except Exception:
+                        pass
+
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "头像上传成功",
+                        "data": {
+                            "avatarUrl": stored.url,
+                        },
+                    },
+                )
+                return
+
+            if path == "/api/posts":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if user.get("muted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发帖")
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="post",
+                    setting_key="postRateLimit",
+                    default_limit=DEFAULT_SETTINGS["postRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="发帖",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+
+                title = str(body.get("title", "")).strip()
+                content = str(body.get("content", "")).strip()
+                channel = str(body.get("channel", "")).strip()
+                tags = parse_list(body.get("tags", []))
+                status = str(body.get("status", "ongoing")).strip().lower() or "ongoing"
+                image_upload_ids = parse_list(body.get("imageUploadIds", []))
+                use_anonymous_alias = bool(body.get("useAnonymousAlias", False))
+                anonymous_alias = sanitize_alias(str(body.get("anonymousAlias", "")), fallback="")
+
+                if not title:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "标题不能为空")
+                    return
+                if not content:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "正文不能为空")
+                    return
+                if channel not in db.get("channels", DEFAULT_CHANNELS):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "频道不合法")
+                    return
+
+                risk_marked, high_risk, risk_reasons = assess_text_risk(
+                    db,
+                    " ".join([title, content, " ".join(tags)]),
+                )
+                if high_risk:
+                    json_error(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        f"内容触发高风险风控：{'; '.join(risk_reasons)}",
+                    )
+                    add_audit_log(db, user["id"], "risk_block_post", ";".join(risk_reasons))
+                    save_db(db)
+                    return
+
+                picked_uploads: list[dict[str, Any]] = []
+                for upload_id in image_upload_ids:
+                    upload = get_upload_by_id(db, upload_id)
+                    if upload is None or upload.get("deleted"):
+                        json_error(self, HTTPStatus.BAD_REQUEST, f"图片不存在: {upload_id}")
+                        return
+                    if upload.get("uploaderId") != user["id"]:
+                        json_error(self, HTTPStatus.FORBIDDEN, f"图片无权限绑定: {upload_id}")
+                        return
+                    if upload.get("postId"):
+                        json_error(self, HTTPStatus.BAD_REQUEST, f"图片已绑定帖子: {upload_id}")
+                        return
+                    picked_uploads.append(upload)
+
+                author_alias = user_nickname(user)
+                if use_anonymous_alias:
+                    author_alias = anonymous_alias or f"匿名同学-{secrets.token_hex(2)}"
+
+                post = {
+                    "id": next_id(db, "post", "p"),
+                    "title": title,
+                    "content": content,
+                    "channel": channel,
+                    "tags": tags,
+                    "hasImage": bool(body.get("hasImage", False)) or bool(picked_uploads),
+                    "status": status if status in {"ongoing", "resolved", "closed"} else "ongoing",
+                    "allowComment": bool(body.get("allowComment", True)),
+                    "allowDm": bool(body.get("allowDm", False)),
+                    "authorAlias": author_alias,
+                    "authorId": user["id"],
+                    "createdAt": now_iso(),
+                    "updatedAt": now_iso(),
+                    "deleted": False,
+                    "reviewStatus": "approved",
+                    "riskMarked": risk_marked,
+                }
+                db["posts"].append(post)
+                for upload in picked_uploads:
+                    upload["postId"] = post["id"]
+                recalc_post_has_image(db, post["id"])
+                if risk_marked:
+                    add_audit_log(db, user["id"], "risk_mark_post", f"{post['id']}:{';'.join(risk_reasons)}")
+                add_audit_log(db, user["id"], "create_post", f"创建帖子 {post['id']}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"data": serialize_post(db, post, include_unapproved_images=True)},
+                )
+                return
+
+            if path == "/api/reports":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="message",
+                    setting_key="messageRateLimit",
+                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="举报",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+                target_type = str(body.get("targetType", "")).strip().lower() or "other"
+                target_id = str(body.get("targetId", "")).strip() or "unknown"
+                reason = str(body.get("reason", "")).strip() or "其他"
+                description = str(body.get("description", "")).strip()
+
+                report = {
+                    "id": next_id(db, "report", "r"),
+                    "userId": user["id"],
+                    "reporterAlias": user_nickname(user),
+                    "targetType": target_type,
+                    "targetId": target_id,
+                    "reason": reason,
+                    "description": description,
+                    "status": "pending",
+                    "result": "",
+                    "createdAt": now_iso(),
+                    "handledAt": "",
+                    "handledBy": "",
+                }
+                db["reports"].append(report)
+                add_audit_log(db, user["id"], "create_report", f"举报 {target_type}:{target_id}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "举报提交成功", "data": report})
+                return
+
+            match_action = re.fullmatch(r"/api/messages/requests/([^/]+)/(accept|reject)", path)
+            if match_action:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="message",
+                    setting_key="messageRateLimit",
+                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="消息操作",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+                request_id = match_action.group(1)
+                action = match_action.group(2)
+
+                row = next(
+                    (
+                        x
+                        for x in db["dmRequests"]
+                        if x.get("id") == request_id
+                        and x.get("toUserId") == user["id"]
+                        and x.get("status") == "pending"
+                    ),
+                    None,
+                )
+                if row is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "私信申请不存在")
+                    return
+
+                row["status"] = "accepted" if action == "accept" else "rejected"
+                row["updatedAt"] = now_iso()
+
+                if action == "accept":
+                    from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
+                    peer_user_id = str(row.get("fromUserId", "")).strip() if from_user else ""
+                    peer_name = user_nickname(from_user) if from_user else sanitize_alias(
+                        str(row.get("fromAlias", "")),
+                        fallback="匿名同学",
+                    )
+                    peer_avatar_url = user_avatar_url(from_user)
+                    if not peer_avatar_url:
+                        peer_avatar_url = normalize_avatar_url(str(row.get("fromAvatarUrl", "")))
+
+                    current_conv = next(
+                        (
+                            x
+                            for x in db["conversations"]
+                            if x.get("userId") == user["id"]
+                            and (
+                                (peer_user_id and x.get("peerUserId") == peer_user_id)
+                                or (not peer_user_id and x.get("name") == peer_name)
+                            )
+                        ),
+                        None,
+                    )
+                    if current_conv is None:
+                        db["conversations"].append(
+                            {
+                                "id": next_id(db, "conversation", "c"),
+                                "userId": user["id"],
+                                "peerUserId": peer_user_id,
+                                "name": peer_name,
+                                "avatarUrl": peer_avatar_url,
+                                "lastMessage": "已同意私信申请，开始聊天吧。",
+                                "updatedAt": now_iso(),
+                            }
+                        )
+                    else:
+                        current_conv["peerUserId"] = peer_user_id
+                        current_conv["name"] = peer_name
+                        current_conv["avatarUrl"] = peer_avatar_url
+                        current_conv["lastMessage"] = "已同意私信申请，开始聊天吧。"
+                        current_conv["updatedAt"] = now_iso()
+
+                    # 双向建立好友会话：对方会看到你的昵称与头像（不返回学号）。
+                    if from_user:
+                        reverse_name = user_nickname(user)
+                        reverse_avatar_url = user_avatar_url(user)
+                        reverse_conv = next(
+                            (
+                                x
+                                for x in db["conversations"]
+                                if x.get("userId") == from_user["id"]
+                                and x.get("peerUserId") == user["id"]
+                            ),
+                            None,
+                        )
+                        if reverse_conv is None:
+                            db["conversations"].append(
+                                {
+                                    "id": next_id(db, "conversation", "c"),
+                                    "userId": from_user["id"],
+                                    "peerUserId": user["id"],
+                                    "name": reverse_name,
+                                    "avatarUrl": reverse_avatar_url,
+                                    "lastMessage": "你们已成为好友，开始聊天吧。",
+                                    "updatedAt": now_iso(),
+                                }
+                            )
+                        else:
+                            reverse_conv["name"] = reverse_name
+                            reverse_conv["avatarUrl"] = reverse_avatar_url
+                            reverse_conv["updatedAt"] = now_iso()
+
+                add_audit_log(db, user["id"], "handle_dm_request", f"{request_id}:{action}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "操作成功", "data": {"ok": True}})
+                return
+
+            match_comment = re.fullmatch(r"/api/posts/([^/]+)/comments", path)
+            if match_comment:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if user.get("muted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法评论")
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="comment",
+                    setting_key="commentRateLimit",
+                    default_limit=DEFAULT_SETTINGS["commentRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="评论",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+                post_id = match_comment.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                if not post.get("allowComment", True):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该帖子不允许评论")
+                    return
+
+                content = str(body.get("content", "")).strip()
+                if not content:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "评论不能为空")
+                    return
+                risk_marked, high_risk, risk_reasons = assess_text_risk(db, content)
+                if high_risk:
+                    json_error(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        f"评论触发高风险风控：{'; '.join(risk_reasons)}",
+                    )
+                    add_audit_log(db, user["id"], "risk_block_comment", ";".join(risk_reasons))
+                    save_db(db)
+                    return
+
+                comment = {
+                    "id": next_id(db, "comment", "cm"),
+                    "postId": post_id,
+                    "userId": user["id"],
+                    "authorAlias": user_nickname(user),
+                    "content": content,
+                    "createdAt": now_iso(),
+                    "deleted": False,
+                    "likeCount": 0,
+                    "reviewStatus": "pending",
+                    "riskMarked": risk_marked,
+                    "parentId": str(body.get("parentId", "")).strip() or "",
+                }
+                db["comments"].append(comment)
+                if risk_marked:
+                    add_audit_log(
+                        db,
+                        user["id"],
+                        "risk_mark_comment",
+                        f"{comment['id']}:{';'.join(risk_reasons)}",
+                    )
+                add_audit_log(db, user["id"], "create_comment", f"{comment['id']}@{post_id}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "评论成功", "data": comment})
+                return
+
+            match_like = re.fullmatch(r"/api/posts/([^/]+)/like", path)
+            if match_like:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_like.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                exists = any(x for x in db["likes"] if x.get("userId") == user["id"] and x.get("postId") == post_id)
+                if not exists:
+                    db["likes"].append({"userId": user["id"], "postId": post_id})
+                    save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "已点赞", "data": {"ok": True}})
+                return
+
+            match_fav = re.fullmatch(r"/api/posts/([^/]+)/favorite", path)
+            if match_fav:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_fav.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                exists = any(
+                    x for x in db["favorites"] if x.get("userId") == user["id"] and x.get("postId") == post_id
+                )
+                if not exists:
+                    db["favorites"].append({"userId": user["id"], "postId": post_id})
+                    save_db(db)
+                _, _, favorite_count = post_counts(db, post_id)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"message": "已收藏", "data": {"ok": True, "favorited": True, "favoriteCount": favorite_count}},
+                )
+                return
+
+            match_review = re.fullmatch(r"/api/admin/reviews/(post|comment)/([^/]+)/(approve|reject|delete|risk)", path)
+            if match_review:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                target_type = match_review.group(1)
+                target_id = match_review.group(2)
+                action = match_review.group(3)
+
+                if target_type == "post":
+                    row = next((p for p in db["posts"] if p.get("id") == target_id), None)
+                else:
+                    row = next((c for c in db["comments"] if c.get("id") == target_id), None)
+
+                if row is None or row.get("deleted"):
+                    json_error(self, HTTPStatus.NOT_FOUND, "内容不存在")
+                    return
+
+                if action == "approve":
+                    row["reviewStatus"] = "approved"
+                elif action == "reject":
+                    row["reviewStatus"] = "rejected"
+                elif action == "delete":
+                    row["deleted"] = True
+                    if target_type == "post":
+                        for upload in db.get("mediaUploads", []):
+                            if upload.get("postId") == target_id and not upload.get("deleted"):
+                                upload["deleted"] = True
+                elif action == "risk":
+                    row["riskMarked"] = True
+
+                if target_type == "post":
+                    row["updatedAt"] = now_iso()
+
+                add_audit_log(db, admin["id"], "admin_review", f"{target_type}:{target_id}:{action}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "处理成功", "data": {"ok": True}})
+                return
+
+            match_report_handle = re.fullmatch(r"/api/admin/reports/([^/]+)/handle", path)
+            if match_report_handle:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                report_id = match_report_handle.group(1)
+                action = str(body.get("action", "resolve")).strip().lower()
+                result = str(body.get("result", "")).strip()
+
+                report = next((r for r in db["reports"] if r.get("id") == report_id), None)
+                if report is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "举报不存在")
+                    return
+
+                target_type = str(report.get("targetType", ""))
+                target_id = str(report.get("targetId", ""))
+
+                if action == "delete_content":
+                    if target_type == "post":
+                        row = next((p for p in db["posts"] if p.get("id") == target_id), None)
+                        if row:
+                            row["deleted"] = True
+                            for upload in db.get("mediaUploads", []):
+                                if upload.get("postId") == target_id and not upload.get("deleted"):
+                                    upload["deleted"] = True
+                    elif target_type == "comment":
+                        row = next((c for c in db["comments"] if c.get("id") == target_id), None)
+                        if row:
+                            row["deleted"] = True
+                    report["status"] = "resolved"
+                    report["result"] = result or "内容已删除"
+                elif action == "warn_user":
+                    report["status"] = "resolved"
+                    report["result"] = result or "已警告用户"
+                elif action == "ban_user":
+                    owner_id = target_owner(db, target_type, target_id)
+                    owner = find_user_by_id(db, owner_id or "")
+                    if owner:
+                        owner["banned"] = True
+                    report["status"] = "resolved"
+                    report["result"] = result or "已封禁用户"
+                elif action == "mark_misreport":
+                    report["status"] = "closed"
+                    report["result"] = result or "标记为误报"
+                else:
+                    report["status"] = "resolved"
+                    report["result"] = result or "已处理"
+
+                report["handledAt"] = now_iso()
+                report["handledBy"] = admin.get("id")
+                add_audit_log(db, admin["id"], "admin_handle_report", f"{report_id}:{action}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "举报处理完成", "data": {"ok": True}})
+                return
+
+            match_user_action = re.fullmatch(r"/api/admin/users/([^/]+)/action", path)
+            if match_user_action:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                user_id = match_user_action.group(1)
+                action = str(body.get("action", "")).strip().lower()
+
+                user = find_user_by_id(db, user_id)
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "用户不存在")
+                    return
+                if user.get("id") == admin.get("id") and action in {"ban", "mute", "demote"}:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不能对当前管理员执行该操作")
+                    return
+
+                if action == "mute":
+                    user["muted"] = True
+                elif action == "unmute":
+                    user["muted"] = False
+                elif action == "ban":
+                    user["banned"] = True
+                elif action == "unban":
+                    user["banned"] = False
+                elif action == "promote":
+                    user["isAdmin"] = True
+                elif action == "demote":
+                    user["isAdmin"] = False
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不支持的操作")
+                    return
+
+                add_audit_log(db, admin["id"], "admin_user_action", f"{user_id}:{action}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "用户状态已更新", "data": {"ok": True}})
+                return
+
+            match_image_review = re.fullmatch(r"/api/admin/images/([^/]+)/review", path)
+            if match_image_review:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                upload_id = match_image_review.group(1)
+                action = str(body.get("action", "approve")).strip().lower()
+                review_note = str(body.get("note", "")).strip()
+
+                upload = get_upload_by_id(db, upload_id)
+                if upload is None or upload.get("deleted"):
+                    json_error(self, HTTPStatus.NOT_FOUND, "图片不存在")
+                    return
+
+                if action == "approve":
+                    upload["status"] = "approved"
+                    upload["reviewNote"] = review_note or "已通过"
+                elif action == "reject":
+                    upload["status"] = "rejected"
+                    upload["reviewNote"] = review_note or "已拒绝"
+                elif action == "risk":
+                    upload["status"] = "risk"
+                    upload["reviewNote"] = review_note or "已标记风险"
+                elif action == "delete":
+                    upload["deleted"] = True
+                    upload["status"] = "rejected"
+                    upload["reviewNote"] = review_note or "已删除图片"
+                    try:
+                        OBJECT_STORAGE.delete(str(upload.get("objectKey", "")))
+                    except Exception:
+                        pass
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不支持的审核动作")
+                    return
+
+                upload["reviewedBy"] = admin["id"]
+                upload["reviewedAt"] = now_iso()
+                post_id = str(upload.get("postId", ""))
+                if post_id:
+                    recalc_post_has_image(db, post_id)
+
+                add_audit_log(db, admin["id"], "admin_review_image", f"{upload_id}:{action}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "图片审核完成", "data": serialize_upload(db, upload, include_admin_fields=True)})
+                return
+
+            if path == "/api/admin/channels":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                name = str(body.get("name", "")).strip()
+                if not name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "频道名不能为空")
+                    return
+                channels = db.get("channels", [])
+                if name in channels:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "频道已存在")
+                    return
+                channels.append(name)
+                add_audit_log(db, admin["id"], "admin_add_channel", name)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "频道创建成功", "data": {"channels": channels}})
+                return
+
+            if path == "/api/admin/tags":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                name = str(body.get("name", "")).strip()
+                if not name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "标签名不能为空")
+                    return
+                tags = db.get("tags", [])
+                if name in tags:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "标签已存在")
+                    return
+                tags.append(name)
+                add_audit_log(db, admin["id"], "admin_add_tag", name)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "标签创建成功", "data": {"tags": tags}})
+                return
+
+            json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+
+    def _handle_patch(self, path: str) -> None:
+        body = read_json_body(self)
+
+        with DB_LOCK:
+            db = load_db()
+
+            if path == "/api/admin/auth/password":
+                admin, token = require_admin_user(self, db)
+                if admin is None:
+                    return
+                old_password = str(body.get("oldPassword", "")).strip()
+                new_password = str(body.get("newPassword", "")).strip()
+                if not old_password or not new_password:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "旧密码和新密码不能为空")
+                    return
+                if len(new_password) < 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "新密码长度至少 6 位")
+                    return
+
+                username, stored_hash = get_admin_auth_credentials(db)
+                if not verify_password(stored_hash, old_password):
+                    json_error(self, HTTPStatus.UNAUTHORIZED, "旧密码错误")
+                    return
+
+                settings = db.get("settings", {})
+                settings[ADMIN_PASSWORD_HASH_SETTING_KEY] = hash_password(new_password)
+                db["settings"] = settings
+                with ADMIN_SESSION_LOCK:
+                    ADMIN_SESSIONS.clear()
+                if token:
+                    with ADMIN_SESSION_LOCK:
+                        ADMIN_SESSIONS.pop(token, None)
+                add_audit_log(db, "", "admin_update_password", f"管理员更新密码: {username}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "管理员密码更新成功", "data": {"ok": True}})
+                return
+
+            if path == "/api/users/privacy":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+
+                allow_stranger_dm = body.get("allowStrangerDm")
+                show_contactable = body.get("showContactable")
+                if allow_stranger_dm is not None:
+                    user["allowStrangerDm"] = bool(allow_stranger_dm)
+                if show_contactable is not None:
+                    user["showContactable"] = bool(show_contactable)
+                add_audit_log(db, user["id"], "update_privacy", "更新隐私设置")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "隐私设置更新成功", "data": {"ok": True}})
+                return
+
+            if path == "/api/users/me":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+
+                nickname = body.get("nickname")
+                avatar_url = body.get("avatarUrl")
+                student_id = body.get("studentId")
+
+                if nickname is not None:
+                    cleaned_nickname = sanitize_alias(str(nickname), fallback="")
+                    if not cleaned_nickname:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "昵称不能为空")
+                        return
+                    user["nickname"] = cleaned_nickname
+                    user["alias"] = cleaned_nickname
+
+                if avatar_url is not None:
+                    user["avatarUrl"] = normalize_avatar_url(str(avatar_url))
+
+                if student_id is not None:
+                    cleaned_student_id = str(student_id).strip()
+                    if cleaned_student_id and not is_valid_student_id(cleaned_student_id):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "学号格式不合法（6-20 位字母或数字）")
+                        return
+                    if cleaned_student_id:
+                        user["studentId"] = cleaned_student_id
+
+                add_audit_log(db, user["id"], "update_profile", "更新个人资料")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "个人资料更新成功",
+                        "data": {
+                            "nickname": user_nickname(user),
+                            "avatarUrl": user_avatar_url(user),
+                            "studentId": str(user.get("studentId", "")),
+                        },
+                    },
+                )
+                return
+
+            match_post = re.fullmatch(r"/api/posts/([^/]+)", path)
+            if match_post:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_post.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                if post.get("authorId") != user["id"]:
+                    json_error(self, HTTPStatus.FORBIDDEN, "无权修改该帖子")
+                    return
+
+                status = str(body.get("status", "")).strip().lower()
+                if status:
+                    if status not in {"ongoing", "resolved", "closed"}:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "状态不合法")
+                        return
+                    post["status"] = status
+                    post["updatedAt"] = now_iso()
+                    add_audit_log(db, user["id"], "update_post_status", f"{post_id}:{status}")
+                    save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "帖子更新成功", "data": serialize_post(db, post)})
+                return
+
+            match_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
+            if match_channel:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                old_name = unquote(match_channel.group(1)).strip()
+                new_name = str(body.get("newName", "")).strip()
+                if not old_name or not new_name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "频道名不能为空")
+                    return
+                channels = db.get("channels", [])
+                if old_name not in channels:
+                    json_error(self, HTTPStatus.NOT_FOUND, "频道不存在")
+                    return
+                if new_name in channels and new_name != old_name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "新频道名已存在")
+                    return
+                channels[channels.index(old_name)] = new_name
+                for post in db["posts"]:
+                    if post.get("channel") == old_name:
+                        post["channel"] = new_name
+                        post["updatedAt"] = now_iso()
+                add_audit_log(db, admin["id"], "admin_rename_channel", f"{old_name}->{new_name}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "频道更新成功", "data": {"channels": channels}})
+                return
+
+            match_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
+            if match_tag:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                old_name = unquote(match_tag.group(1)).strip()
+                new_name = str(body.get("newName", "")).strip()
+                if not old_name or not new_name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "标签名不能为空")
+                    return
+                tags = db.get("tags", [])
+                if old_name not in tags:
+                    json_error(self, HTTPStatus.NOT_FOUND, "标签不存在")
+                    return
+                if new_name in tags and new_name != old_name:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "新标签名已存在")
+                    return
+                tags[tags.index(old_name)] = new_name
+                for post in db["posts"]:
+                    post_tags = [new_name if t == old_name else t for t in post.get("tags", [])]
+                    post["tags"] = post_tags
+                add_audit_log(db, admin["id"], "admin_rename_tag", f"{old_name}->{new_name}")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "标签更新成功", "data": {"tags": tags}})
+                return
+
+            if path == "/api/admin/config":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+
+                if "sensitiveWords" in body:
+                    db["sensitiveWords"] = parse_list(body.get("sensitiveWords"))
+
+                settings = db.get("settings", {})
+                new_settings = body.get("settings")
+                if isinstance(new_settings, dict):
+                    for key in ["postRateLimit", "commentRateLimit", "messageRateLimit", "imageMaxMB"]:
+                        if key in new_settings:
+                            try:
+                                settings[key] = int(new_settings[key])
+                            except (TypeError, ValueError):
+                                pass
+                else:
+                    for key in ["postRateLimit", "commentRateLimit", "messageRateLimit", "imageMaxMB"]:
+                        if key in body:
+                            try:
+                                settings[key] = int(body[key])
+                            except (TypeError, ValueError):
+                                pass
+
+                db["settings"] = settings
+                add_audit_log(db, admin["id"], "admin_update_config", "更新系统配置")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "配置更新成功",
+                        "data": {
+                            "sensitiveWords": db.get("sensitiveWords", []),
+                            "settings": public_system_settings(db),
+                        },
+                    },
+                )
+                return
+
+            json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+
+    def _handle_delete(self, path: str) -> None:
+        with DB_LOCK:
+            db = load_db()
+
+            if path == "/api/users/me":
+                user, token = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "演示账号不可注销")
+                    return
+                user["deleted"] = True
+                if token:
+                    db["sessions"].pop(token, None)
+                for t, uid in list(db["sessions"].items()):
+                    if uid == user["id"]:
+                        db["sessions"].pop(t, None)
+                for upload in db.get("mediaUploads", []):
+                    if upload.get("uploaderId") == user["id"] and not upload.get("deleted"):
+                        upload["deleted"] = True
+                add_audit_log(db, user["id"], "delete_account", "提交删除账号申请")
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "删除账号申请已提交", "data": {"ok": True}})
+                return
+
+            match_comment = re.fullmatch(r"/api/comments/([^/]+)", path)
+            if match_comment:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                comment_id = match_comment.group(1)
+                comment = next((c for c in db["comments"] if c.get("id") == comment_id and not c.get("deleted")), None)
+                if comment is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "评论不存在")
+                    return
+                if comment.get("userId") != user["id"]:
+                    json_error(self, HTTPStatus.FORBIDDEN, "无权删除该评论")
+                    return
+                comment["deleted"] = True
+                add_audit_log(db, user["id"], "delete_comment", comment_id)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "评论已删除", "data": {"ok": True}})
+                return
+
+            match_post = re.fullmatch(r"/api/posts/([^/]+)", path)
+            if match_post:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_post.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                if post.get("authorId") != user["id"]:
+                    json_error(self, HTTPStatus.FORBIDDEN, "无权删除该帖子")
+                    return
+                post["deleted"] = True
+                for upload in db.get("mediaUploads", []):
+                    if upload.get("postId") == post_id and not upload.get("deleted"):
+                        upload["deleted"] = True
+                add_audit_log(db, user["id"], "delete_post", post_id)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "帖子已删除", "data": {"ok": True}})
+                return
+
+            match_favorite = re.fullmatch(r"/api/posts/([^/]+)/favorite", path)
+            if match_favorite:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_favorite.group(1)
+                post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                before_len = len(db["favorites"])
+                db["favorites"] = [
+                    x
+                    for x in db["favorites"]
+                    if not (x.get("userId") == user["id"] and x.get("postId") == post_id)
+                ]
+                if len(db["favorites"]) != before_len:
+                    save_db(db)
+                _, _, favorite_count = post_counts(db, post_id)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"message": "已取消收藏", "data": {"ok": True, "favorited": False, "favoriteCount": favorite_count}},
+                )
+                return
+
+            match_del_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
+            if match_del_channel:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                name = unquote(match_del_channel.group(1)).strip()
+                channels = db.get("channels", [])
+                if name not in channels:
+                    json_error(self, HTTPStatus.NOT_FOUND, "频道不存在")
+                    return
+                used = any(not p.get("deleted") and p.get("channel") == name for p in db["posts"])
+                if used:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "频道仍被帖子使用，无法删除")
+                    return
+                channels.remove(name)
+                add_audit_log(db, admin["id"], "admin_delete_channel", name)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "频道已删除", "data": {"channels": channels}})
+                return
+
+            match_del_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
+            if match_del_tag:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                name = unquote(match_del_tag.group(1)).strip()
+                tags = db.get("tags", [])
+                if name not in tags:
+                    json_error(self, HTTPStatus.NOT_FOUND, "标签不存在")
+                    return
+                tags.remove(name)
+                for post in db["posts"]:
+                    if name in post.get("tags", []):
+                        post["tags"] = [t for t in post.get("tags", []) if t != name]
+                add_audit_log(db, admin["id"], "admin_delete_tag", name)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "标签已删除", "data": {"tags": tags}})
+                return
+
+            json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+
+
+def main() -> None:
+    ensure_db()
+    host = os.environ.get("BACKEND_HOST", "0.0.0.0")
+    port = int(os.environ.get("BACKEND_PORT", "8080"))
+
+    server = ThreadingHTTPServer((host, port), TreeholeHandler)
+    print(f"[backend] XDU Treehole API is running at http://{host}:{port}/api")
+    print(f"[backend] Web root: {WEB_ROOT_DIR}")
+    if not WEB_ROOT_DIR.exists() or not (WEB_ROOT_DIR / "index.html").exists():
+        print("[backend] Web bundle missing. Run `flutter build web --dart-define=API_BASE_URL=/api`")
+    print(f"[backend] SQL storage: {SQL_DB_FILE}")
+    print(f"[backend] Object storage: {OBJECT_STORAGE.describe()}")
+    if smtp_configured():
+        smtp_mode = "SMTP_SSL" if SMTP_USE_SSL else ("SMTP+STARTTLS" if SMTP_USE_STARTTLS else "SMTP")
+        print(
+            f"[backend] SMTP: {smtp_mode} {SMTP_HOST}:{SMTP_PORT} from={SMTP_FROM_EMAIL}"
+        )
+    else:
+        print("[backend] SMTP: not configured (set BACKEND_SMTP_* to enable email verification)")
+    print("[backend] demo user account: demo@stu.xidian.edu.cn / 123456")
+    print(f"[backend] admin account: {DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD}")
+    if verify_code_debug_enabled():
+        print("[backend] debug verify code enabled: 123456")
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()
