@@ -37,6 +37,7 @@ class UserRepository {
       showContactable: true,
       favoriteCount: fallbackFavorite,
       isAdmin: false,
+      accountCancellationRequest: null,
     );
   }
 
@@ -183,7 +184,12 @@ class UserRepository {
     );
   }
 
-  Future<void> deleteAccount() {
-    return _apiClient.delete(ApiEndpoints.me);
+  Future<void> submitAccountCancellationRequest({String? reason}) {
+    return _apiClient.post(
+      ApiEndpoints.meCancellationRequest,
+      body: <String, dynamic>{
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      },
+    );
   }
 }

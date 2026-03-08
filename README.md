@@ -10,12 +10,12 @@
 - 发帖页（表单校验、真实图片选择上传、发布后绑定 `imageUploadIds`）
 - 帖子详情页（点赞/收藏/举报/评论占位）
 - 搜索 / 筛选页（关键词、频道、状态、有图、可私信）
-- 消息 / 私信页（申请列表 + 会话列表）
-- 会话详情页（本地演示发送，支持表情输入）
+- 消息 / 私信页（申请列表、会话列表、真实消息收发）
+- 会话详情页（真实消息同步，支持表情输入）
 - 收藏页
 - 个人中心页
 - 我的帖子 / 我的评论 / 我的举报
-- 管理员后台（概览、内容审核、举报处理、用户管理、分类标签、系统配置）
+- 管理员后台（概览、内容审核、图片审核、举报处理、用户管理、注销审核、分类标签、系统配置）
 - 表情设置（开关、常用表情自定义）
 
 ## 技术说明
@@ -25,6 +25,7 @@
 - 已内置 Python 后端（`backend/server.py`），前后端可直接联调
 - 后端已切换为 SQL 持久化（SQLite，Repository/DAO + 事务）
 - 已接入图片上传链路（支持本地对象存储 / S3 兼容对象存储）与管理员图片审核流
+- 私信链路已落库：支持发起私信申请、同意后建立双向会话、历史消息持久化
 - 前台页面优先走后端接口；接口不可用时，列表型页面会回退到本地 Mock（便于演示）
 
 ## 启动方式
@@ -133,6 +134,70 @@ git push -u origin main
 注意：
 - Render 免费实例会休眠，首次访问会有冷启动延迟。
 - 免费实例文件系统非持久化，SQLite/本地图片存储不适合生产长期保存。
+
+### 腾讯云试用机部署（CVM / Lighthouse）
+
+仓库已补充腾讯云部署脚本和配置：
+
+- `scripts/package_release.sh`：本地构建并打包发布包
+- `scripts/deploy_tencent.sh`：从本机通过 SSH 上传并执行服务器安装
+- `scripts/install_tencent_host.sh`：服务器侧安装 Nginx + systemd 并发布
+- `deploy/tencent/backend.env.example`：后端环境变量模板
+- `deploy/tencent/xdu-whisperbox.service`：systemd 服务
+- `deploy/tencent/nginx-xdu-whisperbox.conf`：Nginx 反向代理配置
+
+开始部署前，腾讯云实例需满足：
+
+- Linux Ubuntu 22.04
+- 已放通 `22`、`80`
+- 你本机可以通过 SSH 登录该实例
+
+本机执行：
+
+```bash
+DEPLOY_HOST=<你的腾讯云公网IP> \
+DEPLOY_USER=root \
+DEPLOY_SSH_KEY=~/.ssh/tencent-cloud.pem \
+./scripts/deploy_tencent.sh
+```
+
+如果你的登录用户不是 `root`，把 `DEPLOY_USER` 改成实际用户名即可，例如 `ubuntu`。
+
+部署完成后，服务器会生成环境变量文件：
+
+```bash
+/etc/xdu-whisperbox.env
+```
+
+至少应检查并修改：
+
+- `BACKEND_ADMIN_PASSWORD`
+- `BACKEND_SMTP_USERNAME`
+- `BACKEND_SMTP_PASSWORD`
+- `BACKEND_SMTP_FROM_EMAIL`
+
+修改后重启服务：
+
+```bash
+sudo systemctl restart xdu-whisperbox
+sudo systemctl status xdu-whisperbox
+curl http://127.0.0.1:8080/api/channels
+```
+
+公网访问地址：
+
+- `http://<你的腾讯云公网IP>/`
+- `http://<你的腾讯云公网IP>/api/channels`
+
+当前内测地址（2026-03-08）：
+
+- 前台：`http://81.69.16.134/`
+- API 健康检查：`http://81.69.16.134/api/channels`
+
+说明：
+
+- 该部署方式默认使用 SQLite + 本地对象存储，适合试用机和小规模内测
+- 中国大陆以外访问限制，建议放在腾讯云边界产品上做；当前仓库内的 Nginx 模板只负责反向代理，不负责地理位置拦截
 
 ### 1) 启动后端（基础方式）
 
@@ -248,12 +313,20 @@ python3 backend/reset_db.py
 - 认证：发送验证码、登录、验证码认证、重发验证码、退出登录
 - 帖子：频道、帖子列表、帖子详情、发帖（支持 `imageUploadIds`）、评论、点赞、收藏/取消收藏、举报、我的帖子、收藏帖子
 - 上传：图片上传（`/uploads/images`）、我的上传记录（`/uploads/mine`）、对象存储访问（`/storage/{key}`）
-- 消息：私信申请列表、同意/拒绝申请、会话列表
-- 个人：我的资料、隐私设置、我的评论、删除评论、我的举报、删除账号
+- 消息：发起私信申请、私信申请列表、同意/拒绝申请、会话列表、会话消息列表、发送私信
+- 个人：我的资料、隐私设置、我的评论、删除评论、我的举报、注销账号申请
 - 管理员认证：`/admin/auth/login`、`/admin/auth/logout`、`/admin/auth/me`、`/admin/auth/password`
-- 管理员业务：统计概览、内容审核、图片审核、举报处理、用户状态管理、频道标签管理、敏感词/系统配置
+- 管理员业务：统计概览、内容审核、图片审核、举报处理、用户状态管理、注销申请审核、匿名帖真实作者追溯、频道标签管理、敏感词/系统配置
 
 ## 更新日志
+
+### 2026-03-08
+
+- 私信功能从演示版改为真实可用：支持帖子详情页发起私信申请、管理员同意后建立双向会话、消息持久化存储与历史消息拉取
+- 管理员审核页支持查看匿名帖/匿名评论的真实账号信息（昵称、邮箱、学号、内部用户 ID）
+- 输入区交互优化：表情入口改为紧凑按钮，不再挡住评论/私信输入框
+- 发帖页标题输入框拦截 `Tab` 焦点跳转，不再自动跳到正文
+- 腾讯云现网已更新到最新版：`http://81.69.16.134/`
 
 ### 2026-03-07
 

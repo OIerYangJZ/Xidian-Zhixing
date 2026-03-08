@@ -10,6 +10,7 @@ class UserProfile {
     required this.showContactable,
     required this.favoriteCount,
     required this.isAdmin,
+    required this.accountCancellationRequest,
   });
 
   final String nickname;
@@ -22,6 +23,7 @@ class UserProfile {
   final bool showContactable;
   final int favoriteCount;
   final bool isAdmin;
+  final AccountCancellationRequestSummary? accountCancellationRequest;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final String nickname =
@@ -38,6 +40,13 @@ class UserProfile {
       showContactable: _toBool(json['showContactable']) ?? true,
       favoriteCount: _toInt(json['favoriteCount']) ?? 0,
       isAdmin: _toBool(json['isAdmin']) ?? false,
+      accountCancellationRequest: json['accountCancellationRequest'] is Map
+          ? AccountCancellationRequestSummary.fromJson(
+              (json['accountCancellationRequest'] as Map<dynamic, dynamic>).map(
+                (dynamic key, dynamic value) => MapEntry(key.toString(), value),
+              ),
+            )
+          : null,
     );
   }
 
@@ -50,6 +59,7 @@ class UserProfile {
     bool? showContactable,
     int? favoriteCount,
     bool? isAdmin,
+    AccountCancellationRequestSummary? accountCancellationRequest,
   }) {
     return UserProfile(
       nickname: nickname ?? this.nickname,
@@ -62,6 +72,8 @@ class UserProfile {
       showContactable: showContactable ?? this.showContactable,
       favoriteCount: favoriteCount ?? this.favoriteCount,
       isAdmin: isAdmin ?? this.isAdmin,
+      accountCancellationRequest:
+          accountCancellationRequest ?? this.accountCancellationRequest,
     );
   }
 
@@ -95,5 +107,42 @@ class UserProfile {
       return int.tryParse(value);
     }
     return null;
+  }
+}
+
+class AccountCancellationRequestSummary {
+  AccountCancellationRequestSummary({
+    required this.id,
+    required this.reason,
+    required this.status,
+    required this.statusLabel,
+    required this.reviewNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+  });
+
+  final String id;
+  final String reason;
+  final String status;
+  final String statusLabel;
+  final String reviewNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+
+  factory AccountCancellationRequestSummary.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    return AccountCancellationRequestSummary(
+      id: (json['id'] ?? '').toString(),
+      reason: (json['reason'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待审核').toString(),
+      reviewNote: (json['reviewNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
+    );
   }
 }

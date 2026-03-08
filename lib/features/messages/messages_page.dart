@@ -168,27 +168,23 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
   }
 
   Widget _buildAvatar(String avatarUrl, String name) {
-    final String resolved = _resolveAvatarUrl(avatarUrl);
-    if (resolved.isNotEmpty) {
-      return CircleAvatar(backgroundImage: NetworkImage(resolved));
-    }
+    final String resolved = AppConfig.resolveUrl(avatarUrl);
     final String fallback =
         name.trim().isEmpty ? '?' : name.trim().substring(0, 1);
+    if (resolved.isNotEmpty) {
+      return CircleAvatar(
+        backgroundColor: const Color(0xFFE5EAF3),
+        child: ClipOval(
+          child: Image.network(
+            resolved,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Text(fallback),
+          ),
+        ),
+      );
+    }
     return CircleAvatar(child: Text(fallback));
-  }
-
-  String _resolveAvatarUrl(String avatarUrl) {
-    final String trimmed = avatarUrl.trim();
-    if (trimmed.isEmpty) {
-      return '';
-    }
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    if (trimmed.startsWith('/')) {
-      final Uri base = Uri.parse(AppConfig.apiBaseUrl);
-      return '${base.scheme}://${base.authority}$trimmed';
-    }
-    return '';
   }
 }

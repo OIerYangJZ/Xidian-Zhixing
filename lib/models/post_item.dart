@@ -60,6 +60,8 @@ class PostItem {
     required this.status,
     required this.allowComment,
     required this.allowDm,
+    this.canMessageAuthor = false,
+    this.isOwnPost = false,
     this.isFavorited = false,
   });
 
@@ -77,6 +79,8 @@ class PostItem {
   final PostStatus status;
   final bool allowComment;
   final bool allowDm;
+  final bool canMessageAuthor;
+  final bool isOwnPost;
   final bool isFavorited;
 
   factory PostItem.fromJson(Map<String, dynamic> json) {
@@ -103,6 +107,10 @@ class PostItem {
       status: PostStatusCodec.fromDynamic(json['status']),
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
+      canMessageAuthor:
+          _bool(json, <String>['canMessageAuthor', 'canContactAuthor']) ??
+              false,
+      isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
     );
   }
@@ -135,6 +143,8 @@ class PostItem {
     PostStatus? status,
     bool? allowComment,
     bool? allowDm,
+    bool? canMessageAuthor,
+    bool? isOwnPost,
     bool? isFavorited,
   }) {
     return PostItem(
@@ -152,6 +162,8 @@ class PostItem {
       status: status ?? this.status,
       allowComment: allowComment ?? this.allowComment,
       allowDm: allowDm ?? this.allowDm,
+      canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
+      isOwnPost: isOwnPost ?? this.isOwnPost,
       isFavorited: isFavorited ?? this.isFavorited,
     );
   }

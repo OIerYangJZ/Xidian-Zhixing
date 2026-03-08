@@ -25,14 +25,28 @@ class EmojiAssistantBar extends StatelessWidget {
 
         return Align(
           alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () => showEmojiPickerSheet(
-              context: context,
-              controller: controller,
-            ),
-            icon: const Icon(Icons.emoji_emotions_outlined),
-            label: Text(compact ? '表情' : '选择表情'),
-          ),
+          child: compact
+              ? IconButton(
+                  onPressed: () => showEmojiPickerSheet(
+                    context: context,
+                    controller: controller,
+                  ),
+                  icon: const Icon(Icons.emoji_emotions_outlined),
+                  tooltip: '表情',
+                  visualDensity: VisualDensity.compact,
+                )
+              : OutlinedButton.icon(
+                  onPressed: () => showEmojiPickerSheet(
+                    context: context,
+                    controller: controller,
+                  ),
+                  icon: const Icon(Icons.emoji_emotions_outlined, size: 18),
+                  label: const Text('表情'),
+                  style: OutlinedButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ),
         );
       },
     );

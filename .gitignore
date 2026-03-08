@@ -20,6 +20,7 @@ build/*
 
 # macOS
 .DS_Store
+*.pem
 
 # Backend local data
 backend/data/db.json
@@ -33,6 +34,7 @@ backend/__pycache__/
 # Local env
 .venv/
 __pycache__/
+dist/
 
 # Scratch notes
 zzzzz.txt

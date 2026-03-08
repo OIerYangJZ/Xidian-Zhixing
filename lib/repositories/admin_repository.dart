@@ -105,6 +105,29 @@ class AdminRepository {
         .toList();
   }
 
+  Future<List<AdminAccountCancellationRequest>>
+      fetchAccountCancellationRequests({
+    String status = 'all',
+    String? keyword,
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminAccountCancellationRequests,
+      queryParameters: <String, dynamic>{
+        'status': status,
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+      },
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map(
+          (dynamic item) =>
+              AdminAccountCancellationRequest.fromJson(asMap(item)),
+        )
+        .where((AdminAccountCancellationRequest item) => item.id.isNotEmpty)
+        .toList();
+  }
+
   Future<void> updateUserState({
     required String userId,
     required String action,
@@ -112,6 +135,20 @@ class AdminRepository {
     return _apiClient.post(
       ApiEndpoints.adminUserAction(userId),
       body: <String, dynamic>{'action': action},
+    );
+  }
+
+  Future<void> handleAccountCancellationRequest({
+    required String requestId,
+    required String action,
+    String? note,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminAccountCancellationHandle(requestId),
+      body: <String, dynamic>{
+        'action': action,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
     );
   }
 

@@ -89,6 +89,60 @@ BACKEND_HOST=0.0.0.0 BACKEND_PORT=8080 ./scripts/run_backend_beta.sh
 - Render 免费实例会休眠并存在冷启动。
 - 免费实例本地磁盘非持久化，SQLite/本地对象存储只适合内测演示。
 
+## 腾讯云试用机部署（CVM / Lighthouse）
+
+仓库已内置腾讯云部署脚本：
+
+- `scripts/package_release.sh`
+- `scripts/deploy_tencent.sh`
+- `scripts/install_tencent_host.sh`
+- `deploy/tencent/backend.env.example`
+- `deploy/tencent/xdu-whisperbox.service`
+- `deploy/tencent/nginx-xdu-whisperbox.conf`
+
+本机直接执行：
+
+```bash
+DEPLOY_HOST=<server-ip> \
+DEPLOY_USER=root \
+DEPLOY_SSH_KEY=~/.ssh/tencent-cloud.pem \
+./scripts/deploy_tencent.sh
+```
+
+部署脚本会完成：
+
+- 本地打包当前代码与 `build/web`
+- 上传到腾讯云实例
+- 安装 `nginx`、`python3`
+- 部署为 `/opt/xdu-whisperbox/current`
+- 注册并启动 `xdu-whisperbox.service`
+
+部署后请检查服务器环境变量文件：
+
+```bash
+sudo sed -n '1,200p' /etc/xdu-whisperbox.env
+```
+
+重点修改：
+
+- `BACKEND_ADMIN_PASSWORD`
+- `BACKEND_SMTP_USERNAME`
+- `BACKEND_SMTP_PASSWORD`
+- `BACKEND_SMTP_FROM_EMAIL`
+
+应用修改：
+
+```bash
+sudo systemctl restart xdu-whisperbox
+sudo systemctl status xdu-whisperbox
+curl http://127.0.0.1:8080/api/channels
+```
+
+说明：
+
+- 当前模板默认 `Nginx -> 127.0.0.1:8080 -> Python backend`
+- 当前模板不包含“中国大陆以外拦截”能力；该限制建议在腾讯云边界产品或上层网关实现
+
 ## 默认测试账号
 
 - 普通用户：`demo@stu.xidian.edu.cn / 123456`

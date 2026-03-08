@@ -60,7 +60,11 @@ class _ProfilePageState extends State<ProfilePage> {
           showContactable: false,
           favoriteCount: 0,
           isAdmin: false,
+          accountCancellationRequest: null,
         );
+
+    final AccountCancellationRequestSummary? cancellationRequest =
+        profile.accountCancellationRequest;
 
     return ListView(
       padding: const EdgeInsets.all(12),
@@ -226,8 +230,15 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete_outline),
-                title: const Text('删除账号申请'),
-                onTap: _saving ? null : _deleteAccount,
+                title: const Text('注销账号申请'),
+                subtitle: Text(
+                  cancellationRequest == null
+                      ? '提交后将进入管理员后台审核，通过后账号才会注销'
+                      : _accountCancellationSubtitle(cancellationRequest),
+                ),
+                onTap: _saving || cancellationRequest?.status == 'pending'
+                    ? null
+                    : _promptAccountCancellationRequest,
               ),
             ],
           ),
@@ -291,34 +302,28 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildAvatar(String url, String nickname) {
-    final String resolved = _resolveAvatarUrl(url);
+    final String resolved = AppConfig.resolveUrl(url);
+    final String trimmed = nickname.trim();
+    final String label = trimmed.isEmpty ? '匿' : trimmed.substring(0, 1);
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 30,
-        backgroundImage: NetworkImage(resolved),
+        backgroundColor: const Color(0xFFE5EAF3),
+        child: ClipOval(
+          child: Image.network(
+            resolved,
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Text(label),
+          ),
+        ),
       );
     }
-    final String trimmed = nickname.trim();
-    final String label = trimmed.isEmpty ? '匿' : trimmed.substring(0, 1);
     return CircleAvatar(
       radius: 30,
       child: Text(label),
     );
-  }
-
-  String _resolveAvatarUrl(String url) {
-    final String trimmed = url.trim();
-    if (trimmed.isEmpty) {
-      return '';
-    }
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    if (trimmed.startsWith('/')) {
-      final Uri base = Uri.parse(AppConfig.apiBaseUrl);
-      return '${base.scheme}://${base.authority}$trimmed';
-    }
-    return '';
   }
 
   Future<void> _loadProfile() async {
@@ -391,6 +396,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   showContactable: false,
                   favoriteCount: 0,
                   isAdmin: false,
+                  accountCancellationRequest: null,
                 ))
             .copyWith(avatarUrl: _avatarUrlController.text.trim());
       });
@@ -439,6 +445,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   showContactable: false,
                   favoriteCount: 0,
                   isAdmin: false,
+                  accountCancellationRequest: null,
                 ))
             .copyWith(
           nickname: nickname,
@@ -486,6 +493,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   showContactable: false,
                   favoriteCount: 0,
                   isAdmin: false,
+                  accountCancellationRequest: null,
                 ))
             .copyWith(
           allowStrangerDm: allowStrangerDm,
@@ -504,17 +512,57 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _deleteAccount() async {
+  Future<void> _promptAccountCancellationRequest() async {
+    final TextEditingController controller = TextEditingController();
+    final String? reason = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('提交注销申请'),
+          content: TextField(
+            controller: controller,
+            minLines: 3,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              labelText: '申请说明（可选）',
+              hintText: '例如：不再使用、信息更换、测试账号清理等',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('确认提交'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (reason == null) {
+      return;
+    }
+    await _submitAccountCancellationRequest(reason: reason);
+  }
+
+  Future<void> _submitAccountCancellationRequest({String? reason}) async {
     setState(() {
       _saving = true;
     });
 
     try {
-      await AppRepositories.users.deleteAccount();
+      await AppRepositories.users.submitAccountCancellationRequest(
+        reason: reason,
+      );
+      await _loadProfile();
       if (!mounted) {
         return;
       }
-      _toast('删除账号申请已提交');
+      _toast('注销申请已提交，等待管理员审核');
     } catch (error) {
       _toast('提交失败：$error');
     } finally {
@@ -524,6 +572,17 @@ class _ProfilePageState extends State<ProfilePage> {
         });
       }
     }
+  }
+
+  String _accountCancellationSubtitle(
+    AccountCancellationRequestSummary request,
+  ) {
+    final StringBuffer text = StringBuffer();
+    text.write('${request.statusLabel} · ${request.createdAt}');
+    if (request.reviewNote.trim().isNotEmpty) {
+      text.write(' · ${request.reviewNote.trim()}');
+    }
+    return text.toString();
   }
 
   Future<void> _logout() async {

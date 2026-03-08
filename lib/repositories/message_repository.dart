@@ -4,6 +4,7 @@ import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../data/mock_data.dart';
 import '../models/conversation_item.dart';
+import '../models/direct_message_item.dart';
 import '../models/dm_request_item.dart';
 
 class MessageRepository {
@@ -58,6 +59,19 @@ class MessageRepository {
     );
   }
 
+  Future<void> createDmRequest({
+    required String postId,
+    String? reason,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.dmRequests,
+      body: <String, dynamic>{
+        'postId': postId,
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      },
+    );
+  }
+
   Future<List<ConversationItem>> fetchConversations() async {
     try {
       final dynamic response = await _apiClient.get(ApiEndpoints.conversations);
@@ -90,5 +104,30 @@ class MessageRepository {
     }
 
     return <ConversationItem>[];
+  }
+
+  Future<List<DirectMessageItem>> fetchConversationMessages(
+    String conversationId,
+  ) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.dmConversationMessages(conversationId),
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => DirectMessageItem.fromJson(asMap(item)))
+        .where((DirectMessageItem item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<DirectMessageItem> sendConversationMessage({
+    required String conversationId,
+    required String content,
+  }) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.dmConversationMessages(conversationId),
+      body: <String, dynamic>{'content': content},
+    );
+    final Map<String, dynamic> map = extractMap(response);
+    return DirectMessageItem.fromJson(map);
   }
 }

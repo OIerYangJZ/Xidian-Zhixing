@@ -1,0 +1,21 @@
+[Unit]
+Description=XDU WhisperBox Backend
+After=network.target
+
+[Service]
+Type=simple
+User=xdu
+Group=xdu
+WorkingDirectory=/opt/xdu-whisperbox/current
+EnvironmentFile=/etc/xdu-whisperbox.env
+Environment=BACKEND_HOST=127.0.0.1
+Environment=BACKEND_PORT=8080
+Environment=BACKEND_DB_FILE=/opt/xdu-whisperbox/shared/backend/data/treehole.db
+Environment=BACKEND_STORAGE_DIR=/opt/xdu-whisperbox/shared/backend/storage
+Environment=BACKEND_WEB_ROOT=/opt/xdu-whisperbox/current/build/web
+ExecStart=/usr/bin/python3 backend/server.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

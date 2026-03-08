@@ -698,6 +698,7 @@ def default_db() -> dict[str, Any]:
             "post": 0,
             "comment": 0,
             "report": 0,
+            "cancellation": 0,
             "request": 0,
             "conversation": 0,
             "audit": 0,
@@ -776,7 +777,9 @@ def default_db() -> dict[str, Any]:
         "reports": [],
         "dmRequests": [],
         "conversations": [],
+        "directMessages": [],
         "auditLogs": [],
+        "accountCancellationRequests": [],
         "mediaUploads": [],
     }
 
@@ -845,6 +848,18 @@ def default_db() -> dict[str, Any]:
         }
     )
     db["seq"]["conversation"] = 1
+    db["directMessages"].append(
+        {
+            "id": "m1",
+            "conversationKey": "seed-user-1::u1",
+            "senderUserId": "seed-user-1",
+            "receiverUserId": "u1",
+            "content": "谢谢，已经找到位置了。",
+            "createdAt": created,
+            "deleted": False,
+        }
+    )
+    db["seq"]["message"] = 1
 
     db["comments"].append(
         {
@@ -952,6 +967,11 @@ def migrate_db(db: dict[str, Any]) -> bool:
     if "auditLogs" not in db:
         db["auditLogs"] = []
         changed = True
+    if "accountCancellationRequests" not in db or not isinstance(
+        db.get("accountCancellationRequests"), list
+    ):
+        db["accountCancellationRequests"] = []
+        changed = True
     if "mediaUploads" not in db:
         db["mediaUploads"] = []
         changed = True
@@ -962,7 +982,18 @@ def migrate_db(db: dict[str, Any]) -> bool:
     if "seq" not in db:
         db["seq"] = {}
         changed = True
-    for key in ["user", "post", "comment", "report", "request", "conversation", "audit", "upload"]:
+    for key in [
+        "user",
+        "post",
+        "comment",
+        "report",
+        "cancellation",
+        "request",
+        "conversation",
+        "message",
+        "audit",
+        "upload",
+    ]:
         if key not in db["seq"]:
             db["seq"][key] = 0
             changed = True
@@ -1088,6 +1119,22 @@ def migrate_db(db: dict[str, Any]) -> bool:
             conversation["avatarUrl"] = ""
             changed = True
 
+    if "directMessages" not in db or not isinstance(db.get("directMessages"), list):
+        db["directMessages"] = []
+        changed = True
+    for message in db.get("directMessages", []):
+        if "conversationKey" not in message:
+            sender_user_id = str(message.get("senderUserId", "")).strip()
+            receiver_user_id = str(message.get("receiverUserId", "")).strip()
+            if sender_user_id and receiver_user_id:
+                message["conversationKey"] = "::".join(sorted([sender_user_id, receiver_user_id]))
+            else:
+                message["conversationKey"] = ""
+            changed = True
+        if "deleted" not in message:
+            message["deleted"] = False
+            changed = True
+
     for upload in db.get("mediaUploads", []):
         if "moderationReason" not in upload:
             upload["moderationReason"] = ""
@@ -1109,6 +1156,40 @@ def migrate_db(db: dict[str, Any]) -> bool:
             changed = True
         if "status" not in upload:
             upload["status"] = "pending"
+            changed = True
+
+    for request in db.get("accountCancellationRequests", []):
+        if "userEmail" not in request:
+            request["userEmail"] = ""
+            changed = True
+        if "userNickname" not in request:
+            request["userNickname"] = "匿名同学"
+            changed = True
+        if "studentId" not in request:
+            request["studentId"] = ""
+            changed = True
+        if "avatarUrl" not in request:
+            request["avatarUrl"] = ""
+            changed = True
+        else:
+            normalized_avatar = normalize_avatar_url(str(request.get("avatarUrl", "")))
+            if normalized_avatar != str(request.get("avatarUrl", "")):
+                request["avatarUrl"] = normalized_avatar
+                changed = True
+        if "reason" not in request:
+            request["reason"] = ""
+            changed = True
+        if "status" not in request:
+            request["status"] = "pending"
+            changed = True
+        if "reviewNote" not in request:
+            request["reviewNote"] = ""
+            changed = True
+        if "handledAt" not in request:
+            request["handledAt"] = ""
+            changed = True
+        if "handledBy" not in request:
+            request["handledBy"] = ""
             changed = True
 
     for post in db.get("posts", []):
@@ -1185,9 +1266,14 @@ def find_user_by_student_id(
     return None
 
 
-def find_user_by_id(db: dict[str, Any], user_id: str) -> dict[str, Any] | None:
+def find_user_by_id(
+    db: dict[str, Any],
+    user_id: str,
+    *,
+    include_deleted: bool = False,
+) -> dict[str, Any] | None:
     for user in db["users"]:
-        if user.get("deleted"):
+        if user.get("deleted") and not include_deleted:
             continue
         if user.get("id") == user_id:
             return user
@@ -1207,6 +1293,219 @@ def user_avatar_url(user: dict[str, Any] | None) -> str:
     if not user:
         return ""
     return normalize_avatar_url(str(user.get("avatarUrl", "")))
+
+
+def conversation_key_for_users(user_a_id: str, user_b_id: str) -> str:
+    left = user_a_id.strip()
+    right = user_b_id.strip()
+    if not left or not right:
+        return ""
+    return "::".join(sorted([left, right]))
+
+
+def upsert_conversation_for_user(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    peer_user_id: str,
+    last_message: str,
+    updated_at: str,
+) -> dict[str, Any] | None:
+    user = find_user_by_id(db, user_id)
+    peer_user = find_user_by_id(db, peer_user_id)
+    if user is None or peer_user is None:
+        return None
+
+    row = next(
+        (
+            item
+            for item in db.get("conversations", [])
+            if item.get("userId") == user_id and item.get("peerUserId") == peer_user_id
+        ),
+        None,
+    )
+    if row is None:
+        row = {
+            "id": next_id(db, "conversation", "c"),
+            "userId": user_id,
+            "peerUserId": peer_user_id,
+            "name": user_nickname(peer_user),
+            "avatarUrl": user_avatar_url(peer_user),
+            "lastMessage": last_message,
+            "updatedAt": updated_at,
+        }
+        db["conversations"].append(row)
+        return row
+
+    row["name"] = user_nickname(peer_user)
+    row["avatarUrl"] = user_avatar_url(peer_user)
+    row["lastMessage"] = last_message
+    row["updatedAt"] = updated_at
+    return row
+
+
+def sync_conversation_pair(
+    db: dict[str, Any],
+    *,
+    left_user_id: str,
+    right_user_id: str,
+    last_message: str,
+    updated_at: str,
+) -> None:
+    if not left_user_id.strip() or not right_user_id.strip():
+        return
+    upsert_conversation_for_user(
+        db,
+        user_id=left_user_id,
+        peer_user_id=right_user_id,
+        last_message=last_message,
+        updated_at=updated_at,
+    )
+    upsert_conversation_for_user(
+        db,
+        user_id=right_user_id,
+        peer_user_id=left_user_id,
+        last_message=last_message,
+        updated_at=updated_at,
+    )
+
+
+def serialize_direct_message(
+    db: dict[str, Any],
+    row: dict[str, Any],
+    *,
+    viewer_user_id: str,
+) -> dict[str, Any]:
+    sender_user_id = str(row.get("senderUserId", ""))
+    sender_user = find_user_by_id(db, sender_user_id, include_deleted=True)
+    return {
+        "id": str(row.get("id", "")),
+        "content": str(row.get("content", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "timeText": iso_to_time_text(str(row.get("createdAt", ""))),
+        "fromMe": viewer_user_id == sender_user_id,
+        "senderUserId": sender_user_id,
+        "senderAlias": user_nickname(sender_user),
+    }
+
+
+def account_cancellation_status_label(status: str) -> str:
+    normalized = status.strip().lower() or "pending"
+    return {
+        "pending": "待审核",
+        "approved": "已通过",
+        "rejected": "已驳回",
+    }.get(normalized, normalized)
+
+
+def latest_account_cancellation_request_for_user(
+    db: dict[str, Any],
+    user_id: str,
+    *,
+    status: str | None = None,
+) -> dict[str, Any] | None:
+    rows: list[dict[str, Any]] = []
+    normalized_status = (status or "").strip().lower()
+    for row in db.get("accountCancellationRequests", []):
+        if str(row.get("userId", "")) != user_id:
+            continue
+        row_status = str(row.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status and row_status != normalized_status:
+            continue
+        rows.append(row)
+    if not rows:
+        return None
+    rows.sort(
+        key=lambda item: (
+            str(item.get("createdAt", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=True,
+    )
+    return rows[0]
+
+
+def serialize_account_cancellation_request(row: dict[str, Any]) -> dict[str, Any]:
+    status = str(row.get("status", "pending")).strip().lower() or "pending"
+    return {
+        "id": str(row.get("id", "")),
+        "userId": str(row.get("userId", "")),
+        "userEmail": str(row.get("userEmail", "")),
+        "userNickname": sanitize_alias(str(row.get("userNickname", "")), fallback="匿名同学"),
+        "studentId": str(row.get("studentId", "")),
+        "avatarUrl": normalize_avatar_url(str(row.get("avatarUrl", ""))),
+        "reason": str(row.get("reason", "")),
+        "status": status,
+        "statusLabel": account_cancellation_status_label(status),
+        "reviewNote": str(row.get("reviewNote", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+        "handledBy": str(row.get("handledBy", "")),
+    }
+
+
+def cancel_user_account(
+    db: dict[str, Any],
+    user: dict[str, Any],
+    *,
+    actor_id: str,
+    detail: str,
+) -> None:
+    user_id = str(user.get("id", "")).strip()
+    user["deleted"] = True
+
+    email = str(user.get("email", "")).strip().lower()
+    if email:
+        db["emailCodes"].pop(email, None)
+        db["emailCodes"].pop(password_reset_code_key(email), None)
+
+    for token, uid in list(db["sessions"].items()):
+        if uid == user_id:
+            db["sessions"].pop(token, None)
+
+    db["dmRequests"] = [
+        row
+        for row in db.get("dmRequests", [])
+        if row.get("toUserId") != user_id and row.get("fromUserId") != user_id
+    ]
+    db["conversations"] = [
+        row
+        for row in db.get("conversations", [])
+        if row.get("userId") != user_id and row.get("peerUserId") != user_id
+    ]
+    db["directMessages"] = [
+        row
+        for row in db.get("directMessages", [])
+        if row.get("senderUserId") != user_id and row.get("receiverUserId") != user_id
+    ]
+
+    avatar_key = extract_local_object_key_from_url(user_avatar_url(user))
+    if avatar_key:
+        try:
+            OBJECT_STORAGE.delete(avatar_key)
+        except Exception:
+            pass
+    user["avatarUrl"] = ""
+
+    affected_post_ids: set[str] = set()
+    for upload in db.get("mediaUploads", []):
+        if upload.get("uploaderId") != user.get("id") or upload.get("deleted"):
+            continue
+        upload["deleted"] = True
+        post_id = str(upload.get("postId", "")).strip()
+        if post_id:
+            affected_post_ids.add(post_id)
+        object_key = str(upload.get("objectKey", "")).strip()
+        if object_key:
+            try:
+                OBJECT_STORAGE.delete(object_key)
+            except Exception:
+                pass
+
+    for post_id in affected_post_ids:
+        recalc_post_has_image(db, post_id)
+
+    add_audit_log(db, actor_id, "cancel_account", detail)
 
 
 def auth_user(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> tuple[dict[str, Any] | None, str | None]:
@@ -1336,6 +1635,14 @@ def serialize_post(
         )
     )
     images = list_post_images(db, post.get("id", ""), include_unapproved=include_unapproved_images)
+    author_id = str(post.get("authorId", "")).strip()
+    can_message_author = bool(
+        viewer_user_id
+        and author_id
+        and viewer_user_id != author_id
+        and bool(post.get("allowDm", False))
+        and find_user_by_id(db, author_id) is not None
+    )
     data: dict[str, Any] = {
         "id": post["id"],
         "title": post.get("title", ""),
@@ -1354,6 +1661,8 @@ def serialize_post(
         "status": post.get("status", "ongoing"),
         "allowComment": bool(post.get("allowComment", True)),
         "allowDm": bool(post.get("allowDm", False)),
+        "canMessageAuthor": can_message_author,
+        "isOwnPost": bool(viewer_user_id and viewer_user_id == author_id),
     }
     if include_admin_fields:
         data["reviewStatus"] = post.get("reviewStatus", "approved")
@@ -1434,8 +1743,15 @@ def build_overview(db: dict[str, Any]) -> dict[str, Any]:
         for upload in db.get("mediaUploads", [])
         if not upload.get("deleted") and str(upload.get("status", "pending")).lower() == "pending"
     )
+    pending_cancellation_requests = sum(
+        1
+        for request in db.get("accountCancellationRequests", [])
+        if str(request.get("status", "pending")).lower() == "pending"
+    )
     pending_reviews = pending_text_reviews + pending_image_reviews
     banned_users = sum(1 for u in db["users"] if not u.get("deleted") and u.get("banned"))
+    muted_users = sum(1 for u in db["users"] if not u.get("deleted") and u.get("muted"))
+    active_users = sum(1 for u in db["users"] if not u.get("deleted"))
 
     return {
         "todayNewUsers": today_new_users,
@@ -1445,7 +1761,10 @@ def build_overview(db: dict[str, Any]) -> dict[str, Any]:
         "pendingReviews": pending_reviews,
         "pendingTextReviews": pending_text_reviews,
         "pendingImageReviews": pending_image_reviews,
+        "pendingCancellationRequests": pending_cancellation_requests,
         "bannedUsers": banned_users,
+        "mutedUsers": muted_users,
+        "activeUsers": active_users,
     }
 
 
@@ -1876,17 +2195,56 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                             "id": row.get("id"),
                             "name": name,
                             "avatarUrl": avatar_url,
-                            "lastMessage": row.get("lastMessage", "-"),
+                            "lastMessage": row.get("lastMessage", "") or "开始聊天吧",
                             "timeText": iso_to_time_text(row.get("updatedAt")),
                         }
                     )
                 send_json(self, HTTPStatus.OK, {"data": result})
                 return
 
+            match_conversation_messages = re.fullmatch(
+                r"/api/messages/conversations/([^/]+)/messages",
+                path,
+            )
+            if match_conversation_messages:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                conversation_id = match_conversation_messages.group(1)
+                conversation = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("id") == conversation_id and row.get("userId") == user["id"]
+                    ),
+                    None,
+                )
+                if conversation is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "会话不存在")
+                    return
+                peer_user_id = str(conversation.get("peerUserId", "")).strip()
+                if not peer_user_id:
+                    send_json(self, HTTPStatus.OK, {"data": []})
+                    return
+                conversation_key = conversation_key_for_users(user["id"], peer_user_id)
+                rows = [
+                    serialize_direct_message(db, row, viewer_user_id=user["id"])
+                    for row in db.get("directMessages", [])
+                    if not row.get("deleted")
+                    and row.get("conversationKey") == conversation_key
+                ]
+                rows.sort(key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))))
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
             if path == "/api/users/me":
                 user, _ = require_authorized_user(self, db)
                 if user is None:
                     return
+                latest_cancellation_request = latest_account_cancellation_request_for_user(
+                    db,
+                    str(user.get("id", "")),
+                )
                 favorite_post_ids = {
                     str(x.get("postId", ""))
                     for x in db["favorites"]
@@ -1913,6 +2271,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                             "favoriteCount": favorite_count,
                             "isAdmin": bool(user.get("isAdmin", False)),
                             "email": user.get("email", ""),
+                            "accountCancellationRequest": serialize_account_cancellation_request(
+                                latest_cancellation_request
+                            )
+                            if latest_cancellation_request is not None
+                            else None,
                         }
                     },
                 )
@@ -1954,6 +2317,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         row_status = str(post.get("reviewStatus", "approved")).lower()
                         if status != "all" and row_status != status:
                             continue
+                        author_user = find_user_by_id(
+                            db,
+                            str(post.get("authorId", "")),
+                            include_deleted=True,
+                        )
                         result.append(
                             {
                                 "id": post.get("id"),
@@ -1961,6 +2329,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                                 "title": post.get("title", ""),
                                 "content": post.get("content", ""),
                                 "authorAlias": post.get("authorAlias", "匿名同学"),
+                                "authorUserId": str(post.get("authorId", "")),
+                                "authorNickname": user_nickname(author_user),
+                                "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                                "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
                                 "createdAt": post.get("createdAt", ""),
                                 "reviewStatus": row_status,
                                 "riskMarked": bool(post.get("riskMarked", False)),
@@ -1972,6 +2344,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         row_status = str(comment.get("reviewStatus", "approved")).lower()
                         if status != "all" and row_status != status:
                             continue
+                        author_user = find_user_by_id(
+                            db,
+                            str(comment.get("userId", "")),
+                            include_deleted=True,
+                        )
                         result.append(
                             {
                                 "id": comment.get("id"),
@@ -1979,6 +2356,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                                 "title": f"评论 @ 帖子 {comment.get('postId', '-')}",
                                 "content": comment.get("content", ""),
                                 "authorAlias": comment.get("authorAlias", "匿名同学"),
+                                "authorUserId": str(comment.get("userId", "")),
+                                "authorNickname": user_nickname(author_user),
+                                "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                                "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
                                 "createdAt": comment.get("createdAt", ""),
                                 "reviewStatus": row_status,
                                 "riskMarked": bool(comment.get("riskMarked", False)),
@@ -2060,6 +2441,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     if user.get("deleted"):
                         continue
                     uid = user.get("id")
+                    pending_cancellation = latest_account_cancellation_request_for_user(
+                        db,
+                        str(uid),
+                        status="pending",
+                    )
                     post_count = sum(1 for p in db["posts"] if not p.get("deleted") and p.get("authorId") == uid)
                     comment_count = sum(
                         1 for c in db["comments"] if not c.get("deleted") and c.get("userId") == uid
@@ -2069,18 +2455,48 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         {
                             "id": uid,
                             "email": user.get("email", ""),
+                            "studentId": str(user.get("studentId", "")),
                             "alias": user_nickname(user),
+                            "avatarUrl": user_avatar_url(user),
                             "verified": bool(user.get("verified", False)),
-                            "isAdmin": bool(user.get("isAdmin", False)),
                             "banned": bool(user.get("banned", False)),
                             "muted": bool(user.get("muted", False)),
                             "postCount": post_count,
                             "commentCount": comment_count,
                             "reportCount": report_count,
                             "createdAt": user.get("createdAt", ""),
+                            "hasPendingCancellationRequest": pending_cancellation is not None,
                         }
                     )
                 rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/account-cancellation-requests":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["all"])[0] or "all").strip().lower()
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+                rows = []
+                for request in db.get("accountCancellationRequests", []):
+                    row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+                    if status != "all" and row_status != status:
+                        continue
+                    if keyword:
+                        merged = " ".join(
+                            [
+                                str(request.get("userNickname", "")).lower(),
+                                str(request.get("userEmail", "")).lower(),
+                                str(request.get("studentId", "")).lower(),
+                                str(request.get("reason", "")).lower(),
+                            ]
+                        )
+                        if keyword not in merged:
+                            continue
+                    rows.append(serialize_account_cancellation_request(request))
+                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                rows.sort(key=lambda x: 0 if x.get("status") == "pending" else 1)
                 send_json(self, HTTPStatus.OK, {"data": rows})
                 return
 
@@ -2738,6 +3154,145 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {"message": "已退出登录", "data": {"ok": True}})
                 return
 
+            if path == "/api/messages/requests":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if user.get("muted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发起私信")
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="message",
+                    setting_key="messageRateLimit",
+                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="发起私信",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+
+                post_id = str(body.get("postId", "")).strip()
+                target_user_id = str(body.get("targetUserId", "")).strip()
+                reason = str(body.get("reason", "")).strip()
+                if len(reason) > 120:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "私信申请理由不能超过 120 个字符")
+                    return
+
+                post = None
+                if post_id:
+                    post = next(
+                        (
+                            row
+                            for row in db.get("posts", [])
+                            if row.get("id") == post_id and not row.get("deleted")
+                        ),
+                        None,
+                    )
+                    if post is None or str(post.get("reviewStatus", "approved")).lower() == "rejected":
+                        json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                        return
+                    if not bool(post.get("allowDm", False)):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
+                        return
+                    target_user_id = str(post.get("authorId", "")).strip()
+
+                if not target_user_id:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "缺少联系对象")
+                    return
+                if target_user_id == user["id"]:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不能给自己发送私信申请")
+                    return
+
+                target_user = find_user_by_id(db, target_user_id)
+                if target_user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "联系对象不存在")
+                    return
+                if not bool(target_user.get("showContactable", True)):
+                    json_error(self, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
+                    return
+                if not bool(target_user.get("allowStrangerDm", True)):
+                    json_error(self, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+                    return
+
+                existing_conversation = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("userId") == user["id"]
+                        and row.get("peerUserId") == target_user_id
+                    ),
+                    None,
+                )
+                if existing_conversation is not None:
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "你们已经可以直接私信了",
+                            "data": {
+                                "conversationId": existing_conversation.get("id", ""),
+                                "alreadyAvailable": True,
+                            },
+                        },
+                    )
+                    return
+
+                existing_pending = next(
+                    (
+                        row
+                        for row in db.get("dmRequests", [])
+                        if row.get("toUserId") == target_user_id
+                        and row.get("fromUserId") == user["id"]
+                        and str(row.get("status", "pending")).lower() == "pending"
+                    ),
+                    None,
+                )
+                if existing_pending is not None:
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "私信申请已发送，请等待对方处理",
+                            "data": existing_pending,
+                        },
+                    )
+                    return
+
+                created_at = now_iso()
+                request = {
+                    "id": next_id(db, "request", "req"),
+                    "toUserId": target_user_id,
+                    "fromAlias": user_nickname(user),
+                    "fromUserId": user["id"],
+                    "fromAvatarUrl": user_avatar_url(user),
+                    "reason": reason or "想和你继续交流这个话题",
+                    "createdAt": created_at,
+                    "updatedAt": created_at,
+                    "status": "pending",
+                }
+                db["dmRequests"].append(request)
+                add_audit_log(
+                    db,
+                    user["id"],
+                    "create_dm_request",
+                    f"to={target_user_id} post={post_id or '-'}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "私信申请已发送",
+                        "data": request,
+                    },
+                )
+                return
+
             if path == "/api/uploads/images":
                 user, _ = require_authorized_user(self, db)
                 if user is None:
@@ -2917,6 +3472,154 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         "data": {
                             "avatarUrl": stored.url,
                         },
+                    },
+                )
+                return
+
+            if path == "/api/users/me/cancellation-request":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "演示账号不可注销")
+                    return
+
+                pending_request = latest_account_cancellation_request_for_user(
+                    db,
+                    str(user.get("id", "")),
+                    status="pending",
+                )
+                if pending_request is not None:
+                    json_error(self, HTTPStatus.CONFLICT, "你已提交过注销申请，请等待管理员审核")
+                    return
+
+                reason = str(body.get("reason", "")).strip()
+                request = {
+                    "id": next_id(db, "cancellation", "acr"),
+                    "userId": user["id"],
+                    "userEmail": str(user.get("email", "")).strip().lower(),
+                    "userNickname": user_nickname(user),
+                    "studentId": str(user.get("studentId", "")).strip(),
+                    "avatarUrl": user_avatar_url(user),
+                    "reason": reason,
+                    "status": "pending",
+                    "reviewNote": "",
+                    "createdAt": now_iso(),
+                    "handledAt": "",
+                    "handledBy": "",
+                }
+                db.setdefault("accountCancellationRequests", []).append(request)
+                add_audit_log(db, user["id"], "submit_account_cancellation", request["id"])
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "注销申请已提交，等待管理员审核",
+                        "data": serialize_account_cancellation_request(request),
+                    },
+                )
+                return
+
+            match_conversation_send = re.fullmatch(
+                r"/api/messages/conversations/([^/]+)/messages",
+                path,
+            )
+            if match_conversation_send:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if user.get("muted"):
+                    json_error(self, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送私信")
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=user["id"],
+                    action="message",
+                    setting_key="messageRateLimit",
+                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="发送私信",
+                        retry_after_seconds=retry_after,
+                    )
+                    return
+
+                conversation_id = match_conversation_send.group(1)
+                conversation = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("id") == conversation_id and row.get("userId") == user["id"]
+                    ),
+                    None,
+                )
+                if conversation is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "会话不存在")
+                    return
+
+                peer_user_id = str(conversation.get("peerUserId", "")).strip()
+                if not peer_user_id:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该会话暂不支持发送消息")
+                    return
+                peer_user = find_user_by_id(db, peer_user_id)
+                if peer_user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "对方账号不存在或已注销")
+                    return
+
+                content = str(body.get("content", "")).strip()
+                if not content:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "消息内容不能为空")
+                    return
+                if len(content) > 1000:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "单条消息不能超过 1000 个字符")
+                    return
+
+                risk_marked, high_risk, risk_reasons = assess_text_risk(db, content)
+                if high_risk:
+                    json_error(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        f"消息触发高风险风控：{'; '.join(risk_reasons)}",
+                    )
+                    add_audit_log(db, user["id"], "risk_block_message", ";".join(risk_reasons))
+                    save_db(db)
+                    return
+
+                created_at = now_iso()
+                message = {
+                    "id": next_id(db, "message", "m"),
+                    "conversationKey": conversation_key_for_users(user["id"], peer_user_id),
+                    "senderUserId": user["id"],
+                    "receiverUserId": peer_user_id,
+                    "content": content,
+                    "createdAt": created_at,
+                    "deleted": False,
+                }
+                db.setdefault("directMessages", []).append(message)
+                sync_conversation_pair(
+                    db,
+                    left_user_id=user["id"],
+                    right_user_id=peer_user_id,
+                    last_message=content,
+                    updated_at=created_at,
+                )
+                if risk_marked:
+                    add_audit_log(db, user["id"], "risk_mark_message", message["id"])
+                add_audit_log(db, user["id"], "send_message", f"{conversation_id}->{peer_user_id}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "发送成功",
+                        "data": serialize_direct_message(
+                            db,
+                            message,
+                            viewer_user_id=user["id"],
+                        ),
                     },
                 )
                 return
@@ -3112,74 +3815,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if action == "accept":
                     from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
                     peer_user_id = str(row.get("fromUserId", "")).strip() if from_user else ""
-                    peer_name = user_nickname(from_user) if from_user else sanitize_alias(
-                        str(row.get("fromAlias", "")),
-                        fallback="匿名同学",
-                    )
-                    peer_avatar_url = user_avatar_url(from_user)
-                    if not peer_avatar_url:
-                        peer_avatar_url = normalize_avatar_url(str(row.get("fromAvatarUrl", "")))
-
-                    current_conv = next(
-                        (
-                            x
-                            for x in db["conversations"]
-                            if x.get("userId") == user["id"]
-                            and (
-                                (peer_user_id and x.get("peerUserId") == peer_user_id)
-                                or (not peer_user_id and x.get("name") == peer_name)
-                            )
-                        ),
-                        None,
-                    )
-                    if current_conv is None:
-                        db["conversations"].append(
-                            {
-                                "id": next_id(db, "conversation", "c"),
-                                "userId": user["id"],
-                                "peerUserId": peer_user_id,
-                                "name": peer_name,
-                                "avatarUrl": peer_avatar_url,
-                                "lastMessage": "已同意私信申请，开始聊天吧。",
-                                "updatedAt": now_iso(),
-                            }
-                        )
-                    else:
-                        current_conv["peerUserId"] = peer_user_id
-                        current_conv["name"] = peer_name
-                        current_conv["avatarUrl"] = peer_avatar_url
-                        current_conv["lastMessage"] = "已同意私信申请，开始聊天吧。"
-                        current_conv["updatedAt"] = now_iso()
-
-                    # 双向建立好友会话：对方会看到你的昵称与头像（不返回学号）。
                     if from_user:
-                        reverse_name = user_nickname(user)
-                        reverse_avatar_url = user_avatar_url(user)
-                        reverse_conv = next(
-                            (
-                                x
-                                for x in db["conversations"]
-                                if x.get("userId") == from_user["id"]
-                                and x.get("peerUserId") == user["id"]
-                            ),
-                            None,
+                        sync_conversation_pair(
+                            db,
+                            left_user_id=user["id"],
+                            right_user_id=from_user["id"],
+                            last_message="已同意私信申请，开始聊天吧。",
+                            updated_at=row["updatedAt"],
                         )
-                        if reverse_conv is None:
-                            db["conversations"].append(
-                                {
-                                    "id": next_id(db, "conversation", "c"),
-                                    "userId": from_user["id"],
-                                    "peerUserId": user["id"],
-                                    "name": reverse_name,
-                                    "avatarUrl": reverse_avatar_url,
-                                    "lastMessage": "你们已成为好友，开始聊天吧。",
-                                    "updatedAt": now_iso(),
-                                }
-                            )
-                        else:
-                            reverse_conv["name"] = reverse_name
-                            reverse_conv["avatarUrl"] = reverse_avatar_url
-                            reverse_conv["updatedAt"] = now_iso()
 
                 add_audit_log(db, user["id"], "handle_dm_request", f"{request_id}:{action}")
                 save_db(db)
@@ -3405,7 +4048,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if user is None:
                     json_error(self, HTTPStatus.NOT_FOUND, "用户不存在")
                     return
-                if user.get("id") == admin.get("id") and action in {"ban", "mute", "demote"}:
+                if user.get("id") == admin.get("id") and action in {"ban", "mute"}:
                     json_error(self, HTTPStatus.BAD_REQUEST, "不能对当前管理员执行该操作")
                     return
 
@@ -3417,10 +4060,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     user["banned"] = True
                 elif action == "unban":
                     user["banned"] = False
-                elif action == "promote":
-                    user["isAdmin"] = True
-                elif action == "demote":
-                    user["isAdmin"] = False
                 else:
                     json_error(self, HTTPStatus.BAD_REQUEST, "不支持的操作")
                     return
@@ -3428,6 +4067,98 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 add_audit_log(db, admin["id"], "admin_user_action", f"{user_id}:{action}")
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "用户状态已更新", "data": {"ok": True}})
+                return
+
+            match_cancellation_handle = re.fullmatch(
+                r"/api/admin/account-cancellation-requests/([^/]+)/handle",
+                path,
+            )
+            if match_cancellation_handle:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                request_id = match_cancellation_handle.group(1)
+                action = str(body.get("action", "")).strip().lower()
+                review_note = str(body.get("note", "")).strip()
+
+                request = next(
+                    (
+                        row
+                        for row in db.get("accountCancellationRequests", [])
+                        if str(row.get("id", "")) == request_id
+                    ),
+                    None,
+                )
+                if request is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "注销申请不存在")
+                    return
+                if str(request.get("status", "pending")).lower() != "pending":
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该申请已处理")
+                    return
+
+                request["handledAt"] = now_iso()
+                request["handledBy"] = str(admin.get("username", "")).strip() or "admin"
+                request["reviewNote"] = review_note
+
+                if action == "approve":
+                    user = find_user_by_id(
+                        db,
+                        str(request.get("userId", "")),
+                        include_deleted=True,
+                    )
+                    if user is None:
+                        json_error(self, HTTPStatus.NOT_FOUND, "申请对应用户不存在")
+                        return
+                    if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "演示账号不可注销")
+                        return
+                    request["status"] = "approved"
+                    cancel_user_account(
+                        db,
+                        user,
+                        actor_id="",
+                        detail=(
+                            f"{user.get('id', '')}:approve_account_cancellation:"
+                            f"{request['handledBy']}"
+                        ),
+                    )
+                    add_audit_log(
+                        db,
+                        "",
+                        "admin_handle_account_cancellation",
+                        f"{request_id}:approve:{request['handledBy']}",
+                    )
+                    save_db(db)
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "已通过注销申请并停用账号",
+                            "data": serialize_account_cancellation_request(request),
+                        },
+                    )
+                    return
+
+                if action == "reject":
+                    request["status"] = "rejected"
+                    add_audit_log(
+                        db,
+                        "",
+                        "admin_handle_account_cancellation",
+                        f"{request_id}:reject:{request['handledBy']}",
+                    )
+                    save_db(db)
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "已驳回注销申请",
+                            "data": serialize_account_cancellation_request(request),
+                        },
+                    )
+                    return
+
+                json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 approve/reject")
                 return
 
             match_image_review = re.fullmatch(r"/api/admin/images/([^/]+)/review", path)
@@ -3738,24 +4469,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             db = load_db()
 
             if path == "/api/users/me":
-                user, token = require_authorized_user(self, db)
-                if user is None:
-                    return
-                if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
-                    json_error(self, HTTPStatus.BAD_REQUEST, "演示账号不可注销")
-                    return
-                user["deleted"] = True
-                if token:
-                    db["sessions"].pop(token, None)
-                for t, uid in list(db["sessions"].items()):
-                    if uid == user["id"]:
-                        db["sessions"].pop(t, None)
-                for upload in db.get("mediaUploads", []):
-                    if upload.get("uploaderId") == user["id"] and not upload.get("deleted"):
-                        upload["deleted"] = True
-                add_audit_log(db, user["id"], "delete_account", "提交删除账号申请")
-                save_db(db)
-                send_json(self, HTTPStatus.OK, {"message": "删除账号申请已提交", "data": {"ok": True}})
+                json_error(self, HTTPStatus.METHOD_NOT_ALLOWED, "请改用注销申请接口")
                 return
 
             match_comment = re.fullmatch(r"/api/comments/([^/]+)", path)

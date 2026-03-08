@@ -26,6 +26,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   List<AdminReportEntry> _reports = const <AdminReportEntry>[];
   List<AdminImageReviewItem> _imageReviews = const <AdminImageReviewItem>[];
   List<AdminUserEntry> _users = const <AdminUserEntry>[];
+  List<AdminAccountCancellationRequest> _accountCancellationRequests =
+      const <AdminAccountCancellationRequest>[];
   AdminChannelTagData _channelTagData =
       AdminChannelTagData(channels: const <String>[], tags: const <String>[]);
   AdminSystemConfig _config = AdminSystemConfig(
@@ -48,12 +50,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       TextEditingController();
   final TextEditingController _userKeywordController = TextEditingController();
   final TextEditingController _imageKeywordController = TextEditingController();
+  final TextEditingController _cancellationKeywordController =
+      TextEditingController();
 
   String _reviewType = 'post';
   String _reviewStatus = 'pending';
   String _reportStatus = 'all';
   String _imageStatus = 'pending';
   String _userFilter = 'all';
+  String _cancellationStatus = 'all';
 
   bool _loading = true;
   bool _actionBusy = false;
@@ -80,6 +85,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     _reportKeywordController.dispose();
     _userKeywordController.dispose();
     _imageKeywordController.dispose();
+    _cancellationKeywordController.dispose();
     super.dispose();
   }
 
@@ -117,7 +123,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : DefaultTabController(
-                length: 7,
+                length: 8,
                 child: Column(
                   children: <Widget>[
                     if (_error != null)
@@ -145,6 +151,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             Tab(text: '内容审核'),
                             Tab(text: '举报处理'),
                             Tab(text: '图片审核'),
+                            Tab(text: '注销申请'),
                             Tab(text: '用户管理'),
                             Tab(text: '分类标签'),
                             Tab(text: '系统配置'),
@@ -160,6 +167,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           _buildReviewTab(),
                           _buildReportTab(),
                           _buildImageReviewTab(),
+                          _buildAccountCancellationTab(),
                           _buildUserTab(),
                           _buildChannelTagTab(),
                           _buildConfigTab(),
@@ -181,7 +189,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           todayComments: 0,
           todayReports: 0,
           pendingReviews: 0,
+          pendingCancellationRequests: 0,
+          activeUsers: 0,
           bannedUsers: 0,
+          mutedUsers: 0,
         );
 
     return Container(
@@ -212,8 +223,17 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               icon: Icons.pending_actions_outlined,
               label: '待审核 ${overview.pendingReviews}'),
           _compactStatusChip(
+              icon: Icons.person_off_outlined,
+              label: '待注销 ${overview.pendingCancellationRequests}'),
+          _compactStatusChip(
+              icon: Icons.groups_2_outlined,
+              label: '活跃账号 ${overview.activeUsers}'),
+          _compactStatusChip(
               icon: Icons.gpp_bad_outlined,
               label: '封禁用户 ${overview.bannedUsers}'),
+          _compactStatusChip(
+              icon: Icons.volume_off_outlined,
+              label: '禁言用户 ${overview.mutedUsers}'),
         ],
       ),
     );
@@ -248,7 +268,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           todayComments: 0,
           todayReports: 0,
           pendingReviews: 0,
+          pendingCancellationRequests: 0,
+          activeUsers: 0,
           bannedUsers: 0,
+          mutedUsers: 0,
         );
 
     return ListView(
@@ -289,10 +312,28 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               color: const Color(0xFFA46A00),
             ),
             _metricCard(
+              title: '待注销申请',
+              value: overview.pendingCancellationRequests,
+              icon: Icons.person_remove_alt_1_outlined,
+              color: const Color(0xFF8F4B12),
+            ),
+            _metricCard(
+              title: '活跃账号数',
+              value: overview.activeUsers,
+              icon: Icons.groups_rounded,
+              color: const Color(0xFF155E75),
+            ),
+            _metricCard(
               title: '被封禁用户',
               value: overview.bannedUsers,
               icon: Icons.gpp_bad_outlined,
               color: const Color(0xFFAF2333),
+            ),
+            _metricCard(
+              title: '被禁言用户',
+              value: overview.mutedUsers,
+              icon: Icons.volume_off_outlined,
+              color: const Color(0xFF7C3AED),
             ),
           ],
         ),
@@ -317,6 +358,17 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   onPressed: _actionBusy ? null : _loadReports,
                   icon: const Icon(Icons.rule_outlined),
                   label: const Text('刷新举报列表'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed:
+                      _actionBusy ? null : _loadAccountCancellationRequests,
+                  icon: const Icon(Icons.person_remove_alt_1_outlined),
+                  label: const Text('刷新注销申请'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadUsers,
+                  icon: const Icon(Icons.groups_2_outlined),
+                  label: const Text('刷新用户管理'),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: _actionBusy ? null : _loadImageReviews,
@@ -429,7 +481,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   Text(item.content,
                       maxLines: 3, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 8),
-                  Text('作者：${item.authorAlias} · 时间：${item.createdAt}'),
+                  Text('前台展示：${item.authorAlias} · 时间：${item.createdAt}'),
+                  const SizedBox(height: 4),
+                  Text(
+                    '实际账号：${item.authorNickname}'
+                    '${item.authorEmail.isNotEmpty ? ' · ${item.authorEmail}' : ''}'
+                    '${item.authorStudentId.isNotEmpty ? ' · 学号 ${item.authorStudentId}' : ''}',
+                    style: const TextStyle(color: Colors.black87),
+                  ),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -438,7 +497,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       OutlinedButton.icon(
                         onPressed: () => _showSimpleDetail(
                           title: item.title,
-                          subtitle: '作者：${item.authorAlias}',
+                          subtitle: '前台展示：${item.authorAlias}\n'
+                              '实际账号：${item.authorNickname}'
+                              '${item.authorEmail.isNotEmpty ? ' · ${item.authorEmail}' : ''}'
+                              '${item.authorStudentId.isNotEmpty ? ' · 学号 ${item.authorStudentId}' : ''}'
+                              '${item.authorUserId.isNotEmpty ? '\n内部ID：${item.authorUserId}' : ''}',
                           content: item.content,
                         ),
                         icon: const Icon(Icons.visibility_outlined),
@@ -863,28 +926,245 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Widget _buildAccountCancellationTab() {
+    final String keyword =
+        _cancellationKeywordController.text.trim().toLowerCase();
+    final List<AdminAccountCancellationRequest> rows =
+        _accountCancellationRequests
+            .where((AdminAccountCancellationRequest request) {
+      final String merged = [
+        request.userNickname,
+        request.userEmail,
+        request.studentId,
+        request.userId,
+        request.reason,
+        request.createdAt,
+      ].join(' ').toLowerCase();
+      final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
+      final bool matchStatus =
+          _cancellationStatus == 'all' || request.status == _cancellationStatus;
+      return matchKeyword && matchStatus;
+    }).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: <Widget>[
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _cancellationKeywordController,
+                    decoration: const InputDecoration(
+                      labelText: '申请搜索',
+                      hintText: '昵称 / 邮箱 / 学号 / 用户ID',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                SizedBox(
+                  width: 160,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _cancellationStatus,
+                    decoration: const InputDecoration(labelText: '申请状态'),
+                    items: const <DropdownMenuItem<String>>[
+                      DropdownMenuItem(value: 'all', child: Text('全部')),
+                      DropdownMenuItem(value: 'pending', child: Text('待审核')),
+                      DropdownMenuItem(value: 'approved', child: Text('已通过')),
+                      DropdownMenuItem(value: 'rejected', child: Text('已驳回')),
+                    ],
+                    onChanged: (String? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _cancellationStatus = value;
+                      });
+                    },
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed:
+                      _actionBusy ? null : _loadAccountCancellationRequests,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('刷新申请列表'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            '匹配申请 ${rows.length} / 总计 ${_accountCancellationRequests.length}',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.black54),
+          ),
+        ),
+        ...rows.map(
+          (AdminAccountCancellationRequest request) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      _buildUserAvatar(
+                        request.avatarUrl,
+                        label: request.userNickname,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Text(
+                                    '${request.userNickname} (${request.userEmail})',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                _statusChip(request.status),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              '用户ID: ${request.userId} · 学号: ${request.studentId.isEmpty ? '-' : request.studentId}',
+                            ),
+                            Text('提交时间：${request.createdAt}'),
+                            if (request.reason.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: Text('申请说明：${request.reason}'),
+                              ),
+                            if (request.reviewNote.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text('审核备注：${request.reviewNote}'),
+                              ),
+                            if (request.handledAt.trim().isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Text(
+                                  '处理信息：${request.handledAt}'
+                                  '${request.handledBy.trim().isEmpty ? '' : ' · ${request.handledBy}'}',
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      OutlinedButton.icon(
+                        onPressed: () => _showSimpleDetail(
+                          title: '注销申请详情',
+                          subtitle:
+                              '${request.userNickname} · ${request.userEmail}',
+                          content: [
+                            '用户ID：${request.userId}',
+                            '学号：${request.studentId.isEmpty ? '-' : request.studentId}',
+                            '提交时间：${request.createdAt}',
+                            if (request.reason.trim().isNotEmpty)
+                              '申请说明：${request.reason}',
+                            if (request.reviewNote.trim().isNotEmpty)
+                              '审核备注：${request.reviewNote}',
+                            if (request.handledAt.trim().isNotEmpty)
+                              '处理时间：${request.handledAt}',
+                            if (request.handledBy.trim().isNotEmpty)
+                              '处理人：${request.handledBy}',
+                          ].join('\n'),
+                        ),
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: const Text('查看详情'),
+                      ),
+                      if (request.status == 'pending')
+                        FilledButton.icon(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleAccountCancellation(
+                                    requestId: request.id,
+                                    action: 'approve',
+                                    actionLabel: '通过注销申请',
+                                    defaultNote: '申请核实通过，账号已注销',
+                                  ),
+                          icon: const Icon(Icons.check_circle_outline),
+                          label: const Text('通过并注销'),
+                        ),
+                      if (request.status == 'pending')
+                        FilledButton.tonalIcon(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleAccountCancellation(
+                                    requestId: request.id,
+                                    action: 'reject',
+                                    actionLabel: '驳回注销申请',
+                                    defaultNote: '申请信息不足，请补充说明后重新提交',
+                                  ),
+                          icon: const Icon(Icons.close_outlined),
+                          label: const Text('驳回申请'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (rows.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('暂无匹配的注销申请。')),
+          ),
+      ],
+    );
+  }
+
   Widget _buildUserTab() {
     final String keyword = _userKeywordController.text.trim().toLowerCase();
 
     final List<AdminUserEntry> rows = _users.where((AdminUserEntry user) {
-      final String merged =
-          '${user.id} ${user.alias} ${user.email} ${user.createdAt}'
-              .toLowerCase();
+      final String merged = [
+        user.id,
+        user.alias,
+        user.email,
+        user.studentId,
+        user.createdAt,
+      ].join(' ').toLowerCase();
       final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
 
       final bool matchFilter;
       switch (_userFilter) {
-        case 'admin':
-          matchFilter = user.isAdmin;
-          break;
         case 'banned':
           matchFilter = user.banned;
           break;
         case 'muted':
           matchFilter = user.muted;
           break;
+        case 'pendingCancellation':
+          matchFilter = user.hasPendingCancellationRequest;
+          break;
         case 'normal':
-          matchFilter = !user.banned && !user.muted;
+          matchFilter = !user.banned &&
+              !user.muted &&
+              !user.hasPendingCancellationRequest;
           break;
         default:
           matchFilter = true;
@@ -909,7 +1189,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     controller: _userKeywordController,
                     decoration: const InputDecoration(
                       labelText: '用户搜索',
-                      hintText: '昵称 / 邮箱 / ID',
+                      hintText: '昵称 / 邮箱 / 学号 / ID',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -924,7 +1204,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       DropdownMenuItem(value: 'normal', child: Text('正常')),
                       DropdownMenuItem(value: 'banned', child: Text('封禁中')),
                       DropdownMenuItem(value: 'muted', child: Text('禁言中')),
-                      DropdownMenuItem(value: 'admin', child: Text('管理员')),
+                      DropdownMenuItem(
+                        value: 'pendingCancellation',
+                        child: Text('待注销审核'),
+                      ),
                     ],
                     onChanged: (String? value) {
                       if (value == null) {
@@ -963,11 +1246,25 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
+                      _buildUserAvatar(user.avatarUrl, label: user.alias),
+                      const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          '${user.alias} (${user.email})',
-                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              '${user.alias} (${user.email})',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'ID: ${user.id} · 学号: ${user.studentId.isEmpty ? '-' : user.studentId}',
+                            ),
+                            Text('注册时间：${user.createdAt}'),
+                          ],
                         ),
                       ),
                       if (user.verified)
@@ -975,27 +1272,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           label: Text('已认证'),
                           visualDensity: VisualDensity.compact,
                         ),
-                      if (user.isAdmin)
+                      if (user.hasPendingCancellationRequest)
                         const Chip(
-                          label: Text('管理员'),
+                          label: Text('待注销审核'),
                           visualDensity: VisualDensity.compact,
                         ),
                     ],
                   ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                          child: Text('ID: ${user.id} · 注册：${user.createdAt}')),
-                      IconButton(
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: user.id));
-                          _toast('已复制用户ID：${user.id}');
-                        },
-                        icon: const Icon(Icons.copy_rounded),
-                        tooltip: '复制用户ID',
-                      ),
-                    ],
-                  ),
+                  const SizedBox(height: 8),
                   Text(
                     '发帖 ${user.postCount} · 评论 ${user.commentCount} · 被举报 ${user.reportCount}',
                   ),
@@ -1007,6 +1291,25 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     spacing: 8,
                     runSpacing: 8,
                     children: <Widget>[
+                      OutlinedButton.icon(
+                        onPressed: () => _showSimpleDetail(
+                          title: user.alias,
+                          subtitle:
+                              '${user.email}\n用户ID: ${user.id}\n学号: ${user.studentId.isEmpty ? '-' : user.studentId}',
+                          content:
+                              '注册时间：${user.createdAt}\n发帖 ${user.postCount} · 评论 ${user.commentCount} · 被举报 ${user.reportCount}\n状态：${user.banned ? '封禁' : '正常'} / ${user.muted ? '禁言' : '可发言'}',
+                        ),
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: const Text('查看详情'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          await Clipboard.setData(ClipboardData(text: user.id));
+                          _toast('已复制用户ID：${user.id}');
+                        },
+                        icon: const Icon(Icons.copy_rounded),
+                        label: const Text('复制ID'),
+                      ),
                       OutlinedButton(
                         onPressed: _actionBusy
                             ? null
@@ -1031,13 +1334,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             : () => _updateUser(user.id, 'unban'),
                         child: const Text('解封'),
                       ),
-                      FilledButton.tonal(
-                        onPressed: _actionBusy
-                            ? null
-                            : () => _updateUser(
-                                user.id, user.isAdmin ? 'demote' : 'promote'),
-                        child: Text(user.isAdmin ? '取消管理员' : '设为管理员'),
-                      ),
                     ],
                   ),
                 ],
@@ -1051,6 +1347,43 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             child: Center(child: Text('暂无匹配用户数据。')),
           ),
       ],
+    );
+  }
+
+  Widget _buildUserAvatar(
+    String avatarUrl, {
+    required String label,
+  }) {
+    final String resolvedUrl = _resolveMediaUrl(avatarUrl);
+    final Widget fallback = Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE6F0F6),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        label.trim().isEmpty ? '?' : label.trim().substring(0, 1).toUpperCase(),
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF155E75),
+        ),
+      ),
+    );
+    if (resolvedUrl.isEmpty) {
+      return fallback;
+    }
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: Image.network(
+        resolvedUrl,
+        width: 52,
+        height: 52,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => fallback,
+      ),
     );
   }
 
@@ -1347,18 +1680,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   String _resolveMediaUrl(String value) {
-    final String text = value.trim();
-    if (text.isEmpty) {
-      return '';
-    }
-    if (text.startsWith('http://') || text.startsWith('https://')) {
-      return text;
-    }
-    if (!text.startsWith('/')) {
-      return '';
-    }
-    final Uri base = Uri.parse(AppConfig.apiBaseUrl);
-    return '${base.scheme}://${base.authority}$text';
+    return AppConfig.resolveUrl(value);
   }
 
   String _formatFileSize(int sizeBytes) {
@@ -1392,6 +1714,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         status: _imageStatus,
         keyword: _imageKeywordController.text.trim(),
       );
+      final List<AdminAccountCancellationRequest> accountCancellationRequests =
+          await _repo.fetchAccountCancellationRequests(
+        status: _cancellationStatus,
+        keyword: _cancellationKeywordController.text.trim(),
+      );
       final List<AdminUserEntry> users = await _repo.fetchUsers();
       final AdminChannelTagData channelTagData =
           await _repo.fetchChannelTagData();
@@ -1406,6 +1733,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _reviews = reviews;
         _reports = reports;
         _imageReviews = imageReviews;
+        _accountCancellationRequests = accountCancellationRequests;
         _users = users;
         _channelTagData = channelTagData;
         _config = config;
@@ -1474,6 +1802,24 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       });
     } catch (error) {
       _toast('加载图片审核列表失败：$error');
+    }
+  }
+
+  Future<void> _loadAccountCancellationRequests() async {
+    try {
+      final List<AdminAccountCancellationRequest> rows =
+          await _repo.fetchAccountCancellationRequests(
+        status: _cancellationStatus,
+        keyword: _cancellationKeywordController.text.trim(),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _accountCancellationRequests = rows;
+      });
+    } catch (error) {
+      _toast('加载注销申请失败：$error');
     }
   }
 
@@ -1574,11 +1920,34 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Future<void> _handleAccountCancellation(
+    String requestId,
+    String action, {
+    String? note,
+  }) async {
+    await _runAction(
+      () => _repo.handleAccountCancellationRequest(
+        requestId: requestId,
+        action: action,
+        note: note,
+      ),
+      successText: action == 'approve' ? '账号已注销' : '注销申请已驳回',
+      onSuccess: () async {
+        await _loadAccountCancellationRequests();
+        await _loadUsers();
+        await _loadOverview();
+      },
+    );
+  }
+
   Future<void> _updateUser(String userId, String action) async {
     await _runAction(
       () => _repo.updateUserState(userId: userId, action: action),
       successText: '用户状态已更新',
-      onSuccess: _loadUsers,
+      onSuccess: () async {
+        await _loadUsers();
+        await _loadOverview();
+      },
     );
   }
 
@@ -1801,6 +2170,49 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       return;
     }
     await _handleImageReview(uploadId, action, note: value);
+  }
+
+  Future<void> _promptAndHandleAccountCancellation({
+    required String requestId,
+    required String action,
+    required String actionLabel,
+    String defaultNote = '',
+  }) async {
+    final TextEditingController controller =
+        TextEditingController(text: defaultNote);
+    final String? value = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(actionLabel),
+          content: TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: '审核备注（可选）',
+              hintText: '可填写注销原因确认或驳回原因',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('确认处理'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (value == null) {
+      return;
+    }
+    await _handleAccountCancellation(requestId, action, note: value);
   }
 
   Future<void> _showImageDialog(AdminImageReviewItem item) async {

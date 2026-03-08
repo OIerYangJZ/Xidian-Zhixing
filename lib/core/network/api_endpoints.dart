@@ -11,6 +11,7 @@ class ApiEndpoints {
   static const String me = '/users/me';
   static const String privacy = '/users/privacy';
   static const String avatarUpload = '/users/avatar';
+  static const String meCancellationRequest = '/users/me/cancellation-request';
 
   static const String channels = '/channels';
   static const String posts = '/posts';
@@ -35,6 +36,8 @@ class ApiEndpoints {
   static const String adminReports = '/admin/reports';
   static const String adminImageReviews = '/admin/images/reviews';
   static const String adminUsers = '/admin/users';
+  static const String adminAccountCancellationRequests =
+      '/admin/account-cancellation-requests';
   static const String adminChannelsTags = '/admin/channels-tags';
   static const String adminChannels = '/admin/channels';
   static const String adminTags = '/admin/tags';
@@ -48,6 +51,8 @@ class ApiEndpoints {
 
   static String dmRequestAction(String requestId, String action) =>
       '/messages/requests/$requestId/$action';
+  static String dmConversationMessages(String conversationId) =>
+      '/messages/conversations/$conversationId/messages';
 
   static String commentById(String commentId) => '/comments/$commentId';
   static String reportById(String reportId) => '/reports/$reportId';
@@ -63,6 +68,9 @@ class ApiEndpoints {
       '/admin/images/$uploadId/review';
 
   static String adminUserAction(String userId) => '/admin/users/$userId/action';
+
+  static String adminAccountCancellationHandle(String requestId) =>
+      '/admin/account-cancellation-requests/$requestId/handle';
 
   static String adminChannelByName(String name) => '/admin/channels/$name';
 

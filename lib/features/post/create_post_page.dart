@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/media/image_picker_adapter.dart';
@@ -80,22 +81,30 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  TextFormField(
-                    controller: _titleController,
-                    maxLength: 60,
-                    decoration: const InputDecoration(
-                      labelText: '标题',
-                      hintText: '一句话概括你的问题或诉求',
-                    ),
-                    validator: (String? value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return '请输入标题';
-                      }
-                      if (value.trim().length < 4) {
-                        return '标题至少 4 个字';
-                      }
-                      return null;
+                  Shortcuts(
+                    shortcuts: const <ShortcutActivator, Intent>{
+                      SingleActivator(LogicalKeyboardKey.tab):
+                          DoNothingAndStopPropagationIntent(),
+                      SingleActivator(LogicalKeyboardKey.tab, shift: true):
+                          DoNothingAndStopPropagationIntent(),
                     },
+                    child: TextFormField(
+                      controller: _titleController,
+                      maxLength: 60,
+                      decoration: const InputDecoration(
+                        labelText: '标题',
+                        hintText: '一句话概括你的问题或诉求',
+                      ),
+                      validator: (String? value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return '请输入标题';
+                        }
+                        if (value.trim().length < 4) {
+                          return '标题至少 4 个字';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
@@ -118,7 +127,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     },
                   ),
                   const SizedBox(height: 4),
-                  EmojiAssistantBar(controller: _contentController),
+                  EmojiAssistantBar(
+                    controller: _contentController,
+                    compact: true,
+                  ),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: selectedChannel,

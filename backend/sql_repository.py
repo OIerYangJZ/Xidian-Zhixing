@@ -235,6 +235,18 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(peer_user_id) REFERENCES users(id) ON DELETE SET NULL
             );
 
+            CREATE TABLE IF NOT EXISTS direct_messages (
+              id TEXT PRIMARY KEY,
+              conversation_key TEXT NOT NULL,
+              sender_user_id TEXT NOT NULL,
+              receiver_user_id TEXT NOT NULL,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              deleted INTEGER NOT NULL DEFAULT 0,
+              FOREIGN KEY(sender_user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY(receiver_user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS audit_logs (
               id TEXT PRIMARY KEY,
               actor_id TEXT NULL,
@@ -242,6 +254,22 @@ class SqliteTreeholeRepository:
               detail TEXT NOT NULL DEFAULT '',
               created_at TEXT NOT NULL,
               FOREIGN KEY(actor_id) REFERENCES users(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS account_cancellation_requests (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              user_email TEXT NOT NULL,
+              user_nickname TEXT NOT NULL,
+              student_id TEXT NOT NULL DEFAULT '',
+              avatar_url TEXT NOT NULL DEFAULT '',
+              reason TEXT NOT NULL DEFAULT '',
+              status TEXT NOT NULL DEFAULT 'pending',
+              review_note TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              handled_at TEXT NULL,
+              handled_by TEXT NULL,
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS media_uploads (
@@ -286,8 +314,14 @@ class SqliteTreeholeRepository:
               ON dm_requests(to_user_id, status, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_conversations_user_updated
               ON conversations(user_id, updated_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_direct_messages_key_created
+              ON direct_messages(conversation_key, created_at ASC, id ASC);
             CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created
               ON audit_logs(actor_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_account_cancellation_requests_status_created
+              ON account_cancellation_requests(status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_account_cancellation_requests_user_created
+              ON account_cancellation_requests(user_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_uploads_status_created
               ON media_uploads(status, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_uploads_uploader_created
@@ -330,7 +364,9 @@ class SqliteTreeholeRepository:
             "reports": [],
             "dmRequests": [],
             "conversations": [],
+            "directMessages": [],
             "auditLogs": [],
+            "accountCancellationRequests": [],
             "mediaUploads": [],
         }
 
@@ -519,6 +555,25 @@ class SqliteTreeholeRepository:
             )
 
         for row in conn.execute(
+            """
+            SELECT id, conversation_key, sender_user_id, receiver_user_id, content, created_at, deleted
+            FROM direct_messages
+            ORDER BY created_at ASC, id ASC
+            """
+        ):
+            db["directMessages"].append(
+                {
+                    "id": row["id"],
+                    "conversationKey": row["conversation_key"],
+                    "senderUserId": row["sender_user_id"],
+                    "receiverUserId": row["receiver_user_id"],
+                    "content": row["content"],
+                    "createdAt": row["created_at"],
+                    "deleted": _to_bool(row["deleted"]),
+                }
+            )
+
+        for row in conn.execute(
             "SELECT id, actor_id, action, detail, created_at FROM audit_logs ORDER BY created_at DESC, id DESC"
         ):
             db["auditLogs"].append(
@@ -528,6 +583,31 @@ class SqliteTreeholeRepository:
                     "action": row["action"],
                     "detail": row["detail"],
                     "createdAt": row["created_at"],
+                }
+            )
+
+        for row in conn.execute(
+            """
+            SELECT id, user_id, user_email, user_nickname, student_id, avatar_url, reason,
+                   status, review_note, created_at, handled_at, handled_by
+            FROM account_cancellation_requests
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["accountCancellationRequests"].append(
+                {
+                    "id": row["id"],
+                    "userId": row["user_id"],
+                    "userEmail": row["user_email"],
+                    "userNickname": row["user_nickname"],
+                    "studentId": _to_str(row["student_id"]),
+                    "avatarUrl": _to_str(row["avatar_url"]),
+                    "reason": row["reason"],
+                    "status": row["status"],
+                    "reviewNote": row["review_note"],
+                    "createdAt": row["created_at"],
+                    "handledAt": _to_str(row["handled_at"]),
+                    "handledBy": _to_str(row["handled_by"]),
                 }
             )
 
@@ -568,7 +648,9 @@ class SqliteTreeholeRepository:
         try:
             for table in [
                 "media_uploads",
+                "account_cancellation_requests",
                 "audit_logs",
+                "direct_messages",
                 "conversations",
                 "dm_requests",
                 "reports",
@@ -750,6 +832,7 @@ class SqliteTreeholeRepository:
                             (post_id, t),
                         )
 
+            deferred_comment_parents: list[tuple[str, str]] = []
             for comment in db.get("comments", []):
                 if not isinstance(comment, dict):
                     continue
@@ -775,8 +858,17 @@ class SqliteTreeholeRepository:
                         _to_int(comment.get("likeCount"), 0),
                         _to_str(comment.get("reviewStatus"), "pending"),
                         _to_bool_int(comment.get("riskMarked")),
-                        _to_str(comment.get("parentId")) or None,
+                        None,
                     ),
+                )
+                parent_id = _to_str(comment.get("parentId")).strip()
+                if parent_id:
+                    deferred_comment_parents.append((parent_id, comment_id))
+
+            for parent_id, comment_id in deferred_comment_parents:
+                conn.execute(
+                    "UPDATE comments SET parent_id = ? WHERE id = ?",
+                    (parent_id, comment_id),
                 )
 
             for row in db.get("likes", []):
@@ -878,6 +970,37 @@ class SqliteTreeholeRepository:
                     ),
                 )
 
+            for row in db.get("directMessages", []):
+                if not isinstance(row, dict):
+                    continue
+                message_id = _to_str(row.get("id")).strip()
+                conversation_key = _to_str(row.get("conversationKey")).strip()
+                sender_user_id = _to_str(row.get("senderUserId")).strip()
+                receiver_user_id = _to_str(row.get("receiverUserId")).strip()
+                if (
+                    not message_id
+                    or not conversation_key
+                    or not sender_user_id
+                    or not receiver_user_id
+                ):
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO direct_messages (
+                      id, conversation_key, sender_user_id, receiver_user_id, content, created_at, deleted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        message_id,
+                        conversation_key,
+                        sender_user_id,
+                        receiver_user_id,
+                        _to_str(row.get("content")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_bool_int(row.get("deleted")),
+                    ),
+                )
+
             for row in db.get("auditLogs", []):
                 if not isinstance(row, dict):
                     continue
@@ -896,6 +1019,36 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("action"), "action"),
                         _to_str(row.get("detail")),
                         _to_str(row.get("createdAt")) or created_now,
+                    ),
+                )
+
+            for row in db.get("accountCancellationRequests", []):
+                if not isinstance(row, dict):
+                    continue
+                request_id = _to_str(row.get("id")).strip()
+                user_id = _to_str(row.get("userId")).strip()
+                if not request_id or not user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO account_cancellation_requests (
+                      id, user_id, user_email, user_nickname, student_id, avatar_url, reason,
+                      status, review_note, created_at, handled_at, handled_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        request_id,
+                        user_id,
+                        _to_str(row.get("userEmail")),
+                        _to_str(row.get("userNickname"), "匿名同学"),
+                        _to_str(row.get("studentId")),
+                        _to_str(row.get("avatarUrl")),
+                        _to_str(row.get("reason")),
+                        _to_str(row.get("status"), "pending"),
+                        _to_str(row.get("reviewNote")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("handledAt")) or None,
+                        _to_str(row.get("handledBy")) or None,
                     ),
                 )
 

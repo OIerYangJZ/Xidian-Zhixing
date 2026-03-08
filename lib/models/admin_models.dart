@@ -5,7 +5,10 @@ class AdminOverview {
     required this.todayComments,
     required this.todayReports,
     required this.pendingReviews,
+    required this.pendingCancellationRequests,
+    required this.activeUsers,
     required this.bannedUsers,
+    required this.mutedUsers,
   });
 
   final int todayNewUsers;
@@ -13,7 +16,10 @@ class AdminOverview {
   final int todayComments;
   final int todayReports;
   final int pendingReviews;
+  final int pendingCancellationRequests;
+  final int activeUsers;
   final int bannedUsers;
+  final int mutedUsers;
 
   factory AdminOverview.fromJson(Map<String, dynamic> json) {
     return AdminOverview(
@@ -22,7 +28,11 @@ class AdminOverview {
       todayComments: _toInt(json['todayComments']) ?? 0,
       todayReports: _toInt(json['todayReports']) ?? 0,
       pendingReviews: _toInt(json['pendingReviews']) ?? 0,
+      pendingCancellationRequests:
+          _toInt(json['pendingCancellationRequests']) ?? 0,
+      activeUsers: _toInt(json['activeUsers']) ?? 0,
       bannedUsers: _toInt(json['bannedUsers']) ?? 0,
+      mutedUsers: _toInt(json['mutedUsers']) ?? 0,
     );
   }
 }
@@ -34,6 +44,10 @@ class AdminReviewItem {
     required this.title,
     required this.content,
     required this.authorAlias,
+    required this.authorUserId,
+    required this.authorNickname,
+    required this.authorEmail,
+    required this.authorStudentId,
     required this.createdAt,
     required this.reviewStatus,
     required this.riskMarked,
@@ -44,6 +58,10 @@ class AdminReviewItem {
   final String title;
   final String content;
   final String authorAlias;
+  final String authorUserId;
+  final String authorNickname;
+  final String authorEmail;
+  final String authorStudentId;
   final String createdAt;
   final String reviewStatus;
   final bool riskMarked;
@@ -55,6 +73,11 @@ class AdminReviewItem {
       title: (json['title'] ?? '').toString(),
       content: (json['content'] ?? '').toString(),
       authorAlias: (json['authorAlias'] ?? '匿名同学').toString(),
+      authorUserId: (json['authorUserId'] ?? '').toString(),
+      authorNickname:
+          (json['authorNickname'] ?? json['authorAlias'] ?? '匿名同学').toString(),
+      authorEmail: (json['authorEmail'] ?? '').toString(),
+      authorStudentId: (json['authorStudentId'] ?? '').toString(),
       createdAt: (json['createdAt'] ?? '').toString(),
       reviewStatus: (json['reviewStatus'] ?? 'pending').toString(),
       riskMarked: _toBool(json['riskMarked']) ?? false,
@@ -104,42 +127,99 @@ class AdminUserEntry {
   AdminUserEntry({
     required this.id,
     required this.email,
+    required this.studentId,
     required this.alias,
+    required this.avatarUrl,
     required this.verified,
-    required this.isAdmin,
     required this.banned,
     required this.muted,
     required this.postCount,
     required this.commentCount,
     required this.reportCount,
     required this.createdAt,
+    required this.hasPendingCancellationRequest,
   });
 
   final String id;
   final String email;
+  final String studentId;
   final String alias;
+  final String avatarUrl;
   final bool verified;
-  final bool isAdmin;
   final bool banned;
   final bool muted;
   final int postCount;
   final int commentCount;
   final int reportCount;
   final String createdAt;
+  final bool hasPendingCancellationRequest;
 
   factory AdminUserEntry.fromJson(Map<String, dynamic> json) {
     return AdminUserEntry(
       id: (json['id'] ?? '').toString(),
       email: (json['email'] ?? '').toString(),
+      studentId: (json['studentId'] ?? '').toString(),
       alias: (json['alias'] ?? '匿名同学').toString(),
+      avatarUrl: (json['avatarUrl'] ?? '').toString(),
       verified: _toBool(json['verified']) ?? false,
-      isAdmin: _toBool(json['isAdmin']) ?? false,
       banned: _toBool(json['banned']) ?? false,
       muted: _toBool(json['muted']) ?? false,
       postCount: _toInt(json['postCount']) ?? 0,
       commentCount: _toInt(json['commentCount']) ?? 0,
       reportCount: _toInt(json['reportCount']) ?? 0,
       createdAt: (json['createdAt'] ?? '').toString(),
+      hasPendingCancellationRequest:
+          _toBool(json['hasPendingCancellationRequest']) ?? false,
+    );
+  }
+}
+
+class AdminAccountCancellationRequest {
+  AdminAccountCancellationRequest({
+    required this.id,
+    required this.userId,
+    required this.userEmail,
+    required this.userNickname,
+    required this.studentId,
+    required this.avatarUrl,
+    required this.reason,
+    required this.status,
+    required this.statusLabel,
+    required this.reviewNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+  });
+
+  final String id;
+  final String userId;
+  final String userEmail;
+  final String userNickname;
+  final String studentId;
+  final String avatarUrl;
+  final String reason;
+  final String status;
+  final String statusLabel;
+  final String reviewNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+
+  factory AdminAccountCancellationRequest.fromJson(Map<String, dynamic> json) {
+    return AdminAccountCancellationRequest(
+      id: (json['id'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
+      userEmail: (json['userEmail'] ?? '').toString(),
+      userNickname: (json['userNickname'] ?? '匿名同学').toString(),
+      studentId: (json['studentId'] ?? '').toString(),
+      avatarUrl: (json['avatarUrl'] ?? '').toString(),
+      reason: (json['reason'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待审核').toString(),
+      reviewNote: (json['reviewNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
     );
   }
 }

@@ -132,6 +132,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             icon: const Icon(Icons.copy_all_rounded),
                             label: const Text('复制内容'),
                           ),
+                          if (_post.canMessageAuthor)
+                            OutlinedButton.icon(
+                              onPressed: _actionBusy ? null : _requestDm,
+                              icon: const Icon(Icons.forum_outlined),
+                              label: const Text('私信作者'),
+                            ),
                         ],
                       ),
                     ],
@@ -260,15 +266,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               : '输入回复内容',
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      EmojiAssistantBar(controller: _commentController),
                       const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: FilledButton(
-                          onPressed: _actionBusy ? null : _submitComment,
-                          child: Text(_actionBusy ? '提交中...' : '发送评论'),
-                        ),
+                      Row(
+                        children: <Widget>[
+                          EmojiAssistantBar(
+                            controller: _commentController,
+                            compact: true,
+                          ),
+                          const Spacer(),
+                          FilledButton(
+                            onPressed: _actionBusy ? null : _submitComment,
+                            child: Text(_actionBusy ? '提交中...' : '发送评论'),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -426,6 +436,61 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final String text = '[${_post.channel}] ${_post.title}\\n${_post.content}';
     await Clipboard.setData(ClipboardData(text: text));
     _feedback('已复制帖子内容');
+  }
+
+  Future<void> _requestDm() async {
+    final TextEditingController reasonController = TextEditingController();
+    try {
+      final String? reason = await showDialog<String>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('发送私信申请'),
+            content: TextField(
+              controller: reasonController,
+              maxLength: 120,
+              minLines: 2,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                hintText: '简单说明来意，便于对方决定是否通过',
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () =>
+                    Navigator.of(context).pop(reasonController.text.trim()),
+                child: const Text('发送申请'),
+              ),
+            ],
+          );
+        },
+      );
+      if (!mounted || reason == null) {
+        return;
+      }
+
+      setState(() {
+        _actionBusy = true;
+      });
+      await AppRepositories.messages.createDmRequest(
+        postId: _post.id,
+        reason: reason,
+      );
+      _feedback('私信申请已发送，请等待对方处理');
+    } catch (error) {
+      _feedback('发送私信申请失败：$error');
+    } finally {
+      reasonController.dispose();
+      if (mounted) {
+        setState(() {
+          _actionBusy = false;
+        });
+      }
+    }
   }
 
   void _prepareReply({
