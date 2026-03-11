@@ -411,25 +411,121 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _report() async {
+    final Map<String, dynamic>? result = await _showReportDialog();
+    if (result == null) return;
+
     await _runAction(
       action: () => AppRepositories.posts.report(
         targetType: 'post',
         targetId: _post.id,
-        reason: '其他',
+        reason: result['reason'] as String,
+        description: result['description'] as String?,
       ),
       success: '已提交举报',
     );
   }
 
   Future<void> _reportComment(String commentId) async {
+    final Map<String, dynamic>? result = await _showReportDialog();
+    if (result == null) return;
+
     await _runAction(
       action: () => AppRepositories.posts.report(
         targetType: 'comment',
         targetId: commentId,
-        reason: '其他',
+        reason: result['reason'] as String,
+        description: result['description'] as String?,
       ),
       success: '已举报评论',
     );
+  }
+
+  Future<Map<String, dynamic>?> _showReportDialog() async {
+    String? selectedReason;
+    final TextEditingController descController = TextEditingController();
+
+    final List<String> reasons = <String>[
+      '垃圾广告',
+      '违法违规',
+      '色情低俗',
+      '人身攻击',
+      '虚假信息',
+      '侵犯隐私',
+      '其他',
+    ];
+
+    try {
+      final bool? confirmed = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: const Text('举报'),
+                content: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      const Text('请选择举报原因：'),
+                      const SizedBox(height: 8),
+                      ...reasons.map(
+                        (String reason) => RadioListTile<String>(
+                          title: Text(reason),
+                          value: reason,
+                          groupValue: selectedReason,
+                          onChanged: (String? value) {
+                            setState(() {
+                              selectedReason = value;
+                            });
+                          },
+                          dense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: descController,
+                        maxLength: 200,
+                        minLines: 2,
+                        maxLines: 4,
+                        decoration: const InputDecoration(
+                          labelText: '补充说明（可选）',
+                          hintText: '请详细描述举报原因',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text('取消'),
+                  ),
+                  FilledButton(
+                    onPressed: selectedReason == null
+                        ? null
+                        : () => Navigator.of(context).pop(true),
+                    child: const Text('确认举报'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (confirmed != true || selectedReason == null) {
+        return null;
+      }
+
+      return <String, dynamic>{
+        'reason': selectedReason,
+        'description': descController.text.trim(),
+      };
+    } finally {
+      descController.dispose();
+    }
   }
 
   Future<void> _copyPostContent() async {
