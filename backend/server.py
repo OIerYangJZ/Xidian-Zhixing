@@ -3778,20 +3778,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 user, _ = require_authorized_user(self, db)
                 if user is None:
                     return
-                allowed, retry_after = consume_rate_limit(
-                    db,
-                    user_id=user["id"],
-                    action="message",
-                    setting_key="messageRateLimit",
-                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
-                )
-                if not allowed:
-                    send_rate_limit_error(
-                        self,
-                        action_text="消息操作",
-                        retry_after_seconds=retry_after,
-                    )
-                    return
                 request_id = match_action.group(1)
                 action = match_action.group(2)
 

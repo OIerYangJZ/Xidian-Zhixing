@@ -64,12 +64,12 @@ class MessagesController extends StateNotifier<MessagesState> {
             requestId: requestId,
             accept: accept,
           );
-      final bool reloaded = await _reloadData(
+      await _reloadData(
         showLoading: false,
         preserveActionBusy: true,
       );
       state = state.copyWith(actionBusy: false, clearError: true);
-      return reloaded;
+      return true;
     } catch (error) {
       state = state.copyWith(actionBusy: false, error: '操作失败：$error');
       return false;
@@ -143,6 +143,6 @@ class MessagesController extends StateNotifier<MessagesState> {
 }
 
 final messagesControllerProvider =
-    StateNotifierProvider.autoDispose<MessagesController, MessagesState>(
+    StateNotifierProvider<MessagesController, MessagesState>(
   (Ref ref) => MessagesController(ref),
 );

@@ -59,90 +59,116 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
 
   Widget _buildRequests(MessagesState state) {
     if (state.requests.isEmpty) {
-      return const Center(child: Text('暂无私信申请。'));
+      return RefreshIndicator(
+        onRefresh: () =>
+            ref.read(messagesControllerProvider.notifier).refresh(),
+        child: ListView(
+          children: const <Widget>[
+            SizedBox(height: 80),
+            Center(child: Text('暂无私信申请。')),
+          ],
+        ),
+      );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: state.requests.length,
-      itemBuilder: (BuildContext context, int index) {
-        final DmRequestItem request = state.requests[index];
-        final bool pending = request.status.toLowerCase() == 'pending';
-        return Card(
-          child: ListTile(
-            leading: _buildAvatar(
-              request.fromAvatarUrl,
-              request.fromAlias,
-            ),
-            title: Text(request.fromAlias),
-            subtitle: Text('${request.reason} · ${request.timeText}'),
-            trailing: Wrap(
-              spacing: 8,
-              children: <Widget>[
-                if (pending) ...<Widget>[
-                  FilledButton.tonal(
-                    onPressed: state.actionBusy
-                        ? null
-                        : () => _handleRequest(request.id, false),
-                    child: const Text('拒绝'),
-                  ),
-                  FilledButton(
-                    onPressed: state.actionBusy
-                        ? null
-                        : () => _handleRequest(request.id, true),
-                    child: const Text('同意'),
-                  ),
-                ] else
-                  Chip(
-                    label: Text(request.statusLabel),
-                    side: BorderSide(
-                      color: request.status.toLowerCase() == 'accepted'
-                          ? const Color(0xFF16A34A)
-                          : const Color(0xFFDC2626),
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(messagesControllerProvider.notifier).refresh(),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: state.requests.length,
+        itemBuilder: (BuildContext context, int index) {
+          final DmRequestItem request = state.requests[index];
+          final bool pending = request.status.toLowerCase() == 'pending';
+          return Card(
+            child: ListTile(
+              leading: _buildAvatar(
+                request.fromAvatarUrl,
+                request.fromAlias,
+              ),
+              title: Text(request.fromAlias),
+              subtitle: Text('${request.reason} · ${request.timeText}'),
+              trailing: Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  if (pending) ...<Widget>[
+                    FilledButton.tonal(
+                      onPressed: state.actionBusy
+                          ? null
+                          : () => _handleRequest(request.id, false),
+                      child: const Text('拒绝'),
                     ),
-                  ),
-              ],
+                    FilledButton(
+                      onPressed: state.actionBusy
+                          ? null
+                          : () => _handleRequest(request.id, true),
+                      child: const Text('同意'),
+                    ),
+                  ] else
+                    Chip(
+                      label: Text(request.statusLabel),
+                      side: BorderSide(
+                        color: request.status.toLowerCase() == 'accepted'
+                            ? const Color(0xFF16A34A)
+                            : const Color(0xFFDC2626),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildConversations(MessagesState state) {
     if (state.conversations.isEmpty) {
-      return const Center(child: Text('暂无会话。'));
+      return RefreshIndicator(
+        onRefresh: () =>
+            ref.read(messagesControllerProvider.notifier).refresh(),
+        child: ListView(
+          children: const <Widget>[
+            SizedBox(height: 80),
+            Center(child: Text('暂无会话。')),
+          ],
+        ),
+      );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: state.conversations.length,
-      itemBuilder: (BuildContext context, int index) {
-        final ConversationItem session = state.conversations[index];
-        return Card(
-          child: ListTile(
-            leading: _buildAvatar(session.avatarUrl, session.name),
-            title: Text(session.name),
-            subtitle: Text(session.lastMessage),
-            trailing: Text(session.timeText),
-            onTap: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => ChatPage(
-                    conversation: session,
-                    onMessageSent: (String content) {
-                      ref
-                          .read(messagesControllerProvider.notifier)
-                          .updateConversationPreview(
-                            conversationId: session.id,
-                            message: content,
-                          );
-                    },
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(messagesControllerProvider.notifier).refresh(),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: state.conversations.length,
+        itemBuilder: (BuildContext context, int index) {
+          final ConversationItem session = state.conversations[index];
+          return Card(
+            child: ListTile(
+              leading: _buildAvatar(session.avatarUrl, session.name),
+              title: Text(session.name),
+              subtitle: Text(session.lastMessage),
+              trailing: Text(session.timeText),
+              onTap: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ChatPage(
+                      conversation: session,
+                      onMessageSent: (String content) {
+                        ref
+                            .read(messagesControllerProvider.notifier)
+                            .updateConversationPreview(
+                              conversationId: session.id,
+                              message: content,
+                            );
+                      },
+                    ),
                   ),
-                ),
-              );
-            },
-          ),
-        );
-      },
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 

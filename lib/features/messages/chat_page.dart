@@ -57,6 +57,13 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(child: Text(widget.conversation.name)),
           ],
         ),
+        actions: <Widget>[
+          IconButton(
+            onPressed: _loading ? null : _loadMessages,
+            icon: const Icon(Icons.refresh),
+            tooltip: '刷新',
+          ),
+        ],
       ),
       body: Column(
         children: <Widget>[
