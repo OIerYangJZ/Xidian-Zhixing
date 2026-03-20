@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/network/api_exception.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/auth_repository.dart';
+import '../../features/legal/terms_of_service_page.dart';
+import '../../features/legal/privacy_policy_page.dart';
+import '../../features/legal/community_guidelines_page.dart';
 import '../admin/admin_login_page.dart';
 import 'register_page.dart';
 import 'reset_password_page.dart';
@@ -139,6 +142,18 @@ class _LoginPageState extends State<LoginPage> {
                       icon: const Icon(Icons.admin_panel_settings_outlined),
                       label: const Text('管理员后台登录'),
                     ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => const _LoginTermsRoute(),
+                          ),
+                        );
+                      },
+                      child: const Text('用户协议 · 隐私政策 · 社区规范',
+                          style: TextStyle(fontSize: 11)),
+                    ),
                   ],
                 ),
               ),
@@ -243,5 +258,80 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _errorText = message;
     });
+  }
+}
+
+class _LoginTermsRoute extends StatelessWidget {
+  const _LoginTermsRoute();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('合规说明'),
+        backgroundColor: const Color(0xFF0E7490),
+        foregroundColor: Colors.white,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: <Widget>[
+          _buildLinkCard(
+            context,
+            icon: Icons.description_outlined,
+            title: '用户协议',
+            subtitle: '了解平台服务条款与用户行为规范',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const TermsOfServicePage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildLinkCard(
+            context,
+            icon: Icons.shield_outlined,
+            title: '隐私政策',
+            subtitle: '了解我们如何收集、使用和保护您的信息',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const PrivacyPolicyPage()),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _buildLinkCard(
+            context,
+            icon: Icons.groups_outlined,
+            title: '社区规范',
+            subtitle: '了解社区规则与内容管理政策',
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const CommunityGuidelinesPage()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      child: ListTile(
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: const Color(0xFF0E7490).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(icon, color: const Color(0xFF0E7490)),
+        ),
+        title: Text(title),
+        subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
+      ),
+    );
   }
 }

@@ -12,6 +12,7 @@ import secrets
 import hashlib
 import hmac
 import smtplib
+import subprocess
 import threading
 import time
 from email.message import EmailMessage
@@ -39,6 +40,31 @@ OBJECT_STORAGE = build_object_storage_from_env(
     local_root_dir=OBJECT_STORAGE_DIR,
     local_public_prefix="/api/storage",
 )
+
+_BACKEND_VERSION = "0.2"
+
+
+def _get_version_info() -> dict[str, Any]:
+    git_hash = "unknown"
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode == 0:
+            git_hash = result.stdout.strip()
+    except Exception:
+        pass
+    return {
+        "version": f"XduTreeholeBackend/{_BACKEND_VERSION}",
+        "backendVersion": _BACKEND_VERSION,
+        "gitHash": git_hash,
+        "buildDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 def env_bool(name: str, default: bool) -> bool:
@@ -89,10 +115,12 @@ DEFAULT_TAGS = [
 ]
 
 DEFAULT_SETTINGS = {
-    "postRateLimit": 10,
-    "commentRateLimit": 30,
-    "messageRateLimit": 40,
+    "postRateLimit": 5,
+    "commentRateLimit": 20,
+    "messageRateLimit": 30,
     "imageMaxMB": 5,
+    "reportRateLimit": 10,
+    "dmRequestRateLimit": 20,
 }
 
 DEFAULT_SENSITIVE_WORDS = ["引流", "广告", "辱骂", "诈骗"]
@@ -127,11 +155,23 @@ RATE_LIMIT_WINDOWS_SECONDS = {
     "post": 3600,
     "comment": 3600,
     "message": 3600,
+    "report": 3600,
+    "dm_request": 3600,
     "upload": 3600,
 }
 RATE_LIMIT_EVENT_MAX = 300
 RATE_LIMIT_EVENTS: dict[tuple[str, str], deque[float]] = {}
 RATE_LIMIT_LOCK = threading.Lock()
+
+IP_RATE_LIMIT_EVENTS: dict[str, dict[str, deque[float]]] = {}
+IP_RATE_LIMIT_LOCK = threading.Lock()
+
+IP_RATE_LIMITS = {
+    "post": {"limit": 20, "window": 3600},
+    "comment": {"limit": 40, "window": 3600},
+    "message": {"limit": 60, "window": 3600},
+    "upload": {"limit": 30, "window": 3600},
+}
 
 SPAM_REPEAT_REGEX = re.compile(r"(.)\1{8,}", re.DOTALL)
 
@@ -548,6 +588,52 @@ def consume_rate_limit(
         while len(queue) > RATE_LIMIT_EVENT_MAX:
             queue.popleft()
         return True, 0
+
+
+def get_client_ip(handler: BaseHTTPRequestHandler) -> str:
+    x_forwarded_for = handler.headers.get("X-Forwarded-For", "")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    x_real_ip = handler.headers.get("X-Real-IP", "")
+    if x_real_ip:
+        return x_real_ip.strip()
+    return handler.client_address[0] or "unknown"
+
+
+def check_ip_rate_limit(
+    handler: BaseHTTPRequestHandler,
+    action: str,
+) -> tuple[bool, int]:
+    ip = get_client_ip(handler)
+    limits = IP_RATE_LIMITS.get(action)
+    if not limits:
+        return True, 0
+    limit = limits["limit"]
+    window_seconds = limits["window"]
+    now = time.time()
+
+    with IP_RATE_LIMIT_LOCK:
+        ip_events = IP_RATE_LIMIT_EVENTS.setdefault(ip, {})
+        queue = ip_events.setdefault(action, deque())
+        while queue and now - queue[0] >= window_seconds:
+            queue.popleft()
+
+        if len(queue) >= limit:
+            retry_after = max(1, int(window_seconds - (now - queue[0])))
+            return False, retry_after
+
+        queue.append(now)
+        return True, 0
+
+
+def check_duplicate_image_hash(db: dict[str, Any], image_hash: str) -> bool:
+    if not image_hash:
+        return False
+    return any(
+        upload.get("hash") == image_hash
+        for upload in db.get("mediaUploads", [])
+        if upload.get("hash")
+    )
 
 
 def send_rate_limit_error(
@@ -2094,6 +2180,35 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_get(self, path: str, query: dict[str, list[str]]) -> None:
+        if path == "/api/health":
+            db_ok = False
+            storage_ok = False
+            try:
+                with DB_LOCK:
+                    test_db = load_db()
+                    db_ok = isinstance(test_db, dict)
+            except Exception:
+                pass
+            try:
+                storage_ok = OBJECT_STORAGE.get_bytes("__health_check__") is not None or True
+            except Exception:
+                pass
+            status = "healthy" if (db_ok and storage_ok) else "degraded"
+            http_status = HTTPStatus.OK if db_ok else HTTPStatus.SERVICE_UNAVAILABLE
+            send_json(self, http_status, {
+                "status": status,
+                "version": "XduTreeholeBackend/0.2",
+                "database": "ok" if db_ok else "error",
+                "smtp": "ok" if smtp_configured() else "not_configured",
+                "storage": "ok" if storage_ok else "error",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+            })
+            return
+
+        if path == "/api/version":
+            send_json(self, HTTPStatus.OK, _get_version_info())
+            return
+
         if path.startswith("/api/storage/"):
             object_key = path[len("/api/storage/") :].strip("/")
             if not object_key:
@@ -3357,9 +3472,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 allowed, retry_after = consume_rate_limit(
                     db,
                     user_id=user["id"],
-                    action="message",
-                    setting_key="messageRateLimit",
-                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                    action="dm_request",
+                    setting_key="dmRequestRateLimit",
+                    default_limit=DEFAULT_SETTINGS["dmRequestRateLimit"],
                 )
                 if not allowed:
                     send_rate_limit_error(
@@ -3514,6 +3629,15 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         self,
                         action_text="图片上传",
                         retry_after_seconds=retry_after,
+                    )
+                    return
+
+                ip_allowed, ip_retry_after = check_ip_rate_limit(self, "upload")
+                if not ip_allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="图片上传",
+                        retry_after_seconds=ip_retry_after,
                     )
                     return
 
@@ -3749,6 +3873,15 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     )
                     return
 
+                ip_allowed, ip_retry_after = check_ip_rate_limit(self, "message")
+                if not ip_allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="发送私信",
+                        retry_after_seconds=ip_retry_after,
+                    )
+                    return
+
                 conversation_id = match_conversation_send.group(1)
                 conversation = next(
                     (
@@ -3930,6 +4063,15 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     )
                     return
 
+                ip_allowed, ip_retry_after = check_ip_rate_limit(self, "post")
+                if not ip_allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="发帖",
+                        retry_after_seconds=ip_retry_after,
+                    )
+                    return
+
                 title = str(body.get("title", "")).strip()
                 content = str(body.get("content", "")).strip()
                 channel = str(body.get("channel", "")).strip()
@@ -4021,9 +4163,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 allowed, retry_after = consume_rate_limit(
                     db,
                     user_id=user["id"],
-                    action="message",
-                    setting_key="messageRateLimit",
-                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                    action="report",
+                    setting_key="reportRateLimit",
+                    default_limit=DEFAULT_SETTINGS["reportRateLimit"],
                 )
                 if not allowed:
                     send_rate_limit_error(
@@ -4129,6 +4271,16 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         retry_after_seconds=retry_after,
                     )
                     return
+
+                ip_allowed, ip_retry_after = check_ip_rate_limit(self, "comment")
+                if not ip_allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="评论",
+                        retry_after_seconds=ip_retry_after,
+                    )
+                    return
+
                 post_id = match_comment.group(1)
                 post = next((p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")), None)
                 if post is None:

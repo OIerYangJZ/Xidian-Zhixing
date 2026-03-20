@@ -4,6 +4,8 @@ import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/network/api_exception.dart';
 import '../../repositories/app_repositories.dart';
+import '../../features/legal/terms_of_service_page.dart';
+import '../../features/legal/community_guidelines_page.dart';
 import 'verify_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -166,8 +168,77 @@ class _RegisterPageState extends State<RegisterPage> {
                                     });
                                   },
                           ),
-                          const Expanded(
-                            child: Text('我已阅读并同意用户协议与社区规范'),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: _isBusy
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _agreeTerms = !_agreeTerms;
+                                      });
+                                    },
+                              child: const Text.rich(
+                                TextSpan(
+                                  children: <InlineSpan>[
+                                    TextSpan(text: '我已阅读并同意'),
+                                    TextSpan(
+                                      text: '《用户协议》',
+                                      style: TextStyle(
+                                        color: Color(0xFF0E7490),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    TextSpan(text: '与'),
+                                    TextSpan(
+                                      text: '《社区规范》',
+                                      style: TextStyle(
+                                        color: Color(0xFF0E7490),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const _TermsRoute(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text('《用户协议》',
+                                style: TextStyle(fontSize: 12)),
+                          ),
+                          const Text(' · ', style: TextStyle(fontSize: 12)),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const _GuidelinesRoute(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: const Text('《社区规范》',
+                                style: TextStyle(fontSize: 12)),
                           ),
                         ],
                       ),
@@ -365,5 +436,23 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() {
       _errorText = message;
     });
+  }
+}
+
+class _TermsRoute extends StatelessWidget {
+  const _TermsRoute();
+
+  @override
+  Widget build(BuildContext context) {
+    return const TermsOfServicePage();
+  }
+}
+
+class _GuidelinesRoute extends StatelessWidget {
+  const _GuidelinesRoute();
+
+  @override
+  Widget build(BuildContext context) {
+    return const CommunityGuidelinesPage();
   }
 }

@@ -5,6 +5,10 @@ import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
+import '../../features/legal/terms_of_service_page.dart';
+import '../../features/legal/privacy_policy_page.dart';
+import '../../features/legal/community_guidelines_page.dart';
+import '../../features/legal/report_guidelines_page.dart';
 import '../auth/login_page.dart';
 import '../auth/reset_password_page.dart';
 import 'emoji_settings_page.dart';
@@ -295,6 +299,71 @@ class _ProfilePageState extends State<ProfilePage> {
                 onTap: _saving ? null : _logout,
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        Card(
+          child: Column(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('用户协议'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const TermsOfServicePage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.shield_outlined),
+                title: const Text('隐私政策'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const PrivacyPolicyPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.groups_outlined),
+                title: const Text('社区规范'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const CommunityGuidelinesPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.flag_outlined),
+                title: const Text('举报说明'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const ReportGuidelinesPage(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Center(
+          child: Text(
+            '西电树洞 v${AppConfig.appVersion}',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade500,
+            ),
           ),
         ),
       ],

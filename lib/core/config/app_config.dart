@@ -5,6 +5,12 @@ class AppConfig {
     defaultValue: 'http://localhost:8080/api',
   );
 
+  // 生产构建时由 scripts/build_web_production.sh 通过 --dart-define=APP_VERSION=... 注入
+  static const String appVersion = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: 'dev',
+  );
+
   static const Duration requestTimeout = Duration(seconds: 15);
 
   // 当后端不可用时，列表型页面回退到本地 mock，避免前端无法演示。
