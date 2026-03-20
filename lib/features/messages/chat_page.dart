@@ -6,15 +6,24 @@ import '../../models/direct_message_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 
+typedef ConversationFlagsChanged =
+    void Function({bool? blockedByMe, bool? blockedByPeer});
+
 class ChatPage extends StatefulWidget {
   const ChatPage({
     super.key,
     required this.conversation,
     this.onMessageSent,
+    this.onConversationRead,
+    this.onConversationRemoved,
+    this.onConversationFlagsChanged,
   });
 
   final ConversationItem conversation;
   final ValueChanged<String>? onMessageSent;
+  final VoidCallback? onConversationRead;
+  final VoidCallback? onConversationRemoved;
+  final ConversationFlagsChanged? onConversationFlagsChanged;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -24,14 +33,17 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  late ConversationItem _conversation;
   List<DirectMessageItem> _messages = const <DirectMessageItem>[];
   bool _loading = true;
   bool _sending = false;
   String? _error;
+  String? _lastFailedContent;
 
   @override
   void initState() {
     super.initState();
+    _conversation = widget.conversation;
     _loadMessages();
   }
 
@@ -45,16 +57,19 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final bool busy = _loading || _sending;
+    final bool blockedByMe = _conversation.blockedByMe;
+    final bool blockedByPeer = _conversation.blockedByPeer;
+    final bool inputEnabled = !_sending && !blockedByMe && !blockedByPeer;
     return Scaffold(
       appBar: AppBar(
         title: Row(
           children: <Widget>[
             _buildAvatar(
-              widget.conversation.avatarUrl,
-              widget.conversation.name,
+              _conversation.avatarUrl,
+              _conversation.name,
             ),
             const SizedBox(width: 8),
-            Expanded(child: Text(widget.conversation.name)),
+            Expanded(child: Text(_conversation.name)),
           ],
         ),
         actions: <Widget>[
@@ -62,6 +77,31 @@ class _ChatPageState extends State<ChatPage> {
             onPressed: _loading ? null : _loadMessages,
             icon: const Icon(Icons.refresh),
             tooltip: '刷新',
+          ),
+          PopupMenuButton<String>(
+            onSelected: (String value) {
+              switch (value) {
+                case 'block':
+                  _toggleBlock(true);
+                  break;
+                case 'unblock':
+                  _toggleBlock(false);
+                  break;
+                case 'delete':
+                  _deleteConversation();
+                  break;
+              }
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              PopupMenuItem<String>(
+                value: blockedByMe ? 'unblock' : 'block',
+                child: Text(blockedByMe ? '取消屏蔽' : '屏蔽对方'),
+              ),
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('删除会话'),
+              ),
+            ],
           ),
         ],
       ),
@@ -82,6 +122,11 @@ class _ChatPageState extends State<ChatPage> {
                       style: const TextStyle(color: Color(0xFF9A3412)),
                     ),
                   ),
+                  if (_lastFailedContent != null && !_loading)
+                    TextButton(
+                      onPressed: _sending ? null : () => _send(_lastFailedContent),
+                      child: const Text('重试发送'),
+                    ),
                   TextButton(
                     onPressed: _loading ? null : _loadMessages,
                     child: const Text('重试'),
@@ -89,6 +134,8 @@ class _ChatPageState extends State<ChatPage> {
                 ],
               ),
             ),
+          if (blockedByMe || blockedByPeer)
+            _buildBlockBanner(blockedByMe: blockedByMe, blockedByPeer: blockedByPeer),
           Expanded(
             child: _buildMessageList(),
           ),
@@ -108,9 +155,13 @@ class _ChatPageState extends State<ChatPage> {
                       controller: _inputController,
                       minLines: 1,
                       maxLines: 4,
-                      enabled: !_sending,
-                      decoration: const InputDecoration(
-                        hintText: '输入消息',
+                      enabled: inputEnabled,
+                      decoration: InputDecoration(
+                        hintText: blockedByPeer
+                            ? '对方已屏蔽你，暂时无法发送消息'
+                            : blockedByMe
+                                ? '你已屏蔽对方，解除屏蔽后可继续发送'
+                                : '输入消息',
                       ),
                       onSubmitted: (_) => _send(),
                     ),
@@ -122,7 +173,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   const SizedBox(width: 4),
                   IconButton(
-                    onPressed: busy ? null : _send,
+                    onPressed: busy || !inputEnabled ? null : _send,
                     icon: _sending
                         ? const SizedBox(
                             width: 18,
@@ -195,18 +246,67 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 Text(message.content),
                 const SizedBox(height: 4),
-                Text(
-                  message.timeText,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.black54,
-                  ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      message.timeText,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    if (message.fromMe) ...<Widget>[
+                      const SizedBox(width: 6),
+                      Text(
+                        message.isRead ? '已读' : '未读',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: message.isRead
+                              ? const Color(0xFF0F766E)
+                              : Colors.black45,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildBlockBanner({
+    required bool blockedByMe,
+    required bool blockedByPeer,
+  }) {
+    final String text = blockedByPeer
+        ? '对方已屏蔽你，当前只能查看历史消息。'
+        : '你已屏蔽对方，解除后才可继续发送。';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: const Color(0xFFF3F4F6),
+      child: Row(
+        children: <Widget>[
+          const Icon(Icons.shield_outlined, size: 18, color: Color(0xFF475569)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: Color(0xFF334155)),
+            ),
+          ),
+          if (blockedByMe && !blockedByPeer)
+            TextButton(
+              onPressed: _sending ? null : () => _toggleBlock(false),
+              child: const Text('取消屏蔽'),
+            ),
+        ],
+      ),
     );
   }
 
@@ -223,7 +323,9 @@ class _ChatPageState extends State<ChatPage> {
       }
       setState(() {
         _messages = messages;
+        _conversation = _conversation.copyWith(unreadCount: 0, hasUnread: false);
       });
+      widget.onConversationRead?.call();
       _scrollToBottom();
     } catch (error) {
       if (!mounted) {
@@ -241,8 +343,8 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _send() async {
-    final String content = _inputController.text.trim();
+  Future<void> _send([String? retryContent]) async {
+    final String content = (retryContent ?? _inputController.text).trim();
     if (content.isEmpty || _sending) {
       return;
     }
@@ -261,6 +363,7 @@ class _ChatPageState extends State<ChatPage> {
       }
       setState(() {
         _messages = <DirectMessageItem>[..._messages, created];
+        _lastFailedContent = null;
         _inputController.clear();
       });
       widget.onMessageSent?.call(created.content);
@@ -270,6 +373,7 @@ class _ChatPageState extends State<ChatPage> {
         return;
       }
       setState(() {
+        _lastFailedContent = content;
         _error = '发送失败：$error';
       });
     } finally {
@@ -292,6 +396,85 @@ class _ChatPageState extends State<ChatPage> {
         curve: Curves.easeOut,
       );
     });
+  }
+
+  Future<void> _toggleBlock(bool block) async {
+    setState(() {
+      _error = null;
+    });
+    try {
+      final ConversationItem updated =
+          await AppRepositories.messages.updateConversationBlock(
+        conversationId: _conversation.id,
+        block: block,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _conversation = _conversation.copyWith(
+          blockedByMe: updated.blockedByMe,
+          blockedByPeer: updated.blockedByPeer,
+        );
+      });
+      widget.onConversationFlagsChanged?.call(
+        blockedByMe: updated.blockedByMe,
+        blockedByPeer: updated.blockedByPeer,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(block ? '已屏蔽对方' : '已取消屏蔽')),
+      );
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = '操作失败：$error';
+      });
+    }
+  }
+
+  Future<void> _deleteConversation() async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('删除会话'),
+          content: const Text('删除后仅从你的列表中移除，会话历史不会立即物理删除。'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('删除'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    try {
+      await AppRepositories.messages.deleteConversation(_conversation.id);
+      if (!mounted) {
+        return;
+      }
+      widget.onConversationRemoved?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('会话已删除')),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = '删除会话失败：$error';
+      });
+    }
   }
 
   Widget _buildAvatar(String avatarUrl, String name) {

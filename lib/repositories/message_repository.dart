@@ -94,6 +94,7 @@ class MessageRepository {
           .map(
             (MapEntry<int, Map<String, String>> entry) => ConversationItem(
               id: 'conv-mock-${entry.key + 1}',
+              peerUserId: '',
               name: entry.value['name'] ?? '匿名同学',
               avatarUrl: entry.value['avatarUrl'] ?? '',
               lastMessage: entry.value['lastMessage'] ?? '-',
@@ -129,5 +130,24 @@ class MessageRepository {
     );
     final Map<String, dynamic> map = extractMap(response);
     return DirectMessageItem.fromJson(map);
+  }
+
+  Future<void> deleteConversation(String conversationId) {
+    return _apiClient.delete(ApiEndpoints.dmConversation(conversationId));
+  }
+
+  Future<ConversationItem> updateConversationBlock({
+    required String conversationId,
+    required bool block,
+  }) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.dmConversationBlock(conversationId, block),
+      body: const <String, dynamic>{},
+    );
+    final Map<String, dynamic> data = extractMap(response);
+    return ConversationItem.fromJson(<String, dynamic>{
+      'id': conversationId,
+      ...data,
+    });
   }
 }

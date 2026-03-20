@@ -1,24 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
+import '../models/conversation_item.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
 import '../features/favorites/favorites_page.dart';
 import '../features/feed/feed_page.dart';
 import '../features/messages/messages_page.dart';
+import '../features/messages/messages_controller.dart';
 import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/search/search_page.dart';
 
-class HomeShell extends StatefulWidget {
+class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
 
   @override
-  State<HomeShell> createState() => _HomeShellState();
+  ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends State<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
   bool _postUrlHandled = false;
 
@@ -49,6 +52,9 @@ class _HomeShellState extends State<HomeShell> {
   @override
   void initState() {
     super.initState();
+    Future<void>.microtask(
+      () => ref.read(messagesControllerProvider.notifier).loadInitial(),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restorePostFromUrlIfNeeded();
     });
@@ -56,6 +62,13 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final MessagesState messagesState = ref.watch(messagesControllerProvider);
+    final int unreadCount = messagesState.conversations.fold<int>(
+      0,
+      (int sum, ConversationItem item) => sum + item.unreadCount,
+    );
+    final bool showMessageDot =
+        unreadCount > 0 || messagesState.requests.any((item) => item.status == 'pending');
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 68,
@@ -192,8 +205,16 @@ class _HomeShellState extends State<HomeShell> {
             label: '搜索',
           ),
           NavigationDestination(
-            icon: const Icon(Icons.chat_bubble_outline),
-            selectedIcon: _selectedIcon(Icons.chat_bubble_rounded),
+            icon: _messageNavIcon(
+              icon: const Icon(Icons.chat_bubble_outline),
+              badgeCount: unreadCount,
+              showDot: showMessageDot,
+            ),
+            selectedIcon: _messageNavIcon(
+              icon: _selectedIcon(Icons.chat_bubble_rounded),
+              badgeCount: unreadCount,
+              showDot: showMessageDot,
+            ),
             label: '消息',
           ),
           NavigationDestination(
@@ -220,6 +241,22 @@ class _HomeShellState extends State<HomeShell> {
         borderRadius: BorderRadius.circular(9),
       ),
       child: Icon(icon, size: 18),
+    );
+  }
+
+  Widget _messageNavIcon({
+    required Widget icon,
+    required int badgeCount,
+    required bool showDot,
+  }) {
+    if (!showDot) {
+      return icon;
+    }
+    return Badge(
+      isLabelVisible: true,
+      smallSize: 8,
+      label: badgeCount > 0 ? Text(badgeCount > 99 ? '99+' : '$badgeCount') : null,
+      child: icon,
     );
   }
 

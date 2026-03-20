@@ -122,15 +122,56 @@ class MessagesController extends StateNotifier<MessagesState> {
     }
 
     final ConversationItem current = rows[index];
-    final ConversationItem updated = ConversationItem(
-      id: current.id,
-      name: current.name,
-      avatarUrl: current.avatarUrl,
+    final ConversationItem updated = current.copyWith(
       lastMessage: message,
       timeText: _formatNowTime(),
+      unreadCount: 0,
+      hasUnread: false,
     );
     rows.removeAt(index);
     rows.insert(0, updated);
+    state = state.copyWith(conversations: rows, clearError: true);
+  }
+
+  void markConversationRead(String conversationId) {
+    final List<ConversationItem> rows = List<ConversationItem>.from(
+      state.conversations,
+    );
+    final int index = rows.indexWhere(
+      (ConversationItem item) => item.id == conversationId,
+    );
+    if (index < 0) {
+      return;
+    }
+    rows[index] = rows[index].copyWith(unreadCount: 0, hasUnread: false);
+    state = state.copyWith(conversations: rows, clearError: true);
+  }
+
+  void updateConversationFlags({
+    required String conversationId,
+    bool? blockedByMe,
+    bool? blockedByPeer,
+  }) {
+    final List<ConversationItem> rows = List<ConversationItem>.from(
+      state.conversations,
+    );
+    final int index = rows.indexWhere(
+      (ConversationItem item) => item.id == conversationId,
+    );
+    if (index < 0) {
+      return;
+    }
+    rows[index] = rows[index].copyWith(
+      blockedByMe: blockedByMe,
+      blockedByPeer: blockedByPeer,
+    );
+    state = state.copyWith(conversations: rows, clearError: true);
+  }
+
+  void removeConversation(String conversationId) {
+    final List<ConversationItem> rows = state.conversations
+        .where((ConversationItem item) => item.id != conversationId)
+        .toList();
     state = state.copyWith(conversations: rows, clearError: true);
   }
 

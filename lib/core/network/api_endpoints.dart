@@ -53,6 +53,10 @@ class ApiEndpoints {
       '/messages/requests/$requestId/$action';
   static String dmConversationMessages(String conversationId) =>
       '/messages/conversations/$conversationId/messages';
+  static String dmConversation(String conversationId) =>
+      '/messages/conversations/$conversationId';
+  static String dmConversationBlock(String conversationId, bool block) =>
+      '/messages/conversations/$conversationId/${block ? 'block' : 'unblock'}';
 
   static String commentById(String commentId) => '/comments/$commentId';
   static String reportById(String reportId) => '/reports/$reportId';

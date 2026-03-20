@@ -776,6 +776,7 @@ def default_db() -> dict[str, Any]:
         "favorites": [],
         "reports": [],
         "dmRequests": [],
+        "userBlocks": [],
         "conversations": [],
         "directMessages": [],
         "auditLogs": [],
@@ -844,7 +845,10 @@ def default_db() -> dict[str, Any]:
             "name": "洞主-极光",
             "avatarUrl": "",
             "lastMessage": "谢谢，已经找到位置了。",
+            "unreadCount": 0,
+            "lastReadAt": created,
             "updatedAt": created,
+            "deleted": False,
         }
     )
     db["seq"]["conversation"] = 1
@@ -856,6 +860,7 @@ def default_db() -> dict[str, Any]:
             "receiverUserId": "u1",
             "content": "谢谢，已经找到位置了。",
             "createdAt": created,
+            "readAt": created,
             "deleted": False,
         }
     )
@@ -1111,12 +1116,25 @@ def migrate_db(db: dict[str, Any]) -> bool:
             dm_request["fromAvatarUrl"] = ""
             changed = True
 
+    if "userBlocks" not in db or not isinstance(db.get("userBlocks"), list):
+        db["userBlocks"] = []
+        changed = True
+
     for conversation in db.get("conversations", []):
         if "peerUserId" not in conversation:
             conversation["peerUserId"] = ""
             changed = True
         if "avatarUrl" not in conversation:
             conversation["avatarUrl"] = ""
+            changed = True
+        if "unreadCount" not in conversation:
+            conversation["unreadCount"] = 0
+            changed = True
+        if "lastReadAt" not in conversation:
+            conversation["lastReadAt"] = ""
+            changed = True
+        if "deleted" not in conversation:
+            conversation["deleted"] = False
             changed = True
 
     if "directMessages" not in db or not isinstance(db.get("directMessages"), list):
@@ -1133,6 +1151,9 @@ def migrate_db(db: dict[str, Any]) -> bool:
             changed = True
         if "deleted" not in message:
             message["deleted"] = False
+            changed = True
+        if "readAt" not in message:
+            message["readAt"] = ""
             changed = True
 
     for upload in db.get("mediaUploads", []):
@@ -1303,6 +1324,30 @@ def conversation_key_for_users(user_a_id: str, user_b_id: str) -> str:
     return "::".join(sorted([left, right]))
 
 
+def is_user_blocked(db: dict[str, Any], blocker_user_id: str, blocked_user_id: str) -> bool:
+    blocker = blocker_user_id.strip()
+    blocked = blocked_user_id.strip()
+    if not blocker or not blocked:
+        return False
+    return any(
+        str(row.get("blockerUserId", "")).strip() == blocker
+        and str(row.get("blockedUserId", "")).strip() == blocked
+        for row in db.get("userBlocks", [])
+    )
+
+
+def conversation_block_state(
+    db: dict[str, Any],
+    *,
+    viewer_user_id: str,
+    peer_user_id: str,
+) -> tuple[bool, bool]:
+    return (
+        is_user_blocked(db, viewer_user_id, peer_user_id),
+        is_user_blocked(db, peer_user_id, viewer_user_id),
+    )
+
+
 def upsert_conversation_for_user(
     db: dict[str, Any],
     *,
@@ -1310,6 +1355,9 @@ def upsert_conversation_for_user(
     peer_user_id: str,
     last_message: str,
     updated_at: str,
+    unread_count: int | None = None,
+    last_read_at: str | None = None,
+    deleted: bool | None = None,
 ) -> dict[str, Any] | None:
     user = find_user_by_id(db, user_id)
     peer_user = find_user_by_id(db, peer_user_id)
@@ -1332,7 +1380,10 @@ def upsert_conversation_for_user(
             "name": user_nickname(peer_user),
             "avatarUrl": user_avatar_url(peer_user),
             "lastMessage": last_message,
+            "unreadCount": max(0, int(unread_count or 0)),
+            "lastReadAt": last_read_at or "",
             "updatedAt": updated_at,
+            "deleted": bool(deleted) if deleted is not None else False,
         }
         db["conversations"].append(row)
         return row
@@ -1341,6 +1392,12 @@ def upsert_conversation_for_user(
     row["avatarUrl"] = user_avatar_url(peer_user)
     row["lastMessage"] = last_message
     row["updatedAt"] = updated_at
+    if unread_count is not None:
+        row["unreadCount"] = max(0, int(unread_count))
+    if last_read_at is not None:
+        row["lastReadAt"] = last_read_at
+    if deleted is not None:
+        row["deleted"] = bool(deleted)
     return row
 
 
@@ -1360,6 +1417,7 @@ def sync_conversation_pair(
         peer_user_id=right_user_id,
         last_message=last_message,
         updated_at=updated_at,
+        deleted=False,
     )
     upsert_conversation_for_user(
         db,
@@ -1367,7 +1425,108 @@ def sync_conversation_pair(
         peer_user_id=left_user_id,
         last_message=last_message,
         updated_at=updated_at,
+        deleted=False,
     )
+
+
+def deliver_message_to_conversation_pair(
+    db: dict[str, Any],
+    *,
+    sender_user_id: str,
+    receiver_user_id: str,
+    last_message: str,
+    updated_at: str,
+) -> None:
+    sender_row = next(
+        (
+            item
+            for item in db.get("conversations", [])
+            if item.get("userId") == sender_user_id and item.get("peerUserId") == receiver_user_id
+        ),
+        None,
+    )
+    receiver_row = next(
+        (
+            item
+            for item in db.get("conversations", [])
+            if item.get("userId") == receiver_user_id and item.get("peerUserId") == sender_user_id
+        ),
+        None,
+    )
+    upsert_conversation_for_user(
+        db,
+        user_id=sender_user_id,
+        peer_user_id=receiver_user_id,
+        last_message=last_message,
+        updated_at=updated_at,
+        unread_count=int(sender_row.get("unreadCount", 0)) if sender_row else 0,
+        last_read_at=updated_at,
+        deleted=False,
+    )
+    upsert_conversation_for_user(
+        db,
+        user_id=receiver_user_id,
+        peer_user_id=sender_user_id,
+        last_message=last_message,
+        updated_at=updated_at,
+        unread_count=(int(receiver_row.get("unreadCount", 0)) if receiver_row else 0) + 1,
+        deleted=False,
+    )
+
+
+def mark_conversation_read(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    conversation: dict[str, Any],
+) -> bool:
+    peer_user_id = str(conversation.get("peerUserId", "")).strip()
+    if not peer_user_id:
+        return False
+    conversation_key = conversation_key_for_users(user_id, peer_user_id)
+    if not conversation_key:
+        return False
+    read_at = now_iso()
+    changed = False
+    for row in db.get("directMessages", []):
+        if row.get("deleted"):
+            continue
+        if str(row.get("conversationKey", "")).strip() != conversation_key:
+            continue
+        if str(row.get("receiverUserId", "")).strip() != user_id:
+            continue
+        if str(row.get("readAt", "")).strip():
+            continue
+        row["readAt"] = read_at
+        changed = True
+    if int(conversation.get("unreadCount", 0) or 0) != 0:
+        conversation["unreadCount"] = 0
+        changed = True
+    if conversation.get("lastReadAt") != read_at:
+        conversation["lastReadAt"] = read_at
+        changed = True
+    return changed
+
+
+def reject_pending_dm_requests_between(
+    db: dict[str, Any],
+    *,
+    left_user_id: str,
+    right_user_id: str,
+    updated_at: str,
+) -> bool:
+    changed = False
+    for row in db.get("dmRequests", []):
+        if str(row.get("status", "pending")).strip().lower() != "pending":
+            continue
+        from_user_id = str(row.get("fromUserId", "")).strip()
+        to_user_id = str(row.get("toUserId", "")).strip()
+        if {from_user_id, to_user_id} != {left_user_id.strip(), right_user_id.strip()}:
+            continue
+        row["status"] = "rejected"
+        row["updatedAt"] = updated_at
+        changed = True
+    return changed
 
 
 def serialize_direct_message(
@@ -1378,6 +1537,7 @@ def serialize_direct_message(
 ) -> dict[str, Any]:
     sender_user_id = str(row.get("senderUserId", ""))
     sender_user = find_user_by_id(db, sender_user_id, include_deleted=True)
+    read_at = str(row.get("readAt", "")).strip()
     return {
         "id": str(row.get("id", "")),
         "content": str(row.get("content", "")),
@@ -1386,6 +1546,9 @@ def serialize_direct_message(
         "fromMe": viewer_user_id == sender_user_id,
         "senderUserId": sender_user_id,
         "senderAlias": user_nickname(sender_user),
+        "readAt": read_at,
+        "isRead": bool(read_at),
+        "deliveryStatus": "read" if read_at else "sent",
     }
 
 
@@ -1467,6 +1630,11 @@ def cancel_user_account(
         row
         for row in db.get("dmRequests", [])
         if row.get("toUserId") != user_id and row.get("fromUserId") != user_id
+    ]
+    db["userBlocks"] = [
+        row
+        for row in db.get("userBlocks", [])
+        if row.get("blockerUserId") != user_id and row.get("blockedUserId") != user_id
     ]
     db["conversations"] = [
         row
@@ -2178,11 +2346,16 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 user, _ = require_authorized_user(self, db)
                 if user is None:
                     return
-                rows = [x for x in db["conversations"] if x.get("userId") == user["id"]]
+                rows = [
+                    x
+                    for x in db["conversations"]
+                    if x.get("userId") == user["id"] and not x.get("deleted")
+                ]
                 rows.sort(key=lambda x: x.get("updatedAt", ""), reverse=True)
                 result = []
                 for row in rows:
-                    peer_user = find_user_by_id(db, str(row.get("peerUserId", "")))
+                    peer_user_id = str(row.get("peerUserId", "")).strip()
+                    peer_user = find_user_by_id(db, peer_user_id)
                     name = user_nickname(peer_user) if peer_user else sanitize_alias(
                         str(row.get("name", "")),
                         fallback="匿名同学",
@@ -2190,13 +2363,24 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     avatar_url = user_avatar_url(peer_user)
                     if not avatar_url:
                         avatar_url = normalize_avatar_url(str(row.get("avatarUrl", "")))
+                    blocked_by_me, blocked_by_peer = conversation_block_state(
+                        db,
+                        viewer_user_id=str(user.get("id", "")),
+                        peer_user_id=peer_user_id,
+                    )
+                    unread_count = max(0, int(row.get("unreadCount", 0) or 0))
                     result.append(
                         {
                             "id": row.get("id"),
+                            "peerUserId": peer_user_id,
                             "name": name,
                             "avatarUrl": avatar_url,
                             "lastMessage": row.get("lastMessage", "") or "开始聊天吧",
                             "timeText": iso_to_time_text(row.get("updatedAt")),
+                            "unreadCount": unread_count,
+                            "hasUnread": unread_count > 0,
+                            "blockedByMe": blocked_by_me,
+                            "blockedByPeer": blocked_by_peer,
                         }
                     )
                 send_json(self, HTTPStatus.OK, {"data": result})
@@ -2215,7 +2399,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     (
                         row
                         for row in db.get("conversations", [])
-                        if row.get("id") == conversation_id and row.get("userId") == user["id"]
+                        if row.get("id") == conversation_id
+                        and row.get("userId") == user["id"]
+                        and not row.get("deleted")
                     ),
                     None,
                 )
@@ -2227,6 +2413,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     send_json(self, HTTPStatus.OK, {"data": []})
                     return
                 conversation_key = conversation_key_for_users(user["id"], peer_user_id)
+                changed = mark_conversation_read(
+                    db,
+                    user_id=str(user.get("id", "")),
+                    conversation=conversation,
+                )
                 rows = [
                     serialize_direct_message(db, row, viewer_user_id=user["id"])
                     for row in db.get("directMessages", [])
@@ -2234,6 +2425,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     and row.get("conversationKey") == conversation_key
                 ]
                 rows.sort(key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))))
+                if changed:
+                    save_db(db)
                 send_json(self, HTTPStatus.OK, {"data": rows})
                 return
 
@@ -3218,6 +3411,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if not bool(target_user.get("allowStrangerDm", True)):
                     json_error(self, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
                     return
+                if is_user_blocked(db, user["id"], target_user_id):
+                    json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
+                    return
+                if is_user_blocked(db, target_user_id, user["id"]):
+                    json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
+                    return
 
                 existing_conversation = next(
                     (
@@ -3229,6 +3428,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     None,
                 )
                 if existing_conversation is not None:
+                    existing_conversation["deleted"] = False
+                    existing_conversation["updatedAt"] = now_iso()
+                    save_db(db)
                     send_json(
                         self,
                         HTTPStatus.OK,
@@ -3568,6 +3770,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if peer_user is None:
                     json_error(self, HTTPStatus.NOT_FOUND, "对方账号不存在或已注销")
                     return
+                if is_user_blocked(db, user["id"], peer_user_id):
+                    json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发送消息")
+                    return
+                if is_user_blocked(db, peer_user_id, user["id"]):
+                    json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发送消息")
+                    return
 
                 content = str(body.get("content", "")).strip()
                 if not content:
@@ -3596,13 +3804,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     "receiverUserId": peer_user_id,
                     "content": content,
                     "createdAt": created_at,
+                    "readAt": "",
                     "deleted": False,
                 }
                 db.setdefault("directMessages", []).append(message)
-                sync_conversation_pair(
+                deliver_message_to_conversation_pair(
                     db,
-                    left_user_id=user["id"],
-                    right_user_id=peer_user_id,
+                    sender_user_id=user["id"],
+                    receiver_user_id=peer_user_id,
                     last_message=content,
                     updated_at=created_at,
                 )
@@ -3620,6 +3829,81 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                             message,
                             viewer_user_id=user["id"],
                         ),
+                    },
+                )
+                return
+
+            match_conversation_block = re.fullmatch(
+                r"/api/messages/conversations/([^/]+)/(block|unblock)",
+                path,
+            )
+            if match_conversation_block:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                conversation_id = match_conversation_block.group(1)
+                action = match_conversation_block.group(2)
+                conversation = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("id") == conversation_id
+                        and row.get("userId") == user["id"]
+                        and not row.get("deleted")
+                    ),
+                    None,
+                )
+                if conversation is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "会话不存在")
+                    return
+                peer_user_id = str(conversation.get("peerUserId", "")).strip()
+                if not peer_user_id:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该会话暂不支持此操作")
+                    return
+                changed = False
+                updated_at = now_iso()
+                if action == "block":
+                    if not is_user_blocked(db, user["id"], peer_user_id):
+                        db.setdefault("userBlocks", []).append(
+                            {
+                                "blockerUserId": user["id"],
+                                "blockedUserId": peer_user_id,
+                                "createdAt": updated_at,
+                            }
+                        )
+                        changed = True
+                    if reject_pending_dm_requests_between(
+                        db,
+                        left_user_id=user["id"],
+                        right_user_id=peer_user_id,
+                        updated_at=updated_at,
+                    ):
+                        changed = True
+                    conversation["unreadCount"] = 0
+                    conversation["lastReadAt"] = updated_at
+                    add_audit_log(db, user["id"], "block_conversation_peer", peer_user_id)
+                else:
+                    before_len = len(db.get("userBlocks", []))
+                    db["userBlocks"] = [
+                        row
+                        for row in db.get("userBlocks", [])
+                        if not (
+                            str(row.get("blockerUserId", "")).strip() == user["id"]
+                            and str(row.get("blockedUserId", "")).strip() == peer_user_id
+                        )
+                    ]
+                    changed = len(db["userBlocks"]) != before_len
+                    add_audit_log(db, user["id"], "unblock_conversation_peer", peer_user_id)
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "操作成功",
+                        "data": {
+                            "blockedByMe": is_user_blocked(db, user["id"], peer_user_id),
+                            "blockedByPeer": is_user_blocked(db, peer_user_id, user["id"]),
+                        },
                     },
                 )
                 return
@@ -3795,12 +4079,20 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     json_error(self, HTTPStatus.NOT_FOUND, "私信申请不存在")
                     return
 
+                if action == "accept":
+                    from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
+                    if from_user:
+                        if is_user_blocked(db, user["id"], from_user["id"]):
+                            json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，无法同意私信申请")
+                            return
+                        if is_user_blocked(db, from_user["id"], user["id"]):
+                            json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，无法建立会话")
+                            return
                 row["status"] = "accepted" if action == "accept" else "rejected"
                 row["updatedAt"] = now_iso()
 
                 if action == "accept":
                     from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
-                    peer_user_id = str(row.get("fromUserId", "")).strip() if from_user else ""
                     if from_user:
                         sync_conversation_pair(
                             db,
@@ -4497,6 +4789,33 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 add_audit_log(db, user["id"], "delete_post", post_id)
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "帖子已删除", "data": {"ok": True}})
+                return
+
+            match_conversation = re.fullmatch(r"/api/messages/conversations/([^/]+)", path)
+            if match_conversation:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                conversation_id = match_conversation.group(1)
+                conversation = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("id") == conversation_id
+                        and row.get("userId") == user["id"]
+                        and not row.get("deleted")
+                    ),
+                    None,
+                )
+                if conversation is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "会话不存在")
+                    return
+                conversation["deleted"] = True
+                conversation["unreadCount"] = 0
+                conversation["lastReadAt"] = now_iso()
+                add_audit_log(db, user["id"], "delete_conversation", conversation_id)
+                save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "会话已删除", "data": {"ok": True}})
                 return
 
             match_favorite = re.fullmatch(r"/api/posts/([^/]+)/favorite", path)

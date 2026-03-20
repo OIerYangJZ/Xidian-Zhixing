@@ -19,22 +19,35 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(
-      () => ref.read(messagesControllerProvider.notifier).loadInitial(),
-    );
+    Future<void>.microtask(() {
+      final MessagesState state = ref.read(messagesControllerProvider);
+      if (!state.loading ||
+          state.requests.isNotEmpty ||
+          state.conversations.isNotEmpty) {
+        return Future<void>.value();
+      }
+      return ref.read(messagesControllerProvider.notifier).loadInitial();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final MessagesState state = ref.watch(messagesControllerProvider);
+    final int unreadCount = state.conversations.fold<int>(
+      0,
+      (int sum, ConversationItem item) => sum + item.unreadCount,
+    );
+    final int pendingCount = state.requests
+        .where((DmRequestItem item) => item.status.toLowerCase() == 'pending')
+        .length;
     return DefaultTabController(
       length: 2,
       child: Column(
         children: <Widget>[
-          const TabBar(
+          TabBar(
             tabs: <Widget>[
-              Tab(text: '私信申请'),
-              Tab(text: '会话列表'),
+              Tab(child: _buildTabLabel('私信申请', pendingCount)),
+              Tab(child: _buildTabLabel('会话列表', unreadCount)),
             ],
           ),
           if (state.actionBusy) const LinearProgressIndicator(minHeight: 2),
@@ -145,14 +158,70 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
           return Card(
             child: ListTile(
               leading: _buildAvatar(session.avatarUrl, session.name),
-              title: Text(session.name),
-              subtitle: Text(session.lastMessage),
-              trailing: Text(session.timeText),
+              title: Row(
+                children: <Widget>[
+                  Expanded(child: Text(session.name)),
+                  if (session.blockedByMe)
+                    const Chip(
+                      label: Text('已屏蔽'),
+                      visualDensity: VisualDensity.compact,
+                    )
+                  else if (session.blockedByPeer)
+                    const Chip(
+                      label: Text('对方已屏蔽'),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                ],
+              ),
+              subtitle: Text(
+                session.lastMessage,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: <Widget>[
+                  Text(session.timeText),
+                  if (session.unreadCount > 0) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Badge(
+                      label: Text(
+                        session.unreadCount > 99
+                            ? '99+'
+                            : '${session.unreadCount}',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
               onTap: () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => ChatPage(
                       conversation: session,
+                      onConversationRead: () {
+                        ref
+                            .read(messagesControllerProvider.notifier)
+                            .markConversationRead(session.id);
+                      },
+                      onConversationRemoved: () {
+                        ref
+                            .read(messagesControllerProvider.notifier)
+                            .removeConversation(session.id);
+                      },
+                      onConversationFlagsChanged: ({
+                        bool? blockedByMe,
+                        bool? blockedByPeer,
+                      }) {
+                        ref
+                            .read(messagesControllerProvider.notifier)
+                            .updateConversationFlags(
+                              conversationId: session.id,
+                              blockedByMe: blockedByMe,
+                              blockedByPeer: blockedByPeer,
+                            );
+                      },
                       onMessageSent: (String content) {
                         ref
                             .read(messagesControllerProvider.notifier)
@@ -164,6 +233,10 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     ),
                   ),
                 );
+                if (!mounted) {
+                  return;
+                }
+                await ref.read(messagesControllerProvider.notifier).refresh();
               },
             ),
           );
@@ -212,5 +285,19 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
       );
     }
     return CircleAvatar(child: Text(fallback));
+  }
+
+  Widget _buildTabLabel(String label, int count) {
+    if (count <= 0) {
+      return Text(label);
+    }
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Text(label),
+        const SizedBox(width: 6),
+        Badge(label: Text(count > 99 ? '99+' : '$count')),
+      ],
+    );
   }
 }

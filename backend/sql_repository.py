@@ -223,6 +223,15 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(from_user_id) REFERENCES users(id) ON DELETE SET NULL
             );
 
+            CREATE TABLE IF NOT EXISTS user_blocks (
+              blocker_user_id TEXT NOT NULL,
+              blocked_user_id TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              PRIMARY KEY (blocker_user_id, blocked_user_id),
+              FOREIGN KEY(blocker_user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY(blocked_user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS conversations (
               id TEXT PRIMARY KEY,
               user_id TEXT NULL,
@@ -230,7 +239,10 @@ class SqliteTreeholeRepository:
               name TEXT NOT NULL,
               avatar_url TEXT NOT NULL DEFAULT '',
               last_message TEXT NOT NULL DEFAULT '',
+              unread_count INTEGER NOT NULL DEFAULT 0,
+              last_read_at TEXT NULL,
               updated_at TEXT NOT NULL,
+              deleted INTEGER NOT NULL DEFAULT 0,
               FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL,
               FOREIGN KEY(peer_user_id) REFERENCES users(id) ON DELETE SET NULL
             );
@@ -242,6 +254,7 @@ class SqliteTreeholeRepository:
               receiver_user_id TEXT NOT NULL,
               content TEXT NOT NULL,
               created_at TEXT NOT NULL,
+              read_at TEXT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
               FOREIGN KEY(sender_user_id) REFERENCES users(id) ON DELETE CASCADE,
               FOREIGN KEY(receiver_user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -312,6 +325,10 @@ class SqliteTreeholeRepository:
               ON reports(target_type, target_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_dm_requests_to_status_created
               ON dm_requests(to_user_id, status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker
+              ON user_blocks(blocker_user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked
+              ON user_blocks(blocked_user_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_conversations_user_updated
               ON conversations(user_id, updated_at DESC);
             CREATE INDEX IF NOT EXISTS idx_direct_messages_key_created
@@ -337,6 +354,10 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")
         self._ensure_column(conn, "conversations", "avatar_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "conversations", "unread_count", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "conversations", "last_read_at", "TEXT NULL")
+        self._ensure_column(conn, "conversations", "deleted", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "direct_messages", "read_at", "TEXT NULL")
         conn.commit()
 
     def _ensure_column(self, conn: sqlite3.Connection, table_name: str, column_name: str, ddl: str) -> None:
@@ -363,6 +384,7 @@ class SqliteTreeholeRepository:
             "favorites": [],
             "reports": [],
             "dmRequests": [],
+            "userBlocks": [],
             "conversations": [],
             "directMessages": [],
             "auditLogs": [],
@@ -537,7 +559,22 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, user_id, peer_user_id, name, avatar_url, last_message, updated_at
+            SELECT blocker_user_id, blocked_user_id, created_at
+            FROM user_blocks
+            ORDER BY created_at DESC, blocker_user_id, blocked_user_id
+            """
+        ):
+            db["userBlocks"].append(
+                {
+                    "blockerUserId": _to_str(row["blocker_user_id"]),
+                    "blockedUserId": _to_str(row["blocked_user_id"]),
+                    "createdAt": _to_str(row["created_at"]),
+                }
+            )
+
+        for row in conn.execute(
+            """
+            SELECT id, user_id, peer_user_id, name, avatar_url, last_message, unread_count, last_read_at, updated_at, deleted
             FROM conversations
             ORDER BY updated_at DESC, id DESC
             """
@@ -550,13 +587,16 @@ class SqliteTreeholeRepository:
                     "name": row["name"],
                     "avatarUrl": _to_str(row["avatar_url"]),
                     "lastMessage": row["last_message"],
+                    "unreadCount": _to_int(row["unread_count"]),
+                    "lastReadAt": _to_str(row["last_read_at"]),
                     "updatedAt": row["updated_at"],
+                    "deleted": _to_bool(row["deleted"]),
                 }
             )
 
         for row in conn.execute(
             """
-            SELECT id, conversation_key, sender_user_id, receiver_user_id, content, created_at, deleted
+            SELECT id, conversation_key, sender_user_id, receiver_user_id, content, created_at, read_at, deleted
             FROM direct_messages
             ORDER BY created_at ASC, id ASC
             """
@@ -569,6 +609,7 @@ class SqliteTreeholeRepository:
                     "receiverUserId": row["receiver_user_id"],
                     "content": row["content"],
                     "createdAt": row["created_at"],
+                    "readAt": _to_str(row["read_at"]),
                     "deleted": _to_bool(row["deleted"]),
                 }
             )
@@ -652,6 +693,7 @@ class SqliteTreeholeRepository:
                 "audit_logs",
                 "direct_messages",
                 "conversations",
+                "user_blocks",
                 "dm_requests",
                 "reports",
                 "favorites",
@@ -947,6 +989,26 @@ class SqliteTreeholeRepository:
                     ),
                 )
 
+            for row in db.get("userBlocks", []):
+                if not isinstance(row, dict):
+                    continue
+                blocker_user_id = _to_str(row.get("blockerUserId")).strip()
+                blocked_user_id = _to_str(row.get("blockedUserId")).strip()
+                if not blocker_user_id or not blocked_user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO user_blocks (
+                      blocker_user_id, blocked_user_id, created_at
+                    ) VALUES (?, ?, ?)
+                    """,
+                    (
+                        blocker_user_id,
+                        blocked_user_id,
+                        _to_str(row.get("createdAt")) or created_now,
+                    ),
+                )
+
             for row in db.get("conversations", []):
                 if not isinstance(row, dict):
                     continue
@@ -956,8 +1018,8 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO conversations (
-                      id, user_id, peer_user_id, name, avatar_url, last_message, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                      id, user_id, peer_user_id, name, avatar_url, last_message, unread_count, last_read_at, updated_at, deleted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         cid,
@@ -966,7 +1028,10 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("name"), "会话"),
                         _to_str(row.get("avatarUrl")),
                         _to_str(row.get("lastMessage")),
+                        _to_int(row.get("unreadCount"), 0),
+                        _to_str(row.get("lastReadAt")) or None,
                         _to_str(row.get("updatedAt")) or created_now,
+                        _to_bool_int(row.get("deleted")),
                     ),
                 )
 
@@ -987,8 +1052,8 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO direct_messages (
-                      id, conversation_key, sender_user_id, receiver_user_id, content, created_at, deleted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                      id, conversation_key, sender_user_id, receiver_user_id, content, created_at, read_at, deleted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         message_id,
@@ -997,6 +1062,7 @@ class SqliteTreeholeRepository:
                         receiver_user_id,
                         _to_str(row.get("content")),
                         _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("readAt")) or None,
                         _to_bool_int(row.get("deleted")),
                     ),
                 )
