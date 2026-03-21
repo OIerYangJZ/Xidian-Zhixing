@@ -133,11 +133,13 @@ class AdminUserEntry {
     required this.verified,
     required this.banned,
     required this.muted,
+    required this.deleted,
     required this.postCount,
     required this.commentCount,
     required this.reportCount,
     required this.createdAt,
     required this.hasPendingCancellationRequest,
+    required this.hasPendingAppeal,
   });
 
   final String id;
@@ -148,11 +150,13 @@ class AdminUserEntry {
   final bool verified;
   final bool banned;
   final bool muted;
+  final bool deleted;
   final int postCount;
   final int commentCount;
   final int reportCount;
   final String createdAt;
   final bool hasPendingCancellationRequest;
+  final bool hasPendingAppeal;
 
   factory AdminUserEntry.fromJson(Map<String, dynamic> json) {
     return AdminUserEntry(
@@ -164,12 +168,14 @@ class AdminUserEntry {
       verified: _toBool(json['verified']) ?? false,
       banned: _toBool(json['banned']) ?? false,
       muted: _toBool(json['muted']) ?? false,
+      deleted: _toBool(json['deleted']) ?? false,
       postCount: _toInt(json['postCount']) ?? 0,
       commentCount: _toInt(json['commentCount']) ?? 0,
       reportCount: _toInt(json['reportCount']) ?? 0,
       createdAt: (json['createdAt'] ?? '').toString(),
       hasPendingCancellationRequest:
           _toBool(json['hasPendingCancellationRequest']) ?? false,
+      hasPendingAppeal: _toBool(json['hasPendingAppeal']) ?? false,
     );
   }
 }
@@ -340,6 +346,130 @@ class AdminSystemConfig {
         'imageMaxMB': imageMaxMb,
       },
     };
+  }
+}
+
+class AdminSystemAnnouncement {
+  AdminSystemAnnouncement({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.createdAt,
+    required this.timeText,
+    required this.createdBy,
+  });
+
+  final String id;
+  final String title;
+  final String content;
+  final String createdAt;
+  final String timeText;
+  final String createdBy;
+
+  factory AdminSystemAnnouncement.fromJson(Map<String, dynamic> json) {
+    return AdminSystemAnnouncement(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      content: (json['content'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      timeText: (json['timeText'] ?? json['createdAt'] ?? '').toString(),
+      createdBy: (json['createdBy'] ?? '').toString(),
+    );
+  }
+}
+
+class AdminAppealEntry {
+  AdminAppealEntry({
+    required this.id,
+    required this.userId,
+    required this.userEmail,
+    required this.studentId,
+    required this.userNickname,
+    required this.appealType,
+    required this.appealTypeLabel,
+    required this.targetType,
+    required this.targetId,
+    required this.title,
+    required this.content,
+    required this.status,
+    required this.statusLabel,
+    required this.adminNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+    required this.userDeleted,
+    required this.userBanned,
+    required this.userMuted,
+  });
+
+  final String id;
+  final String userId;
+  final String userEmail;
+  final String studentId;
+  final String userNickname;
+  final String appealType;
+  final String appealTypeLabel;
+  final String targetType;
+  final String targetId;
+  final String title;
+  final String content;
+  final String status;
+  final String statusLabel;
+  final String adminNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+  final bool userDeleted;
+  final bool userBanned;
+  final bool userMuted;
+
+  factory AdminAppealEntry.fromJson(Map<String, dynamic> json) {
+    return AdminAppealEntry(
+      id: (json['id'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
+      userEmail: (json['userEmail'] ?? '').toString(),
+      studentId: (json['studentId'] ?? '').toString(),
+      userNickname: (json['userNickname'] ?? '匿名同学').toString(),
+      appealType: (json['appealType'] ?? 'other').toString(),
+      appealTypeLabel: (json['appealTypeLabel'] ?? '其他申诉').toString(),
+      targetType: (json['targetType'] ?? '').toString(),
+      targetId: (json['targetId'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      content: (json['content'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待处理').toString(),
+      adminNote: (json['adminNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
+      userDeleted: _toBool(json['userDeleted']) ?? false,
+      userBanned: _toBool(json['userBanned']) ?? false,
+      userMuted: _toBool(json['userMuted']) ?? false,
+    );
+  }
+}
+
+class AdminExportFile {
+  AdminExportFile({
+    required this.fileName,
+    required this.contentType,
+    required this.content,
+    required this.rowCount,
+  });
+
+  final String fileName;
+  final String contentType;
+  final String content;
+  final int rowCount;
+
+  factory AdminExportFile.fromJson(Map<String, dynamic> json) {
+    return AdminExportFile(
+      fileName: (json['fileName'] ?? 'admin-export.txt').toString(),
+      contentType:
+          (json['contentType'] ?? 'text/plain; charset=utf-8').toString(),
+      content: (json['content'] ?? '').toString(),
+      rowCount: _toInt(json['rowCount']) ?? 0,
+    );
   }
 }
 

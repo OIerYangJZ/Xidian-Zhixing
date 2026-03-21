@@ -47,14 +47,19 @@ class _FeedPageState extends ConsumerState<FeedPage> {
             const SizedBox(height: 10),
             _buildChannelPanel(state),
             const SizedBox(height: 6),
-            ...state.posts.map(
-              (PostItem post) => PostCard(
-                post: post,
-                onTap: () {
-                  openPostDetailPage(context, post: post);
-                },
-              ),
+          ...state.posts.map(
+            (PostItem post) => PostCard(
+              post: post,
+              onTap: () async {
+                final PostItem? updated =
+                    await openPostDetailPage(context, post: post);
+                if (updated == null || !mounted) {
+                  return;
+                }
+                ref.read(feedControllerProvider.notifier).replacePost(updated);
+              },
             ),
+          ),
             if (state.posts.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),

@@ -21,7 +21,7 @@ ARCHIVE_PATH="$DIST_DIR/xdu-whisperbox-${ARCHIVE_VERSION}.tar.gz"
 # 验证构建产物存在
 if [[ ! -f "$ROOT_DIR/build/web/index.html" || "${FORCE_BUILD:-0}" == "1" ]]; then
   echo "[package] Building web first..."
-  FLUTTER_BIN="$FLUTTER_BIN" "$SCRIPT_DIR/build_web_production.sh"
+  FLUTTER_BIN="$FLUTTER_BIN" bash "$SCRIPT_DIR/build_web_production.sh"
 fi
 
 # 确保输出目录存在

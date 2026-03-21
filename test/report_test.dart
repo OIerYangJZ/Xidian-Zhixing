@@ -19,7 +19,7 @@ void main() {
 
         // 举报接口
         if (path.endsWith('/reports') && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           final targetType = body['targetType'] as String?;
           final targetId = body['targetId'] as String?;
           final reason = body['reason'] as String?;

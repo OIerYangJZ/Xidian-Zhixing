@@ -165,36 +165,12 @@ class PostRepository {
   }
 
   Future<PostItem> fetchPostDetail(String postId) async {
-    try {
-      final dynamic response =
-          await _apiClient.get(ApiEndpoints.postById(postId));
-      final Map<String, dynamic> map = extractMap(response);
-      if (map.isNotEmpty) {
-        return PostItem.fromJson(map);
-      }
-    } catch (_) {
-      // ignore and fallback
+    final dynamic response = await _apiClient.get(ApiEndpoints.postById(postId));
+    final Map<String, dynamic> map = extractMap(response);
+    if (map.isNotEmpty) {
+      return PostItem.fromJson(map);
     }
-
-    return mockPosts.firstWhere(
-      (PostItem post) => post.id == postId,
-      orElse: () => PostItem(
-        id: postId,
-        title: '帖子不存在',
-        content: '该帖子可能被删除。',
-        channel: '未知',
-        tags: const <String>[],
-        authorAlias: '系统',
-        createdAt: DateTime.now(),
-        hasImage: false,
-        commentCount: 0,
-        likeCount: 0,
-        favoriteCount: 0,
-        status: PostStatus.closed,
-        allowComment: false,
-        allowDm: false,
-      ),
-    );
+    throw Exception('帖子详情加载失败：服务端未返回有效数据');
   }
 
   Future<PostItem> createPost(CreatePostInput input) async {
@@ -350,18 +326,13 @@ class PostRepository {
     try {
       final dynamic response = await _apiClient.get(ApiEndpoints.favoritePosts);
       final List<dynamic> list = extractList(response);
-      final List<PostItem> posts = list
+      return list
           .map((dynamic item) => PostItem.fromJson(asMap(item)))
           .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
           .toList();
-      if (posts.isNotEmpty || !AppConfig.enableMockFallback) {
-        return posts;
-      }
     } catch (_) {
-      // ignore and fallback
+      return const <PostItem>[];
     }
-
-    return mockPosts.where((PostItem post) => post.favoriteCount > 15).toList();
   }
 
   Future<List<PostItem>> fetchMyPosts() async {

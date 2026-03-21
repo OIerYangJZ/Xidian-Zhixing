@@ -3,8 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
-import 'package:xdu_treehole_web/core/auth/auth_store.dart';
-import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/repositories/auth_repository.dart';
@@ -21,11 +19,12 @@ void main() {
         final String method = request.method;
 
         if (path.endsWith('/auth/login') && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           final identifier = body['identifier'] as String?;
           final password = body['password'] as String?;
 
-          if (identifier == 'test@example.com' && password == 'correct_password') {
+          if (identifier == 'test@example.com' &&
+              password == 'correct_password') {
             return http.Response(
               jsonEncode(MockApiResponses.loginSuccess()),
               200,
@@ -47,7 +46,7 @@ void main() {
         }
 
         if (path.endsWith('/auth/register') && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           final email = body['email'] as String?;
 
           if (email != null && email.contains('@')) {
@@ -73,7 +72,7 @@ void main() {
         }
 
         if (path.endsWith('/auth/verify') && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           final code = body['code'] as String?;
 
           if (code == '123456') {
@@ -178,7 +177,8 @@ void main() {
       test('发送验证码成功返回 debug code', () async {
         authRepository = AuthRepository(ApiClient(httpClient: mockClient));
 
-        final debugCode = await authRepository.sendEmailCode('test@example.com');
+        final debugCode =
+            await authRepository.sendEmailCode('test@example.com');
 
         expect(debugCode, equals('123456'));
       });

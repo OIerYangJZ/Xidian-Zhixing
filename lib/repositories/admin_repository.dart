@@ -43,6 +43,21 @@ class AdminRepository {
     );
   }
 
+  Future<void> handleReviewBatch({
+    required String targetType,
+    required List<String> targetIds,
+    required String action,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminReviewBatch,
+      body: <String, dynamic>{
+        'targetType': targetType,
+        'targetIds': targetIds,
+        'action': action,
+      },
+    );
+  }
+
   Future<List<AdminReportEntry>> fetchReports({
     String status = 'all',
     String? reason,
@@ -131,10 +146,14 @@ class AdminRepository {
   Future<void> updateUserState({
     required String userId,
     required String action,
+    String? note,
   }) {
     return _apiClient.post(
       ApiEndpoints.adminUserAction(userId),
-      body: <String, dynamic>{'action': action},
+      body: <String, dynamic>{
+        'action': action,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
     );
   }
 
@@ -145,6 +164,39 @@ class AdminRepository {
   }) {
     return _apiClient.post(
       ApiEndpoints.adminAccountCancellationHandle(requestId),
+      body: <String, dynamic>{
+        'action': action,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+  }
+
+  Future<List<AdminAppealEntry>> fetchAppeals({
+    String status = 'all',
+    String? keyword,
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminAppeals,
+      queryParameters: <String, dynamic>{
+        'status': status,
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+      },
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => AdminAppealEntry.fromJson(asMap(item)))
+        .where((AdminAppealEntry item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<void> handleAppeal({
+    required String appealId,
+    required String action,
+    String? note,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminAppealHandle(appealId),
       body: <String, dynamic>{
         'action': action,
         if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
@@ -227,6 +279,54 @@ class AdminRepository {
       ApiEndpoints.adminConfig,
       body: config.toRequestJson(),
     );
+  }
+
+  Future<List<AdminSystemAnnouncement>> fetchAnnouncements() async {
+    final dynamic response =
+        await _apiClient.get(ApiEndpoints.adminAnnouncements);
+    final List<dynamic> list = extractList(response);
+    return list
+        .map(
+          (dynamic item) => AdminSystemAnnouncement.fromJson(asMap(item)),
+        )
+        .where((AdminSystemAnnouncement item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<void> publishAnnouncement({
+    required String title,
+    required String content,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminAnnouncements,
+      body: <String, dynamic>{
+        'title': title,
+        'content': content,
+      },
+    );
+  }
+
+  Future<AdminExportFile> exportData({
+    required String scope,
+    String format = 'csv',
+    String reviewType = 'post',
+    String reviewStatus = 'all',
+    String reportStatus = 'all',
+    String appealStatus = 'all',
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminExport,
+      queryParameters: <String, dynamic>{
+        'scope': scope,
+        'format': format,
+        'reviewType': reviewType,
+        'reviewStatus': reviewStatus,
+        'reportStatus': reportStatus,
+        'appealStatus': appealStatus,
+      },
+    );
+    final Map<String, dynamic> data = extractMap(response);
+    return AdminExportFile.fromJson(data);
   }
 
   String _encodePath(String value) {

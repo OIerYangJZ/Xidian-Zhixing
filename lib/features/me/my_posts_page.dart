@@ -43,8 +43,20 @@ class _MyPostsPageState extends State<MyPostsPage> {
                     children: <Widget>[
                       PostCard(
                         post: post,
-                        onTap: () {
-                          openPostDetailPage(context, post: post);
+                        onTap: () async {
+                          final PostItem? updated =
+                              await openPostDetailPage(context, post: post);
+                          if (updated == null || !mounted) {
+                            return;
+                          }
+                          setState(() {
+                            _posts = _posts
+                                .map(
+                                  (PostItem item) =>
+                                      item.id == updated.id ? updated : item,
+                                )
+                                .toList(growable: false);
+                          });
                         },
                       ),
                       Padding(

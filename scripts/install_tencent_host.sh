@@ -31,7 +31,7 @@ fi
 
 mkdir -p "$RELEASE_DIR"
 mkdir -p "$SHARED_DIR/backend/data"
-mkdir -p "$SHARED_DIR/backend/storage"
+mkdir -p "$SHARED_DIR/backend/storage/objects"
 
 tar -xzf "$ARCHIVE_PATH" -C "$RELEASE_DIR"
 
@@ -41,6 +41,18 @@ if [[ ! -f "$ENV_FILE" ]]; then
   echo "[install] created $ENV_FILE"
   echo "[install] update admin password and SMTP settings after deployment"
 fi
+
+ensure_env_value() {
+  local key="$1"
+  local value="$2"
+  if ! grep -q "^${key}=" "$ENV_FILE"; then
+    printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
+  fi
+}
+
+ensure_env_value "BACKEND_ENV" "production"
+ensure_env_value "BACKEND_DB_FILE" "$SHARED_DIR/backend/data/treehole.db"
+ensure_env_value "BACKEND_STORAGE_DIR" "$SHARED_DIR/backend/storage/objects"
 
 install -m 0644 "$RELEASE_DIR/deploy/tencent/xdu-whisperbox.service" /etc/systemd/system/xdu-whisperbox.service
 install -m 0644 "$RELEASE_DIR/deploy/tencent/nginx-xdu-whisperbox.conf" /etc/nginx/sites-available/xdu-whisperbox.conf
@@ -59,9 +71,15 @@ systemctl restart xdu-whisperbox
 systemctl enable nginx
 systemctl restart nginx
 
-sleep 1
-curl -fsS http://127.0.0.1:8080/api/channels >/dev/null
+for _ in $(seq 1 15); do
+  if curl -fsS http://127.0.0.1:8080/api/channels >/dev/null; then
+    echo "[install] ok"
+    echo "[install] app dir: $APP_DIR"
+    echo "[install] env file: $ENV_FILE"
+    exit 0
+  fi
+  sleep 1
+done
 
-echo "[install] ok"
-echo "[install] app dir: $APP_DIR"
-echo "[install] env file: $ENV_FILE"
+echo "[install] backend health check failed" >&2
+exit 1

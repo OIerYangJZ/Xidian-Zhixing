@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import base64
+import csv
 import email.utils
+import io
 import json
 import mimetypes
 import os
@@ -250,6 +252,9 @@ def is_today_iso(value: str | None) -> bool:
     if dt is None:
         return False
     return dt.astimezone(timezone.utc).date() == now_utc().date()
+
+
+CHINA_TZ = timezone(timedelta(hours=8))
 
 
 def is_campus_email(email: str) -> bool:
@@ -788,6 +793,9 @@ def default_db() -> dict[str, Any]:
             "cancellation": 0,
             "request": 0,
             "conversation": 0,
+            "notification": 0,
+            "announcement": 0,
+            "appeal": 0,
             "audit": 0,
             "upload": 0,
         },
@@ -866,6 +874,9 @@ def default_db() -> dict[str, Any]:
         "userBlocks": [],
         "conversations": [],
         "directMessages": [],
+        "systemAnnouncements": [],
+        "notifications": [],
+        "appeals": [],
         "auditLogs": [],
         "accountCancellationRequests": [],
         "mediaUploads": [],
@@ -1005,7 +1016,7 @@ def default_db() -> dict[str, Any]:
 
 
 def ensure_db() -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    SQL_DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     first_boot = not SQL_DB_FILE.exists()
     REPOSITORY.initialize(default_db)
 
@@ -1022,7 +1033,7 @@ def ensure_db() -> None:
 
 
 def save_db(db: dict[str, Any]) -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    SQL_DB_FILE.parent.mkdir(parents=True, exist_ok=True)
     REPOSITORY.save_state(db)
 
 
@@ -1059,6 +1070,9 @@ def migrate_db(db: dict[str, Any]) -> bool:
     if "auditLogs" not in db:
         db["auditLogs"] = []
         changed = True
+    if "appeals" not in db or not isinstance(db.get("appeals"), list):
+        db["appeals"] = []
+        changed = True
     if "accountCancellationRequests" not in db or not isinstance(
         db.get("accountCancellationRequests"), list
     ):
@@ -1083,6 +1097,9 @@ def migrate_db(db: dict[str, Any]) -> bool:
         "request",
         "conversation",
         "message",
+        "notification",
+        "announcement",
+        "appeal",
         "audit",
         "upload",
     ]:
@@ -1241,6 +1258,105 @@ def migrate_db(db: dict[str, Any]) -> bool:
             changed = True
         if "readAt" not in message:
             message["readAt"] = ""
+            changed = True
+
+    if "systemAnnouncements" not in db or not isinstance(db.get("systemAnnouncements"), list):
+        db["systemAnnouncements"] = []
+        changed = True
+    for announcement in db.get("systemAnnouncements", []):
+        if "title" not in announcement:
+            announcement["title"] = ""
+            changed = True
+        if "content" not in announcement:
+            announcement["content"] = ""
+            changed = True
+        if "createdAt" not in announcement:
+            announcement["createdAt"] = now_iso()
+            changed = True
+        if "createdBy" not in announcement:
+            announcement["createdBy"] = ""
+            changed = True
+
+    if "notifications" not in db or not isinstance(db.get("notifications"), list):
+        db["notifications"] = []
+        changed = True
+    for notification in db.get("notifications", []):
+        if "type" not in notification:
+            notification["type"] = "system"
+            changed = True
+        if "title" not in notification:
+            notification["title"] = ""
+            changed = True
+        if "content" not in notification:
+            notification["content"] = ""
+            changed = True
+        if "relatedType" not in notification:
+            notification["relatedType"] = ""
+            changed = True
+        if "relatedId" not in notification:
+            notification["relatedId"] = ""
+            changed = True
+        if "postId" not in notification:
+            notification["postId"] = ""
+            changed = True
+        if "actorId" not in notification:
+            notification["actorId"] = ""
+            changed = True
+        if "actorAlias" not in notification:
+            notification["actorAlias"] = ""
+            changed = True
+        if "createdAt" not in notification:
+            notification["createdAt"] = now_iso()
+            changed = True
+        if "readAt" not in notification:
+            notification["readAt"] = ""
+            changed = True
+        if "deleted" not in notification:
+            notification["deleted"] = False
+            changed = True
+
+    for appeal in db.get("appeals", []):
+        if "userId" not in appeal:
+            appeal["userId"] = ""
+            changed = True
+        if "userEmail" not in appeal:
+            appeal["userEmail"] = ""
+            changed = True
+        if "studentId" not in appeal:
+            appeal["studentId"] = ""
+            changed = True
+        if "userNickname" not in appeal:
+            appeal["userNickname"] = "匿名同学"
+            changed = True
+        if "appealType" not in appeal:
+            appeal["appealType"] = "other"
+            changed = True
+        if "targetType" not in appeal:
+            appeal["targetType"] = ""
+            changed = True
+        if "targetId" not in appeal:
+            appeal["targetId"] = ""
+            changed = True
+        if "title" not in appeal:
+            appeal["title"] = ""
+            changed = True
+        if "content" not in appeal:
+            appeal["content"] = ""
+            changed = True
+        if "status" not in appeal:
+            appeal["status"] = "pending"
+            changed = True
+        if "adminNote" not in appeal:
+            appeal["adminNote"] = ""
+            changed = True
+        if "createdAt" not in appeal:
+            appeal["createdAt"] = now_iso()
+            changed = True
+        if "handledAt" not in appeal:
+            appeal["handledAt"] = ""
+            changed = True
+        if "handledBy" not in appeal:
+            appeal["handledBy"] = ""
             changed = True
 
     for upload in db.get("mediaUploads", []):
@@ -1639,6 +1755,105 @@ def serialize_direct_message(
     }
 
 
+def create_notification(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    notification_type: str,
+    title: str,
+    content: str,
+    related_type: str = "",
+    related_id: str = "",
+    post_id: str = "",
+    actor_id: str = "",
+    actor_alias: str = "",
+) -> dict[str, Any] | None:
+    target_user = find_user_by_id(db, user_id, include_deleted=True)
+    if target_user is None or target_user.get("deleted"):
+        return None
+    row = {
+        "id": next_id(db, "notification", "n"),
+        "userId": user_id.strip(),
+        "type": notification_type.strip() or "system",
+        "title": title.strip(),
+        "content": content.strip(),
+        "relatedType": related_type.strip(),
+        "relatedId": related_id.strip(),
+        "postId": post_id.strip(),
+        "actorId": actor_id.strip(),
+        "actorAlias": actor_alias.strip(),
+        "createdAt": now_iso(),
+        "readAt": "",
+        "deleted": False,
+    }
+    db.setdefault("notifications", []).append(row)
+    return row
+
+
+def serialize_notification(row: dict[str, Any]) -> dict[str, Any]:
+    created_at = str(row.get("createdAt", ""))
+    read_at = str(row.get("readAt", "")).strip()
+    return {
+        "id": str(row.get("id", "")),
+        "type": str(row.get("type", "system")),
+        "title": str(row.get("title", "")),
+        "content": str(row.get("content", "")),
+        "relatedType": str(row.get("relatedType", "")),
+        "relatedId": str(row.get("relatedId", "")),
+        "postId": str(row.get("postId", "")),
+        "actorId": str(row.get("actorId", "")),
+        "actorAlias": str(row.get("actorAlias", "")),
+        "createdAt": created_at,
+        "timeText": iso_to_time_text(created_at),
+        "readAt": read_at,
+        "isRead": bool(read_at),
+    }
+
+
+def serialize_system_announcement(row: dict[str, Any]) -> dict[str, Any]:
+    created_at = str(row.get("createdAt", ""))
+    return {
+        "id": str(row.get("id", "")),
+        "title": str(row.get("title", "")),
+        "content": str(row.get("content", "")),
+        "createdAt": created_at,
+        "timeText": iso_to_time_text(created_at),
+        "createdBy": str(row.get("createdBy", "")),
+    }
+
+
+def publish_system_announcement(
+    db: dict[str, Any],
+    *,
+    admin: dict[str, Any],
+    title: str,
+    content: str,
+) -> dict[str, Any]:
+    announcement = {
+        "id": next_id(db, "announcement", "ann"),
+        "title": title.strip(),
+        "content": content.strip(),
+        "createdAt": now_iso(),
+        "createdBy": str(admin.get("id", "")).strip(),
+    }
+    db.setdefault("systemAnnouncements", []).append(announcement)
+    for user in db.get("users", []):
+        if user.get("deleted"):
+            continue
+        create_notification(
+            db,
+            user_id=str(user.get("id", "")),
+            notification_type="system_announcement",
+            title=announcement["title"],
+            content=announcement["content"],
+            related_type="announcement",
+            related_id=announcement["id"],
+            actor_id=str(admin.get("id", "")),
+            actor_alias="管理员",
+        )
+    return announcement
+
+
 def account_cancellation_status_label(status: str) -> str:
     normalized = status.strip().lower() or "pending"
     return {
@@ -1694,6 +1909,122 @@ def serialize_account_cancellation_request(row: dict[str, Any]) -> dict[str, Any
     }
 
 
+def appeal_status_label(status: str) -> str:
+    normalized = status.strip().lower() or "pending"
+    return {
+        "pending": "待处理",
+        "approved": "已通过",
+        "rejected": "已驳回",
+        "closed": "已关闭",
+    }.get(normalized, normalized)
+
+
+def appeal_type_label(appeal_type: str) -> str:
+    normalized = appeal_type.strip().lower() or "other"
+    return {
+        "account_restore": "账号恢复申诉",
+        "account_status": "账号状态申诉",
+        "content_review": "内容审核申诉",
+        "other": "其他申诉",
+    }.get(normalized, normalized)
+
+
+def serialize_appeal(
+    db: dict[str, Any],
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    status = str(row.get("status", "pending")).strip().lower() or "pending"
+    user = find_user_by_id(
+        db,
+        str(row.get("userId", "")).strip(),
+        include_deleted=True,
+    )
+    nickname = sanitize_alias(
+        str(row.get("userNickname", "")),
+        fallback=user_nickname(user),
+    )
+    return {
+        "id": str(row.get("id", "")),
+        "userId": str(row.get("userId", "")),
+        "userEmail": str(row.get("userEmail", "")),
+        "studentId": str(row.get("studentId", "")),
+        "userNickname": nickname,
+        "appealType": str(row.get("appealType", "other")),
+        "appealTypeLabel": appeal_type_label(str(row.get("appealType", "other"))),
+        "targetType": str(row.get("targetType", "")),
+        "targetId": str(row.get("targetId", "")),
+        "title": str(row.get("title", "")),
+        "content": str(row.get("content", "")),
+        "status": status,
+        "statusLabel": appeal_status_label(status),
+        "adminNote": str(row.get("adminNote", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+        "handledBy": str(row.get("handledBy", "")),
+        "userDeleted": bool(user.get("deleted", False)) if user else False,
+        "userBanned": bool(user.get("banned", False)) if user else False,
+        "userMuted": bool(user.get("muted", False)) if user else False,
+    }
+
+
+def latest_pending_appeal_for_user(
+    db: dict[str, Any],
+    user_id: str,
+    *,
+    appeal_type: str = "",
+) -> dict[str, Any] | None:
+    normalized_type = appeal_type.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for row in db.get("appeals", []):
+        if str(row.get("userId", "")).strip() != user_id.strip():
+            continue
+        if str(row.get("status", "pending")).strip().lower() != "pending":
+            continue
+        if normalized_type and str(row.get("appealType", "")).strip().lower() != normalized_type:
+            continue
+        rows.append(row)
+    if not rows:
+        return None
+    rows.sort(
+        key=lambda item: (
+            str(item.get("createdAt", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=True,
+    )
+    return rows[0]
+
+
+def restore_user_account(
+    db: dict[str, Any],
+    user: dict[str, Any],
+    *,
+    actor_id: str,
+    detail: str,
+) -> None:
+    user["deleted"] = False
+    add_audit_log(db, actor_id, "restore_account", detail)
+
+
+def sync_cancellation_requests_after_admin_cancel(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    handled_by: str,
+    review_note: str,
+) -> None:
+    handled_at = now_iso()
+    for row in db.get("accountCancellationRequests", []):
+        if str(row.get("userId", "")).strip() != user_id.strip():
+            continue
+        if str(row.get("status", "pending")).strip().lower() != "pending":
+            continue
+        row["status"] = "approved"
+        row["handledAt"] = handled_at
+        row["handledBy"] = handled_by
+        row["reviewNote"] = review_note or "管理员直接注销违规账号，申请已同步完成"
+
+
 def cancel_user_account(
     db: dict[str, Any],
     user: dict[str, Any],
@@ -1732,6 +2063,11 @@ def cancel_user_account(
         row
         for row in db.get("directMessages", [])
         if row.get("senderUserId") != user_id and row.get("receiverUserId") != user_id
+    ]
+    db["notifications"] = [
+        row
+        for row in db.get("notifications", [])
+        if row.get("userId") != user_id and row.get("actorId") != user_id
     ]
 
     avatar_key = extract_local_object_key_from_url(user_avatar_url(user))
@@ -1810,7 +2146,7 @@ def iso_to_time_text(value: str | None) -> str:
     dt = parse_iso(value)
     if dt is None:
         return value
-    return dt.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M")
+    return dt.astimezone(CHINA_TZ).strftime("%Y-%m-%d %H:%M")
 
 
 def post_counts(db: dict[str, Any], post_id: str) -> tuple[int, int, int]:
@@ -2071,9 +2407,9 @@ def moderate_image_upload(
     lowered_name = file_name.lower()
     hit_words = [word for word in db.get("sensitiveWords", []) if str(word).strip() and str(word) in lowered_name]
     if hit_words:
-        return "risk", f"命中敏感词：{','.join(hit_words[:3])}"
+        return "approved", ""
 
-    return "pending", "等待管理员审核"
+    return "approved", ""
 
 
 def get_upload_by_id(db: dict[str, Any], upload_id: str) -> dict[str, Any] | None:
@@ -2111,6 +2447,433 @@ def serialize_upload(
         data["reviewedAt"] = upload.get("reviewedAt", "")
         data["deleted"] = bool(upload.get("deleted", False))
     return data
+
+
+def build_admin_review_rows(
+    db: dict[str, Any],
+    *,
+    target_type: str,
+    status: str,
+) -> list[dict[str, Any]]:
+    normalized_type = target_type.strip().lower() or "post"
+    normalized_status = status.strip().lower() or "pending"
+    result: list[dict[str, Any]] = []
+
+    if normalized_type == "post":
+        rows = list_posts(db, include_rejected=True)
+        for post in rows:
+            row_status = str(post.get("reviewStatus", "approved")).lower()
+            if normalized_status != "all" and row_status != normalized_status:
+                continue
+            author_user = find_user_by_id(
+                db,
+                str(post.get("authorId", "")),
+                include_deleted=True,
+            )
+            result.append(
+                {
+                    "id": post.get("id"),
+                    "targetType": "post",
+                    "title": post.get("title", ""),
+                    "content": post.get("content", ""),
+                    "authorAlias": post.get("authorAlias", "匿名同学"),
+                    "authorUserId": str(post.get("authorId", "")),
+                    "authorNickname": user_nickname(author_user),
+                    "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                    "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
+                    "createdAt": post.get("createdAt", ""),
+                    "reviewStatus": row_status,
+                    "riskMarked": bool(post.get("riskMarked", False)),
+                    "deleted": bool(post.get("deleted", False)),
+                }
+            )
+        return result
+
+    if normalized_type == "comment":
+        rows = list_comments(db, include_rejected=True)
+        for comment in rows:
+            row_status = str(comment.get("reviewStatus", "approved")).lower()
+            if normalized_status != "all" and row_status != normalized_status:
+                continue
+            author_user = find_user_by_id(
+                db,
+                str(comment.get("userId", "")),
+                include_deleted=True,
+            )
+            result.append(
+                {
+                    "id": comment.get("id"),
+                    "targetType": "comment",
+                    "title": f"评论 @ 帖子 {comment.get('postId', '-')}",
+                    "content": comment.get("content", ""),
+                    "authorAlias": comment.get("authorAlias", "匿名同学"),
+                    "authorUserId": str(comment.get("userId", "")),
+                    "authorNickname": user_nickname(author_user),
+                    "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                    "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
+                    "createdAt": comment.get("createdAt", ""),
+                    "reviewStatus": row_status,
+                    "riskMarked": bool(comment.get("riskMarked", False)),
+                    "deleted": bool(comment.get("deleted", False)),
+                }
+            )
+        return result
+
+    raise ValueError("type 仅支持 post/comment")
+
+
+def build_admin_report_rows(
+    db: dict[str, Any],
+    *,
+    status: str,
+    reason: str,
+) -> list[dict[str, Any]]:
+    normalized_status = status.strip().lower() or "all"
+    normalized_reason = reason.strip()
+    rows: list[dict[str, Any]] = []
+    for report in db["reports"]:
+        row_status = str(report.get("status", "pending")).lower()
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_reason and str(report.get("reason", "")) != normalized_reason:
+            continue
+        rows.append(
+            {
+                "id": report.get("id"),
+                "targetType": report.get("targetType", "other"),
+                "targetId": report.get("targetId", "unknown"),
+                "reason": report.get("reason", "其他"),
+                "description": report.get("description", ""),
+                "status": row_status,
+                "result": report.get("result", ""),
+                "reporterAlias": report.get("reporterAlias", "匿名同学"),
+                "createdAt": report.get("createdAt", ""),
+                "handledAt": report.get("handledAt", ""),
+                "handledBy": report.get("handledBy", ""),
+            }
+        )
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    return rows
+
+
+def build_admin_user_rows(
+    db: dict[str, Any],
+    *,
+    include_deleted: bool = True,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for user in db["users"]:
+        if user.get("deleted") and not include_deleted:
+            continue
+        uid = str(user.get("id", ""))
+        pending_cancellation = latest_account_cancellation_request_for_user(
+            db,
+            uid,
+            status="pending",
+        )
+        pending_appeal = latest_pending_appeal_for_user(db, uid)
+        post_count = sum(
+            1
+            for post in db["posts"]
+            if not post.get("deleted") and str(post.get("authorId", "")) == uid
+        )
+        comment_count = sum(
+            1
+            for comment in db["comments"]
+            if not comment.get("deleted") and str(comment.get("userId", "")) == uid
+        )
+        report_count = sum(1 for report in db["reports"] if str(report.get("userId", "")) == uid)
+        rows.append(
+            {
+                "id": uid,
+                "email": user.get("email", ""),
+                "studentId": str(user.get("studentId", "")),
+                "alias": user_nickname(user),
+                "avatarUrl": user_avatar_url(user),
+                "verified": bool(user.get("verified", False)),
+                "banned": bool(user.get("banned", False)),
+                "muted": bool(user.get("muted", False)),
+                "deleted": bool(user.get("deleted", False)),
+                "postCount": post_count,
+                "commentCount": comment_count,
+                "reportCount": report_count,
+                "createdAt": user.get("createdAt", ""),
+                "hasPendingCancellationRequest": pending_cancellation is not None,
+                "hasPendingAppeal": pending_appeal is not None,
+            }
+        )
+    rows.sort(
+        key=lambda item: (
+            0 if item.get("deleted") else 1,
+            str(item.get("createdAt", "")),
+        ),
+        reverse=True,
+    )
+    return rows
+
+
+def build_admin_account_cancellation_rows(
+    db: dict[str, Any],
+    *,
+    status: str,
+    keyword: str,
+) -> list[dict[str, Any]]:
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("accountCancellationRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(request.get("userNickname", "")).lower(),
+                    str(request.get("userEmail", "")).lower(),
+                    str(request.get("studentId", "")).lower(),
+                    str(request.get("reason", "")).lower(),
+                    str(request.get("userId", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialize_account_cancellation_request(request))
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
+    return rows
+
+
+def build_admin_appeal_rows(
+    db: dict[str, Any],
+    *,
+    status: str,
+    keyword: str,
+) -> list[dict[str, Any]]:
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for appeal in db.get("appeals", []):
+        row_status = str(appeal.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(appeal.get("userEmail", "")).lower(),
+                    str(appeal.get("studentId", "")).lower(),
+                    str(appeal.get("userNickname", "")).lower(),
+                    str(appeal.get("appealType", "")).lower(),
+                    str(appeal.get("title", "")).lower(),
+                    str(appeal.get("content", "")).lower(),
+                    str(appeal.get("targetId", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialize_appeal(db, appeal))
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
+    return rows
+
+
+def apply_admin_review_action(
+    db: dict[str, Any],
+    *,
+    target_type: str,
+    target_id: str,
+    action: str,
+) -> None:
+    normalized_type = target_type.strip().lower()
+    normalized_action = action.strip().lower()
+
+    if normalized_type == "post":
+        row = next((post for post in db["posts"] if post.get("id") == target_id), None)
+    elif normalized_type == "comment":
+        row = next((comment for comment in db["comments"] if comment.get("id") == target_id), None)
+    else:
+        raise ValueError("type 仅支持 post/comment")
+
+    if row is None or row.get("deleted"):
+        raise LookupError("内容不存在")
+
+    if normalized_action == "approve":
+        row["reviewStatus"] = "approved"
+    elif normalized_action == "reject":
+        row["reviewStatus"] = "rejected"
+    elif normalized_action == "delete":
+        row["deleted"] = True
+        if normalized_type == "post":
+            for upload in db.get("mediaUploads", []):
+                if upload.get("postId") == target_id and not upload.get("deleted"):
+                    upload["deleted"] = True
+    elif normalized_action == "risk":
+        row["riskMarked"] = True
+    else:
+        raise ValueError("不支持的审核动作")
+
+    if normalized_type == "post":
+        row["updatedAt"] = now_iso()
+
+
+def build_export_payload(
+    db: dict[str, Any],
+    *,
+    scope: str,
+    export_format: str,
+    review_type: str,
+    review_status: str,
+    report_status: str,
+    appeal_status: str,
+) -> dict[str, Any]:
+    normalized_scope = scope.strip().lower() or "users"
+    normalized_format = export_format.strip().lower() or "csv"
+
+    if normalized_scope == "users":
+        rows = build_admin_user_rows(db, include_deleted=True)
+        file_prefix = "admin-users"
+        fieldnames = [
+            "id",
+            "email",
+            "studentId",
+            "alias",
+            "verified",
+            "banned",
+            "muted",
+            "deleted",
+            "postCount",
+            "commentCount",
+            "reportCount",
+            "createdAt",
+            "hasPendingCancellationRequest",
+            "hasPendingAppeal",
+        ]
+    elif normalized_scope == "reviews":
+        rows = build_admin_review_rows(
+            db,
+            target_type=review_type,
+            status=review_status,
+        )
+        file_prefix = "admin-reviews"
+        fieldnames = [
+            "id",
+            "targetType",
+            "title",
+            "content",
+            "authorAlias",
+            "authorUserId",
+            "authorNickname",
+            "authorEmail",
+            "authorStudentId",
+            "createdAt",
+            "reviewStatus",
+            "riskMarked",
+            "deleted",
+        ]
+    elif normalized_scope == "reports":
+        rows = build_admin_report_rows(
+            db,
+            status=report_status,
+            reason="",
+        )
+        file_prefix = "admin-reports"
+        fieldnames = [
+            "id",
+            "targetType",
+            "targetId",
+            "reason",
+            "description",
+            "status",
+            "result",
+            "reporterAlias",
+            "createdAt",
+            "handledAt",
+            "handledBy",
+        ]
+    elif normalized_scope == "cancellations":
+        rows = build_admin_account_cancellation_rows(
+            db,
+            status="all",
+            keyword="",
+        )
+        file_prefix = "admin-cancellations"
+        fieldnames = [
+            "id",
+            "userId",
+            "userEmail",
+            "userNickname",
+            "studentId",
+            "reason",
+            "status",
+            "statusLabel",
+            "reviewNote",
+            "createdAt",
+            "handledAt",
+            "handledBy",
+        ]
+    elif normalized_scope == "appeals":
+        rows = build_admin_appeal_rows(
+            db,
+            status=appeal_status,
+            keyword="",
+        )
+        file_prefix = "admin-appeals"
+        fieldnames = [
+            "id",
+            "userId",
+            "userEmail",
+            "studentId",
+            "userNickname",
+            "appealType",
+            "appealTypeLabel",
+            "targetType",
+            "targetId",
+            "title",
+            "content",
+            "status",
+            "statusLabel",
+            "adminNote",
+            "createdAt",
+            "handledAt",
+            "handledBy",
+            "userDeleted",
+            "userBanned",
+            "userMuted",
+        ]
+    else:
+        raise ValueError("不支持的导出范围")
+
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    if normalized_format == "json":
+        content = json.dumps(rows, ensure_ascii=False, indent=2)
+        content_type = "application/json; charset=utf-8"
+        extension = "json"
+    elif normalized_format == "csv":
+        stream = io.StringIO()
+        writer = csv.DictWriter(stream, fieldnames=fieldnames, extrasaction="ignore")
+        writer.writeheader()
+        for row in rows:
+            writer.writerow(
+                {
+                    key: (
+                        json.dumps(row.get(key), ensure_ascii=False)
+                        if isinstance(row.get(key), (list, dict))
+                        else row.get(key, "")
+                    )
+                    for key in fieldnames
+                }
+            )
+        content = stream.getvalue()
+        content_type = "text/csv; charset=utf-8"
+        extension = "csv"
+    else:
+        raise ValueError("导出格式仅支持 csv/json")
+
+    return {
+        "fileName": f"{file_prefix}-{timestamp}.{extension}",
+        "contentType": content_type,
+        "content": content,
+        "rowCount": len(rows),
+    }
 
 
 class TreeholeHandler(BaseHTTPRequestHandler):
@@ -2236,6 +2999,25 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/channels":
                 send_json(self, HTTPStatus.OK, {"data": db.get("channels", DEFAULT_CHANNELS)})
+                return
+
+            if path == "/api/notifications":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                rows = [
+                    serialize_notification(row)
+                    for row in db.get("notifications", [])
+                    if str(row.get("userId", "")).strip() == str(user.get("id", "")).strip()
+                    and not row.get("deleted")
+                ]
+                rows.sort(key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))), reverse=True)
+                unread_count = sum(1 for item in rows if not item.get("isRead"))
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"data": {"items": rows, "unreadCount": unread_count}},
+                )
                 return
 
             if path == "/api/posts":
@@ -2623,62 +3405,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 target_type = (query.get("type", ["post"])[0] or "post").strip().lower()
                 status = (query.get("status", ["pending"])[0] or "pending").strip().lower()
-                result = []
-                if target_type == "post":
-                    rows = list_posts(db, include_rejected=True)
-                    for post in rows:
-                        row_status = str(post.get("reviewStatus", "approved")).lower()
-                        if status != "all" and row_status != status:
-                            continue
-                        author_user = find_user_by_id(
-                            db,
-                            str(post.get("authorId", "")),
-                            include_deleted=True,
-                        )
-                        result.append(
-                            {
-                                "id": post.get("id"),
-                                "targetType": "post",
-                                "title": post.get("title", ""),
-                                "content": post.get("content", ""),
-                                "authorAlias": post.get("authorAlias", "匿名同学"),
-                                "authorUserId": str(post.get("authorId", "")),
-                                "authorNickname": user_nickname(author_user),
-                                "authorEmail": str(author_user.get("email", "")) if author_user else "",
-                                "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
-                                "createdAt": post.get("createdAt", ""),
-                                "reviewStatus": row_status,
-                                "riskMarked": bool(post.get("riskMarked", False)),
-                            }
-                        )
-                elif target_type == "comment":
-                    rows = list_comments(db, include_rejected=True)
-                    for comment in rows:
-                        row_status = str(comment.get("reviewStatus", "approved")).lower()
-                        if status != "all" and row_status != status:
-                            continue
-                        author_user = find_user_by_id(
-                            db,
-                            str(comment.get("userId", "")),
-                            include_deleted=True,
-                        )
-                        result.append(
-                            {
-                                "id": comment.get("id"),
-                                "targetType": "comment",
-                                "title": f"评论 @ 帖子 {comment.get('postId', '-')}",
-                                "content": comment.get("content", ""),
-                                "authorAlias": comment.get("authorAlias", "匿名同学"),
-                                "authorUserId": str(comment.get("userId", "")),
-                                "authorNickname": user_nickname(author_user),
-                                "authorEmail": str(author_user.get("email", "")) if author_user else "",
-                                "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
-                                "createdAt": comment.get("createdAt", ""),
-                                "reviewStatus": row_status,
-                                "riskMarked": bool(comment.get("riskMarked", False)),
-                            }
-                        )
-                else:
+                try:
+                    result = build_admin_review_rows(
+                        db,
+                        target_type=target_type,
+                        status=status,
+                    )
+                except ValueError:
                     json_error(self, HTTPStatus.BAD_REQUEST, "type 仅支持 post/comment")
                     return
 
@@ -2691,27 +3424,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 status = (query.get("status", ["all"])[0] or "all").strip().lower()
                 reason = (query.get("reason", [""])[0] or "").strip()
-                rows = []
-                for report in db["reports"]:
-                    row_status = str(report.get("status", "pending")).lower()
-                    if status != "all" and row_status != status:
-                        continue
-                    if reason and str(report.get("reason", "")) != reason:
-                        continue
-                    rows.append(
-                        {
-                            "id": report.get("id"),
-                            "targetType": report.get("targetType", "other"),
-                            "targetId": report.get("targetId", "unknown"),
-                            "reason": report.get("reason", "其他"),
-                            "description": report.get("description", ""),
-                            "status": row_status,
-                            "result": report.get("result", ""),
-                            "reporterAlias": report.get("reporterAlias", "匿名同学"),
-                            "createdAt": report.get("createdAt", ""),
-                        }
-                    )
-                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                rows = build_admin_report_rows(
+                    db,
+                    status=status,
+                    reason=reason,
+                )
                 send_json(self, HTTPStatus.OK, {"data": rows})
                 return
 
@@ -2749,39 +3466,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 admin, _ = require_admin_user(self, db)
                 if admin is None:
                     return
-                rows = []
-                for user in db["users"]:
-                    if user.get("deleted"):
-                        continue
-                    uid = user.get("id")
-                    pending_cancellation = latest_account_cancellation_request_for_user(
-                        db,
-                        str(uid),
-                        status="pending",
-                    )
-                    post_count = sum(1 for p in db["posts"] if not p.get("deleted") and p.get("authorId") == uid)
-                    comment_count = sum(
-                        1 for c in db["comments"] if not c.get("deleted") and c.get("userId") == uid
-                    )
-                    report_count = sum(1 for r in db["reports"] if r.get("userId") == uid)
-                    rows.append(
-                        {
-                            "id": uid,
-                            "email": user.get("email", ""),
-                            "studentId": str(user.get("studentId", "")),
-                            "alias": user_nickname(user),
-                            "avatarUrl": user_avatar_url(user),
-                            "verified": bool(user.get("verified", False)),
-                            "banned": bool(user.get("banned", False)),
-                            "muted": bool(user.get("muted", False)),
-                            "postCount": post_count,
-                            "commentCount": comment_count,
-                            "reportCount": report_count,
-                            "createdAt": user.get("createdAt", ""),
-                            "hasPendingCancellationRequest": pending_cancellation is not None,
-                        }
-                    )
-                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+                rows = build_admin_user_rows(db, include_deleted=True)
                 send_json(self, HTTPStatus.OK, {"data": rows})
                 return
 
@@ -2791,26 +3476,52 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 status = (query.get("status", ["all"])[0] or "all").strip().lower()
                 keyword = (query.get("keyword", [""])[0] or "").strip().lower()
-                rows = []
-                for request in db.get("accountCancellationRequests", []):
-                    row_status = str(request.get("status", "pending")).strip().lower() or "pending"
-                    if status != "all" and row_status != status:
-                        continue
-                    if keyword:
-                        merged = " ".join(
-                            [
-                                str(request.get("userNickname", "")).lower(),
-                                str(request.get("userEmail", "")).lower(),
-                                str(request.get("studentId", "")).lower(),
-                                str(request.get("reason", "")).lower(),
-                            ]
-                        )
-                        if keyword not in merged:
-                            continue
-                    rows.append(serialize_account_cancellation_request(request))
-                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-                rows.sort(key=lambda x: 0 if x.get("status") == "pending" else 1)
+                rows = build_admin_account_cancellation_rows(
+                    db,
+                    status=status,
+                    keyword=keyword,
+                )
                 send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/appeals":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["all"])[0] or "all").strip().lower()
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+                rows = build_admin_appeal_rows(
+                    db,
+                    status=status,
+                    keyword=keyword,
+                )
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/export":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                scope = (query.get("scope", ["users"])[0] or "users").strip().lower()
+                export_format = (query.get("format", ["csv"])[0] or "csv").strip().lower()
+                review_type = (query.get("reviewType", ["post"])[0] or "post").strip().lower()
+                review_status = (query.get("reviewStatus", ["all"])[0] or "all").strip().lower()
+                report_status = (query.get("reportStatus", ["all"])[0] or "all").strip().lower()
+                appeal_status = (query.get("appealStatus", ["all"])[0] or "all").strip().lower()
+                try:
+                    payload = build_export_payload(
+                        db,
+                        scope=scope,
+                        export_format=export_format,
+                        review_type=review_type,
+                        review_status=review_status,
+                        report_status=report_status,
+                        appeal_status=appeal_status,
+                    )
+                except ValueError as error:
+                    json_error(self, HTTPStatus.BAD_REQUEST, str(error))
+                    return
+                send_json(self, HTTPStatus.OK, {"data": payload})
                 return
 
             if path == "/api/admin/channels-tags":
@@ -2843,6 +3554,18 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         }
                     },
                 )
+                return
+
+            if path == "/api/admin/announcements":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                rows = [
+                    serialize_system_announcement(row)
+                    for row in db.get("systemAnnouncements", [])
+                ]
+                rows.sort(key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))), reverse=True)
+                send_json(self, HTTPStatus.OK, {"data": rows[:20]})
                 return
 
             match_post_comments = re.fullmatch(r"/api/posts/([^/]+)/comments", path)
@@ -3467,6 +4190,51 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {"message": "已退出登录", "data": {"ok": True}})
                 return
 
+            if path == "/api/notifications/read-all":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                read_at = now_iso()
+                changed = False
+                for row in db.get("notifications", []):
+                    if str(row.get("userId", "")).strip() != str(user.get("id", "")).strip():
+                        continue
+                    if row.get("deleted"):
+                        continue
+                    if str(row.get("readAt", "")).strip():
+                        continue
+                    row["readAt"] = read_at
+                    changed = True
+                if changed:
+                    save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "已全部标记为已读", "data": {"ok": True}})
+                return
+
+            match_notification_read = re.fullmatch(r"/api/notifications/([^/]+)/read", path)
+            if match_notification_read:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                notification_id = match_notification_read.group(1)
+                row = next(
+                    (
+                        item
+                        for item in db.get("notifications", [])
+                        if item.get("id") == notification_id
+                        and str(item.get("userId", "")).strip() == str(user.get("id", "")).strip()
+                        and not item.get("deleted")
+                    ),
+                    None,
+                )
+                if row is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "通知不存在")
+                    return
+                if not str(row.get("readAt", "")).strip():
+                    row["readAt"] = now_iso()
+                    save_db(db)
+                send_json(self, HTTPStatus.OK, {"message": "已标记为已读", "data": serialize_notification(row)})
+                return
+
             if path == "/api/messages/requests":
                 user, _ = require_authorized_user(self, db)
                 if user is None:
@@ -3685,9 +4453,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     and row.get("uploaderId") == user["id"]
                     and row.get("sha256") == sha256_hex
                 )
-                if same_hash_count >= 3:
-                    status = "risk"
-                    moderation_reason = "疑似重复上传相同图片"
                 if status == "rejected":
                     json_error(self, HTTPStatus.BAD_REQUEST, moderation_reason)
                     return
@@ -3728,7 +4493,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(
                     self,
                     HTTPStatus.OK,
-                    {"message": "图片上传成功，等待审核", "data": serialize_upload(db, upload)},
+                    {"message": "图片上传成功，可直接发帖", "data": serialize_upload(db, upload)},
                 )
                 return
 
@@ -3848,6 +4613,123 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     {
                         "message": "注销申请已提交，等待管理员审核",
                         "data": serialize_account_cancellation_request(request),
+                    },
+                )
+                return
+
+            if path == "/api/appeals":
+                email = str(body.get("email", "")).strip().lower()
+                student_id = str(body.get("studentId", "")).strip()
+                title = str(body.get("title", "")).strip()
+                content = str(body.get("content", "")).strip()
+                appeal_type = str(body.get("appealType", "account_restore")).strip().lower() or "other"
+                target_type = str(body.get("targetType", "user")).strip().lower()
+                target_id = str(body.get("targetId", "")).strip()
+
+                if not is_campus_email(email):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持西电校内邮箱")
+                    return
+                if student_id and not is_valid_student_id(student_id):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "学号格式不合法")
+                    return
+                if not title:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申诉标题不能为空")
+                    return
+                if not content:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申诉内容不能为空")
+                    return
+                if len(title) > 80:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申诉标题不能超过 80 个字符")
+                    return
+                if len(content) > 4000:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申诉内容不能超过 4000 个字符")
+                    return
+
+                user = find_user_by_email(db, email, include_deleted=True)
+                if user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "账号不存在")
+                    return
+                resolved_student_id = str(user.get("studentId", "")).strip()
+                if student_id and resolved_student_id and student_id != resolved_student_id:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "学号与账号信息不匹配")
+                    return
+
+                existing = latest_pending_appeal_for_user(
+                    db,
+                    str(user.get("id", "")),
+                    appeal_type=appeal_type,
+                )
+                if existing is not None:
+                    json_error(self, HTTPStatus.CONFLICT, "你已有同类型待处理申诉，请等待管理员处理")
+                    return
+
+                appeal = {
+                    "id": next_id(db, "appeal", "apl"),
+                    "userId": str(user.get("id", "")),
+                    "userEmail": email,
+                    "studentId": resolved_student_id or student_id,
+                    "userNickname": user_nickname(user),
+                    "appealType": appeal_type,
+                    "targetType": target_type,
+                    "targetId": target_id,
+                    "title": title,
+                    "content": content,
+                    "status": "pending",
+                    "adminNote": "",
+                    "createdAt": now_iso(),
+                    "handledAt": "",
+                    "handledBy": "",
+                }
+                db.setdefault("appeals", []).append(appeal)
+                add_audit_log(
+                    db,
+                    str(user.get("id", "")),
+                    "submit_appeal",
+                    f"{appeal['id']}:{appeal_type}:{target_type}:{target_id}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "申诉已提交，等待管理员处理",
+                        "data": serialize_appeal(db, appeal),
+                    },
+                )
+                return
+
+            if path == "/api/admin/announcements":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                title = str(body.get("title", "")).strip()
+                content = str(body.get("content", "")).strip()
+                if not title:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "公告标题不能为空")
+                    return
+                if not content:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "公告内容不能为空")
+                    return
+                if len(title) > 80:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "公告标题不能超过 80 个字符")
+                    return
+                if len(content) > 2000:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "公告内容不能超过 2000 个字符")
+                    return
+                announcement = publish_system_announcement(
+                    db,
+                    admin=admin,
+                    title=title,
+                    content=content,
+                )
+                add_audit_log(db, admin["id"], "admin_publish_announcement", announcement["id"])
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "系统公告已发布",
+                        "data": serialize_system_announcement(announcement),
                     },
                 )
                 return
@@ -4149,6 +5031,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 db["posts"].append(post)
                 for upload in picked_uploads:
                     upload["postId"] = post["id"]
+                    upload_status = str(upload.get("status", "approved")).strip().lower()
+                    if upload_status != "rejected":
+                        upload["status"] = "approved"
+                        upload["moderationReason"] = ""
+                        if not str(upload.get("reviewNote", "")).strip():
+                            upload["reviewNote"] = "发帖时自动通过"
+                        upload["reviewedAt"] = post["createdAt"]
                 recalc_post_has_image(db, post["id"])
                 if risk_marked:
                     add_audit_log(db, user["id"], "risk_mark_post", f"{post['id']}:{';'.join(risk_reasons)}")
@@ -4324,6 +5213,52 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     "parentId": str(body.get("parentId", "")).strip() or "",
                 }
                 db["comments"].append(comment)
+                post_author_id = str(post.get("authorId", "")).strip()
+                if post_author_id and post_author_id != user["id"]:
+                    create_notification(
+                        db,
+                        user_id=post_author_id,
+                        notification_type="comment",
+                        title="有人评论了你的帖子",
+                        content=f"{user_nickname(user)}：{content[:80]}",
+                        related_type="post",
+                        related_id=post_id,
+                        post_id=post_id,
+                        actor_id=str(user.get("id", "")),
+                        actor_alias=user_nickname(user),
+                    )
+                parent_id = str(comment.get("parentId", "")).strip()
+                if parent_id:
+                    parent_comment = next(
+                        (
+                            row
+                            for row in db.get("comments", [])
+                            if row.get("id") == parent_id and not row.get("deleted")
+                        ),
+                        None,
+                    )
+                    parent_user_id = (
+                        str(parent_comment.get("userId", "")).strip()
+                        if parent_comment is not None
+                        else ""
+                    )
+                    if (
+                        parent_user_id
+                        and parent_user_id != user["id"]
+                        and parent_user_id != post_author_id
+                    ):
+                        create_notification(
+                            db,
+                            user_id=parent_user_id,
+                            notification_type="reply",
+                            title="有人回复了你的评论",
+                            content=f"{user_nickname(user)}：{content[:80]}",
+                            related_type="post",
+                            related_id=post_id,
+                            post_id=post_id,
+                            actor_id=str(user.get("id", "")),
+                            actor_alias=user_nickname(user),
+                        )
                 if risk_marked:
                     add_audit_log(
                         db,
@@ -4349,6 +5284,20 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 exists = any(x for x in db["likes"] if x.get("userId") == user["id"] and x.get("postId") == post_id)
                 if not exists:
                     db["likes"].append({"userId": user["id"], "postId": post_id})
+                    post_author_id = str(post.get("authorId", "")).strip()
+                    if post_author_id and post_author_id != user["id"]:
+                        create_notification(
+                            db,
+                            user_id=post_author_id,
+                            notification_type="like",
+                            title="你的帖子收到一个赞",
+                            content=f"{user_nickname(user)} 赞了你的帖子《{str(post.get('title', '你的帖子'))[:32]}》",
+                            related_type="post",
+                            related_id=post_id,
+                            post_id=post_id,
+                            actor_id=str(user.get("id", "")),
+                            actor_alias=user_nickname(user),
+                        )
                     save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "已点赞", "data": {"ok": True}})
                 return
@@ -4368,12 +5317,87 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 )
                 if not exists:
                     db["favorites"].append({"userId": user["id"], "postId": post_id})
+                    post_author_id = str(post.get("authorId", "")).strip()
+                    if post_author_id and post_author_id != user["id"]:
+                        create_notification(
+                            db,
+                            user_id=post_author_id,
+                            notification_type="favorite",
+                            title="你的帖子被收藏了",
+                            content=f"{user_nickname(user)} 收藏了你的帖子《{str(post.get('title', '你的帖子'))[:32]}》",
+                            related_type="post",
+                            related_id=post_id,
+                            post_id=post_id,
+                            actor_id=str(user.get("id", "")),
+                            actor_alias=user_nickname(user),
+                        )
                     save_db(db)
                 _, _, favorite_count = post_counts(db, post_id)
                 send_json(
                     self,
                     HTTPStatus.OK,
                     {"message": "已收藏", "data": {"ok": True, "favorited": True, "favoriteCount": favorite_count}},
+                )
+                return
+
+            if path == "/api/admin/reviews/batch":
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                target_type = str(body.get("targetType", "post")).strip().lower()
+                action = str(body.get("action", "")).strip().lower()
+                target_ids = [
+                    str(item).strip()
+                    for item in body.get("targetIds", [])
+                    if str(item).strip()
+                ]
+                unique_target_ids = list(dict.fromkeys(target_ids))
+                if not unique_target_ids:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "请选择至少一条内容")
+                    return
+                if len(unique_target_ids) > 200:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "单次最多处理 200 条内容")
+                    return
+
+                processed_ids: list[str] = []
+                skipped_ids: list[str] = []
+                for target_id in unique_target_ids:
+                    try:
+                        apply_admin_review_action(
+                            db,
+                            target_type=target_type,
+                            target_id=target_id,
+                            action=action,
+                        )
+                        processed_ids.append(target_id)
+                    except LookupError:
+                        skipped_ids.append(target_id)
+                    except ValueError as error:
+                        json_error(self, HTTPStatus.BAD_REQUEST, str(error))
+                        return
+
+                if not processed_ids:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "没有可处理的内容")
+                    return
+
+                add_audit_log(
+                    db,
+                    admin["id"],
+                    "admin_review_batch",
+                    f"{target_type}:{action}:{','.join(processed_ids)}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": f"批量审核完成，共处理 {len(processed_ids)} 条",
+                        "data": {
+                            "processedCount": len(processed_ids),
+                            "processedIds": processed_ids,
+                            "skippedIds": skipped_ids,
+                        },
+                    },
                 )
                 return
 
@@ -4386,30 +5410,19 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 target_id = match_review.group(2)
                 action = match_review.group(3)
 
-                if target_type == "post":
-                    row = next((p for p in db["posts"] if p.get("id") == target_id), None)
-                else:
-                    row = next((c for c in db["comments"] if c.get("id") == target_id), None)
-
-                if row is None or row.get("deleted"):
+                try:
+                    apply_admin_review_action(
+                        db,
+                        target_type=target_type,
+                        target_id=target_id,
+                        action=action,
+                    )
+                except LookupError:
                     json_error(self, HTTPStatus.NOT_FOUND, "内容不存在")
                     return
-
-                if action == "approve":
-                    row["reviewStatus"] = "approved"
-                elif action == "reject":
-                    row["reviewStatus"] = "rejected"
-                elif action == "delete":
-                    row["deleted"] = True
-                    if target_type == "post":
-                        for upload in db.get("mediaUploads", []):
-                            if upload.get("postId") == target_id and not upload.get("deleted"):
-                                upload["deleted"] = True
-                elif action == "risk":
-                    row["riskMarked"] = True
-
-                if target_type == "post":
-                    row["updatedAt"] = now_iso()
+                except ValueError as error:
+                    json_error(self, HTTPStatus.BAD_REQUEST, str(error))
+                    return
 
                 add_audit_log(db, admin["id"], "admin_review", f"{target_type}:{target_id}:{action}")
                 save_db(db)
@@ -4466,6 +5479,19 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
                 report["handledAt"] = now_iso()
                 report["handledBy"] = admin.get("id")
+                reporter_user_id = str(report.get("userId", "")).strip()
+                if reporter_user_id:
+                    create_notification(
+                        db,
+                        user_id=reporter_user_id,
+                        notification_type="report_result",
+                        title="你的举报已有处理结果",
+                        content=report["result"],
+                        related_type="report",
+                        related_id=report_id,
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
                 add_audit_log(db, admin["id"], "admin_handle_report", f"{report_id}:{action}")
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "举报处理完成", "data": {"ok": True}})
@@ -4478,13 +5504,18 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 user_id = match_user_action.group(1)
                 action = str(body.get("action", "")).strip().lower()
+                note = str(body.get("note", "")).strip()
 
-                user = find_user_by_id(db, user_id)
+                user = find_user_by_id(db, user_id, include_deleted=True)
                 if user is None:
                     json_error(self, HTTPStatus.NOT_FOUND, "用户不存在")
                     return
-                if user.get("id") == admin.get("id") and action in {"ban", "mute"}:
+                if user.get("id") == admin.get("id") and action in {"ban", "mute", "cancel"}:
                     json_error(self, HTTPStatus.BAD_REQUEST, "不能对当前管理员执行该操作")
+                    return
+
+                if action != "restore" and user.get("deleted"):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该账号已注销，请改用恢复操作")
                     return
 
                 if action == "mute":
@@ -4495,13 +5526,137 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     user["banned"] = True
                 elif action == "unban":
                     user["banned"] = False
+                elif action == "cancel":
+                    if str(user.get("email", "")).strip().lower() == DEMO_USER_EMAIL:
+                        json_error(self, HTTPStatus.BAD_REQUEST, "演示账号不可注销")
+                        return
+                    sync_cancellation_requests_after_admin_cancel(
+                        db,
+                        user_id=user_id,
+                        handled_by=str(admin.get("username", "")).strip() or "admin",
+                        review_note=note,
+                    )
+                    cancel_user_account(
+                        db,
+                        user,
+                        actor_id=admin["id"],
+                        detail=f"{user_id}:admin_cancel:{note}",
+                    )
+                elif action == "restore":
+                    if not user.get("deleted"):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "该账号当前未注销")
+                        return
+                    restore_user_account(
+                        db,
+                        user,
+                        actor_id=admin["id"],
+                        detail=f"{user_id}:admin_restore:{note}",
+                    )
                 else:
                     json_error(self, HTTPStatus.BAD_REQUEST, "不支持的操作")
                     return
 
                 add_audit_log(db, admin["id"], "admin_user_action", f"{user_id}:{action}")
                 save_db(db)
-                send_json(self, HTTPStatus.OK, {"message": "用户状态已更新", "data": {"ok": True}})
+                success_message = {
+                    "cancel": "账号已注销",
+                    "restore": "账号已恢复",
+                }.get(action, "用户状态已更新")
+                send_json(self, HTTPStatus.OK, {"message": success_message, "data": {"ok": True}})
+                return
+
+            match_appeal_handle = re.fullmatch(r"/api/admin/appeals/([^/]+)/handle", path)
+            if match_appeal_handle:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                appeal_id = match_appeal_handle.group(1)
+                action = str(body.get("action", "")).strip().lower()
+                admin_note = str(body.get("note", "")).strip()
+
+                appeal = next(
+                    (
+                        row
+                        for row in db.get("appeals", [])
+                        if str(row.get("id", "")) == appeal_id
+                    ),
+                    None,
+                )
+                if appeal is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "申诉不存在")
+                    return
+                if str(appeal.get("status", "pending")).strip().lower() != "pending":
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该申诉已处理")
+                    return
+
+                appeal["handledAt"] = now_iso()
+                appeal["handledBy"] = str(admin.get("username", "")).strip() or "admin"
+                appeal["adminNote"] = admin_note
+
+                if action == "approve":
+                    appeal["status"] = "approved"
+                elif action == "reject":
+                    appeal["status"] = "rejected"
+                elif action == "close":
+                    appeal["status"] = "closed"
+                elif action == "approve_restore":
+                    user = find_user_by_id(
+                        db,
+                        str(appeal.get("userId", "")),
+                        include_deleted=True,
+                    )
+                    if user is None or not user.get("deleted"):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "该申诉对应账号当前不可恢复")
+                        return
+                    restore_user_account(
+                        db,
+                        user,
+                        actor_id=admin["id"],
+                        detail=f"{appeal_id}:approve_restore",
+                    )
+                    appeal["status"] = "approved"
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 approve/reject/close/approve_restore")
+                    return
+
+                user = find_user_by_id(
+                    db,
+                    str(appeal.get("userId", "")),
+                    include_deleted=True,
+                )
+                if user is not None and not user.get("deleted"):
+                    message = {
+                        "approved": "你的申诉已通过",
+                        "rejected": "你的申诉已被驳回",
+                        "closed": "你的申诉已关闭",
+                    }.get(str(appeal.get("status", "")), "你的申诉已有处理结果")
+                    create_notification(
+                        db,
+                        user_id=str(user.get("id", "")),
+                        notification_type="system_announcement",
+                        title=message,
+                        content=admin_note or str(appeal.get("title", "")),
+                        related_type="appeal",
+                        related_id=appeal_id,
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
+
+                add_audit_log(
+                    db,
+                    admin["id"],
+                    "admin_handle_appeal",
+                    f"{appeal_id}:{action}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "申诉处理完成",
+                        "data": serialize_appeal(db, appeal),
+                    },
+                )
                 return
 
             match_cancellation_handle = re.fullmatch(

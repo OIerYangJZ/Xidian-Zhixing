@@ -26,10 +26,10 @@ class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
 
   @override
-  State<FavoritesPage> createState() => _FavoritesPageState();
+  State<FavoritesPage> createState() => FavoritesPageState();
 }
 
-class _FavoritesPageState extends State<FavoritesPage> {
+class FavoritesPageState extends State<FavoritesPage> {
   final TextEditingController _keywordController = TextEditingController();
 
   String _selectedChannel = '全部';
@@ -45,6 +45,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
     super.initState();
     _loadFavorites();
   }
+
+  Future<void> refreshFavorites() => _loadFavorites();
 
   @override
   void dispose() {
@@ -227,11 +229,24 @@ class _FavoritesPageState extends State<FavoritesPage> {
         PostCard(
           post: post,
           onTap: () async {
-            await openPostDetailPage(context, post: post);
-            if (!mounted) {
+            final PostItem? updated =
+                await openPostDetailPage(context, post: post);
+            if (!mounted || updated == null) {
               return;
             }
-            await _loadFavorites();
+            setState(() {
+              if (!updated.isFavorited) {
+                _favorites = _favorites
+                    .where((PostItem item) => item.id != updated.id)
+                    .toList(growable: false);
+                return;
+              }
+              _favorites = _favorites
+                  .map(
+                    (PostItem item) => item.id == updated.id ? updated : item,
+                  )
+                  .toList(growable: false);
+            });
           },
         ),
         Padding(

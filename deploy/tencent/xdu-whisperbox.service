@@ -50,8 +50,8 @@ LimitNPROC=4096
 MemoryMax=2G
 
 # 环境验证：启动前检查关键配置是否存在
-ExecStartPre=/bin/bash -c 'grep -q "BACKEND_ADMIN_PASSWORD" /etc/xdu-whisperbox.env || { echo "ERROR: BACKEND_ADMIN_PASSWORD not set in /etc/xdu-whisperbox.env"; exit 1; }'
-ExecStartPre=/bin/bash -c 'grep -q "BACKEND_ENV=production" /etc/xdu-whisperbox.env || { echo "WARNING: BACKEND_ENV not set to production"; }'
+ExecStartPre=+/bin/bash -c 'grep -q "BACKEND_ADMIN_PASSWORD" /etc/xdu-whisperbox.env || { echo "ERROR: BACKEND_ADMIN_PASSWORD not set in /etc/xdu-whisperbox.env"; exit 1; }'
+ExecStartPre=+/bin/bash -c 'grep -q "BACKEND_ENV=production" /etc/xdu-whisperbox.env || { echo "WARNING: BACKEND_ENV not set to production"; }'
 
 [Install]
 WantedBy=multi-user.target

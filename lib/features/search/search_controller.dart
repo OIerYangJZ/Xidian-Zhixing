@@ -165,6 +165,18 @@ class SearchController extends StateNotifier<SearchState> {
       );
     }
   }
+
+  void replaceResult(PostItem updated) {
+    final int index = state.results.indexWhere(
+      (PostItem item) => item.id == updated.id,
+    );
+    if (index < 0) {
+      return;
+    }
+    final List<PostItem> results = List<PostItem>.from(state.results);
+    results[index] = updated;
+    state = state.copyWith(results: results, clearError: true);
+  }
 }
 
 final searchControllerProvider =

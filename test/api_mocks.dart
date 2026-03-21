@@ -99,6 +99,18 @@ class MockApiResponses {
     };
   }
 
+  static Map<String, dynamic> badRequest(String message) {
+    return <String, dynamic>{
+      'message': message,
+    };
+  }
+
+  static Map<String, dynamic> notFound([String message = '资源不存在']) {
+    return <String, dynamic>{
+      'message': message,
+    };
+  }
+
   static Map<String, dynamic> verifyEmailSuccess({
     String token = 'verified_token_456',
     String email = 'test@example.com',

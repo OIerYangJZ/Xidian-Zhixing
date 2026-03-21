@@ -4,7 +4,6 @@ import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../data/mock_data.dart';
 import '../models/my_comment_item.dart';
-import '../models/post_item.dart';
 import '../models/report_item.dart';
 import '../models/user_profile.dart';
 
@@ -14,31 +13,12 @@ class UserRepository {
   final ApiClient _apiClient;
 
   Future<UserProfile> fetchProfile() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.me);
-      final Map<String, dynamic> map = extractMap(response);
-      if (map.isNotEmpty) {
-        return UserProfile.fromJson(map);
-      }
-    } catch (_) {
-      // ignore and fallback
+    final dynamic response = await _apiClient.get(ApiEndpoints.me);
+    final Map<String, dynamic> map = extractMap(response);
+    if (map.isNotEmpty) {
+      return UserProfile.fromJson(map);
     }
-
-    final int fallbackFavorite =
-        mockPosts.where((PostItem p) => p.favoriteCount > 15).length;
-    return UserProfile(
-      nickname: '洞主-雾蓝',
-      studentId: '2023000001',
-      avatarUrl: '',
-      email: 'demo@stu.xidian.edu.cn',
-      verified: true,
-      verifiedAt: '2026-03-06',
-      allowStrangerDm: true,
-      showContactable: true,
-      favoriteCount: fallbackFavorite,
-      isAdmin: false,
-      accountCancellationRequest: null,
-    );
+    throw Exception('个人资料加载失败：服务端未返回有效数据');
   }
 
   Future<void> updatePrivacy({

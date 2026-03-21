@@ -39,7 +39,7 @@ void main() {
 
         // 创建帖子
         if (path.endsWith('/posts') && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           final title = body['title'] as String?;
 
           if (title != null && title.isNotEmpty) {
@@ -327,11 +327,16 @@ void main() {
       });
 
       test('fromJson 处理不同状态值', () {
-        expect(PostStatusCodec.fromDynamic('ongoing'), equals(PostStatus.ongoing));
-        expect(PostStatusCodec.fromDynamic('resolved'), equals(PostStatus.resolved));
-        expect(PostStatusCodec.fromDynamic('closed'), equals(PostStatus.closed));
-        expect(PostStatusCodec.fromDynamic('solved'), equals(PostStatus.resolved));
-        expect(PostStatusCodec.fromDynamic('unknown'), equals(PostStatus.ongoing));
+        expect(
+            PostStatusCodec.fromDynamic('ongoing'), equals(PostStatus.ongoing));
+        expect(PostStatusCodec.fromDynamic('resolved'),
+            equals(PostStatus.resolved));
+        expect(
+            PostStatusCodec.fromDynamic('closed'), equals(PostStatus.closed));
+        expect(
+            PostStatusCodec.fromDynamic('solved'), equals(PostStatus.resolved));
+        expect(
+            PostStatusCodec.fromDynamic('unknown'), equals(PostStatus.ongoing));
       });
 
       test('fromJson 处理空数据', () {
