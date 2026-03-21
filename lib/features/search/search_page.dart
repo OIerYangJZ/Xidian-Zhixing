@@ -183,8 +183,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ...state.results.map(
             (PostItem post) => PostCard(
               post: post,
-              onTap: () {
-                openPostDetailPage(context, post: post);
+              onTap: () async {
+                final PostItem? updated =
+                    await openPostDetailPage(context, post: post);
+                if (updated == null || !mounted) {
+                  return;
+                }
+                ref.read(searchControllerProvider.notifier).replaceResult(
+                      updated,
+                    );
               },
             ),
           ),

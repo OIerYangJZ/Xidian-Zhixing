@@ -23,7 +23,7 @@ if [[ -n "$DEPLOY_SSH_KEY" ]]; then
   SCP_OPTS+=(-i "$DEPLOY_SSH_KEY")
 fi
 
-ARCHIVE_PATH="$("$ROOT_DIR/scripts/package_release.sh")"
+ARCHIVE_PATH="$(bash "$ROOT_DIR/scripts/package_release.sh" | tail -n 1)"
 ARCHIVE_NAME="$(basename "$ARCHIVE_PATH")"
 REMOTE_TARGET="$DEPLOY_USER@$DEPLOY_HOST"
 

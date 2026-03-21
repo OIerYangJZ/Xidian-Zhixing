@@ -10,6 +10,8 @@ import '../features/favorites/favorites_page.dart';
 import '../features/feed/feed_page.dart';
 import '../features/messages/messages_page.dart';
 import '../features/messages/messages_controller.dart';
+import '../features/notifications/notification_center_page.dart';
+import '../features/notifications/notifications_controller.dart';
 import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/search/search_page.dart';
@@ -24,6 +26,10 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
   bool _postUrlHandled = false;
+  final GlobalKey<FavoritesPageState> _favoritesPageKey =
+      GlobalKey<FavoritesPageState>();
+  final GlobalKey<ProfilePageState> _profilePageKey =
+      GlobalKey<ProfilePageState>();
 
   static const List<String> _titles = <String>[
     '首页',
@@ -41,20 +47,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     '管理你的账号信息',
   ];
 
-  final List<Widget> _pages = <Widget>[
-    const FeedPage(),
-    const SearchPage(),
-    const MessagesPage(),
-    const FavoritesPage(),
-    const ProfilePage(),
-  ];
-
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(
-      () => ref.read(messagesControllerProvider.notifier).loadInitial(),
-    );
+    Future<void>.microtask(() async {
+      await ref.read(messagesControllerProvider.notifier).loadInitial();
+      await ref.read(notificationsControllerProvider.notifier).loadInitial();
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restorePostFromUrlIfNeeded();
     });
@@ -62,13 +61,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> pages = <Widget>[
+      const FeedPage(),
+      const SearchPage(),
+      const MessagesPage(),
+      FavoritesPage(key: _favoritesPageKey),
+      ProfilePage(key: _profilePageKey),
+    ];
     final MessagesState messagesState = ref.watch(messagesControllerProvider);
+    final NotificationsState notificationsState =
+        ref.watch(notificationsControllerProvider);
     final int unreadCount = messagesState.conversations.fold<int>(
       0,
       (int sum, ConversationItem item) => sum + item.unreadCount,
     );
-    final bool showMessageDot =
-        unreadCount > 0 || messagesState.requests.any((item) => item.status == 'pending');
+    final bool showMessageDot = unreadCount > 0 ||
+        messagesState.requests.any((item) => item.status == 'pending');
+    final int notificationUnreadCount = notificationsState.unreadCount;
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 68,
@@ -116,14 +125,32 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         ),
         actions: <Widget>[
           IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('通知中心将在后续版本开放。')),
+            onPressed: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const NotificationCenterPage(),
+                ),
               );
+              if (!mounted) {
+                return;
+              }
+              await ref
+                  .read(notificationsControllerProvider.notifier)
+                  .refresh();
             },
             tooltip: '通知',
-            icon: const Icon(Icons.notifications_none_rounded,
-                color: Colors.white),
+            icon: Badge(
+              isLabelVisible: notificationUnreadCount > 0,
+              label: Text(
+                notificationUnreadCount > 99
+                    ? '99+'
+                    : '$notificationUnreadCount',
+              ),
+              child: const Icon(
+                Icons.notifications_none_rounded,
+                color: Colors.white,
+              ),
+            ),
           ),
         ],
         flexibleSpace: Container(
@@ -175,7 +202,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               ),
             ),
           ),
-          IndexedStack(index: _currentIndex, children: _pages),
+          IndexedStack(index: _currentIndex, children: pages),
         ],
       ),
       floatingActionButton: _currentIndex <= 1
@@ -192,6 +219,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           setState(() {
             _currentIndex = index;
           });
+          if (index == 3) {
+            _favoritesPageKey.currentState?.refreshFavorites();
+          }
+          if (index == 4) {
+            _profilePageKey.currentState?.refreshProfile();
+          }
         },
         destinations: <NavigationDestination>[
           NavigationDestination(
@@ -255,7 +288,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     return Badge(
       isLabelVisible: true,
       smallSize: 8,
-      label: badgeCount > 0 ? Text(badgeCount > 99 ? '99+' : '$badgeCount') : null,
+      label:
+          badgeCount > 0 ? Text(badgeCount > 99 ? '99+' : '$badgeCount') : null,
       child: icon,
     );
   }

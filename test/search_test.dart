@@ -102,10 +102,6 @@ void main() {
         final posts = await postRepository.fetchPosts(keyword: '测试');
 
         if (posts.isNotEmpty) {
-          final hasMatch = posts.any((post) =>
-            post.title.toLowerCase().contains('测试') ||
-            post.content.toLowerCase().contains('测试')
-          );
           // 由于使用 Mock 数据，验证返回的是列表
           expect(posts.first, isA<PostItem>());
         }
@@ -190,7 +186,8 @@ void main() {
       });
 
       test('按状态筛选', () async {
-        final posts = await postRepository.fetchPosts(status: PostStatus.ongoing);
+        final posts =
+            await postRepository.fetchPosts(status: PostStatus.ongoing);
 
         expect(posts, isA<List<PostItem>>());
       });
@@ -247,10 +244,14 @@ void main() {
       });
 
       test('PostStatusCodec 正确解析各种值', () {
-        expect(PostStatusCodec.fromDynamic('ongoing'), equals(PostStatus.ongoing));
-        expect(PostStatusCodec.fromDynamic('resolved'), equals(PostStatus.resolved));
-        expect(PostStatusCodec.fromDynamic('closed'), equals(PostStatus.closed));
-        expect(PostStatusCodec.fromDynamic('solved'), equals(PostStatus.resolved));
+        expect(
+            PostStatusCodec.fromDynamic('ongoing'), equals(PostStatus.ongoing));
+        expect(PostStatusCodec.fromDynamic('resolved'),
+            equals(PostStatus.resolved));
+        expect(
+            PostStatusCodec.fromDynamic('closed'), equals(PostStatus.closed));
+        expect(
+            PostStatusCodec.fromDynamic('solved'), equals(PostStatus.resolved));
         expect(PostStatusCodec.fromDynamic('ended'), equals(PostStatus.closed));
         expect(PostStatusCodec.fromDynamic('进行中'), equals(PostStatus.ongoing));
         expect(PostStatusCodec.fromDynamic('已解决'), equals(PostStatus.resolved));

@@ -128,6 +128,18 @@ class FeedController extends StateNotifier<FeedState> {
       );
     }
   }
+
+  void replacePost(PostItem updated) {
+    final int index = state.posts.indexWhere(
+      (PostItem item) => item.id == updated.id,
+    );
+    if (index < 0) {
+      return;
+    }
+    final List<PostItem> posts = List<PostItem>.from(state.posts);
+    posts[index] = updated;
+    state = state.copyWith(posts: posts, clearError: true);
+  }
 }
 
 final feedControllerProvider = StateNotifierProvider<FeedController, FeedState>(

@@ -260,6 +260,52 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(receiver_user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
+            CREATE TABLE IF NOT EXISTS system_announcements (
+              id TEXT PRIMARY KEY,
+              title TEXT NOT NULL,
+              content TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              created_by TEXT NULL,
+              FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS notifications (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              type TEXT NOT NULL,
+              title TEXT NOT NULL,
+              content TEXT NOT NULL,
+              related_type TEXT NOT NULL DEFAULT '',
+              related_id TEXT NOT NULL DEFAULT '',
+              post_id TEXT NOT NULL DEFAULT '',
+              actor_id TEXT NULL,
+              actor_alias TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              read_at TEXT NULL,
+              deleted INTEGER NOT NULL DEFAULT 0,
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY(actor_id) REFERENCES users(id) ON DELETE SET NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS appeals (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NULL,
+              user_email TEXT NOT NULL,
+              student_id TEXT NOT NULL DEFAULT '',
+              user_nickname TEXT NOT NULL DEFAULT '',
+              appeal_type TEXT NOT NULL DEFAULT 'other',
+              target_type TEXT NOT NULL DEFAULT '',
+              target_id TEXT NOT NULL DEFAULT '',
+              title TEXT NOT NULL,
+              content TEXT NOT NULL,
+              status TEXT NOT NULL DEFAULT 'pending',
+              admin_note TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              handled_at TEXT NULL,
+              handled_by TEXT NULL,
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+            );
+
             CREATE TABLE IF NOT EXISTS audit_logs (
               id TEXT PRIMARY KEY,
               actor_id TEXT NULL,
@@ -333,6 +379,16 @@ class SqliteTreeholeRepository:
               ON conversations(user_id, updated_at DESC);
             CREATE INDEX IF NOT EXISTS idx_direct_messages_key_created
               ON direct_messages(conversation_key, created_at ASC, id ASC);
+            CREATE INDEX IF NOT EXISTS idx_system_announcements_created
+              ON system_announcements(created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+              ON notifications(user_id, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_notifications_user_read
+              ON notifications(user_id, read_at, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_appeals_status_created
+              ON appeals(status, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_appeals_user_created
+              ON appeals(user_id, created_at DESC, id DESC);
             CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created
               ON audit_logs(actor_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_account_cancellation_requests_status_created
@@ -387,6 +443,9 @@ class SqliteTreeholeRepository:
             "userBlocks": [],
             "conversations": [],
             "directMessages": [],
+            "systemAnnouncements": [],
+            "notifications": [],
+            "appeals": [],
             "auditLogs": [],
             "accountCancellationRequests": [],
             "mediaUploads": [],
@@ -615,6 +674,78 @@ class SqliteTreeholeRepository:
             )
 
         for row in conn.execute(
+            """
+            SELECT id, title, content, created_at, created_by
+            FROM system_announcements
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["systemAnnouncements"].append(
+                {
+                    "id": _to_str(row["id"]),
+                    "title": _to_str(row["title"]),
+                    "content": _to_str(row["content"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "createdBy": _to_str(row["created_by"]),
+                }
+            )
+
+        for row in conn.execute(
+            """
+            SELECT id, user_id, type, title, content, related_type, related_id, post_id,
+                   actor_id, actor_alias, created_at, read_at, deleted
+            FROM notifications
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["notifications"].append(
+                {
+                    "id": _to_str(row["id"]),
+                    "userId": _to_str(row["user_id"]),
+                    "type": _to_str(row["type"]),
+                    "title": _to_str(row["title"]),
+                    "content": _to_str(row["content"]),
+                    "relatedType": _to_str(row["related_type"]),
+                    "relatedId": _to_str(row["related_id"]),
+                    "postId": _to_str(row["post_id"]),
+                    "actorId": _to_str(row["actor_id"]),
+                    "actorAlias": _to_str(row["actor_alias"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "readAt": _to_str(row["read_at"]),
+                    "deleted": _to_bool(row["deleted"]),
+                }
+            )
+
+        for row in conn.execute(
+            """
+            SELECT id, user_id, user_email, student_id, user_nickname, appeal_type,
+                   target_type, target_id, title, content, status, admin_note,
+                   created_at, handled_at, handled_by
+            FROM appeals
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["appeals"].append(
+                {
+                    "id": _to_str(row["id"]),
+                    "userId": _to_str(row["user_id"]),
+                    "userEmail": _to_str(row["user_email"]),
+                    "studentId": _to_str(row["student_id"]),
+                    "userNickname": _to_str(row["user_nickname"]),
+                    "appealType": _to_str(row["appeal_type"]),
+                    "targetType": _to_str(row["target_type"]),
+                    "targetId": _to_str(row["target_id"]),
+                    "title": _to_str(row["title"]),
+                    "content": _to_str(row["content"]),
+                    "status": _to_str(row["status"]),
+                    "adminNote": _to_str(row["admin_note"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "handledAt": _to_str(row["handled_at"]),
+                    "handledBy": _to_str(row["handled_by"]),
+                }
+            )
+
+        for row in conn.execute(
             "SELECT id, actor_id, action, detail, created_at FROM audit_logs ORDER BY created_at DESC, id DESC"
         ):
             db["auditLogs"].append(
@@ -691,6 +822,9 @@ class SqliteTreeholeRepository:
                 "media_uploads",
                 "account_cancellation_requests",
                 "audit_logs",
+                "appeals",
+                "notifications",
+                "system_announcements",
                 "direct_messages",
                 "conversations",
                 "user_blocks",
@@ -1064,6 +1198,91 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("createdAt")) or created_now,
                         _to_str(row.get("readAt")) or None,
                         _to_bool_int(row.get("deleted")),
+                    ),
+                )
+
+            for row in db.get("systemAnnouncements", []):
+                if not isinstance(row, dict):
+                    continue
+                announcement_id = _to_str(row.get("id")).strip()
+                if not announcement_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO system_announcements (
+                      id, title, content, created_at, created_by
+                    ) VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        announcement_id,
+                        _to_str(row.get("title")),
+                        _to_str(row.get("content")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("createdBy")) or None,
+                    ),
+                )
+
+            for row in db.get("notifications", []):
+                if not isinstance(row, dict):
+                    continue
+                notification_id = _to_str(row.get("id")).strip()
+                user_id = _to_str(row.get("userId")).strip()
+                if not notification_id or not user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO notifications (
+                      id, user_id, type, title, content, related_type, related_id, post_id,
+                      actor_id, actor_alias, created_at, read_at, deleted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        notification_id,
+                        user_id,
+                        _to_str(row.get("type")),
+                        _to_str(row.get("title")),
+                        _to_str(row.get("content")),
+                        _to_str(row.get("relatedType")),
+                        _to_str(row.get("relatedId")),
+                        _to_str(row.get("postId")),
+                        _to_str(row.get("actorId")) or None,
+                        _to_str(row.get("actorAlias")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("readAt")) or None,
+                        _to_bool_int(row.get("deleted")),
+                    ),
+                )
+
+            for row in db.get("appeals", []):
+                if not isinstance(row, dict):
+                    continue
+                appeal_id = _to_str(row.get("id")).strip()
+                if not appeal_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO appeals (
+                      id, user_id, user_email, student_id, user_nickname, appeal_type,
+                      target_type, target_id, title, content, status, admin_note,
+                      created_at, handled_at, handled_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        appeal_id,
+                        _to_str(row.get("userId")) or None,
+                        _to_str(row.get("userEmail")),
+                        _to_str(row.get("studentId")),
+                        _to_str(row.get("userNickname")),
+                        _to_str(row.get("appealType"), "other"),
+                        _to_str(row.get("targetType")),
+                        _to_str(row.get("targetId")),
+                        _to_str(row.get("title")),
+                        _to_str(row.get("content")),
+                        _to_str(row.get("status"), "pending"),
+                        _to_str(row.get("adminNote")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("handledAt")) or None,
+                        _to_str(row.get("handledBy")) or None,
                     ),
                 )
 

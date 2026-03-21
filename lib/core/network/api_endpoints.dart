@@ -12,6 +12,8 @@ class ApiEndpoints {
   static const String privacy = '/users/privacy';
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
+  static const String notifications = '/notifications';
+  static const String notificationsReadAll = '/notifications/read-all';
 
   static const String channels = '/channels';
   static const String posts = '/posts';
@@ -38,10 +40,13 @@ class ApiEndpoints {
   static const String adminUsers = '/admin/users';
   static const String adminAccountCancellationRequests =
       '/admin/account-cancellation-requests';
+  static const String adminAppeals = '/admin/appeals';
+  static const String adminExport = '/admin/export';
   static const String adminChannelsTags = '/admin/channels-tags';
   static const String adminChannels = '/admin/channels';
   static const String adminTags = '/admin/tags';
   static const String adminConfig = '/admin/config';
+  static const String adminAnnouncements = '/admin/announcements';
 
   static String postById(String postId) => '/posts/$postId';
   static String postComments(String postId) => '/posts/$postId/comments';
@@ -57,6 +62,8 @@ class ApiEndpoints {
       '/messages/conversations/$conversationId';
   static String dmConversationBlock(String conversationId, bool block) =>
       '/messages/conversations/$conversationId/${block ? 'block' : 'unblock'}';
+  static String notificationRead(String notificationId) =>
+      '/notifications/$notificationId/read';
 
   static String commentById(String commentId) => '/comments/$commentId';
   static String reportById(String reportId) => '/reports/$reportId';
@@ -64,6 +71,7 @@ class ApiEndpoints {
   static String adminReviewAction(
           String targetType, String targetId, String action) =>
       '/admin/reviews/$targetType/$targetId/$action';
+  static const String adminReviewBatch = '/admin/reviews/batch';
 
   static String adminReportHandle(String reportId) =>
       '/admin/reports/$reportId/handle';
@@ -75,6 +83,9 @@ class ApiEndpoints {
 
   static String adminAccountCancellationHandle(String requestId) =>
       '/admin/account-cancellation-requests/$requestId/handle';
+
+  static String adminAppealHandle(String appealId) =>
+      '/admin/appeals/$appealId/handle';
 
   static String adminChannelByName(String name) => '/admin/channels/$name';
 

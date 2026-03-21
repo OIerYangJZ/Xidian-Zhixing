@@ -30,7 +30,8 @@ void main() {
         }
 
         // 处理私信请求（接受/拒绝）
-        final dmRequestActionPattern = RegExp(r'/messages/requests/.+/(accept|reject)');
+        final dmRequestActionPattern =
+            RegExp(r'/messages/requests/.+/(accept|reject)');
         if (dmRequestActionPattern.hasMatch(path) && method == 'POST') {
           return http.Response(
             jsonEncode(<String, dynamic>{'message': '处理成功'}),
@@ -69,7 +70,7 @@ void main() {
 
         // 发送消息
         if (messagesPattern.hasMatch(path) && method == 'POST') {
-          final body = jsonDecode(request.body as String) as Map<String, dynamic>;
+          final body = jsonDecode(request.body) as Map<String, dynamic>;
           return http.Response(
             jsonEncode(<String, dynamic>{
               'id': 'new_msg_${DateTime.now().millisecondsSinceEpoch}',
@@ -85,7 +86,8 @@ void main() {
         }
 
         // 删除会话
-        final deleteConversationPattern = RegExp(r'/messages/conversations/[^/]+$');
+        final deleteConversationPattern =
+            RegExp(r'/messages/conversations/[^/]+$');
         if (deleteConversationPattern.hasMatch(path) && method == 'DELETE') {
           return http.Response(
             jsonEncode(<String, dynamic>{'message': '会话已删除'}),
@@ -97,7 +99,8 @@ void main() {
         // 拉黑/取消拉黑
         final blockPattern = RegExp(r'/messages/conversations/.+/block');
         final unblockPattern = RegExp(r'/messages/conversations/.+/unblock');
-        if ((blockPattern.hasMatch(path) || unblockPattern.hasMatch(path)) && method == 'POST') {
+        if ((blockPattern.hasMatch(path) || unblockPattern.hasMatch(path)) &&
+            method == 'POST') {
           return http.Response(
             jsonEncode(<String, dynamic>{
               'message': '操作成功',
@@ -202,7 +205,8 @@ void main() {
 
     group('fetchConversationMessages', () {
       test('获取会话消息列表成功', () async {
-        final messages = await messageRepository.fetchConversationMessages('conv1');
+        final messages =
+            await messageRepository.fetchConversationMessages('conv1');
 
         expect(messages, isNotEmpty);
         expect(messages.first, isA<DirectMessageItem>());

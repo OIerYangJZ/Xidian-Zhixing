@@ -21,10 +21,10 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfilePage> createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _avatarUrlController = TextEditingController();
 
@@ -38,6 +38,8 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _loadProfile();
   }
+
+  Future<void> refreshProfile() => _loadProfile();
 
   @override
   void dispose() {
@@ -209,12 +211,16 @@ class _ProfilePageState extends State<ProfilePage> {
                 title: const Text('我的收藏'),
                 subtitle: Text('当前收藏帖子：${profile.favoriteCount}'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
+                onTap: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => const MyFavoritesPage(),
                     ),
                   );
+                  if (!mounted) {
+                    return;
+                  }
+                  await _loadProfile();
                 },
               ),
               ListTile(
