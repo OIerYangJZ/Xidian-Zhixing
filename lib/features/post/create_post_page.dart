@@ -343,7 +343,26 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
       if (selected.length > accepted.length) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('最多上传 9 张图片，已自动保留前 $remaining 张')),
+          SnackBar(
+            content: Text(
+              '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+            ),
+          ),
+        );
+      }
+
+      // 检查是否有大文件
+      final List<PickedImageData> largeFiles = accepted
+          .where((PickedImageData img) => img.sizeBytes > 5 * 1024 * 1024)
+          .toList();
+      if (largeFiles.isNotEmpty && accepted.length == remaining) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。',
+            ),
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (error) {
@@ -464,6 +483,9 @@ class _PickedImageCard extends StatelessWidget {
       );
     }
 
+    final String sizeStr = _formatFileSize(image.sizeBytes);
+    final bool isLargeFile = image.sizeBytes > 5 * 1024 * 1024;
+
     return SizedBox(
       width: 140,
       child: Card(
@@ -499,6 +521,29 @@ class _PickedImageCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (isLargeFile)
+                      Positioned(
+                        bottom: 2,
+                        left: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withValues(alpha: 0.9),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            sizeStr,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -509,10 +554,28 @@ class _PickedImageCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 12),
               ),
+              if (!isLargeFile)
+                Text(
+                  sizeStr,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[600],
+                  ),
+                ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) {
+      return '$bytes B';
+    } else if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    } else {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
   }
 }

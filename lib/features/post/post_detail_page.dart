@@ -6,6 +6,7 @@ import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
+import '../../widgets/image_gallery.dart';
 
 class PostDetailPage extends StatefulWidget {
   const PostDetailPage({super.key, required this.post});
@@ -93,6 +94,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(_post.content),
+                      if (_post.imageUrls.isNotEmpty ||
+                          (_post.hasImage && _post.uploadedImageIds.isNotEmpty))
+                        ImageGallery(images: _post.imageUrls),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 6,

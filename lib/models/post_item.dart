@@ -63,6 +63,8 @@ class PostItem {
     this.canMessageAuthor = false,
     this.isOwnPost = false,
     this.isFavorited = false,
+    this.imageUrls = const <String>[],
+    this.uploadedImageIds = const <String>[],
   });
 
   final String id;
@@ -82,10 +84,16 @@ class PostItem {
   final bool canMessageAuthor;
   final bool isOwnPost;
   final bool isFavorited;
+  final List<String> imageUrls;
+  final List<String> uploadedImageIds;
 
   factory PostItem.fromJson(Map<String, dynamic> json) {
     final dynamic tagsValue = json['tags'] ?? json['tagList'];
     final dynamic imagesValue = json['images'] ?? json['imageList'];
+    final dynamic imageUrlsValue =
+        json['imageUrls'] ?? json['imageList'] ?? json['images'];
+    final dynamic uploadedImageIdsValue =
+        json['uploadedImageIds'] ?? json['imageIds'] ?? json['uploadIds'];
 
     return PostItem(
       id: _str(json, <String>['id', 'postId']) ?? '',
@@ -100,7 +108,8 @@ class PostItem {
           _date(json, <String>['createdAt', 'createTime', 'publishTime']) ??
               DateTime.now(),
       hasImage: _bool(json, <String>['hasImage']) ??
-          (imagesValue is List ? imagesValue.isNotEmpty : false),
+          (imagesValue is List ? imagesValue.isNotEmpty : false) ||
+              (imageUrlsValue is List ? imageUrlsValue.isNotEmpty : false),
       commentCount: _int(json, <String>['commentCount', 'commentsCount']) ?? 0,
       likeCount: _int(json, <String>['likeCount', 'likes']) ?? 0,
       favoriteCount: _int(json, <String>['favoriteCount', 'collectCount']) ?? 0,
@@ -112,6 +121,8 @@ class PostItem {
               false,
       isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
+      imageUrls: _toStringList(imageUrlsValue),
+      uploadedImageIds: _toStringList(uploadedImageIdsValue),
     );
   }
 
@@ -146,6 +157,8 @@ class PostItem {
     bool? canMessageAuthor,
     bool? isOwnPost,
     bool? isFavorited,
+    List<String>? imageUrls,
+    List<String>? uploadedImageIds,
   }) {
     return PostItem(
       id: id ?? this.id,
@@ -165,6 +178,8 @@ class PostItem {
       canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
       isOwnPost: isOwnPost ?? this.isOwnPost,
       isFavorited: isFavorited ?? this.isFavorited,
+      imageUrls: imageUrls ?? this.imageUrls,
+      uploadedImageIds: uploadedImageIds ?? this.uploadedImageIds,
     );
   }
 

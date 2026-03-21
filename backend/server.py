@@ -118,6 +118,7 @@ DEFAULT_SETTINGS = {
     "postRateLimit": 5,
     "commentRateLimit": 20,
     "messageRateLimit": 30,
+    "uploadRateLimit": 30,
     "imageMaxMB": 5,
     "reportRateLimit": 10,
     "dmRequestRateLimit": 20,
@@ -1832,7 +1833,7 @@ def list_post_images(
         if upload.get("postId") != post_id:
             continue
         status = str(upload.get("status", "pending")).lower()
-        if not include_unapproved and status != "approved":
+        if not include_unapproved and status not in {"approved", "pending", "risk"}:
             continue
         rows.append(
             {
@@ -1889,6 +1890,8 @@ def serialize_post(
         )
     )
     images = list_post_images(db, post.get("id", ""), include_unapproved=include_unapproved_images)
+    image_urls = [img["url"] for img in images if img.get("url")]
+    uploaded_image_ids = [img["id"] for img in images if img.get("id")]
     author_id = str(post.get("authorId", "")).strip()
     can_message_author = bool(
         viewer_user_id
@@ -1907,6 +1910,8 @@ def serialize_post(
         "createdAt": post.get("createdAt", now_iso()),
         "hasImage": bool(post.get("hasImage", False)) or bool(images),
         "images": images,
+        "imageUrls": image_urls,
+        "uploadedImageIds": uploaded_image_ids,
         "commentCount": comment_count,
         "likeCount": like_count,
         "favoriteCount": favorite_count,
@@ -3621,8 +3626,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     db,
                     user_id=user["id"],
                     action="upload",
-                    setting_key="messageRateLimit",
-                    default_limit=DEFAULT_SETTINGS["messageRateLimit"],
+                    setting_key="uploadRateLimit",
+                    default_limit=DEFAULT_SETTINGS["uploadRateLimit"],
                 )
                 if not allowed:
                     send_rate_limit_error(

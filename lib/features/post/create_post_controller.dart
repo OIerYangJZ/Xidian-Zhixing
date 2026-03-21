@@ -97,6 +97,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
 
     try {
       final List<String> uploadedIds = <String>[];
+      final List<String> uploadedUrls = <String>[];
       for (int i = 0; i < uploadPayloads.length; i += 1) {
         state = state.copyWith(
           progressText: '上传图片 ${i + 1}/${uploadPayloads.length}...',
@@ -109,6 +110,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
                   dataBase64: payload.dataBase64,
                 );
         uploadedIds.add(uploaded.id);
+        uploadedUrls.add(uploaded.url);
       }
 
       state = state.copyWith(progressText: '提交帖子中...');
@@ -134,6 +136,13 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         clearProgress: true,
         clearError: true,
       );
+
+      if (uploadedUrls.isNotEmpty) {
+        return created.copyWith(
+          imageUrls: uploadedUrls,
+          uploadedImageIds: uploadedIds,
+        );
+      }
       return created;
     } catch (error) {
       state = state.copyWith(
