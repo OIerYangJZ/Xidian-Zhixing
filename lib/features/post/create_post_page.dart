@@ -31,6 +31,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   bool _allowComment = true;
   bool _allowDm = true;
   bool _useAnonymousAlias = false;
+  int? _selectedPinDurationMinutes;
   bool _pickingImages = false;
   final List<PickedImageData> _pickedImages = <PickedImageData>[];
 
@@ -242,6 +243,32 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     title: const Text('允许私信'),
                     contentPadding: EdgeInsets.zero,
                   ),
+                  if (state.isLevelOneUser) ...<Widget>[
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<int?>(
+                      initialValue: _selectedPinDurationMinutes,
+                      decoration: InputDecoration(
+                        labelText: '发帖后立即置顶（可选）',
+                        helperText: '当前身份：${state.userLevelLabel}',
+                      ),
+                      items: const <DropdownMenuItem<int?>>[
+                        DropdownMenuItem<int?>(value: null, child: Text('不置顶')),
+                        DropdownMenuItem<int?>(value: 30, child: Text('30 分钟')),
+                        DropdownMenuItem<int?>(value: 60, child: Text('1 小时')),
+                        DropdownMenuItem<int?>(value: 120, child: Text('2 小时')),
+                        DropdownMenuItem<int?>(value: 180, child: Text('3 小时')),
+                        DropdownMenuItem<int?>(value: 1440, child: Text('1 天')),
+                        DropdownMenuItem<int?>(value: 4320, child: Text('3 天')),
+                      ],
+                      onChanged: isBusy
+                          ? null
+                          : (int? value) {
+                              setState(() {
+                                _selectedPinDurationMinutes = value;
+                              });
+                            },
+                    ),
+                  ],
                   const Divider(height: 28),
                   Row(
                     children: <Widget>[
@@ -402,6 +429,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           ),
         )
         .toList();
+    final CreatePostState state = ref.read(createPostControllerProvider);
 
     final PostItem? created =
         await ref.read(createPostControllerProvider.notifier).submit(
@@ -416,6 +444,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               anonymousAlias: _useAnonymousAlias
                   ? _anonymousAliasController.text.trim()
                   : null,
+              pinDurationMinutes:
+                  state.isLevelOneUser ? _selectedPinDurationMinutes : null,
               uploadPayloads: uploadPayloads,
             );
 
@@ -423,7 +453,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('帖子发布成功，已立即展示。')),
+      SnackBar(
+        content: Text(
+          created.isPinned ? '帖子发布成功，已置顶展示。' : '帖子发布成功，已立即展示。',
+        ),
+      ),
     );
     Navigator.of(context).pop(true);
   }

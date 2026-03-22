@@ -8,6 +8,12 @@ class AdminRepository {
 
   final ApiClient _apiClient;
 
+  Future<AdminCurrentUser> fetchCurrentAdmin() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.adminMe);
+    final Map<String, dynamic> data = extractMap(response);
+    return AdminCurrentUser.fromJson(data);
+  }
+
   Future<AdminOverview> fetchOverview() async {
     final dynamic response = await _apiClient.get(ApiEndpoints.adminOverview);
     final Map<String, dynamic> data = extractMap(response);
@@ -118,6 +124,104 @@ class AdminRepository {
         .map((dynamic item) => AdminUserEntry.fromJson(asMap(item)))
         .where((AdminUserEntry item) => item.id.isNotEmpty)
         .toList();
+  }
+
+  Future<List<AdminPostPinRequestEntry>> fetchPostPinRequests({
+    String status = 'all',
+    String? keyword,
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminPostPinRequests,
+      queryParameters: <String, dynamic>{
+        'status': status,
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+      },
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => AdminPostPinRequestEntry.fromJson(asMap(item)))
+        .where((AdminPostPinRequestEntry item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<void> handlePostPinRequest({
+    required String requestId,
+    required String action,
+    String? note,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminPostPinRequestHandle(requestId),
+      body: <String, dynamic>{
+        'action': action,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+  }
+
+  Future<List<AdminUserLevelRequestEntry>> fetchUserLevelRequests({
+    String status = 'all',
+    String? keyword,
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminUserLevelRequests,
+      queryParameters: <String, dynamic>{
+        'status': status,
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+      },
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => AdminUserLevelRequestEntry.fromJson(asMap(item)))
+        .where((AdminUserLevelRequestEntry item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<void> handleUserLevelRequest({
+    required String requestId,
+    required String action,
+    String? note,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminUserLevelRequestHandle(requestId),
+      body: <String, dynamic>{
+        'action': action,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+    );
+  }
+
+  Future<List<AdminAccountEntry>> fetchAdminAccounts() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.adminAccounts);
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => AdminAccountEntry.fromJson(asMap(item)))
+        .where((AdminAccountEntry item) => item.id.isNotEmpty)
+        .toList();
+  }
+
+  Future<void> createAdminAccount({
+    required String username,
+    required String password,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminAccounts,
+      body: <String, dynamic>{
+        'username': username,
+        'password': password,
+      },
+    );
+  }
+
+  Future<void> updateAdminAccount({
+    required String adminId,
+    required String action,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminAccountAction(adminId),
+      body: <String, dynamic>{'action': action},
+    );
   }
 
   Future<List<AdminAccountCancellationRequest>>

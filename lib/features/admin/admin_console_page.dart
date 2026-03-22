@@ -22,11 +22,17 @@ class AdminConsolePage extends StatefulWidget {
 }
 
 class _AdminConsolePageState extends State<AdminConsolePage> {
+  AdminCurrentUser? _currentAdmin;
   AdminOverview? _overview;
   List<AdminReviewItem> _reviews = const <AdminReviewItem>[];
   List<AdminReportEntry> _reports = const <AdminReportEntry>[];
   List<AdminImageReviewItem> _imageReviews = const <AdminImageReviewItem>[];
   List<AdminUserEntry> _users = const <AdminUserEntry>[];
+  List<AdminPostPinRequestEntry> _postPinRequests =
+      const <AdminPostPinRequestEntry>[];
+  List<AdminUserLevelRequestEntry> _userLevelRequests =
+      const <AdminUserLevelRequestEntry>[];
+  List<AdminAccountEntry> _adminAccounts = const <AdminAccountEntry>[];
   List<AdminAccountCancellationRequest> _accountCancellationRequests =
       const <AdminAccountCancellationRequest>[];
   List<AdminAppealEntry> _appeals = const <AdminAppealEntry>[];
@@ -53,6 +59,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       TextEditingController();
   final TextEditingController _announcementContentController =
       TextEditingController();
+  final TextEditingController _adminUsernameController =
+      TextEditingController();
+  final TextEditingController _adminPasswordController =
+      TextEditingController();
   final TextEditingController _reportReasonController = TextEditingController();
   final TextEditingController _reportKeywordController =
       TextEditingController();
@@ -62,12 +72,18 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       TextEditingController();
   final TextEditingController _appealKeywordController =
       TextEditingController();
+  final TextEditingController _postPinKeywordController =
+      TextEditingController();
+  final TextEditingController _userLevelKeywordController =
+      TextEditingController();
 
   String _reviewType = 'post';
   String _reviewStatus = 'pending';
   String _reportStatus = 'all';
   String _imageStatus = 'pending';
   String _userFilter = 'all';
+  String _postPinStatus = 'all';
+  String _userLevelStatus = 'all';
   String _cancellationStatus = 'all';
   String _appealStatus = 'all';
   String _exportScope = 'users';
@@ -79,6 +95,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   String? _error;
 
   AdminRepository get _repo => widget.repository ?? AppRepositories.admin;
+  bool get _isPrimaryAdmin => _currentAdmin?.isPrimary ?? false;
 
   @override
   void initState() {
@@ -97,12 +114,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     _imageMaxController.dispose();
     _announcementTitleController.dispose();
     _announcementContentController.dispose();
+    _adminUsernameController.dispose();
+    _adminPasswordController.dispose();
     _reportReasonController.dispose();
     _reportKeywordController.dispose();
     _userKeywordController.dispose();
     _imageKeywordController.dispose();
     _cancellationKeywordController.dispose();
     _appealKeywordController.dispose();
+    _postPinKeywordController.dispose();
+    _userLevelKeywordController.dispose();
     super.dispose();
   }
 
@@ -139,68 +160,124 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         ),
         child: _loading
             ? const Center(child: CircularProgressIndicator())
-            : DefaultTabController(
-                length: 9,
-                child: Column(
-                  children: <Widget>[
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-                      child: _buildDashboardHeader(),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Material(
-                        color: Colors.white.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(14),
-                        child: const TabBar(
-                          isScrollable: true,
-                          dividerColor: Colors.transparent,
-                          tabs: <Tab>[
-                            Tab(text: '概览'),
-                            Tab(text: '内容审核'),
-                            Tab(text: '举报处理'),
-                            Tab(text: '图片审核'),
-                            Tab(text: '注销申请'),
-                            Tab(text: '申诉处理'),
-                            Tab(text: '用户管理'),
-                            Tab(text: '分类标签'),
-                            Tab(text: '系统配置'),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Expanded(
-                      child: TabBarView(
-                        children: <Widget>[
-                          _buildOverviewTab(),
-                          _buildReviewTab(),
-                          _buildReportTab(),
-                          _buildImageReviewTab(),
-                          _buildAccountCancellationTab(),
-                          _buildAppealTab(),
-                          _buildUserTab(),
-                          _buildChannelTagTab(),
-                          _buildConfigTab(),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+            : (_isPrimaryAdmin
+                ? _buildPrimaryConsole()
+                : _buildSecondaryConsole()),
+      ),
+    );
+  }
+
+  Widget _buildPrimaryConsole() {
+    return DefaultTabController(
+      length: 11,
+      child: Column(
+        children: <Widget>[
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
               ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            child: _buildDashboardHeader(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Material(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(14),
+              child: const TabBar(
+                isScrollable: true,
+                dividerColor: Colors.transparent,
+                tabs: <Tab>[
+                  Tab(text: '概览'),
+                  Tab(text: '内容审核'),
+                  Tab(text: '举报处理'),
+                  Tab(text: '图片审核'),
+                  Tab(text: '帖子置顶'),
+                  Tab(text: '一级用户申请'),
+                  Tab(text: '注销申请'),
+                  Tab(text: '申诉处理'),
+                  Tab(text: '用户管理'),
+                  Tab(text: '分类标签'),
+                  Tab(text: '系统配置'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: TabBarView(
+              children: <Widget>[
+                _buildOverviewTab(),
+                _buildReviewTab(),
+                _buildReportTab(),
+                _buildImageReviewTab(),
+                _buildPostPinRequestTab(),
+                _buildUserLevelRequestTab(),
+                _buildAccountCancellationTab(),
+                _buildAppealTab(),
+                _buildUserTab(),
+                _buildChannelTagTab(),
+                _buildConfigTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSecondaryConsole() {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
+        children: <Widget>[
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
+            child: _buildDashboardHeader(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Material(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(14),
+              child: const TabBar(
+                dividerColor: Colors.transparent,
+                tabs: <Tab>[
+                  Tab(text: '帖子置顶'),
+                  Tab(text: '用户管理'),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Expanded(
+            child: TabBarView(
+              children: <Widget>[
+                _buildPostPinRequestTab(),
+                _buildUserTab(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildDashboardHeader() {
+    final AdminCurrentUser? currentAdmin = _currentAdmin;
     final AdminOverview overview = _overview ??
         AdminOverview(
           todayNewUsers: 0,
@@ -227,32 +304,47 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         runSpacing: 8,
         children: <Widget>[
           _compactStatusChip(
-              icon: Icons.person_add_alt_1,
-              label: '今日新用户 ${overview.todayNewUsers}'),
+            icon: Icons.admin_panel_settings_outlined,
+            label:
+                '当前管理员 ${currentAdmin == null || currentAdmin.username.isEmpty ? '-' : currentAdmin.username}',
+          ),
           _compactStatusChip(
-              icon: Icons.article_outlined,
-              label: '今日发帖 ${overview.todayPosts}'),
-          _compactStatusChip(
-              icon: Icons.comment_outlined,
-              label: '今日评论 ${overview.todayComments}'),
-          _compactStatusChip(
-              icon: Icons.flag_outlined,
-              label: '今日举报 ${overview.todayReports}'),
-          _compactStatusChip(
-              icon: Icons.pending_actions_outlined,
-              label: '待审核 ${overview.pendingReviews}'),
-          _compactStatusChip(
-              icon: Icons.person_off_outlined,
-              label: '待注销 ${overview.pendingCancellationRequests}'),
-          _compactStatusChip(
-              icon: Icons.groups_2_outlined,
-              label: '活跃账号 ${overview.activeUsers}'),
-          _compactStatusChip(
-              icon: Icons.gpp_bad_outlined,
-              label: '封禁用户 ${overview.bannedUsers}'),
-          _compactStatusChip(
-              icon: Icons.volume_off_outlined,
-              label: '禁言用户 ${overview.mutedUsers}'),
+            icon: Icons.verified_user_outlined,
+            label: '权限 ${currentAdmin?.roleLabel ?? '-'}',
+          ),
+          if (_isPrimaryAdmin) ...<Widget>[
+            _compactStatusChip(
+                icon: Icons.person_add_alt_1,
+                label: '今日新用户 ${overview.todayNewUsers}'),
+            _compactStatusChip(
+                icon: Icons.article_outlined,
+                label: '今日发帖 ${overview.todayPosts}'),
+            _compactStatusChip(
+                icon: Icons.comment_outlined,
+                label: '今日评论 ${overview.todayComments}'),
+            _compactStatusChip(
+                icon: Icons.flag_outlined,
+                label: '今日举报 ${overview.todayReports}'),
+            _compactStatusChip(
+                icon: Icons.pending_actions_outlined,
+                label: '待审核 ${overview.pendingReviews}'),
+            _compactStatusChip(
+                icon: Icons.person_off_outlined,
+                label: '待注销 ${overview.pendingCancellationRequests}'),
+            _compactStatusChip(
+                icon: Icons.groups_2_outlined,
+                label: '活跃账号 ${overview.activeUsers}'),
+            _compactStatusChip(
+                icon: Icons.gpp_bad_outlined,
+                label: '封禁用户 ${overview.bannedUsers}'),
+            _compactStatusChip(
+                icon: Icons.volume_off_outlined,
+                label: '禁言用户 ${overview.mutedUsers}'),
+          ] else
+            _compactStatusChip(
+              icon: Icons.lock_outline,
+              label: '当前开放用户管理和帖子置顶审核',
+            ),
         ],
       ),
     );
@@ -398,6 +490,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   onPressed: _actionBusy ? null : _loadImageReviews,
                   icon: const Icon(Icons.image_search_outlined),
                   label: const Text('刷新图片审核'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadPostPinRequests,
+                  icon: const Icon(Icons.push_pin_outlined),
+                  label: const Text('刷新置顶申请'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadUserLevelRequests,
+                  icon: const Icon(Icons.workspace_premium_outlined),
+                  label: const Text('刷新一级用户申请'),
                 ),
               ],
             ),
@@ -1068,6 +1170,369 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Widget _buildPostPinRequestTab() {
+    final String keyword = _postPinKeywordController.text.trim().toLowerCase();
+    final List<AdminPostPinRequestEntry> rows =
+        _postPinRequests.where((AdminPostPinRequestEntry item) {
+      final String merged = [
+        item.postId,
+        item.postTitle,
+        item.userId,
+        item.userEmail,
+        item.userNickname,
+        item.reason,
+      ].join(' ').toLowerCase();
+      final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
+      final bool matchStatus =
+          _postPinStatus == 'all' || item.status == _postPinStatus;
+      return matchKeyword && matchStatus;
+    }).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: <Widget>[
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                SizedBox(
+                  width: 240,
+                  child: TextField(
+                    controller: _postPinKeywordController,
+                    decoration: const InputDecoration(
+                      labelText: '置顶申请搜索',
+                      hintText: '帖子 / 用户 / 邮箱 / 原因',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                SizedBox(
+                  width: 160,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _postPinStatus,
+                    decoration: const InputDecoration(labelText: '申请状态'),
+                    items: const <DropdownMenuItem<String>>[
+                      DropdownMenuItem(value: 'all', child: Text('全部')),
+                      DropdownMenuItem(value: 'pending', child: Text('待处理')),
+                      DropdownMenuItem(value: 'approved', child: Text('已通过')),
+                      DropdownMenuItem(value: 'rejected', child: Text('已驳回')),
+                    ],
+                    onChanged: (String? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _postPinStatus = value;
+                      });
+                      _loadPostPinRequests();
+                    },
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadPostPinRequests,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('刷新置顶申请'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            '匹配置顶申请 ${rows.length} / 总计 ${_postPinRequests.length}',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.black54),
+          ),
+        ),
+        ...rows.map(
+          (AdminPostPinRequestEntry item) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          item.postTitle.isEmpty
+                              ? '帖子 ${item.postId}'
+                              : item.postTitle,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      _statusChip(item.status),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${item.userNickname} · ${item.userEmail} · ${item.userLevelLabel}',
+                  ),
+                  Text('帖子ID：${item.postId}'),
+                  Text(
+                      '申请时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}'),
+                  Text('提交时间：${item.createdAt}'),
+                  if (item.reason.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text('申请说明：${item.reason}'),
+                  ],
+                  if (item.adminNote.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Text('处理备注：${item.adminNote}'),
+                  ],
+                  if (item.handledAt.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Text(
+                      '处理信息：${item.handledAt}'
+                      '${item.handledBy.trim().isEmpty ? '' : ' · ${item.handledBy}'}',
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      OutlinedButton.icon(
+                        onPressed: () => _showSimpleDetail(
+                          title: item.postTitle.isEmpty
+                              ? '帖子 ${item.postId}'
+                              : item.postTitle,
+                          subtitle: '${item.userNickname} · ${item.userEmail}\n'
+                              '帖子ID：${item.postId}\n'
+                              '置顶时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
+                          content: item.reason.trim().isEmpty
+                              ? '无额外申请说明'
+                              : item.reason,
+                        ),
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: const Text('详情'),
+                      ),
+                      if (item.status == 'pending')
+                        FilledButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandlePostPinRequest(
+                                    requestId: item.id,
+                                    action: 'approve',
+                                    actionLabel: '通过置顶申请',
+                                    defaultNote: '申请通过，帖子已置顶展示',
+                                  ),
+                          child: const Text('通过'),
+                        ),
+                      if (item.status == 'pending')
+                        FilledButton.tonal(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandlePostPinRequest(
+                                    requestId: item.id,
+                                    action: 'reject',
+                                    actionLabel: '驳回置顶申请',
+                                    defaultNote: '当前不满足置顶条件',
+                                  ),
+                          child: const Text('驳回'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (rows.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('暂无匹配的置顶申请。')),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildUserLevelRequestTab() {
+    final String keyword =
+        _userLevelKeywordController.text.trim().toLowerCase();
+    final List<AdminUserLevelRequestEntry> rows =
+        _userLevelRequests.where((AdminUserLevelRequestEntry item) {
+      final String merged = [
+        item.userId,
+        item.userEmail,
+        item.studentId,
+        item.userNickname,
+        item.reason,
+      ].join(' ').toLowerCase();
+      final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
+      final bool matchStatus =
+          _userLevelStatus == 'all' || item.status == _userLevelStatus;
+      return matchKeyword && matchStatus;
+    }).toList();
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: <Widget>[
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                SizedBox(
+                  width: 240,
+                  child: TextField(
+                    controller: _userLevelKeywordController,
+                    decoration: const InputDecoration(
+                      labelText: '一级用户申请搜索',
+                      hintText: '用户 / 邮箱 / 学号 / 原因',
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                ),
+                SizedBox(
+                  width: 160,
+                  child: DropdownButtonFormField<String>(
+                    initialValue: _userLevelStatus,
+                    decoration: const InputDecoration(labelText: '申请状态'),
+                    items: const <DropdownMenuItem<String>>[
+                      DropdownMenuItem(value: 'all', child: Text('全部')),
+                      DropdownMenuItem(value: 'pending', child: Text('待处理')),
+                      DropdownMenuItem(value: 'approved', child: Text('已通过')),
+                      DropdownMenuItem(value: 'rejected', child: Text('已驳回')),
+                    ],
+                    onChanged: (String? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _userLevelStatus = value;
+                      });
+                      _loadUserLevelRequests();
+                    },
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadUserLevelRequests,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('刷新一级用户申请'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text(
+            '匹配申请 ${rows.length} / 总计 ${_userLevelRequests.length}',
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.black54),
+          ),
+        ),
+        ...rows.map(
+          (AdminUserLevelRequestEntry item) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          '${item.userNickname} (${item.userEmail})',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      _statusChip(item.status),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '用户ID：${item.userId}'
+                    '${item.studentId.isEmpty ? '' : ' · 学号 ${item.studentId}'}',
+                  ),
+                  Text(
+                    '申请等级：${item.currentLevelLabel} -> ${item.targetLevelLabel}'
+                    ' · 当前账号等级：${item.userCurrentLevelLabel}',
+                  ),
+                  Text('提交时间：${item.createdAt}'),
+                  if (item.reason.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text('申请说明：${item.reason}'),
+                  ],
+                  if (item.adminNote.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Text('处理备注：${item.adminNote}'),
+                  ],
+                  if (item.handledAt.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 6),
+                    Text(
+                      '处理信息：${item.handledAt}'
+                      '${item.handledBy.trim().isEmpty ? '' : ' · ${item.handledBy}'}',
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      OutlinedButton.icon(
+                        onPressed: () => _showSimpleDetail(
+                          title: '${item.userNickname} · 一级用户申请',
+                          subtitle: '${item.userEmail}\n用户ID：${item.userId}\n'
+                              '当前等级：${item.currentLevelLabel} -> ${item.targetLevelLabel}',
+                          content: item.reason.trim().isEmpty
+                              ? '无额外申请说明'
+                              : item.reason,
+                        ),
+                        icon: const Icon(Icons.visibility_outlined),
+                        label: const Text('详情'),
+                      ),
+                      if (item.status == 'pending')
+                        FilledButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleUserLevelRequest(
+                                    requestId: item.id,
+                                    action: 'approve',
+                                    actionLabel: '通过一级用户申请',
+                                    defaultNote: '申请通过，已升级为一级用户',
+                                  ),
+                          child: const Text('通过'),
+                        ),
+                      if (item.status == 'pending')
+                        FilledButton.tonal(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleUserLevelRequest(
+                                    requestId: item.id,
+                                    action: 'reject',
+                                    actionLabel: '驳回一级用户申请',
+                                    defaultNote: '当前未通过升级申请',
+                                  ),
+                          child: const Text('驳回'),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (rows.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('暂无匹配的一级用户申请。')),
+          ),
+      ],
+    );
+  }
+
   Widget _buildAccountCancellationTab() {
     final String keyword =
         _cancellationKeywordController.text.trim().toLowerCase();
@@ -1619,6 +2084,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             Text(
                               'ID: ${user.id} · 学号: ${user.studentId.isEmpty ? '-' : user.studentId}',
                             ),
+                            Text('等级：${user.userLevelLabel}'),
                             Text('注册时间：${user.createdAt}'),
                           ],
                         ),
@@ -1636,6 +2102,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       if (user.hasPendingAppeal)
                         const Chip(
                           label: Text('有待处理申诉'),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                      if (user.hasPendingLevelUpgradeRequest)
+                        const Chip(
+                          label: Text('待处理升级申请'),
                           visualDensity: VisualDensity.compact,
                         ),
                       if (user.deleted)
@@ -1663,9 +2134,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         onPressed: () => _showSimpleDetail(
                           title: user.alias,
                           subtitle:
-                              '${user.email}\n用户ID: ${user.id}\n学号: ${user.studentId.isEmpty ? '-' : user.studentId}',
+                              '${user.email}\n用户ID: ${user.id}\n学号: ${user.studentId.isEmpty ? '-' : user.studentId}\n等级: ${user.userLevelLabel}',
                           content:
-                              '注册时间：${user.createdAt}\n发帖 ${user.postCount} · 评论 ${user.commentCount} · 被举报 ${user.reportCount}\n状态：${user.deleted ? '已注销' : '正常'} / ${user.banned ? '封禁' : '未封禁'} / ${user.muted ? '禁言' : '可发言'}',
+                              '注册时间：${user.createdAt}\n发帖 ${user.postCount} · 评论 ${user.commentCount} · 被举报 ${user.reportCount}\n等级：${user.userLevelLabel}\n状态：${user.deleted ? '已注销' : '正常'} / ${user.banned ? '封禁' : '未封禁'} / ${user.muted ? '禁言' : '可发言'}',
                         ),
                         icon: const Icon(Icons.visibility_outlined),
                         label: const Text('查看详情'),
@@ -2000,6 +2471,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
+        if (_isPrimaryAdmin) _buildAdminAccountCard(),
+        if (_isPrimaryAdmin) const SizedBox(height: 12),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -2086,6 +2559,129 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAdminAccountCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '二级管理员管理',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            const Text('一级管理员可以创建、注销和恢复二级管理员账号。'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _adminUsernameController,
+                    decoration: const InputDecoration(labelText: '二级管理员账号'),
+                  ),
+                ),
+                SizedBox(
+                  width: 220,
+                  child: TextField(
+                    controller: _adminPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: '初始密码'),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: _actionBusy ? null : _createSecondaryAdmin,
+                  icon: const Icon(Icons.person_add_alt_1),
+                  label: const Text('创建二级管理员'),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadAdminAccounts,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('刷新列表'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (_adminAccounts.isEmpty)
+              const Text('当前暂无二级管理员账号。')
+            else
+              ..._adminAccounts.map(
+                (AdminAccountEntry account) => Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FBFD),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFD7E4EC)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              account.username,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          Chip(
+                            label: Text(account.statusLabel),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text('角色：${account.roleLabel}'),
+                      Text(
+                        '创建者：${account.createdBy.isEmpty ? '-' : account.createdBy} · 创建时间：${account.createdAt}',
+                      ),
+                      Text('最近更新时间：${account.updatedAt}'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: <Widget>[
+                          if (account.active)
+                            FilledButton.tonal(
+                              onPressed: _actionBusy
+                                  ? null
+                                  : () => _updateSecondaryAdmin(
+                                        account.id,
+                                        'deactivate',
+                                      ),
+                              child: const Text('注销账号'),
+                            ),
+                          if (!account.active)
+                            FilledButton(
+                              onPressed: _actionBusy
+                                  ? null
+                                  : () => _updateSecondaryAdmin(
+                                        account.id,
+                                        'activate',
+                                      ),
+                              child: const Text('恢复账号'),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -2185,6 +2781,41 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     });
 
     try {
+      final AdminCurrentUser currentAdmin = await _repo.fetchCurrentAdmin();
+      final List<AdminUserEntry> users = await _repo.fetchUsers();
+      final List<AdminPostPinRequestEntry> postPinRequests =
+          await _repo.fetchPostPinRequests(
+        status: _postPinStatus,
+        keyword: _postPinKeywordController.text.trim(),
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      if (!currentAdmin.isPrimary) {
+        setState(() {
+          _currentAdmin = currentAdmin;
+          _users = users;
+          _overview = null;
+          _reviews = const <AdminReviewItem>[];
+          _reports = const <AdminReportEntry>[];
+          _imageReviews = const <AdminImageReviewItem>[];
+          _postPinRequests = postPinRequests;
+          _userLevelRequests = const <AdminUserLevelRequestEntry>[];
+          _accountCancellationRequests =
+              const <AdminAccountCancellationRequest>[];
+          _appeals = const <AdminAppealEntry>[];
+          _channelTagData = AdminChannelTagData(
+            channels: const <String>[],
+            tags: const <String>[],
+          );
+          _announcements = const <AdminSystemAnnouncement>[];
+          _adminAccounts = const <AdminAccountEntry>[];
+        });
+        return;
+      }
+
       final AdminOverview overview = await _repo.fetchOverview();
       final List<AdminReviewItem> reviews = await _repo.fetchReviews(
         type: _reviewType,
@@ -2197,6 +2828,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         status: _imageStatus,
         keyword: _imageKeywordController.text.trim(),
       );
+      final List<AdminUserLevelRequestEntry> userLevelRequests =
+          await _repo.fetchUserLevelRequests(
+        status: _userLevelStatus,
+        keyword: _userLevelKeywordController.text.trim(),
+      );
       final List<AdminAccountCancellationRequest> accountCancellationRequests =
           await _repo.fetchAccountCancellationRequests(
         status: _cancellationStatus,
@@ -2206,28 +2842,33 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         status: _appealStatus,
         keyword: _appealKeywordController.text.trim(),
       );
-      final List<AdminUserEntry> users = await _repo.fetchUsers();
       final AdminChannelTagData channelTagData =
           await _repo.fetchChannelTagData();
       final AdminSystemConfig config = await _repo.fetchConfig();
       final List<AdminSystemAnnouncement> announcements =
           await _repo.fetchAnnouncements();
+      final List<AdminAccountEntry> adminAccounts =
+          await _repo.fetchAdminAccounts();
 
       if (!mounted) {
         return;
       }
 
       setState(() {
+        _currentAdmin = currentAdmin;
         _overview = overview;
         _reviews = reviews;
         _reports = reports;
         _imageReviews = imageReviews;
+        _postPinRequests = postPinRequests;
+        _userLevelRequests = userLevelRequests;
         _accountCancellationRequests = accountCancellationRequests;
         _appeals = appeals;
         _users = users;
         _channelTagData = channelTagData;
         _config = config;
         _announcements = announcements;
+        _adminAccounts = adminAccounts;
       });
       _syncSelectedReviews();
 
@@ -2298,6 +2939,24 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
+  Future<void> _loadPostPinRequests() async {
+    try {
+      final List<AdminPostPinRequestEntry> rows =
+          await _repo.fetchPostPinRequests(
+        status: _postPinStatus,
+        keyword: _postPinKeywordController.text.trim(),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _postPinRequests = rows;
+      });
+    } catch (error) {
+      _toast('加载置顶申请失败：$error');
+    }
+  }
+
   Future<void> _loadAccountCancellationRequests() async {
     try {
       final List<AdminAccountCancellationRequest> rows =
@@ -2347,6 +3006,27 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
+  Future<void> _loadUserLevelRequests() async {
+    if (!_isPrimaryAdmin) {
+      return;
+    }
+    try {
+      final List<AdminUserLevelRequestEntry> rows =
+          await _repo.fetchUserLevelRequests(
+        status: _userLevelStatus,
+        keyword: _userLevelKeywordController.text.trim(),
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _userLevelRequests = rows;
+      });
+    } catch (error) {
+      _toast('加载一级用户申请失败：$error');
+    }
+  }
+
   Future<void> _loadChannelTag() async {
     try {
       final AdminChannelTagData data = await _repo.fetchChannelTagData();
@@ -2362,20 +3042,43 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadConfig() async {
+    if (!_isPrimaryAdmin) {
+      return;
+    }
     try {
       final AdminSystemConfig config = await _repo.fetchConfig();
       final List<AdminSystemAnnouncement> announcements =
           await _repo.fetchAnnouncements();
+      final List<AdminAccountEntry> adminAccounts =
+          await _repo.fetchAdminAccounts();
       if (!mounted) {
         return;
       }
       setState(() {
         _config = config;
         _announcements = announcements;
+        _adminAccounts = adminAccounts;
       });
       _syncConfigControllers();
     } catch (error) {
       _toast('加载配置失败：$error');
+    }
+  }
+
+  Future<void> _loadAdminAccounts() async {
+    if (!_isPrimaryAdmin) {
+      return;
+    }
+    try {
+      final List<AdminAccountEntry> rows = await _repo.fetchAdminAccounts();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _adminAccounts = rows;
+      });
+    } catch (error) {
+      _toast('加载二级管理员失败：$error');
     }
   }
 
@@ -2484,6 +3187,46 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Future<void> _handlePostPinRequest(
+    String requestId,
+    String action, {
+    String? note,
+  }) async {
+    await _runAction(
+      () => _repo.handlePostPinRequest(
+        requestId: requestId,
+        action: action,
+        note: note,
+      ),
+      successText: action == 'approve' ? '置顶申请已通过' : '置顶申请已驳回',
+      onSuccess: () async {
+        await _loadPostPinRequests();
+        if (_isPrimaryAdmin) {
+          await _loadOverview();
+        }
+      },
+    );
+  }
+
+  Future<void> _handleUserLevelRequest(
+    String requestId,
+    String action, {
+    String? note,
+  }) async {
+    await _runAction(
+      () => _repo.handleUserLevelRequest(
+        requestId: requestId,
+        action: action,
+        note: note,
+      ),
+      successText: action == 'approve' ? '一级用户申请已通过' : '一级用户申请已驳回',
+      onSuccess: () async {
+        await _loadUserLevelRequests();
+        await _loadUsers();
+      },
+    );
+  }
+
   Future<void> _handleAppeal(
     String appealId,
     String action, {
@@ -2518,10 +3261,46 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               : '用户状态已更新',
       onSuccess: () async {
         await _loadUsers();
-        await _loadAccountCancellationRequests();
-        await _loadAppeals();
-        await _loadOverview();
+        await _loadPostPinRequests();
+        if (_isPrimaryAdmin) {
+          await _loadUserLevelRequests();
+          await _loadAccountCancellationRequests();
+          await _loadAppeals();
+          await _loadOverview();
+        }
       },
+    );
+  }
+
+  Future<void> _createSecondaryAdmin() async {
+    final String username = _adminUsernameController.text.trim();
+    final String password = _adminPasswordController.text.trim();
+    if (username.isEmpty || password.isEmpty) {
+      _toast('请输入管理员账号和密码');
+      return;
+    }
+    await _runAction(
+      () => _repo.createAdminAccount(
+        username: username,
+        password: password,
+      ),
+      successText: '二级管理员已创建',
+      onSuccess: () async {
+        _adminUsernameController.clear();
+        _adminPasswordController.clear();
+        await _loadAdminAccounts();
+      },
+    );
+  }
+
+  Future<void> _updateSecondaryAdmin(
+    String adminId,
+    String action,
+  ) async {
+    await _runAction(
+      () => _repo.updateAdminAccount(adminId: adminId, action: action),
+      successText: action == 'deactivate' ? '二级管理员已注销' : '二级管理员已恢复',
+      onSuccess: _loadAdminAccounts,
     );
   }
 
@@ -2846,6 +3625,49 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     await _handleAccountCancellation(requestId, action, note: value);
   }
 
+  Future<void> _promptAndHandlePostPinRequest({
+    required String requestId,
+    required String action,
+    required String actionLabel,
+    String defaultNote = '',
+  }) async {
+    final TextEditingController controller =
+        TextEditingController(text: defaultNote);
+    final String? value = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(actionLabel),
+          content: TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: '处理备注（可选）',
+              hintText: '可填写置顶通过或驳回原因',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('确认处理'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (value == null) {
+      return;
+    }
+    await _handlePostPinRequest(requestId, action, note: value);
+  }
+
   Future<void> _promptAndHandleAppeal({
     required String appealId,
     required String action,
@@ -2887,6 +3709,49 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       return;
     }
     await _handleAppeal(appealId, action, note: value);
+  }
+
+  Future<void> _promptAndHandleUserLevelRequest({
+    required String requestId,
+    required String action,
+    required String actionLabel,
+    String defaultNote = '',
+  }) async {
+    final TextEditingController controller =
+        TextEditingController(text: defaultNote);
+    final String? value = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(actionLabel),
+          content: TextField(
+            controller: controller,
+            minLines: 2,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: '处理备注（可选）',
+              hintText: '可填写升级通过或驳回说明',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('确认处理'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (value == null) {
+      return;
+    }
+    await _handleUserLevelRequest(requestId, action, note: value);
   }
 
   Future<void> _promptAndUpdateUserAction({
@@ -3012,6 +3877,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadOverview() async {
+    if (!_isPrimaryAdmin) {
+      return;
+    }
     try {
       final AdminOverview overview = await _repo.fetchOverview();
       if (!mounted) {

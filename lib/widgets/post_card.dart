@@ -28,6 +28,18 @@ class PostCard extends StatelessWidget {
             children: <Widget>[
               Row(
                 children: <Widget>[
+                  if (post.isPinned) ...<Widget>[
+                    _pill(
+                      icon: Icons.push_pin_outlined,
+                      text: post.pinDurationLabel.isEmpty
+                          ? '置顶中'
+                          : '置顶 · ${post.pinDurationLabel}',
+                      textColor: const Color(0xFFB45309),
+                      backgroundColor:
+                          const Color(0xFFB45309).withValues(alpha: 0.12),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   _pill(
                     icon: Icons.category_outlined,
                     text: post.channel,
@@ -115,7 +127,8 @@ class PostCard extends StatelessWidget {
               Row(
                 children: <Widget>[
                   Text(
-                    '${post.authorAlias} · ${_relativeTime(post.createdAt)}',
+                    '${post.authorAlias} · ${_relativeTime(post.createdAt)}'
+                    '${post.isPinned && post.pinExpiresAt != null ? ' · 置顶至 ${_pinExpireText(post.pinExpiresAt!)}' : ''}',
                     style:
                         theme.textTheme.bodySmall?.copyWith(color: mutedText),
                   ),
@@ -209,5 +222,10 @@ class PostCard extends StatelessWidget {
       return '${diff.inHours} 小时前';
     }
     return '${diff.inDays} 天前';
+  }
+
+  String _pinExpireText(DateTime time) {
+    return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')} '
+        '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 }

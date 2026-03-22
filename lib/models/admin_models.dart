@@ -1,3 +1,64 @@
+class AdminCurrentUser {
+  AdminCurrentUser({
+    required this.username,
+    required this.role,
+    required this.roleLabel,
+    required this.isPrimary,
+  });
+
+  final String username;
+  final String role;
+  final String roleLabel;
+  final bool isPrimary;
+
+  factory AdminCurrentUser.fromJson(Map<String, dynamic> json) {
+    return AdminCurrentUser(
+      username: (json['username'] ?? '').toString(),
+      role: (json['role'] ?? 'secondary').toString(),
+      roleLabel: (json['roleLabel'] ?? '二级管理员').toString(),
+      isPrimary: _toBool(json['isPrimary']) ?? false,
+    );
+  }
+}
+
+class AdminAccountEntry {
+  AdminAccountEntry({
+    required this.id,
+    required this.username,
+    required this.role,
+    required this.roleLabel,
+    required this.active,
+    required this.statusLabel,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.createdBy,
+  });
+
+  final String id;
+  final String username;
+  final String role;
+  final String roleLabel;
+  final bool active;
+  final String statusLabel;
+  final String createdAt;
+  final String updatedAt;
+  final String createdBy;
+
+  factory AdminAccountEntry.fromJson(Map<String, dynamic> json) {
+    return AdminAccountEntry(
+      id: (json['id'] ?? '').toString(),
+      username: (json['username'] ?? '').toString(),
+      role: (json['role'] ?? 'secondary').toString(),
+      roleLabel: (json['roleLabel'] ?? '二级管理员').toString(),
+      active: _toBool(json['active']) ?? true,
+      statusLabel: (json['statusLabel'] ?? '启用中').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      updatedAt: (json['updatedAt'] ?? '').toString(),
+      createdBy: (json['createdBy'] ?? '').toString(),
+    );
+  }
+}
+
 class AdminOverview {
   AdminOverview({
     required this.todayNewUsers,
@@ -131,6 +192,8 @@ class AdminUserEntry {
     required this.alias,
     required this.avatarUrl,
     required this.verified,
+    required this.userLevel,
+    required this.userLevelLabel,
     required this.banned,
     required this.muted,
     required this.deleted,
@@ -140,6 +203,7 @@ class AdminUserEntry {
     required this.createdAt,
     required this.hasPendingCancellationRequest,
     required this.hasPendingAppeal,
+    required this.hasPendingLevelUpgradeRequest,
   });
 
   final String id;
@@ -148,6 +212,8 @@ class AdminUserEntry {
   final String alias;
   final String avatarUrl;
   final bool verified;
+  final int userLevel;
+  final String userLevelLabel;
   final bool banned;
   final bool muted;
   final bool deleted;
@@ -157,6 +223,7 @@ class AdminUserEntry {
   final String createdAt;
   final bool hasPendingCancellationRequest;
   final bool hasPendingAppeal;
+  final bool hasPendingLevelUpgradeRequest;
 
   factory AdminUserEntry.fromJson(Map<String, dynamic> json) {
     return AdminUserEntry(
@@ -166,6 +233,8 @@ class AdminUserEntry {
       alias: (json['alias'] ?? '匿名同学').toString(),
       avatarUrl: (json['avatarUrl'] ?? '').toString(),
       verified: _toBool(json['verified']) ?? false,
+      userLevel: _toInt(json['userLevel']) ?? 2,
+      userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),
       banned: _toBool(json['banned']) ?? false,
       muted: _toBool(json['muted']) ?? false,
       deleted: _toBool(json['deleted']) ?? false,
@@ -176,6 +245,8 @@ class AdminUserEntry {
       hasPendingCancellationRequest:
           _toBool(json['hasPendingCancellationRequest']) ?? false,
       hasPendingAppeal: _toBool(json['hasPendingAppeal']) ?? false,
+      hasPendingLevelUpgradeRequest:
+          _toBool(json['hasPendingLevelUpgradeRequest']) ?? false,
     );
   }
 }
@@ -445,6 +516,143 @@ class AdminAppealEntry {
       userDeleted: _toBool(json['userDeleted']) ?? false,
       userBanned: _toBool(json['userBanned']) ?? false,
       userMuted: _toBool(json['userMuted']) ?? false,
+    );
+  }
+}
+
+class AdminPostPinRequestEntry {
+  AdminPostPinRequestEntry({
+    required this.id,
+    required this.postId,
+    required this.postTitle,
+    required this.userId,
+    required this.userEmail,
+    required this.userNickname,
+    required this.userLevel,
+    required this.userLevelLabel,
+    required this.durationMinutes,
+    required this.durationLabel,
+    required this.reason,
+    required this.status,
+    required this.statusLabel,
+    required this.adminNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+    required this.postDeleted,
+    required this.postPinned,
+  });
+
+  final String id;
+  final String postId;
+  final String postTitle;
+  final String userId;
+  final String userEmail;
+  final String userNickname;
+  final int userLevel;
+  final String userLevelLabel;
+  final int durationMinutes;
+  final String durationLabel;
+  final String reason;
+  final String status;
+  final String statusLabel;
+  final String adminNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+  final bool postDeleted;
+  final bool postPinned;
+
+  factory AdminPostPinRequestEntry.fromJson(Map<String, dynamic> json) {
+    return AdminPostPinRequestEntry(
+      id: (json['id'] ?? '').toString(),
+      postId: (json['postId'] ?? '').toString(),
+      postTitle: (json['postTitle'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
+      userEmail: (json['userEmail'] ?? '').toString(),
+      userNickname: (json['userNickname'] ?? '匿名同学').toString(),
+      userLevel: _toInt(json['userLevel']) ?? 2,
+      userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),
+      durationMinutes: _toInt(json['durationMinutes']) ?? 0,
+      durationLabel: (json['durationLabel'] ?? '').toString(),
+      reason: (json['reason'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待处理').toString(),
+      adminNote: (json['adminNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
+      postDeleted: _toBool(json['postDeleted']) ?? false,
+      postPinned: _toBool(json['postPinned']) ?? false,
+    );
+  }
+}
+
+class AdminUserLevelRequestEntry {
+  AdminUserLevelRequestEntry({
+    required this.id,
+    required this.userId,
+    required this.userEmail,
+    required this.studentId,
+    required this.userNickname,
+    required this.currentLevel,
+    required this.currentLevelLabel,
+    required this.targetLevel,
+    required this.targetLevelLabel,
+    required this.reason,
+    required this.status,
+    required this.statusLabel,
+    required this.adminNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+    required this.userDeleted,
+    required this.userCurrentLevel,
+    required this.userCurrentLevelLabel,
+  });
+
+  final String id;
+  final String userId;
+  final String userEmail;
+  final String studentId;
+  final String userNickname;
+  final int currentLevel;
+  final String currentLevelLabel;
+  final int targetLevel;
+  final String targetLevelLabel;
+  final String reason;
+  final String status;
+  final String statusLabel;
+  final String adminNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+  final bool userDeleted;
+  final int userCurrentLevel;
+  final String userCurrentLevelLabel;
+
+  factory AdminUserLevelRequestEntry.fromJson(Map<String, dynamic> json) {
+    return AdminUserLevelRequestEntry(
+      id: (json['id'] ?? '').toString(),
+      userId: (json['userId'] ?? '').toString(),
+      userEmail: (json['userEmail'] ?? '').toString(),
+      studentId: (json['studentId'] ?? '').toString(),
+      userNickname: (json['userNickname'] ?? '匿名同学').toString(),
+      currentLevel: _toInt(json['currentLevel']) ?? 2,
+      currentLevelLabel: (json['currentLevelLabel'] ?? '二级用户').toString(),
+      targetLevel: _toInt(json['targetLevel']) ?? 1,
+      targetLevelLabel: (json['targetLevelLabel'] ?? '一级用户').toString(),
+      reason: (json['reason'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待处理').toString(),
+      adminNote: (json['adminNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
+      userDeleted: _toBool(json['userDeleted']) ?? false,
+      userCurrentLevel: _toInt(json['userCurrentLevel']) ?? 2,
+      userCurrentLevelLabel:
+          (json['userCurrentLevelLabel'] ?? '二级用户').toString(),
     );
   }
 }

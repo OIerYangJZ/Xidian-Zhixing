@@ -12,6 +12,7 @@ class ApiEndpoints {
   static const String privacy = '/users/privacy';
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
+  static const String meLevelUpgradeRequest = '/users/me/level-upgrade-request';
   static const String notifications = '/notifications';
   static const String notificationsReadAll = '/notifications/read-all';
 
@@ -38,6 +39,9 @@ class ApiEndpoints {
   static const String adminReports = '/admin/reports';
   static const String adminImageReviews = '/admin/images/reviews';
   static const String adminUsers = '/admin/users';
+  static const String adminPostPinRequests = '/admin/post-pin-requests';
+  static const String adminUserLevelRequests = '/admin/user-level-requests';
+  static const String adminAccounts = '/admin/admin-accounts';
   static const String adminAccountCancellationRequests =
       '/admin/account-cancellation-requests';
   static const String adminAppeals = '/admin/appeals';
@@ -53,6 +57,7 @@ class ApiEndpoints {
   static String postLike(String postId) => '/posts/$postId/like';
   static String postFavorite(String postId) => '/posts/$postId/favorite';
   static String postUnfavorite(String postId) => '/posts/$postId/favorite';
+  static String postPinRequest(String postId) => '/posts/$postId/pin-request';
 
   static String dmRequestAction(String requestId, String action) =>
       '/messages/requests/$requestId/$action';
@@ -80,6 +85,13 @@ class ApiEndpoints {
       '/admin/images/$uploadId/review';
 
   static String adminUserAction(String userId) => '/admin/users/$userId/action';
+  static String adminPostPinRequestHandle(String requestId) =>
+      '/admin/post-pin-requests/$requestId/handle';
+  static String adminUserLevelRequestHandle(String requestId) =>
+      '/admin/user-level-requests/$requestId/handle';
+
+  static String adminAccountAction(String adminId) =>
+      '/admin/admin-accounts/$adminId/action';
 
   static String adminAccountCancellationHandle(String requestId) =>
       '/admin/account-cancellation-requests/$requestId/handle';

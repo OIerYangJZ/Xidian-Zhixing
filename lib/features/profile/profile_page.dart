@@ -65,12 +65,18 @@ class ProfilePageState extends State<ProfilePage> {
           allowStrangerDm: false,
           showContactable: false,
           favoriteCount: 0,
+          userLevel: 2,
+          userLevelLabel: '二级用户',
+          isLevelOneUser: false,
           isAdmin: false,
+          levelUpgradeRequest: null,
           accountCancellationRequest: null,
         );
 
     final AccountCancellationRequestSummary? cancellationRequest =
         profile.accountCancellationRequest;
+    final UserLevelRequestSummary? levelUpgradeRequest =
+        profile.levelUpgradeRequest;
 
     return ListView(
       padding: const EdgeInsets.all(12),
@@ -111,6 +117,47 @@ class ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        Card(
+          child: Column(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.workspace_premium_outlined),
+                title: const Text('账号等级'),
+                subtitle: Text(
+                  profile.isLevelOneUser
+                      ? '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长'
+                      : levelUpgradeRequest == null
+                          ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
+                          : _levelUpgradeSubtitle(levelUpgradeRequest),
+                ),
+                trailing: Text(
+                  profile.userLevelLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ),
+              if (!profile.isLevelOneUser)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      onPressed:
+                          _saving || levelUpgradeRequest?.status == 'pending'
+                              ? null
+                              : _promptLevelUpgradeRequest,
+                      icon: const Icon(Icons.arrow_circle_up_outlined),
+                      label: Text(
+                        levelUpgradeRequest?.status == 'pending'
+                            ? '申请审核中'
+                            : '申请成为一级用户',
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -470,7 +517,11 @@ class ProfilePageState extends State<ProfilePage> {
                   allowStrangerDm: false,
                   showContactable: false,
                   favoriteCount: 0,
+                  userLevel: 2,
+                  userLevelLabel: '二级用户',
+                  isLevelOneUser: false,
                   isAdmin: false,
+                  levelUpgradeRequest: null,
                   accountCancellationRequest: null,
                 ))
             .copyWith(avatarUrl: _avatarUrlController.text.trim());
@@ -519,7 +570,11 @@ class ProfilePageState extends State<ProfilePage> {
                   allowStrangerDm: false,
                   showContactable: false,
                   favoriteCount: 0,
+                  userLevel: 2,
+                  userLevelLabel: '二级用户',
+                  isLevelOneUser: false,
                   isAdmin: false,
+                  levelUpgradeRequest: null,
                   accountCancellationRequest: null,
                 ))
             .copyWith(
@@ -567,7 +622,11 @@ class ProfilePageState extends State<ProfilePage> {
                   allowStrangerDm: false,
                   showContactable: false,
                   favoriteCount: 0,
+                  userLevel: 2,
+                  userLevelLabel: '二级用户',
+                  isLevelOneUser: false,
                   isAdmin: false,
+                  levelUpgradeRequest: null,
                   accountCancellationRequest: null,
                 ))
             .copyWith(
@@ -649,6 +708,61 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _promptLevelUpgradeRequest() async {
+    final TextEditingController controller = TextEditingController();
+    final String? reason = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('申请成为一级用户'),
+          content: TextField(
+            controller: controller,
+            minLines: 3,
+            maxLines: 5,
+            decoration: const InputDecoration(
+              labelText: '申请说明（可选）',
+              hintText: '例如：长期活跃、愿意承担内容维护责任等',
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('确认提交'),
+            ),
+          ],
+        );
+      },
+    );
+    controller.dispose();
+    if (reason == null) {
+      return;
+    }
+    setState(() {
+      _saving = true;
+    });
+    try {
+      await AppRepositories.users.submitLevelUpgradeRequest(reason: reason);
+      await _loadProfile();
+      if (!mounted) {
+        return;
+      }
+      _toast('一级用户申请已提交');
+    } catch (error) {
+      _toast('提交失败：$error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+    }
+  }
+
   String _accountCancellationSubtitle(
     AccountCancellationRequestSummary request,
   ) {
@@ -656,6 +770,15 @@ class ProfilePageState extends State<ProfilePage> {
     text.write('${request.statusLabel} · ${request.createdAt}');
     if (request.reviewNote.trim().isNotEmpty) {
       text.write(' · ${request.reviewNote.trim()}');
+    }
+    return text.toString();
+  }
+
+  String _levelUpgradeSubtitle(UserLevelRequestSummary request) {
+    final StringBuffer text = StringBuffer();
+    text.write('${request.statusLabel} · ${request.createdAt}');
+    if (request.adminNote.trim().isNotEmpty) {
+      text.write(' · ${request.adminNote.trim()}');
     }
     return text.toString();
   }

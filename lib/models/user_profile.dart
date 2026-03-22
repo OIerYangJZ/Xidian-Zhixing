@@ -9,7 +9,11 @@ class UserProfile {
     required this.allowStrangerDm,
     required this.showContactable,
     required this.favoriteCount,
+    required this.userLevel,
+    required this.userLevelLabel,
+    required this.isLevelOneUser,
     required this.isAdmin,
+    required this.levelUpgradeRequest,
     required this.accountCancellationRequest,
   });
 
@@ -22,7 +26,11 @@ class UserProfile {
   final bool allowStrangerDm;
   final bool showContactable;
   final int favoriteCount;
+  final int userLevel;
+  final String userLevelLabel;
+  final bool isLevelOneUser;
   final bool isAdmin;
+  final UserLevelRequestSummary? levelUpgradeRequest;
   final AccountCancellationRequestSummary? accountCancellationRequest;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -39,7 +47,17 @@ class UserProfile {
       allowStrangerDm: _toBool(json['allowStrangerDm']) ?? true,
       showContactable: _toBool(json['showContactable']) ?? true,
       favoriteCount: _toInt(json['favoriteCount']) ?? 0,
+      userLevel: _toInt(json['userLevel']) ?? 2,
+      userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),
+      isLevelOneUser: _toBool(json['isLevelOneUser']) ?? false,
       isAdmin: _toBool(json['isAdmin']) ?? false,
+      levelUpgradeRequest: json['levelUpgradeRequest'] is Map
+          ? UserLevelRequestSummary.fromJson(
+              (json['levelUpgradeRequest'] as Map<dynamic, dynamic>).map(
+                (dynamic key, dynamic value) => MapEntry(key.toString(), value),
+              ),
+            )
+          : null,
       accountCancellationRequest: json['accountCancellationRequest'] is Map
           ? AccountCancellationRequestSummary.fromJson(
               (json['accountCancellationRequest'] as Map<dynamic, dynamic>).map(
@@ -58,7 +76,11 @@ class UserProfile {
     bool? allowStrangerDm,
     bool? showContactable,
     int? favoriteCount,
+    int? userLevel,
+    String? userLevelLabel,
+    bool? isLevelOneUser,
     bool? isAdmin,
+    UserLevelRequestSummary? levelUpgradeRequest,
     AccountCancellationRequestSummary? accountCancellationRequest,
   }) {
     return UserProfile(
@@ -71,7 +93,11 @@ class UserProfile {
       allowStrangerDm: allowStrangerDm ?? this.allowStrangerDm,
       showContactable: showContactable ?? this.showContactable,
       favoriteCount: favoriteCount ?? this.favoriteCount,
+      userLevel: userLevel ?? this.userLevel,
+      userLevelLabel: userLevelLabel ?? this.userLevelLabel,
+      isLevelOneUser: isLevelOneUser ?? this.isLevelOneUser,
       isAdmin: isAdmin ?? this.isAdmin,
+      levelUpgradeRequest: levelUpgradeRequest ?? this.levelUpgradeRequest,
       accountCancellationRequest:
           accountCancellationRequest ?? this.accountCancellationRequest,
     );
@@ -140,6 +166,53 @@ class AccountCancellationRequestSummary {
       status: (json['status'] ?? 'pending').toString(),
       statusLabel: (json['statusLabel'] ?? '待审核').toString(),
       reviewNote: (json['reviewNote'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? '').toString(),
+      handledAt: (json['handledAt'] ?? '').toString(),
+      handledBy: (json['handledBy'] ?? '').toString(),
+    );
+  }
+}
+
+class UserLevelRequestSummary {
+  UserLevelRequestSummary({
+    required this.id,
+    required this.currentLevel,
+    required this.currentLevelLabel,
+    required this.targetLevel,
+    required this.targetLevelLabel,
+    required this.reason,
+    required this.status,
+    required this.statusLabel,
+    required this.adminNote,
+    required this.createdAt,
+    required this.handledAt,
+    required this.handledBy,
+  });
+
+  final String id;
+  final int currentLevel;
+  final String currentLevelLabel;
+  final int targetLevel;
+  final String targetLevelLabel;
+  final String reason;
+  final String status;
+  final String statusLabel;
+  final String adminNote;
+  final String createdAt;
+  final String handledAt;
+  final String handledBy;
+
+  factory UserLevelRequestSummary.fromJson(Map<String, dynamic> json) {
+    return UserLevelRequestSummary(
+      id: (json['id'] ?? '').toString(),
+      currentLevel: UserProfile._toInt(json['currentLevel']) ?? 2,
+      currentLevelLabel: (json['currentLevelLabel'] ?? '二级用户').toString(),
+      targetLevel: UserProfile._toInt(json['targetLevel']) ?? 1,
+      targetLevelLabel: (json['targetLevelLabel'] ?? '一级用户').toString(),
+      reason: (json['reason'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      statusLabel: (json['statusLabel'] ?? '待处理').toString(),
+      adminNote: (json['adminNote'] ?? '').toString(),
       createdAt: (json['createdAt'] ?? '').toString(),
       handledAt: (json['handledAt'] ?? '').toString(),
       handledBy: (json['handledBy'] ?? '').toString(),

@@ -139,6 +139,18 @@ ADMIN_USERNAME_SETTING_KEY = "adminUsername"
 ADMIN_PASSWORD_HASH_SETTING_KEY = "adminPasswordHash"
 DEFAULT_ADMIN_USERNAME = os.environ.get("BACKEND_ADMIN_USERNAME", "admin")
 DEFAULT_ADMIN_PASSWORD = os.environ.get("BACKEND_ADMIN_PASSWORD", "admin123456")
+ADMIN_ROLE_PRIMARY = "primary"
+ADMIN_ROLE_SECONDARY = "secondary"
+USER_LEVEL_ONE = 1
+USER_LEVEL_TWO = 2
+PIN_DURATION_OPTIONS: dict[int, str] = {
+    30: "30 分钟",
+    60: "1 小时",
+    120: "2 小时",
+    180: "3 小时",
+    1440: "1 天",
+    4320: "3 天",
+}
 ADMIN_SESSIONS: dict[str, str] = {}
 ADMIN_SESSION_LOCK = threading.Lock()
 
@@ -568,6 +580,297 @@ def get_admin_auth_credentials(db: dict[str, Any]) -> tuple[str, str]:
     return username, password_hash
 
 
+def normalize_admin_username(value: str) -> str:
+    return value.strip().lower()
+
+
+def is_valid_admin_username(value: str) -> bool:
+    return bool(re.fullmatch(r"[A-Za-z0-9_.-]{3,32}", value.strip()))
+
+
+def normalize_admin_role(value: Any) -> str:
+    role = str(value).strip().lower()
+    if role == ADMIN_ROLE_PRIMARY:
+        return ADMIN_ROLE_PRIMARY
+    return ADMIN_ROLE_SECONDARY
+
+
+def admin_role_label(role: str) -> str:
+    return "一级管理员" if normalize_admin_role(role) == ADMIN_ROLE_PRIMARY else "二级管理员"
+
+
+def normalize_user_level(value: Any) -> int:
+    try:
+        level = int(value)
+    except (TypeError, ValueError):
+        return USER_LEVEL_TWO
+    return USER_LEVEL_ONE if level == USER_LEVEL_ONE else USER_LEVEL_TWO
+
+
+def user_level_label(level: Any) -> str:
+    return "一级用户" if normalize_user_level(level) == USER_LEVEL_ONE else "二级用户"
+
+
+def parse_pin_duration_minutes(value: Any) -> int | None:
+    try:
+        duration = int(value)
+    except (TypeError, ValueError):
+        return None
+    return duration if duration in PIN_DURATION_OPTIONS else None
+
+
+def pin_duration_label(duration_minutes: Any) -> str:
+    try:
+        duration = int(duration_minutes)
+    except (TypeError, ValueError):
+        return ""
+    return PIN_DURATION_OPTIONS.get(duration, "")
+
+
+def build_admin_account(
+    *,
+    admin_id: str,
+    username: str,
+    password_hash: str,
+    role: str,
+    active: bool = True,
+    created_at: str,
+    updated_at: str,
+    created_by: str = "",
+) -> dict[str, Any]:
+    return {
+        "id": admin_id,
+        "username": normalize_admin_username(username) or normalize_admin_username(DEFAULT_ADMIN_USERNAME),
+        "passwordHash": password_hash,
+        "role": normalize_admin_role(role),
+        "active": bool(active),
+        "createdAt": created_at,
+        "updatedAt": updated_at,
+        "createdBy": created_by.strip(),
+    }
+
+
+def find_admin_account_by_username(
+    db: dict[str, Any],
+    username: str,
+    *,
+    include_inactive: bool = False,
+) -> dict[str, Any] | None:
+    target = normalize_admin_username(username)
+    if not target:
+        return None
+    for account in db.get("adminAccounts", []):
+        if normalize_admin_username(str(account.get("username", ""))) != target:
+            continue
+        if not include_inactive and not bool(account.get("active", True)):
+            continue
+        return account
+    return None
+
+
+def find_admin_account_by_id(
+    db: dict[str, Any],
+    admin_id: str,
+    *,
+    include_inactive: bool = False,
+) -> dict[str, Any] | None:
+    target = str(admin_id).strip()
+    if not target:
+        return None
+    for account in db.get("adminAccounts", []):
+        if str(account.get("id", "")).strip() != target:
+            continue
+        if not include_inactive and not bool(account.get("active", True)):
+            continue
+        return account
+    return None
+
+
+def clear_admin_sessions_for_account(admin_id: str) -> None:
+    target = str(admin_id).strip()
+    if not target:
+        return
+    with ADMIN_SESSION_LOCK:
+        expired_tokens = [
+            token
+            for token, session_admin_id in ADMIN_SESSIONS.items()
+            if str(session_admin_id).strip() == target
+        ]
+        for token in expired_tokens:
+            ADMIN_SESSIONS.pop(token, None)
+
+
+def build_authenticated_admin(account: dict[str, Any]) -> dict[str, Any]:
+    role = normalize_admin_role(account.get("role"))
+    return {
+        "id": "",
+        "adminId": str(account.get("id", "")).strip(),
+        "username": normalize_admin_username(str(account.get("username", ""))),
+        "role": role,
+        "roleLabel": admin_role_label(role),
+        "isPrimary": role == ADMIN_ROLE_PRIMARY,
+        "isAdmin": True,
+    }
+
+
+def serialize_admin_auth_payload(admin: dict[str, Any]) -> dict[str, Any]:
+    role = normalize_admin_role(admin.get("role"))
+    return {
+        "username": str(admin.get("username", "")).strip(),
+        "role": role,
+        "roleLabel": admin_role_label(role),
+        "isPrimary": role == ADMIN_ROLE_PRIMARY,
+        "authenticated": True,
+    }
+
+
+def serialize_admin_account(account: dict[str, Any]) -> dict[str, Any]:
+    role = normalize_admin_role(account.get("role"))
+    active = bool(account.get("active", True))
+    return {
+        "id": str(account.get("id", "")).strip(),
+        "username": normalize_admin_username(str(account.get("username", ""))),
+        "role": role,
+        "roleLabel": admin_role_label(role),
+        "active": active,
+        "statusLabel": "启用中" if active else "已注销",
+        "createdAt": str(account.get("createdAt", "")).strip(),
+        "updatedAt": str(account.get("updatedAt", "")).strip(),
+        "createdBy": str(account.get("createdBy", "")).strip(),
+    }
+
+
+def build_admin_account_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = [
+        serialize_admin_account(account)
+        for account in db.get("adminAccounts", [])
+        if normalize_admin_role(account.get("role")) == ADMIN_ROLE_SECONDARY
+    ]
+    rows.sort(
+        key=lambda item: (
+            0 if bool(item.get("active")) else 1,
+            str(item.get("createdAt", "")),
+            str(item.get("id", "")),
+        ),
+        reverse=False,
+    )
+    return rows
+
+
+def ensure_admin_accounts(db: dict[str, Any]) -> bool:
+    changed = False
+    seq = db.get("seq")
+    if not isinstance(seq, dict):
+        seq = {}
+        db["seq"] = seq
+        changed = True
+    if "adminAccount" not in seq:
+        seq["adminAccount"] = 0
+        changed = True
+    raw_accounts = db.get("adminAccounts")
+    if not isinstance(raw_accounts, list):
+        raw_accounts = []
+        db["adminAccounts"] = raw_accounts
+        changed = True
+
+    sanitized_accounts: list[dict[str, Any]] = []
+    seen_usernames: set[str] = set()
+    timestamp = now_iso()
+    for row in raw_accounts:
+        if not isinstance(row, dict):
+            changed = True
+            continue
+        admin_id = str(row.get("id", "")).strip()
+        username = normalize_admin_username(str(row.get("username", "")))
+        password_hash = str(row.get("passwordHash", "")).strip()
+        if not admin_id or not username or not password_hash:
+            changed = True
+            continue
+        if not is_password_hashed(password_hash):
+            password_hash = hash_password(password_hash)
+            changed = True
+        if username in seen_usernames:
+            changed = True
+            continue
+        seen_usernames.add(username)
+        role = normalize_admin_role(row.get("role"))
+        active = bool(row.get("active", True))
+        created_at = str(row.get("createdAt", "")).strip() or timestamp
+        updated_at = str(row.get("updatedAt", "")).strip() or created_at
+        created_by = str(row.get("createdBy", "")).strip()
+        sanitized_accounts.append(
+            build_admin_account(
+                admin_id=admin_id,
+                username=username,
+                password_hash=password_hash,
+                role=role,
+                active=active,
+                created_at=created_at,
+                updated_at=updated_at,
+                created_by=created_by,
+            )
+        )
+        if (
+            username != str(row.get("username", "")).strip()
+            or password_hash != str(row.get("passwordHash", "")).strip()
+            or role != str(row.get("role", "")).strip().lower()
+            or created_at != str(row.get("createdAt", "")).strip()
+            or updated_at != str(row.get("updatedAt", "")).strip()
+            or created_by != str(row.get("createdBy", "")).strip()
+            or active != bool(row.get("active", True))
+        ):
+            changed = True
+
+    db["adminAccounts"] = sanitized_accounts
+
+    legacy_username, legacy_password_hash = get_admin_auth_credentials(db)
+    legacy_username = normalize_admin_username(legacy_username) or normalize_admin_username(DEFAULT_ADMIN_USERNAME)
+    if not is_password_hashed(legacy_password_hash):
+        legacy_password_hash = hash_password(legacy_password_hash)
+        changed = True
+
+    if not db["adminAccounts"]:
+        db["adminAccounts"].append(
+            build_admin_account(
+                admin_id=next_id(db, "adminAccount", "adm"),
+                username=legacy_username,
+                password_hash=legacy_password_hash,
+                role=ADMIN_ROLE_PRIMARY,
+                active=True,
+                created_at=timestamp,
+                updated_at=timestamp,
+                created_by="system",
+            )
+        )
+        changed = True
+
+    default_admin = find_admin_account_by_username(
+        db,
+        DEFAULT_ADMIN_USERNAME,
+        include_inactive=True,
+    )
+    if default_admin is not None:
+        if normalize_admin_role(default_admin.get("role")) != ADMIN_ROLE_PRIMARY:
+            default_admin["role"] = ADMIN_ROLE_PRIMARY
+            default_admin["updatedAt"] = timestamp
+            changed = True
+        if not bool(default_admin.get("active", True)):
+            default_admin["active"] = True
+            default_admin["updatedAt"] = timestamp
+            changed = True
+
+    if not any(
+        normalize_admin_role(account.get("role")) == ADMIN_ROLE_PRIMARY
+        for account in db.get("adminAccounts", [])
+    ):
+        first_account = db["adminAccounts"][0]
+        first_account["role"] = ADMIN_ROLE_PRIMARY
+        first_account["updatedAt"] = timestamp
+        changed = True
+
+    return changed
+
+
 def consume_rate_limit(
     db: dict[str, Any],
     *,
@@ -787,6 +1090,7 @@ def default_db() -> dict[str, Any]:
     db: dict[str, Any] = {
         "seq": {
             "user": 1,
+            "adminAccount": 1,
             "post": 0,
             "comment": 0,
             "report": 0,
@@ -796,6 +1100,8 @@ def default_db() -> dict[str, Any]:
             "notification": 0,
             "announcement": 0,
             "appeal": 0,
+            "pinRequest": 0,
+            "levelRequest": 0,
             "audit": 0,
             "upload": 0,
         },
@@ -808,6 +1114,7 @@ def default_db() -> dict[str, Any]:
                 "nickname": "洞主-雾蓝",
                 "studentId": "2023000001",
                 "avatarUrl": "",
+                "userLevel": USER_LEVEL_TWO,
                 "verified": True,
                 "verifiedAt": created,
                 "allowStrangerDm": True,
@@ -826,6 +1133,7 @@ def default_db() -> dict[str, Any]:
                 "nickname": "洞主-极光",
                 "studentId": "2023000002",
                 "avatarUrl": "",
+                "userLevel": USER_LEVEL_TWO,
                 "verified": True,
                 "verifiedAt": created,
                 "allowStrangerDm": False,
@@ -844,6 +1152,7 @@ def default_db() -> dict[str, Any]:
                 "nickname": "洞主-银杏",
                 "studentId": "2023000003",
                 "avatarUrl": "",
+                "userLevel": USER_LEVEL_TWO,
                 "verified": True,
                 "verifiedAt": created,
                 "allowStrangerDm": False,
@@ -865,6 +1174,18 @@ def default_db() -> dict[str, Any]:
             ADMIN_USERNAME_SETTING_KEY: DEFAULT_ADMIN_USERNAME,
             ADMIN_PASSWORD_HASH_SETTING_KEY: hash_password(DEFAULT_ADMIN_PASSWORD),
         },
+        "adminAccounts": [
+            build_admin_account(
+                admin_id="adm1",
+                username=DEFAULT_ADMIN_USERNAME,
+                password_hash=hash_password(DEFAULT_ADMIN_PASSWORD),
+                role=ADMIN_ROLE_PRIMARY,
+                active=True,
+                created_at=created,
+                updated_at=created,
+                created_by="system",
+            )
+        ],
         "posts": [],
         "comments": [],
         "likes": [],
@@ -877,6 +1198,8 @@ def default_db() -> dict[str, Any]:
         "systemAnnouncements": [],
         "notifications": [],
         "appeals": [],
+        "postPinRequests": [],
+        "userLevelRequests": [],
         "auditLogs": [],
         "accountCancellationRequests": [],
         "mediaUploads": [],
@@ -898,6 +1221,9 @@ def default_db() -> dict[str, Any]:
                 "allowDm": row["allowDm"],
                 "authorAlias": row["authorAlias"],
                 "authorId": row["authorId"],
+                "pinStartedAt": "",
+                "pinExpiresAt": "",
+                "pinDurationMinutes": 0,
                 "createdAt": created,
                 "updatedAt": created,
                 "deleted": False,
@@ -1066,12 +1392,20 @@ def migrate_db(db: dict[str, Any]) -> bool:
             changed = True
     if ensure_admin_auth_settings(db):
         changed = True
+    if ensure_admin_accounts(db):
+        changed = True
 
     if "auditLogs" not in db:
         db["auditLogs"] = []
         changed = True
     if "appeals" not in db or not isinstance(db.get("appeals"), list):
         db["appeals"] = []
+        changed = True
+    if "postPinRequests" not in db or not isinstance(db.get("postPinRequests"), list):
+        db["postPinRequests"] = []
+        changed = True
+    if "userLevelRequests" not in db or not isinstance(db.get("userLevelRequests"), list):
+        db["userLevelRequests"] = []
         changed = True
     if "accountCancellationRequests" not in db or not isinstance(
         db.get("accountCancellationRequests"), list
@@ -1090,6 +1424,7 @@ def migrate_db(db: dict[str, Any]) -> bool:
         changed = True
     for key in [
         "user",
+        "adminAccount",
         "post",
         "comment",
         "report",
@@ -1100,6 +1435,8 @@ def migrate_db(db: dict[str, Any]) -> bool:
         "notification",
         "announcement",
         "appeal",
+        "pinRequest",
+        "levelRequest",
         "audit",
         "upload",
     ]:
@@ -1124,6 +1461,14 @@ def migrate_db(db: dict[str, Any]) -> bool:
             normalized_avatar = normalize_avatar_url(str(user.get("avatarUrl", "")))
             if normalized_avatar != str(user.get("avatarUrl", "")):
                 user["avatarUrl"] = normalized_avatar
+                changed = True
+        if "userLevel" not in user:
+            user["userLevel"] = USER_LEVEL_TWO
+            changed = True
+        else:
+            normalized_level = normalize_user_level(user.get("userLevel"))
+            if normalized_level != user.get("userLevel"):
+                user["userLevel"] = normalized_level
                 changed = True
         if "isAdmin" not in user:
             user["isAdmin"] = False
@@ -1173,6 +1518,17 @@ def migrate_db(db: dict[str, Any]) -> bool:
             changed = True
         if "riskMarked" not in post:
             post["riskMarked"] = False
+            changed = True
+        if "pinStartedAt" not in post:
+            post["pinStartedAt"] = ""
+            changed = True
+        if "pinExpiresAt" not in post:
+            post["pinExpiresAt"] = ""
+            changed = True
+        raw_pin_duration = post.get("pinDurationMinutes")
+        normalized_pin_duration = parse_pin_duration_minutes(raw_pin_duration) or 0
+        if "pinDurationMinutes" not in post or normalized_pin_duration != raw_pin_duration:
+            post["pinDurationMinutes"] = normalized_pin_duration
             changed = True
 
     for comment in db.get("comments", []):
@@ -1359,6 +1715,68 @@ def migrate_db(db: dict[str, Any]) -> bool:
             appeal["handledBy"] = ""
             changed = True
 
+    for request in db.get("postPinRequests", []):
+        if "postId" not in request:
+            request["postId"] = ""
+            changed = True
+        if "userId" not in request:
+            request["userId"] = ""
+            changed = True
+        raw_duration = request.get("durationMinutes")
+        normalized_duration = parse_pin_duration_minutes(raw_duration) or 0
+        if "durationMinutes" not in request or normalized_duration != raw_duration:
+            request["durationMinutes"] = normalized_duration
+            changed = True
+        if "reason" not in request:
+            request["reason"] = ""
+            changed = True
+        if "status" not in request:
+            request["status"] = "pending"
+            changed = True
+        if "adminNote" not in request:
+            request["adminNote"] = ""
+            changed = True
+        if "createdAt" not in request:
+            request["createdAt"] = now_iso()
+            changed = True
+        if "handledAt" not in request:
+            request["handledAt"] = ""
+            changed = True
+        if "handledBy" not in request:
+            request["handledBy"] = ""
+            changed = True
+
+    for request in db.get("userLevelRequests", []):
+        if "userId" not in request:
+            request["userId"] = ""
+            changed = True
+        normalized_current = normalize_user_level(request.get("currentLevel"))
+        if "currentLevel" not in request or normalized_current != request.get("currentLevel"):
+            request["currentLevel"] = normalized_current
+            changed = True
+        normalized_target = USER_LEVEL_ONE if normalize_user_level(request.get("targetLevel")) == USER_LEVEL_ONE else USER_LEVEL_ONE
+        if "targetLevel" not in request or normalized_target != request.get("targetLevel"):
+            request["targetLevel"] = normalized_target
+            changed = True
+        if "reason" not in request:
+            request["reason"] = ""
+            changed = True
+        if "status" not in request:
+            request["status"] = "pending"
+            changed = True
+        if "adminNote" not in request:
+            request["adminNote"] = ""
+            changed = True
+        if "createdAt" not in request:
+            request["createdAt"] = now_iso()
+            changed = True
+        if "handledAt" not in request:
+            request["handledAt"] = ""
+            changed = True
+        if "handledBy" not in request:
+            request["handledBy"] = ""
+            changed = True
+
     for upload in db.get("mediaUploads", []):
         if "moderationReason" not in upload:
             upload["moderationReason"] = ""
@@ -1517,6 +1935,85 @@ def user_avatar_url(user: dict[str, Any] | None) -> str:
     if not user:
         return ""
     return normalize_avatar_url(str(user.get("avatarUrl", "")))
+
+
+def current_user_level(user: dict[str, Any] | None) -> int:
+    if not user:
+        return USER_LEVEL_TWO
+    return normalize_user_level(user.get("userLevel"))
+
+
+def is_level_one_user(user: dict[str, Any] | None) -> bool:
+    return current_user_level(user) == USER_LEVEL_ONE
+
+
+def apply_post_pin(
+    post: dict[str, Any],
+    *,
+    duration_minutes: int,
+    started_at: str | None = None,
+) -> None:
+    pin_started_at = started_at or now_iso()
+    started_dt = parse_iso(pin_started_at)
+    if started_dt is None:
+        started_dt = now_utc()
+        pin_started_at = started_dt.isoformat()
+    post["pinStartedAt"] = pin_started_at
+    post["pinExpiresAt"] = (started_dt + timedelta(minutes=duration_minutes)).isoformat()
+    post["pinDurationMinutes"] = duration_minutes
+    post["updatedAt"] = now_iso()
+
+
+def is_post_pin_active(post: dict[str, Any]) -> bool:
+    expires_at = parse_iso(str(post.get("pinExpiresAt", "")))
+    duration_minutes = parse_pin_duration_minutes(post.get("pinDurationMinutes"))
+    if expires_at is None or duration_minutes is None:
+        return False
+    return expires_at > now_utc()
+
+
+def latest_pending_post_pin_request_for_post(
+    db: dict[str, Any],
+    post_id: str,
+) -> dict[str, Any] | None:
+    rows = [
+        row
+        for row in db.get("postPinRequests", [])
+        if str(row.get("postId", "")).strip() == post_id.strip()
+        and str(row.get("status", "pending")).strip().lower() == "pending"
+    ]
+    if not rows:
+        return None
+    rows.sort(
+        key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))),
+        reverse=True,
+    )
+    return rows[0]
+
+
+def latest_user_level_request_for_user(
+    db: dict[str, Any],
+    user_id: str,
+    *,
+    status: str = "",
+) -> dict[str, Any] | None:
+    normalized_status = status.strip().lower()
+    rows = [
+        row
+        for row in db.get("userLevelRequests", [])
+        if str(row.get("userId", "")).strip() == user_id.strip()
+        and (
+            not normalized_status
+            or str(row.get("status", "pending")).strip().lower() == normalized_status
+        )
+    ]
+    if not rows:
+        return None
+    rows.sort(
+        key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))),
+        reverse=True,
+    )
+    return rows[0]
 
 
 def conversation_key_for_users(user_a_id: str, user_b_id: str) -> str:
@@ -1967,6 +2464,107 @@ def serialize_appeal(
     }
 
 
+def serialize_user_level_request_summary(
+    row: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    status = str(row.get("status", "pending")).strip().lower() or "pending"
+    current_level = normalize_user_level(row.get("currentLevel"))
+    target_level = normalize_user_level(row.get("targetLevel"))
+    return {
+        "id": str(row.get("id", "")),
+        "currentLevel": current_level,
+        "currentLevelLabel": user_level_label(current_level),
+        "targetLevel": target_level,
+        "targetLevelLabel": user_level_label(target_level),
+        "reason": str(row.get("reason", "")),
+        "status": status,
+        "statusLabel": appeal_status_label(status),
+        "adminNote": str(row.get("adminNote", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+        "handledBy": str(row.get("handledBy", "")),
+    }
+
+
+def serialize_admin_post_pin_request(
+    db: dict[str, Any],
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    status = str(row.get("status", "pending")).strip().lower() or "pending"
+    post = next(
+        (
+            item
+            for item in db.get("posts", [])
+            if str(item.get("id", "")).strip() == str(row.get("postId", "")).strip()
+        ),
+        None,
+    )
+    user = find_user_by_id(
+        db,
+        str(row.get("userId", "")).strip(),
+        include_deleted=True,
+    )
+    duration_minutes = parse_pin_duration_minutes(row.get("durationMinutes")) or 0
+    return {
+        "id": str(row.get("id", "")),
+        "postId": str(row.get("postId", "")),
+        "postTitle": str(post.get("title", "")) if post else "",
+        "userId": str(row.get("userId", "")),
+        "userEmail": str(user.get("email", "")) if user else "",
+        "userNickname": user_nickname(user),
+        "userLevel": current_user_level(user),
+        "userLevelLabel": user_level_label(current_user_level(user)),
+        "durationMinutes": duration_minutes,
+        "durationLabel": pin_duration_label(duration_minutes),
+        "reason": str(row.get("reason", "")),
+        "status": status,
+        "statusLabel": appeal_status_label(status),
+        "adminNote": str(row.get("adminNote", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+        "handledBy": str(row.get("handledBy", "")),
+        "postDeleted": bool(post.get("deleted", False)) if post else True,
+        "postPinned": is_post_pin_active(post or {}),
+    }
+
+
+def serialize_admin_user_level_request(
+    db: dict[str, Any],
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    status = str(row.get("status", "pending")).strip().lower() or "pending"
+    user = find_user_by_id(
+        db,
+        str(row.get("userId", "")).strip(),
+        include_deleted=True,
+    )
+    current_level = normalize_user_level(row.get("currentLevel"))
+    target_level = normalize_user_level(row.get("targetLevel"))
+    return {
+        "id": str(row.get("id", "")),
+        "userId": str(row.get("userId", "")),
+        "userEmail": str(user.get("email", "")) if user else "",
+        "studentId": str(user.get("studentId", "")) if user else "",
+        "userNickname": user_nickname(user),
+        "currentLevel": current_level,
+        "currentLevelLabel": user_level_label(current_level),
+        "targetLevel": target_level,
+        "targetLevelLabel": user_level_label(target_level),
+        "reason": str(row.get("reason", "")),
+        "status": status,
+        "statusLabel": appeal_status_label(status),
+        "adminNote": str(row.get("adminNote", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+        "handledBy": str(row.get("handledBy", "")),
+        "userDeleted": bool(user.get("deleted", False)) if user else True,
+        "userCurrentLevel": current_user_level(user),
+        "userCurrentLevelLabel": user_level_label(current_user_level(user)),
+    }
+
+
 def latest_pending_appeal_for_user(
     db: dict[str, Any],
     user_id: str,
@@ -2126,18 +2724,18 @@ def auth_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> tuple[dic
         return None, None
 
     with ADMIN_SESSION_LOCK:
-        username = ADMIN_SESSIONS.get(token)
+        admin_id = ADMIN_SESSIONS.get(token)
 
-    if not username:
+    if not admin_id:
         return None, token
 
-    current_username, _ = get_admin_auth_credentials(db)
-    if username != current_username:
+    account = find_admin_account_by_id(db, admin_id, include_inactive=True)
+    if account is None or not bool(account.get("active", True)):
         with ADMIN_SESSION_LOCK:
             ADMIN_SESSIONS.pop(token, None)
         return None, token
 
-    return {"id": "", "username": username, "isAdmin": True}, token
+    return build_authenticated_admin(account), token
 
 
 def iso_to_time_text(value: str | None) -> str:
@@ -2256,6 +2854,11 @@ def serialize_post(
         "status": post.get("status", "ongoing"),
         "allowComment": bool(post.get("allowComment", True)),
         "allowDm": bool(post.get("allowDm", False)),
+        "isPinned": is_post_pin_active(post),
+        "pinStartedAt": str(post.get("pinStartedAt", "")),
+        "pinExpiresAt": str(post.get("pinExpiresAt", "")),
+        "pinDurationMinutes": parse_pin_duration_minutes(post.get("pinDurationMinutes")) or 0,
+        "pinDurationLabel": pin_duration_label(post.get("pinDurationMinutes")),
         "canMessageAuthor": can_message_author,
         "isOwnPost": bool(viewer_user_id and viewer_user_id == author_id),
     }
@@ -2266,7 +2869,48 @@ def serialize_post(
     return data
 
 
-def list_posts(db: dict[str, Any], include_rejected: bool = False) -> list[dict[str, Any]]:
+def sort_posts_for_view(
+    db: dict[str, Any],
+    rows: list[dict[str, Any]],
+    *,
+    sort_by: str = "latest",
+) -> list[dict[str, Any]]:
+    active_pinned = [row for row in rows if is_post_pin_active(row)]
+    normal_rows = [row for row in rows if not is_post_pin_active(row)]
+    active_pinned.sort(
+        key=lambda row: (
+            str(row.get("pinStartedAt", "")),
+            str(row.get("createdAt", "")),
+            str(row.get("id", "")),
+        ),
+        reverse=True,
+    )
+    if sort_by in {"likes", "hot"}:
+        normal_rows.sort(
+            key=lambda row: (
+                post_counts(db, row.get("id", ""))[1],
+                str(row.get("createdAt", "")),
+                str(row.get("id", "")),
+            ),
+            reverse=True,
+        )
+    else:
+        normal_rows.sort(
+            key=lambda row: (
+                str(row.get("createdAt", "")),
+                str(row.get("id", "")),
+            ),
+            reverse=True,
+        )
+    return [*active_pinned, *normal_rows]
+
+
+def list_posts(
+    db: dict[str, Any],
+    include_rejected: bool = False,
+    *,
+    sort_by: str = "latest",
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for post in db["posts"]:
         if post.get("deleted"):
@@ -2274,8 +2918,7 @@ def list_posts(db: dict[str, Any], include_rejected: bool = False) -> list[dict[
         if not include_rejected and post.get("reviewStatus") == "rejected":
             continue
         rows.append(post)
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-    return rows
+    return sort_posts_for_view(db, rows, sort_by=sort_by)
 
 
 def list_comments(db: dict[str, Any], include_rejected: bool = False) -> list[dict[str, Any]]:
@@ -2321,6 +2964,19 @@ def require_admin_user(
     admin, token = auth_admin(handler, db)
     if admin is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员未登录或登录已过期")
+        return None, token
+    return admin, token
+
+
+def require_primary_admin_user(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> tuple[dict[str, Any] | None, str | None]:
+    admin, token = require_admin_user(handler, db)
+    if admin is None:
+        return None, token
+    if not bool(admin.get("isPrimary")):
+        json_error(handler, HTTPStatus.FORBIDDEN, "仅一级管理员可执行此操作")
         return None, token
     return admin, token
 
@@ -2572,6 +3228,11 @@ def build_admin_user_rows(
             status="pending",
         )
         pending_appeal = latest_pending_appeal_for_user(db, uid)
+        pending_level_request = latest_user_level_request_for_user(
+            db,
+            uid,
+            status="pending",
+        )
         post_count = sum(
             1
             for post in db["posts"]
@@ -2591,6 +3252,8 @@ def build_admin_user_rows(
                 "alias": user_nickname(user),
                 "avatarUrl": user_avatar_url(user),
                 "verified": bool(user.get("verified", False)),
+                "userLevel": current_user_level(user),
+                "userLevelLabel": user_level_label(current_user_level(user)),
                 "banned": bool(user.get("banned", False)),
                 "muted": bool(user.get("muted", False)),
                 "deleted": bool(user.get("deleted", False)),
@@ -2600,6 +3263,7 @@ def build_admin_user_rows(
                 "createdAt": user.get("createdAt", ""),
                 "hasPendingCancellationRequest": pending_cancellation is not None,
                 "hasPendingAppeal": pending_appeal is not None,
+                "hasPendingLevelUpgradeRequest": pending_level_request is not None,
             }
         )
     rows.sort(
@@ -2671,6 +3335,71 @@ def build_admin_appeal_rows(
             if normalized_keyword not in merged:
                 continue
         rows.append(serialize_appeal(db, appeal))
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
+    return rows
+
+
+def build_admin_post_pin_request_rows(
+    db: dict[str, Any],
+    *,
+    status: str,
+    keyword: str,
+) -> list[dict[str, Any]]:
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("postPinRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        serialized = serialize_admin_post_pin_request(db, request)
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(serialized.get("postId", "")).lower(),
+                    str(serialized.get("postTitle", "")).lower(),
+                    str(serialized.get("userId", "")).lower(),
+                    str(serialized.get("userEmail", "")).lower(),
+                    str(serialized.get("userNickname", "")).lower(),
+                    str(serialized.get("reason", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialized)
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
+    return rows
+
+
+def build_admin_user_level_request_rows(
+    db: dict[str, Any],
+    *,
+    status: str,
+    keyword: str,
+) -> list[dict[str, Any]]:
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("userLevelRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        serialized = serialize_admin_user_level_request(db, request)
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(serialized.get("userId", "")).lower(),
+                    str(serialized.get("userEmail", "")).lower(),
+                    str(serialized.get("studentId", "")).lower(),
+                    str(serialized.get("userNickname", "")).lower(),
+                    str(serialized.get("reason", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialized)
     rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
     rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
     return rows
@@ -3031,7 +3760,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 sort_by = (query.get("sort", ["latest"])[0] or "latest").strip().lower()
 
                 filtered_posts = []
-                for post in list_posts(db):
+                for post in list_posts(db, sort_by=sort_by):
                     if channel and post.get("channel") != channel:
                         continue
                     if status and str(post.get("status", "")).lower() != status:
@@ -3055,16 +3784,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
                     filtered_posts.append(post)
 
-                if sort_by in {"likes", "hot"}:
-                    filtered_posts.sort(
-                        key=lambda row: (
-                            post_counts(db, row.get("id", ""))[1],
-                            row.get("createdAt", ""),
-                        ),
-                        reverse=True,
-                    )
-                else:
-                    filtered_posts.sort(key=lambda row: row.get("createdAt", ""), reverse=True)
+                filtered_posts = sort_posts_for_view(db, filtered_posts, sort_by=sort_by)
 
                 rows = [serialize_post(db, post, viewer_user_id=viewer_user_id) for post in filtered_posts]
 
@@ -3340,6 +4060,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     db,
                     str(user.get("id", "")),
                 )
+                latest_level_request = latest_user_level_request_for_user(
+                    db,
+                    str(user.get("id", "")),
+                )
                 favorite_post_ids = {
                     str(x.get("postId", ""))
                     for x in db["favorites"]
@@ -3365,7 +4089,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                             "showContactable": bool(user.get("showContactable", True)),
                             "favoriteCount": favorite_count,
                             "isAdmin": bool(user.get("isAdmin", False)),
+                            "userLevel": current_user_level(user),
+                            "userLevelLabel": user_level_label(current_user_level(user)),
+                            "isLevelOneUser": is_level_one_user(user),
                             "email": user.get("email", ""),
+                            "levelUpgradeRequest": serialize_user_level_request_summary(
+                                latest_level_request
+                            ),
                             "accountCancellationRequest": serialize_account_cancellation_request(
                                 latest_cancellation_request
                             )
@@ -3383,24 +4113,19 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(
                     self,
                     HTTPStatus.OK,
-                    {
-                        "data": {
-                            "username": admin.get("username", ""),
-                            "authenticated": True,
-                        }
-                    },
+                    {"data": serialize_admin_auth_payload(admin)},
                 )
                 return
 
             if path == "/api/admin/overview":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 send_json(self, HTTPStatus.OK, {"data": build_overview(db)})
                 return
 
             if path == "/api/admin/reviews":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 target_type = (query.get("type", ["post"])[0] or "post").strip().lower()
@@ -3419,7 +4144,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/reports":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 status = (query.get("status", ["all"])[0] or "all").strip().lower()
@@ -3433,7 +4158,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/images/reviews":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 status = (query.get("status", ["pending"])[0] or "pending").strip().lower()
@@ -3470,8 +4195,43 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {"data": rows})
                 return
 
-            if path == "/api/admin/account-cancellation-requests":
+            if path == "/api/admin/post-pin-requests":
                 admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["all"])[0] or "all").strip().lower()
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+                rows = build_admin_post_pin_request_rows(
+                    db,
+                    status=status,
+                    keyword=keyword,
+                )
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/user-level-requests":
+                admin, _ = require_primary_admin_user(self, db)
+                if admin is None:
+                    return
+                status = (query.get("status", ["all"])[0] or "all").strip().lower()
+                keyword = (query.get("keyword", [""])[0] or "").strip().lower()
+                rows = build_admin_user_level_request_rows(
+                    db,
+                    status=status,
+                    keyword=keyword,
+                )
+                send_json(self, HTTPStatus.OK, {"data": rows})
+                return
+
+            if path == "/api/admin/admin-accounts":
+                admin, _ = require_primary_admin_user(self, db)
+                if admin is None:
+                    return
+                send_json(self, HTTPStatus.OK, {"data": build_admin_account_rows(db)})
+                return
+
+            if path == "/api/admin/account-cancellation-requests":
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 status = (query.get("status", ["all"])[0] or "all").strip().lower()
@@ -3485,7 +4245,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/appeals":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 status = (query.get("status", ["all"])[0] or "all").strip().lower()
@@ -3499,7 +4259,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/export":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 scope = (query.get("scope", ["users"])[0] or "users").strip().lower()
@@ -3525,7 +4285,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/channels-tags":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 send_json(
@@ -3541,7 +4301,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/config":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 send_json(
@@ -3557,7 +4317,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/announcements":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 rows = [
@@ -3695,21 +4455,37 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             db = load_db()
 
             if path == "/api/admin/auth/login":
-                username = str(body.get("username", "")).strip()
+                username = normalize_admin_username(str(body.get("username", "")))
                 password = str(body.get("password", "")).strip()
                 if not username or not password:
                     json_error(self, HTTPStatus.BAD_REQUEST, "管理员账号和密码不能为空")
                     return
 
-                expected_username, expected_password_hash = get_admin_auth_credentials(db)
-                if username != expected_username or not verify_password(expected_password_hash, password):
+                account = find_admin_account_by_username(
+                    db,
+                    username,
+                    include_inactive=True,
+                )
+                if account is None or not verify_password(
+                    str(account.get("passwordHash", "")),
+                    password,
+                ):
                     json_error(self, HTTPStatus.UNAUTHORIZED, "管理员账号或密码错误")
+                    return
+                if not bool(account.get("active", True)):
+                    json_error(self, HTTPStatus.FORBIDDEN, "该管理员账号已注销，请联系一级管理员")
                     return
 
                 token = secrets.token_urlsafe(24)
                 with ADMIN_SESSION_LOCK:
-                    ADMIN_SESSIONS[token] = expected_username
-                add_audit_log(db, "", "admin_login", f"管理员登录: {expected_username}")
+                    ADMIN_SESSIONS[token] = str(account.get("id", "")).strip()
+                admin_payload = build_authenticated_admin(account)
+                add_audit_log(
+                    db,
+                    "",
+                    "admin_login",
+                    f"管理员登录:{account.get('username', '')}:{admin_payload.get('role', '')}",
+                )
                 save_db(db)
                 send_json(
                     self,
@@ -3717,7 +4493,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     {
                         "data": {
                             "token": token,
-                            "username": expected_username,
+                            **serialize_admin_auth_payload(admin_payload),
                         }
                     },
                 )
@@ -3733,6 +4509,52 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 add_audit_log(db, "", "admin_logout", f"管理员退出: {admin.get('username', '')}")
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "管理员已退出", "data": {"ok": True}})
+                return
+
+            if path == "/api/admin/admin-accounts":
+                admin, _ = require_primary_admin_user(self, db)
+                if admin is None:
+                    return
+                username = normalize_admin_username(str(body.get("username", "")))
+                password = str(body.get("password", "")).strip()
+                if not is_valid_admin_username(username):
+                    json_error(
+                        self,
+                        HTTPStatus.BAD_REQUEST,
+                        "管理员账号仅支持 3-32 位字母、数字、下划线、点和中划线",
+                    )
+                    return
+                if len(password) < 6:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "管理员密码长度至少 6 位")
+                    return
+                if find_admin_account_by_username(db, username, include_inactive=True) is not None:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该管理员账号已存在")
+                    return
+
+                created_at = now_iso()
+                account = build_admin_account(
+                    admin_id=next_id(db, "adminAccount", "adm"),
+                    username=username,
+                    password_hash=hash_password(password),
+                    role=ADMIN_ROLE_SECONDARY,
+                    active=True,
+                    created_at=created_at,
+                    updated_at=created_at,
+                    created_by=str(admin.get("username", "")).strip(),
+                )
+                db.setdefault("adminAccounts", []).append(account)
+                add_audit_log(
+                    db,
+                    "",
+                    "admin_create_secondary_account",
+                    f"{admin.get('username', '')}:{username}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.CREATED,
+                    {"message": "二级管理员已创建", "data": serialize_admin_account(account)},
+                )
                 return
 
             if path in {"/api/auth/send-code", "/api/auth/resend-code"}:
@@ -4058,6 +4880,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         "nickname": nickname,
                         "studentId": student_id,
                         "avatarUrl": avatar_url,
+                        "userLevel": USER_LEVEL_TWO,
                         "verified": False,
                         "verifiedAt": "",
                         "allowStrangerDm": True,
@@ -4617,6 +5440,47 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 )
                 return
 
+            if path == "/api/users/me/level-upgrade-request":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                if is_level_one_user(user):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "你当前已经是一级用户")
+                    return
+                pending_request = latest_user_level_request_for_user(
+                    db,
+                    str(user.get("id", "")),
+                    status="pending",
+                )
+                if pending_request is not None:
+                    json_error(self, HTTPStatus.CONFLICT, "你已提交过升级申请，请等待一级管理员审核")
+                    return
+                reason = str(body.get("reason", "")).strip()
+                request = {
+                    "id": next_id(db, "levelRequest", "lvl"),
+                    "userId": str(user.get("id", "")).strip(),
+                    "currentLevel": current_user_level(user),
+                    "targetLevel": USER_LEVEL_ONE,
+                    "reason": reason,
+                    "status": "pending",
+                    "adminNote": "",
+                    "createdAt": now_iso(),
+                    "handledAt": "",
+                    "handledBy": "",
+                }
+                db.setdefault("userLevelRequests", []).append(request)
+                add_audit_log(db, user["id"], "submit_user_level_upgrade_request", request["id"])
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.CREATED,
+                    {
+                        "message": "一级用户申请已提交，请等待一级管理员审核",
+                        "data": serialize_user_level_request_summary(request),
+                    },
+                )
+                return
+
             if path == "/api/appeals":
                 email = str(body.get("email", "")).strip().lower()
                 student_id = str(body.get("studentId", "")).strip()
@@ -4699,7 +5563,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/announcements":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 title = str(body.get("title", "")).strip()
@@ -4964,6 +5828,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 channel = str(body.get("channel", "")).strip()
                 tags = parse_list(body.get("tags", []))
                 status = str(body.get("status", "ongoing")).strip().lower() or "ongoing"
+                pin_duration_minutes = parse_pin_duration_minutes(body.get("pinDurationMinutes"))
                 image_upload_ids = parse_list(body.get("imageUploadIds", []))
                 use_anonymous_alias = bool(body.get("useAnonymousAlias", False))
                 anonymous_alias = sanitize_alias(str(body.get("anonymousAlias", "")), fallback="")
@@ -4976,6 +5841,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 if channel not in db.get("channels", DEFAULT_CHANNELS):
                     json_error(self, HTTPStatus.BAD_REQUEST, "频道不合法")
+                    return
+                if pin_duration_minutes is not None and not is_level_one_user(user):
+                    json_error(self, HTTPStatus.FORBIDDEN, "仅一级用户可在发帖时直接置顶")
                     return
 
                 risk_marked, high_risk, risk_reasons = assess_text_risk(
@@ -5022,12 +5890,21 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     "allowDm": bool(body.get("allowDm", False)),
                     "authorAlias": author_alias,
                     "authorId": user["id"],
+                    "pinStartedAt": "",
+                    "pinExpiresAt": "",
+                    "pinDurationMinutes": 0,
                     "createdAt": now_iso(),
                     "updatedAt": now_iso(),
                     "deleted": False,
                     "reviewStatus": "approved",
                     "riskMarked": risk_marked,
                 }
+                if pin_duration_minutes is not None:
+                    apply_post_pin(
+                        post,
+                        duration_minutes=pin_duration_minutes,
+                        started_at=post["createdAt"],
+                    )
                 db["posts"].append(post)
                 for upload in picked_uploads:
                     upload["postId"] = post["id"]
@@ -5041,12 +5918,111 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 recalc_post_has_image(db, post["id"])
                 if risk_marked:
                     add_audit_log(db, user["id"], "risk_mark_post", f"{post['id']}:{';'.join(risk_reasons)}")
+                if pin_duration_minutes is not None:
+                    add_audit_log(
+                        db,
+                        user["id"],
+                        "direct_pin_post_on_create",
+                        f"{post['id']}:{pin_duration_minutes}",
+                    )
                 add_audit_log(db, user["id"], "create_post", f"创建帖子 {post['id']}")
                 save_db(db)
                 send_json(
                     self,
                     HTTPStatus.OK,
                     {"data": serialize_post(db, post, include_unapproved_images=True)},
+                )
+                return
+
+            match_post_pin_request = re.fullmatch(r"/api/posts/([^/]+)/pin-request", path)
+            if match_post_pin_request:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                post_id = match_post_pin_request.group(1)
+                duration_minutes = parse_pin_duration_minutes(body.get("durationMinutes"))
+                reason = str(body.get("reason", "")).strip()
+                if duration_minutes is None:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "置顶时长不合法")
+                    return
+                post = next(
+                    (
+                        row
+                        for row in db.get("posts", [])
+                        if str(row.get("id", "")).strip() == post_id
+                        and not row.get("deleted")
+                    ),
+                    None,
+                )
+                if post is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
+                    return
+                if str(post.get("authorId", "")).strip() != str(user.get("id", "")).strip():
+                    json_error(self, HTTPStatus.FORBIDDEN, "只能申请置顶自己的帖子")
+                    return
+                if is_level_one_user(user):
+                    apply_post_pin(post, duration_minutes=duration_minutes)
+                    add_audit_log(
+                        db,
+                        user["id"],
+                        "direct_pin_post",
+                        f"{post_id}:{duration_minutes}",
+                    )
+                    save_db(db)
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "帖子已置顶",
+                            "data": {
+                                "mode": "direct",
+                                "post": serialize_post(
+                                    db,
+                                    post,
+                                    viewer_user_id=str(user.get("id", "")),
+                                ),
+                            },
+                        },
+                    )
+                    return
+
+                if is_post_pin_active(post):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该帖子当前已在置顶中")
+                    return
+                existing_request = latest_pending_post_pin_request_for_post(db, post_id)
+                if existing_request is not None:
+                    json_error(self, HTTPStatus.CONFLICT, "该帖子已有待处理置顶申请")
+                    return
+                request = {
+                    "id": next_id(db, "pinRequest", "pin"),
+                    "postId": post_id,
+                    "userId": str(user.get("id", "")).strip(),
+                    "durationMinutes": duration_minutes,
+                    "reason": reason,
+                    "status": "pending",
+                    "adminNote": "",
+                    "createdAt": now_iso(),
+                    "handledAt": "",
+                    "handledBy": "",
+                }
+                db.setdefault("postPinRequests", []).append(request)
+                add_audit_log(
+                    db,
+                    user["id"],
+                    "submit_post_pin_request",
+                    f"{request['id']}:{post_id}:{duration_minutes}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.CREATED,
+                    {
+                        "message": "置顶申请已提交，请等待管理员审核",
+                        "data": {
+                            "mode": "pending",
+                            "request": serialize_admin_post_pin_request(db, request),
+                        },
+                    },
                 )
                 return
 
@@ -5341,7 +6317,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/reviews/batch":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 target_type = str(body.get("targetType", "post")).strip().lower()
@@ -5403,7 +6379,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_review = re.fullmatch(r"/api/admin/reviews/(post|comment)/([^/]+)/(approve|reject|delete|risk)", path)
             if match_review:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 target_type = match_review.group(1)
@@ -5431,7 +6407,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_report_handle = re.fullmatch(r"/api/admin/reports/([^/]+)/handle", path)
             if match_report_handle:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 report_id = match_report_handle.group(1)
@@ -5495,6 +6471,231 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 add_audit_log(db, admin["id"], "admin_handle_report", f"{report_id}:{action}")
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "举报处理完成", "data": {"ok": True}})
+                return
+
+            match_post_pin_request_handle = re.fullmatch(
+                r"/api/admin/post-pin-requests/([^/]+)/handle",
+                path,
+            )
+            if match_post_pin_request_handle:
+                admin, _ = require_admin_user(self, db)
+                if admin is None:
+                    return
+                request_id = match_post_pin_request_handle.group(1)
+                action = str(body.get("action", "")).strip().lower()
+                admin_note = str(body.get("note", "")).strip()
+                request = next(
+                    (
+                        row
+                        for row in db.get("postPinRequests", [])
+                        if str(row.get("id", "")).strip() == request_id
+                    ),
+                    None,
+                )
+                if request is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "置顶申请不存在")
+                    return
+                if str(request.get("status", "pending")).strip().lower() != "pending":
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该置顶申请已处理")
+                    return
+                post = next(
+                    (
+                        row
+                        for row in db.get("posts", [])
+                        if str(row.get("id", "")).strip() == str(request.get("postId", "")).strip()
+                    ),
+                    None,
+                )
+                user = find_user_by_id(
+                    db,
+                    str(request.get("userId", "")).strip(),
+                    include_deleted=True,
+                )
+                if post is None or post.get("deleted") or user is None or user.get("deleted"):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申请对应的帖子或用户当前不可处理")
+                    return
+
+                request["handledAt"] = now_iso()
+                request["handledBy"] = str(admin.get("username", "")).strip() or "admin"
+                request["adminNote"] = admin_note
+
+                if action == "approve":
+                    apply_post_pin(
+                        post,
+                        duration_minutes=parse_pin_duration_minutes(request.get("durationMinutes")) or 30,
+                    )
+                    request["status"] = "approved"
+                    create_notification(
+                        db,
+                        user_id=str(user.get("id", "")),
+                        notification_type="system_announcement",
+                        title="你的帖子置顶申请已通过",
+                        content=admin_note or f"帖子《{str(post.get('title', '你的帖子'))[:32]}》已置顶展示",
+                        related_type="post",
+                        related_id=str(post.get("id", "")),
+                        post_id=str(post.get("id", "")),
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
+                elif action == "reject":
+                    request["status"] = "rejected"
+                    create_notification(
+                        db,
+                        user_id=str(user.get("id", "")),
+                        notification_type="system_announcement",
+                        title="你的帖子置顶申请未通过",
+                        content=admin_note or "当前未通过置顶申请，你可以调整内容后再次申请",
+                        related_type="post",
+                        related_id=str(post.get("id", "")),
+                        post_id=str(post.get("id", "")),
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 approve/reject")
+                    return
+
+                add_audit_log(db, admin["id"], "admin_handle_post_pin_request", f"{request_id}:{action}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "置顶申请处理完成",
+                        "data": serialize_admin_post_pin_request(db, request),
+                    },
+                )
+                return
+
+            match_user_level_request_handle = re.fullmatch(
+                r"/api/admin/user-level-requests/([^/]+)/handle",
+                path,
+            )
+            if match_user_level_request_handle:
+                admin, _ = require_primary_admin_user(self, db)
+                if admin is None:
+                    return
+                request_id = match_user_level_request_handle.group(1)
+                action = str(body.get("action", "")).strip().lower()
+                admin_note = str(body.get("note", "")).strip()
+                request = next(
+                    (
+                        row
+                        for row in db.get("userLevelRequests", [])
+                        if str(row.get("id", "")).strip() == request_id
+                    ),
+                    None,
+                )
+                if request is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "一级用户申请不存在")
+                    return
+                if str(request.get("status", "pending")).strip().lower() != "pending":
+                    json_error(self, HTTPStatus.BAD_REQUEST, "该一级用户申请已处理")
+                    return
+                user = find_user_by_id(
+                    db,
+                    str(request.get("userId", "")).strip(),
+                    include_deleted=True,
+                )
+                if user is None or user.get("deleted"):
+                    json_error(self, HTTPStatus.BAD_REQUEST, "申请对应用户当前不可处理")
+                    return
+
+                request["handledAt"] = now_iso()
+                request["handledBy"] = str(admin.get("username", "")).strip() or "admin"
+                request["adminNote"] = admin_note
+
+                if action == "approve":
+                    user["userLevel"] = USER_LEVEL_ONE
+                    request["status"] = "approved"
+                    create_notification(
+                        db,
+                        user_id=str(user.get("id", "")),
+                        notification_type="system_announcement",
+                        title="你的一级用户申请已通过",
+                        content=admin_note or "你现在可以直接为帖子设置置顶时长",
+                        related_type="user_level_request",
+                        related_id=request_id,
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
+                elif action == "reject":
+                    request["status"] = "rejected"
+                    create_notification(
+                        db,
+                        user_id=str(user.get("id", "")),
+                        notification_type="system_announcement",
+                        title="你的一级用户申请未通过",
+                        content=admin_note or "当前未通过升级申请，你可以补充说明后重新提交",
+                        related_type="user_level_request",
+                        related_id=request_id,
+                        actor_id=str(admin.get("id", "")),
+                        actor_alias="管理员",
+                    )
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持 approve/reject")
+                    return
+
+                add_audit_log(db, admin["id"], "admin_handle_user_level_request", f"{request_id}:{action}")
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "一级用户申请处理完成",
+                        "data": serialize_admin_user_level_request(db, request),
+                    },
+                )
+                return
+
+            match_admin_account_action = re.fullmatch(
+                r"/api/admin/admin-accounts/([^/]+)/action",
+                path,
+            )
+            if match_admin_account_action:
+                admin, _ = require_primary_admin_user(self, db)
+                if admin is None:
+                    return
+                account_id = match_admin_account_action.group(1)
+                action = str(body.get("action", "")).strip().lower()
+                account = find_admin_account_by_id(db, account_id, include_inactive=True)
+                if account is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "管理员账号不存在")
+                    return
+                if normalize_admin_role(account.get("role")) != ADMIN_ROLE_SECONDARY:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "仅支持管理二级管理员账号")
+                    return
+                if action == "deactivate":
+                    if not bool(account.get("active", True)):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "该管理员账号已注销")
+                        return
+                    account["active"] = False
+                    account["updatedAt"] = now_iso()
+                    clear_admin_sessions_for_account(str(account.get("id", "")))
+                    message = "二级管理员已注销"
+                elif action == "activate":
+                    if bool(account.get("active", True)):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "该管理员账号当前已启用")
+                        return
+                    account["active"] = True
+                    account["updatedAt"] = now_iso()
+                    message = "二级管理员已恢复"
+                else:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不支持的操作")
+                    return
+
+                add_audit_log(
+                    db,
+                    "",
+                    "admin_update_secondary_account",
+                    f"{admin.get('username', '')}:{account.get('username', '')}:{action}",
+                )
+                save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {"message": message, "data": serialize_admin_account(account)},
+                )
                 return
 
             match_user_action = re.fullmatch(r"/api/admin/users/([^/]+)/action", path)
@@ -5567,7 +6768,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_appeal_handle = re.fullmatch(r"/api/admin/appeals/([^/]+)/handle", path)
             if match_appeal_handle:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 appeal_id = match_appeal_handle.group(1)
@@ -5664,7 +6865,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 path,
             )
             if match_cancellation_handle:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 request_id = match_cancellation_handle.group(1)
@@ -5753,7 +6954,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_image_review = re.fullmatch(r"/api/admin/images/([^/]+)/review", path)
             if match_image_review:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 upload_id = match_image_review.group(1)
@@ -5798,7 +6999,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/channels":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 name = str(body.get("name", "")).strip()
@@ -5816,7 +7017,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/tags":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 name = str(body.get("name", "")).strip()
@@ -5854,20 +7055,30 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     json_error(self, HTTPStatus.BAD_REQUEST, "新密码长度至少 6 位")
                     return
 
-                username, stored_hash = get_admin_auth_credentials(db)
-                if not verify_password(stored_hash, old_password):
+                account = find_admin_account_by_id(
+                    db,
+                    str(admin.get("adminId", "")),
+                    include_inactive=True,
+                )
+                if account is None:
+                    json_error(self, HTTPStatus.UNAUTHORIZED, "管理员未登录或登录已过期")
+                    return
+                if not verify_password(str(account.get("passwordHash", "")), old_password):
                     json_error(self, HTTPStatus.UNAUTHORIZED, "旧密码错误")
                     return
 
-                settings = db.get("settings", {})
-                settings[ADMIN_PASSWORD_HASH_SETTING_KEY] = hash_password(new_password)
-                db["settings"] = settings
-                with ADMIN_SESSION_LOCK:
-                    ADMIN_SESSIONS.clear()
+                account["passwordHash"] = hash_password(new_password)
+                account["updatedAt"] = now_iso()
+                clear_admin_sessions_for_account(str(account.get("id", "")))
                 if token:
                     with ADMIN_SESSION_LOCK:
                         ADMIN_SESSIONS.pop(token, None)
-                add_audit_log(db, "", "admin_update_password", f"管理员更新密码: {username}")
+                add_audit_log(
+                    db,
+                    "",
+                    "admin_update_password",
+                    f"管理员更新密码:{account.get('username', '')}",
+                )
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"message": "管理员密码更新成功", "data": {"ok": True}})
                 return
@@ -5960,7 +7171,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
             if match_channel:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 old_name = unquote(match_channel.group(1)).strip()
@@ -5987,7 +7198,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
             if match_tag:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 old_name = unquote(match_tag.group(1)).strip()
@@ -6012,7 +7223,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/config":
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
 
@@ -6158,7 +7369,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_del_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
             if match_del_channel:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 name = unquote(match_del_channel.group(1)).strip()
@@ -6178,7 +7389,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_del_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
             if match_del_tag:
-                admin, _ = require_admin_user(self, db)
+                admin, _ = require_primary_admin_user(self, db)
                 if admin is None:
                     return
                 name = unquote(match_del_tag.group(1)).strip()

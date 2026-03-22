@@ -172,4 +172,13 @@ class UserRepository {
       },
     );
   }
+
+  Future<void> submitLevelUpgradeRequest({String? reason}) {
+    return _apiClient.post(
+      ApiEndpoints.meLevelUpgradeRequest,
+      body: <String, dynamic>{
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      },
+    );
+  }
 }

@@ -4,12 +4,16 @@ import '../../core/state/app_providers.dart';
 import '../../data/mock_data.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
+import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 
 class CreatePostState {
   const CreatePostState({
     this.channels = kChannels,
     this.loadingChannels = true,
+    this.userLevel = 2,
+    this.userLevelLabel = '二级用户',
+    this.isLevelOneUser = false,
     this.submitting = false,
     this.progressText,
     this.error,
@@ -17,6 +21,9 @@ class CreatePostState {
 
   final List<String> channels;
   final bool loadingChannels;
+  final int userLevel;
+  final String userLevelLabel;
+  final bool isLevelOneUser;
   final bool submitting;
   final String? progressText;
   final String? error;
@@ -24,6 +31,9 @@ class CreatePostState {
   CreatePostState copyWith({
     List<String>? channels,
     bool? loadingChannels,
+    int? userLevel,
+    String? userLevelLabel,
+    bool? isLevelOneUser,
     bool? submitting,
     String? progressText,
     String? error,
@@ -33,6 +43,9 @@ class CreatePostState {
     return CreatePostState(
       channels: channels ?? this.channels,
       loadingChannels: loadingChannels ?? this.loadingChannels,
+      userLevel: userLevel ?? this.userLevel,
+      userLevelLabel: userLevelLabel ?? this.userLevelLabel,
+      isLevelOneUser: isLevelOneUser ?? this.isLevelOneUser,
       submitting: submitting ?? this.submitting,
       progressText: clearProgress ? null : (progressText ?? this.progressText),
       error: clearError ? null : (error ?? this.error),
@@ -64,9 +77,13 @@ class CreatePostController extends StateNotifier<CreatePostState> {
     try {
       final List<String> channels =
           await _ref.read(postRepositoryProvider).fetchChannels();
+      final profile = await AppRepositories.users.fetchProfile();
       state = state.copyWith(
         channels: channels.isEmpty ? kChannels : channels,
         loadingChannels: false,
+        userLevel: profile.userLevel,
+        userLevelLabel: profile.userLevelLabel,
+        isLevelOneUser: profile.isLevelOneUser,
         clearError: true,
       );
     } catch (error) {
@@ -87,6 +104,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
     required PostStatus status,
     required bool useAnonymousAlias,
     String? anonymousAlias,
+    int? pinDurationMinutes,
     required List<UploadPayload> uploadPayloads,
   }) async {
     state = state.copyWith(
@@ -125,6 +143,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
                   allowDm: allowDm,
                   status: status,
                   hasImage: uploadedIds.isNotEmpty,
+                  pinDurationMinutes: pinDurationMinutes,
                   imageUploadIds: uploadedIds,
                   useAnonymousAlias: useAnonymousAlias,
                   anonymousAlias: anonymousAlias,

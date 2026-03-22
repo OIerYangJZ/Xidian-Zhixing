@@ -60,6 +60,11 @@ class PostItem {
     required this.status,
     required this.allowComment,
     required this.allowDm,
+    this.isPinned = false,
+    this.pinStartedAt,
+    this.pinExpiresAt,
+    this.pinDurationMinutes = 0,
+    this.pinDurationLabel = '',
     this.canMessageAuthor = false,
     this.isOwnPost = false,
     this.isFavorited = false,
@@ -81,6 +86,11 @@ class PostItem {
   final PostStatus status;
   final bool allowComment;
   final bool allowDm;
+  final bool isPinned;
+  final DateTime? pinStartedAt;
+  final DateTime? pinExpiresAt;
+  final int pinDurationMinutes;
+  final String pinDurationLabel;
   final bool canMessageAuthor;
   final bool isOwnPost;
   final bool isFavorited;
@@ -116,6 +126,11 @@ class PostItem {
       status: PostStatusCodec.fromDynamic(json['status']),
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
+      isPinned: _bool(json, <String>['isPinned']) ?? false,
+      pinStartedAt: _date(json, <String>['pinStartedAt']),
+      pinExpiresAt: _date(json, <String>['pinExpiresAt']),
+      pinDurationMinutes: _int(json, <String>['pinDurationMinutes']) ?? 0,
+      pinDurationLabel: _str(json, <String>['pinDurationLabel']) ?? '',
       canMessageAuthor:
           _bool(json, <String>['canMessageAuthor', 'canContactAuthor']) ??
               false,
@@ -136,6 +151,7 @@ class PostItem {
       'allowComment': allowComment,
       'allowDm': allowDm,
       'hasImage': hasImage,
+      if (pinDurationMinutes > 0) 'pinDurationMinutes': pinDurationMinutes,
     };
   }
 
@@ -154,6 +170,11 @@ class PostItem {
     PostStatus? status,
     bool? allowComment,
     bool? allowDm,
+    bool? isPinned,
+    DateTime? pinStartedAt,
+    DateTime? pinExpiresAt,
+    int? pinDurationMinutes,
+    String? pinDurationLabel,
     bool? canMessageAuthor,
     bool? isOwnPost,
     bool? isFavorited,
@@ -175,6 +196,11 @@ class PostItem {
       status: status ?? this.status,
       allowComment: allowComment ?? this.allowComment,
       allowDm: allowDm ?? this.allowDm,
+      isPinned: isPinned ?? this.isPinned,
+      pinStartedAt: pinStartedAt ?? this.pinStartedAt,
+      pinExpiresAt: pinExpiresAt ?? this.pinExpiresAt,
+      pinDurationMinutes: pinDurationMinutes ?? this.pinDurationMinutes,
+      pinDurationLabel: pinDurationLabel ?? this.pinDurationLabel,
       canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
       isOwnPost: isOwnPost ?? this.isOwnPost,
       isFavorited: isFavorited ?? this.isFavorited,

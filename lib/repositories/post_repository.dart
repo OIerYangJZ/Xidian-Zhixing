@@ -42,6 +42,7 @@ class CreatePostInput {
     required this.allowDm,
     required this.status,
     required this.hasImage,
+    this.pinDurationMinutes,
     this.imageUploadIds = const <String>[],
     this.useAnonymousAlias = false,
     this.anonymousAlias,
@@ -55,6 +56,7 @@ class CreatePostInput {
   final bool allowDm;
   final PostStatus status;
   final bool hasImage;
+  final int? pinDurationMinutes;
   final List<String> imageUploadIds;
   final bool useAnonymousAlias;
   final String? anonymousAlias;
@@ -69,6 +71,8 @@ class CreatePostInput {
       'allowDm': allowDm,
       'status': status.apiValue,
       'hasImage': hasImage || imageUploadIds.isNotEmpty,
+      if (pinDurationMinutes != null && pinDurationMinutes! > 0)
+        'pinDurationMinutes': pinDurationMinutes,
       'imageUploadIds': imageUploadIds,
       'useAnonymousAlias': useAnonymousAlias,
       if (anonymousAlias != null && anonymousAlias!.trim().isNotEmpty)
@@ -85,6 +89,18 @@ class FavoriteActionResult {
 
   final bool favorited;
   final int? favoriteCount;
+}
+
+class PinPostActionResult {
+  PinPostActionResult({
+    required this.mode,
+    this.post,
+  });
+
+  final String mode;
+  final PostItem? post;
+
+  bool get isDirect => mode == 'direct';
 }
 
 class PostRepository {
@@ -165,7 +181,8 @@ class PostRepository {
   }
 
   Future<PostItem> fetchPostDetail(String postId) async {
-    final dynamic response = await _apiClient.get(ApiEndpoints.postById(postId));
+    final dynamic response =
+        await _apiClient.get(ApiEndpoints.postById(postId));
     final Map<String, dynamic> map = extractMap(response);
     if (map.isNotEmpty) {
       return PostItem.fromJson(map);
@@ -203,6 +220,8 @@ class PostRepository {
       status: input.status,
       allowComment: input.allowComment,
       allowDm: input.allowDm,
+      isPinned: (input.pinDurationMinutes ?? 0) > 0,
+      pinDurationMinutes: input.pinDurationMinutes ?? 0,
     );
   }
 
@@ -365,6 +384,27 @@ class PostRepository {
 
   Future<void> deleteMyPost(String postId) {
     return _apiClient.delete(ApiEndpoints.postById(postId));
+  }
+
+  Future<PinPostActionResult> submitPinRequest({
+    required String postId,
+    required int durationMinutes,
+    String? reason,
+  }) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.postPinRequest(postId),
+      body: <String, dynamic>{
+        'durationMinutes': durationMinutes,
+        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
+      },
+    );
+    final Map<String, dynamic> map = extractMap(response);
+    final String mode = (readString(map, <String>['mode']) ?? 'pending').trim();
+    final Map<String, dynamic> postMap = asMap(map['post']);
+    return PinPostActionResult(
+      mode: mode.isEmpty ? 'pending' : mode,
+      post: postMap.isEmpty ? null : PostItem.fromJson(postMap),
+    );
   }
 
   List<PostItem> _filterMockPosts({

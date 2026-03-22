@@ -77,6 +77,7 @@ class SqliteTreeholeRepository:
               nickname TEXT NOT NULL DEFAULT '',
               student_id TEXT NOT NULL DEFAULT '',
               avatar_url TEXT NOT NULL DEFAULT '',
+              user_level INTEGER NOT NULL DEFAULT 2,
               verified INTEGER NOT NULL DEFAULT 0,
               verified_at TEXT NULL,
               allow_stranger_dm INTEGER NOT NULL DEFAULT 1,
@@ -126,6 +127,17 @@ class SqliteTreeholeRepository:
               updated_at TEXT NOT NULL
             );
 
+            CREATE TABLE IF NOT EXISTS admin_accounts (
+              id TEXT PRIMARY KEY,
+              username TEXT NOT NULL UNIQUE,
+              password_hash TEXT NOT NULL,
+              role TEXT NOT NULL,
+              active INTEGER NOT NULL DEFAULT 1,
+              created_at TEXT NOT NULL,
+              updated_at TEXT NOT NULL,
+              created_by TEXT NOT NULL DEFAULT ''
+            );
+
             CREATE TABLE IF NOT EXISTS meta_seq (
               seq_key TEXT PRIMARY KEY,
               seq_value INTEGER NOT NULL
@@ -142,6 +154,9 @@ class SqliteTreeholeRepository:
               allow_dm INTEGER NOT NULL DEFAULT 0,
               author_alias TEXT NOT NULL,
               author_id TEXT NULL,
+              pin_started_at TEXT NULL,
+              pin_expires_at TEXT NULL,
+              pin_duration_minutes INTEGER NOT NULL DEFAULT 0,
               created_at TEXT NOT NULL,
               updated_at TEXT NOT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
@@ -306,6 +321,35 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
             );
 
+            CREATE TABLE IF NOT EXISTS post_pin_requests (
+              id TEXT PRIMARY KEY,
+              post_id TEXT NOT NULL,
+              user_id TEXT NOT NULL,
+              duration_minutes INTEGER NOT NULL,
+              reason TEXT NOT NULL DEFAULT '',
+              status TEXT NOT NULL DEFAULT 'pending',
+              admin_note TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              handled_at TEXT NULL,
+              handled_by TEXT NULL,
+              FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS user_level_requests (
+              id TEXT PRIMARY KEY,
+              user_id TEXT NOT NULL,
+              current_level INTEGER NOT NULL DEFAULT 2,
+              target_level INTEGER NOT NULL DEFAULT 1,
+              reason TEXT NOT NULL DEFAULT '',
+              status TEXT NOT NULL DEFAULT 'pending',
+              admin_note TEXT NOT NULL DEFAULT '',
+              created_at TEXT NOT NULL,
+              handled_at TEXT NULL,
+              handled_by TEXT NULL,
+              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
             CREATE TABLE IF NOT EXISTS audit_logs (
               id TEXT PRIMARY KEY,
               actor_id TEXT NULL,
@@ -389,6 +433,14 @@ class SqliteTreeholeRepository:
               ON appeals(status, created_at DESC, id DESC);
             CREATE INDEX IF NOT EXISTS idx_appeals_user_created
               ON appeals(user_id, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_post_pin_requests_status_created
+              ON post_pin_requests(status, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_post_pin_requests_post_created
+              ON post_pin_requests(post_id, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_level_requests_status_created
+              ON user_level_requests(status, created_at DESC, id DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_level_requests_user_created
+              ON user_level_requests(user_id, created_at DESC, id DESC);
             CREATE INDEX IF NOT EXISTS idx_audit_logs_actor_created
               ON audit_logs(actor_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_account_cancellation_requests_status_created
@@ -401,11 +453,17 @@ class SqliteTreeholeRepository:
               ON media_uploads(uploader_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_media_uploads_post_status
               ON media_uploads(post_id, status, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_admin_accounts_role_active
+              ON admin_accounts(role, active, created_at DESC);
             """
         )
+        self._ensure_column(conn, "users", "user_level", "INTEGER NOT NULL DEFAULT 2")
         self._ensure_column(conn, "users", "nickname", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "pin_started_at", "TEXT NULL")
+        self._ensure_column(conn, "posts", "pin_expires_at", "TEXT NULL")
+        self._ensure_column(conn, "posts", "pin_duration_minutes", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "dm_requests", "from_user_id", "TEXT NULL")
         self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")
@@ -434,6 +492,7 @@ class SqliteTreeholeRepository:
             "tags": [],
             "sensitiveWords": [],
             "settings": {},
+            "adminAccounts": [],
             "posts": [],
             "comments": [],
             "likes": [],
@@ -446,6 +505,8 @@ class SqliteTreeholeRepository:
             "systemAnnouncements": [],
             "notifications": [],
             "appeals": [],
+            "postPinRequests": [],
+            "userLevelRequests": [],
             "auditLogs": [],
             "accountCancellationRequests": [],
             "mediaUploads": [],
@@ -456,8 +517,8 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, email, password, alias, nickname, student_id, avatar_url, verified, verified_at, allow_stranger_dm,
-                   show_contactable, created_at, deleted, is_admin, banned, muted
+            SELECT id, email, password, alias, nickname, student_id, avatar_url, user_level, verified, verified_at,
+                   allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
             FROM users
             ORDER BY created_at, id
             """
@@ -472,6 +533,7 @@ class SqliteTreeholeRepository:
                     "nickname": nickname,
                     "studentId": _to_str(row["student_id"]),
                     "avatarUrl": _to_str(row["avatar_url"]),
+                    "userLevel": _to_int(row["user_level"], 2),
                     "verified": _to_bool(row["verified"]),
                     "verifiedAt": _to_str(row["verified_at"]),
                     "allowStrangerDm": _to_bool(row["allow_stranger_dm"]),
@@ -506,6 +568,26 @@ class SqliteTreeholeRepository:
                 except json.JSONDecodeError:
                     db["settings"][row["setting_key"]] = text_val
 
+        for row in conn.execute(
+            """
+            SELECT id, username, password_hash, role, active, created_at, updated_at, created_by
+            FROM admin_accounts
+            ORDER BY created_at, id
+            """
+        ):
+            db["adminAccounts"].append(
+                {
+                    "id": row["id"],
+                    "username": _to_str(row["username"]),
+                    "passwordHash": _to_str(row["password_hash"]),
+                    "role": _to_str(row["role"]),
+                    "active": _to_bool(row["active"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "updatedAt": _to_str(row["updated_at"]),
+                    "createdBy": _to_str(row["created_by"]),
+                }
+            )
+
         tag_map: dict[str, list[str]] = {}
         for row in conn.execute("SELECT post_id, tag_name FROM post_tags ORDER BY post_id, tag_name"):
             tag_map.setdefault(row["post_id"], []).append(row["tag_name"])
@@ -513,7 +595,8 @@ class SqliteTreeholeRepository:
         for row in conn.execute(
             """
             SELECT id, title, content, channel, has_image, status, allow_comment, allow_dm,
-                   author_alias, author_id, created_at, updated_at, deleted, review_status, risk_marked
+                   author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
+                   created_at, updated_at, deleted, review_status, risk_marked
             FROM posts
             ORDER BY created_at DESC, id DESC
             """
@@ -532,6 +615,9 @@ class SqliteTreeholeRepository:
                     "allowDm": _to_bool(row["allow_dm"]),
                     "authorAlias": row["author_alias"],
                     "authorId": _to_str(row["author_id"]),
+                    "pinStartedAt": _to_str(row["pin_started_at"]),
+                    "pinExpiresAt": _to_str(row["pin_expires_at"]),
+                    "pinDurationMinutes": _to_int(row["pin_duration_minutes"], 0),
                     "createdAt": row["created_at"],
                     "updatedAt": row["updated_at"],
                     "deleted": _to_bool(row["deleted"]),
@@ -746,6 +832,52 @@ class SqliteTreeholeRepository:
             )
 
         for row in conn.execute(
+            """
+            SELECT id, post_id, user_id, duration_minutes, reason, status, admin_note,
+                   created_at, handled_at, handled_by
+            FROM post_pin_requests
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["postPinRequests"].append(
+                {
+                    "id": _to_str(row["id"]),
+                    "postId": _to_str(row["post_id"]),
+                    "userId": _to_str(row["user_id"]),
+                    "durationMinutes": _to_int(row["duration_minutes"], 0),
+                    "reason": _to_str(row["reason"]),
+                    "status": _to_str(row["status"]),
+                    "adminNote": _to_str(row["admin_note"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "handledAt": _to_str(row["handled_at"]),
+                    "handledBy": _to_str(row["handled_by"]),
+                }
+            )
+
+        for row in conn.execute(
+            """
+            SELECT id, user_id, current_level, target_level, reason, status, admin_note,
+                   created_at, handled_at, handled_by
+            FROM user_level_requests
+            ORDER BY created_at DESC, id DESC
+            """
+        ):
+            db["userLevelRequests"].append(
+                {
+                    "id": _to_str(row["id"]),
+                    "userId": _to_str(row["user_id"]),
+                    "currentLevel": _to_int(row["current_level"], 2),
+                    "targetLevel": _to_int(row["target_level"], 1),
+                    "reason": _to_str(row["reason"]),
+                    "status": _to_str(row["status"]),
+                    "adminNote": _to_str(row["admin_note"]),
+                    "createdAt": _to_str(row["created_at"]),
+                    "handledAt": _to_str(row["handled_at"]),
+                    "handledBy": _to_str(row["handled_by"]),
+                }
+            )
+
+        for row in conn.execute(
             "SELECT id, actor_id, action, detail, created_at FROM audit_logs ORDER BY created_at DESC, id DESC"
         ):
             db["auditLogs"].append(
@@ -822,6 +954,8 @@ class SqliteTreeholeRepository:
                 "media_uploads",
                 "account_cancellation_requests",
                 "audit_logs",
+                "user_level_requests",
+                "post_pin_requests",
                 "appeals",
                 "notifications",
                 "system_announcements",
@@ -836,6 +970,7 @@ class SqliteTreeholeRepository:
                 "post_tags",
                 "posts",
                 "meta_seq",
+                "admin_accounts",
                 "settings",
                 "sensitive_words",
                 "tags",
@@ -858,9 +993,9 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO users (
-                      id, email, password, alias, nickname, student_id, avatar_url, verified, verified_at, allow_stranger_dm,
-                      show_contactable, created_at, deleted, is_admin, banned, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      id, email, password, alias, nickname, student_id, avatar_url, user_level, verified, verified_at,
+                      allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -870,6 +1005,7 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("nickname")) or _to_str(row.get("alias"), "匿名同学"),
                         _to_str(row.get("studentId")),
                         _to_str(row.get("avatarUrl")),
+                        _to_int(row.get("userLevel"), 2),
                         _to_bool_int(row.get("verified")),
                         _to_str(row.get("verifiedAt")) or None,
                         _to_bool_int(row.get("allowStrangerDm", True)),
@@ -958,6 +1094,32 @@ class SqliteTreeholeRepository:
                         (setting_key, value_int, value_text, created_now),
                     )
 
+            for row in db.get("adminAccounts", []):
+                if not isinstance(row, dict):
+                    continue
+                admin_id = _to_str(row.get("id")).strip()
+                username = _to_str(row.get("username")).strip()
+                password_hash = _to_str(row.get("passwordHash")).strip()
+                if not admin_id or not username or not password_hash:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO admin_accounts (
+                      id, username, password_hash, role, active, created_at, updated_at, created_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        admin_id,
+                        username,
+                        password_hash,
+                        _to_str(row.get("role")) or "secondary",
+                        _to_bool_int(row.get("active", True)),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("updatedAt")) or created_now,
+                        _to_str(row.get("createdBy")),
+                    ),
+                )
+
             seq = db.get("seq", {})
             if isinstance(seq, dict):
                 for key, value in seq.items():
@@ -979,8 +1141,9 @@ class SqliteTreeholeRepository:
                     """
                     INSERT INTO posts (
                       id, title, content, channel, has_image, status, allow_comment, allow_dm,
-                      author_alias, author_id, created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
+                      created_at, updated_at, deleted, review_status, risk_marked
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
@@ -993,6 +1156,9 @@ class SqliteTreeholeRepository:
                         _to_bool_int(post.get("allowDm", False)),
                         _to_str(post.get("authorAlias"), "匿名同学"),
                         _to_str(post.get("authorId")) or None,
+                        _to_str(post.get("pinStartedAt")) or None,
+                        _to_str(post.get("pinExpiresAt")) or None,
+                        _to_int(post.get("pinDurationMinutes"), 0),
                         _to_str(post.get("createdAt")) or created_now,
                         _to_str(post.get("updatedAt")) or created_now,
                         _to_bool_int(post.get("deleted")),
@@ -1278,6 +1444,63 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("targetId")),
                         _to_str(row.get("title")),
                         _to_str(row.get("content")),
+                        _to_str(row.get("status"), "pending"),
+                        _to_str(row.get("adminNote")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("handledAt")) or None,
+                        _to_str(row.get("handledBy")) or None,
+                    ),
+                )
+
+            for row in db.get("postPinRequests", []):
+                if not isinstance(row, dict):
+                    continue
+                request_id = _to_str(row.get("id")).strip()
+                post_id = _to_str(row.get("postId")).strip()
+                user_id = _to_str(row.get("userId")).strip()
+                if not request_id or not post_id or not user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO post_pin_requests (
+                      id, post_id, user_id, duration_minutes, reason, status, admin_note,
+                      created_at, handled_at, handled_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        request_id,
+                        post_id,
+                        user_id,
+                        _to_int(row.get("durationMinutes"), 0),
+                        _to_str(row.get("reason")),
+                        _to_str(row.get("status"), "pending"),
+                        _to_str(row.get("adminNote")),
+                        _to_str(row.get("createdAt")) or created_now,
+                        _to_str(row.get("handledAt")) or None,
+                        _to_str(row.get("handledBy")) or None,
+                    ),
+                )
+
+            for row in db.get("userLevelRequests", []):
+                if not isinstance(row, dict):
+                    continue
+                request_id = _to_str(row.get("id")).strip()
+                user_id = _to_str(row.get("userId")).strip()
+                if not request_id or not user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT INTO user_level_requests (
+                      id, user_id, current_level, target_level, reason, status, admin_note,
+                      created_at, handled_at, handled_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        request_id,
+                        user_id,
+                        _to_int(row.get("currentLevel"), 2),
+                        _to_int(row.get("targetLevel"), 1),
+                        _to_str(row.get("reason")),
                         _to_str(row.get("status"), "pending"),
                         _to_str(row.get("adminNote")),
                         _to_str(row.get("createdAt")) or created_now,
