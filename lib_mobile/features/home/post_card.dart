@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
-import '../../../lib/core/config/app_config.dart';
-import '../../../lib/models/post_item.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
 
 /// 帖子卡片组件
 /// 支持：标题/摘要/频道标签/时间戳、图片网格（最多3张）、点赞/收藏/评论数、点击跳转详情
@@ -182,7 +182,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             _ChannelTag(channel: widget.post.channel),
             if (widget.post.status == PostStatus.resolved) ...[
               const SizedBox(width: 6),
-              _StatusTag(label: '已解决', color: MobileTheme.success),
+              const _StatusTag(label: '已解决', color: MobileTheme.success),
             ],
             if (widget.post.isPinned) ...[
               const SizedBox(width: 6),
@@ -454,9 +454,8 @@ class _ImageGrid extends StatelessWidget {
   }
 
   Widget _buildImage(String imageUrl) {
-    final fullUrl = imageUrl.startsWith('http')
-        ? imageUrl
-        : AppConfig.resolveUrl(imageUrl);
+    final fullUrl =
+        imageUrl.startsWith('http') ? imageUrl : AppConfig.resolveUrl(imageUrl);
     return CachedNetworkImage(
       imageUrl: fullUrl,
       fit: BoxFit.cover,

@@ -4,22 +4,22 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../features/widgets/shimmer_loading.dart';
-import '../../../lib/core/state/app_providers.dart';
-import '../../../lib/features/feed/feed_controller.dart';
-import '../../../lib/models/post_item.dart';
-import '../../../lib/repositories/post_repository.dart';
+import 'package:xdu_treehole_web/core/state/app_providers.dart';
+import 'package:xdu_treehole_web/features/feed/feed_controller.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'post_card.dart';
 
 /// 每个频道对应的图标和颜色
 final _channelMeta = {
-  '全部':      _ChannelMeta(Icons.grid_view_rounded, MobileTheme.textSecondary),
-  '学习':      _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
-  '二手':      _ChannelMeta(Icons.sell_rounded,      Color(0xFF5EAF7C)),
-  '找搭子':    _ChannelMeta(Icons.people_rounded,    Color(0xFFE09C5E)),
-  '失物':      _ChannelMeta(Icons.search_rounded,    Color(0xFFD45E8A)),
-  '吐槽':      _ChannelMeta(Icons.chat_bubble_rounded, Color(0xFF9B6ED4)),
-  '租房':      _ChannelMeta(Icons.home_rounded,      Color(0xFF5EC4AF)),
-  '问答':      _ChannelMeta(Icons.help_outline_rounded, Color(0xFF5EAAD4)),
+  '全部': const _ChannelMeta(Icons.grid_view_rounded, MobileTheme.textSecondary),
+  '学习': const _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
+  '二手': const _ChannelMeta(Icons.sell_rounded, Color(0xFF5EAF7C)),
+  '找搭子': const _ChannelMeta(Icons.people_rounded, Color(0xFFE09C5E)),
+  '失物': const _ChannelMeta(Icons.search_rounded, Color(0xFFD45E8A)),
+  '吐槽': const _ChannelMeta(Icons.chat_bubble_rounded, Color(0xFF9B6ED4)),
+  '租房': const _ChannelMeta(Icons.home_rounded, Color(0xFF5EC4AF)),
+  '问答': const _ChannelMeta(Icons.help_outline_rounded, Color(0xFF5EAAD4)),
 };
 
 class _ChannelMeta {
@@ -152,9 +152,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               elevation: 0,
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
-              flexibleSpace: FlexibleSpaceBar(
-                titlePadding: const EdgeInsets.only(left: 16, bottom: 16),
-                title: const Text(
+              flexibleSpace: const FlexibleSpaceBar(
+                titlePadding: EdgeInsets.only(left: 16, bottom: 16),
+                title: Text(
                   '西电树洞',
                   style: TextStyle(
                     fontSize: 20,
@@ -179,7 +179,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 selectedChannel: feedState.selectedChannel,
                 scrollController: _channelScrollController,
                 onChannelSelected: (channel, index) {
-                  ref.read(feedControllerProvider.notifier).switchChannel(channel);
+                  ref
+                      .read(feedControllerProvider.notifier)
+                      .switchChannel(channel);
                   _scrollChannelToCenter(index);
                 },
               ),
@@ -247,7 +249,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                         onFavorite: () => _handleFavorite(post),
                       );
                     },
-                    childCount: feedState.posts.length + (feedState.hasMore ? 1 : 0),
+                    childCount:
+                        feedState.posts.length + (feedState.hasMore ? 1 : 0),
                   ),
                 ),
               ),
@@ -308,11 +311,11 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant _ChannelBarDelegate old) =>
-      channels != old.channels ||
-      selectedChannel != old.selectedChannel;
+      channels != old.channels || selectedChannel != old.selectedChannel;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
     final selectedIndex = channels.indexOf(selectedChannel);
 
     return Container(
@@ -339,7 +342,8 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                       ListView.builder(
                         controller: scrollController,
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
                         itemCount: channels.length,
                         itemBuilder: (context, index) {
                           final channel = channels[index];
@@ -440,7 +444,8 @@ class _ChannelChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = isSelected ? MobileTheme.primary : MobileTheme.textSecondary;
+    final effectiveColor =
+        isSelected ? MobileTheme.primary : MobileTheme.textSecondary;
     final effectiveIconColor = iconColor ?? effectiveColor;
 
     return GestureDetector(
@@ -475,7 +480,8 @@ class _ChannelChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: effectiveIconColor.withValues(alpha: isSelected ? 1.0 : 0.75),
+                color: effectiveIconColor.withValues(
+                    alpha: isSelected ? 1.0 : 0.75),
               ),
               const SizedBox(width: 5),
             ],
@@ -652,9 +658,8 @@ class _SortOption extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? MobileTheme.primary
-                    : MobileTheme.textTertiary,
+                color:
+                    isSelected ? MobileTheme.primary : MobileTheme.textTertiary,
               ),
             ),
           ],
@@ -681,7 +686,7 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.wifi_off_rounded,
               size: 64,
               color: MobileTheme.textTertiary,
@@ -701,7 +706,8 @@ class _ErrorView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: MobileTheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -767,7 +773,8 @@ class _EmptyView extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: MobileTheme.primary,
                 side: const BorderSide(color: MobileTheme.primary),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

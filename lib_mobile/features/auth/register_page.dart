@@ -53,7 +53,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
       if (!mounted) return;
 
       // 跳转到验证页面
-      context.go('/auth/verify?email=${Uri.encodeComponent(_emailController.text.trim())}');
+      context.go(
+          '/auth/verify?email=${Uri.encodeComponent(_emailController.text.trim())}');
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -193,7 +194,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),
@@ -237,8 +239,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text('注册'),
@@ -266,7 +268,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               const SizedBox(height: 16),
 
               // 服务条款提示
-              Text(
+              const Text(
                 '注册即表示同意《用户协议》和《隐私政策》',
                 style: TextStyle(
                   fontSize: 12,

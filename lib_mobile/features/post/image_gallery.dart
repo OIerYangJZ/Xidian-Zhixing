@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
-import '../../../lib/core/config/app_config.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
 
 /// 图片画廊组件
 /// 支持点击放大、手势缩放、滑动切换
@@ -101,7 +101,8 @@ class _ImageGalleryState extends State<ImageGallery> {
             right: 0,
             child: SafeArea(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

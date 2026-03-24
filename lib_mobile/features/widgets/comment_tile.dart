@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../lib/models/comment_item.dart';
+import 'package:xdu_treehole_web/models/comment_item.dart';
 import '../../core/theme/mobile_theme.dart';
 import 'avatar_widget.dart';
 
@@ -78,7 +78,8 @@ class CommentTile extends StatelessWidget {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: MobileTheme.accent.withValues(alpha: 0.12),
+                                color:
+                                    MobileTheme.accent.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(

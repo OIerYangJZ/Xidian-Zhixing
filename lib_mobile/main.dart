@@ -5,13 +5,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/config/mobile_config.dart';
 import 'core/theme/mobile_theme.dart';
 import 'core/navigation/app_router.dart';
-import 'core/state/mobile_providers.dart';
-import '../lib/core/auth/auth_store.dart';
-import '../lib/core/auth/admin_auth_store.dart';
-import '../lib/core/emoji/emoji_settings_store.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
+import 'package:xdu_treehole_web/core/emoji/emoji_settings_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (MobileConfig.debugMode) {
+    debugPrint('[mobile] API base: ${MobileConfig.apiBaseUrl}');
+  }
 
   // 初始化存储
   await AuthStore.instance.init();

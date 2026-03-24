@@ -52,9 +52,11 @@ class _MyCommentsPageState extends ConsumerState<MyCommentsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.comment_outlined, size: 64, color: MobileTheme.textTertiary),
+          Icon(Icons.comment_outlined,
+              size: 64, color: MobileTheme.textTertiary),
           SizedBox(height: 16),
-          Text('暂无评论', style: TextStyle(fontSize: 16, color: MobileTheme.textSecondary)),
+          Text('暂无评论',
+              style: TextStyle(fontSize: 16, color: MobileTheme.textSecondary)),
         ],
       ),
     );
@@ -71,14 +73,19 @@ class _MyCommentsPageState extends ConsumerState<MyCommentsPage> {
           decoration: BoxDecoration(
             color: MobileTheme.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
+            border:
+                Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
           ),
-          child: Column(
+          child: const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('评论内容...', style: const TextStyle(fontSize: 14, color: MobileTheme.textPrimary)),
-              const SizedBox(height: 8),
-              Text('发表于 帖子标题', style: const TextStyle(fontSize: 12, color: MobileTheme.textTertiary)),
+              Text('评论内容...',
+                  style:
+                      TextStyle(fontSize: 14, color: MobileTheme.textPrimary)),
+              SizedBox(height: 8),
+              Text('发表于 帖子标题',
+                  style:
+                      TextStyle(fontSize: 12, color: MobileTheme.textTertiary)),
             ],
           ),
         );

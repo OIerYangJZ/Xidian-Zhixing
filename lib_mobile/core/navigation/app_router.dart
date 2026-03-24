@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../lib/core/auth/auth_store.dart';
-import '../../../lib/core/auth/admin_auth_store.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
 import '../../features/shell/mobile_shell.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';

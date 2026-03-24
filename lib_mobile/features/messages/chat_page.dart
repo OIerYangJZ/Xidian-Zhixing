@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/models/direct_message_item.dart';
+import 'package:xdu_treehole_web/models/direct_message_item.dart';
 
 /// 聊天页
 /// 支持消息气泡、时间戳分组、表情栏、发送消息
@@ -57,7 +57,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     try {
       final messageRepo = ref.read(messageRepositoryProvider);
-      final messages = await messageRepo.fetchConversationMessages(widget.conversationId);
+      final messages =
+          await messageRepo.fetchConversationMessages(widget.conversationId);
       if (mounted) {
         setState(() {
           _messages = messages;
@@ -339,7 +340,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     DateTime? lastTime;
 
     for (final message in _messages) {
-      final messageTime = DateTime.tryParse(message.createdAt) ?? DateTime.now();
+      final messageTime =
+          DateTime.tryParse(message.createdAt) ?? DateTime.now();
       final label = _formatTimeLabel(messageTime);
 
       if (lastTime == null || _shouldShowTimeLabel(lastTime, messageTime)) {
@@ -391,7 +393,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment:
+            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -410,10 +413,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
             const SizedBox(width: 8),
           ],
-
           Flexible(
             child: Column(
-              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment:
+                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 // 消息气泡
                 Container(
@@ -488,7 +491,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               ],
             ),
           ),
-
           if (isMe) const SizedBox(width: 8),
         ],
       ),
@@ -508,7 +510,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Container(
       decoration: BoxDecoration(
         color: MobileTheme.surface,
-        border: Border(
+        border: const Border(
           top: BorderSide(color: MobileTheme.divider, width: 0.5),
         ),
         boxShadow: [
@@ -539,7 +541,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       child: Icon(
-                        _showEmoji ? Icons.keyboard : Icons.emoji_emotions_outlined,
+                        _showEmoji
+                            ? Icons.keyboard
+                            : Icons.emoji_emotions_outlined,
                         color: MobileTheme.textSecondary,
                         size: 26,
                       ),
@@ -566,14 +570,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                           fontSize: 16,
                           color: MobileTheme.textPrimary,
                         ),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: '输入消息...',
-                          hintStyle: const TextStyle(
+                          hintStyle: TextStyle(
                             color: MobileTheme.textTertiary,
                             fontSize: 15,
                           ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
+                          contentPadding: EdgeInsets.symmetric(
                             horizontal: 16,
                             vertical: 10,
                           ),
@@ -639,21 +643,91 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Widget _buildEmojiBar() {
     final emojis = [
-      '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-      '🙂', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘',
-      '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫',
-      '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒',
-      '🙄', '😬', '😮‍💨', '🤥', '😌', '😔', '😪', '🤤',
-      '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵',
-      '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓',
-      '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺',
-      '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱',
-      '👍', '👎', '👏', '🙌', '🤝', '🙏', '💪', '🤘',
+      '😀',
+      '😃',
+      '😄',
+      '😁',
+      '😆',
+      '😅',
+      '🤣',
+      '😂',
+      '🙂',
+      '😉',
+      '😊',
+      '😇',
+      '🥰',
+      '😍',
+      '🤩',
+      '😘',
+      '😋',
+      '😛',
+      '😜',
+      '🤪',
+      '😝',
+      '🤗',
+      '🤭',
+      '🤫',
+      '🤔',
+      '🤐',
+      '🤨',
+      '😐',
+      '😑',
+      '😶',
+      '😏',
+      '😒',
+      '🙄',
+      '😬',
+      '😮‍💨',
+      '🤥',
+      '😌',
+      '😔',
+      '😪',
+      '🤤',
+      '😴',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤢',
+      '🤮',
+      '🤧',
+      '🥵',
+      '🥶',
+      '🥴',
+      '😵',
+      '🤯',
+      '🤠',
+      '🥳',
+      '😎',
+      '🤓',
+      '😕',
+      '😟',
+      '🙁',
+      '😮',
+      '😯',
+      '😲',
+      '😳',
+      '🥺',
+      '😦',
+      '😧',
+      '😨',
+      '😰',
+      '😥',
+      '😢',
+      '😭',
+      '😱',
+      '👍',
+      '👎',
+      '👏',
+      '🙌',
+      '🤝',
+      '🙏',
+      '💪',
+      '🤘',
     ];
 
     return Container(
       height: 200,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: MobileTheme.surface,
         border: Border(
           top: BorderSide(color: MobileTheme.divider, width: 0.5),
@@ -693,7 +767,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
+              leading:
+                  const Icon(Icons.delete_outline, color: MobileTheme.error),
               title: const Text('删除会话'),
               onTap: () {
                 Navigator.pop(context);
@@ -709,7 +784,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_add_outlined, color: MobileTheme.primary),
+              leading: const Icon(Icons.person_add_outlined,
+                  color: MobileTheme.primary),
               title: const Text('查看对方主页'),
               onTap: () {
                 Navigator.pop(context);

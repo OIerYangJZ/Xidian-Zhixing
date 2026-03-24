@@ -5,9 +5,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/core/config/app_config.dart';
-import '../../../lib/models/conversation_item.dart';
-import '../../../lib/models/dm_request_item.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
+import 'package:xdu_treehole_web/models/conversation_item.dart';
+import 'package:xdu_treehole_web/models/dm_request_item.dart';
 
 class MessagesPage extends ConsumerStatefulWidget {
   const MessagesPage({super.key});
@@ -16,7 +16,8 @@ class MessagesPage extends ConsumerStatefulWidget {
   ConsumerState<MessagesPage> createState() => _MessagesPageState();
 }
 
-class _MessagesPageState extends ConsumerState<MessagesPage> with SingleTickerProviderStateMixin {
+class _MessagesPageState extends ConsumerState<MessagesPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -37,7 +38,8 @@ class _MessagesPageState extends ConsumerState<MessagesPage> with SingleTickerPr
   @override
   Widget build(BuildContext context) {
     final messagesState = ref.watch(messagesControllerProvider);
-    final pendingCount = messagesState.requests.where((r) => r.status == 'pending').length;
+    final pendingCount =
+        messagesState.requests.where((r) => r.status == 'pending').length;
 
     return Scaffold(
       backgroundColor: MobileTheme.background,
@@ -62,7 +64,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> with SingleTickerPr
       body: TabBarView(
         controller: _tabController,
         children: [
-          _RequestsTab(requests: messagesState.requests, actionBusy: messagesState.actionBusy),
+          _RequestsTab(
+              requests: messagesState.requests,
+              actionBusy: messagesState.actionBusy),
           _ConversationsTab(conversations: messagesState.conversations),
         ],
       ),
@@ -86,7 +90,8 @@ class _RequestsTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.inbox_outlined, size: 64, color: MobileTheme.textTertiary),
+            Icon(Icons.inbox_outlined,
+                size: 64, color: MobileTheme.textTertiary),
             SizedBox(height: 16),
             Text(
               '暂无私信申请',
@@ -152,7 +157,8 @@ class _RequestTile extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               request.reason,
-              style: const TextStyle(color: MobileTheme.textSecondary, fontSize: 13),
+              style: const TextStyle(
+                  color: MobileTheme.textSecondary, fontSize: 13),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -160,7 +166,8 @@ class _RequestTile extends ConsumerWidget {
           const SizedBox(height: 4),
           Text(
             request.timeText,
-            style: const TextStyle(color: MobileTheme.textTertiary, fontSize: 12),
+            style:
+                const TextStyle(color: MobileTheme.textTertiary, fontSize: 12),
           ),
         ],
       ),
@@ -211,11 +218,13 @@ class _RequestTile extends ConsumerWidget {
     );
   }
 
-  Future<void> _handleRequest(BuildContext context, WidgetRef ref, bool accept) async {
-    final success = await ref.read(messagesControllerProvider.notifier).handleRequest(
-      requestId: request.id,
-      accept: accept,
-    );
+  Future<void> _handleRequest(
+      BuildContext context, WidgetRef ref, bool accept) async {
+    final success =
+        await ref.read(messagesControllerProvider.notifier).handleRequest(
+              requestId: request.id,
+              accept: accept,
+            );
 
     if (context.mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -240,7 +249,8 @@ class _ConversationsTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: MobileTheme.textTertiary),
+            Icon(Icons.chat_bubble_outline,
+                size: 64, color: MobileTheme.textTertiary),
             SizedBox(height: 16),
             Text(
               '暂无会话',
@@ -292,7 +302,8 @@ class _ConversationTile extends StatelessWidget {
       title: Text(
         conversation.name,
         style: TextStyle(
-          fontWeight: conversation.hasUnread ? FontWeight.w700 : FontWeight.w600,
+          fontWeight:
+              conversation.hasUnread ? FontWeight.w700 : FontWeight.w600,
           fontSize: 15,
         ),
       ),

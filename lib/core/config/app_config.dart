@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AppConfig {
   // 运行时可通过 --dart-define=API_BASE_URL=http://host:port/api 覆盖
   // 移动端优先使用 MOBILE_API_BASE_URL（通过 MobileConfig 传入）
@@ -9,6 +11,12 @@ class AppConfig {
     );
     if (mobileUrl.isNotEmpty) {
       return mobileUrl;
+    }
+    // 移动端临时默认直连现网 HTTP；后续切 HTTPS 后应改回域名地址。
+    if (!kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)) {
+      return 'http://81.69.16.134/api';
     }
     // Web/默认环境变量
     return const String.fromEnvironment(

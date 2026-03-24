@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../lib/core/auth/auth_store.dart';
-import '../../../lib/models/user_profile.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 
@@ -64,9 +64,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     try {
       await ref.read(userRepositoryProvider).updatePrivacy(
-        allowStrangerDm: allowStrangerDm,
-        showContactable: showContactable,
-      );
+            allowStrangerDm: allowStrangerDm,
+            showContactable: showContactable,
+          );
       if (!mounted) return;
       setState(() {
         _profile = _profile?.copyWith(
@@ -132,7 +132,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         backgroundColor: MobileTheme.surface,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: MobileTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: MobileTheme.primary))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -146,12 +147,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, size: 18, color: MobileTheme.error),
+                        const Icon(Icons.error_outline,
+                            size: 18, color: MobileTheme.error),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _error!,
-                            style: const TextStyle(fontSize: 13, color: MobileTheme.error),
+                            style: const TextStyle(
+                                fontSize: 13, color: MobileTheme.error),
                           ),
                         ),
                       ],
@@ -163,7 +166,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   decoration: BoxDecoration(
                     color: MobileTheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
+                    border: Border.all(
+                        color: MobileTheme.divider.withValues(alpha: 0.5),
+                        width: 0.5),
                   ),
                   child: Column(
                     children: [
@@ -177,12 +182,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                             ? null
                             : (value) => _updatePrivacy(
                                   allowStrangerDm: value,
-                                  showContactable: _profile?.showContactable ?? false,
+                                  showContactable:
+                                      _profile?.showContactable ?? false,
                                 ),
                       ),
                       const Padding(
                         padding: EdgeInsets.only(left: 56),
-                        child: Divider(height: 1, thickness: 0.5, color: MobileTheme.divider),
+                        child: Divider(
+                            height: 1,
+                            thickness: 0.5,
+                            color: MobileTheme.divider),
                       ),
                       _buildSwitchTile(
                         icon: Icons.visibility_outlined,
@@ -193,7 +202,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         onChanged: _saving
                             ? null
                             : (value) => _updatePrivacy(
-                                  allowStrangerDm: _profile?.allowStrangerDm ?? false,
+                                  allowStrangerDm:
+                                      _profile?.allowStrangerDm ?? false,
                                   showContactable: value,
                                 ),
                       ),
@@ -208,7 +218,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   decoration: BoxDecoration(
                     color: MobileTheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
+                    border: Border.all(
+                        color: MobileTheme.divider.withValues(alpha: 0.5),
+                        width: 0.5),
                   ),
                   child: Column(
                     children: [
@@ -285,7 +297,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: MobileTheme.primary,
+            activeThumbColor: MobileTheme.primary,
           ),
         ],
       ),

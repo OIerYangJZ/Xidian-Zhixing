@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -53,7 +52,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         context.go('/');
       } else {
         // 需要邮箱验证
-        context.go('/auth/verify?email=${Uri.encodeComponent(result.email ?? _identifierController.text)}');
+        context.go(
+            '/auth/verify?email=${Uri.encodeComponent(result.email ?? _identifierController.text)}');
       }
     } catch (e) {
       if (mounted) {
@@ -205,8 +205,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text('登录'),

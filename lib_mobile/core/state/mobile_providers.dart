@@ -1,11 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xdu_treehole_web/features/messages/messages_controller.dart'
+    show messagesControllerProvider;
+import 'package:xdu_treehole_web/features/notifications/notifications_controller.dart'
+    show notificationsControllerProvider;
 
 /// Re-export all shared providers for lib_mobile/features/ pages
-export '../../../lib/core/state/app_providers.dart';
-export '../../../lib/features/feed/feed_controller.dart' show feedControllerProvider;
-export '../../../lib/features/search/search_controller.dart';
-export '../../../lib/features/messages/messages_controller.dart' show messagesControllerProvider;
-export '../../../lib/features/notifications/notifications_controller.dart' show notificationsControllerProvider;
+export 'package:xdu_treehole_web/core/state/app_providers.dart';
+export 'package:xdu_treehole_web/features/feed/feed_controller.dart'
+    show feedControllerProvider;
+export 'package:xdu_treehole_web/features/search/search_controller.dart';
+export 'package:xdu_treehole_web/features/messages/messages_controller.dart'
+    show messagesControllerProvider;
+export 'package:xdu_treehole_web/features/notifications/notifications_controller.dart'
+    show notificationsControllerProvider;
 
 /// Mobile-only Providers
 

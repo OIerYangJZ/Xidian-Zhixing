@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/models/post_item.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
 import '../home/post_card.dart';
 
 /// 收藏页
@@ -102,9 +102,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Widget _buildEmptyView() {
-    return Center(
+    return const Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -113,8 +113,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               size: 64,
               color: MobileTheme.textTertiary,
             ),
-            const SizedBox(height: 16),
-            const Text(
+            SizedBox(height: 16),
+            Text(
               '暂无收藏',
               style: TextStyle(
                 fontSize: 16,
@@ -122,8 +122,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 color: MobileTheme.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               '收藏你喜欢的帖子，方便以后查看',
               style: TextStyle(
                 fontSize: 14,
@@ -167,7 +167,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
+                      style: TextButton.styleFrom(
+                          foregroundColor: MobileTheme.error),
                       child: const Text('取消收藏'),
                     ),
                   ],

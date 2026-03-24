@@ -121,7 +121,7 @@ class InputBarState extends State<InputBar> {
     return Container(
       decoration: BoxDecoration(
         color: MobileTheme.surface,
-        border: Border(
+        border: const Border(
           top: BorderSide(color: MobileTheme.divider, width: 0.5),
         ),
         boxShadow: [
@@ -147,7 +147,7 @@ class InputBarState extends State<InputBar> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: Icon(
+                    child: const Icon(
                       Icons.emoji_emotions_outlined,
                       color: MobileTheme.textSecondary,
                       size: 24,
@@ -163,7 +163,7 @@ class InputBarState extends State<InputBar> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: Icon(
+                    child: const Icon(
                       Icons.image_outlined,
                       color: MobileTheme.textSecondary,
                       size: 24,
@@ -227,9 +227,7 @@ class InputBarState extends State<InputBar> {
                   child: Text(
                     widget.sendLabel,
                     style: TextStyle(
-                      color: _hasText
-                          ? Colors.white
-                          : MobileTheme.textTertiary,
+                      color: _hasText ? Colors.white : MobileTheme.textTertiary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),

@@ -9,12 +9,14 @@ class NotificationCenterPage extends ConsumerStatefulWidget {
   const NotificationCenterPage({super.key});
 
   @override
-  ConsumerState<NotificationCenterPage> createState() => _NotificationCenterPageState();
+  ConsumerState<NotificationCenterPage> createState() =>
+      _NotificationCenterPageState();
 }
 
-class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage> {
+class _NotificationCenterPageState
+    extends ConsumerState<NotificationCenterPage> {
   bool _isLoading = true;
-  List<dynamic> _notifications = [];
+  final List<dynamic> _notifications = [];
 
   @override
   void initState() {
@@ -66,7 +68,7 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
   }
 
   Widget _buildEmptyState() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -75,8 +77,8 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
             size: 64,
             color: MobileTheme.textTertiary,
           ),
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16),
+          Text(
             '暂无通知',
             style: TextStyle(
               fontSize: 16,
@@ -131,22 +133,22 @@ class _NotificationTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '通知标题',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: MobileTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   '通知内容...',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: MobileTheme.textSecondary,
                   ),

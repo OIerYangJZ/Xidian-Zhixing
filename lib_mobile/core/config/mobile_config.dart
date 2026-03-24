@@ -4,11 +4,10 @@ import 'package:flutter/foundation.dart';
 /// 通过 --dart-define 在编译时注入实际 API 地址
 class MobileConfig {
   /// API 基础地址
-  /// 生产环境应配置为实际的服务器地址
-  /// 格式: https://your-domain.com/api
+  /// 当前临时默认直连现网 HTTP，后续补域名和 HTTPS 后再切回正式地址。
   static const String apiBaseUrl = String.fromEnvironment(
     'MOBILE_API_BASE_URL',
-    defaultValue: 'http://localhost:8080/api',
+    defaultValue: 'http://81.69.16.134/api',
   );
 
   /// App 版本号

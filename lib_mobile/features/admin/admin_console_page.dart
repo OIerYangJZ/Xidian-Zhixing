@@ -61,7 +61,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
                   const SizedBox(height: 24),
 
                   // 功能入口
-                  _SectionTitle(title: '内容管理'),
+                  const _SectionTitle(title: '内容管理'),
                   Container(
                     decoration: BoxDecoration(
                       color: MobileTheme.surface,
@@ -106,7 +106,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
 
                   const SizedBox(height: 24),
 
-                  _SectionTitle(title: '用户管理'),
+                  const _SectionTitle(title: '用户管理'),
                   Container(
                     decoration: BoxDecoration(
                       color: MobileTheme.surface,
@@ -135,7 +135,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
 
                   const SizedBox(height: 24),
 
-                  _SectionTitle(title: '系统管理'),
+                  const _SectionTitle(title: '系统管理'),
                   Container(
                     decoration: BoxDecoration(
                       color: MobileTheme.surface,
@@ -168,7 +168,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
   }
 
   Widget _buildOverviewCards() {
-    return Row(
+    return const Row(
       children: [
         Expanded(
           child: _StatCard(
@@ -178,7 +178,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
             color: MobileTheme.primary,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             title: '今日帖子',
@@ -187,7 +187,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
             color: MobileTheme.success,
           ),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: 12),
         Expanded(
           child: _StatCard(
             title: '待审核',

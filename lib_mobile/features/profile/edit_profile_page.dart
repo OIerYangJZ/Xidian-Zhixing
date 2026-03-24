@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../lib/models/user_profile.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
@@ -122,9 +122,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       }
 
       await ref.read(userRepositoryProvider).updateProfile(
-        nickname: nickname,
-        avatarUrl: newAvatarUrl,
-      );
+            nickname: nickname,
+            avatarUrl: newAvatarUrl,
+          );
 
       if (!mounted) return;
 
@@ -171,7 +171,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: MobileTheme.primary),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: MobileTheme.primary),
                   )
                 : const Text(
                     '保存',
@@ -184,7 +185,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: MobileTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: MobileTheme.primary))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
@@ -201,12 +203,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline, size: 18, color: MobileTheme.error),
+                            const Icon(Icons.error_outline,
+                                size: 18, color: MobileTheme.error),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _error!,
-                                style: const TextStyle(fontSize: 13, color: MobileTheme.error),
+                                style: const TextStyle(
+                                    fontSize: 13, color: MobileTheme.error),
                               ),
                             ),
                           ],
@@ -218,7 +222,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       decoration: BoxDecoration(
                         color: MobileTheme.surface,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
+                        border: Border.all(
+                            color: MobileTheme.divider.withValues(alpha: 0.5),
+                            width: 0.5),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -266,7 +272,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                                 height: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
                                 ),
                               )
                             : const Text('保存修改'),
@@ -296,7 +303,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       decoration: BoxDecoration(
         color: MobileTheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
+        border: Border.all(
+            color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
       ),
       child: Column(
         children: [

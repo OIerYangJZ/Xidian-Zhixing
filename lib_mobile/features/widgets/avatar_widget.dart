@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../../lib/core/config/app_config.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
 import '../../core/theme/mobile_theme.dart';
 
 class AvatarWidget extends StatelessWidget {
@@ -21,9 +21,8 @@ class AvatarWidget extends StatelessWidget {
     final String resolved = avatarUrl?.trim().isNotEmpty == true
         ? AppConfig.resolveUrl(avatarUrl!)
         : '';
-    final String label = nickname.trim().isEmpty
-        ? '匿'
-        : nickname.trim().substring(0, 1);
+    final String label =
+        nickname.trim().isEmpty ? '匿' : nickname.trim().substring(0, 1);
 
     if (resolved.isNotEmpty) {
       return CircleAvatar(

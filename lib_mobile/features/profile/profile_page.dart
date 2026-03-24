@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
-import '../../../lib/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 /// 个人中心页
 class ProfilePage extends ConsumerWidget {
@@ -46,15 +46,18 @@ class ProfilePage extends ConsumerWidget {
                           children: [
                             CircleAvatar(
                               radius: 45,
-                              backgroundColor: MobileTheme.primary.withValues(alpha: 0.2),
-                              child: user?.avatarUrl != null && user!.avatarUrl.isNotEmpty
+                              backgroundColor:
+                                  MobileTheme.primary.withValues(alpha: 0.2),
+                              child: user?.avatarUrl != null &&
+                                      user!.avatarUrl.isNotEmpty
                                   ? ClipOval(
                                       child: Image.network(
                                         user.avatarUrl,
                                         width: 90,
                                         height: 90,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
                                           Icons.person,
                                           size: 50,
                                           color: MobileTheme.primary,
@@ -75,7 +78,8 @@ class ProfilePage extends ConsumerWidget {
                                 decoration: BoxDecoration(
                                   color: MobileTheme.primary,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.white, width: 2),
+                                  border:
+                                      Border.all(color: Colors.white, width: 2),
                                 ),
                                 child: const Icon(
                                   Icons.camera_alt,
@@ -132,9 +136,9 @@ class ProfilePage extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _StatItem(label: '帖子', value: '5'),
+                  const _StatItem(label: '帖子', value: '5'),
                   _VerticalDivider(),
-                  _StatItem(label: '评论', value: '12'),
+                  const _StatItem(label: '评论', value: '12'),
                   _VerticalDivider(),
                   _StatItem(label: '收藏', value: '${user?.favoriteCount ?? 0}'),
                   _VerticalDivider(),
@@ -270,7 +274,8 @@ class _MenuItem extends StatelessWidget {
   final String title;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.title, required this.onTap});
+  const _MenuItem(
+      {required this.icon, required this.title, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -291,7 +296,8 @@ class _MenuItem extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, size: 20, color: MobileTheme.textTertiary),
+            const Icon(Icons.chevron_right,
+                size: 20, color: MobileTheme.textTertiary),
           ],
         ),
       ),

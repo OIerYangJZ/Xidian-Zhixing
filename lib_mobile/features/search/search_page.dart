@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/models/post_item.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
 import '../home/post_card.dart';
 
 /// 搜索页
@@ -57,7 +57,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   Future<void> _handleSearch({bool saveHistory = true}) async {
     final keyword = _searchController.text.trim();
-    if (keyword.isEmpty && _selectedChannel == '全部' && _selectedStatus == null && _hasImageFilter == null) {
+    if (keyword.isEmpty &&
+        _selectedChannel == '全部' &&
+        _selectedStatus == null &&
+        _hasImageFilter == null) {
       return;
     }
 
@@ -137,7 +140,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   bool get _hasActiveFilters =>
-      _selectedChannel != '全部' || _selectedStatus != null || _hasImageFilter != null;
+      _selectedChannel != '全部' ||
+      _selectedStatus != null ||
+      _hasImageFilter != null;
 
   @override
   Widget build(BuildContext context) {
@@ -259,7 +264,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               : MobileTheme.background,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: _hasActiveFilters ? MobileTheme.primary : MobileTheme.divider,
+            color:
+                _hasActiveFilters ? MobileTheme.primary : MobileTheme.divider,
           ),
         ),
         child: Row(
@@ -432,7 +438,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         const SizedBox(width: 4),
                         GestureDetector(
                           onTap: () {
-                            ref.read(searchHistoryProvider.notifier).remove(keyword);
+                            ref
+                                .read(searchHistoryProvider.notifier)
+                                .remove(keyword);
                           },
                           child: const Icon(
                             Icons.close,
@@ -478,7 +486,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         : MobileTheme.surface,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: index < 3 ? MobileTheme.accent : MobileTheme.divider,
+                      color:
+                          index < 3 ? MobileTheme.accent : MobileTheme.divider,
                     ),
                   ),
                   child: Row(
@@ -511,7 +520,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           color: index < 3
                               ? MobileTheme.accent
                               : MobileTheme.textSecondary,
-                          fontWeight: index < 3 ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight:
+                              index < 3 ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -530,10 +540,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               color: MobileTheme.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       Icons.lightbulb_outline,
@@ -551,12 +561,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   '• 输入关键词搜索帖子标题和内容\n'
                   '• 使用筛选功能过滤频道、状态\n'
                   '• 点击热门搜索快速查找',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     color: MobileTheme.textSecondary,
                     height: 1.5,
@@ -682,15 +692,19 @@ class _FilterSheetState extends State<_FilterSheet> {
                         : MobileTheme.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                      color: isSelected
+                          ? MobileTheme.primary
+                          : MobileTheme.divider,
                     ),
                   ),
                   child: Text(
                     channel,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isSelected ? Colors.white : MobileTheme.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color:
+                          isSelected ? Colors.white : MobileTheme.textSecondary,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -733,15 +747,20 @@ class _FilterSheetState extends State<_FilterSheet> {
                           : MobileTheme.background,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                        color: isSelected
+                            ? MobileTheme.primary
+                            : MobileTheme.divider,
                       ),
                     ),
                     child: Text(
                       status.label,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isSelected ? Colors.white : MobileTheme.textSecondary,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected
+                            ? Colors.white
+                            : MobileTheme.textSecondary,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
                   ),
@@ -771,7 +790,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     _hasImage = value ? true : null;
                   });
                 },
-                activeColor: MobileTheme.primary,
+                activeThumbColor: MobileTheme.primary,
               ),
             ],
           ),

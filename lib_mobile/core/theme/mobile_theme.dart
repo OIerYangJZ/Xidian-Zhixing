@@ -33,7 +33,7 @@ class MobileTheme {
       brightness: Brightness.light,
       primaryColor: primary,
       scaffoldBackgroundColor: background,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: primary,
         secondary: accent,
         surface: surface,
@@ -45,18 +45,18 @@ class MobileTheme {
       ),
 
       // AppBar - iOS 大标题风格
-      appBarTheme: AppBarTheme(
+      appBarTheme: const AppBarTheme(
         elevation: 0,
         scrolledUnderElevation: 0.5,
         backgroundColor: surface,
         foregroundColor: textPrimary,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: const TextStyle(
+        titleTextStyle: TextStyle(
           color: textPrimary,
           fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
-        iconTheme: const IconThemeData(color: primary),
+        iconTheme: IconThemeData(color: primary),
       ),
 
       // 底部导航栏 - CupertinoTabBar 风格
@@ -67,8 +67,10 @@ class MobileTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         showUnselectedLabels: true,
-        selectedLabelStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        selectedLabelStyle:
+            TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
+        unselectedLabelStyle:
+            TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
       ),
 
       // 卡片样式 - 极简阴影
@@ -86,14 +88,15 @@ class MobileTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: divider),
+          borderSide: const BorderSide(color: divider),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: divider),
+          borderSide: const BorderSide(color: divider),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -155,7 +158,8 @@ class MobileTheme {
         unselectedLabelColor: textSecondary,
         indicatorColor: primary,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle:
+            TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
 
       // Chip 样式
@@ -166,7 +170,7 @@ class MobileTheme {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: divider),
+          side: const BorderSide(color: divider),
         ),
       ),
 
@@ -269,10 +273,10 @@ class MobileTheme {
     return lightTheme.copyWith(
       brightness: Brightness.dark,
       scaffoldBackgroundColor: const Color(0xFF000000),
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: primary,
         secondary: accent,
-        surface: const Color(0xFF1C1C1E),
+        surface: Color(0xFF1C1C1E),
         error: error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,

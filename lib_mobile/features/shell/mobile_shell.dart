@@ -4,11 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../home/home_page.dart';
-import '../search/search_page.dart';
-import '../messages/messages_page.dart';
-import '../favorites/favorites_page.dart';
-import '../profile/profile_page.dart';
 
 /// 移动端主 Shell
 /// 包含底部 Tab 导航栏

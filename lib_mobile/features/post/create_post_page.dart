@@ -8,9 +8,8 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/models/post_item.dart';
-import '../../../lib/models/uploaded_image_item.dart';
-import '../../../lib/repositories/post_repository.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/repositories/post_repository.dart';
 
 /// 发帖页
 /// 支持标题、正文、频道/标签选择、图片上传
@@ -59,7 +58,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       final channels = await postRepo.fetchChannels();
       if (mounted) {
         setState(() {
-          _channels = channels.isNotEmpty ? channels : ['全部', '学习', '二手', '找搭子', '失物招领', '吐槽'];
+          _channels = channels.isNotEmpty
+              ? channels
+              : ['全部', '学习', '二手', '找搭子', '失物招领', '吐槽'];
           _isLoadingChannels = false;
         });
       }
@@ -361,7 +362,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             if (_isUploading)
               Container(
                 color: MobileTheme.surface,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: const Row(
                   children: [
                     SizedBox(
@@ -438,9 +440,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       });
                     },
                   ),
-
                   const Divider(height: 1, indent: 56),
-
                   _SwitchTile(
                     icon: Icons.mail_outline,
                     label: '允许私信',
@@ -573,27 +573,27 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               ),
             ),
             ...PostStatus.values.map((status) => ListTile(
-              leading: Icon(
-                status == PostStatus.resolved
-                    ? Icons.check_circle
-                    : status == PostStatus.closed
-                        ? Icons.lock
-                        : Icons.help_outline,
-                color: status == _postStatus
-                    ? MobileTheme.primary
-                    : MobileTheme.textSecondary,
-              ),
-              title: Text(status.label),
-              trailing: status == _postStatus
-                  ? const Icon(Icons.check, color: MobileTheme.primary)
-                  : null,
-              onTap: () {
-                setState(() {
-                  _postStatus = status;
-                });
-                Navigator.pop(context);
-              },
-            )),
+                  leading: Icon(
+                    status == PostStatus.resolved
+                        ? Icons.check_circle
+                        : status == PostStatus.closed
+                            ? Icons.lock
+                            : Icons.help_outline,
+                    color: status == _postStatus
+                        ? MobileTheme.primary
+                        : MobileTheme.textSecondary,
+                  ),
+                  title: Text(status.label),
+                  trailing: status == _postStatus
+                      ? const Icon(Icons.check, color: MobileTheme.primary)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _postStatus = status;
+                    });
+                    Navigator.pop(context);
+                  },
+                )),
             const SizedBox(height: 8),
           ],
         ),
@@ -718,7 +718,7 @@ class _SwitchTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: MobileTheme.primary,
+            activeThumbColor: MobileTheme.primary,
           ),
         ],
       ),
@@ -769,7 +769,8 @@ class _ChannelPickerSheet extends StatelessWidget {
                       color: isSelected
                           ? MobileTheme.primary
                           : MobileTheme.textPrimary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                   trailing: isSelected
@@ -895,7 +896,9 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
                         : MobileTheme.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                      color: isSelected
+                          ? MobileTheme.primary
+                          : MobileTheme.divider,
                     ),
                   ),
                   child: Text(
@@ -905,7 +908,8 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
                       color: isSelected
                           ? MobileTheme.primary
                           : MobileTheme.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

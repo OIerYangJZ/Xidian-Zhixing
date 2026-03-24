@@ -6,9 +6,9 @@ import 'package:intl/intl.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../../lib/models/post_item.dart';
-import '../../../lib/models/comment_item.dart';
-import '../../../lib/repositories/post_repository.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/comment_item.dart';
+import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
 
@@ -113,9 +113,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       _isFavoriting = true;
       _post = _post!.copyWith(
         isFavorited: !wasFavorited,
-        favoriteCount: wasFavorited
-            ? _post!.favoriteCount - 1
-            : _post!.favoriteCount + 1,
+        favoriteCount:
+            wasFavorited ? _post!.favoriteCount - 1 : _post!.favoriteCount + 1,
       );
     });
 
@@ -152,7 +151,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => _ReportSheet(postId: widget.postId, postRepo: ref.read(postRepositoryProvider)),
+      builder: (context) => _ReportSheet(
+          postId: widget.postId, postRepo: ref.read(postRepositoryProvider)),
     );
 
     if (result != null && mounted) {
@@ -394,7 +394,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: MobileTheme.success.withValues(alpha: 0.1),
+                                color:
+                                    MobileTheme.success.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: const Text(
@@ -594,7 +595,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final post = _post!;
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: MobileTheme.surface,
         border: Border(
           top: BorderSide(color: MobileTheme.divider, width: 0.5),
@@ -673,7 +674,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.flag_outlined, color: MobileTheme.error),
+              leading:
+                  const Icon(Icons.flag_outlined, color: MobileTheme.error),
               title: const Text('举报'),
               onTap: () {
                 Navigator.pop(context);
@@ -682,7 +684,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
             if (_post!.isOwnPost)
               ListTile(
-                leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
+                leading:
+                    const Icon(Icons.delete_outline, color: MobileTheme.error),
                 title: const Text('删除'),
                 onTap: () {
                   Navigator.pop(context);
@@ -824,7 +827,7 @@ class _CommentTile extends StatelessWidget {
                 Row(
                   children: [
                     if (comment.likeCount > 0) ...[
-                      Icon(
+                      const Icon(
                         Icons.favorite,
                         size: 14,
                         color: MobileTheme.accent,
@@ -902,7 +905,8 @@ class _ActionItem extends StatelessWidget {
               : Icon(
                   isActive ? activeIcon : icon,
                   size: 22,
-                  color: isActive ? MobileTheme.accent : MobileTheme.textSecondary,
+                  color:
+                      isActive ? MobileTheme.accent : MobileTheme.textSecondary,
                 ),
           const SizedBox(width: 6),
           Text(
@@ -1033,15 +1037,19 @@ class _ReportSheetState extends State<_ReportSheet> {
                         : MobileTheme.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: isSelected ? MobileTheme.error : MobileTheme.divider,
+                      color:
+                          isSelected ? MobileTheme.error : MobileTheme.divider,
                     ),
                   ),
                   child: Text(
                     reason,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isSelected ? MobileTheme.error : MobileTheme.textSecondary,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? MobileTheme.error
+                          : MobileTheme.textSecondary,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
