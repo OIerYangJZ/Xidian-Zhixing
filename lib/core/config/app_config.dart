@@ -1,9 +1,21 @@
 class AppConfig {
   // 运行时可通过 --dart-define=API_BASE_URL=http://host:port/api 覆盖
-  static const String apiBaseUrl = String.fromEnvironment(
-    'API_BASE_URL',
-    defaultValue: 'http://localhost:8080/api',
-  );
+  // 移动端优先使用 MOBILE_API_BASE_URL（通过 MobileConfig 传入）
+  static String get apiBaseUrl {
+    // 先尝试移动端环境变量
+    const mobileUrl = String.fromEnvironment(
+      'MOBILE_API_BASE_URL',
+      defaultValue: '',
+    );
+    if (mobileUrl.isNotEmpty) {
+      return mobileUrl;
+    }
+    // Web/默认环境变量
+    return const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://localhost:8080/api',
+    );
+  }
 
   // 生产构建时由 scripts/build_web_production.sh 通过 --dart-define=APP_VERSION=... 注入
   static const String appVersion = String.fromEnvironment(

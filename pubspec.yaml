@@ -14,10 +14,19 @@ dependencies:
   shared_preferences: ^2.3.2
   flutter_riverpod: ^2.6.1
 
+  # Mobile端专用依赖
+  go_router: ^14.0.0
+  cached_network_image: ^3.3.1
+  image_picker: ^1.0.7
+  shimmer: ^3.0.0
+  date_format: ^2.0.7
+  intl: ^0.19.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  build_runner: ^2.4.8
 
 flutter:
   uses-material-design: true

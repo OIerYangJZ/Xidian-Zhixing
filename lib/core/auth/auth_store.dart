@@ -1,5 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../models/user_profile.dart';
+
 class AuthStore {
   AuthStore._();
 
@@ -8,10 +10,17 @@ class AuthStore {
   static const String _tokenKey = 'xdu_treehole_auth_token';
   SharedPreferences? _prefs;
   String? _token;
+  UserProfile? _currentUser;
 
   String? get token => _token;
 
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
+
+  UserProfile? get currentUser => _currentUser;
+
+  void setCurrentUser(UserProfile? user) {
+    _currentUser = user;
+  }
 
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
@@ -25,6 +34,7 @@ class AuthStore {
 
   Future<void> clear() async {
     _token = null;
+    _currentUser = null;
     await _prefs?.remove(_tokenKey);
   }
 }

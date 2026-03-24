@@ -144,7 +144,7 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? queryParameters,
   }) {
-    const String base = AppConfig.apiBaseUrl;
+    final String base = AppConfig.apiBaseUrl;
     final String normalized = path.startsWith('http://') ||
             path.startsWith('https://')
         ? path

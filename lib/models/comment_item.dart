@@ -5,6 +5,10 @@ class CommentItem {
     required this.content,
     required this.createdAt,
     required this.likeCount,
+    this.authorAvatar,
+    this.isLiked = false,
+    this.isPinned = false,
+    this.replies = const [],
   });
 
   final String id;
@@ -12,6 +16,13 @@ class CommentItem {
   final String content;
   final DateTime createdAt;
   final int likeCount;
+  final String? authorAvatar;
+  final bool isLiked;
+  final bool isPinned;
+  final List<CommentItem> replies;
+
+  /// 兼容旧字段：authorNickname = authorAlias
+  String get authorNickname => authorAlias;
 
   factory CommentItem.fromJson(Map<String, dynamic> json) {
     final dynamic created = json['createdAt'] ?? json['createTime'];
@@ -26,10 +37,18 @@ class CommentItem {
 
     return CommentItem(
       id: (json['id'] ?? json['commentId'] ?? '').toString(),
-      authorAlias: (json['authorAlias'] ?? json['anonymousName'] ?? '匿名同学').toString(),
+      authorAlias:
+          (json['authorAlias'] ?? json['anonymousName'] ?? '匿名同学').toString(),
       content: (json['content'] ?? '').toString(),
       createdAt: createdAt,
       likeCount: _toInt(json['likeCount']) ?? 0,
+      authorAvatar: (json['authorAvatar'] ?? json['avatar'] ?? '').toString(),
+      isLiked: json['isLiked'] ?? json['liked'] ?? false,
+      isPinned: json['isPinned'] ?? json['pinned'] ?? false,
+      replies: (json['replies'] as List<dynamic>?)
+              ?.map((r) => CommentItem.fromJson(r as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 

@@ -68,6 +68,7 @@ class PostItem {
     this.canMessageAuthor = false,
     this.isOwnPost = false,
     this.isFavorited = false,
+    this.isLiked = false,
     this.imageUrls = const <String>[],
     this.uploadedImageIds = const <String>[],
   });
@@ -94,6 +95,7 @@ class PostItem {
   final bool canMessageAuthor;
   final bool isOwnPost;
   final bool isFavorited;
+  final bool isLiked;
   final List<String> imageUrls;
   final List<String> uploadedImageIds;
 
@@ -136,6 +138,7 @@ class PostItem {
               false,
       isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
+      isLiked: _bool(json, <String>['liked', 'isLiked']) ?? false,
       imageUrls: _toStringList(imageUrlsValue),
       uploadedImageIds: _toStringList(uploadedImageIdsValue),
     );
@@ -178,6 +181,7 @@ class PostItem {
     bool? canMessageAuthor,
     bool? isOwnPost,
     bool? isFavorited,
+    bool? isLiked,
     List<String>? imageUrls,
     List<String>? uploadedImageIds,
   }) {
@@ -204,6 +208,7 @@ class PostItem {
       canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
       isOwnPost: isOwnPost ?? this.isOwnPost,
       isFavorited: isFavorited ?? this.isFavorited,
+      isLiked: isLiked ?? this.isLiked,
       imageUrls: imageUrls ?? this.imageUrls,
       uploadedImageIds: uploadedImageIds ?? this.uploadedImageIds,
     );
