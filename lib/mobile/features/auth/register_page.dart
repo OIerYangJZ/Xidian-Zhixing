@@ -267,7 +267,19 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
+
+              // 帮助与反馈
+              Center(
+                child: TextButton(
+                  onPressed: () => context.push('/profile/help-feedback'),
+                  child: const Text(
+                    '帮助与反馈',
+                    style: TextStyle(color: MobileTheme.textSecondary),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
               // 服务条款提示
               const Text(

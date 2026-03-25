@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
+import 'package:xdu_treehole_web/repositories/app_repositories.dart';
 import '../../features/shell/mobile_shell.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/auth/register_page.dart';
@@ -25,7 +26,7 @@ import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/admin/admin_login_page.dart';
-import '../../features/admin/admin_console_page.dart';
+import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
 import 'package:xdu_treehole_web/features/legal/terms_of_service_page.dart';
 import 'package:xdu_treehole_web/features/legal/privacy_policy_page.dart';
 import 'package:xdu_treehole_web/features/legal/community_guidelines_page.dart';
@@ -92,7 +93,7 @@ final appRouter = GoRouter(
       builder: (context, state) => const ResetPasswordPage(),
     ),
 
-    // 主页面（底部 Tab 导航）
+    // 主页面（底部 Tab 导航）— 3 tabs: 首页 / 消息 / 我的
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MobileShell(navigationShell: navigationShell);
@@ -107,30 +108,12 @@ final appRouter = GoRouter(
             ),
           ],
         ),
-        // 搜索
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/search',
-              builder: (context, state) => const SearchPage(),
-            ),
-          ],
-        ),
         // 消息
         StatefulShellBranch(
           routes: [
             GoRoute(
               path: '/messages',
               builder: (context, state) => const MessagesPage(),
-            ),
-          ],
-        ),
-        // 收藏
-        StatefulShellBranch(
-          routes: [
-            GoRoute(
-              path: '/favorites',
-              builder: (context, state) => const FavoritesPage(),
             ),
           ],
         ),
@@ -144,6 +127,17 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+
+    // 搜索（全屏，不在 Tab 内）
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const SearchPage(),
+    ),
+    // 收藏（全屏，不在 Tab 内）
+    GoRoute(
+      path: '/favorites',
+      builder: (context, state) => const FavoritesPage(),
     ),
 
     // 全屏页面（不在 Tab 内）
@@ -230,7 +224,15 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/admin',
-      builder: (context, state) => const AdminConsolePage(),
+      builder: (context, state) => AdminConsolePage(
+        repository: AppRepositories.adminPortal,
+        onLogout: () async {
+          try {
+            await AppRepositories.adminAuth.logout();
+          } catch (_) {}
+          AdminAuthStore.instance.clear();
+        },
+      ),
     ),
   ],
 );

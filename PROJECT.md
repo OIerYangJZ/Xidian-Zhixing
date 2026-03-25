@@ -135,7 +135,8 @@ xduWhisperBox/
 | 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
 | 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
 | 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
-| 0.1.0+3 | 2026-03-25 | 修复移动端 13 个问题：① 我的页头像用 AvatarWidget + resolveUrl 正确加载 ② 我的页帖子/动态 Tab 显示真实数据（fetchMyPosts/fetchMyComments） ③ 删除我的页四个快捷操作按钮（功能重复）④ 删除我的页底部设置按钮（功能重复）⑤ 删除我的页学号显示 ⑥ 首页 PostCard 恢复头像显示（AvatarWidget）⑦ 帖子详情页作者/评论头像改用 AvatarWidget ⑧ 帮助与反馈页举报说明路由修复（→ /legal/report）⑨ 注销账号改为双重确认（密码验证 → 提交申请）⑩ 管理员登录返回键修复（→ /auth/login）⑪ 登录/注册学号自动拼接 @stu.xidian.edu.cn ⑫ 登录框用户名改为「学号」|
+| 0.1.0+4 | 2026-03-25 | 重构底部导航（3 Tab：首页/消息/我的）；搜索入口移至首页 AppBar；管理员后台修复（使用真实 Web 端 AdminConsolePage）；实现关注/粉丝系统（API 端点 + Repository + 个人主页底部弹窗列表 + 好友标记）；消息页移除私信申请 Tab，改为首条消息警告横幅；帮助与反馈入口加入登录/注册页；头像点击逻辑（自己帖子跳我的主页，其他提示暂不支持）；管理员控制台恢复完整功能 |
+| 0.1.0+5 | 2026-03-25 | 修复消息页加载不出（`MessagesPage` 恢复 `ConsumerStatefulWidget`，`initState` 触发 `loadInitial()`）；修复头像点击逻辑（自己帖子跳转 `/profile`，其他帖子提示「暂不支持查看该用户主页」） |
 
 ## 4. 构建记录
 
@@ -143,7 +144,8 @@ xduWhisperBox/
 |------|----------|------|----------|------|----------|
 | 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | `flutter build apk --target-platform android-arm64 --release` |
 | 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | 移动端 6 项 bug 修复后重新构建 |
-| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | 移动端 13 项 bug 修复后重新构建 |
+| 2026-03-25 | Release | Android ARM64 | 18.8 MB | `build/app/outputs/flutter-apk/app-release.apk` | v0.1.0+4：关注系统 + 底部导航重构 + 消息页简化 + 管理员修复 |
+| 2026-03-25 | Release | Android ARM64 | 18.8 MB | `build/app/outputs/flutter-apk/app-release.apk` | v0.1.0+5：消息页加载修复 + 头像点击逻辑修复 |
 
 ## 5. 未跨端兼容的功能
 
@@ -159,8 +161,11 @@ xduWhisperBox/
 | 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退 | 仅移动端 |
 | AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib_mobile/features/widgets/`） |
 | 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
-| 乐观更新（点赞/收藏） | 首页 PostCard 点赞/收藏本地乐观更新，失败时回滚 | 仅移动端 |
+| 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
+| 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
+| 匿名头像点击提示 | 非自己帖子头像点击弹出 SnackBar「暂不支持查看该用户主页」；自己帖子点击跳转 `/profile` | 仅移动端 |
+| 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
 
 ---
 
-*最后更新：2026-03-25（v0.1.0+3）*
+*最后更新：2026-03-25（v0.1.0+5）*

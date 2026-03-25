@@ -59,29 +59,13 @@ class MobileShell extends ConsumerWidget {
               label: '首页',
             ),
             BottomNavigationBarItem(
-              icon: Icon(
-                navigationShell.currentIndex == 1
-                    ? Icons.search
-                    : Icons.search_outlined,
-              ),
-              label: '搜索',
-            ),
-            BottomNavigationBarItem(
               icon: _buildMessageIcon(false, messageUnreadCount),
               activeIcon: _buildMessageIcon(true, messageUnreadCount),
               label: '消息',
             ),
             BottomNavigationBarItem(
               icon: Icon(
-                navigationShell.currentIndex == 3
-                    ? Icons.star
-                    : Icons.star_outline,
-              ),
-              label: '收藏',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(
-                navigationShell.currentIndex == 4
+                navigationShell.currentIndex == 2
                     ? Icons.person
                     : Icons.person_outline,
               ),

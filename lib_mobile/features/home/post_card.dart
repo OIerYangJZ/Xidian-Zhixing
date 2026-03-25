@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
@@ -128,10 +129,24 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildAvatar() {
-    return AvatarWidget(
-      avatarUrl: null,
-      nickname: widget.post.authorAlias,
-      radius: 20,
+    return GestureDetector(
+      onTap: () {
+        if (widget.post.isOwnPost) {
+          context.push('/profile');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('暂不支持查看该用户主页'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      },
+      child: AvatarWidget(
+        avatarUrl: null,
+        nickname: widget.post.authorAlias,
+        radius: 20,
+      ),
     );
   }
 

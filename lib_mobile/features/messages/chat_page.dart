@@ -34,6 +34,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   String? _error;
   bool _isSending = false;
   bool _showEmoji = false;
+  bool _firstMessageWarningDismissed = false;
 
   @override
   void initState() {
@@ -255,6 +256,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ),
       body: Column(
         children: [
+          // 首条消息提示横幅
+          if (!_isLoading && _messages.isEmpty && !_firstMessageWarningDismissed)
+            _buildFirstMessageBanner(),
+
           // 消息列表
           Expanded(
             child: _isLoading
@@ -656,6 +661,38 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   bool _canSend() {
     return _messageController.text.trim().isNotEmpty && !_isSending;
+  }
+
+  Widget _buildFirstMessageBanner() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
+      color: const Color(0xFFFFF8E1),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, size: 18, color: Color(0xFFF59E0B)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '你与对方尚未建立会话。在对方回复或关注你之前，你只能发送一条消息，请谨慎措辞。',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF92400E),
+                height: 1.4,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _firstMessageWarningDismissed = true),
+            child: const Padding(
+              padding: EdgeInsets.only(left: 8),
+              child: Icon(Icons.close, size: 16, color: Color(0xFF92400E)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmojiBar() {

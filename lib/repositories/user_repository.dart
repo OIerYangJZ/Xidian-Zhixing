@@ -3,6 +3,7 @@ import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../data/mock_data.dart';
+import '../models/follow_user_item.dart';
 import '../models/my_comment_item.dart';
 import '../models/report_item.dart';
 import '../models/user_profile.dart';
@@ -179,6 +180,59 @@ class UserRepository {
       body: <String, dynamic>{
         if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
       },
+    );
+  }
+
+  Future<List<FollowUserItem>> fetchFollowing() async {
+    try {
+      final dynamic response = await _apiClient.get(ApiEndpoints.myFollowing);
+      final List<dynamic> list = extractList(response);
+      return list
+          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+          .where((FollowUserItem item) => item.userId.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return <FollowUserItem>[];
+    }
+  }
+
+  Future<List<FollowUserItem>> fetchFollowers() async {
+    try {
+      final dynamic response = await _apiClient.get(ApiEndpoints.myFollowers);
+      final List<dynamic> list = extractList(response);
+      return list
+          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+          .where((FollowUserItem item) => item.userId.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return <FollowUserItem>[];
+    }
+  }
+
+  Future<List<FollowUserItem>> fetchFriends() async {
+    try {
+      final dynamic response = await _apiClient.get(ApiEndpoints.myFriends);
+      final List<dynamic> list = extractList(response);
+      return list
+          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+          .where((FollowUserItem item) => item.userId.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return <FollowUserItem>[];
+    }
+  }
+
+  Future<void> followUser(String userId) {
+    return _apiClient.post(
+      ApiEndpoints.followUser(userId),
+      body: const <String, dynamic>{},
+    );
+  }
+
+  Future<void> unfollowUser(String userId) {
+    return _apiClient.post(
+      ApiEndpoints.unfollowUser(userId),
+      body: const <String, dynamic>{},
     );
   }
 }

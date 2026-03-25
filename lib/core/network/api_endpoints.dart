@@ -13,6 +13,14 @@ class ApiEndpoints {
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
   static const String meLevelUpgradeRequest = '/users/me/level-upgrade-request';
+
+  // 关注系统
+  static const String myFollowing = '/users/me/following';
+  static const String myFollowers = '/users/me/followers';
+  static const String myFriends = '/users/me/friends';
+  static String followUser(String userId) => '/users/$userId/follow';
+  static String unfollowUser(String userId) => '/users/$userId/unfollow';
+  static String userProfile(String userId) => '/users/$userId';
   static const String notifications = '/notifications';
   static const String notificationsReadAll = '/notifications/read-all';
 

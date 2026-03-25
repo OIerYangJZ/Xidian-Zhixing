@@ -400,10 +400,24 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             child: Row(
               children: [
                 // 头像
-                AvatarWidget(
-                  avatarUrl: null,
-                  nickname: post.authorAlias,
-                  radius: 20,
+                GestureDetector(
+                  onTap: () {
+                    if (post.isOwnPost) {
+                      context.push('/profile');
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('暂不支持查看该用户主页'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                  child: AvatarWidget(
+                    avatarUrl: null,
+                    nickname: post.authorAlias,
+                    radius: 20,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(

@@ -235,6 +235,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     child: const Text('注册账号'),
                   ),
                   TextButton(
+                    onPressed: () => context.push('/profile/help-feedback'),
+                    child: const Text('帮助与反馈'),
+                  ),
+                  TextButton(
                     onPressed: () => context.go('/auth/reset-password'),
                     child: const Text('忘记密码'),
                   ),

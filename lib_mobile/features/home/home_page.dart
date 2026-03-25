@@ -178,6 +178,10 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               actions: [
                 IconButton(
+                  icon: const Icon(Icons.search, size: 22),
+                  onPressed: () => context.push('/search'),
+                ),
+                IconButton(
                   icon: const Icon(
                     Icons.notifications_outlined,
                     size: 22,
