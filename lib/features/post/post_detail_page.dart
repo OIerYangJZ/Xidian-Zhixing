@@ -95,9 +95,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                       const SizedBox(height: 10),
                       Text(_post.content),
-                      if (_post.imageUrls.isNotEmpty ||
-                          (_post.hasImage && _post.uploadedImageIds.isNotEmpty))
+                      if (_post.imageUrls.isNotEmpty)
                         ImageGallery(images: _post.imageUrls),
+                      if (_post.hasImage && _post.imageUrls.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            '图片暂时不可用，请稍后重试',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 6,
