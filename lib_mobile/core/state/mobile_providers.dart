@@ -31,10 +31,13 @@ final notificationUnreadCountProvider = Provider<int>((ref) {
 /// 消息未读数
 final messageUnreadCountProvider = Provider<int>((ref) {
   final messagesState = ref.watch(messagesControllerProvider);
-  return messagesState.conversations.fold<int>(
+  final convUnread = messagesState.conversations.fold<int>(
     0,
     (int sum, item) => sum + item.unreadCount,
   );
+  final pendingRequests =
+      messagesState.requests.where((r) => r.status == 'pending').length;
+  return convUnread + pendingRequests;
 });
 
 /// 搜索历史

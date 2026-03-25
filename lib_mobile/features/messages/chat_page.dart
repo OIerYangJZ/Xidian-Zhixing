@@ -59,6 +59,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final messageRepo = ref.read(messageRepositoryProvider);
       final messages =
           await messageRepo.fetchConversationMessages(widget.conversationId);
+      // 后端已在获取消息时自动标记已读，这里同步更新本地状态
+      ref.read(messagesControllerProvider.notifier).markConversationRead(
+        widget.conversationId,
+      );
       if (mounted) {
         setState(() {
           _messages = messages;
@@ -121,6 +125,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             _messages[index] = sentMessage;
           }
         });
+        // 更新上层会话列表的预览和未读数
+        ref.read(messagesControllerProvider.notifier).updateConversationPreview(
+          conversationId: widget.conversationId,
+          message: content,
+        );
       }
     } catch (e) {
       // 发送失败，标记为失败状态
@@ -340,8 +349,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     DateTime? lastTime;
 
     for (final message in _messages) {
+      // 解析 UTC 时间并转换为本地时区，避免时区偏差
       final messageTime =
-          DateTime.tryParse(message.createdAt) ?? DateTime.now();
+          DateTime.tryParse(message.createdAt)?.toUtc().toLocal() ??
+              DateTime.now();
       final label = _formatTimeLabel(messageTime);
 
       if (lastTime == null || _shouldShowTimeLabel(lastTime, messageTime)) {
@@ -399,18 +410,24 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         children: [
           if (!isMe) ...[
             // 对方头像
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-              child: Text(
-                (widget.peerName ?? '用户').substring(0, 1),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: MobileTheme.primary,
-                  fontWeight: FontWeight.w600,
+            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: NetworkImage(widget.peerAvatar!),
+              )
+            else
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                child: Text(
+                  (widget.peerName ?? '用户').substring(0, 1),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: MobileTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(width: 8),
           ],
           Flexible(

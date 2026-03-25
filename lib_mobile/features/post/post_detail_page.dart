@@ -35,6 +35,18 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   bool _isFavoriting = false;
   bool _isPostingComment = false;
 
+  // 回复状态
+  CommentItem? _replyingTo;
+
+  // 用于键盘弹起时自动滚动到底部
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -174,6 +186,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       await postRepo.createComment(
         postId: widget.postId,
         content: content,
+        parentId: _replyingTo?.id,
       );
 
       // 重新加载评论
@@ -186,6 +199,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             commentCount: _post!.commentCount + 1,
           );
           _comments = comments;
+          _replyingTo = null; // 清空回复状态
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('评论成功')),
@@ -253,11 +267,49 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   ? _buildEmptyView()
                   : _buildContent(),
       bottomNavigationBar: _post != null && _post!.allowComment
-          ? CommentInputBar(
-              onSubmit: _handleSubmitComment,
-              autofocus: false,
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_replyingTo != null) _buildReplyBanner(),
+                CommentInputBar(
+                  onSubmit: _handleSubmitComment,
+                  autofocus: false,
+                  scrollController: _scrollController,
+                ),
+              ],
             )
           : null,
+    );
+  }
+
+  Widget _buildReplyBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: MobileTheme.primary.withValues(alpha: 0.08),
+      child: Row(
+        children: [
+          const Icon(Icons.reply, size: 16, color: MobileTheme.primary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              '回复 @${_replyingTo!.authorAlias}',
+              style: const TextStyle(
+                fontSize: 13,
+                color: MobileTheme.primary,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => setState(() => _replyingTo = null),
+            child: const Icon(
+              Icons.close,
+              size: 16,
+              color: MobileTheme.primary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -305,12 +357,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildContent() {
     return Column(
       children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _loadData,
-            color: MobileTheme.primary,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: _loadData,
+              color: MobileTheme.primary,
+              child: SingleChildScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -581,7 +634,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               itemCount: _comments.length,
               separatorBuilder: (_, __) => const Divider(height: 1, indent: 60),
               itemBuilder: (context, index) {
-                return _CommentTile(comment: _comments[index]);
+                return _CommentTile(
+                  comment: _comments[index],
+                  onReply: () => setState(() => _replyingTo = _comments[index]),
+                );
               },
             ),
 
@@ -759,8 +815,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 /// 评论列表项
 class _CommentTile extends StatelessWidget {
   final CommentItem comment;
+  final VoidCallback? onReply;
 
-  const _CommentTile({required this.comment});
+  const _CommentTile({required this.comment, this.onReply});
 
   @override
   Widget build(BuildContext context) {
@@ -841,6 +898,27 @@ class _CommentTile extends StatelessWidget {
                         ),
                       ),
                     ],
+                    const SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: onReply,
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.reply,
+                            size: 14,
+                            color: MobileTheme.textTertiary,
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            '回复',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: MobileTheme.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ],

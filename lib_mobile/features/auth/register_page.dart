@@ -14,7 +14,7 @@ class RegisterPage extends ConsumerStatefulWidget {
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _studentIdController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _nicknameController = TextEditingController();
@@ -25,7 +25,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _studentIdController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nicknameController.dispose();
@@ -43,18 +43,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
 
+      // 学号自动拼接域名构造完整邮箱
+      final studentId = _studentIdController.text.trim();
+      final email = '$studentId@stu.xidian.edu.cn';
+
       // 先注册
       await authRepo.register(
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text,
         nickname: _nicknameController.text.trim(),
       );
 
       if (!mounted) return;
 
-      // 跳转到验证页面
-      context.go(
-          '/auth/verify?email=${Uri.encodeComponent(_emailController.text.trim())}');
+      // 跳转到验证页面，传递完整邮箱
+      context.go('/auth/verify?email=${Uri.encodeComponent(email)}');
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -122,22 +125,21 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 邮箱输入框
+                    // 学号输入框
                     TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _studentIdController,
+                      keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
-                        hintText: '邮箱',
-                        prefixIcon: Icon(Icons.email_outlined),
+                        hintText: '学号（8位数字）',
+                        prefixIcon: Icon(Icons.school_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return '请输入邮箱';
+                          return '请输入学号';
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                            .hasMatch(value)) {
-                          return '请输入有效的邮箱地址';
+                        if (!RegExp(r'^\d{8}$').hasMatch(value.trim())) {
+                          return '学号必须是8位数字';
                         }
                         return null;
                       },

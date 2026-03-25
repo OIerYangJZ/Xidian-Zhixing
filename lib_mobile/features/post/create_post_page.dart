@@ -29,7 +29,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   List<String> _selectedTags = [];
   bool _allowComment = true;
   bool _allowDm = false;
+  bool _isAnonymous = false;
+  String _anonymousAlias = '';
   PostStatus _postStatus = PostStatus.ongoing;
+
+  final _anonymousAliasController = TextEditingController();
 
   final List<XFile> _selectedImages = [];
   final List<String> _uploadedImageIds = [];
@@ -49,6 +53,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
+    _anonymousAliasController.dispose();
     super.dispose();
   }
 
@@ -162,6 +167,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
   }
 
+  String _generateAnonymousAlias() {
+    final adjectives = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
+    final nouns = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
+    final adj = adjectives[(DateTime.now().millisecondsSinceEpoch ~/ 13) % adjectives.length];
+    final noun = nouns[(DateTime.now().millisecondsSinceEpoch ~/ 17) % nouns.length];
+    return '$adj$noun';
+  }
+
   void _removeImage(int index) {
     setState(() {
       _selectedImages.removeAt(index);
@@ -235,6 +248,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         status: _postStatus,
         hasImage: _selectedImages.isNotEmpty,
         imageUploadIds: _uploadedImageIds,
+        useAnonymousAlias: _isAnonymous,
+        anonymousAlias: _isAnonymous ? _anonymousAliasController.text : null,
       );
 
       await postRepo.createPost(input);
@@ -451,7 +466,77 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       });
                     },
                   ),
+                  const Divider(height: 1, indent: 56),
+                  _SwitchTile(
+                    icon: Icons.visibility_off_outlined,
+                    label: '匿名发布',
+                    value: _isAnonymous,
+                    onChanged: (value) {
+                      setState(() {
+                        _isAnonymous = value;
+                        if (value) {
+                          if (_anonymousAlias.isEmpty) {
+                            _anonymousAlias = _generateAnonymousAlias();
+                          }
+                          _anonymousAliasController.text = _anonymousAlias;
+                        }
+                      });
+                    },
+                  ),
+                  if (_isAnonymous) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(56, 0, 16, 12),
+                      child: TextField(
+                        controller: _anonymousAliasController,
+                        style: const TextStyle(fontSize: 14, color: MobileTheme.textPrimary),
+                        decoration: InputDecoration(
+                          hintText: '自定义匿名别名（选填）',
+                          hintStyle: const TextStyle(color: MobileTheme.textTertiary, fontSize: 14),
+                          prefixIcon: const Icon(Icons.badge_outlined, size: 18, color: MobileTheme.textSecondary),
+                          filled: true,
+                          fillColor: MobileTheme.background,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // 添加图片按钮（始终可见）
+            GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: MobileTheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.add_photo_alternate_outlined, size: 22, color: MobileTheme.primary),
+                    const SizedBox(width: 14),
+                    Text(
+                      '添加图片',
+                      style: const TextStyle(fontSize: 15, color: MobileTheme.textPrimary),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '最多9张',
+                      style: const TextStyle(fontSize: 13, color: MobileTheme.textTertiary),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.chevron_right, size: 20, color: MobileTheme.textTertiary),
+                  ],
+                ),
               ),
             ),
 
@@ -803,6 +888,7 @@ class _TagPickerSheet extends StatefulWidget {
 
 class _TagPickerSheetState extends State<_TagPickerSheet> {
   late List<String> _tempSelected;
+  final _customTagController = TextEditingController();
 
   final _allTags = [
     '求助',
@@ -828,6 +914,12 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
     _tempSelected = List.from(widget.selectedTags);
   }
 
+  @override
+  void dispose() {
+    _customTagController.dispose();
+    super.dispose();
+  }
+
   void _toggleTag(String tag) {
     setState(() {
       if (_tempSelected.contains(tag)) {
@@ -842,6 +934,80 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
         }
       }
     });
+  }
+
+  void _addCustomTags() {
+    final input = _customTagController.text.trim();
+    if (input.isEmpty) return;
+
+    final newTags = input
+        .split(RegExp(r'[,，\s\n]+'))
+        .map((t) => t.trim())
+        .where((t) => t.isNotEmpty && !_tempSelected.contains(t))
+        .toList();
+
+    if (newTags.isEmpty) return;
+
+    final remaining = 5 - _tempSelected.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('最多选择5个标签')),
+      );
+      return;
+    }
+
+    setState(() {
+      _tempSelected.addAll(newTags.take(remaining));
+      _customTagController.clear();
+    });
+
+    if (newTags.length > remaining) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('只添加了$remaining个标签，达到上限5个')),
+      );
+    }
+  }
+
+  List<Widget> _buildSelectedTagsPreview() {
+    if (_tempSelected.isEmpty) return [];
+    return [
+      const SizedBox(height: 16),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: _tempSelected.map((tag) {
+          return GestureDetector(
+            onTap: () => _toggleTag(tag),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: MobileTheme.primary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: MobileTheme.primary),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tag,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: MobileTheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.close, size: 14, color: MobileTheme.primary),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    ];
   }
 
   @override
@@ -917,6 +1083,45 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
             }).toList(),
           ),
           const SizedBox(height: 16),
+          // 自定义标签输入
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _customTagController,
+                  decoration: InputDecoration(
+                    hintText: '输入自定义标签，多个用逗号分隔',
+                    hintStyle: const TextStyle(fontSize: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: MobileTheme.divider),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: MobileTheme.divider),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: MobileTheme.primary),
+                    ),
+                    isDense: true,
+                  ),
+                  style: const TextStyle(fontSize: 14),
+                  onSubmitted: (_) => _addCustomTags(),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: _addCustomTags,
+                child: const Text('添加'),
+              ),
+            ],
+          ),
+          ..._buildSelectedTagsPreview(),
         ],
       ),
     );

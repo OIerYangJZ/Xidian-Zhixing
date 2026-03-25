@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
+import 'package:xdu_treehole_web/models/notification_item.dart';
 
 /// 通知中心页
 class NotificationCenterPage extends ConsumerStatefulWidget {
@@ -15,55 +17,82 @@ class NotificationCenterPage extends ConsumerStatefulWidget {
 
 class _NotificationCenterPageState
     extends ConsumerState<NotificationCenterPage> {
-  bool _isLoading = true;
-  final List<dynamic> _notifications = [];
-
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
+    // Trigger initial data load via post-frame callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationsControllerProvider.notifier).loadInitial();
+    });
   }
 
-  Future<void> _loadNotifications() async {
-    try {
-      final notificationRepo = ref.read(notificationRepositoryProvider);
-      // TODO: 实现通知列表加载
-      await Future.delayed(const Duration(milliseconds: 500));
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  Future<void> _refresh() async {
+    await ref.read(notificationsControllerProvider.notifier).refresh();
+  }
+
+  void _markAllRead() {
+    ref.read(notificationsControllerProvider.notifier).markAllRead();
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(notificationsControllerProvider);
+
     return Scaffold(
       backgroundColor: MobileTheme.background,
       appBar: AppBar(
         backgroundColor: MobileTheme.surface,
         title: const Text('通知中心'),
         actions: [
-          TextButton(
-            onPressed: () {
-              // 标记全部已读
-            },
-            child: const Text('全部已读'),
+          if (state.unreadCount > 0)
+            TextButton(
+              onPressed: state.actionBusy ? null : _markAllRead,
+              child: state.actionBusy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('全部已读'),
+            ),
+        ],
+      ),
+      body: state.loading
+          ? const Center(child: CircularProgressIndicator())
+          : state.error != null
+              ? _buildErrorState(state.error!)
+              : state.items.isEmpty
+                  ? _buildEmptyState()
+                  : _buildNotificationList(state.items),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline,
+            size: 64,
+            color: MobileTheme.error,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            error,
+            style: const TextStyle(
+              fontSize: 14,
+              color: MobileTheme.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _refresh,
+            child: const Text('重试'),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _notifications.isEmpty
-              ? _buildEmptyState()
-              : _buildNotificationList(),
     );
   }
 
@@ -90,73 +119,166 @@ class _NotificationCenterPageState
     );
   }
 
-  Widget _buildNotificationList() {
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: _notifications.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        return _NotificationTile(notification: _notifications[index]);
-      },
+  Widget _buildNotificationList(List<NotificationItem> items) {
+    return RefreshIndicator(
+      onRefresh: _refresh,
+      child: ListView.separated(
+        padding: const EdgeInsets.all(16),
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          return _NotificationTile(
+            notification: items[index],
+            onTap: () => _handleNotificationTap(items[index]),
+          );
+        },
+      ),
     );
+  }
+
+  void _handleNotificationTap(NotificationItem notification) {
+    // Mark as read
+    ref.read(notificationsControllerProvider.notifier).markRead(notification.id);
+
+    // Navigate to related content
+    if (notification.postId.isNotEmpty) {
+      context.push('/post/${notification.postId}');
+    }
   }
 }
 
 class _NotificationTile extends StatelessWidget {
-  final dynamic notification;
+  final NotificationItem notification;
+  final VoidCallback onTap;
 
-  const _NotificationTile({required this.notification});
+  const _NotificationTile({
+    required this.notification,
+    required this.onTap,
+  });
+
+  IconData get _icon {
+    switch (notification.type) {
+      case 'comment':
+        return Icons.comment_outlined;
+      case 'reply':
+        return Icons.reply_outlined;
+      case 'like':
+        return Icons.thumb_up_outlined;
+      case 'favorite':
+        return Icons.star_outline;
+      case 'report_result':
+        return Icons.flag_outlined;
+      case 'system':
+        return Icons.campaign_outlined;
+      default:
+        return Icons.notifications_outlined;
+    }
+  }
+
+  Color get _iconColor {
+    switch (notification.type) {
+      case 'comment':
+      case 'reply':
+        return Colors.blue;
+      case 'like':
+        return Colors.red;
+      case 'favorite':
+        return Colors.amber;
+      case 'report_result':
+        return Colors.orange;
+      case 'system':
+        return Colors.purple;
+      default:
+        return MobileTheme.primary;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: MobileTheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: MobileTheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.notifications,
-              color: MobileTheme.primary,
-              size: 20,
-            ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: notification.isRead
+              ? MobileTheme.surface
+              : MobileTheme.primary.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: notification.isRead
+                ? MobileTheme.divider.withValues(alpha: 0.5)
+                : MobileTheme.primary.withValues(alpha: 0.3),
           ),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '通知标题',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: MobileTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  '通知内容...',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: MobileTheme.textSecondary,
-                  ),
-                ),
-              ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _iconColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Icon(
+                _icon,
+                color: _iconColor,
+                size: 20,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: notification.isRead
+                                ? FontWeight.w500
+                                : FontWeight.w600,
+                            color: MobileTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (!notification.isRead)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: MobileTheme.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification.content,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: MobileTheme.textSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    notification.timeText,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: MobileTheme.textTertiary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

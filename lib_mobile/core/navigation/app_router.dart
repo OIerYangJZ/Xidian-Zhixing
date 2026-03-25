@@ -22,6 +22,7 @@ import '../../features/profile/settings_page.dart';
 import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
+import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/admin/admin_login_page.dart';
 import '../../features/admin/admin_console_page.dart';
 
@@ -187,6 +188,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/reports',
       builder: (context, state) => const MyReportsPage(),
+    ),
+    GoRoute(
+      path: '/profile/help-feedback',
+      builder: (context, state) => const HelpAndFeedbackPage(),
     ),
 
     // 管理员路由

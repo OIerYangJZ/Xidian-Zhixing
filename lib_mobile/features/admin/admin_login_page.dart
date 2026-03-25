@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import 'package:xdu_treehole_web/repositories/app_repositories.dart';
 
 /// 管理员登录页
 class AdminLoginPage extends ConsumerStatefulWidget {
@@ -38,8 +39,10 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
     });
 
     try {
-      // TODO: 调用管理员登录API
-      await Future.delayed(const Duration(seconds: 1));
+      await AppRepositories.adminAuth.login(
+        username: _usernameController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
 
       if (mounted) {
         context.go('/admin');

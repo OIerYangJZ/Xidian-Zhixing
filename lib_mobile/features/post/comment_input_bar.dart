@@ -8,12 +8,14 @@ class CommentInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final String? placeholder;
   final bool autofocus;
+  final ScrollController? scrollController;
 
   const CommentInputBar({
     super.key,
     required this.onSubmit,
     this.placeholder = '写下你的评论...',
     this.autofocus = false,
+    this.scrollController,
   });
 
   @override
@@ -37,13 +39,29 @@ class _CommentInputBarState extends State<CommentInputBar> {
         });
       }
     });
+    _focusNode.addListener(_onFocusChange);
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.removeListener(_onFocusChange);
     _focusNode.dispose();
     super.dispose();
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus && widget.scrollController != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (widget.scrollController!.hasClients) {
+          widget.scrollController!.animateTo(
+            widget.scrollController!.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
   }
 
   void _toggleEmoji() {
@@ -85,6 +103,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       decoration: BoxDecoration(
         color: MobileTheme.surface,
@@ -109,7 +128,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
 
             // 输入框
             Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              padding: EdgeInsets.fromLTRB(12, 8, 8, 8 + bottomInset),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
