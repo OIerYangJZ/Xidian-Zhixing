@@ -19,12 +19,17 @@ import '../../features/messages/chat_page.dart';
 import '../../features/notifications/notification_center_page.dart';
 import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/settings_page.dart';
+import '../../features/profile/settings_main_page.dart';
 import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/admin/admin_login_page.dart';
 import '../../features/admin/admin_console_page.dart';
+import 'package:xdu_treehole_web/features/legal/terms_of_service_page.dart';
+import 'package:xdu_treehole_web/features/legal/privacy_policy_page.dart';
+import 'package:xdu_treehole_web/features/legal/community_guidelines_page.dart';
+import 'package:xdu_treehole_web/features/legal/report_guidelines_page.dart';
 
 /// 路由守卫：检查是否已登录
 String? _authGuard(BuildContext context, GoRouterState state) {
@@ -170,12 +175,20 @@ final appRouter = GoRouter(
       builder: (context, state) => const NotificationCenterPage(),
     ),
     GoRoute(
+      path: '/profile/change-password',
+      builder: (context, state) => const ResetPasswordPage(),
+    ),
+    GoRoute(
       path: '/profile/edit',
       builder: (context, state) => const EditProfilePage(),
     ),
     GoRoute(
       path: '/profile/settings',
       builder: (context, state) => const SettingsPage(),
+    ),
+    GoRoute(
+      path: '/profile/settings/main',
+      builder: (context, state) => const SettingsMainPage(),
     ),
     GoRoute(
       path: '/profile/posts',
@@ -192,6 +205,22 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/help-feedback',
       builder: (context, state) => const HelpAndFeedbackPage(),
+    ),
+    GoRoute(
+      path: '/legal/terms',
+      builder: (context, state) => const TermsOfServicePage(),
+    ),
+    GoRoute(
+      path: '/legal/privacy',
+      builder: (context, state) => const PrivacyPolicyPage(),
+    ),
+    GoRoute(
+      path: '/legal/guidelines',
+      builder: (context, state) => const CommunityGuidelinesPage(),
+    ),
+    GoRoute(
+      path: '/legal/report',
+      builder: (context, state) => const ReportGuidelinesPage(),
     ),
 
     // 管理员路由

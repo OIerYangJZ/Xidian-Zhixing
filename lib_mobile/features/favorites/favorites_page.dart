@@ -140,9 +140,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     return RefreshIndicator(
       onRefresh: _loadFavorites,
       color: MobileTheme.primary,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.separated(
         itemCount: _posts.length,
+        separatorBuilder: (context, index) => const Divider(height: 1, indent: 16),
         itemBuilder: (context, index) {
           final post = _posts[index];
           return Dismissible(

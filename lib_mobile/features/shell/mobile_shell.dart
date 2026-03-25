@@ -6,7 +6,7 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 
 /// 移动端主 Shell
-/// 包含底部 Tab 导航栏
+/// 包含底部 Tab 导航栏（Twitter 风格：纯白背景 + 顶部 0.5px 细线，无阴影）
 class MobileShell extends ConsumerWidget {
   const MobileShell({
     super.key,
@@ -17,37 +17,53 @@ class MobileShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notificationUnreadCount = ref.watch(notificationUnreadCountProvider);
     final messageUnreadCount = ref.watch(messageUnreadCountProvider);
 
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        height: 60,
+        decoration: const BoxDecoration(
+          color: Colors.white,
           border: Border(
             top: BorderSide(
-              color: MobileTheme.divider.withValues(alpha: 0.5),
+              color: Color(0xFFE8E8E8),
               width: 0.5,
             ),
           ),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
           onTap: (index) {
             navigationShell.goBranch(
               index,
               initialLocation: index == navigationShell.currentIndex,
             );
           },
+          type: BottomNavigationBarType.fixed,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
+          selectedItemColor: MobileTheme.primary,
+          unselectedItemColor: MobileTheme.textSecondary,
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
+            BottomNavigationBarItem(
+              icon: Icon(
+                navigationShell.currentIndex == 0
+                    ? Icons.home
+                    : Icons.home_outlined,
+              ),
               label: '首页',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
+            BottomNavigationBarItem(
+              icon: Icon(
+                navigationShell.currentIndex == 1
+                    ? Icons.search
+                    : Icons.search_outlined,
+              ),
               label: '搜索',
             ),
             BottomNavigationBarItem(
@@ -55,14 +71,20 @@ class MobileShell extends ConsumerWidget {
               activeIcon: _buildMessageIcon(true, messageUnreadCount),
               label: '消息',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.star_outline),
-              activeIcon: Icon(Icons.star),
+            BottomNavigationBarItem(
+              icon: Icon(
+                navigationShell.currentIndex == 3
+                    ? Icons.star
+                    : Icons.star_outline,
+              ),
               label: '收藏',
             ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
+            BottomNavigationBarItem(
+              icon: Icon(
+                navigationShell.currentIndex == 4
+                    ? Icons.person
+                    : Icons.person_outline,
+              ),
               label: '我的',
             ),
           ],
@@ -74,6 +96,7 @@ class MobileShell extends ConsumerWidget {
   Widget _buildMessageIcon(bool active, int unreadCount) {
     if (unreadCount > 0) {
       return Badge(
+        smallSize: 8,
         label: Text(
           unreadCount > 99 ? '99+' : unreadCount.toString(),
           style: const TextStyle(fontSize: 10),

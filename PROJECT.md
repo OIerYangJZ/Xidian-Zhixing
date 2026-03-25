@@ -132,18 +132,35 @@ xduWhisperBox/
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
-| — | — | — |
+| 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
+| 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
+| 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
+| 0.1.0+3 | 2026-03-25 | 修复移动端 13 个问题：① 我的页头像用 AvatarWidget + resolveUrl 正确加载 ② 我的页帖子/动态 Tab 显示真实数据（fetchMyPosts/fetchMyComments） ③ 删除我的页四个快捷操作按钮（功能重复）④ 删除我的页底部设置按钮（功能重复）⑤ 删除我的页学号显示 ⑥ 首页 PostCard 恢复头像显示（AvatarWidget）⑦ 帖子详情页作者/评论头像改用 AvatarWidget ⑧ 帮助与反馈页举报说明路由修复（→ /legal/report）⑨ 注销账号改为双重确认（密码验证 → 提交申请）⑩ 管理员登录返回键修复（→ /auth/login）⑪ 登录/注册学号自动拼接 @stu.xidian.edu.cn ⑫ 登录框用户名改为「学号」|
 
----
+## 4. 构建记录
 
-## 4. 未跨端兼容的功能
+| 日期 | 构建类型 | 平台 | 文件大小 | 路径 | 构建命令 |
+|------|----------|------|----------|------|----------|
+| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | `flutter build apk --target-platform android-arm64 --release` |
+| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | 移动端 6 项 bug 修复后重新构建 |
+| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | 移动端 13 项 bug 修复后重新构建 |
+
+## 5. 未跨端兼容的功能
 
 > 以下记录尚未同时在 Web 端和移动端适配的功能，跨端适配完成后请删除对应条目。
 
-| 功能名称 | 描述 | 状态 |
-|----------|------|------|
-| — | — | — |
+| 功能名称 | 描述 | 当前实现平台 |
+|----------|------|-------------|
+| 移动端整体 UI 风格 | Twitter/Instagram 风格重构：纯白背景、无卡片/无圆角/无阴影、紧凑布局、频道彩色圆点、FAB 发帖按钮 | 仅移动端（`lib_mobile/`） |
+| 个人主页（ProfilePage） | 背景色条 + 重叠头像 + 统计行 + Tab（帖子/收藏/动态）+ 右上角设置入口 | 仅移动端 |
+| 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 关于 / 退出登录；注销账号双重确认流程 | 仅移动端 |
+| 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 |
+| 帖子详情页（PostDetailPage） | 紧凑布局、底部操作栏压缩、AvatarWidget 头像 | 仅移动端 |
+| 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退 | 仅移动端 |
+| AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib_mobile/features/widgets/`） |
+| 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
+| 乐观更新（点赞/收藏） | 首页 PostCard 点赞/收藏本地乐观更新，失败时回滚 | 仅移动端 |
 
 ---
 
-*最后更新：2026-03-25*
+*最后更新：2026-03-25（v0.1.0+3）*

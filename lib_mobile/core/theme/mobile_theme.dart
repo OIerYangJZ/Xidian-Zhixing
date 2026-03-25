@@ -9,7 +9,7 @@ class MobileTheme {
   static const Color accent = Color(0xFFE06C4E);
 
   // 背景色
-  static const Color background = Color(0xFFF5F5F7);
+  static const Color background = Color(0xFFFFFFFF);
   static const Color surface = Colors.white;
   static const Color cardBackground = Colors.white;
 
@@ -19,7 +19,7 @@ class MobileTheme {
   static const Color textTertiary = Color(0xFFC7C7CC);
 
   // 分割线
-  static const Color divider = Color(0xFFE5E5EA);
+  static const Color divider = Color(0xFFE8E8E8);
 
   // 状态色
   static const Color success = Color(0xFF34C759);
@@ -73,14 +73,13 @@ class MobileTheme {
             TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
       ),
 
-      // 卡片样式 - 极简阴影
+      // 卡片样式 - Twitter 风格：无圆角、无阴影、无边框
       cardTheme: CardThemeData(
         color: cardBackground,
         elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: divider.withValues(alpha: 0.5), width: 0.5),
+        margin: EdgeInsets.zero,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
         ),
       ),
 
@@ -162,16 +161,16 @@ class MobileTheme {
             TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
 
-      // Chip 样式
+      // Chip 样式 - 无圆角、无边框
       chipTheme: ChipThemeData(
         backgroundColor: background,
         selectedColor: primary.withValues(alpha: 0.15),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: divider),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
         ),
+        side: BorderSide.none,
       ),
 
       // Divider

@@ -62,7 +62,7 @@ class HelpAndFeedbackPage extends StatelessWidget {
             icon: Icons.flag_outlined,
             title: '举报说明',
             subtitle: '了解如何举报违规内容',
-            onTap: () => context.push('/profile/reports/guidelines'),
+            onTap: () => context.push('/legal/report'),
           ),
           _buildMenuItem(
             context,

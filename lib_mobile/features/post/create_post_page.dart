@@ -11,8 +11,8 @@ import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 
-/// 发帖页
-/// 支持标题、正文、频道/标签选择、图片上传
+/// 发帖页 — Instagram 极简风格
+/// 无卡片、无冗余设置项、底部工具栏图标操作
 class CreatePostPage extends ConsumerStatefulWidget {
   const CreatePostPage({super.key});
 
@@ -27,13 +27,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   String _selectedChannel = '全部';
   List<String> _selectedTags = [];
-  bool _allowComment = true;
-  bool _allowDm = false;
-  bool _isAnonymous = false;
-  String _anonymousAlias = '';
   PostStatus _postStatus = PostStatus.ongoing;
 
   final _anonymousAliasController = TextEditingController();
+  bool _isAnonymous = false;
+  String _anonymousAlias = '';
 
   final List<XFile> _selectedImages = [];
   final List<String> _uploadedImageIds = [];
@@ -43,10 +41,20 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   List<String> _channels = [];
   bool _isLoadingChannels = true;
 
+  // Inline selector states
+  bool _showChannelSelector = false;
+  bool _showTagSelector = false;
+  bool _showStatusSelector = false;
+
+  // Visibility
+  bool _allowComment = true;
+  bool _allowDm = false;
+
   @override
   void initState() {
     super.initState();
     _loadChannels();
+    _contentController.addListener(() => setState(() {}));
   }
 
   @override
@@ -95,7 +103,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           _selectedImages.addAll(imagesToAdd);
         });
 
-        // 上传图片
         _uploadImages(imagesToAdd);
       }
     } catch (e) {
@@ -131,7 +138,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           );
           _uploadedImageIds.add(uploadedImage.id);
         } catch (e) {
-          // 单张图片上传失败，继续其他图片
           debugPrint('图片上传失败: $e');
         }
       }
@@ -182,45 +188,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         _uploadedImageIds.removeAt(index);
       }
     });
-  }
-
-  void _showChannelPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: MobileTheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _ChannelPickerSheet(
-        channels: _channels,
-        selectedChannel: _selectedChannel,
-        onSelect: (channel) {
-          setState(() {
-            _selectedChannel = channel;
-          });
-          Navigator.pop(context);
-        },
-      ),
-    );
-  }
-
-  void _showTagPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: MobileTheme.surface,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _TagPickerSheet(
-        selectedTags: _selectedTags,
-        onSelect: (tags) {
-          setState(() {
-            _selectedTags = tags;
-          });
-        },
-      ),
-    );
   }
 
   Future<void> _handlePublish() async {
@@ -275,417 +242,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: MobileTheme.background,
-      appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => _confirmDiscard(),
-        ),
-        title: const Text('发帖'),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ElevatedButton(
-              onPressed: _isPublishing ? null : _handlePublish,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-              ),
-              child: _isPublishing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('发布'),
-            ),
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 标题输入
-            Container(
-              color: MobileTheme.surface,
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _titleController,
-                maxLength: 50,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
-                ),
-                decoration: const InputDecoration(
-                  hintText: '标题（选填，不超过50字）',
-                  hintStyle: TextStyle(
-                    color: MobileTheme.textTertiary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.normal,
-                  ),
-                  border: InputBorder.none,
-                  counterText: '',
-                ),
-              ),
-            ),
-
-            const Divider(height: 1),
-
-            // 正文输入
-            Container(
-              color: MobileTheme.surface,
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                controller: _contentController,
-                maxLines: null,
-                minLines: 6,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: MobileTheme.textPrimary,
-                  height: 1.6,
-                ),
-                decoration: const InputDecoration(
-                  hintText: '分享你的想法...',
-                  hintStyle: TextStyle(
-                    color: MobileTheme.textTertiary,
-                    fontSize: 16,
-                  ),
-                  border: InputBorder.none,
-                ),
-              ),
-            ),
-
-            // 图片预览
-            if (_selectedImages.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Container(
-                color: MobileTheme.surface,
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: _buildImagePreview(),
-              ),
-            ],
-
-            // 上传进度
-            if (_isUploading)
-              Container(
-                color: MobileTheme.surface,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: const Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      '图片上传中...',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: MobileTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            const SizedBox(height: 8),
-
-            // 设置区域
-            Container(
-              color: MobileTheme.surface,
-              child: Column(
-                children: [
-                  // 频道选择
-                  _SettingsTile(
-                    icon: Icons.grid_view,
-                    label: '频道',
-                    value: _selectedChannel,
-                    onTap: _showChannelPicker,
-                  ),
-
-                  const Divider(height: 1, indent: 56),
-
-                  // 标签选择
-                  _SettingsTile(
-                    icon: Icons.tag,
-                    label: '标签',
-                    value: _selectedTags.isEmpty
-                        ? '选择标签'
-                        : _selectedTags.join(', '),
-                    onTap: _showTagPicker,
-                  ),
-
-                  const Divider(height: 1, indent: 56),
-
-                  // 状态选择
-                  _SettingsTile(
-                    icon: Icons.help_outline,
-                    label: '状态',
-                    value: _postStatus.label,
-                    onTap: _showStatusPicker,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // 开关设置
-            Container(
-              color: MobileTheme.surface,
-              child: Column(
-                children: [
-                  _SwitchTile(
-                    icon: Icons.chat_bubble_outline,
-                    label: '允许评论',
-                    value: _allowComment,
-                    onChanged: (value) {
-                      setState(() {
-                        _allowComment = value;
-                      });
-                    },
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _SwitchTile(
-                    icon: Icons.mail_outline,
-                    label: '允许私信',
-                    value: _allowDm,
-                    onChanged: (value) {
-                      setState(() {
-                        _allowDm = value;
-                      });
-                    },
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _SwitchTile(
-                    icon: Icons.visibility_off_outlined,
-                    label: '匿名发布',
-                    value: _isAnonymous,
-                    onChanged: (value) {
-                      setState(() {
-                        _isAnonymous = value;
-                        if (value) {
-                          if (_anonymousAlias.isEmpty) {
-                            _anonymousAlias = _generateAnonymousAlias();
-                          }
-                          _anonymousAliasController.text = _anonymousAlias;
-                        }
-                      });
-                    },
-                  ),
-                  if (_isAnonymous) ...[
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(56, 0, 16, 12),
-                      child: TextField(
-                        controller: _anonymousAliasController,
-                        style: const TextStyle(fontSize: 14, color: MobileTheme.textPrimary),
-                        decoration: InputDecoration(
-                          hintText: '自定义匿名别名（选填）',
-                          hintStyle: const TextStyle(color: MobileTheme.textTertiary, fontSize: 14),
-                          prefixIcon: const Icon(Icons.badge_outlined, size: 18, color: MobileTheme.textSecondary),
-                          filled: true,
-                          fillColor: MobileTheme.background,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide.none,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // 添加图片按钮（始终可见）
-            GestureDetector(
-              onTap: _pickImages,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: MobileTheme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.add_photo_alternate_outlined, size: 22, color: MobileTheme.primary),
-                    const SizedBox(width: 14),
-                    Text(
-                      '添加图片',
-                      style: const TextStyle(fontSize: 15, color: MobileTheme.textPrimary),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '最多9张',
-                      style: const TextStyle(fontSize: 13, color: MobileTheme.textTertiary),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.chevron_right, size: 20, color: MobileTheme.textTertiary),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePreview() {
-    return SizedBox(
-      height: 100,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: _selectedImages.length + 1,
-        itemBuilder: (context, index) {
-          if (index == _selectedImages.length) {
-            // 添加按钮
-            return GestureDetector(
-              onTap: _pickImages,
-              child: Container(
-                width: 100,
-                decoration: BoxDecoration(
-                  color: MobileTheme.background,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: MobileTheme.divider,
-                    width: 1,
-                    style: BorderStyle.solid,
-                  ),
-                ),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_photo_alternate_outlined,
-                      size: 32,
-                      color: MobileTheme.textSecondary,
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      '添加图片',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: MobileTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          final image = _selectedImages[index];
-          return Stack(
-            children: [
-              Container(
-                width: 100,
-                margin: const EdgeInsets.only(right: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: MobileTheme.background,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(image.path),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 4,
-                right: 12,
-                child: GestureDetector(
-                  onTap: () => _removeImage(index),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _showStatusPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: MobileTheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                '选择状态',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
-                ),
-              ),
-            ),
-            ...PostStatus.values.map((status) => ListTile(
-                  leading: Icon(
-                    status == PostStatus.resolved
-                        ? Icons.check_circle
-                        : status == PostStatus.closed
-                            ? Icons.lock
-                            : Icons.help_outline,
-                    color: status == _postStatus
-                        ? MobileTheme.primary
-                        : MobileTheme.textSecondary,
-                  ),
-                  title: Text(status.label),
-                  trailing: status == _postStatus
-                      ? const Icon(Icons.check, color: MobileTheme.primary)
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _postStatus = status;
-                    });
-                    Navigator.pop(context);
-                  },
-                )),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _confirmDiscard() {
     if (_titleController.text.isEmpty &&
         _contentController.text.isEmpty &&
@@ -716,177 +272,834 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ),
     );
   }
+
+  bool get _canPublish =>
+      _contentController.text.trim().isNotEmpty && !_isPublishing;
+
+  @override
+  Widget build(BuildContext context) {
+    final contentLen = _contentController.text.length;
+    final canPublish = _canPublish;
+
+    return Scaffold(
+      backgroundColor: MobileTheme.surface,
+      appBar: AppBar(
+        backgroundColor: MobileTheme.surface,
+        scrolledUnderElevation: 0.5,
+        toolbarHeight: 48,
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: MobileTheme.textPrimary),
+          onPressed: _confirmDiscard,
+        ),
+        title: Text(
+          '$contentLen / 2000',
+          style: TextStyle(
+            fontSize: 13,
+            color: contentLen > 2000
+                ? MobileTheme.error
+                : MobileTheme.textSecondary,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: FilledButton(
+              onPressed: canPublish ? _handlePublish : null,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                disabledBackgroundColor: MobileTheme.divider,
+                backgroundColor: MobileTheme.primary,
+              ),
+              child: _isPublishing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('发布'),
+            ),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 频道选择行
+                  _buildCompactSelector(
+                    label: '频道',
+                    value: _selectedChannel,
+                    isExpanded: _showChannelSelector,
+                    onTap: () {
+                      setState(() {
+                        _showChannelSelector = !_showChannelSelector;
+                        _showTagSelector = false;
+                        _showStatusSelector = false;
+                      });
+                    },
+                    children: _isLoadingChannels
+                        ? [const SizedBox(width: 16)]
+                        : _channels.map((c) => _PillChip(
+                              label: c,
+                              isSelected: c == _selectedChannel,
+                              onTap: () {
+                                setState(() {
+                                  _selectedChannel = c;
+                                  _showChannelSelector = false;
+                                });
+                              },
+                            )).toList(),
+                  ),
+
+                  const Divider(height: 0.5, color: MobileTheme.divider),
+
+                  // 标题输入（无边框极简）
+                  TextField(
+                    controller: _titleController,
+                    maxLength: 50,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: MobileTheme.textPrimary,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '标题（选填）',
+                      hintStyle: TextStyle(
+                        color: MobileTheme.textTertiary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      border: InputBorder.none,
+                      counterText: '',
+                      contentPadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    ),
+                  ),
+
+                  // 正文输入（minLines: 8，多行动态扩展）
+                  TextField(
+                    controller: _contentController,
+                    maxLines: null,
+                    minLines: 8,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: MobileTheme.textPrimary,
+                      height: 1.6,
+                    ),
+                    decoration: const InputDecoration(
+                      hintText: '分享你的想法...',
+                      hintStyle: TextStyle(
+                        color: MobileTheme.textTertiary,
+                        fontSize: 15,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    ),
+                  ),
+
+                  // 已选标签横排（紧凑）
+                  if (_selectedTags.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: _selectedTags.map((tag) => _SelectedTagChip(
+                              label: tag,
+                              onRemove: () {
+                                setState(() {
+                                  _selectedTags.remove(tag);
+                                });
+                              },
+                            )).toList(),
+                      ),
+                    ),
+
+                  // 匿名昵称编辑行（仅在匿名模式下显示）
+                  if (_isAnonymous)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.visibility_off_outlined,
+                              size: 16, color: MobileTheme.textSecondary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _anonymousAliasController,
+                              maxLength: 20,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: MobileTheme.textPrimary,
+                              ),
+                              decoration: const InputDecoration(
+                                hintText: '自定义匿名昵称（选填）',
+                                hintStyle: TextStyle(
+                                  fontSize: 14,
+                                  color: MobileTheme.textTertiary,
+                                ),
+                                border: InputBorder.none,
+                                isDense: true,
+                                contentPadding: EdgeInsets.zero,
+                                counterText: '',
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // 已选状态（内联紧凑展示）
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Row(
+                      children: [
+                        _StatusBadge(status: _postStatus),
+                      ],
+                    ),
+                  ),
+
+                  // 图片预览横排
+                  if (_selectedImages.isNotEmpty)
+                    _buildImagePreview(),
+
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+
+          // 上传进度提示
+          if (_isUploading)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                children: const [
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    '图片上传中...',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: MobileTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // 底部工具栏
+          Container(
+            decoration: const BoxDecoration(
+              color: MobileTheme.surface,
+              border: Border(
+                top: BorderSide(color: MobileTheme.divider, width: 0.5),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 内联选择器展开区（频道 / 标签 / 状态）
+                  if (_showChannelSelector || _showTagSelector || _showStatusSelector)
+                    _buildInlineSelectorArea(),
+
+                  // 工具栏图标行
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                    child: Row(
+                      children: [
+                        // 图片按钮
+                        _ToolbarIconButton(
+                          icon: Icons.image_outlined,
+                          onTap: _pickImages,
+                        ),
+                        // 标签按钮
+                        _ToolbarIconButton(
+                          icon: Icons.tag,
+                          onTap: () {
+                            setState(() {
+                              _showTagSelector = !_showTagSelector;
+                              _showChannelSelector = false;
+                              _showStatusSelector = false;
+                            });
+                          },
+                        ),
+                        // 状态按钮
+                        _ToolbarIconButton(
+                          icon: _postStatus == PostStatus.resolved
+                              ? Icons.check_circle
+                              : _postStatus == PostStatus.closed
+                                  ? Icons.lock
+                                  : Icons.help_outline,
+                          onTap: () {
+                            setState(() {
+                              _showStatusSelector = !_showStatusSelector;
+                              _showChannelSelector = false;
+                              _showTagSelector = false;
+                            });
+                          },
+                        ),
+                        // 匿名按钮
+                        _ToolbarIconButton(
+                          icon: _isAnonymous
+                              ? Icons.visibility_off
+                              : Icons.visibility_off_outlined,
+                          isActive: _isAnonymous,
+                          onTap: () {
+                            setState(() {
+                              _isAnonymous = !_isAnonymous;
+                              if (_isAnonymous) {
+                                if (_anonymousAlias.isEmpty) {
+                                  _anonymousAlias = _generateAnonymousAlias();
+                                }
+                                _anonymousAliasController.text = _anonymousAlias;
+                              }
+                            });
+                          },
+                        ),
+                        const Spacer(),
+                        // 可见性选项
+                        _VisibilitySelector(
+                          allowComment: _allowComment,
+                          allowDm: _allowDm,
+                          onChanged: (comment, dm) {
+                            setState(() {
+                              _allowComment = comment;
+                              _allowDm = dm;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactSelector({
+    required String label,
+    required String value,
+    required bool isExpanded,
+    required VoidCallback onTap,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: Row(
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: MobileTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: MobileTheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: MobileTheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  isExpanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  size: 18,
+                  color: MobileTheme.textTertiary,
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isExpanded)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: children,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildInlineSelectorArea() {
+    if (_showStatusSelector) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Row(
+          children: PostStatus.values.map((s) {
+            final isSelected = s == _postStatus;
+            return Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _postStatus = s;
+                    _showStatusSelector = false;
+                  });
+                },
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? MobileTheme.primary.withValues(alpha: 0.12)
+                        : MobileTheme.background,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isSelected
+                          ? MobileTheme.primary
+                          : MobileTheme.divider,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        s == PostStatus.resolved
+                            ? Icons.check_circle
+                            : s == PostStatus.closed
+                                ? Icons.lock
+                                : Icons.help_outline,
+                        size: 13,
+                        color: isSelected
+                            ? MobileTheme.primary
+                            : MobileTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        s.label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected
+                              ? MobileTheme.primary
+                              : MobileTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    if (_showTagSelector) {
+      return _TagInlineSheet(
+        selectedTags: _selectedTags,
+        onSelect: (tags) {
+          setState(() {
+            _selectedTags = tags;
+            _showTagSelector = false;
+          });
+        },
+        onClose: () {
+          setState(() {
+            _showTagSelector = false;
+          });
+        },
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildImagePreview() {
+    return SizedBox(
+      height: 80,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: _selectedImages.length + 1,
+        itemBuilder: (context, index) {
+          if (index == _selectedImages.length) {
+            return GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                width: 80,
+                margin: const EdgeInsets.only(right: 6),
+                decoration: BoxDecoration(
+                  color: MobileTheme.background,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: MobileTheme.divider),
+                ),
+                child: const Icon(
+                  Icons.add_photo_alternate_outlined,
+                  size: 24,
+                  color: MobileTheme.textSecondary,
+                ),
+              ),
+            );
+          }
+
+          final image = _selectedImages[index];
+          return Stack(
+            children: [
+              Container(
+                width: 80,
+                margin: const EdgeInsets.only(right: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: MobileTheme.background,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(image.path),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 10,
+                child: GestureDetector(
+                  onTap: () => _removeImage(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      size: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
 }
 
-/// 设置项（带图标和值）
-class _SettingsTile extends StatelessWidget {
-  final IconData icon;
+class _PillChip extends StatelessWidget {
   final String label;
-  final String value;
+  final bool isSelected;
   final VoidCallback onTap;
 
-  const _SettingsTile({
-    required this.icon,
+  const _PillChip({
     required this.label,
-    required this.value,
+    required this.isSelected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return GestureDetector(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, size: 22, color: MobileTheme.textSecondary),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: const TextStyle(
-                fontSize: 15,
-                color: MobileTheme.textPrimary,
-              ),
-            ),
-            const Spacer(),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: MobileTheme.textSecondary,
-              ),
-            ),
-            const SizedBox(width: 4),
-            const Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: MobileTheme.textTertiary,
-            ),
-          ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? MobileTheme.primary.withValues(alpha: 0.12)
+              : MobileTheme.background,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+          ),
         ),
       ),
     );
   }
 }
 
-/// 开关项
-class _SwitchTile extends StatelessWidget {
-  final IconData icon;
+class _SelectedTagChip extends StatelessWidget {
   final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+  final VoidCallback onRemove;
 
-  const _SwitchTile({
+  const _SelectedTagChip({required this.label, required this.onRemove});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: MobileTheme.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: MobileTheme.primary.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '#$label',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: MobileTheme.primary,
+            ),
+          ),
+          const SizedBox(width: 2),
+          GestureDetector(
+            onTap: onRemove,
+            child: const Icon(
+              Icons.close,
+              size: 12,
+              color: MobileTheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final PostStatus? status;
+  final String? label;
+  final Color? color;
+
+  const _StatusBadge({this.status, this.label, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final displayLabel = label ?? status?.label ?? '';
+    final displayColor = color ??
+        (status == PostStatus.resolved
+            ? MobileTheme.success
+            : status == PostStatus.closed
+                ? MobileTheme.textSecondary
+                : MobileTheme.primary);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: displayColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        displayLabel,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: displayColor,
+        ),
+      ),
+    );
+  }
+}
+
+class _ToolbarIconButton extends StatelessWidget {
+  final IconData icon;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _ToolbarIconButton({
     required this.icon,
-    required this.label,
-    required this.value,
+    this.isActive = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: isActive
+              ? MobileTheme.primary.withValues(alpha: 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          size: 22,
+          color: isActive ? MobileTheme.primary : MobileTheme.textSecondary,
+        ),
+      ),
+    );
+  }
+}
+
+class _VisibilitySelector extends StatelessWidget {
+  final bool allowComment;
+  final bool allowDm;
+  final Function(bool comment, bool dm) onChanged;
+
+  const _VisibilitySelector({
+    required this.allowComment,
+    required this.allowDm,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return PopupMenuButton<String>(
+      offset: const Offset(0, -120),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: MobileTheme.surface,
+      icon: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            allowComment && allowDm
+                ? Icons.public
+                : allowComment
+                    ? Icons.chat_bubble_outline
+                    : allowDm
+                        ? Icons.mail_outline
+                        : Icons.lock_outline,
+            size: 18,
+            color: MobileTheme.textSecondary,
+          ),
+          const SizedBox(width: 2),
+          const Icon(
+            Icons.arrow_drop_up,
+            size: 18,
+            color: MobileTheme.textTertiary,
+          ),
+        ],
+      ),
+      onSelected: (value) {
+        switch (value) {
+          case 'all':
+            onChanged(true, true);
+            break;
+          case 'comment':
+            onChanged(true, false);
+            break;
+          case 'dm':
+            onChanged(false, true);
+            break;
+          case 'private':
+            onChanged(false, false);
+            break;
+        }
+      },
+      itemBuilder: (context) => [
+        _buildVisibilityItem(
+          'all',
+          Icons.public,
+          '所有人可见',
+          allowComment && allowDm,
+        ),
+        _buildVisibilityItem(
+          'comment',
+          Icons.chat_bubble_outline,
+          '仅允许评论',
+          allowComment && !allowDm,
+        ),
+        _buildVisibilityItem(
+          'dm',
+          Icons.mail_outline,
+          '仅允许私信',
+          !allowComment && allowDm,
+        ),
+        _buildVisibilityItem(
+          'private',
+          Icons.lock_outline,
+          '仅自己可见',
+          !allowComment && !allowDm,
+        ),
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _buildVisibilityItem(
+    String value,
+    IconData icon,
+    String label,
+    bool isSelected,
+  ) {
+    return PopupMenuItem<String>(
+      value: value,
       child: Row(
         children: [
-          Icon(icon, size: 22, color: MobileTheme.textSecondary),
-          const SizedBox(width: 14),
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+          ),
+          const SizedBox(width: 10),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 15,
-              color: MobileTheme.textPrimary,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              color: isSelected ? MobileTheme.primary : MobileTheme.textPrimary,
             ),
           ),
           const Spacer(),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: MobileTheme.primary,
-          ),
+          if (isSelected)
+            const Icon(Icons.check, size: 16, color: MobileTheme.primary),
         ],
       ),
     );
   }
 }
 
-/// 频道选择器
-class _ChannelPickerSheet extends StatelessWidget {
-  final List<String> channels;
-  final String selectedChannel;
-  final Function(String) onSelect;
-
-  const _ChannelPickerSheet({
-    required this.channels,
-    required this.selectedChannel,
-    required this.onSelect,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              '选择频道',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: MobileTheme.textPrimary,
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 300,
-            child: ListView.builder(
-              itemCount: channels.length,
-              itemBuilder: (context, index) {
-                final channel = channels[index];
-                final isSelected = channel == selectedChannel;
-                return ListTile(
-                  title: Text(
-                    channel,
-                    style: TextStyle(
-                      color: isSelected
-                          ? MobileTheme.primary
-                          : MobileTheme.textPrimary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                  trailing: isSelected
-                      ? const Icon(Icons.check, color: MobileTheme.primary)
-                      : null,
-                  onTap: () => onSelect(channel),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 标签选择器
-class _TagPickerSheet extends StatefulWidget {
+class _TagInlineSheet extends StatefulWidget {
   final List<String> selectedTags;
   final Function(List<String>) onSelect;
+  final VoidCallback onClose;
 
-  const _TagPickerSheet({
+  const _TagInlineSheet({
     required this.selectedTags,
     required this.onSelect,
+    required this.onClose,
   });
 
   @override
-  State<_TagPickerSheet> createState() => _TagPickerSheetState();
+  State<_TagInlineSheet> createState() => _TagInlineSheetState();
 }
 
-class _TagPickerSheetState extends State<_TagPickerSheet> {
+class _TagInlineSheetState extends State<_TagInlineSheet> {
   late List<String> _tempSelected;
   final _customTagController = TextEditingController();
 
@@ -927,19 +1140,14 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
       } else {
         if (_tempSelected.length < 5) {
           _tempSelected.add(tag);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('最多选择5个标签')),
-          );
         }
       }
     });
   }
 
-  void _addCustomTags() {
+  void _addCustomTag() {
     final input = _customTagController.text.trim();
     if (input.isEmpty) return;
-
     final newTags = input
         .split(RegExp(r'[,，\s\n]+'))
         .map((t) => t.trim())
@@ -947,120 +1155,81 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
         .toList();
 
     if (newTags.isEmpty) return;
-
     final remaining = 5 - _tempSelected.length;
-    if (remaining <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('最多选择5个标签')),
-      );
-      return;
-    }
+    if (remaining <= 0) return;
 
     setState(() {
       _tempSelected.addAll(newTags.take(remaining));
       _customTagController.clear();
     });
-
-    if (newTags.length > remaining) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('只添加了$remaining个标签，达到上限5个')),
-      );
-    }
-  }
-
-  List<Widget> _buildSelectedTagsPreview() {
-    if (_tempSelected.isEmpty) return [];
-    return [
-      const SizedBox(height: 16),
-      Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: _tempSelected.map((tag) {
-          return GestureDetector(
-            onTap: () => _toggleTag(tag),
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 8,
-              ),
-              decoration: BoxDecoration(
-                color: MobileTheme.primary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: MobileTheme.primary),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    tag,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: MobileTheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.close, size: 14, color: MobileTheme.primary),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    ];
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: MobileTheme.divider, width: 0.5),
+        ),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 头部
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '选择标签（最多5个）',
-                style: TextStyle(
-                  fontSize: 16,
+              Text(
+                '标签（${_tempSelected.length}/5）',
+                style: const TextStyle(
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
+                  color: MobileTheme.textSecondary,
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  widget.onSelect(_tempSelected);
-                  Navigator.pop(context);
-                },
-                child: const Text('完成'),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      widget.onSelect(_tempSelected);
+                    },
+                    child: const Text(
+                      '完成',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: MobileTheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: widget.onClose,
+                    child: const Icon(Icons.close,
+                        size: 16, color: MobileTheme.textTertiary),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
+          // 预设标签
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: _allTags.map((tag) {
               final isSelected = _tempSelected.contains(tag);
               return GestureDetector(
                 onTap: () => _toggleTag(tag),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? MobileTheme.primary.withValues(alpha: 0.15)
+                        ? MobileTheme.primary.withValues(alpha: 0.12)
                         : MobileTheme.background,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
                           ? MobileTheme.primary
@@ -1070,58 +1239,62 @@ class _TagPickerSheetState extends State<_TagPickerSheet> {
                   child: Text(
                     tag,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
                       color: isSelected
                           ? MobileTheme.primary
                           : MobileTheme.textSecondary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
               );
             }).toList(),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           // 自定义标签输入
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _customTagController,
+                  style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
-                    hintText: '输入自定义标签，多个用逗号分隔',
-                    hintStyle: const TextStyle(fontSize: 14),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
+                    hintText: '自定义标签',
+                    hintStyle:
+                        const TextStyle(fontSize: 13, color: MobileTheme.textTertiary),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.divider),
+                      borderSide:
+                          const BorderSide(color: MobileTheme.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.divider),
+                      borderSide:
+                          const BorderSide(color: MobileTheme.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.primary),
+                      borderSide:
+                          const BorderSide(color: MobileTheme.primary),
                     ),
                     isDense: true,
                   ),
-                  style: const TextStyle(fontSize: 14),
-                  onSubmitted: (_) => _addCustomTags(),
+                  onSubmitted: (_) => _addCustomTag(),
                 ),
               ),
               const SizedBox(width: 8),
               TextButton(
-                onPressed: _addCustomTags,
+                onPressed: _addCustomTag,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
                 child: const Text('添加'),
               ),
             ],
           ),
-          ..._buildSelectedTagsPreview(),
         ],
       ),
     );

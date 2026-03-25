@@ -71,7 +71,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
         title: const Text('管理员登录'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/auth/login'),
         ),
       ),
       body: SingleChildScrollView(

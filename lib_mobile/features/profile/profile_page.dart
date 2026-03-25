@@ -4,248 +4,271 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
+import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/my_comment_item.dart';
+import '../../core/state/mobile_providers.dart';
+import '../widgets/avatar_widget.dart';
 
-/// 个人中心页
-class ProfilePage extends ConsumerWidget {
+/// 个人主页 — Twitter/Instagram 混合风格
+/// 无卡片、无圆角、紧凑信息流布局
+class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = AuthStore.instance.currentUser;
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends ConsumerState<ProfilePage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  UserProfile? _profile;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final repo = ref.read(userRepositoryProvider);
+      final profile = await repo.fetchProfile();
+      AuthStore.instance.setCurrentUser(profile);
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+      });
+    } catch (_) {
+      // 使用缓存的 currentUser
+      if (!mounted) return;
+      setState(() {
+        _profile = AuthStore.instance.currentUser;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = _profile ?? AuthStore.instance.currentUser;
 
     return Scaffold(
       backgroundColor: MobileTheme.background,
-      body: CustomScrollView(
-        slivers: [
-          // 顶部个人信息
-          SliverAppBar(
-            pinned: true,
-            expandedHeight: 200,
-            backgroundColor: MobileTheme.surface,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      MobileTheme.primary.withValues(alpha: 0.1),
-                      MobileTheme.surface,
-                    ],
-                  ),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            // 紧凑顶部 AppBar
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: MobileTheme.surface,
+              scrolledUnderElevation: 0.5,
+              toolbarHeight: 48,
+              title: Text(
+                user?.nickname ?? '我的',
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: MobileTheme.textPrimary,
                 ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 20),
-                      // 头像
-                      GestureDetector(
-                        onTap: () => context.push('/profile/edit'),
-                        child: Stack(
-                          children: [
-                            CircleAvatar(
-                              radius: 45,
-                              backgroundColor:
-                                  MobileTheme.primary.withValues(alpha: 0.2),
-                              child: user?.avatarUrl != null &&
-                                      user!.avatarUrl.isNotEmpty
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        user.avatarUrl,
-                                        width: 90,
-                                        height: 90,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            const Icon(
-                                          Icons.person,
-                                          size: 50,
-                                          color: MobileTheme.primary,
-                                        ),
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: MobileTheme.primary,
-                                    ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
+              ),
+              centerTitle: false,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.settings_outlined,
+                      color: MobileTheme.textPrimary, size: 22),
+                  onPressed: () => context.push('/profile/settings/main'),
+                ),
+              ],
+            ),
+
+            // 个人信息区
+            SliverToBoxAdapter(
+              child: Container(
+                color: MobileTheme.surface,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 背景色条
+                    Container(
+                      height: 60,
+                      color: MobileTheme.primary.withValues(alpha: 0.08),
+                    ),
+
+                    // 头像 + 编辑按钮
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          // 头像（负 margin 向上重叠）
+                          Transform.translate(
+                            offset: const Offset(0, -24),
+                            child: GestureDetector(
+                              onTap: () => context.push('/profile/edit'),
                               child: Container(
-                                padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: MobileTheme.primary,
                                   shape: BoxShape.circle,
-                                  border:
-                                      Border.all(color: Colors.white, width: 2),
+                                  border: Border.all(
+                                      color: MobileTheme.surface, width: 4),
                                 ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  size: 14,
-                                  color: Colors.white,
+                                child: AvatarWidget(
+                                  avatarUrl: user?.avatarUrl,
+                                  nickname: user?.nickname ?? '匿',
+                                  radius: 36,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                          const Spacer(),
+                          // 编辑资料按钮
+                          Transform.translate(
+                            offset: const Offset(0, -16),
+                            child: GestureDetector(
+                              onTap: () => context.push('/profile/edit'),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: MobileTheme.surface,
+                                  border: Border.all(
+                                      color: MobileTheme.divider, width: 1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  '编辑资料',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: MobileTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      // 昵称
-                      Text(
+                    ),
+
+                    // 昵称
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+                      child: Text(
                         user?.nickname ?? '匿名同学',
                         style: const TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: MobileTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      // 学号
-                      Text(
-                        user?.studentId ?? '',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: MobileTheme.textSecondary,
-                        ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // 数据统计行（无卡片，紧凑横排）
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: Row(
+                        children: [
+                          _StatChip(
+                            label: '收藏',
+                            value: '${user?.favoriteCount ?? 0}',
+                          ),
+                          const SizedBox(width: 20),
+                          _StatChip(
+                            label: '粉丝',
+                            value: '-',
+                          ),
+                          const SizedBox(width: 20),
+                          _StatChip(
+                            label: '关注',
+                            value: '-',
+                          ),
+                          const SizedBox(width: 20),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: MobileTheme.accent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              user?.userLevelLabel ?? 'Lv.1',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: MobileTheme.accent,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+
+                    const Divider(height: 0.5, color: MobileTheme.divider),
+
+                    // TabBar
+                    TabBar(
+                      controller: _tabController,
+                      labelColor: MobileTheme.textPrimary,
+                      unselectedLabelColor: MobileTheme.textSecondary,
+                      indicatorColor: MobileTheme.primary,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      dividerColor: Colors.transparent,
+                      labelStyle: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w600),
+                      unselectedLabelStyle: const TextStyle(
+                          fontSize: 14, fontWeight: FontWeight.w500),
+                      tabs: const [
+                        Tab(text: '帖子'),
+                        Tab(text: '收藏'),
+                        Tab(text: '动态'),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            title: const Text('我的'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () => context.push('/profile/settings'),
-              ),
-            ],
-          ),
-
-          // 数据统计
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              decoration: BoxDecoration(
-                color: MobileTheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const _StatItem(label: '帖子', value: '5'),
-                  _VerticalDivider(),
-                  const _StatItem(label: '评论', value: '12'),
-                  _VerticalDivider(),
-                  _StatItem(label: '收藏', value: '${user?.favoriteCount ?? 0}'),
-                  _VerticalDivider(),
-                  _StatItem(label: '等级', value: user?.userLevelLabel ?? 'Lv.1'),
-                ],
-              ),
-            ),
-          ),
-
-          // 功能列表
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: MobileTheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  _MenuItem(
-                    icon: Icons.article_outlined,
-                    title: '我的帖子',
-                    onTap: () => context.push('/profile/posts'),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuItem(
-                    icon: Icons.comment_outlined,
-                    title: '我的评论',
-                    onTap: () => context.push('/profile/comments'),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuItem(
-                    icon: Icons.star_outline,
-                    title: '我的收藏',
-                    onTap: () {},
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuItem(
-                    icon: Icons.flag_outlined,
-                    title: '我的举报',
-                    onTap: () => context.push('/profile/reports'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-          // 其他设置
-          SliverToBoxAdapter(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: MobileTheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                children: [
-                  _MenuItem(
-                    icon: Icons.edit_outlined,
-                    title: '编辑资料',
-                    onTap: () => context.push('/profile/edit'),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuItem(
-                    icon: Icons.settings_outlined,
-                    title: '账号设置',
-                    onTap: () => context.push('/profile/settings'),
-                  ),
-                  const Divider(height: 1, indent: 56),
-                  _MenuItem(
-                    icon: Icons.help_outline,
-                    title: '帮助与反馈',
-                    onTap: () {},
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          const SliverToBoxAdapter(child: SizedBox(height: 32)),
-        ],
+          ];
+        },
+        body: TabBarView(
+          controller: _tabController,
+          children: [
+            _MyPostsTab(),
+            _MyFavoritesTab(),
+            _MyActivitiesTab(),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatChip extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatItem({required this.label, required this.value});
+  const _StatChip({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
         Text(
           value,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: MobileTheme.primary,
+            color: MobileTheme.textPrimary,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(width: 3),
         Text(
           label,
           style: const TextStyle(
@@ -258,46 +281,288 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _VerticalDivider extends StatelessWidget {
+/// 我的帖子 Tab — 真实数据
+class _MyPostsTab extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_MyPostsTab> createState() => _MyPostsTabState();
+}
+
+class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
+  List<PostItem> _posts = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final posts = await ref.read(postRepositoryProvider).fetchMyPosts();
+      if (!mounted) return;
+      setState(() {
+        _posts = posts;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 40,
-      color: MobileTheme.divider,
+    if (_loading) {
+      return const Center(
+          child: CircularProgressIndicator(color: MobileTheme.primary));
+    }
+    if (_posts.isEmpty) {
+      return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
+    }
+    return ListView.separated(
+      itemCount: _posts.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 0.5, color: MobileTheme.divider),
+      itemBuilder: (context, i) {
+        final post = _posts[i];
+        return InkWell(
+          onTap: () => context.push('/post/${post.id}'),
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (post.title.isNotEmpty)
+                  Text(
+                    post.title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: MobileTheme.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                Text(
+                  post.content,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: MobileTheme.textPrimary,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      post.channel,
+                      style: const TextStyle(
+                          fontSize: 12, color: MobileTheme.textSecondary),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.favorite_border,
+                        size: 13, color: MobileTheme.textTertiary),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${post.likeCount}',
+                      style: const TextStyle(
+                          fontSize: 12, color: MobileTheme.textTertiary),
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(Icons.chat_bubble_outline,
+                        size: 13, color: MobileTheme.textTertiary),
+                    const SizedBox(width: 2),
+                    Text(
+                      '${post.commentCount}',
+                      style: const TextStyle(
+                          fontSize: 12, color: MobileTheme.textTertiary),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _MenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
+/// 我的收藏 Tab — 真实数据
+class _MyFavoritesTab extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_MyFavoritesTab> createState() => _MyFavoritesTabState();
+}
 
-  const _MenuItem(
-      {required this.icon, required this.title, required this.onTap});
+class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
+  List<PostItem> _posts = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final posts = await ref.read(postRepositoryProvider).fetchFavoritePosts();
+      if (!mounted) return;
+      setState(() {
+        _posts = posts;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, size: 22, color: MobileTheme.primary),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Text(
-                title,
+    if (_loading) {
+      return const Center(
+          child: CircularProgressIndicator(color: MobileTheme.primary));
+    }
+    if (_posts.isEmpty) {
+      return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
+    }
+    return ListView.separated(
+      itemCount: _posts.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 0.5, color: MobileTheme.divider),
+      itemBuilder: (context, i) {
+        final post = _posts[i];
+        return ListTile(
+          title: Text(
+            post.title.isNotEmpty ? post.title : post.content,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 15, color: MobileTheme.textPrimary),
+          ),
+          subtitle: Text(
+            post.channel,
+            style: const TextStyle(
+                fontSize: 13, color: MobileTheme.textSecondary),
+          ),
+          trailing: const Icon(Icons.chevron_right,
+              color: MobileTheme.textTertiary),
+          onTap: () => context.push('/post/${post.id}'),
+        );
+      },
+    );
+  }
+}
+
+/// 动态 Tab — 我的评论真实数据
+class _MyActivitiesTab extends ConsumerStatefulWidget {
+  @override
+  ConsumerState<_MyActivitiesTab> createState() => _MyActivitiesTabState();
+}
+
+class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
+  List<MyCommentItem> _comments = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final comments =
+          await ref.read(userRepositoryProvider).fetchMyComments();
+      if (!mounted) return;
+      setState(() {
+        _comments = comments;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(
+          child: CircularProgressIndicator(color: MobileTheme.primary));
+    }
+    if (_comments.isEmpty) {
+      return const _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
+    }
+    return ListView.separated(
+      itemCount: _comments.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 0.5, color: MobileTheme.divider),
+      itemBuilder: (context, i) {
+        final c = _comments[i];
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                c.postTitle,
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
+                  color: MobileTheme.textSecondary,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                c.content,
+                style: const TextStyle(
+                  fontSize: 14,
                   color: MobileTheme.textPrimary,
                 ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                c.timeText,
+                style: const TextStyle(
+                    fontSize: 12, color: MobileTheme.textTertiary),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EmptyHint extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _EmptyHint({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 60),
+        child: Column(
+          children: [
+            Icon(icon, size: 48, color: MobileTheme.divider),
+            const SizedBox(height: 12),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: MobileTheme.textTertiary,
               ),
             ),
-            const Icon(Icons.chevron_right,
-                size: 20, color: MobileTheme.textTertiary),
           ],
         ),
       ),

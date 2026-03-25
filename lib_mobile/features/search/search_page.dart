@@ -170,54 +170,56 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   Widget _buildSearchBar() {
     return Container(
-      padding: const EdgeInsets.all(16),
       color: MobileTheme.surface,
       child: Column(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _focusNode,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _handleSearch(),
-                  decoration: InputDecoration(
-                    hintText: '搜索帖子...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() {
-                                _searchResults = [];
-                              });
-                            },
-                          )
-                        : null,
-                    filled: true,
-                    fillColor: MobileTheme.background,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _focusNode,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _handleSearch(),
+                    decoration: InputDecoration(
+                      hintText: '搜索帖子...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchResults = [];
+                                });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: MobileTheme.background,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              _buildFilterButton(),
-            ],
+                const SizedBox(width: 8),
+                _buildFilterButton(),
+              ],
+            ),
           ),
 
           // 筛选标签
           if (_hasActiveFilters)
             Padding(
-              padding: const EdgeInsets.only(top: 12),
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
               child: Row(
                 children: [
                   _buildFilterChip('频道: $_selectedChannel', () {
@@ -343,33 +345,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildSearchResults() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            '找到 ${_searchResults.length} 条结果',
-            style: const TextStyle(
-              fontSize: 13,
-              color: MobileTheme.textSecondary,
-            ),
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 16),
-            itemCount: _searchResults.length,
-            itemBuilder: (context, index) {
-              final post = _searchResults[index];
-              return PostCard(
-                post: post,
-                onTap: () => context.push('/post/${post.id}'),
-              );
-            },
-          ),
-        ),
-      ],
+    return ListView.separated(
+      itemCount: _searchResults.length,
+      separatorBuilder: (context, index) => const Divider(height: 1, indent: 16),
+      itemBuilder: (context, index) {
+        final post = _searchResults[index];
+        return PostCard(
+          post: post,
+          onTap: () => context.push('/post/${post.id}'),
+        );
+      },
     );
   }
 
@@ -377,75 +362,129 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final searchHistory = ref.watch(searchHistoryProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 搜索历史
           if (searchHistory.isNotEmpty) ...[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '搜索历史',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: MobileTheme.textPrimary,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    ref.read(searchHistoryProvider.notifier).clear();
-                  },
-                  child: const Text('清空'),
-                ),
-              ],
+            const _SectionHeader(title: '搜索历史', showClear: true),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: searchHistory.map((keyword) {
+                  return GestureDetector(
+                    onTap: () => _handleKeywordTap(keyword),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: MobileTheme.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: MobileTheme.divider),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.history,
+                            size: 14,
+                            color: MobileTheme.textTertiary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            keyword,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: MobileTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          GestureDetector(
+                            onTap: () {
+                              ref
+                                  .read(searchHistoryProvider.notifier)
+                                  .remove(keyword);
+                            },
+                            child: const Icon(
+                              Icons.close,
+                              size: 14,
+                              color: MobileTheme.textTertiary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
-            const SizedBox(height: 12),
-            Wrap(
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+          ],
+
+          // 热门搜索
+          const _SectionHeader(title: '热门搜索'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: searchHistory.map((keyword) {
+              children: _hotSearchKeywords.asMap().entries.map((entry) {
+                final index = entry.key;
+                final keyword = entry.value;
                 return GestureDetector(
                   onTap: () => _handleKeywordTap(keyword),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+                      horizontal: 14,
+                      vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: MobileTheme.surface,
+                      color: index < 3
+                          ? MobileTheme.accent.withValues(alpha: 0.1)
+                          : MobileTheme.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: MobileTheme.divider),
+                      border: Border.all(
+                        color:
+                            index < 3 ? MobileTheme.accent : MobileTheme.divider,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.history,
-                          size: 14,
-                          color: MobileTheme.textTertiary,
-                        ),
-                        const SizedBox(width: 6),
+                        if (index < 3)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
+                            margin: const EdgeInsets.only(right: 6),
+                            decoration: BoxDecoration(
+                              color: MobileTheme.accent,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         Text(
                           keyword,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: MobileTheme.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        GestureDetector(
-                          onTap: () {
-                            ref
-                                .read(searchHistoryProvider.notifier)
-                                .remove(keyword);
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            size: 14,
-                            color: MobileTheme.textTertiary,
+                            color: index < 3
+                                ? MobileTheme.accent
+                                : MobileTheme.textSecondary,
+                            fontWeight:
+                                index < 3 ? FontWeight.w600 : FontWeight.normal,
                           ),
                         ),
                       ],
@@ -454,120 +493,42 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 32),
-          ],
-
-          // 热门搜索
-          const Text(
-            '热门搜索',
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _hotSearchKeywords.asMap().entries.map((entry) {
-              final index = entry.key;
-              final keyword = entry.value;
-              return GestureDetector(
-                onTap: () => _handleKeywordTap(keyword),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: index < 3
-                        ? MobileTheme.accent.withValues(alpha: 0.1)
-                        : MobileTheme.surface,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color:
-                          index < 3 ? MobileTheme.accent : MobileTheme.divider,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (index < 3)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          margin: const EdgeInsets.only(right: 6),
-                          decoration: BoxDecoration(
-                            color: MobileTheme.accent,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '${index + 1}',
-                            style: const TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      Text(
-                        keyword,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: index < 3
-                              ? MobileTheme.accent
-                              : MobileTheme.textSecondary,
-                          fontWeight:
-                              index < 3 ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
 
           // 搜索提示
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: MobileTheme.primary.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Column(
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
                     Icon(
                       Icons.lightbulb_outline,
-                      size: 18,
+                      size: 16,
                       color: MobileTheme.primary,
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 6),
                     Text(
                       '搜索技巧',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: MobileTheme.primary,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 8),
-                Text(
+                const SizedBox(height: 6),
+                const Text(
                   '• 输入关键词搜索帖子标题和内容\n'
                   '• 使用筛选功能过滤频道、状态\n'
                   '• 点击热门搜索快速查找',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 12,
                     color: MobileTheme.textSecondary,
                     height: 1.5,
                   ),
@@ -575,6 +536,47 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 区块头部（标题 + 可选清空）
+class _SectionHeader extends ConsumerWidget {
+  final String title;
+  final bool showClear;
+
+  const _SectionHeader({required this.title, this.showClear = false});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: MobileTheme.textPrimary,
+            ),
+          ),
+          if (showClear)
+            GestureDetector(
+              onTap: () {
+                ref.read(searchHistoryProvider.notifier).clear();
+              },
+              child: const Text(
+                '清空',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: MobileTheme.primary,
+                ),
+              ),
+            ),
         ],
       ),
     );

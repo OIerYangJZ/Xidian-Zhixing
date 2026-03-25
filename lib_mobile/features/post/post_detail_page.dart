@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../widgets/avatar_widget.dart';
+
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -394,29 +396,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         children: [
           // 作者信息
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: Row(
               children: [
                 // 头像
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: MobileTheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(22),
-                  ),
-                  child: Center(
-                    child: Text(
-                      post.authorAlias.substring(0, 1),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: MobileTheme.primary,
-                      ),
-                    ),
-                  ),
+                AvatarWidget(
+                  avatarUrl: null,
+                  nickname: post.authorAlias,
+                  radius: 20,
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,12 +413,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                       Text(
                         post.authorAlias,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                           color: MobileTheme.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Row(
                         children: [
                           Text(
@@ -440,16 +429,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                             ),
                           ),
                           if (post.status == PostStatus.resolved) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                                horizontal: 5,
+                                vertical: 1,
                               ),
                               decoration: BoxDecoration(
                                 color:
                                     MobileTheme.success.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
                                 '已解决',
@@ -470,11 +459,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 if (post.allowDm && !post.isOwnPost)
                   TextButton.icon(
                     onPressed: _handleDmRequest,
-                    icon: const Icon(Icons.mail_outline, size: 18),
+                    icon: const Icon(Icons.mail_outline, size: 16),
                     label: const Text('私信'),
                     style: TextButton.styleFrom(
                       foregroundColor: MobileTheme.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                   ),
               ],
@@ -486,27 +475,27 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           // 标题
           if (post.title.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
               child: Text(
                 post.title,
                 style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 19,
                   fontWeight: FontWeight.bold,
                   color: MobileTheme.textPrimary,
-                  height: 1.4,
+                  height: 1.35,
                 ),
               ),
             ),
 
           // 正文
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
             child: Text(
               post.content,
               style: const TextStyle(
                 fontSize: 16,
                 color: MobileTheme.textPrimary,
-                height: 1.6,
+                height: 1.55,
               ),
             ),
           ),
@@ -521,27 +510,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           // 标签
           if (post.tags.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Wrap(
                 spacing: 8,
-                runSpacing: 8,
+                runSpacing: 6,
                 children: post.tags.map((tag) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: MobileTheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '#$tag',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: MobileTheme.primary,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  return Text(
+                    '#$tag',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: MobileTheme.primary,
+                      fontWeight: FontWeight.w500,
                     ),
                   );
                 }).toList(),
@@ -550,17 +529,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
           // 频道信息
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
             child: Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
+                    horizontal: 8,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: MobileTheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(4),
+                    color: MobileTheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     post.channel,
@@ -581,29 +560,28 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   Widget _buildCommentsSection() {
     return Container(
-      margin: const EdgeInsets.only(top: 8),
       color: MobileTheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 评论区标题
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
                 const Text(
                   '评论',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: MobileTheme.textPrimary,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   '${_post!.commentCount} 条',
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     color: MobileTheme.textSecondary,
                   ),
                 ),
@@ -616,7 +594,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           // 评论列表
           if (_comments.isEmpty)
             const Padding(
-              padding: EdgeInsets.all(32),
+              padding: EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
                   '暂无评论，快来抢沙发~',
@@ -640,8 +618,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 );
               },
             ),
-
-          const SizedBox(height: 16),
         ],
       ),
     );
@@ -660,7 +636,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
             children: [
               // 点赞
@@ -672,7 +648,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 isLoading: _isLiking,
                 onTap: _handleLike,
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
 
               // 收藏
               _ActionItem(
@@ -683,7 +659,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 isLoading: _isFavoriting,
                 onTap: _handleFavorite,
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
 
               // 评论
               _ActionItem(
@@ -691,9 +667,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 activeIcon: Icons.chat_bubble,
                 label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
                 isActive: false,
-                onTap: () {
-                  // 滚动到评论区域
-                },
+                onTap: () {},
               ),
 
               const Spacer(),
@@ -702,6 +676,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               IconButton(
                 icon: const Icon(Icons.share_outlined),
                 color: MobileTheme.textSecondary,
+                iconSize: 22,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () {
                   Clipboard.setData(ClipboardData(
                     text: '查看西电树洞帖子: ${widget.postId}',
@@ -822,30 +799,17 @@ class _CommentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 头像
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: MobileTheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Center(
-              child: Text(
-                comment.authorAlias.substring(0, 1),
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: MobileTheme.primary,
-                ),
-              ),
-            ),
+          AvatarWidget(
+            avatarUrl: comment.authorAvatar,
+            nickname: comment.authorAlias,
+            radius: 17,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
 
           Expanded(
             child: Column(
@@ -861,7 +825,7 @@ class _CommentTile extends StatelessWidget {
                         color: MobileTheme.textPrimary,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       _formatTime(comment.createdAt),
                       style: const TextStyle(
@@ -871,25 +835,25 @@ class _CommentTile extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 5),
                 Text(
                   comment.content,
                   style: const TextStyle(
-                    fontSize: 15,
+                    fontSize: 14,
                     color: MobileTheme.textPrimary,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 Row(
                   children: [
                     if (comment.likeCount > 0) ...[
                       const Icon(
                         Icons.favorite,
-                        size: 14,
+                        size: 13,
                         color: MobileTheme.accent,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
                         '${comment.likeCount}',
                         style: const TextStyle(
@@ -898,17 +862,17 @@ class _CommentTile extends StatelessWidget {
                         ),
                       ),
                     ],
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     GestureDetector(
                       onTap: onReply,
                       child: const Row(
                         children: [
                           Icon(
                             Icons.reply,
-                            size: 14,
+                            size: 13,
                             color: MobileTheme.textTertiary,
                           ),
-                          SizedBox(width: 4),
+                          SizedBox(width: 3),
                           Text(
                             '回复',
                             style: TextStyle(

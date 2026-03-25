@@ -80,11 +80,17 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _handleLike(PostItem post) async {
+    // 乐观更新：先本地更新，API 失败再回滚
+    final optimistic = post.copyWith(
+      isLiked: !post.isLiked,
+      likeCount: post.likeCount + (post.isLiked ? -1 : 1),
+    );
+    ref.read(feedControllerProvider.notifier).replacePost(optimistic);
     try {
       final postRepo = ref.read(postRepositoryProvider);
       await postRepo.likePost(post.id);
-      ref.invalidate(feedControllerProvider);
     } catch (_) {
+      ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('操作失败，请稍后重试')),
@@ -94,6 +100,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _handleFavorite(PostItem post) async {
+    // 乐观更新：先本地更新，API 失败再回滚
+    final optimistic = post.copyWith(
+      isFavorited: !post.isFavorited,
+      favoriteCount: post.favoriteCount + (post.isFavorited ? -1 : 1),
+    );
+    ref.read(feedControllerProvider.notifier).replacePost(optimistic);
     try {
       final postRepo = ref.read(postRepositoryProvider);
       if (post.isFavorited) {
@@ -101,8 +113,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       } else {
         await postRepo.favoritePost(post.id);
       }
-      ref.invalidate(feedControllerProvider);
     } catch (_) {
+      ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('操作失败，请稍后重试')),
@@ -117,7 +129,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final scrollWidth = _channelScrollController.position.maxScrollExtent;
     if (scrollWidth <= 0) return;
 
-    // 估算每个 chip 的宽度（padding 8 + 文字宽度 + 图标）
     const estimatedChipWidth = 90.0;
     final targetOffset = (index * estimatedChipWidth) -
         (MediaQuery.of(context).size.width / 2) +
@@ -143,21 +154,23 @@ class _HomePageState extends ConsumerState<HomePage> {
         color: MobileTheme.primary,
         child: CustomScrollView(
           controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // 大标题导航栏
+            // 紧凑型 AppBar：高度 48px，无大标题
             SliverAppBar(
               pinned: true,
-              expandedHeight: 60,
+              expandedHeight: 48,
               backgroundColor: MobileTheme.surface,
               elevation: 0,
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
+              toolbarHeight: 48,
               flexibleSpace: const FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(left: 16, bottom: 16),
+                titlePadding: EdgeInsets.only(left: 16, bottom: 14),
                 title: Text(
-                  '西电树洞',
+                  '树洞',
                   style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: MobileTheme.textPrimary,
                   ),
@@ -165,13 +178,17 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    size: 22,
+                  ),
                   onPressed: () => context.push('/notifications'),
                 ),
+                const SizedBox(width: 4),
               ],
             ),
 
-            // 频道横向滚动列表
+            // 频道横向滚动列表（紧贴 AppBar）
             SliverPersistentHeader(
               pinned: true,
               delegate: _ChannelBarDelegate(
@@ -187,18 +204,17 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
             ),
 
-            // 排序栏 + 发帖入口
+            // 排序栏（仅 Toggle，移除发帖按钮——由 FAB 承载）
             SliverToBoxAdapter(
-              child: _SortAndPostBar(
+              child: _SortBar(
                 sort: feedState.sort,
                 onSortChanged: (sort) {
                   ref.read(feedControllerProvider.notifier).switchSort(sort);
                 },
-                onPostTap: () => context.push('/post/create'),
               ),
             ),
 
-            // 帖子列表
+            // 帖子列表（全宽，无外层 margin）
             if (feedState.loading && feedState.posts.isEmpty)
               const SliverFillRemaining(
                 child: HomePageShimmer(),
@@ -218,7 +234,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               )
             else ...[
               SliverPadding(
-                padding: const EdgeInsets.only(top: 4, bottom: 100),
+                padding: const EdgeInsets.only(bottom: 100),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -247,6 +263,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         onTap: () => context.push('/post/${post.id}'),
                         onLike: () => _handleLike(post),
                         onFavorite: () => _handleFavorite(post),
+                        showTopDivider: index != 0,
                       );
                     },
                     childCount:
@@ -259,7 +276,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ),
       ),
 
-      // 悬浮发帖按钮
+      // FAB：右下角圆形 + 图标，无文字
       floatingActionButton: AnimatedSlide(
         offset: _fabVisible ? Offset.zero : const Offset(0, 2),
         duration: const Duration(milliseconds: 220),
@@ -267,19 +284,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: AnimatedOpacity(
           opacity: _fabVisible ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 220),
-          child: FloatingActionButton.extended(
+          child: FloatingActionButton(
             onPressed: () => context.push('/post/create'),
             backgroundColor: MobileTheme.primary,
             elevation: 4,
-            icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-            label: const Text(
-              '发帖',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
-            ),
+            child: const Icon(Icons.edit, color: Colors.white, size: 22),
           ),
         ),
       ),
@@ -304,10 +313,10 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
   });
 
   @override
-  double get minExtent => 56;
+  double get minExtent => 44;
 
   @override
-  double get maxExtent => 56;
+  double get maxExtent => 44;
 
   @override
   bool shouldRebuild(covariant _ChannelBarDelegate old) =>
@@ -319,11 +328,10 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
     final selectedIndex = channels.indexOf(selectedChannel);
 
     return Container(
-      height: 56,
+      height: 44,
       color: MobileTheme.surface,
       child: Column(
         children: [
-          // 频道横向列表
           Expanded(
             child: channels.isEmpty
                 ? const Center(
@@ -338,12 +346,11 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                   )
                 : Stack(
                     children: [
-                      // 频道列表
                       ListView.builder(
                         controller: scrollController,
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                            horizontal: 12, vertical: 6),
                         itemCount: channels.length,
                         itemBuilder: (context, index) {
                           final channel = channels[index];
@@ -363,7 +370,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                         },
                       ),
 
-                      // 左侧渐变遮罩（滚动到左侧边界时提示可继续左滚）
+                      // 左侧渐变遮罩
                       if (selectedIndex > 1)
                         Positioned(
                           left: 0,
@@ -386,7 +393,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                           ),
                         ),
 
-                      // 右侧渐变遮罩（滚动到右侧边界时提示可继续右滚）
+                      // 右侧渐变遮罩
                       if (selectedIndex < channels.length - 2)
                         Positioned(
                           right: 0,
@@ -411,11 +418,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                     ],
                   ),
           ),
-          // 底部极细分割线
-          Container(
-            height: 0.5,
-            color: MobileTheme.divider,
-          ),
+          Container(height: 0.5, color: MobileTheme.divider),
         ],
       ),
     );
@@ -453,7 +456,7 @@ class _ChannelChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected
               ? MobileTheme.primary.withValues(alpha: 0.12)
@@ -463,15 +466,6 @@ class _ChannelChip extends StatelessWidget {
             color: isSelected ? MobileTheme.primary : MobileTheme.divider,
             width: isSelected ? 1.2 : 0.8,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: MobileTheme.primary.withValues(alpha: 0.12),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -480,8 +474,8 @@ class _ChannelChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: effectiveIconColor.withValues(
-                    alpha: isSelected ? 1.0 : 0.75),
+                color: effectiveIconColor
+                    .withValues(alpha: isSelected ? 1.0 : 0.75),
               ),
               const SizedBox(width: 5),
             ],
@@ -501,68 +495,22 @@ class _ChannelChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// 排序栏 + 发帖入口
+// 排序栏（仅 Toggle，无发帖按钮）
 // ---------------------------------------------------------------------------
-class _SortAndPostBar extends StatelessWidget {
+class _SortBar extends StatelessWidget {
   final PostSort sort;
   final void Function(PostSort) onSortChanged;
-  final VoidCallback onPostTap;
 
-  const _SortAndPostBar({
+  const _SortBar({
     required this.sort,
     required this.onSortChanged,
-    required this.onPostTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // 排序切换胶囊
-          _SortToggle(sort: sort, onSortChanged: onSortChanged),
-
-          // 发帖按钮
-          GestureDetector(
-            onTap: onPostTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [MobileTheme.primary, Color(0xFF1A7A95)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: MobileTheme.primary.withValues(alpha: 0.3),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.edit, size: 14, color: Colors.white),
-                  SizedBox(width: 5),
-                  Text(
-                    '发帖',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: _SortToggle(sort: sort, onSortChanged: onSortChanged),
     );
   }
 }
@@ -629,15 +577,6 @@ class _SortOption extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? MobileTheme.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1),
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

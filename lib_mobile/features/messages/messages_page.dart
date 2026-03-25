@@ -105,7 +105,6 @@ class _RequestsTab extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: requests.length,
         separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
         itemBuilder: (context, index) {
@@ -131,9 +130,9 @@ class _RequestTile extends ConsumerWidget {
     final isPending = request.status == 'pending';
 
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       leading: CircleAvatar(
-        radius: 24,
+        radius: 22,
         backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
         backgroundImage: request.fromAvatarUrl.isNotEmpty
             ? CachedNetworkImageProvider(
@@ -143,7 +142,7 @@ class _RequestTile extends ConsumerWidget {
               )
             : null,
         child: request.fromAvatarUrl.isEmpty
-            ? const Icon(Icons.person, color: MobileTheme.primary)
+            ? const Icon(Icons.person, color: MobileTheme.primary, size: 22)
             : null,
       ),
       title: Text(
@@ -154,7 +153,7 @@ class _RequestTile extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (request.reason.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               request.reason,
               style: const TextStyle(
@@ -163,7 +162,7 @@ class _RequestTile extends ConsumerWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ],
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             request.timeText,
             style:
@@ -181,9 +180,11 @@ class _RequestTile extends ConsumerWidget {
                       : () => _handleRequest(context, ref, true),
                   style: TextButton.styleFrom(
                     foregroundColor: MobileTheme.primary,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('同意'),
+                  child: const Text('同意', style: TextStyle(fontSize: 14)),
                 ),
                 TextButton(
                   onPressed: actionBusy
@@ -191,19 +192,21 @@ class _RequestTile extends ConsumerWidget {
                       : () => _handleRequest(context, ref, false),
                   style: TextButton.styleFrom(
                     foregroundColor: MobileTheme.error,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('拒绝'),
+                  child: const Text('拒绝', style: TextStyle(fontSize: 14)),
                 ),
               ],
             )
           : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: request.status == 'approved'
                     ? MobileTheme.success.withValues(alpha: 0.1)
                     : MobileTheme.textTertiary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 request.statusLabel,
@@ -264,7 +267,6 @@ class _ConversationsTab extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
       child: ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: conversations.length,
         separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
         itemBuilder: (context, index) {
@@ -284,9 +286,9 @@ class _ConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       leading: CircleAvatar(
-        radius: 24,
+        radius: 22,
         backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
         backgroundImage: conversation.avatarUrl.isNotEmpty
             ? CachedNetworkImageProvider(
@@ -296,7 +298,7 @@ class _ConversationTile extends StatelessWidget {
               )
             : null,
         child: conversation.avatarUrl.isEmpty
-            ? const Icon(Icons.person, color: MobileTheme.primary)
+            ? const Icon(Icons.person, color: MobileTheme.primary, size: 22)
             : null,
       ),
       title: Text(
@@ -332,7 +334,7 @@ class _ConversationTile extends StatelessWidget {
           if (conversation.hasUnread) ...[
             const SizedBox(height: 4),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
                 color: MobileTheme.accent,
                 borderRadius: BorderRadius.circular(10),

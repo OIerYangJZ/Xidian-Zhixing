@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -37,15 +38,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final authRepo = ref.read(authRepositoryProvider);
+      final raw = _identifierController.text.trim();
+      // 自动拼接学校邮箱后缀
+      final identifier = raw.contains('@') ? raw : '$raw@stu.xidian.edu.cn';
       final result = await authRepo.login(
-        identifier: _identifierController.text.trim(),
+        identifier: identifier,
         password: _passwordController.text,
       );
 
       if (!mounted) return;
 
       if (result.verified) {
-        // 登录成功，刷新数据并跳转
+        // 登录成功，拉取用户信息后跳转
+        try {
+          final profile = await ref.read(userRepositoryProvider).fetchProfile();
+          AuthStore.instance.setCurrentUser(profile);
+        } catch (_) {}
+        if (!mounted) return;
         ref.invalidate(feedControllerProvider);
         ref.invalidate(notificationsControllerProvider);
         ref.invalidate(messagesControllerProvider);
@@ -53,7 +62,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       } else {
         // 需要邮箱验证
         context.go(
-            '/auth/verify?email=${Uri.encodeComponent(result.email ?? _identifierController.text)}');
+            '/auth/verify?email=${Uri.encodeComponent(result.email ?? identifier)}');
       }
     } catch (e) {
       if (mounted) {
@@ -129,12 +138,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
-                        hintText: '邮箱或学号',
+                        hintText: '学号',
                         prefixIcon: Icon(Icons.account_circle_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return '请输入邮箱或学号';
+                          return '请输入学号';
                         }
                         return null;
                       },
