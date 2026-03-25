@@ -1398,6 +1398,9 @@ def migrate_db(db: dict[str, Any]) -> bool:
     if "auditLogs" not in db:
         db["auditLogs"] = []
         changed = True
+    if "userFollows" not in db or not isinstance(db.get("userFollows"), list):
+        db["userFollows"] = []
+        changed = True
     if "appeals" not in db or not isinstance(db.get("appeals"), list):
         db["appeals"] = []
         changed = True
@@ -1530,6 +1533,14 @@ def migrate_db(db: dict[str, Any]) -> bool:
         if "pinDurationMinutes" not in post or normalized_pin_duration != raw_pin_duration:
             post["pinDurationMinutes"] = normalized_pin_duration
             changed = True
+        normalized_is_anonymous = is_post_anonymous(db, post)
+        if post.get("isAnonymous") is not normalized_is_anonymous:
+            post["isAnonymous"] = normalized_is_anonymous
+            changed = True
+        normalized_allow_dm = bool(post.get("allowDm", False)) and not normalized_is_anonymous
+        if bool(post.get("allowDm", False)) != normalized_allow_dm:
+            post["allowDm"] = normalized_allow_dm
+            changed = True
 
     for comment in db.get("comments", []):
         if "reviewStatus" not in comment:
@@ -1578,6 +1589,38 @@ def migrate_db(db: dict[str, Any]) -> bool:
 
     if "userBlocks" not in db or not isinstance(db.get("userBlocks"), list):
         db["userBlocks"] = []
+        changed = True
+    normalized_follows: list[dict[str, Any]] = []
+    seen_follow_pairs: set[tuple[str, str]] = set()
+    for follow in db.get("userFollows", []):
+        if not isinstance(follow, dict):
+            changed = True
+            continue
+        follower_user_id = str(follow.get("followerUserId", "")).strip()
+        followee_user_id = str(follow.get("followeeUserId", "")).strip()
+        if (
+            not follower_user_id
+            or not followee_user_id
+            or follower_user_id == followee_user_id
+            or find_user_by_id(db, follower_user_id) is None
+            or find_user_by_id(db, followee_user_id) is None
+        ):
+            changed = True
+            continue
+        pair = (follower_user_id, followee_user_id)
+        if pair in seen_follow_pairs:
+            changed = True
+            continue
+        seen_follow_pairs.add(pair)
+        normalized_follows.append(
+            {
+                "followerUserId": follower_user_id,
+                "followeeUserId": followee_user_id,
+                "createdAt": str(follow.get("createdAt", "")).strip() or now_iso(),
+            }
+        )
+    if normalized_follows != db.get("userFollows", []):
+        db["userFollows"] = normalized_follows
         changed = True
 
     for conversation in db.get("conversations", []):
@@ -1935,6 +1978,238 @@ def user_avatar_url(user: dict[str, Any] | None) -> str:
     if not user:
         return ""
     return normalize_avatar_url(str(user.get("avatarUrl", "")))
+
+
+def normalize_optional_bool(value: Any) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+    return None
+
+
+def is_post_anonymous(db: dict[str, Any], post: dict[str, Any]) -> bool:
+    normalized = normalize_optional_bool(post.get("isAnonymous"))
+    if normalized is not None:
+        return normalized
+
+    author_id = str(post.get("authorId", "")).strip()
+    author_alias = sanitize_alias(str(post.get("authorAlias", "")), fallback="")
+    if not author_id or not author_alias:
+        return True
+
+    author_user = find_user_by_id(db, author_id, include_deleted=True)
+    if author_user is None:
+        return True
+    return author_alias != user_nickname(author_user)
+
+
+def effective_post_allow_dm(db: dict[str, Any], post: dict[str, Any]) -> bool:
+    return bool(post.get("allowDm", False)) and not is_post_anonymous(db, post)
+
+
+def is_user_following(
+    db: dict[str, Any],
+    follower_user_id: str,
+    followee_user_id: str,
+) -> bool:
+    follower_user_id = follower_user_id.strip()
+    followee_user_id = followee_user_id.strip()
+    if not follower_user_id or not followee_user_id or follower_user_id == followee_user_id:
+        return False
+    return any(
+        row
+        for row in db.get("userFollows", [])
+        if str(row.get("followerUserId", "")).strip() == follower_user_id
+        and str(row.get("followeeUserId", "")).strip() == followee_user_id
+    )
+
+
+def count_following(db: dict[str, Any], user_id: str) -> int:
+    target_user_id = user_id.strip()
+    return sum(
+        1
+        for row in db.get("userFollows", [])
+        if str(row.get("followerUserId", "")).strip() == target_user_id
+        and find_user_by_id(db, str(row.get("followeeUserId", "")).strip()) is not None
+    )
+
+
+def count_followers(db: dict[str, Any], user_id: str) -> int:
+    target_user_id = user_id.strip()
+    return sum(
+        1
+        for row in db.get("userFollows", [])
+        if str(row.get("followeeUserId", "")).strip() == target_user_id
+        and find_user_by_id(db, str(row.get("followerUserId", "")).strip()) is not None
+    )
+
+
+def build_follow_user_item(
+    db: dict[str, Any],
+    *,
+    target_user_id: str,
+    viewer_user_id: str,
+) -> dict[str, Any] | None:
+    target_user = find_user_by_id(db, target_user_id)
+    if target_user is None:
+        return None
+    return {
+        "userId": str(target_user.get("id", "")).strip(),
+        "nickname": user_nickname(target_user),
+        "avatarUrl": user_avatar_url(target_user),
+        "isFollowing": is_user_following(db, viewer_user_id, target_user_id),
+        "isFollower": is_user_following(db, target_user_id, viewer_user_id),
+    }
+
+
+def list_following_users(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    viewer_user_id: str,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for follow in db.get("userFollows", []):
+        if str(follow.get("followerUserId", "")).strip() != user_id.strip():
+            continue
+        item = build_follow_user_item(
+            db,
+            target_user_id=str(follow.get("followeeUserId", "")).strip(),
+            viewer_user_id=viewer_user_id,
+        )
+        if item is not None:
+            item["_createdAt"] = str(follow.get("createdAt", ""))
+            rows.append(item)
+    rows.sort(key=lambda item: (str(item.get("_createdAt", "")), str(item.get("userId", ""))), reverse=True)
+    for item in rows:
+        item.pop("_createdAt", None)
+    return rows
+
+
+def list_follower_users(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+    viewer_user_id: str,
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for follow in db.get("userFollows", []):
+        if str(follow.get("followeeUserId", "")).strip() != user_id.strip():
+            continue
+        item = build_follow_user_item(
+            db,
+            target_user_id=str(follow.get("followerUserId", "")).strip(),
+            viewer_user_id=viewer_user_id,
+        )
+        if item is not None:
+            item["_createdAt"] = str(follow.get("createdAt", ""))
+            rows.append(item)
+    rows.sort(key=lambda item: (str(item.get("_createdAt", "")), str(item.get("userId", ""))), reverse=True)
+    for item in rows:
+        item.pop("_createdAt", None)
+    return rows
+
+
+def list_friend_users(
+    db: dict[str, Any],
+    *,
+    user_id: str,
+) -> list[dict[str, Any]]:
+    following_ids = {
+        str(row.get("followeeUserId", "")).strip()
+        for row in db.get("userFollows", [])
+        if str(row.get("followerUserId", "")).strip() == user_id.strip()
+    }
+    follower_ids = {
+        str(row.get("followerUserId", "")).strip()
+        for row in db.get("userFollows", [])
+        if str(row.get("followeeUserId", "")).strip() == user_id.strip()
+    }
+    mutual_ids = sorted(following_ids & follower_ids)
+    rows: list[dict[str, Any]] = []
+    for target_user_id in mutual_ids:
+        item = build_follow_user_item(
+            db,
+            target_user_id=target_user_id,
+            viewer_user_id=user_id,
+        )
+        if item is not None:
+            rows.append(item)
+    rows.sort(key=lambda item: (str(item.get("nickname", "")), str(item.get("userId", ""))))
+    return rows
+
+
+def can_request_dm_to_user(
+    db: dict[str, Any],
+    *,
+    viewer_user_id: str,
+    target_user_id: str,
+) -> bool:
+    viewer_user_id = viewer_user_id.strip()
+    target_user_id = target_user_id.strip()
+    if not viewer_user_id or not target_user_id or viewer_user_id == target_user_id:
+        return False
+
+    viewer_user = find_user_by_id(db, viewer_user_id)
+    target_user = find_user_by_id(db, target_user_id)
+    if viewer_user is None or target_user is None:
+        return False
+    if not bool(target_user.get("showContactable", True)):
+        return False
+    if not bool(target_user.get("allowStrangerDm", True)):
+        return False
+    if is_user_blocked(db, viewer_user_id, target_user_id):
+        return False
+    if is_user_blocked(db, target_user_id, viewer_user_id):
+        return False
+    return True
+
+
+def serialize_public_user_profile(
+    db: dict[str, Any],
+    *,
+    target_user: dict[str, Any],
+    viewer_user_id: str,
+) -> dict[str, Any]:
+    target_user_id = str(target_user.get("id", "")).strip()
+    return {
+        "id": target_user_id,
+        "alias": user_nickname(target_user),
+        "nickname": user_nickname(target_user),
+        "avatarUrl": user_avatar_url(target_user),
+        "verified": bool(target_user.get("verified", False)),
+        "verifiedAt": str(target_user.get("verifiedAt", "")),
+        "userLevel": current_user_level(target_user),
+        "userLevelLabel": user_level_label(current_user_level(target_user)),
+        "isLevelOneUser": is_level_one_user(target_user),
+        "favoriteCount": 0,
+        "postCount": sum(
+            1
+            for post in list_posts(db)
+            if str(post.get("authorId", "")).strip() == target_user_id
+            and not is_post_anonymous(db, post)
+        ),
+        "followingCount": count_following(db, target_user_id),
+        "followerCount": count_followers(db, target_user_id),
+        "isFollowing": is_user_following(db, viewer_user_id, target_user_id),
+        "isFollower": is_user_following(db, target_user_id, viewer_user_id),
+        "isOwnProfile": bool(viewer_user_id and viewer_user_id == target_user_id),
+        "canFollow": bool(viewer_user_id and viewer_user_id != target_user_id),
+        "canDirectMessage": can_request_dm_to_user(
+            db,
+            viewer_user_id=viewer_user_id,
+            target_user_id=target_user_id,
+        ),
+    }
 
 
 def current_user_level(user: dict[str, Any] | None) -> int:
@@ -2827,12 +3102,31 @@ def serialize_post(
     image_urls = [img["url"] for img in images if img.get("url")]
     uploaded_image_ids = [img["id"] for img in images if img.get("id")]
     author_id = str(post.get("authorId", "")).strip()
-    can_message_author = bool(
+    is_anonymous = is_post_anonymous(db, post)
+    author_user = find_user_by_id(db, author_id) if author_id else None
+    can_view_author_profile = bool(
         viewer_user_id
+        and not is_anonymous
         and author_id
+        and author_user is not None
+    )
+    can_follow_author = bool(
+        can_view_author_profile
         and viewer_user_id != author_id
-        and bool(post.get("allowDm", False))
-        and find_user_by_id(db, author_id) is not None
+    )
+    is_following_author = bool(
+        can_follow_author
+        and is_user_following(db, viewer_user_id, author_id)
+    )
+    can_message_author = bool(
+        can_view_author_profile
+        and viewer_user_id != author_id
+        and effective_post_allow_dm(db, post)
+        and can_request_dm_to_user(
+            db,
+            viewer_user_id=viewer_user_id,
+            target_user_id=author_id,
+        )
     )
     data: dict[str, Any] = {
         "id": post["id"],
@@ -2841,6 +3135,9 @@ def serialize_post(
         "channel": post.get("channel", "未分类"),
         "tags": post.get("tags", []),
         "authorAlias": post.get("authorAlias", "匿名同学"),
+        "isAnonymous": is_anonymous,
+        "authorAvatarUrl": "" if is_anonymous else user_avatar_url(author_user),
+        "authorUserId": author_id if can_view_author_profile else "",
         "createdAt": post.get("createdAt", now_iso()),
         "hasImage": bool(post.get("hasImage", False)) or bool(images),
         "images": images,
@@ -2853,12 +3150,15 @@ def serialize_post(
         "favorited": favorited,
         "status": post.get("status", "ongoing"),
         "allowComment": bool(post.get("allowComment", True)),
-        "allowDm": bool(post.get("allowDm", False)),
+        "allowDm": effective_post_allow_dm(db, post),
         "isPinned": is_post_pin_active(post),
         "pinStartedAt": str(post.get("pinStartedAt", "")),
         "pinExpiresAt": str(post.get("pinExpiresAt", "")),
         "pinDurationMinutes": parse_pin_duration_minutes(post.get("pinDurationMinutes")) or 0,
         "pinDurationLabel": pin_duration_label(post.get("pinDurationMinutes")),
+        "canViewAuthorProfile": can_view_author_profile,
+        "canFollowAuthor": can_follow_author,
+        "isFollowingAuthor": is_following_author,
         "canMessageAuthor": can_message_author,
         "isOwnPost": bool(viewer_user_id and viewer_user_id == author_id),
     }
@@ -3767,7 +4067,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                         continue
                     if has_image is not None and bool(post.get("hasImage", False)) != has_image:
                         continue
-                    if allow_dm is not None and bool(post.get("allowDm", False)) != allow_dm:
+                    if allow_dm is not None and effective_post_allow_dm(db, post) != allow_dm:
                         continue
 
                     if keyword:
@@ -4008,6 +4308,56 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {"data": result})
                 return
 
+            if path == "/api/users/me/following":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": list_following_users(
+                            db,
+                            user_id=str(user.get("id", "")),
+                            viewer_user_id=str(user.get("id", "")),
+                        )
+                    },
+                )
+                return
+
+            if path == "/api/users/me/followers":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": list_follower_users(
+                            db,
+                            user_id=str(user.get("id", "")),
+                            viewer_user_id=str(user.get("id", "")),
+                        )
+                    },
+                )
+                return
+
+            if path == "/api/users/me/friends":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": list_friend_users(
+                            db,
+                            user_id=str(user.get("id", "")),
+                        )
+                    },
+                )
+                return
+
             match_conversation_messages = re.fullmatch(
                 r"/api/messages/conversations/([^/]+)/messages",
                 path,
@@ -4102,6 +4452,29 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                             if latest_cancellation_request is not None
                             else None,
                         }
+                    },
+                )
+                return
+
+            match_user_profile = re.fullmatch(r"/api/users/([^/]+)", path)
+            if match_user_profile:
+                viewer, _ = require_authorized_user(self, db)
+                if viewer is None:
+                    return
+                target_user_id = match_user_profile.group(1)
+                target_user = find_user_by_id(db, target_user_id)
+                if target_user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "用户不存在")
+                    return
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "data": serialize_public_user_profile(
+                            db,
+                            target_user=target_user,
+                            viewer_user_id=str(viewer.get("id", "")),
+                        )
                     },
                 )
                 return
@@ -5100,7 +5473,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     if post is None or str(post.get("reviewStatus", "approved")).lower() == "rejected":
                         json_error(self, HTTPStatus.NOT_FOUND, "帖子不存在")
                         return
-                    if not bool(post.get("allowDm", False)):
+                    if is_post_anonymous(db, post):
+                        json_error(self, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
+                        return
+                    if not effective_post_allow_dm(db, post):
                         json_error(self, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
                         return
                     target_user_id = str(post.get("authorId", "")).strip()
@@ -5116,17 +5492,24 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if target_user is None:
                     json_error(self, HTTPStatus.NOT_FOUND, "联系对象不存在")
                     return
-                if not bool(target_user.get("showContactable", True)):
-                    json_error(self, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
-                    return
-                if not bool(target_user.get("allowStrangerDm", True)):
-                    json_error(self, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-                    return
-                if is_user_blocked(db, user["id"], target_user_id):
-                    json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
-                    return
-                if is_user_blocked(db, target_user_id, user["id"]):
-                    json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
+                if not can_request_dm_to_user(
+                    db,
+                    viewer_user_id=str(user.get("id", "")),
+                    target_user_id=target_user_id,
+                ):
+                    if not bool(target_user.get("showContactable", True)):
+                        json_error(self, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
+                        return
+                    if not bool(target_user.get("allowStrangerDm", True)):
+                        json_error(self, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+                        return
+                    if is_user_blocked(db, user["id"], target_user_id):
+                        json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
+                        return
+                    if is_user_blocked(db, target_user_id, user["id"]):
+                        json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
+                        return
+                    json_error(self, HTTPStatus.FORBIDDEN, "当前无法发起私信")
                     return
 
                 existing_conversation = next(
@@ -5477,6 +5860,70 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     {
                         "message": "一级用户申请已提交，请等待一级管理员审核",
                         "data": serialize_user_level_request_summary(request),
+                    },
+                )
+                return
+
+            match_follow_user = re.fullmatch(r"/api/users/([^/]+)/(follow|unfollow)", path)
+            if match_follow_user:
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                target_user_id = match_follow_user.group(1)
+                action = match_follow_user.group(2)
+                if target_user_id == user["id"]:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不能关注自己")
+                    return
+                target_user = find_user_by_id(db, target_user_id)
+                if target_user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "用户不存在")
+                    return
+
+                if action == "follow":
+                    if not is_user_following(db, user["id"], target_user_id):
+                        db.setdefault("userFollows", []).append(
+                            {
+                                "followerUserId": user["id"],
+                                "followeeUserId": target_user_id,
+                                "createdAt": now_iso(),
+                            }
+                        )
+                        add_audit_log(db, user["id"], "follow_user", target_user_id)
+                        save_db(db)
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "message": "关注成功",
+                            "data": {
+                                "userId": target_user_id,
+                                "following": True,
+                            },
+                        },
+                    )
+                    return
+
+                before_len = len(db.get("userFollows", []))
+                db["userFollows"] = [
+                    row
+                    for row in db.get("userFollows", [])
+                    if not (
+                        str(row.get("followerUserId", "")).strip() == str(user.get("id", "")).strip()
+                        and str(row.get("followeeUserId", "")).strip() == target_user_id
+                    )
+                ]
+                if len(db["userFollows"]) != before_len:
+                    add_audit_log(db, user["id"], "unfollow_user", target_user_id)
+                    save_db(db)
+                send_json(
+                    self,
+                    HTTPStatus.OK,
+                    {
+                        "message": "已取消关注",
+                        "data": {
+                            "userId": target_user_id,
+                            "following": False,
+                        },
                     },
                 )
                 return
@@ -5878,6 +6325,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 if use_anonymous_alias:
                     author_alias = anonymous_alias or f"匿名同学-{secrets.token_hex(2)}"
 
+                effective_allow_dm = bool(body.get("allowDm", False)) and not use_anonymous_alias
                 post = {
                     "id": next_id(db, "post", "p"),
                     "title": title,
@@ -5887,7 +6335,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     "hasImage": bool(body.get("hasImage", False)) or bool(picked_uploads),
                     "status": status if status in {"ongoing", "resolved", "closed"} else "ongoing",
                     "allowComment": bool(body.get("allowComment", True)),
-                    "allowDm": bool(body.get("allowDm", False)),
+                    "allowDm": effective_allow_dm,
+                    "isAnonymous": use_anonymous_alias,
                     "authorAlias": author_alias,
                     "authorId": user["id"],
                     "pinStartedAt": "",
@@ -5930,7 +6379,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(
                     self,
                     HTTPStatus.OK,
-                    {"data": serialize_post(db, post, include_unapproved_images=True)},
+                    {
+                        "data": serialize_post(
+                            db,
+                            post,
+                            include_unapproved_images=True,
+                            viewer_user_id=str(user.get("id", "")),
+                        )
+                    },
                 )
                 return
 

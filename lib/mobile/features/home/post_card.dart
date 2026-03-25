@@ -133,6 +133,9 @@ class _PostCardState extends ConsumerState<PostCard> {
       onTap: () {
         if (widget.post.isOwnPost) {
           context.push('/profile');
+        } else if (widget.post.canViewAuthorProfile &&
+            widget.post.authorUserId.isNotEmpty) {
+          context.push('/users/${Uri.encodeComponent(widget.post.authorUserId)}');
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -143,7 +146,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         }
       },
       child: AvatarWidget(
-        avatarUrl: null,
+        avatarUrl: widget.post.authorAvatarUrl,
         nickname: widget.post.authorAlias,
         radius: 20,
       ),

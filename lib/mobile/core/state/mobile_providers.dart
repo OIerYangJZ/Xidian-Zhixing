@@ -4,7 +4,7 @@ import 'package:xdu_treehole_web/features/messages/messages_controller.dart'
 import 'package:xdu_treehole_web/features/notifications/notifications_controller.dart'
     show notificationsControllerProvider;
 
-/// Re-export all shared providers for lib_mobile/features/ pages
+/// Re-export all shared providers for lib/mobile/features/ pages
 export 'package:xdu_treehole_web/core/state/app_providers.dart';
 export 'package:xdu_treehole_web/features/feed/feed_controller.dart'
     show feedControllerProvider;

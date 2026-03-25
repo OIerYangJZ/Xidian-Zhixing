@@ -22,6 +22,15 @@ class UserRepository {
     throw Exception('个人资料加载失败：服务端未返回有效数据');
   }
 
+  Future<UserProfile> fetchUserProfile(String userId) async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.userProfile(userId));
+    final Map<String, dynamic> map = extractMap(response);
+    if (map.isNotEmpty) {
+      return UserProfile.fromJson(map);
+    }
+    throw Exception('用户主页加载失败：服务端未返回有效数据');
+  }
+
   Future<void> updatePrivacy({
     required bool allowStrangerDm,
     required bool showContactable,

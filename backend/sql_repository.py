@@ -32,6 +32,48 @@ def _to_str(value: Any, default: str = "") -> str:
     return str(value)
 
 
+def _to_optional_bool(value: Any) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"1", "true", "yes", "on"}:
+            return True
+        if normalized in {"0", "false", "no", "off"}:
+            return False
+    return None
+
+
+def _infer_post_is_anonymous(
+    *,
+    users_by_id: dict[str, dict[str, Any]],
+    author_alias: str,
+    author_id: str,
+    raw_value: Any,
+) -> bool:
+    normalized = _to_optional_bool(raw_value)
+    if normalized is not None:
+        return normalized
+
+    author_id = author_id.strip()
+    author_alias = author_alias.strip()
+    if not author_id or not author_alias:
+        return True
+
+    author = users_by_id.get(author_id)
+    if not isinstance(author, dict):
+        return True
+
+    nickname = _to_str(author.get("nickname")).strip() or _to_str(author.get("alias")).strip()
+    if not nickname:
+        return True
+    return author_alias != nickname
+
+
 class SqliteTreeholeRepository:
     def __init__(self, db_file: Path) -> None:
         self.db_file = db_file
@@ -152,6 +194,7 @@ class SqliteTreeholeRepository:
               status TEXT NOT NULL,
               allow_comment INTEGER NOT NULL DEFAULT 1,
               allow_dm INTEGER NOT NULL DEFAULT 0,
+              is_anonymous INTEGER NULL,
               author_alias TEXT NOT NULL,
               author_id TEXT NULL,
               pin_started_at TEXT NULL,
@@ -205,6 +248,15 @@ class SqliteTreeholeRepository:
               PRIMARY KEY (user_id, post_id),
               FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
               FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS user_follows (
+              follower_user_id TEXT NOT NULL,
+              followee_user_id TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              PRIMARY KEY (follower_user_id, followee_user_id),
+              FOREIGN KEY(follower_user_id) REFERENCES users(id) ON DELETE CASCADE,
+              FOREIGN KEY(followee_user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
             CREATE TABLE IF NOT EXISTS reports (
@@ -413,6 +465,10 @@ class SqliteTreeholeRepository:
               ON reports(status, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_reports_target
               ON reports(target_type, target_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_follows_follower_created
+              ON user_follows(follower_user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_user_follows_followee_created
+              ON user_follows(followee_user_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_dm_requests_to_status_created
               ON dm_requests(to_user_id, status, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker
@@ -461,6 +517,7 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "nickname", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "is_anonymous", "INTEGER NULL")
         self._ensure_column(conn, "posts", "pin_started_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_expires_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_duration_minutes", "INTEGER NOT NULL DEFAULT 0")
@@ -497,6 +554,7 @@ class SqliteTreeholeRepository:
             "comments": [],
             "likes": [],
             "favorites": [],
+            "userFollows": [],
             "reports": [],
             "dmRequests": [],
             "userBlocks": [],
@@ -588,6 +646,12 @@ class SqliteTreeholeRepository:
                 }
             )
 
+        users_by_id = {
+            _to_str(user.get("id")): user
+            for user in db["users"]
+            if isinstance(user, dict) and _to_str(user.get("id")).strip()
+        }
+
         tag_map: dict[str, list[str]] = {}
         for row in conn.execute("SELECT post_id, tag_name FROM post_tags ORDER BY post_id, tag_name"):
             tag_map.setdefault(row["post_id"], []).append(row["tag_name"])
@@ -595,6 +659,7 @@ class SqliteTreeholeRepository:
         for row in conn.execute(
             """
             SELECT id, title, content, channel, has_image, status, allow_comment, allow_dm,
+                   is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                    created_at, updated_at, deleted, review_status, risk_marked
             FROM posts
@@ -613,6 +678,12 @@ class SqliteTreeholeRepository:
                     "status": row["status"],
                     "allowComment": _to_bool(row["allow_comment"]),
                     "allowDm": _to_bool(row["allow_dm"]),
+                    "isAnonymous": _infer_post_is_anonymous(
+                        users_by_id=users_by_id,
+                        author_alias=_to_str(row["author_alias"]),
+                        author_id=_to_str(row["author_id"]),
+                        raw_value=row["is_anonymous"],
+                    ),
                     "authorAlias": row["author_alias"],
                     "authorId": _to_str(row["author_id"]),
                     "pinStartedAt": _to_str(row["pin_started_at"]),
@@ -655,6 +726,21 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute("SELECT user_id, post_id FROM favorites ORDER BY user_id, post_id"):
             db["favorites"].append({"userId": row["user_id"], "postId": row["post_id"]})
+
+        for row in conn.execute(
+            """
+            SELECT follower_user_id, followee_user_id, created_at
+            FROM user_follows
+            ORDER BY created_at DESC, follower_user_id, followee_user_id
+            """
+        ):
+            db["userFollows"].append(
+                {
+                    "followerUserId": _to_str(row["follower_user_id"]),
+                    "followeeUserId": _to_str(row["followee_user_id"]),
+                    "createdAt": _to_str(row["created_at"]),
+                }
+            )
 
         for row in conn.execute(
             """
@@ -1141,9 +1227,10 @@ class SqliteTreeholeRepository:
                     """
                     INSERT INTO posts (
                       id, title, content, channel, has_image, status, allow_comment, allow_dm,
+                      is_anonymous,
                       author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                       created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
@@ -1154,6 +1241,9 @@ class SqliteTreeholeRepository:
                         _to_str(post.get("status"), "ongoing"),
                         _to_bool_int(post.get("allowComment", True)),
                         _to_bool_int(post.get("allowDm", False)),
+                        None
+                        if post.get("isAnonymous") is None
+                        else _to_bool_int(post.get("isAnonymous")),
                         _to_str(post.get("authorAlias"), "匿名同学"),
                         _to_str(post.get("authorId")) or None,
                         _to_str(post.get("pinStartedAt")) or None,
@@ -1173,6 +1263,26 @@ class SqliteTreeholeRepository:
                             "INSERT OR IGNORE INTO post_tags (post_id, tag_name) VALUES (?, ?)",
                             (post_id, t),
                         )
+
+            for follow in db.get("userFollows", []):
+                if not isinstance(follow, dict):
+                    continue
+                follower_user_id = _to_str(follow.get("followerUserId")).strip()
+                followee_user_id = _to_str(follow.get("followeeUserId")).strip()
+                if not follower_user_id or not followee_user_id or follower_user_id == followee_user_id:
+                    continue
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO user_follows (
+                      follower_user_id, followee_user_id, created_at
+                    ) VALUES (?, ?, ?)
+                    """,
+                    (
+                        follower_user_id,
+                        followee_user_id,
+                        _to_str(follow.get("createdAt")) or created_now,
+                    ),
+                )
 
             deferred_comment_parents: list[tuple[str, str]] = []
             for comment in db.get("comments", []):

@@ -1,8 +1,6 @@
-import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
-import '../data/mock_data.dart';
 import '../models/conversation_item.dart';
 import '../models/direct_message_item.dart';
 import '../models/dm_request_item.dart';
@@ -37,13 +35,20 @@ class MessageRepository {
   }
 
   Future<void> createDmRequest({
-    required String postId,
+    String? postId,
+    String? targetUserId,
     String? reason,
   }) {
+    if ((postId == null || postId.trim().isEmpty) &&
+        (targetUserId == null || targetUserId.trim().isEmpty)) {
+      throw ArgumentError('postId 和 targetUserId 至少提供一个');
+    }
     return _apiClient.post(
       ApiEndpoints.dmRequests,
       body: <String, dynamic>{
-        'postId': postId,
+        if (postId != null && postId.trim().isNotEmpty) 'postId': postId.trim(),
+        if (targetUserId != null && targetUserId.trim().isNotEmpty)
+          'targetUserId': targetUserId.trim(),
         if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
       },
     );

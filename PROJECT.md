@@ -102,7 +102,7 @@ xduWhisperBox/
 │   ├── models/                     # 数据模型
 │   ├── repositories/               # Repository 层
 │   └── widgets/                    # 公共组件
-├── lib_mobile/                     # Flutter 移动端（Android / iOS）
+├── lib/mobile/                     # Flutter 移动端（Android / iOS）
 │   ├── core/                       # 核心基础设施
 │   ├── features/                   # 功能模块
 │   └── main.dart                   # 移动端入口
@@ -132,6 +132,7 @@ xduWhisperBox/
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+6 | 2026-03-25 | 清理重复移动端目录，删除旧 `lib_mobile/`，保留 `lib/mobile/` 作为唯一移动端源码目录；同步项目文档中的移动端路径说明 |
 | 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
 | 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
 | 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
@@ -153,13 +154,13 @@ xduWhisperBox/
 
 | 功能名称 | 描述 | 当前实现平台 |
 |----------|------|-------------|
-| 移动端整体 UI 风格 | Twitter/Instagram 风格重构：纯白背景、无卡片/无圆角/无阴影、紧凑布局、频道彩色圆点、FAB 发帖按钮 | 仅移动端（`lib_mobile/`） |
+| 移动端整体 UI 风格 | Twitter/Instagram 风格重构：纯白背景、无卡片/无圆角/无阴影、紧凑布局、频道彩色圆点、FAB 发帖按钮 | 仅移动端（`lib/mobile/`） |
 | 个人主页（ProfilePage） | 背景色条 + 重叠头像 + 统计行 + Tab（帖子/收藏/动态）+ 右上角设置入口 | 仅移动端 |
 | 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 关于 / 退出登录；注销账号双重确认流程 | 仅移动端 |
 | 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 |
 | 帖子详情页（PostDetailPage） | 紧凑布局、底部操作栏压缩、AvatarWidget 头像 | 仅移动端 |
 | 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退 | 仅移动端 |
-| AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib_mobile/features/widgets/`） |
+| AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib/mobile/features/widgets/`） |
 | 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
 | 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
 | 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
@@ -168,4 +169,4 @@ xduWhisperBox/
 
 ---
 
-*最后更新：2026-03-25（v0.1.0+5）*
+*最后更新：2026-03-25（v0.1.0+6）*
