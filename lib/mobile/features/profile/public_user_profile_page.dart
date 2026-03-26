@@ -100,23 +100,20 @@ class _PublicUserProfilePageState
     if (mounted) setState(() => _followLoading = false);
   }
 
-  Future<void> _handleDmRequest() async {
+  Future<void> _handleDm() async {
+    if (_profile == null) return;
+    final messageRepo = ref.read(messageRepositoryProvider);
     try {
-      final messageRepo = ref.read(messageRepositoryProvider);
-      // Find a post to use as postId for DM request
-      final postId = _posts.isNotEmpty ? _posts.first.id : widget.userId;
-      await messageRepo.createDmRequest(postId: postId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已发送私信申请，等待对方同意')),
-        );
-      }
+      final conversation = await messageRepo.createDirectConversation(widget.userId);
+      if (!mounted) return;
+      context.push(
+        '/chat/${conversation.id}?name=${Uri.encodeComponent(conversation.name)}&avatar=${Uri.encodeComponent(conversation.avatarUrl)}&userId=${Uri.encodeComponent(conversation.peerUserId)}',
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发送失败: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('无法发起私信: $e')),
+      );
     }
   }
 
@@ -193,16 +190,20 @@ class _PublicUserProfilePageState
                         children: [
                           Transform.translate(
                             offset: const Offset(0, -24),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: MobileTheme.surface, width: 4),
-                              ),
-                              child: AvatarWidget(
-                                avatarUrl: profile.avatarUrl,
-                                nickname: profile.nickname,
-                                radius: 36,
+                            child: InkWell(
+                              onTap: () => context.push('/user/${profile.id}'),
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: MobileTheme.surface, width: 4),
+                                ),
+                                child: AvatarWidget(
+                                  avatarUrl: profile.avatarUrl,
+                                  nickname: profile.nickname,
+                                  radius: 36,
+                                ),
                               ),
                             ),
                           ),
@@ -219,7 +220,7 @@ class _PublicUserProfilePageState
                                   ),
                                 if (profile.canDirectMessage) ...[
                                   const SizedBox(width: 8),
-                                  _DmButton(onTap: _handleDmRequest),
+                                  _DmButton(onTap: _handleDm),
                                 ],
                               ],
                             ),

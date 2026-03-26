@@ -139,6 +139,7 @@ xduWhisperBox/
 | 0.1.0+4 | 2026-03-25 | 重构底部导航（3 Tab：首页/消息/我的）；搜索入口移至首页 AppBar；管理员后台修复（使用真实 Web 端 AdminConsolePage）；实现关注/粉丝系统（API 端点 + Repository + 个人主页底部弹窗列表 + 好友标记）；消息页移除私信申请 Tab，改为首条消息警告横幅；帮助与反馈入口加入登录/注册页；头像点击逻辑（自己帖子跳我的主页，其他提示暂不支持）；管理员控制台恢复完整功能 |
 | 0.1.0+5 | 2026-03-25 | 修复消息页加载不出（`MessagesPage` 恢复 `ConsumerStatefulWidget`，`initState` 触发 `loadInitial()`）；修复头像点击逻辑（自己帖子跳转 `/profile`，其他帖子提示「暂不支持查看该用户主页」） |
 | 0.1.0+8 | 2026-03-26 | **后端**：评论列表 API 新增 `authorAvatar` 和 `authorUserId` 字段；帖子列表 API 支持 `authorId` 查询参数；**数据模型**：`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段，`CommentItem` 新增 `authorUserId` 字段；**移动端**：发帖页/主页频道列表将"其他"改名为"综合"；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；帖子详情页作者头像同理；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；我的页面：统计行删除"收藏"数字、TabBar 保持3个Tab、帖子Tab和收藏Tab改为图文卡片 `PostCard` 视图 |
+| 0.1.0+9 | 2026-03-26 | **后端**：新增 `POST /api/messages/conversations/direct` 端点（微信模式，无需申请直接创建/进入会话）；**移动端**：私信按钮改为直接进入或创建会话（替代原申请制流程）；他人主页头像点击跳转其个人主页；消息页新增 TabBar（会话列表 + 私信申请管理）；会话列表左滑删除；聊天页 AppBar 头像+昵称可点击进入对方主页；聊天页菜单新增屏蔽/解除屏蔽入口；聊天页消息气泡长按弹出操作菜单（复制/删除）；消息未读红点 Badge 跟随 Tab 栏显示 |
 
 ## 4. 构建记录
 
@@ -160,14 +161,15 @@ xduWhisperBox/
 | 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 关于 / 退出登录；注销账号双重确认流程 | 仅移动端 |
 | 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 |
 | 帖子详情页（PostDetailPage） | 紧凑布局、底部操作栏压缩、AvatarWidget 头像 | 仅移动端 |
-| 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退 | 仅移动端 |
+| 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退；新增私信申请 Tab | 仅移动端 |
 | AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib/mobile/features/widgets/`） |
 | 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
 | 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
 | 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
+| 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；聊天页消息气泡长按菜单（复制/删除）；屏蔽/解除屏蔽入口 | 仅移动端 |
 | 匿名头像点击提示 | 非自己帖子头像点击弹出 SnackBar「暂不支持查看该用户主页」；自己帖子点击跳转 `/profile` | ~~已废弃~~ 现已实现：非匿名帖点击头像跳转 `/user/:id` 公开主页，支持关注和私信 |
 | 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
 
 ---
 
-*最后更新：2026-03-26（v0.1.0+8）*
+*最后更新：2026-03-26（v0.1.0+9）*

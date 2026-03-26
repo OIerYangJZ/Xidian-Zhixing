@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,12 +13,14 @@ class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
   final String? peerName;
   final String? peerAvatar;
+  final String? peerUserId;
 
   const ChatPage({
     super.key,
     required this.conversationId,
     this.peerName,
     this.peerAvatar,
+    this.peerUserId,
   });
 
   @override
@@ -35,6 +38,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _isSending = false;
   bool _showEmoji = false;
   bool _firstMessageWarningDismissed = false;
+  bool _blockedByMe = false;
 
   @override
   void initState() {
@@ -64,9 +68,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ref.read(messagesControllerProvider.notifier).markConversationRead(
         widget.conversationId,
       );
+
+      // 查找会话的屏蔽状态
+      final conversations = ref.read(messagesControllerProvider).conversations;
+      final conversation = conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+
       if (mounted) {
         setState(() {
           _messages = messages;
+          _blockedByMe = conversation?.blockedByMe ?? false;
           _isLoading = false;
         });
         _scrollToBottom();
@@ -211,41 +221,46 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: Row(
-          children: [
-            // 头像
-            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                backgroundImage: NetworkImage(widget.peerAvatar!),
-              )
-            else
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                child: Text(
-                  (widget.peerName ?? '用户').substring(0, 1),
-                  style: const TextStyle(
-                    color: MobileTheme.primary,
-                    fontWeight: FontWeight.w600,
+        title: GestureDetector(
+          onTap: widget.peerUserId != null
+              ? () => context.push('/user/${widget.peerUserId}')
+              : null,
+          child: Row(
+            children: [
+              // 头像
+              if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                  backgroundImage: NetworkImage(widget.peerAvatar!),
+                )
+              else
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                  child: Text(
+                    (widget.peerName ?? '用户').substring(0, 1),
+                    style: const TextStyle(
+                      color: MobileTheme.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.peerName ?? '聊天',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.peerName ?? '聊天',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -441,36 +456,39 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
                 // 消息气泡
-                Container(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.7,
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isMe ? MobileTheme.primary : MobileTheme.surface,
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(18),
-                      topRight: const Radius.circular(18),
-                      bottomLeft: Radius.circular(isMe ? 18 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 18),
+                GestureDetector(
+                  onLongPress: () => _showMessageActions(message),
+                  child: Container(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.7,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isMe ? MobileTheme.primary : MobileTheme.surface,
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(isMe ? 18 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 18),
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: isMe ? Colors.white : MobileTheme.textPrimary,
-                      height: 1.4,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      message.content,
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: isMe ? Colors.white : MobileTheme.textPrimary,
+                        height: 1.4,
+                      ),
                     ),
                   ),
                 ),
@@ -526,6 +544,49 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
     _messageController.text = failedMessage.content;
     _handleSend();
+  }
+
+  void _showMessageActions(DirectMessageItem message) {
+    final isMe = message.fromMe;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MobileTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.content_copy, color: MobileTheme.textSecondary),
+              title: const Text('复制'),
+              onTap: () async {
+                Navigator.pop(context);
+                await Clipboard.setData(ClipboardData(text: message.content));
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('已复制到剪贴板')),
+                  );
+                }
+              },
+            ),
+            if (isMe)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
+                title: const Text('删除'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  setState(() {
+                    _messages.removeWhere((m) => m.id == message.id);
+                  });
+                },
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInputArea() {
@@ -830,8 +891,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.block, color: MobileTheme.error),
-              title: const Text('屏蔽对方'),
+              leading: Icon(
+                _blockedByMe ? Icons.check_circle_outline : Icons.block,
+                color: MobileTheme.error,
+              ),
+              title: Text(_blockedByMe ? '解除屏蔽' : '屏蔽对方'),
               onTap: () {
                 Navigator.pop(context);
                 _confirmBlockUser();
@@ -843,7 +907,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               title: const Text('查看对方主页'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: 导航到用户主页
+                if (widget.peerUserId != null) {
+                  context.push('/user/${widget.peerUserId}');
+                }
               },
             ),
             const SizedBox(height: 8),
@@ -868,8 +934,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             onPressed: () async {
               Navigator.pop(dialogContext);
               try {
-                final messageRepo = ref.read(messageRepositoryProvider);
-                await messageRepo.deleteConversation(widget.conversationId);
+                ref
+                    .read(messagesControllerProvider.notifier)
+                    .deleteConversation(widget.conversationId);
                 if (mounted) {
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -893,11 +960,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _confirmBlockUser() {
+    final isBlocking = !_blockedByMe;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('屏蔽对方'),
-        content: const Text('确定要屏蔽对方吗？屏蔽后对方将无法给你发送消息。'),
+        title: Text(isBlocking ? '屏蔽对方' : '解除屏蔽'),
+        content: Text(
+          isBlocking
+              ? '确定要屏蔽对方吗？屏蔽后对方将无法给你发送消息。'
+              : '确定要解除屏蔽吗？解除后对方可以继续给你发消息。',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -910,11 +982,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 final messageRepo = ref.read(messageRepositoryProvider);
                 await messageRepo.updateConversationBlock(
                   conversationId: widget.conversationId,
-                  block: true,
+                  block: isBlocking,
                 );
                 if (mounted) {
+                  setState(() {
+                    _blockedByMe = isBlocking;
+                  });
+                  ref.read(messagesControllerProvider.notifier).updateConversationFlags(
+                    conversationId: widget.conversationId,
+                    blockedByMe: isBlocking,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已屏蔽对方')),
+                    SnackBar(
+                      content: Text(isBlocking ? '已屏蔽对方' : '已解除屏蔽'),
+                    ),
                   );
                 }
               } catch (e) {
@@ -925,8 +1006,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 }
               }
             },
-            style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            child: const Text('屏蔽'),
+            style: TextButton.styleFrom(
+              foregroundColor: isBlocking ? MobileTheme.error : MobileTheme.primary,
+            ),
+            child: Text(isBlocking ? '屏蔽' : '解除屏蔽'),
           ),
         ],
       ),

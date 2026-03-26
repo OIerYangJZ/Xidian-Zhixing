@@ -171,6 +171,7 @@ final appRouter = GoRouter(
           conversationId: conversationId,
           peerName: extra['name'],
           peerAvatar: extra['avatar'],
+          peerUserId: extra['userId'],
         );
       },
     ),

@@ -252,23 +252,20 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     }
   }
 
-  void _handleDmRequest() async {
+  void _handleDm() async {
     if (_post == null || !_post!.canMessageAuthor) return;
-
     try {
       final messageRepo = ref.read(messageRepositoryProvider);
-      await messageRepo.createDmRequest(postId: widget.postId);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('已发送私信申请，等待对方同意')),
-        );
-      }
+      final conversation = await messageRepo.createDirectConversation(_post!.authorUserId);
+      if (!mounted) return;
+      context.push(
+        '/chat/${conversation.id}?name=${Uri.encodeComponent(conversation.name)}&avatar=${Uri.encodeComponent(conversation.avatarUrl)}',
+      );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发送失败: $e')),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('无法发起私信: $e')),
+      );
     }
   }
 
@@ -556,7 +553,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 // 私信按钮
                 if (post.canMessageAuthor)
                   TextButton.icon(
-                    onPressed: _handleDmRequest,
+                    onPressed: _handleDm,
                     icon: const Icon(Icons.mail_outline, size: 16),
                     label: const Text('私信'),
                     style: TextButton.styleFrom(

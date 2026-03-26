@@ -37,6 +37,7 @@ class ApiEndpoints {
 
   static const String dmRequests = '/messages/requests';
   static const String conversations = '/messages/conversations';
+  static const String directConversation = '/messages/conversations/direct';
 
   static const String adminOverview = '/admin/overview';
   static const String adminLogin = '/admin/auth/login';

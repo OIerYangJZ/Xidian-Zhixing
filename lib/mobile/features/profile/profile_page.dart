@@ -93,33 +93,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
 
     return Scaffold(
       backgroundColor: MobileTheme.background,
+      appBar: AppBar(
+        backgroundColor: MobileTheme.surface,
+        scrolledUnderElevation: 0.5,
+        toolbarHeight: 48,
+        title: Text(
+          user?.nickname ?? '我的',
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: MobileTheme.textPrimary,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined,
+                color: MobileTheme.textPrimary, size: 22),
+            onPressed: () => context.push('/profile/settings/main'),
+          ),
+        ],
+      ),
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            // 紧凑顶部 AppBar
-            SliverAppBar(
-              pinned: true,
-              backgroundColor: MobileTheme.surface,
-              scrolledUnderElevation: 0.5,
-              toolbarHeight: 48,
-              title: Text(
-                user?.nickname ?? '我的',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
-                ),
-              ),
-              centerTitle: false,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined,
-                      color: MobileTheme.textPrimary, size: 22),
-                  onPressed: () => context.push('/profile/settings/main'),
-                ),
-              ],
-            ),
-
             // 个人信息区
             SliverToBoxAdapter(
               child: Container(

@@ -110,4 +110,13 @@ class MessageRepository {
       ...data,
     });
   }
+
+  Future<ConversationItem> createDirectConversation(String targetUserId) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.directConversation,
+      body: <String, dynamic>{'targetUserId': targetUserId.trim()},
+    );
+    final Map<String, dynamic> data = extractMap(response);
+    return ConversationItem.fromJson(data);
+  }
 }

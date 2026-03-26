@@ -175,6 +175,13 @@ class MessagesController extends StateNotifier<MessagesState> {
     state = state.copyWith(conversations: rows, clearError: true);
   }
 
+  Future<void> deleteConversation(String conversationId) async {
+    try {
+      await _ref.read(messageRepositoryProvider).deleteConversation(conversationId);
+    } catch (_) {}
+    removeConversation(conversationId);
+  }
+
   String _formatNowTime() {
     final DateTime now = DateTime.now();
     final String hh = now.hour.toString().padLeft(2, '0');

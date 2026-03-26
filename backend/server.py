@@ -4331,6 +4331,109 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 send_json(self, HTTPStatus.OK, {"data": result})
                 return
 
+            # POST /api/messages/conversations/direct  — 直接创建/查找会话（微信模式，无需申请）
+            if method == "POST" and path == "/api/messages/conversations/direct":
+                user, _ = require_authorized_user(self, db)
+                if user is None:
+                    return
+                body = read_json_body(self)
+                target_user_id = str(body.get("targetUserId", "")).strip()
+                if not target_user_id:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "缺少目标用户")
+                    return
+                if target_user_id == user["id"]:
+                    json_error(self, HTTPStatus.BAD_REQUEST, "不能给自己发私信")
+                    return
+                target_user = find_user_by_id(db, target_user_id)
+                if target_user is None:
+                    json_error(self, HTTPStatus.NOT_FOUND, "目标用户不存在")
+                    return
+                if is_user_blocked(db, user["id"], target_user_id):
+                    json_error(self, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发私信")
+                    return
+                if is_user_blocked(db, target_user_id, user["id"]):
+                    json_error(self, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发私信")
+                    return
+                now = now_iso()
+                # 查找已有会话
+                existing = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("userId") == user["id"]
+                        and row.get("peerUserId") == target_user_id
+                    ),
+                    None,
+                )
+                if existing is not None:
+                    existing["deleted"] = False
+                    existing["updatedAt"] = now
+                    save_db(db)
+                    blocked_by_me, blocked_by_peer = conversation_block_state(
+                        db,
+                        viewer_user_id=str(user.get("id", "")),
+                        peer_user_id=target_user_id,
+                    )
+                    send_json(
+                        self,
+                        HTTPStatus.OK,
+                        {
+                            "data": {
+                                "id": existing.get("id", ""),
+                                "peerUserId": target_user_id,
+                                "name": user_nickname(target_user),
+                                "avatarUrl": user_avatar_url(target_user),
+                                "lastMessage": existing.get("lastMessage", "") or "开始聊天吧",
+                                "timeText": iso_to_time_text(existing.get("updatedAt")),
+                                "unreadCount": max(0, int(existing.get("unreadCount", 0))),
+                                "hasUnread": int(existing.get("unreadCount", 0)) > 0,
+                                "blockedByMe": blocked_by_me,
+                                "blockedByPeer": blocked_by_peer,
+                            }
+                        },
+                    )
+                    return
+                # 创建新会话
+                sync_conversation_pair(
+                    db,
+                    left_user_id=user["id"],
+                    right_user_id=target_user_id,
+                    last_message="开始聊天吧",
+                    updated_at=now,
+                )
+                new_conv = next(
+                    (
+                        row
+                        for row in db.get("conversations", [])
+                        if row.get("userId") == user["id"]
+                        and row.get("peerUserId") == target_user_id
+                    ),
+                    None,
+                )
+                save_db(db)
+                if new_conv:
+                    send_json(
+                        self,
+                        HTTPStatus.CREATED,
+                        {
+                            "data": {
+                                "id": new_conv.get("id", ""),
+                                "peerUserId": target_user_id,
+                                "name": user_nickname(target_user),
+                                "avatarUrl": user_avatar_url(target_user),
+                                "lastMessage": "开始聊天吧",
+                                "timeText": iso_to_time_text(now),
+                                "unreadCount": 0,
+                                "hasUnread": False,
+                                "blockedByMe": False,
+                                "blockedByPeer": False,
+                            }
+                        },
+                    )
+                else:
+                    json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "会话创建失败")
+                return
+
             if path == "/api/users/me/following":
                 user, _ = require_authorized_user(self, db)
                 if user is None:
