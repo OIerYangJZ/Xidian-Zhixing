@@ -217,6 +217,7 @@ class PostRepository {
               ? input.anonymousAlias!.trim()
               : '匿名同学')
           : '我的昵称',
+      isAnonymous: input.useAnonymousAlias,
       createdAt: DateTime.now(),
       hasImage: input.hasImage || input.imageUploadIds.isNotEmpty,
       commentCount: 0,
@@ -224,7 +225,7 @@ class PostRepository {
       favoriteCount: 0,
       status: input.status,
       allowComment: input.allowComment,
-      allowDm: input.allowDm,
+      allowDm: input.useAnonymousAlias ? false : input.allowDm,
       isPinned: (input.pinDurationMinutes ?? 0) > 0,
       pinDurationMinutes: input.pinDurationMinutes ?? 0,
     );

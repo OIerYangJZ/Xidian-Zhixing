@@ -28,6 +28,7 @@ import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/admin/admin_login_page.dart';
 import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
+import 'package:xdu_treehole_web/features/profile/public_user_profile_page.dart';
 import 'package:xdu_treehole_web/features/legal/terms_of_service_page.dart';
 import 'package:xdu_treehole_web/features/legal/privacy_policy_page.dart';
 import 'package:xdu_treehole_web/features/legal/community_guidelines_page.dart';
@@ -177,6 +178,13 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationCenterPage(),
+    ),
+    GoRoute(
+      path: '/users/:userId',
+      builder: (context, state) {
+        final userId = state.pathParameters['userId']!;
+        return PublicUserProfilePage(userId: userId);
+      },
     ),
     GoRoute(
       path: '/profile/change-password',

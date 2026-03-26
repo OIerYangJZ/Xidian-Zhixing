@@ -252,6 +252,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                           fontSize: 14, fontWeight: FontWeight.w600),
                       unselectedLabelStyle: const TextStyle(
                           fontSize: 14, fontWeight: FontWeight.w500),
+                      isScrollable: false,
                       tabs: const [
                         Tab(text: '帖子'),
                         Tab(text: '收藏'),

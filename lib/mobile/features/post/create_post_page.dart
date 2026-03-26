@@ -212,7 +212,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         channel: _selectedChannel == '全部' ? '全部' : _selectedChannel,
         tags: _selectedTags,
         allowComment: _allowComment,
-        allowDm: _allowDm,
+        allowDm: _isAnonymous ? false : _allowDm,
         status: _postStatus,
         hasImage: _selectedImages.isNotEmpty,
         imageUploadIds: _uploadedImageIds,
@@ -562,6 +562,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                             setState(() {
                               _isAnonymous = !_isAnonymous;
                               if (_isAnonymous) {
+                                _allowDm = false;
                                 if (_anonymousAlias.isEmpty) {
                                   _anonymousAlias = _generateAnonymousAlias();
                                 }
@@ -574,11 +575,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         // 可见性选项
                         _VisibilitySelector(
                           allowComment: _allowComment,
-                          allowDm: _allowDm,
+                          allowDm: _isAnonymous ? false : _allowDm,
+                          allowDmEnabled: !_isAnonymous,
                           onChanged: (comment, dm) {
                             setState(() {
                               _allowComment = comment;
-                              _allowDm = dm;
+                              _allowDm = _isAnonymous ? false : dm;
                             });
                           },
                         ),
@@ -971,11 +973,13 @@ class _ToolbarIconButton extends StatelessWidget {
 class _VisibilitySelector extends StatelessWidget {
   final bool allowComment;
   final bool allowDm;
+  final bool allowDmEnabled;
   final Function(bool comment, bool dm) onChanged;
 
   const _VisibilitySelector({
     required this.allowComment,
     required this.allowDm,
+    required this.allowDmEnabled,
     required this.onChanged,
   });
 
@@ -1010,13 +1014,15 @@ class _VisibilitySelector extends StatelessWidget {
       onSelected: (value) {
         switch (value) {
           case 'all':
-            onChanged(true, true);
+            onChanged(true, allowDmEnabled);
             break;
           case 'comment':
             onChanged(true, false);
             break;
           case 'dm':
-            onChanged(false, true);
+            if (allowDmEnabled) {
+              onChanged(false, true);
+            }
             break;
           case 'private':
             onChanged(false, false);
@@ -1027,8 +1033,8 @@ class _VisibilitySelector extends StatelessWidget {
         _buildVisibilityItem(
           'all',
           Icons.public,
-          '所有人可见',
-          allowComment && allowDm,
+          allowDmEnabled ? '所有人可见' : '允许评论',
+          allowDmEnabled ? (allowComment && allowDm) : (allowComment && !allowDm),
         ),
         _buildVisibilityItem(
           'comment',
@@ -1036,12 +1042,13 @@ class _VisibilitySelector extends StatelessWidget {
           '仅允许评论',
           allowComment && !allowDm,
         ),
-        _buildVisibilityItem(
-          'dm',
-          Icons.mail_outline,
-          '仅允许私信',
-          !allowComment && allowDm,
-        ),
+        if (allowDmEnabled)
+          _buildVisibilityItem(
+            'dm',
+            Icons.mail_outline,
+            '仅允许私信',
+            !allowComment && allowDm,
+          ),
         _buildVisibilityItem(
           'private',
           Icons.lock_outline,

@@ -15,6 +15,15 @@ class UserProfile {
     required this.isAdmin,
     required this.levelUpgradeRequest,
     required this.accountCancellationRequest,
+    this.userId = '',
+    this.postCount = 0,
+    this.followingCount = 0,
+    this.followerCount = 0,
+    this.isFollowing = false,
+    this.isFollower = false,
+    this.isOwnProfile = false,
+    this.canFollow = false,
+    this.canDirectMessage = false,
   });
 
   final String nickname;
@@ -32,6 +41,17 @@ class UserProfile {
   final bool isAdmin;
   final UserLevelRequestSummary? levelUpgradeRequest;
   final AccountCancellationRequestSummary? accountCancellationRequest;
+  final String userId;
+  final int postCount;
+  final int followingCount;
+  final int followerCount;
+  final bool isFollowing;
+  final bool isFollower;
+  final bool isOwnProfile;
+  final bool canFollow;
+  final bool canDirectMessage;
+
+  bool get isMutual => isFollowing && isFollower;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final String nickname =
@@ -65,6 +85,15 @@ class UserProfile {
               ),
             )
           : null,
+      userId: (json['id'] ?? json['userId'] ?? '').toString(),
+      postCount: _toInt(json['postCount']) ?? 0,
+      followingCount: _toInt(json['followingCount']) ?? 0,
+      followerCount: _toInt(json['followerCount']) ?? 0,
+      isFollowing: _toBool(json['isFollowing']) ?? false,
+      isFollower: _toBool(json['isFollower']) ?? false,
+      isOwnProfile: _toBool(json['isOwnProfile']) ?? false,
+      canFollow: _toBool(json['canFollow']) ?? false,
+      canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
     );
   }
 
@@ -82,6 +111,15 @@ class UserProfile {
     bool? isAdmin,
     UserLevelRequestSummary? levelUpgradeRequest,
     AccountCancellationRequestSummary? accountCancellationRequest,
+    String? userId,
+    int? postCount,
+    int? followingCount,
+    int? followerCount,
+    bool? isFollowing,
+    bool? isFollower,
+    bool? isOwnProfile,
+    bool? canFollow,
+    bool? canDirectMessage,
   }) {
     return UserProfile(
       nickname: nickname ?? this.nickname,
@@ -100,6 +138,15 @@ class UserProfile {
       levelUpgradeRequest: levelUpgradeRequest ?? this.levelUpgradeRequest,
       accountCancellationRequest:
           accountCancellationRequest ?? this.accountCancellationRequest,
+      userId: userId ?? this.userId,
+      postCount: postCount ?? this.postCount,
+      followingCount: followingCount ?? this.followingCount,
+      followerCount: followerCount ?? this.followerCount,
+      isFollowing: isFollowing ?? this.isFollowing,
+      isFollower: isFollower ?? this.isFollower,
+      isOwnProfile: isOwnProfile ?? this.isOwnProfile,
+      canFollow: canFollow ?? this.canFollow,
+      canDirectMessage: canDirectMessage ?? this.canDirectMessage,
     );
   }
 

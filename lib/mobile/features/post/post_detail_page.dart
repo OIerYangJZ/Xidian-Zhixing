@@ -36,6 +36,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   bool _isLiking = false;
   bool _isFavoriting = false;
   bool _isPostingComment = false;
+  bool _isFollowing = false;
 
   // 回复状态
   CommentItem? _replyingTo;
@@ -252,7 +253,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _handleDmRequest() async {
-    if (_post == null) return;
+    if (_post == null || !_post!.canMessageAuthor) return;
 
     try {
       final messageRepo = ref.read(messageRepositoryProvider);
@@ -267,6 +268,50 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('发送失败: $e')),
         );
+      }
+    }
+  }
+
+  Future<void> _handleFollowAuthor() async {
+    final post = _post;
+    if (post == null ||
+        _isFollowing ||
+        !post.canFollowAuthor ||
+        post.authorUserId.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _isFollowing = true;
+    });
+    try {
+      final userRepo = ref.read(userRepositoryProvider);
+      if (post.isFollowingAuthor) {
+        await userRepo.unfollowUser(post.authorUserId);
+      } else {
+        await userRepo.followUser(post.authorUserId);
+      }
+      if (!mounted) {
+        return;
+      }
+      final bool nextFollowing = !post.isFollowingAuthor;
+      setState(() {
+        _post = post.copyWith(isFollowingAuthor: nextFollowing);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(nextFollowing ? '关注成功' : '已取消关注')),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('操作失败: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFollowing = false;
+        });
       }
     }
   }
@@ -493,8 +538,23 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                     ],
                   ),
                 ),
+                if (post.canFollowAuthor && post.authorUserId.isNotEmpty)
+                  TextButton.icon(
+                    onPressed: _isFollowing ? null : _handleFollowAuthor,
+                    icon: Icon(
+                      post.isFollowingAuthor
+                          ? Icons.person_remove_alt_1_outlined
+                          : Icons.person_add_alt_1_outlined,
+                      size: 16,
+                    ),
+                    label: Text(post.isFollowingAuthor ? '取消关注' : '关注'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: MobileTheme.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                    ),
+                  ),
                 // 私信按钮
-                if (post.allowDm && !post.isOwnPost)
+                if (post.canMessageAuthor)
                   TextButton.icon(
                     onPressed: _handleDmRequest,
                     icon: const Icon(Icons.mail_outline, size: 16),

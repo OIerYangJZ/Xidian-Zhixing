@@ -52,6 +52,8 @@ class PostItem {
     required this.channel,
     required this.tags,
     required this.authorAlias,
+    this.authorUserId = '',
+    this.authorAvatarUrl = '',
     required this.createdAt,
     required this.hasImage,
     required this.commentCount,
@@ -60,12 +62,16 @@ class PostItem {
     required this.status,
     required this.allowComment,
     required this.allowDm,
+    this.isAnonymous = false,
     this.isPinned = false,
     this.pinStartedAt,
     this.pinExpiresAt,
     this.pinDurationMinutes = 0,
     this.pinDurationLabel = '',
     this.canMessageAuthor = false,
+    this.canViewAuthorProfile = false,
+    this.canFollowAuthor = false,
+    this.isFollowingAuthor = false,
     this.isOwnPost = false,
     this.isFavorited = false,
     this.isLiked = false,
@@ -82,6 +88,8 @@ class PostItem {
   final String channel;
   final List<String> tags;
   final String authorAlias;
+  final String authorUserId;
+  final String authorAvatarUrl;
   final DateTime createdAt;
   final bool hasImage;
   final int commentCount;
@@ -90,12 +98,16 @@ class PostItem {
   final PostStatus status;
   final bool allowComment;
   final bool allowDm;
+  final bool isAnonymous;
   final bool isPinned;
   final DateTime? pinStartedAt;
   final DateTime? pinExpiresAt;
   final int pinDurationMinutes;
   final String pinDurationLabel;
   final bool canMessageAuthor;
+  final bool canViewAuthorProfile;
+  final bool canFollowAuthor;
+  final bool isFollowingAuthor;
   final bool isOwnPost;
   final bool isFavorited;
   final bool isLiked;
@@ -122,6 +134,8 @@ class PostItem {
       authorAlias:
           _str(json, <String>['authorAlias', 'anonymousName', 'alias']) ??
               '匿名同学',
+      authorUserId: _str(json, <String>['authorUserId', 'authorId']) ?? '',
+      authorAvatarUrl: _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
       createdAt:
           _date(json, <String>['createdAt', 'createTime', 'publishTime']) ??
               DateTime.now(),
@@ -134,6 +148,7 @@ class PostItem {
       status: PostStatusCodec.fromDynamic(json['status']),
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
+      isAnonymous: _bool(json, <String>['isAnonymous']) ?? false,
       isPinned: _bool(json, <String>['isPinned']) ?? false,
       pinStartedAt: _date(json, <String>['pinStartedAt']),
       pinExpiresAt: _date(json, <String>['pinExpiresAt']),
@@ -142,6 +157,11 @@ class PostItem {
       canMessageAuthor:
           _bool(json, <String>['canMessageAuthor', 'canContactAuthor']) ??
               false,
+      canViewAuthorProfile:
+          _bool(json, <String>['canViewAuthorProfile']) ?? false,
+      canFollowAuthor: _bool(json, <String>['canFollowAuthor']) ?? false,
+      isFollowingAuthor:
+          _bool(json, <String>['isFollowingAuthor']) ?? false,
       isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
       isLiked: _bool(json, <String>['liked', 'isLiked']) ?? false,
@@ -174,6 +194,8 @@ class PostItem {
     String? channel,
     List<String>? tags,
     String? authorAlias,
+    String? authorUserId,
+    String? authorAvatarUrl,
     DateTime? createdAt,
     bool? hasImage,
     int? commentCount,
@@ -182,12 +204,16 @@ class PostItem {
     PostStatus? status,
     bool? allowComment,
     bool? allowDm,
+    bool? isAnonymous,
     bool? isPinned,
     DateTime? pinStartedAt,
     DateTime? pinExpiresAt,
     int? pinDurationMinutes,
     String? pinDurationLabel,
     bool? canMessageAuthor,
+    bool? canViewAuthorProfile,
+    bool? canFollowAuthor,
+    bool? isFollowingAuthor,
     bool? isOwnPost,
     bool? isFavorited,
     bool? isLiked,
@@ -204,6 +230,8 @@ class PostItem {
       channel: channel ?? this.channel,
       tags: tags ?? this.tags,
       authorAlias: authorAlias ?? this.authorAlias,
+      authorUserId: authorUserId ?? this.authorUserId,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
       createdAt: createdAt ?? this.createdAt,
       hasImage: hasImage ?? this.hasImage,
       commentCount: commentCount ?? this.commentCount,
@@ -212,12 +240,17 @@ class PostItem {
       status: status ?? this.status,
       allowComment: allowComment ?? this.allowComment,
       allowDm: allowDm ?? this.allowDm,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
       isPinned: isPinned ?? this.isPinned,
       pinStartedAt: pinStartedAt ?? this.pinStartedAt,
       pinExpiresAt: pinExpiresAt ?? this.pinExpiresAt,
       pinDurationMinutes: pinDurationMinutes ?? this.pinDurationMinutes,
       pinDurationLabel: pinDurationLabel ?? this.pinDurationLabel,
       canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
+      canViewAuthorProfile:
+          canViewAuthorProfile ?? this.canViewAuthorProfile,
+      canFollowAuthor: canFollowAuthor ?? this.canFollowAuthor,
+      isFollowingAuthor: isFollowingAuthor ?? this.isFollowingAuthor,
       isOwnPost: isOwnPost ?? this.isOwnPost,
       isFavorited: isFavorited ?? this.isFavorited,
       isLiked: isLiked ?? this.isLiked,
