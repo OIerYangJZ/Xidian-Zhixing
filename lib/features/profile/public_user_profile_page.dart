@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
-import '../../models/user_profile.dart';
+import '../../models/public_user_profile.dart';
 
 class PublicUserProfilePage extends ConsumerStatefulWidget {
   const PublicUserProfilePage({
@@ -18,7 +18,7 @@ class PublicUserProfilePage extends ConsumerStatefulWidget {
 }
 
 class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
-  UserProfile? _profile;
+  PublicUserProfile? _profile;
   bool _loading = true;
   bool _busy = false;
   String? _error;
@@ -35,7 +35,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
       _error = null;
     });
     try {
-      final UserProfile profile =
+      final PublicUserProfile profile =
           await ref.read(userRepositoryProvider).fetchUserProfile(widget.userId);
       if (!mounted) {
         return;
@@ -60,8 +60,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   }
 
   Future<void> _toggleFollow() async {
-    final UserProfile? profile = _profile;
-    if (profile == null || _busy || !profile.canFollow || profile.userId.isEmpty) {
+    final PublicUserProfile? profile = _profile;
+    if (profile == null || _busy || !profile.canFollow || profile.id.isEmpty) {
       return;
     }
 
@@ -71,9 +71,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     try {
       final repo = ref.read(userRepositoryProvider);
       if (profile.isFollowing) {
-        await repo.unfollowUser(profile.userId);
+        await repo.unfollowUser(profile.id);
       } else {
-        await repo.followUser(profile.userId);
+        await repo.followUser(profile.id);
       }
       if (!mounted) {
         return;
@@ -99,8 +99,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   }
 
   Future<void> _requestDm() async {
-    final UserProfile? profile = _profile;
-    if (profile == null || profile.userId.isEmpty || _busy) {
+    final PublicUserProfile? profile = _profile;
+    if (profile == null || profile.id.isEmpty || _busy) {
       return;
     }
     final TextEditingController reasonController = TextEditingController();
@@ -140,7 +140,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
         _busy = true;
       });
       await ref.read(messageRepositoryProvider).createDmRequest(
-            targetUserId: profile.userId,
+            targetUserId: profile.id,
             reason: reason,
           );
       _feedback('私信申请已发送，请等待对方处理');
@@ -159,7 +159,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final UserProfile? profile = _profile;
+    final PublicUserProfile? profile = _profile;
 
     return Scaffold(
       appBar: AppBar(title: const Text('个人主页')),
@@ -205,7 +205,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                       '等级：${profile.userLevelLabel}',
                                       style: theme.textTheme.bodyMedium,
                                     ),
-                                    if (profile.verified)
+                                    if (false) // verified field not in PublicUserProfile
                                       Text(
                                         '校验状态：已认证',
                                         style: theme.textTheme.bodySmall,
@@ -231,7 +231,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                               ),
                             ],
                           ),
-                          if (!profile.isOwnProfile) ...<Widget>[
+                          if (profile.canFollow || profile.canDirectMessage) ...<Widget>[
                             const SizedBox(height: 18),
                             Wrap(
                               spacing: 10,
