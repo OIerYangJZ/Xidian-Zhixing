@@ -25,7 +25,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final _contentController = TextEditingController();
   final _imagePicker = ImagePicker();
 
-  String _selectedChannel = '全部';
+  String _selectedChannel = '综合';
   List<String> _selectedTags = [];
   PostStatus _postStatus = PostStatus.ongoing;
 
@@ -71,16 +71,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       final channels = await postRepo.fetchChannels();
       if (mounted) {
         setState(() {
+          // 过滤掉"全部"，它不是真实频道
           _channels = channels.isNotEmpty
-              ? channels
-              : ['全部', '学习', '二手', '找搭子', '失物招领', '吐槽'];
+              ? channels.where((c) => c != '全部').toList()
+              : ['综合', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
           _isLoadingChannels = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _channels = ['全部', '学习', '二手', '找搭子', '失物招领', '吐槽'];
+          _channels = ['全部', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
           _isLoadingChannels = false;
         });
       }

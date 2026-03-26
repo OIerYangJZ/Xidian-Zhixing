@@ -13,6 +13,7 @@ import 'post_card.dart';
 /// 每个频道对应的图标和颜色
 final _channelMeta = {
   '全部': const _ChannelMeta(Icons.grid_view_rounded, MobileTheme.textSecondary),
+  '综合': const _ChannelMeta(Icons.dashboard_rounded, Color(0xFF6B7FD7)),
   '学习': const _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
   '二手': const _ChannelMeta(Icons.sell_rounded, Color(0xFF5EAF7C)),
   '找搭子': const _ChannelMeta(Icons.people_rounded, Color(0xFFE09C5E)),
@@ -123,6 +124,97 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  /// 显示频道选择器底部弹窗
+  void _showChannelPicker(BuildContext context, FeedState feedState) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: MobileTheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: MobileTheme.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              '选择频道',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: MobileTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: GridView.builder(
+                shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.2,
+                ),
+                itemCount: feedState.channels.length,
+                itemBuilder: (context, index) {
+                  final channel = feedState.channels[index];
+                  final isSelected = channel == feedState.selectedChannel;
+                  final meta = _channelMeta[channel];
+                  return GestureDetector(
+                    onTap: () {
+                      ref.read(feedControllerProvider.notifier).switchChannel(channel);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected ? MobileTheme.primary.withValues(alpha: 0.1) : MobileTheme.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                          width: isSelected ? 1.5 : 0.5,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            meta?.icon ?? Icons.grid_view_rounded,
+                            size: 24,
+                            color: isSelected ? MobileTheme.primary : (meta?.color ?? MobileTheme.textSecondary),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            channel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              color: isSelected ? MobileTheme.primary : MobileTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// 将指定 channel chip 滚动到可视区域中央
   void _scrollChannelToCenter(int index) {
     if (!_channelScrollController.hasClients) return;
@@ -156,25 +248,61 @@ class _HomePageState extends ConsumerState<HomePage> {
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // 紧凑型 AppBar：高度 48px，无大标题
+            // 小红书风格 AppBar：频道选择器 + 排序 + 操作按钮全部在顶部
             SliverAppBar(
               pinned: true,
-              expandedHeight: 48,
+              expandedHeight: 56,
               backgroundColor: MobileTheme.surface,
               elevation: 0,
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
-              toolbarHeight: 48,
-              flexibleSpace: const FlexibleSpaceBar(
-                titlePadding: EdgeInsets.only(left: 16, bottom: 14),
-                title: Text(
-                  '树洞',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: MobileTheme.textPrimary,
+              toolbarHeight: 56,
+              title: Row(
+                children: [
+                  // 频道下拉选择器
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _showChannelPicker(context, feedState),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: MobileTheme.background,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _channelMeta[feedState.selectedChannel]?.icon ?? Icons.grid_view_rounded,
+                              size: 16,
+                              color: _channelMeta[feedState.selectedChannel]?.color ?? MobileTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                feedState.selectedChannel,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: MobileTheme.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down, size: 18, color: MobileTheme.textSecondary),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  // 排序切换
+                  _CompactSortToggle(
+                    sort: feedState.sort,
+                    onSortChanged: (sort) => ref.read(feedControllerProvider.notifier).switchSort(sort),
+                  ),
+                ],
               ),
               actions: [
                 IconButton(
@@ -182,40 +310,11 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: () => context.push('/search'),
                 ),
                 IconButton(
-                  icon: const Icon(
-                    Icons.notifications_outlined,
-                    size: 22,
-                  ),
+                  icon: const Icon(Icons.notifications_outlined, size: 22),
                   onPressed: () => context.push('/notifications'),
                 ),
                 const SizedBox(width: 4),
               ],
-            ),
-
-            // 频道横向滚动列表（紧贴 AppBar）
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _ChannelBarDelegate(
-                channels: feedState.channels,
-                selectedChannel: feedState.selectedChannel,
-                scrollController: _channelScrollController,
-                onChannelSelected: (channel, index) {
-                  ref
-                      .read(feedControllerProvider.notifier)
-                      .switchChannel(channel);
-                  _scrollChannelToCenter(index);
-                },
-              ),
-            ),
-
-            // 排序栏（仅 Toggle，移除发帖按钮——由 FAB 承载）
-            SliverToBoxAdapter(
-              child: _SortBar(
-                sort: feedState.sort,
-                onSortChanged: (sort) {
-                  ref.read(feedControllerProvider.notifier).switchSort(sort);
-                },
-              ),
             ),
 
             // 帖子列表（全宽，无外层 margin）
@@ -499,6 +598,78 @@ class _ChannelChip extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// 紧凑型排序 Toggle（用于 AppBar）
+// ---------------------------------------------------------------------------
+class _CompactSortToggle extends StatelessWidget {
+  final PostSort sort;
+  final void Function(PostSort) onSortChanged;
+
+  const _CompactSortToggle({
+    required this.sort,
+    required this.onSortChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: MobileTheme.background,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: MobileTheme.divider, width: 0.5),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _CompactSortOption(
+            icon: Icons.access_time,
+            isSelected: sort == PostSort.latest,
+            onTap: () => onSortChanged(PostSort.latest),
+          ),
+          _CompactSortOption(
+            icon: Icons.local_fire_department,
+            isSelected: sort == PostSort.hot,
+            onTap: () => onSortChanged(PostSort.hot),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactSortOption extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CompactSortOption({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: isSelected ? MobileTheme.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(
+          icon,
+          size: 16,
+          color: isSelected ? MobileTheme.primary : MobileTheme.textTertiary,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 排序栏（仅 Toggle，无发帖按钮）
 // ---------------------------------------------------------------------------
 class _SortBar extends StatelessWidget {
@@ -550,8 +721,8 @@ class _SortToggle extends StatelessWidget {
           ),
           _SortOption(
             label: '热门',
-            isSelected: sort == PostSort.likes,
-            onTap: () => onSortChanged(PostSort.likes),
+            isSelected: sort == PostSort.hot,
+            onTap: () => onSortChanged(PostSort.hot),
           ),
         ],
       ),

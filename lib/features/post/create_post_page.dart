@@ -194,6 +194,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         : (bool value) {
                             setState(() {
                               _useAnonymousAlias = value;
+                              if (value) {
+                                _allowDm = false;
+                              }
                             });
                           },
                     title: const Text('本帖使用匿名身份'),
@@ -232,15 +235,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     contentPadding: EdgeInsets.zero,
                   ),
                   SwitchListTile(
-                    value: _allowDm,
-                    onChanged: isBusy
+                    value: _useAnonymousAlias ? false : _allowDm,
+                    onChanged: isBusy || _useAnonymousAlias
                         ? null
                         : (bool value) {
                             setState(() {
                               _allowDm = value;
                             });
                           },
-                    title: const Text('允许私信'),
+                    title: Text(_useAnonymousAlias ? '匿名帖子不可私信' : '允许私信'),
                     contentPadding: EdgeInsets.zero,
                   ),
                   if (state.isLevelOneUser) ...<Widget>[
@@ -438,7 +441,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               channel: selectedChannel,
               tags: tags,
               allowComment: _allowComment,
-              allowDm: _allowDm,
+              allowDm: _useAnonymousAlias ? false : _allowDm,
               status: _status,
               useAnonymousAlias: _useAnonymousAlias,
               anonymousAlias: _useAnonymousAlias

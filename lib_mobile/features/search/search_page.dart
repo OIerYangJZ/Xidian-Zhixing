@@ -31,10 +31,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   final List<String> _channels = [
     '全部',
     '学习',
-    '二手',
-    '找搭子',
+    '吐槽日常',
     '失物招领',
-    '吐槽',
+    '二手交易',
+    '找搭子',
   ];
 
   final List<String> _hotSearchKeywords = [

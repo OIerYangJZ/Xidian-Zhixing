@@ -128,18 +128,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     // 学号输入框
                     TextFormField(
                       controller: _studentIdController,
-                      keyboardType: TextInputType.number,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
-                        hintText: '学号（8位数字）',
+                        hintText: '学号（如：23011112345）',
                         prefixIcon: Icon(Icons.school_outlined),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '请输入学号';
                         }
-                        if (!RegExp(r'^\d{8}$').hasMatch(value.trim())) {
-                          return '学号必须是8位数字';
+                        if (!RegExp(r'^[0-9A-Za-z]{6,20}$').hasMatch(value.trim())) {
+                          return '学号需为6-20位字母或数字';
                         }
                         return null;
                       },

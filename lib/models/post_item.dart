@@ -71,6 +71,9 @@ class PostItem {
     this.isLiked = false,
     this.imageUrls = const <String>[],
     this.uploadedImageIds = const <String>[],
+    this.isAnonymous = false,
+    this.authorAvatarUrl = '',
+    this.authorUserId = '',
   });
 
   final String id;
@@ -98,6 +101,9 @@ class PostItem {
   final bool isLiked;
   final List<String> imageUrls;
   final List<String> uploadedImageIds;
+  final bool isAnonymous;
+  final String authorAvatarUrl;
+  final String authorUserId;
 
   factory PostItem.fromJson(Map<String, dynamic> json) {
     final dynamic tagsValue = json['tags'] ?? json['tagList'];
@@ -141,6 +147,9 @@ class PostItem {
       isLiked: _bool(json, <String>['liked', 'isLiked']) ?? false,
       imageUrls: _toStringList(imageUrlsValue),
       uploadedImageIds: _toStringList(uploadedImageIdsValue),
+      isAnonymous: _bool(json, <String>['isAnonymous']) ?? false,
+      authorAvatarUrl: _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
+      authorUserId: _str(json, <String>['authorUserId', 'authorId']) ?? '',
     );
   }
 
@@ -184,6 +193,9 @@ class PostItem {
     bool? isLiked,
     List<String>? imageUrls,
     List<String>? uploadedImageIds,
+    bool? isAnonymous,
+    String? authorAvatarUrl,
+    String? authorUserId,
   }) {
     return PostItem(
       id: id ?? this.id,
@@ -211,6 +223,9 @@ class PostItem {
       isLiked: isLiked ?? this.isLiked,
       imageUrls: imageUrls ?? this.imageUrls,
       uploadedImageIds: uploadedImageIds ?? this.uploadedImageIds,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      authorAvatarUrl: authorAvatarUrl ?? this.authorAvatarUrl,
+      authorUserId: authorUserId ?? this.authorUserId,
     );
   }
 

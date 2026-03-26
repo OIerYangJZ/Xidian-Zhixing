@@ -8,7 +8,9 @@ class CommentItem {
     this.authorAvatar,
     this.isLiked = false,
     this.isPinned = false,
+    this.parentId = '',
     this.replies = const [],
+    this.authorUserId = '',
   });
 
   final String id;
@@ -19,7 +21,9 @@ class CommentItem {
   final String? authorAvatar;
   final bool isLiked;
   final bool isPinned;
+  final String parentId;
   final List<CommentItem> replies;
+  final String authorUserId;
 
   /// 兼容旧字段：authorNickname = authorAlias
   String get authorNickname => authorAlias;
@@ -45,10 +49,12 @@ class CommentItem {
       authorAvatar: (json['authorAvatar'] ?? json['avatar'] ?? '').toString(),
       isLiked: json['isLiked'] ?? json['liked'] ?? false,
       isPinned: json['isPinned'] ?? json['pinned'] ?? false,
+      parentId: (json['parentId'] ?? '').toString(),
       replies: (json['replies'] as List<dynamic>?)
               ?.map((r) => CommentItem.fromJson(r as Map<String, dynamic>))
               .toList() ??
           [],
+      authorUserId: (json['authorUserId'] ?? json['authorId'] ?? '').toString(),
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:xdu_treehole_web/models/my_comment_item.dart';
 import 'package:xdu_treehole_web/models/follow_user_item.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
+import '../home/post_card.dart';
 
 /// 个人主页 — Twitter/Instagram 混合风格
 /// 无卡片、无圆角、紧凑信息流布局
@@ -200,18 +201,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                       ),
                     ),
 
-                    const SizedBox(height: 12),
-
                     // 数据统计行（无卡片，紧凑横排）
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: Row(
                         children: [
-                          _StatChip(
-                            label: '收藏',
-                            value: '${user?.favoriteCount ?? 0}',
-                          ),
-                          const SizedBox(width: 20),
                           _StatChip(
                             label: '粉丝',
                             value: '${_followers.length}',
@@ -509,71 +503,31 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
     }
-    return ListView.separated(
+    return ListView.builder(
       itemCount: _posts.length,
-      separatorBuilder: (_, __) =>
-          const Divider(height: 0.5, color: MobileTheme.divider),
       itemBuilder: (context, i) {
         final post = _posts[i];
-        return InkWell(
+        return PostCard(
+          post: post,
           onTap: () => context.push('/post/${post.id}'),
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (post.title.isNotEmpty)
-                  Text(
-                    post.title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: MobileTheme.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                Text(
-                  post.content,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: MobileTheme.textPrimary,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      post.channel,
-                      style: const TextStyle(
-                          fontSize: 12, color: MobileTheme.textSecondary),
-                    ),
-                    const Spacer(),
-                    Icon(Icons.favorite_border,
-                        size: 13, color: MobileTheme.textTertiary),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${post.likeCount}',
-                      style: const TextStyle(
-                          fontSize: 12, color: MobileTheme.textTertiary),
-                    ),
-                    const SizedBox(width: 10),
-                    Icon(Icons.chat_bubble_outline,
-                        size: 13, color: MobileTheme.textTertiary),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${post.commentCount}',
-                      style: const TextStyle(
-                          fontSize: 12, color: MobileTheme.textTertiary),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          onLike: () async {
+            try {
+              final repo = ref.read(postRepositoryProvider);
+              await repo.likePost(post.id);
+              _load();
+            } catch (_) {}
+          },
+          onFavorite: () async {
+            try {
+              final repo = ref.read(postRepositoryProvider);
+              if (post.isFavorited) {
+                await repo.unfavoritePost(post.id);
+              } else {
+                await repo.favoritePost(post.id);
+              }
+              _load();
+            } catch (_) {}
+          },
         );
       },
     );
@@ -619,27 +573,31 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
     }
-    return ListView.separated(
+    return ListView.builder(
       itemCount: _posts.length,
-      separatorBuilder: (_, __) =>
-          const Divider(height: 0.5, color: MobileTheme.divider),
       itemBuilder: (context, i) {
         final post = _posts[i];
-        return ListTile(
-          title: Text(
-            post.title.isNotEmpty ? post.title : post.content,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 15, color: MobileTheme.textPrimary),
-          ),
-          subtitle: Text(
-            post.channel,
-            style: const TextStyle(
-                fontSize: 13, color: MobileTheme.textSecondary),
-          ),
-          trailing: const Icon(Icons.chevron_right,
-              color: MobileTheme.textTertiary),
+        return PostCard(
+          post: post,
           onTap: () => context.push('/post/${post.id}'),
+          onLike: () async {
+            try {
+              final repo = ref.read(postRepositoryProvider);
+              await repo.likePost(post.id);
+              _load();
+            } catch (_) {}
+          },
+          onFavorite: () async {
+            try {
+              final repo = ref.read(postRepositoryProvider);
+              if (post.isFavorited) {
+                await repo.unfavoritePost(post.id);
+              } else {
+                await repo.favoritePost(post.id);
+              }
+              _load();
+            } catch (_) {}
+          },
         );
       },
     );

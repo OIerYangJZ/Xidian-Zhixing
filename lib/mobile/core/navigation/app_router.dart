@@ -13,6 +13,7 @@ import '../../features/home/home_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/messages/messages_page.dart';
 import '../../features/favorites/favorites_page.dart';
+import '../../features/profile/public_user_profile_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/post/post_detail_page.dart';
 import '../../features/post/create_post_page.dart';
@@ -138,6 +139,15 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/favorites',
       builder: (context, state) => const FavoritesPage(),
+    ),
+
+    // 他人主页
+    GoRoute(
+      path: '/user/:id',
+      builder: (context, state) {
+        final userId = state.pathParameters['id']!;
+        return PublicUserProfilePage(userId: userId);
+      },
     ),
 
     // 全屏页面（不在 Tab 内）

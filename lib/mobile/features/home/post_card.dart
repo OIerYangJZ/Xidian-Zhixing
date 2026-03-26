@@ -129,21 +129,18 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildAvatar() {
+    final bool isAnon = widget.post.isAnonymous;
+    final bool hasUserId = widget.post.authorUserId.isNotEmpty;
     return GestureDetector(
       onTap: () {
         if (widget.post.isOwnPost) {
           context.push('/profile');
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('暂不支持查看该用户主页'),
-              duration: Duration(seconds: 2),
-            ),
-          );
+        } else if (!isAnon && hasUserId) {
+          context.push('/user/${widget.post.authorUserId}');
         }
       },
       child: AvatarWidget(
-        avatarUrl: null,
+        avatarUrl: isAnon ? null : widget.post.authorAvatarUrl,
         nickname: widget.post.authorAlias,
         radius: 20,
       ),
@@ -151,6 +148,16 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildContent() {
+    // 检测短文本帖子（无图片，内容<50字）
+    final isShortTextPost = !widget.post.hasImage &&
+                            widget.post.imageUrls.isEmpty &&
+                            widget.post.content.length < 50 &&
+                            widget.post.title.isEmpty;
+
+    if (isShortTextPost) {
+      return _buildShortTextContent();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -186,7 +193,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           overflow: TextOverflow.ellipsis,
         ),
 
-        // 图片网格
+        // 图片网格（大图模式）
         if (widget.post.hasImage && widget.post.imageUrls.isNotEmpty) ...[
           const SizedBox(height: 8),
           _ImageGrid(imageUrls: widget.post.imageUrls),
@@ -201,6 +208,50 @@ class _PostCardState extends ConsumerState<PostCard> {
         const SizedBox(height: 8),
 
         // 底部互动栏
+        _buildActionBar(),
+      ],
+    );
+  }
+
+  /// 短文本大字报效果
+  Widget _buildShortTextContent() {
+    final colors = [
+      const Color(0xFFFFE5E5),
+      const Color(0xFFE5F5FF),
+      const Color(0xFFFFF5E5),
+      const Color(0xFFE5FFE5),
+      const Color(0xFFF5E5FF),
+    ];
+    final bgColor = colors[widget.post.id.hashCode % colors.length];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeaderRow(),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            widget.post.content,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: MobileTheme.textPrimary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        if (widget.post.tags.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _buildTags(),
+        ],
+        const SizedBox(height: 8),
         _buildActionBar(),
       ],
     );
@@ -331,6 +382,7 @@ class _ChannelDot extends StatelessWidget {
 
   static const _channelColors = {
     '全部': MobileTheme.textSecondary,
+    '综合': Color(0xFF6B7FD7),
     '学习': Color(0xFF5E8FD4),
     '二手': Color(0xFF5EAF7C),
     '找搭子': Color(0xFFE09C5E),

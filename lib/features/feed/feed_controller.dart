@@ -7,7 +7,7 @@ import '../../repositories/post_repository.dart';
 class FeedState {
   const FeedState({
     this.selectedChannel = '全部',
-    this.sort = PostSort.latest,
+    this.sort = PostSort.hot,
     this.channels = const <String>['全部'],
     this.posts = const <PostItem>[],
     this.loading = true,

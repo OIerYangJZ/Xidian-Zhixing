@@ -7,6 +7,7 @@ import '../models/follow_user_item.dart';
 import '../models/my_comment_item.dart';
 import '../models/report_item.dart';
 import '../models/user_profile.dart';
+import '../models/public_user_profile.dart';
 
 class UserRepository {
   UserRepository(this._apiClient);
@@ -234,5 +235,15 @@ class UserRepository {
       ApiEndpoints.unfollowUser(userId),
       body: const <String, dynamic>{},
     );
+  }
+
+  Future<PublicUserProfile> fetchUserProfile(String userId) async {
+    final dynamic response =
+        await _apiClient.get(ApiEndpoints.userProfile(userId));
+    final Map<String, dynamic> map = extractMap(response);
+    if (map.isNotEmpty) {
+      return PublicUserProfile.fromJson(map);
+    }
+    throw Exception('用户资料加载失败');
   }
 }

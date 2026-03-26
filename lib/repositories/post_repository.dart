@@ -9,6 +9,7 @@ import '../models/uploaded_image_item.dart';
 
 enum PostSort {
   latest,
+  hot,
   likes,
 }
 
@@ -17,6 +18,8 @@ extension PostSortCodec on PostSort {
     switch (this) {
       case PostSort.latest:
         return 'latest';
+      case PostSort.hot:
+        return 'hot';
       case PostSort.likes:
         return 'likes';
     }
@@ -26,6 +29,8 @@ extension PostSortCodec on PostSort {
     switch (this) {
       case PostSort.latest:
         return '按发布时间';
+      case PostSort.hot:
+        return '综合排序';
       case PostSort.likes:
         return '按点赞量';
     }
@@ -348,6 +353,21 @@ class PostRepository {
       return list
           .map((dynamic item) => PostItem.fromJson(asMap(item)))
           .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
+          .toList();
+    } catch (_) {
+      return const <PostItem>[];
+    }
+  }
+
+  Future<List<PostItem>> fetchUserPosts(String userId) async {
+    try {
+      final Map<String, dynamic> query = {'authorId': userId};
+      final dynamic response =
+          await _apiClient.get(ApiEndpoints.posts, queryParameters: query);
+      final List<dynamic> list = extractList(response);
+      return list
+          .map((dynamic item) => PostItem.fromJson(asMap(item)))
+          .where((PostItem post) => post.id.isNotEmpty)
           .toList();
     } catch (_) {
       return const <PostItem>[];

@@ -69,7 +69,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       if (mounted) {
         setState(() {
           _post = post;
-          _comments = comments;
+          _comments = _buildCommentTree(comments);
           _isLoading = false;
         });
       }
@@ -81,6 +81,35 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         });
       }
     }
+  }
+
+  /// 将扁平的评论列表转换为嵌套树结构
+  List<CommentItem> _buildCommentTree(List<CommentItem> flat) {
+    final Map<String, CommentItem> map = {};
+    for (final c in flat) {
+      map[c.id] = CommentItem(
+        id: c.id,
+        authorAlias: c.authorAlias,
+        content: c.content,
+        createdAt: c.createdAt,
+        likeCount: c.likeCount,
+        authorAvatar: c.authorAvatar,
+        isLiked: c.isLiked,
+        isPinned: c.isPinned,
+        parentId: c.parentId,
+        replies: [],
+      );
+    }
+    final List<CommentItem> roots = [];
+    for (final c in flat) {
+      final node = map[c.id]!;
+      if (c.parentId.isEmpty || !map.containsKey(c.parentId)) {
+        roots.add(node);
+      } else {
+        map[c.parentId]!.replies.add(node);
+      }
+    }
+    return roots;
   }
 
   Future<void> _handleLike() async {
@@ -404,17 +433,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   onTap: () {
                     if (post.isOwnPost) {
                       context.push('/profile');
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('暂不支持查看该用户主页'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
+                    } else if (!post.isAnonymous && post.authorUserId.isNotEmpty) {
+                      context.push('/user/${post.authorUserId}');
                     }
                   },
                   child: AvatarWidget(
-                    avatarUrl: null,
+                    avatarUrl: post.isAnonymous ? null : post.authorAvatarUrl,
                     nickname: post.authorAlias,
                     radius: 20,
                   ),
@@ -620,18 +644,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               ),
             )
           else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _comments.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 60),
-              itemBuilder: (context, index) {
-                return _CommentTile(
-                  comment: _comments[index],
-                  onReply: () => setState(() => _replyingTo = _comments[index]),
-                );
-              },
-            ),
+            _buildCommentList(_comments),
         ],
       ),
     );
@@ -785,6 +798,26 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     );
   }
 
+  /// 递归渲染嵌套评论列表
+  Widget _buildCommentList(List<CommentItem> comments, {bool isNested = false}) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: comments.length,
+      separatorBuilder: (_, __) => isNested
+          ? const SizedBox.shrink()
+          : const Divider(height: 1, indent: 60),
+      itemBuilder: (context, index) {
+        final comment = comments[index];
+        return _CommentTile(
+          comment: comment,
+          indentLevel: isNested ? 1 : 0,
+          onReply: () => setState(() => _replyingTo = comment),
+        );
+      },
+    );
+  }
+
   String _formatTime(DateTime dateTime) {
     final now = DateTime.now();
     final diff = now.difference(dateTime);
@@ -807,103 +840,155 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 class _CommentTile extends StatelessWidget {
   final CommentItem comment;
   final VoidCallback? onReply;
+  final int indentLevel;
 
-  const _CommentTile({required this.comment, this.onReply});
+  const _CommentTile({
+    required this.comment,
+    this.onReply,
+    this.indentLevel = 0,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 头像
-          AvatarWidget(
-            avatarUrl: comment.authorAvatar,
-            nickname: comment.authorAlias,
-            radius: 17,
-          ),
-          const SizedBox(width: 10),
+    // 头像尺寸：每缩进一层缩小2dp，最多缩到10dp
+    final double avatarRadius = (17 - indentLevel * 2).clamp(10, 17).toDouble();
+    // 左侧缩进：每层20dp，最大缩进60dp
+    final double leftPadding = (indentLevel * 20).clamp(0, 60).toDouble();
+    // 最多渲染3层嵌套（indentLevel 0/1/2），超过则不再缩进但继续渲染
+    final int effectiveIndent = indentLevel.clamp(0, 3);
 
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      comment.authorAlias,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: MobileTheme.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      _formatTime(comment.createdAt),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: MobileTheme.textTertiary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  comment.content,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: MobileTheme.textPrimary,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    if (comment.likeCount > 0) ...[
-                      const Icon(
-                        Icons.favorite,
-                        size: 13,
-                        color: MobileTheme.accent,
-                      ),
-                      const SizedBox(width: 3),
-                      Text(
-                        '${comment.likeCount}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: MobileTheme.textTertiary,
-                        ),
-                      ),
-                    ],
-                    const SizedBox(width: 14),
-                    GestureDetector(
-                      onTap: onReply,
-                      child: const Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 左侧缩进 + 竖线
+              SizedBox(
+                width: leftPadding + (effectiveIndent > 0 ? 12 : 16),
+                child: effectiveIndent > 0
+                    ? Row(
                         children: [
-                          Icon(
-                            Icons.reply,
-                            size: 13,
+                          SizedBox(width: leftPadding),
+                          ...List.generate(effectiveIndent, (i) {
+                            return Container(
+                              width: 2,
+                              margin: const EdgeInsets.only(right: 10),
+                              color: MobileTheme.divider,
+                            );
+                          }),
+                        ],
+                      )
+                    : SizedBox(width: leftPadding),
+              ),
+              // 头像
+              GestureDetector(
+                onTap: comment.authorUserId.isNotEmpty
+                    ? () => context.push('/user/${comment.authorUserId}')
+                    : null,
+                child: AvatarWidget(
+                  avatarUrl: comment.authorAvatar,
+                  nickname: comment.authorAlias,
+                  radius: avatarRadius,
+                ),
+              ),
+              const SizedBox(width: 10),
+              // 内容
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            comment.authorAlias,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: MobileTheme.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _formatTime(comment.createdAt),
+                          style: const TextStyle(
+                            fontSize: 12,
                             color: MobileTheme.textTertiary,
                           ),
-                          SizedBox(width: 3),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      comment.content,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: MobileTheme.textPrimary,
+                        height: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        if (comment.likeCount > 0) ...[
+                          const Icon(
+                            Icons.favorite,
+                            size: 13,
+                            color: MobileTheme.accent,
+                          ),
+                          const SizedBox(width: 3),
                           Text(
-                            '回复',
-                            style: TextStyle(
+                            '${comment.likeCount}',
+                            style: const TextStyle(
                               fontSize: 12,
                               color: MobileTheme.textTertiary,
                             ),
                           ),
                         ],
-                      ),
+                        const SizedBox(width: 14),
+                        GestureDetector(
+                          onTap: onReply,
+                          child: const Row(
+                            children: [
+                              Icon(
+                                Icons.reply,
+                                size: 13,
+                                color: MobileTheme.textTertiary,
+                              ),
+                              SizedBox(width: 3),
+                              Text(
+                                '回复',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: MobileTheme.textTertiary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
                   ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        ),
+        // 递归渲染子回复（最多嵌套3层）
+        if (comment.replies.isNotEmpty && indentLevel < 3)
+          ...comment.replies.map(
+            (reply) => _CommentTile(
+              comment: reply,
+              indentLevel: indentLevel + 1,
+              onReply: () {},
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 
