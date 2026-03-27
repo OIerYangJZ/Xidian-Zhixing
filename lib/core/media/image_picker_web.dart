@@ -1,16 +1,16 @@
-// ignore_for_file: deprecated_member_use, avoid_web_libraries_in_flutter
-
 import 'dart:async';
-import 'dart:html' as html;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 
 import 'picked_image_data.dart';
 
 Future<List<PickedImageData>> pickImageFiles({bool multiple = true}) async {
-  final html.FileUploadInputElement input = html.FileUploadInputElement()
+  final input = web.HTMLInputElement()
+    ..type = 'file'
     ..accept = 'image/*'
     ..multiple = multiple;
 
-  final Completer<List<PickedImageData>> completer = Completer<List<PickedImageData>>();
+  final completer = Completer<List<PickedImageData>>();
 
   void completeSafely(List<PickedImageData> value) {
     if (!completer.isCompleted) {
@@ -18,82 +18,98 @@ Future<List<PickedImageData>> pickImageFiles({bool multiple = true}) async {
     }
   }
 
-  input.onChange.listen((_) async {
-    final List<html.File> files = input.files?.toList() ?? <html.File>[];
-    if (files.isEmpty) {
+  input.onchange = ((web.Event event) {
+    final files = input.files;
+    if (files == null || files.length == 0) {
       completeSafely(const <PickedImageData>[]);
       return;
     }
 
-    final List<PickedImageData> results = <PickedImageData>[];
-    for (final html.File file in files) {
-      final String? dataUrl = await _readAsDataUrl(file);
-      if (dataUrl == null || !dataUrl.contains(',')) {
-        continue;
-      }
-      final int separator = dataUrl.indexOf(',');
-      final String header = dataUrl.substring(0, separator);
-      final String base64Data = dataUrl.substring(separator + 1);
-      final String contentType = _extractContentType(header, fallback: file.type);
-
-      // 校验文件类型
-      if (!_isAllowedImageType(contentType)) {
-        continue;
-      }
-
-      // 计算原始文件大小（Base64 编码会增加约 33% 长度）
-      final int sizeBytes = _calcBase64DecodedSize(base64Data);
-
-      // 校验文件大小（不超过 10MB 作为前端预防上限）
-      const int maxPreviewSize = 10 * 1024 * 1024;
-      if (sizeBytes > maxPreviewSize) {
-        continue;
-      }
-
-      results.add(
-        PickedImageData(
-          fileName: file.name,
-          contentType: contentType,
-          dataBase64: base64Data,
-          sizeBytes: sizeBytes,
-          previewDataUrl: dataUrl,
-        ),
-      );
-    }
-    completeSafely(results);
-  });
+    final List<web.File> selectedFiles = _fileListToDartList(files);
+    _processFiles(selectedFiles, completer, completeSafely);
+  }).toJS;
 
   input.click();
 
-  // If user cancels file chooser in some browsers, onChange may not fire.
   Future<void>.delayed(const Duration(seconds: 15), () {
     completeSafely(const <PickedImageData>[]);
   });
   return completer.future;
 }
 
-Future<String?> _readAsDataUrl(html.File file) {
-  final Completer<String?> completer = Completer<String?>();
-  final html.FileReader reader = html.FileReader();
-  reader.readAsDataUrl(file);
-  reader.onLoadEnd.listen((_) {
+List<web.File> _fileListToDartList(web.FileList files) {
+  final result = <web.File>[];
+  for (int i = 0; i < files.length; i++) {
+    result.add(files.item(i)!);
+  }
+  return result;
+}
+
+Future<void> _processFiles(
+  List<web.File> files,
+  Completer<List<PickedImageData>> completer,
+  void Function(List<PickedImageData>) completeSafely,
+) async {
+  final results = <PickedImageData>[];
+  for (final file in files) {
+    final dataUrl = await _readAsDataUrl(file);
+    if (dataUrl == null || !dataUrl.contains(',')) {
+      continue;
+    }
+    final separator = dataUrl.indexOf(',');
+    final header = dataUrl.substring(0, separator);
+    final base64Data = dataUrl.substring(separator + 1);
+    final contentType = _extractContentType(header, fallback: file.type);
+
+    if (!_isAllowedImageType(contentType)) {
+      continue;
+    }
+
+    final sizeBytes = _calcBase64DecodedSize(base64Data);
+
+    const maxPreviewSize = 10 * 1024 * 1024;
+    if (sizeBytes > maxPreviewSize) {
+      continue;
+    }
+
+    results.add(
+      PickedImageData(
+        fileName: file.name,
+        contentType: contentType,
+        dataBase64: base64Data,
+        sizeBytes: sizeBytes,
+        previewDataUrl: dataUrl,
+      ),
+    );
+  }
+  completeSafely(results);
+}
+
+Future<String?> _readAsDataUrl(web.File file) async {
+  final completer = Completer<String?>();
+  final reader = web.FileReader();
+  reader.readAsDataURL(file);
+
+  reader.onloadend = ((web.Event event) {
     if (!completer.isCompleted) {
       completer.complete(reader.result as String?);
     }
-  });
-  reader.onError.listen((_) {
+  }).toJS;
+
+  reader.onerror = ((web.Event event) {
     if (!completer.isCompleted) {
       completer.complete(null);
     }
-  });
+  }).toJS;
+
   return completer.future;
 }
 
 String _extractContentType(String dataUrlHeader, {required String fallback}) {
-  final String normalizedFallback = fallback.trim().toLowerCase();
-  final RegExpMatch? match = RegExp(r'^data:([^;]+);base64$').firstMatch(dataUrlHeader);
+  final normalizedFallback = fallback.trim().toLowerCase();
+  final match = RegExp(r'^data:([^;]+);base64$').firstMatch(dataUrlHeader);
   if (match != null) {
-    final String raw = match.group(1)?.trim().toLowerCase() ?? '';
+    final raw = match.group(1)?.trim().toLowerCase() ?? '';
     if (raw.isNotEmpty) {
       return raw;
     }
@@ -105,13 +121,11 @@ String _extractContentType(String dataUrlHeader, {required String fallback}) {
 }
 
 bool _isAllowedImageType(String contentType) {
-  const Set<String> allowed = <String>{'image/jpeg', 'image/png', 'image/webp', 'image/gif'};
+  const allowed = <String>{'image/jpeg', 'image/png', 'image/webp', 'image/gif'};
   return allowed.contains(contentType.toLowerCase());
 }
 
 int _calcBase64DecodedSize(String base64Data) {
-  // Base64 编码公式：output_length = (input_length * 4 + 3) / 3
-  // 还原公式：input_length = output_length * 3 / 4
   int padding = 0;
   if (base64Data.endsWith('==')) {
     padding = 2;

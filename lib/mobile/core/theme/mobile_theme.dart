@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/theme/shared_colors.dart';
+
 /// 移动端 iOS 风格主题
 /// 遵循极简、优雅的设计理念
 class MobileTheme {
-  // 品牌色 - 复用现有 Web 端配色
-  static const Color primary = Color(0xFF155E75);
-  static const Color accent = Color(0xFFE06C4E);
+  // 品牌色 - 复用 SharedColors 中的跨端定义
+  static const Color primary = SharedColors.primary;
+  static const Color accent = SharedColors.accent;
 
   // 背景色
   static const Color background = Color(0xFFFFFFFF);

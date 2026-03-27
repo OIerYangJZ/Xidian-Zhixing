@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
 import '../../models/public_user_profile.dart';
+import '../../repositories/app_repositories.dart';
+import '../messages/chat_page.dart';
 
 class PublicUserProfilePage extends ConsumerStatefulWidget {
   const PublicUserProfilePage({
@@ -98,13 +100,34 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     }
   }
 
-  Future<void> _requestDm() async {
+  Future<void> _handleDm() async {
     final PublicUserProfile? profile = _profile;
     if (profile == null || profile.id.isEmpty || _busy) {
       return;
     }
-    final TextEditingController reasonController = TextEditingController();
+    setState(() {
+      _busy = true;
+    });
     try {
+      // 优先尝试直接创建会话（微信模式）
+      try {
+        final conversation = await AppRepositories.messages
+            .createDirectConversation(profile.id);
+        if (!mounted) return;
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ChatPage(
+              conversation: conversation,
+              peerUserId: profile.id,
+            ),
+          ),
+        );
+        return;
+      } catch (_) {
+        // 旧服务器不支持 createDirectConversation，fallback 到申请制
+      }
+      // Fallback：发起私信申请
+      final TextEditingController reasonController = TextEditingController();
       final String? reason = await showDialog<String>(
         context: context,
         builder: (BuildContext context) {
@@ -122,32 +145,25 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
-              ),
+                child: const Text('取消')),
               FilledButton(
                 onPressed: () =>
                     Navigator.of(context).pop(reasonController.text.trim()),
-                child: const Text('发送申请'),
-              ),
+                child: const Text('发送申请')),
             ],
           );
         },
       );
-      if (!mounted || reason == null) {
-        return;
-      }
-      setState(() {
-        _busy = true;
-      });
+      reasonController.dispose();
+      if (!mounted || reason == null) return;
       await ref.read(messageRepositoryProvider).createDmRequest(
             targetUserId: profile.id,
             reason: reason,
           );
       _feedback('私信申请已发送，请等待对方处理');
     } catch (error) {
-      _feedback('发送私信申请失败：$error');
+      _feedback('无法发起私信：$error');
     } finally {
-      reasonController.dispose();
       if (mounted) {
         setState(() {
           _busy = false;
@@ -205,7 +221,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                       '等级：${profile.userLevelLabel}',
                                       style: theme.textTheme.bodyMedium,
                                     ),
-                                    if (false) // verified field not in PublicUserProfile
+                                    if (false)
                                       Text(
                                         '校验状态：已认证',
                                         style: theme.textTheme.bodySmall,
@@ -251,7 +267,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                   ),
                                 if (profile.canDirectMessage)
                                   OutlinedButton.icon(
-                                    onPressed: _busy ? null : _requestDm,
+                                    onPressed: _busy ? null : _handleDm,
                                     icon: const Icon(Icons.forum_outlined),
                                     label: const Text('私信'),
                                   ),

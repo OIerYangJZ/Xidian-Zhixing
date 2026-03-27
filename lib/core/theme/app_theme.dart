@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'shared_colors.dart';
+
 class AppTheme {
-  static const Color primary = Color(0xFF155E75);
-  static const Color accent = Color(0xFFE06C4E);
+  static const Color primary = SharedColors.primary;
+  static const Color accent = SharedColors.accent;
 
   static ThemeData get lightTheme {
     final ColorScheme scheme = ColorScheme.fromSeed(

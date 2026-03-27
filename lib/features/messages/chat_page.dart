@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
 import '../../models/direct_message_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -17,6 +19,7 @@ class ChatPage extends StatefulWidget {
     this.onConversationRead,
     this.onConversationRemoved,
     this.onConversationFlagsChanged,
+    this.peerUserId,
   });
 
   final ConversationItem conversation;
@@ -24,6 +27,7 @@ class ChatPage extends StatefulWidget {
   final VoidCallback? onConversationRead;
   final VoidCallback? onConversationRemoved;
   final ConversationFlagsChanged? onConversationFlagsChanged;
+  final String? peerUserId;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -60,17 +64,20 @@ class _ChatPageState extends State<ChatPage> {
     final bool blockedByMe = _conversation.blockedByMe;
     final bool blockedByPeer = _conversation.blockedByPeer;
     final bool inputEnabled = !_sending && !blockedByMe && !blockedByPeer;
+
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: <Widget>[
-            _buildAvatar(
-              _conversation.avatarUrl,
-              _conversation.name,
-            ),
-            const SizedBox(width: 8),
-            Expanded(child: Text(_conversation.name)),
-          ],
+        title: GestureDetector(
+          onTap: widget.peerUserId != null
+              ? () => _navigateToProfile(context, widget.peerUserId!)
+              : null,
+          child: Row(
+            children: <Widget>[
+              _buildAvatar(_conversation.avatarUrl, _conversation.name),
+              const SizedBox(width: 8),
+              Expanded(child: Text(_conversation.name)),
+            ],
+          ),
         ),
         actions: <Widget>[
           IconButton(
@@ -81,6 +88,11 @@ class _ChatPageState extends State<ChatPage> {
           PopupMenuButton<String>(
             onSelected: (String value) {
               switch (value) {
+                case 'profile':
+                  if (widget.peerUserId != null) {
+                    _navigateToProfile(context, widget.peerUserId!);
+                  }
+                  break;
                 case 'block':
                   _toggleBlock(true);
                   break;
@@ -93,9 +105,15 @@ class _ChatPageState extends State<ChatPage> {
               }
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              if (widget.peerUserId != null)
+                const PopupMenuItem<String>(
+                  value: 'profile',
+                  child: Text('查看对方主页'),
+                ),
               PopupMenuItem<String>(
-                value: blockedByMe ? 'unblock' : 'block',
-                child: Text(blockedByMe ? '取消屏蔽' : '屏蔽对方'),
+                value: _conversation.blockedByMe ? 'unblock' : 'block',
+                child: Text(
+                    _conversation.blockedByMe ? '取消屏蔽' : '屏蔽对方'),
               ),
               const PopupMenuItem<String>(
                 value: 'delete',
@@ -124,7 +142,8 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   if (_lastFailedContent != null && !_loading)
                     TextButton(
-                      onPressed: _sending ? null : () => _send(_lastFailedContent),
+                      onPressed:
+                          _sending ? null : () => _send(_lastFailedContent),
                       child: const Text('重试发送'),
                     ),
                   TextButton(
@@ -135,17 +154,17 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           if (blockedByMe || blockedByPeer)
-            _buildBlockBanner(blockedByMe: blockedByMe, blockedByPeer: blockedByPeer),
-          Expanded(
-            child: _buildMessageList(),
-          ),
+            _buildBlockBanner(
+                blockedByMe: blockedByMe, blockedByPeer: blockedByPeer),
+          Expanded(child: _buildMessageList()),
           SafeArea(
             top: false,
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
               decoration: const BoxDecoration(
                 color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFE5ECF2))),
+                border:
+                    Border(top: BorderSide(color: Color(0xFFE5ECF2))),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -178,7 +197,8 @@ class _ChatPageState extends State<ChatPage> {
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.send_rounded),
                     tooltip: '发送',
@@ -188,6 +208,48 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToProfile(BuildContext context, String userId) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicUserProfilePage(userId: userId),
+      ),
+    );
+  }
+
+  void _showMessageActions(BuildContext context, DirectMessageItem message) {
+    final bool isMe = message.fromMe;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.content_copy),
+              title: const Text('复制'),
+              onTap: () async {
+                Navigator.pop(ctx);
+                await Clipboard.setData(ClipboardData(text: message.content));
+              },
+            ),
+            if (isMe)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text('删除'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    _messages =
+                        _messages.where((m) => m.id != message.id).toList();
+                  });
+                },
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -214,64 +276,68 @@ class _ChatPageState extends State<ChatPage> {
       itemBuilder: (BuildContext context, int index) {
         final DirectMessageItem message = _messages[index];
         return Align(
-          alignment:
-              message.fromMe ? Alignment.centerRight : Alignment.centerLeft,
-          child: Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.all(10),
-            constraints: const BoxConstraints(maxWidth: 420),
-            decoration: BoxDecoration(
-              color: message.fromMe
-                  ? const Color(0xFF155E75).withValues(alpha: 0.12)
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFF155E75).withValues(alpha: 0.1),
+          alignment: message.fromMe
+              ? Alignment.centerRight
+              : Alignment.centerLeft,
+          child: GestureDetector(
+            onLongPress: () => _showMessageActions(context, message),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(10),
+              constraints: const BoxConstraints(maxWidth: 420),
+              decoration: BoxDecoration(
+                color: message.fromMe
+                    ? const Color(0xFF155E75).withValues(alpha: 0.12)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF155E75).withValues(alpha: 0.1),
+                ),
               ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                if (!message.fromMe)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      message.senderAlias,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF155E75),
-                      ),
-                    ),
-                  ),
-                Text(message.content),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: <Widget>[
-                    Text(
-                      message.timeText,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    if (message.fromMe) ...<Widget>[
-                      const SizedBox(width: 6),
-                      Text(
-                        message.isRead ? '已读' : '未读',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: message.isRead
-                              ? const Color(0xFF0F766E)
-                              : Colors.black45,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (!message.fromMe)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        message.senderAlias,
+                        style: const TextStyle(
+                          fontSize: 12,
                           fontWeight: FontWeight.w600,
+                          color: Color(0xFF155E75),
                         ),
                       ),
+                    ),
+                  Text(message.content),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(
+                        message.timeText,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black54,
+                        ),
+                      ),
+                      if (message.fromMe) ...<Widget>[
+                        const SizedBox(width: 6),
+                        Text(
+                          message.isRead ? '已读' : '未读',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: message.isRead
+                                ? const Color(0xFF0F766E)
+                                : Colors.black45,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -292,7 +358,8 @@ class _ChatPageState extends State<ChatPage> {
       color: const Color(0xFFF3F4F6),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.shield_outlined, size: 18, color: Color(0xFF475569)),
+          const Icon(Icons.shield_outlined,
+              size: 18, color: Color(0xFF475569)),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -318,19 +385,16 @@ class _ChatPageState extends State<ChatPage> {
     try {
       final List<DirectMessageItem> messages = await AppRepositories.messages
           .fetchConversationMessages(widget.conversation.id);
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _messages = messages;
-        _conversation = _conversation.copyWith(unreadCount: 0, hasUnread: false);
+        _conversation = _conversation.copyWith(
+            unreadCount: 0, hasUnread: false);
       });
       widget.onConversationRead?.call();
       _scrollToBottom();
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = '消息加载失败：$error';
       });
@@ -345,9 +409,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _send([String? retryContent]) async {
     final String content = (retryContent ?? _inputController.text).trim();
-    if (content.isEmpty || _sending) {
-      return;
-    }
+    if (content.isEmpty || _sending) return;
     setState(() {
       _sending = true;
       _error = null;
@@ -358,9 +420,7 @@ class _ChatPageState extends State<ChatPage> {
         conversationId: widget.conversation.id,
         content: content,
       );
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _messages = <DirectMessageItem>[..._messages, created];
         _lastFailedContent = null;
@@ -369,9 +429,7 @@ class _ChatPageState extends State<ChatPage> {
       widget.onMessageSent?.call(created.content);
       _scrollToBottom();
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _lastFailedContent = content;
         _error = '发送失败：$error';
@@ -387,9 +445,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) {
-        return;
-      }
+      if (!_scrollController.hasClients) return;
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
         duration: const Duration(milliseconds: 180),
@@ -408,9 +464,7 @@ class _ChatPageState extends State<ChatPage> {
         conversationId: _conversation.id,
         block: block,
       );
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _conversation = _conversation.copyWith(
           blockedByMe: updated.blockedByMe,
@@ -425,9 +479,7 @@ class _ChatPageState extends State<ChatPage> {
         SnackBar(content: Text(block ? '已屏蔽对方' : '已取消屏蔽')),
       );
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = '操作失败：$error';
       });
@@ -454,23 +506,18 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
     );
-    if (confirmed != true || !mounted) {
-      return;
-    }
+    if (confirmed != true || !mounted) return;
     try {
-      await AppRepositories.messages.deleteConversation(_conversation.id);
-      if (!mounted) {
-        return;
-      }
+      await AppRepositories.messages
+          .deleteConversation(_conversation.id);
+      if (!mounted) return;
       widget.onConversationRemoved?.call();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('会话已删除')),
       );
       Navigator.of(context).pop();
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = '删除会话失败：$error';
       });
@@ -501,10 +548,7 @@ class _ChatPageState extends State<ChatPage> {
     }
     return CircleAvatar(
       radius: 14,
-      child: Text(
-        fallback,
-        style: const TextStyle(fontSize: 12),
-      ),
+      child: Text(fallback, style: const TextStyle(fontSize: 12)),
     );
   }
 }

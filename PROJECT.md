@@ -66,46 +66,82 @@
 
 ```
 xduWhisperBox/
-├── backend/                        # Python 后端
-│   ├── server.py                   # 核心入口，所有 HTTP API、鉴权、业务逻辑
-│   ├── sql_repository.py           # SQLite schema、初始化、持久化逻辑
-│   ├── object_storage.py           # 对象存储（本地 / S3 兼容）
+├── backend/                        # Python 后端（模块化架构）
+│   ├── server.py                   # 核心入口 (~745行)，路由分发 + 服务器启动
+│   ├── _globals.py                 # 全局状态单点：配置常量 + 运行时对象
+│   ├── sql_repository.py           # SQLite schema、初始化、持久化逻辑 (~1712行)
+│   ├── object_storage.py           # 对象存储（本地 / S3 兼容）(~258行)
 │   ├── reset_db.py                 # 数据库重置脚本
 │   ├── migrate_json_to_sql.py      # JSON → MySQL/PostgreSQL 迁移脚本
+│   ├── helpers/                    # 通用辅助函数（跨 handler/service 复用）
+│   │   ├── __init__.py             # barrel file，重新导出所有 helpers
+│   │   ├── _auth_helpers.py        # 密码哈希、邮箱验证、ID 解析
+│   │   ├── _datetime_helpers.py    # 时间/时区处理
+│   │   ├── _http_helpers.py        # HTTP 响应（json_error、send_json 等）
+│   │   ├── _mailer.py              # 邮件发送（验证邮件、密码重置邮件）
+│   │   └── _rate_limit.py          # 限流、IP 检查、文本风险评估
+│   ├── handlers/                   # HTTP 请求处理层（按功能域拆分）
+│   │   ├── __init__.py             # barrel file，重新导出 ~60 个 handle_* 函数
+│   │   ├── _auth_handler.py        # 认证：登录/注册/登出/验证码/密码重置
+│   │   ├── _post_handler.py        # 帖子：CRUD/点赞/收藏/举报/申诉/置顶申请
+│   │   ├── _comment_handler.py     # 评论：创建/删除；账号：注销申请/等级升级
+│   │   ├── _message_handler.py     # 私信：申请/接受/拒绝/会话/消息/屏蔽
+│   │   ├── _user_handler.py        # 用户：个人资料/关注/粉丝/好友
+│   │   ├── _notification_handler.py # 通知：列表/标记已读/全部已读
+│   │   ├── _admin_handler.py       # 管理后台：审核/举报/用户/配置/公告等
+│   │   ├── _upload_handler.py       # 文件上传：头像上传/图片上传
+│   │   └── _static_handler.py      # 静态文件：存储文件读取/Web 兜底
+│   ├── services/                   # 业务逻辑层（数据操作 + 业务规则）
+│   │   ├── __init__.py             # barrel file，重新导出所有 service 函数
+│   │   ├── _db_service.py          # 数据库操作：查询/序列化/管理员构建函数
+│   │   └── _user_service.py        # 用户业务：通知创建/会话同步/数据规范化
 │   ├── sql/                        # SQL schema 文件
 │   │   ├── schema_mysql.sql
 │   │   └── schema_postgresql.sql
-│   └── tests/                      # 后端单元测试
+│   └── tests/                      # 后端单元测试（pytest）
 ├── lib/                            # Flutter Web 前端
 │   ├── core/                       # 核心基础设施
-│   │   ├── auth/                   # 鉴权相关
-│   │   ├── config/                 # 配置
-│   │   ├── emoji/                  # 表情
-│   │   ├── media/                  # 媒体处理
-│   │   ├── navigation/             # 导航
-│   │   ├── network/                # 网络请求
-│   │   ├── state/                  # 状态管理
-│   │   ├── theme/                  # 主题
-│   │   └── utils/                  # 工具函数
-│   ├── data/                       # 数据层
+│   │   ├── auth/                   # 鉴权相关（AuthStore、AdminAuthStore）
+│   │   ├── config/                 # 配置（AppConfig、API_BASE_URL 解析）
+│   │   ├── emoji/                  # 表情目录 + 用户偏好
+│   │   ├── media/                  # 媒体处理（图片选择器 Web/Mobile 条件编译）
+│   │   ├── navigation/             # 导航（URL 状态管理）
+│   │   ├── network/                # 网络请求（ApiClient、ApiEndpoints、JsonUtils）
+│   │   ├── state/                  # 状态管理（AppProviders）
+│   │   ├── theme/                  # 主题（AppTheme + SharedColors 统一跨端颜色）
+│   │   └── utils/                  # 工具函数（Web 文件下载）
+│   ├── data/                       # Mock 数据
 │   ├── features/                   # 功能模块
 │   │   ├── admin/                  # 管理员后台
-│   │   ├── auth/                   # 登录/注册
+│   │   ├── auth/                   # 登录/注册/验证码/密码重置
 │   │   ├── favorites/              # 收藏
-│   │   ├── feed/                    # 信息流
-│   │   ├── legal/                   # 合规说明页
-│   │   ├── me/                      # 个人中心
-│   │   ├── messages/                # 私信
-│   │   ├── notifications/           # 通知中心
-│   │   ├── post/                    # 发帖
-│   │   └── search/                  # 搜索
+│   │   ├── feed/                   # 信息流
+│   │   ├── legal/                  # 合规说明页（用户协议/隐私政策等）
+│   │   ├── me/                     # 个人中心
+│   │   ├── messages/               # 私信（会话列表 + 聊天）
+│   │   ├── notifications/          # 通知中心
+│   │   ├── post/                   # 发帖/帖子详情
+│   │   └── search/                # 搜索
 │   ├── models/                     # 数据模型
-│   ├── repositories/               # Repository 层
-│   └── widgets/                    # 公共组件
+│   │   ├── admin/                 # 管理员模型子目录（9 个独立文件）
+│   │   │   ├── admin_shared_helpers.dart
+│   │   │   ├── admin_overview_models.dart
+│   │   │   ├── admin_review_models.dart
+│   │   │   ├── admin_report_models.dart
+│   │   │   ├── admin_user_models.dart
+│   │   │   ├── admin_system_models.dart
+│   │   │   ├── admin_account_models.dart
+│   │   │   ├── admin_appeal_models.dart
+│   │   │   └── admin_export_models.dart
+│   │   ├── admin_models.dart       # admin barrel file（重新导出）
+│   │   └── [其他模型]              # post_item、comment_item、user_profile 等
+│   ├── repositories/               # Repository 层（7 个文件）
+│   └── widgets/                    # 公共组件（4 个文件）
 ├── lib/mobile/                     # Flutter 移动端（Android / iOS）
-│   ├── core/                       # 核心基础设施
-│   ├── features/                   # 功能模块
-│   └── main.dart                   # 移动端入口
+│   ├── core/                       # 核心基础设施（config、navigation、state、theme）
+│   ├── features/                   # 功能模块（与 lib/features/ 平行独立实现）
+│   ├── main.dart                   # 移动端入口（由 lib/main.dart 通过 kIsWeb 分流调用）
+│   └── lib_mobile.dart            # 移动端 barrel file
 ├── scripts/                        # 部署与构建脚本
 │   ├── build_web_beta.sh           # 内测 Web 构建
 │   ├── build_web_production.sh     # 生产 Web 构建
@@ -116,14 +152,53 @@ xduWhisperBox/
 │   ├── rollback.sh                 # 版本回滚
 │   ├── run_backend_beta.sh         # 内测后端启动
 │   └── version.sh                  # 版本信息生成
+├── .github/
+│   └── workflows/
+│       ├── dart.yml               # Flutter CI（flutter analyze + flutter test）
+│       └── python.yml              # Python CI（pytest 后端测试）
+├── Dockerfile                      # 后端多阶段 Docker 构建
+├── docker-compose.yml              # 服务编排（backend + nginx）
+├── docker-compose.prod.yml         # 生产环境覆盖（TLS 扩展点）
 ├── deploy/                         # 部署配置
 │   ├── production/                 # 生产环境配置
 │   └── tencent/                    # 腾讯云配置
 ├── docs/                           # 文档
 ├── test/                           # 前端测试
-├── web/                            # Web 静态资源
+├── web/                            # Web 静态资源（index.html、manifest.json）
 ├── pubspec.yaml                    # Flutter 依赖配置
+├── analysis_options.yaml           # Dart Lint 配置（自定义规则 + 排除废弃目录）
+├── .gitignore                      # Git 忽略配置
 └── README.md                       # 项目主说明
+```
+
+### 后端模块架构图
+
+```
+server.py (~745行)
+  │
+  ├── _globals.py                  # 全局状态单点（运行时对象 + 配置常量）
+  │
+  ├── helpers/                     # 通用工具层
+  │     ├── _auth_helpers.py      # 密码哈希、邮箱验证、ID 解析
+  │     ├── _datetime_helpers.py   # 时间/时区处理
+  │     ├── _http_helpers.py       # HTTP 响应（json_error、send_json 等）
+  │     ├── _mailer.py             # 邮件发送
+  │     └── _rate_limit.py         # 限流、IP 检查、文本风险评估
+  │
+  ├── services/                    # 业务逻辑层
+  │     ├── _db_service.py         # 数据库查询、序列化、管理员构建函数
+  │     └── _user_service.py       # 用户业务规则、通知创建、会话同步
+  │
+  └── handlers/                    # HTTP 处理层（60+ handle_* 函数）
+        ├── _auth_handler.py       # 认证：登录/注册/登出/验证码/密码重置
+        ├── _post_handler.py       # 帖子：CRUD/点赞/收藏/举报/申诉/置顶申请
+        ├── _comment_handler.py    # 评论创建/删除；账号注销申请/等级升级
+        ├── _message_handler.py     # 私信：申请/接受/拒绝/会话/消息/屏蔽
+        ├── _user_handler.py        # 用户：个人资料/关注/粉丝/好友
+        ├── _notification_handler.py # 通知：列表/标记已读/全部已读
+        ├── _admin_handler.py      # 管理后台：审核/举报/用户/配置/公告等
+        ├── _upload_handler.py      # 文件上传：头像上传/图片上传
+        └── _static_handler.py     # 静态文件：存储文件读取/Web 兜底
 ```
 
 ---
@@ -132,25 +207,19 @@ xduWhisperBox/
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
-| 0.1.0+6 | 2026-03-25 | 清理重复移动端目录，删除旧 `lib_mobile/`，保留 `lib/mobile/` 作为唯一移动端源码目录；同步项目文档中的移动端路径说明 |
-| 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
-| 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
-| 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
-| 0.1.0+4 | 2026-03-25 | 重构底部导航（3 Tab：首页/消息/我的）；搜索入口移至首页 AppBar；管理员后台修复（使用真实 Web 端 AdminConsolePage）；实现关注/粉丝系统（API 端点 + Repository + 个人主页底部弹窗列表 + 好友标记）；消息页移除私信申请 Tab，改为首条消息警告横幅；帮助与反馈入口加入登录/注册页；头像点击逻辑（自己帖子跳我的主页，其他提示暂不支持）；管理员控制台恢复完整功能 |
-| 0.1.0+5 | 2026-03-25 | 修复消息页加载不出（`MessagesPage` 恢复 `ConsumerStatefulWidget`，`initState` 触发 `loadInitial()`）；修复头像点击逻辑（自己帖子跳转 `/profile`，其他帖子提示「暂不支持查看该用户主页」） |
-| 0.1.0+8 | 2026-03-26 | **后端**：评论列表 API 新增 `authorAvatar` 和 `authorUserId` 字段；帖子列表 API 支持 `authorId` 查询参数；**数据模型**：`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段，`CommentItem` 新增 `authorUserId` 字段；**移动端**：发帖页/主页频道列表将"其他"改名为"综合"；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；帖子详情页作者头像同理；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；我的页面：统计行删除"收藏"数字、TabBar 保持3个Tab、帖子Tab和收藏Tab改为图文卡片 `PostCard` 视图 |
+| 0.1.0+12 | 2026-03-27 | **后端模块化拆分**：将 `backend/server.py`（原 3620 行）拆分为职责清晰的模块结构，最终行数 745 行（-79%）；`backend/_globals.py` 作为全局状态单点，配置常量和运行时对象统一管理；`backend/helpers/` 子模块化（`auth_helpers`、`datetime_helpers`、`http_helpers`、`mailer`、`rate_limit`），消除 server.py 中 ~140 行 helpers 函数副本；`backend/services/` 子模块化（`_db_service`、`_user_service`），消除 server.py 中 ~870 行 services 函数副本；`backend/handlers/` 解耦为 8 个独立模块（`_auth_handler`、`_post_handler`、`_comment_handler`、`_message_handler`、`_user_handler`、`_notification_handler`、`_admin_handler`、`_static_handler`、`_upload_handler`），server.py 仅保留路由分发；补充 `services/_db_service.py` 中 handlers 依赖的缺失函数（`list_posts`、`build_admin_*_rows`、`serialize_*`、`build_export_payload`、`public_system_settings`、`build_pagination_meta`）；修复 handlers 与 services 间的循环导入；修复 `_globals.py` 中 `_lazy_proxy` 函数代理 handler 需要的 helpers/services 子模块函数；API `/api/version`、`/api/health`、`/api/channels`、`/api/posts` 测试通过 |
+| 0.1.0+11 | 2026-03-26 | **工程审计整改（P2）**：后端 `backend/server.py` 添加 Python `logging` 结构化日志系统（`logging` 标准库，`_configure_logging()` 配置，`%(asctime)s | %(levelname)-8s | %(message)s` 格式）；所有 8 处 `print()` 调用全部替换为 `_logger.info()` / `_logger.warning()` / `_logger.debug()`；调试验证码开关激活时自动切换为 DEBUG 级别；`_handle_web_delete` 异常处理器由 `f"Internal server error: {error}"` 改为 `logger.exception()` + 固定文本 `"Internal server error"`，消除内部信息泄漏；`deploy/tencent/backend.env.example` 新增 `BACKEND_ALLOW_DEBUG_VERIFY_CODE` 和 `BACKEND_INCLUDE_DEBUG_CODE` 的 WARNING 注释，说明生产环境必须为 false |
+| 0.1.0+10 | 2026-03-26 | **工程审计整改（P0+P1）**：删除废弃 `lib_mobile/` 目录（40 文件）和 `backup_lib/` 目录（80 文件）并从 git 移除；`backup_lib/` 加入 `.gitignore`；从 `pubspec.yaml` 移除未使用的 `date_format` 依赖；`admin_models.dart`（732 行）拆分为 `lib/models/admin/` 子目录（9 个独立文件，每文件 < 200 行）；确认 `lib/main.dart` 为唯一入口后删除 `lib/mobile/main.dart`（冗余入口）；新建 `lib/core/theme/shared_colors.dart` 统一跨端品牌色，`app_theme.dart` 和 `mobile_theme.dart` 均引用 `SharedColors` |
 | 0.1.0+9 | 2026-03-26 | **后端**：新增 `POST /api/messages/conversations/direct` 端点（微信模式，无需申请直接创建/进入会话）；**移动端**：私信按钮改为直接进入或创建会话（替代原申请制流程）；他人主页头像点击跳转其个人主页；消息页新增 TabBar（会话列表 + 私信申请管理）；会话列表左滑删除；聊天页 AppBar 头像+昵称可点击进入对方主页；聊天页菜单新增屏蔽/解除屏蔽入口；聊天页消息气泡长按弹出操作菜单（复制/删除）；消息未读红点 Badge 跟随 Tab 栏显示 |
+| 0.1.0+8 | 2026-03-26 | **后端**：评论列表 API 新增 `authorAvatar` 和 `authorUserId` 字段；帖子列表 API 支持 `authorId` 查询参数；**数据模型**：`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段，`CommentItem` 新增 `authorUserId` 字段；**移动端**：发帖页/主页频道列表将"其他"改名为"综合"；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；帖子详情页作者头像同理；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；我的页面：统计行删除"收藏"数字、TabBar 保持3个Tab、帖子Tab和收藏Tab改为图文卡片 `PostCard` 视图 |
+| 0.1.0+6 | 2026-03-25 | 清理重复移动端目录，删除旧 `lib_mobile/`，保留 `lib/mobile/` 作为唯一移动端源码目录；同步项目文档中的移动端路径说明 |
+| 0.1.0+5 | 2026-03-25 | 修复消息页加载不出（`MessagesPage` 恢复 `ConsumerStatefulWidget`，`initState` 触发 `loadInitial()`）；修复头像点击逻辑（自己帖子跳转 `/profile`，其他帖子提示「暂不支持查看该用户主页」） |
+| 0.1.0+4 | 2026-03-25 | 重构底部导航（3 Tab：首页/消息/我的）；搜索入口移至首页 AppBar；管理员后台修复（使用真实 Web 端 AdminConsolePage）；实现关注/粉丝系统（API 端点 + Repository + 个人主页底部弹窗列表 + 好友标记）；消息页移除私信申请 Tab，改为首条消息警告横幅；帮助与反馈入口加入登录/注册页；头像点击逻辑（自己帖子跳我的主页，其他提示暂不支持）；管理员控制台恢复完整功能 |
+| 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
+| 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
+| 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
 
-## 4. 构建记录
-
-| 日期 | 构建类型 | 平台 | 文件大小 | 路径 | 构建命令 |
-|------|----------|------|----------|------|----------|
-| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | `flutter build apk --target-platform android-arm64 --release` |
-| 2026-03-25 | Release | Android ARM64 | 18.4 MB | `build/app/outputs/flutter-apk/app-release.apk` | 移动端 6 项 bug 修复后重新构建 |
-| 2026-03-25 | Release | Android ARM64 | 18.8 MB | `build/app/outputs/flutter-apk/app-release.apk` | v0.1.0+4：关注系统 + 底部导航重构 + 消息页简化 + 管理员修复 |
-| 2026-03-25 | Release | Android ARM64 | 18.8 MB | `build/app/outputs/flutter-apk/app-release.apk` | v0.1.0+5：消息页加载修复 + 头像点击逻辑修复 |
-
-## 5. 未跨端兼容的功能
+## 4. 未跨端兼容的功能
 
 > 以下记录尚未同时在 Web 端和移动端适配的功能，跨端适配完成后请删除对应条目。
 
@@ -172,4 +241,4 @@ xduWhisperBox/
 
 ---
 
-*最后更新：2026-03-26（v0.1.0+9）*
+*最后更新：2026-03-27（v0.1.0+12）*

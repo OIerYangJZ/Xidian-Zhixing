@@ -12,11 +12,14 @@ class AppConfig {
     if (mobileUrl.isNotEmpty) {
       return mobileUrl;
     }
-    // 移动端临时默认直连现网 HTTP；后续切 HTTPS 后应改回域名地址。
+    // 移动端通过 --dart-define=MOBILE_API_BASE_URL=... 注入
     if (!kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
             defaultTargetPlatform == TargetPlatform.iOS)) {
-      return 'http://81.69.16.134/api';
+      return const String.fromEnvironment(
+        'MOBILE_API_BASE_URL',
+        defaultValue: 'http://localhost:8080/api',
+      );
     }
     // Web/默认环境变量
     return const String.fromEnvironment(

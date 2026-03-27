@@ -1,614 +1,274 @@
-# 西电树洞（Flutter Web MVP）
+# See电 — 西电树洞
 
-这是一个基于 Flutter 的 Web 端前台 MVP，按 `sol.txt` 中的功能清单先实现了核心页面与交互骨架。
+面向西安电子科技大学校内用户的匿名社区应用，支持 Web 端和移动端（Android / iOS）。
 
-## 已实现页面
+## 技术栈
 
-- 登录 / 注册（校内邮箱规则校验）
-- 校园身份认证页
-- 首页 / 信息流（频道筛选）
-- 发帖页（表单校验、真实图片选择上传、发布后绑定 `imageUploadIds`）
-- 帖子详情页（点赞/收藏/举报/评论占位）
-- 搜索 / 筛选页（关键词、频道、状态、有图、可私信）
-- 消息 / 私信页（申请列表、会话列表、真实消息收发）
-- 会话详情页（真实消息同步，支持表情输入）
-- 通知中心（评论 / 回复 / 点赞 / 收藏 / 举报处理结果 / 系统公告、未读数、已读）
-- 收藏页
-- 个人中心页
-- 我的帖子 / 我的评论 / 我的举报
-- 管理员后台（概览、内容审核、批量审核、图片审核、举报处理、用户管理、注销审核、申诉处理、数据导出、分类标签、系统配置、多管理员分级）
-- 表情设置（开关、常用表情自定义）
-- 合规说明页（用户协议、隐私政策、社区规范、举报说明）
+| 层级 | 技术 |
+|------|------|
+| 前端 | Flutter Web + Dart SDK `>=3.3.0 <4.0.0` |
+| 状态管理 | `flutter_riverpod: ^2.6.1` |
+| HTTP 客户端 | `http: ^1.2.2` |
+| 本地存储 | `shared_preferences: ^2.3.2` |
+| 后端 | Python 3（标准库 HTTP 服务） |
+| 数据库 | SQLite（WAL 模式） |
+| 对象存储 | 本地文件系统 / 可选 S3 兼容存储 |
+| 部署 | Docker / 腾讯云 Ubuntu + Nginx + systemd |
 
-## 技术说明
+## 目录结构
 
-- 已接入 API 客户端、鉴权 token 持久化、仓库层（Repository）
-- 前端核心页（首页/搜索/消息/发帖）已切换 Riverpod 状态管理，统一加载/错误态组件 `AsyncPageState`
-- 已内置 Python 后端（`backend/server.py`），前后端可直接联调
-- 后端已切换为 SQL 持久化（SQLite，Repository/DAO + 事务）
-- 已接入图片上传链路（支持本地对象存储 / S3 兼容对象存储）与管理员图片审核流
-- 私信链路已落库：支持发起私信申请、同意后建立双向会话、历史消息持久化
-- 通知中心已打通并持久化：评论 / 回复 / 点赞 / 收藏 / 举报处理结果 / 系统公告通知、未读数、已读逻辑
-- 管理员账号已支持一级 / 二级权限分级，`admin` 默认初始化为一级管理员
-- 用户账号已支持一级 / 二级等级；一级用户可直接置顶帖子，二级用户可申请置顶或申请升级一级用户
-- 前台页面优先走后端接口；接口不可用时，列表型页面会回退到本地 Mock（便于演示）
-
-## 启动方式
-
-### 推荐启动命令（2026-03-06）
-
-先开一个终端启动后端，再开一个终端启动前端。
-
-终端 A（后端）：
-
-```bash
-BACKEND_HOST=0.0.0.0 \
-BACKEND_PORT=8080 \
-BACKEND_ADMIN_USERNAME=admin \
-BACKEND_ADMIN_PASSWORD=admin123456 \
-BACKEND_SMTP_HOST=smtp.qq.com \
-BACKEND_SMTP_PORT=465 \
-BACKEND_SMTP_USERNAME=your@qq.com \
-BACKEND_SMTP_PASSWORD='替换为你的 QQ 邮箱 SMTP 授权码（不是QQ登录密码）' \
-BACKEND_SMTP_FROM_EMAIL=your@qq.com \
-BACKEND_SMTP_FROM_NAME='西电树洞' \
-BACKEND_SMTP_USE_SSL=true \
-BACKEND_SMTP_USE_STARTTLS=false \
-python3 backend/server.py
+```
+xduWhisperBox/
+├── backend/              # Python 后端（模块化架构）
+│   ├── server.py         # 核心入口，路由分发 + 服务器启动
+│   ├── _globals.py       # 全局状态单点
+│   ├── sql_repository.py # SQLite schema、持久化逻辑
+│   ├── object_storage.py  # 对象存储（本地 / S3）
+│   ├── reset_db.py        # 数据库重置脚本
+│   ├── migrate_json_to_sql.py  # JSON → SQL 迁移脚本
+│   ├── helpers/          # 通用辅助函数（auth、datetime、http、mailer、rate_limit）
+│   ├── handlers/         # HTTP 处理层（按功能域拆分）
+│   ├── services/         # 业务逻辑层
+│   └── tests/           # pytest 单元测试
+├── lib/                  # Flutter Web 前端
+│   ├── core/            # 核心基础设施（auth、config、network、theme...）
+│   ├── features/        # 功能模块（admin、auth、feed、messages...）
+│   ├── models/          # 数据模型
+│   ├── repositories/    # Repository 层
+│   └── widgets/         # 公共组件
+├── lib/mobile/          # Flutter 移动端（Android / iOS）
+├── scripts/             # 部署与构建脚本
+├── deploy/              # Nginx / systemd / 环境变量模板
+├── .github/workflows/   # GitHub Actions CI/CD
+├── Dockerfile           # 后端 Docker 构建
+├── docker-compose.yml   # 本地开发服务编排
+└── docker-compose.prod.yml  # 生产环境覆盖
 ```
 
-终端 B（前端）：
+## 快速开始
+
+### 前置依赖
+
+- Flutter SDK `>=3.3.0 <4.0.0`
+- Python 3.10+
+- SQLite3
+- （可选）Docker + Docker Compose
+
+### 1. 克隆项目
 
 ```bash
+git clone https://github.com/YOUR_USERNAME/xduWhisperBox.git
+cd xduWhisperBox
+```
+
+### 2. 后端启动
+
+```bash
+cd backend
+
+# 安装可选依赖（仅 S3 存储需要）
+pip install boto3
+
+# 配置环境变量（复制模板后修改）
+cp deploy/tencent/backend.env.example .env
+
+# 启动后端（默认端口 8080）
+python3 server.py
+```
+
+后端启动后会：
+- 自动创建 `backend/data/treehole.db`（SQLite WAL 模式）
+- 初始化种子数据（默认管理员账号、示例帖子）
+- 启动 HTTP 服务器
+
+**默认管理员账号：** `admin` / `admin123456`（生产环境必须修改）
+
+### 3. 前端启动
+
+```bash
+# 安装依赖
 flutter pub get
-flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8080/api
+
+# Web 开发服务器（默认连接 localhost:8080）
+flutter run -d chrome
+
+# Android APK（需要 Android SDK）
+flutter build apk --release
 ```
 
-如果 `flutter` 不在 PATH，可改为：
+### 4. Docker 方式启动后端
 
 ```bash
-/Users/yangjinsey/flutter/bin/flutter pub get
-/Users/yangjinsey/flutter/bin/flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8080/api
+# 仅后端
+docker compose up backend -d
+
+# 后端 + Nginx 反向代理
+docker compose up -d
 ```
 
-### 公网内测上线（单端口）
+## 环境变量
 
-后端现已支持同时托管 Flutter Web 静态文件（默认目录 `build/web`），可直接一个端口上线前后端。
+后端通过环境变量配置，参考 `deploy/tencent/backend.env.example`：
 
-1. 在服务器构建前端（API 走同源 `/api`）：
+| 变量 | 默认值 | 说明 |
+|------|--------|------|
+| `BACKEND_HOST` | `0.0.0.0` | 监听地址 |
+| `BACKEND_PORT` | `8080` | 监听端口 |
+| `BACKEND_DB_FILE` | `backend/data/treehole.db` | SQLite 数据库路径 |
+| `BACKEND_STORAGE_DIR` | `backend/storage/objects` | 本地对象存储目录 |
+| `BACKEND_WEB_ROOT` | `build/web` | Flutter Web 构建产物目录 |
+| `BACKEND_OBJECT_STORAGE_BACKEND` | `local` | 存储后端（`local` 或 `s3`） |
+| `BACKEND_ADMIN_USERNAME` | `admin` | 默认管理员用户名 |
+| `BACKEND_ADMIN_PASSWORD` | `admin123456` | 默认管理员密码 |
+| `BACKEND_SMTP_HOST` | — | SMTP 服务器地址 |
+| `BACKEND_SMTP_PORT` | `465` | SMTP 端口 |
+| `BACKEND_SMTP_USERNAME` | — | SMTP 用户名 |
+| `BACKEND_SMTP_PASSWORD` | — | SMTP 密码/授权码 |
+| `BACKEND_SMTP_FROM_EMAIL` | — | 发件人邮箱 |
+| `BACKEND_ALLOW_DEBUG_VERIFY_CODE` | `false` | 允许调试验证码（生产必须 `false`） |
+| `BACKEND_INCLUDE_DEBUG_CODE` | `false` | 响应包含调试信息（生产必须 `false`） |
+
+**S3 存储配置**（当 `BACKEND_OBJECT_STORAGE_BACKEND=s3` 时）：
+
+| 变量 | 说明 |
+|------|------|
+| `AWS_ACCESS_KEY_ID` | AWS Access Key |
+| `AWS_SECRET_ACCESS_KEY` | AWS Secret Key |
+| `AWS_REGION` | S3 区域（如 `ap-northeast-1`） |
+| `AWS_S3_BUCKET` | S3 Bucket 名称 |
+
+## API 文档
+
+后端启动后访问 `http://localhost:8080/api/` 根路径可查看可用端点。
+
+### 主要端点
+
+**认证**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/auth/send-code` | 发送邮箱验证码 |
+| `POST` | `/api/auth/register` | 注册账号 |
+| `POST` | `/api/auth/login` | 登录 |
+| `POST` | `/api/auth/verify` | 验证邮箱 |
+| `POST` | `/api/auth/logout` | 登出 |
+| `POST` | `/api/auth/password/send-code` | 发送密码重置验证码 |
+| `POST` | `/api/auth/password/reset` | 重置密码 |
+
+**帖子**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/posts` | 获取帖子列表（支持 channel、keyword、authorId 等过滤） |
+| `POST` | `/api/posts` | 发布帖子 |
+| `GET` | `/api/posts/{id}` | 获取帖子详情 |
+| `POST` | `/api/posts/{id}/like` | 点赞 |
+| `POST` | `/api/posts/{id}/favorite` | 收藏 |
+| `DELETE` | `/api/posts/{id}/favorite` | 取消收藏 |
+| `POST` | `/api/posts/{id}/comments` | 添加评论 |
+| `POST` | `/api/reports` | 举报内容 |
+
+**用户**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `GET` | `/api/users/me` | 获取当前用户资料 |
+| `PATCH` | `/api/users/me` | 更新个人资料 |
+| `POST` | `/api/users/avatar` | 上传头像 |
+| `POST` | `/api/users/{id}/follow` | 关注用户 |
+| `POST` | `/api/users/{id}/unfollow` | 取消关注 |
+
+**私信**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/messages/conversations/direct` | 直接创建/进入会话（微信模式） |
+| `GET` | `/api/messages/conversations` | 会话列表 |
+| `POST` | `/api/messages/conversations/{id}/messages` | 发送消息 |
+
+**管理员**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| `POST` | `/api/admin/auth/login` | 管理员登录 |
+| `GET` | `/api/admin/overview` | 仪表盘统计 |
+| `GET` | `/api/admin/reviews` | 内容审核列表 |
+| `POST` | `/api/admin/reviews/batch` | 批量审核 |
+| `GET` | `/api/admin/reports` | 举报处理列表 |
+| `POST` | `/api/admin/reports/{id}/handle` | 处理举报 |
+| `GET` | `/api/admin/users` | 用户管理 |
+| `GET` | `/api/admin/export` | 数据导出 |
+
+## 测试
+
+### 前端测试
 
 ```bash
-FLUTTER_BIN=/path/to/flutter ./scripts/build_web_beta.sh
+flutter test
 ```
 
-2. 启动后端（会同时提供 Web 页面 + API）：
+### 后端测试
 
 ```bash
-BACKEND_HOST=0.0.0.0 \
-BACKEND_PORT=8080 \
-BACKEND_ADMIN_USERNAME=admin \
-BACKEND_ADMIN_PASSWORD='请改成强密码' \
-BACKEND_SMTP_HOST=smtp.qq.com \
-BACKEND_SMTP_PORT=465 \
-BACKEND_SMTP_USERNAME=your@qq.com \
-BACKEND_SMTP_PASSWORD='QQ SMTP 授权码' \
-BACKEND_SMTP_FROM_EMAIL=your@qq.com \
-BACKEND_SMTP_FROM_NAME='西电树洞' \
-BACKEND_SMTP_USE_SSL=true \
-BACKEND_SMTP_USE_STARTTLS=false \
-./scripts/run_backend_beta.sh
+cd backend
+pip install pytest requests
+
+# 运行所有测试
+python -m pytest tests/ -v
+
+# 运行指定测试
+python -m pytest tests/test_auth.py -v
 ```
 
-3. 放行服务器防火墙端口（示例：`8080`），然后用同学浏览器访问：
+## 部署
 
-- `http://<你的公网IP>:8080/`（前端）
-- `http://<你的公网IP>:8080/api/channels`（接口健康检查）
+### 腾讯云部署
 
-4. 可选：若你有域名，可用 Nginx/Caddy 反向代理到 `127.0.0.1:8080`，再启用 HTTPS。
-
-### 固定公网地址（GitHub + Render 免费版）
-
-如果你不希望再使用自己电脑作为服务器，可以用 Render 免费 Web Service 部署，拿到固定地址：
-
-- `https://<你的服务名>.onrender.com`
-
-项目已提供 Render 配置文件：`render.yaml`（仓库根目录）。
-
-1. 推送代码到 GitHub（`main` 分支）：
+参考 `scripts/deploy_tencent.sh` 和 `deploy/tencent/` 目录：
 
 ```bash
-git remote add origin <你的GitHub仓库URL>
-git push -u origin main
+# 1. 在服务器安装环境
+bash scripts/install_tencent_host.sh
+
+# 2. 部署后端
+bash scripts/deploy_tencent.sh
 ```
 
-2. 打开 Render 控制台：
-   - New -> Blueprint
-   - 选择你的 GitHub 仓库
-   - Render 会自动识别 `render.yaml`
-
-3. 在 Render 环境变量里补齐敏感配置（`sync: false` 的项）：
-   - `BACKEND_ADMIN_PASSWORD`
-   - `BACKEND_SMTP_USERNAME`
-   - `BACKEND_SMTP_PASSWORD`
-   - `BACKEND_SMTP_FROM_EMAIL`
-
-4. 等待部署完成后，直接访问：
-   - `https://<你的服务名>.onrender.com`
-   - `https://<你的服务名>.onrender.com/api/channels`
-
-注意：
-- Render 免费实例会休眠，首次访问会有冷启动延迟。
-- 免费实例文件系统非持久化，SQLite/本地图片存储不适合生产长期保存。
-
-### 腾讯云试用机部署（CVM / Lighthouse）
-
-仓库已补充腾讯云部署脚本和配置：
-
-- `scripts/package_release.sh`：本地构建并打包发布包
-- `scripts/deploy_tencent.sh`：从本机通过 SSH 上传并执行服务器安装
-- `scripts/install_tencent_host.sh`：服务器侧安装 Nginx + systemd 并发布
-- `deploy/tencent/backend.env.example`：后端环境变量模板
-- `deploy/tencent/xdu-whisperbox.service`：systemd 服务
-- `deploy/tencent/nginx-xdu-whisperbox.conf`：Nginx 反向代理配置
-
-开始部署前，腾讯云实例需满足：
-
-- Linux Ubuntu 22.04
-- 已放通 `22`、`80`
-- 你本机可以通过 SSH 登录该实例
-
-本机执行：
+### Docker 生产部署
 
 ```bash
-DEPLOY_HOST=<你的腾讯云公网IP> \
-DEPLOY_USER=root \
-DEPLOY_SSH_KEY=~/.ssh/tencent-cloud.pem \
-./scripts/deploy_tencent.sh
+# 1. 构建 Flutter Web
+flutter build web
+
+# 2. 启动生产服务
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-如果你的登录用户不是 `root`，把 `DEPLOY_USER` 改成实际用户名即可，例如 `ubuntu`。
+## 开发规范
 
-部署完成后，服务器会生成环境变量文件：
+### 后端
 
-```bash
-/etc/xdu-whisperbox.env
-```
+- API 路由通过 `server.py` 分发到 `handlers/` 中的独立模块
+- 业务逻辑下沉到 `services/` 层
+- 通用工具函数放在 `helpers/` 层
+- 全局状态（线程锁、数据库连接池等）通过 `_globals.py` 统一管理
+- 所有配置通过环境变量注入，不硬编码
+- 生产环境必须设置 `BACKEND_ALLOW_DEBUG_VERIFY_CODE=false`
 
-部署脚本默认会把 SQLite 和本地对象存储指向共享目录，避免发版覆盖运行时数据：
+### 前端
 
-- `BACKEND_DB_FILE=/opt/xdu-whisperbox/shared/backend/data/treehole.db`
-- `BACKEND_STORAGE_DIR=/opt/xdu-whisperbox/shared/backend/storage/objects`
+- 页面使用 `Riverpod StateNotifier` 管理状态
+- Repository 模式封装所有 HTTP 请求
+- 公共接口路径统一放在 `lib/core/network/api_endpoints.dart`
+- 页面初始化的异步加载放在 `initState + Future.microtask()`
+- 发帖后立即展示，不等待审核
 
-至少应检查并修改：
+## 相关文档
 
-- `BACKEND_ADMIN_PASSWORD`
-- `BACKEND_SMTP_USERNAME`
-- `BACKEND_SMTP_PASSWORD`
-- `BACKEND_SMTP_FROM_EMAIL`
+- [项目进程文档](PROJECT.md) — 版本历史、构建记录、未跨端适配功能
+- [开发规范](CLAUDE.md) — 架构约定、命名规范、状态管理规范
+- [代理说明](AGENTS.md) — 项目使命、技术栈、上下文锚点、未完成任务
 
-修改后重启服务：
+## 许可证
 
-```bash
-sudo systemctl restart xdu-whisperbox
-sudo systemctl status xdu-whisperbox
-curl http://127.0.0.1:8080/api/channels
-```
-
-公网访问地址：
-
-- `http://<你的腾讯云公网IP>/`
-- `http://<你的腾讯云公网IP>/api/channels`
-
-当前内测地址（2026-03-22，已更新到最新部署）：
-
-- 前台：`http://81.69.16.134/`
-- API 健康检查：`http://81.69.16.134/api/channels`
-
-说明：
-
-- 该部署方式默认使用 SQLite + 本地对象存储，适合试用机和小规模内测
-- 中国大陆以外访问限制，建议放在腾讯云边界产品上做；当前仓库内的 Nginx 模板只负责反向代理，不负责地理位置拦截
-
-### 1) 启动后端（基础方式）
-
-在项目根目录执行：
-
-```bash
-python3 backend/server.py
-```
-
-默认地址：`http://127.0.0.1:8080/api`
-默认普通用户账号：`demo@stu.xidian.edu.cn / 123456`
-默认管理员账号：`admin / admin123456`（首次初始化，可用环境变量覆盖）
-更多后端说明见：`backend/README.md`
-管理员入口：登录页点击「管理员后台登录」
-
-可选管理员环境变量：
-
-- `BACKEND_ADMIN_USERNAME`（默认 `admin`）
-- `BACKEND_ADMIN_PASSWORD`（默认 `admin123456`）
-
-真实邮箱验证码 SMTP 环境变量：
-
-- `BACKEND_SMTP_HOST`（例如 QQ 邮箱用 `smtp.qq.com`）
-- `BACKEND_SMTP_PORT`（QQ 常用 `465`）
-- `BACKEND_SMTP_USERNAME`
-- `BACKEND_SMTP_PASSWORD`
-- `BACKEND_SMTP_FROM_EMAIL`（可选，默认同用户名）
-- `BACKEND_SMTP_FROM_NAME`（可选，默认 `西电树洞`）
-- `BACKEND_SMTP_USE_SSL`（QQ 推荐 `true`）
-- `BACKEND_SMTP_USE_STARTTLS`（QQ 推荐 `false`）
-
-调试开关（仅开发环境）：
-
-- `BACKEND_ALLOW_DEBUG_VERIFY_CODE=true`：允许 `123456` 调试验证码
-- `BACKEND_INCLUDE_DEBUG_CODE=true`：验证码接口响应返回 `debugCode`
-
-### 2) 后端数据与图片存储说明
-
-- 默认数据库文件：`backend/data/treehole.db`
-- 默认对象存储目录：`backend/storage/objects`（`BACKEND_OBJECT_STORAGE_BACKEND=local`）
-- 兼容老数据：首次启动时若存在 `backend/data/db.json`，会自动导入 SQL
-- 一键重置（SQL + 对象存储）：
-
-```bash
-python3 backend/reset_db.py
-```
-
-如果要切换到 S3/OSS（S3 兼容接口）：
-
-```bash
-pip install -r backend/requirements-storage.txt
-BACKEND_OBJECT_STORAGE_BACKEND=s3 \
-BACKEND_S3_BUCKET=xdu-treehole \
-BACKEND_S3_ENDPOINT=https://s3.example.com \
-BACKEND_S3_ACCESS_KEY_ID=xxxx \
-BACKEND_S3_SECRET_ACCESS_KEY=yyyy \
-python3 backend/server.py
-```
-
-### 3) 将 `backend/data/db.json` 迁移到 MySQL / PostgreSQL（可选）
-
-先安装迁移依赖：
-
-```bash
-pip install -r backend/requirements-db.txt
-```
-
-PostgreSQL 示例：
-
-```bash
-python3 backend/migrate_json_to_sql.py \
-  --dialect postgres \
-  --database-url postgresql+psycopg://user:password@127.0.0.1:5432/xdu_treehole \
-  --truncate
-```
-
-MySQL 示例：
-
-```bash
-python3 backend/migrate_json_to_sql.py \
-  --dialect mysql \
-  --database-url "mysql+pymysql://user:password@127.0.0.1:3306/xdu_treehole?charset=utf8mb4" \
-  --truncate
-```
-
-- 建表 SQL：`backend/sql/schema_postgresql.sql`、`backend/sql/schema_mysql.sql`
-- 已补索引：帖子列表、评论列表、举报处理、私信申请、会话列表、审计日志等高频查询路径
-- 当前后端运行时使用 `backend/data/treehole.db`；迁移脚本用于把历史 `db.json` 导入 MySQL/PostgreSQL
-
-### 4) 启动前端（Flutter Web）
-
-在项目根目录执行：
-
-```bash
-flutter pub get
-flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8080/api
-```
-
-如果你暂时不传 `API_BASE_URL`，默认会请求：
-
-```bash
-http://localhost:8080/api
-```
-
-如果你遇到旧数据导致账号状态异常（例如 demo 账号被注销），可以先重置：
-
-```bash
-python3 backend/reset_db.py
-```
-
-## 已接入接口分组
-
-- 认证：发送验证码、登录、验证码认证、重发验证码、退出登录
-- 帖子：频道、帖子列表、帖子详情、发帖（支持 `imageUploadIds`）、评论、点赞、收藏/取消收藏、举报、我的帖子、收藏帖子、帖子置顶申请 / 一级用户直接置顶
-- 上传：图片上传（`/uploads/images`）、我的上传记录（`/uploads/mine`）、对象存储访问（`/storage/{key}`）
-- 消息：发起私信申请、私信申请列表、同意/拒绝申请、会话列表、会话消息列表、发送私信
-- 个人：我的资料、隐私设置、我的评论、删除评论、我的举报、注销账号申请、一级用户申请
-- 通知：通知列表、单条已读、全部已读
-- 管理员认证：`/admin/auth/login`、`/admin/auth/logout`、`/admin/auth/me`、`/admin/auth/password`
-- 管理员业务：统计概览、内容审核、批量审核、图片审核、举报处理、用户状态管理、管理员注销/恢复账号、注销申请审核、申诉处理、数据导出、匿名帖真实作者追溯、频道标签管理、敏感词/系统配置、多管理员权限分级、帖子置顶申请审批、一级用户申请审批
-
-## 版本标识与发布流程
-
-### 版本标识机制
-
-- 后端新增 `/api/version` 接口，返回后端版本、Git hash、构建日期
-- 前端 `AppConfig` 新增 `appVersion` 字段，由构建脚本注入
-- `index.html` 注入 `<meta name="app-version">` 标签便于快速确认运行版本
-- 个人中心底部显示当前前端版本号
-
-### 生产构建与发布
-
-```bash
-# 生成版本信息并构建前端（推荐方式）
-./scripts/version.sh                          # 查看版本信息
-./scripts/build_web_production.sh              # 生产构建（注入版本标识）
-
-# 直接使用旧版构建脚本
-FLUTTER_BIN=/path/to/flutter ./scripts/build_web_beta.sh
-```
-
-### 回滚
-
-```bash
-# 查看可用版本并回滚到上一版本
-./scripts/rollback.sh
-```
-
-### 健康检查
-
-```bash
-# 检查本机服务
-./scripts/health_check.sh
-
-# 检查远程服务
-API_BASE_URL=https://your-domain.com/api \
-WEB_BASE_URL=https://your-domain.com \
-./scripts/health_check.sh
-```
-
-## 更新日志
-
-### 2026-03-22
-
-- 腾讯云现网已更新到最新版：`http://81.69.16.134/`
-- 支持多管理员权限分级：一级管理员拥有完整后台权限，并可创建、注销、恢复二级管理员；二级管理员仅保留用户管理与帖子置顶审批相关能力
-- `admin` 账号已切换为一级管理员默认账号
-- 新增用户等级体系：当前所有普通用户默认是二级用户
-- 一级用户发帖时可直接选择置顶时长：`30min`、`1h`、`2h`、`3h`、`1day`、`3day`
-- 二级用户可对自己的帖子提交置顶申请，由一级或二级管理员审批通过 / 驳回
-- 二级用户可提交升级一级用户申请，仅一级管理员可审批
-- 帖子列表已支持置顶排序，处于置顶期的帖子优先展示
-
-### 2026-03-20
-
-- 通知中心已部署到腾讯云现网：支持评论、回复、点赞、收藏、举报处理结果、系统公告通知，包含未读数与已读逻辑
-- 管理员后台增强已部署到腾讯云现网：支持批量审核、申诉处理、数据导出、管理员直接注销违规账号、已注销账号恢复
-- 私信功能增强：新增未读数与全局红点提醒，进入会话后自动已读
-- 私信消息支持已读状态展示，发送方可看到"已读 / 未读"
-- 新增会话级屏蔽功能：可屏蔽或解除屏蔽对方，屏蔽后禁止继续发起私信和发送消息
-- 新增单侧删除会话功能：删除后仅从当前用户列表隐藏，不立即物理删除历史消息
-- 私信发送失败时保留失败内容，并提供"重试发送"入口
-- 腾讯云现网已更新到最新版：`http://81.69.16.134/`
-
-**发布流程自动化：**
-
-- 新增 `scripts/version.sh`：自动生成版本标识（Git commit hash + 日期 + app 版本号）
-- 新增 `scripts/build_web_production.sh`：生产构建脚本，注入版本信息到 Flutter 构建产物
-- 新增 `scripts/rollback.sh`：支持按版本目录回滚，配合软链接实现零停机回退
-- 新增 `scripts/health_check.sh`：健康检查脚本，验证后端 API、前端页面和缓存头
-
-**版本标识机制：**
-
-- 后端新增 `/api/version` 接口，返回后端版本、Git hash、构建日期
-- 前端 `AppConfig` 新增 `appVersion` 字段，由构建脚本注入
-- `index.html` 注入 `<meta name="app-version">` 标签便于快速确认运行版本
-- 个人中心底部显示当前前端版本号
-
-**合规与说明页面：**
-
-- 新增 `TermsOfServicePage`（用户协议）、`PrivacyPolicyPage`（隐私政策）、`CommunityGuidelinesPage`（社区规范）、`ReportGuidelinesPage`（举报说明）
-- 注册页协议文本升级为可点击链接，附"查看协议"按钮
-- 登录页底部新增合规说明入口（聚合页）
-- 个人中心新增协议与说明页面导航
-- 所有法律页面支持 URL 路由（`/terms`、`/privacy`、`/guidelines`、`/report-guidelines`）
-
-**Nginx 缓存策略：**
-
-- HTML 文件设置 `Cache-Control: no-cache, no-store, must-revalidate`
-- 新增 `.map`（sourcemap）文件长期缓存、新增媒体文件（mp4/webm/ogg/pdf 等）7 天缓存
-- 新增跨域头 `Access-Control-Allow-Origin: *`
-- 提取缓存配置为独立文件 `deploy/production/nginx-cache.conf`，可单独 include
-
-### 2026-03-08
-
-- 私信功能从演示版改为真实可用：支持帖子详情页发起私信申请、管理员同意后建立双向会话、消息持久化存储与历史消息拉取
-- 管理员审核页支持查看匿名帖/匿名评论的真实账号信息（昵称、邮箱、学号、内部用户 ID）
-- 输入区交互优化：表情入口改为紧凑按钮，不再挡住评论/私信输入框
-- 发帖页标题输入框拦截 `Tab` 焦点跳转，不再自动跳到正文
-- 腾讯云现网已更新到最新版：`http://81.69.16.134/`
-
-### 2026-03-07
-
-- 后端新增静态资源托管：非 `/api` 路径可直接返回 `build/web` 内容，支持 SPA 路由回退
-- 新增内测部署脚本：`scripts/build_web_beta.sh`、`scripts/run_backend_beta.sh`
-- 新增 README 公网内测上线步骤（单端口发布 Web + API）
-- 落实内测意见：注册头像本地上传、注册自动推导学号、登录改学号、无 SMTP 时启用验证码兜底
-
-### 2026-03-06
-
-- 管理员后台入口独立：从用户"个人中心"移除管理员入口，改为登录页独立入口
-- 管理员认证独立：新增 `/api/admin/auth/*`，管理员 token 与用户 token 分离
-- 管理员账号密码独立：默认 `admin / admin123456`（首次初始化），不复用用户密码
-- 首页视觉升级：登录后首页新增顶部欢迎区、快捷操作、增强搜索与筛选样式、导航图标样式优化
-- 帖子卡片视觉升级：频道/状态胶囊、指标徽标、标签样式和信息层次优化
-- 表情功能上线：发帖正文、评论/回复、私聊会话输入均可选择表情
-- 新增表情设置：支持启用/关闭表情、常用表情自定义
-- 发帖发布后立即展示，不再提示"等待审核后展示"
-- 对象存储支持 S3/OSS：后端可通过环境变量从本地存储切换到 S3 兼容存储
-- 注册验证码改为 SMTP 真实邮箱发送（支持配置调试码开关）
-
-## 建议下一步（路线图）
-
-### 已完成
-
-1. 后端读写从 JSON 切换为 SQL（SQLite，Repository/DAO + 事务）
-2. 增加图片审核与对象存储上传链路（本地对象存储 + 管理员审核）
-3. 提供 `db.json` 到 MySQL/PostgreSQL 的迁移脚本与索引 schema
-4. 密码存储升级为 PBKDF2-SHA256 哈希（兼容旧明文自动迁移）
-5. 增加全局频率限制策略（发帖/评论/举报/私信处理/图片上传）
-6. 增加更细粒度风控（敏感词/重复文本/重复图片哈希）
-7. 前端抽离状态管理（Riverpod）并统一加载/错误态组件（`AsyncPageState`）
-8. 前端接入真实图片选择与上传组件（Web 端图片选择 -> `/uploads/images` -> 发帖绑定 `imageUploadIds`）
-9. 给帖子分类频道增加"其他"，并支持排序（按发布时间 / 按点赞量）
-10. 发帖改为直接发布（默认不走审核）
-11. 去掉联系方式关键词、手机号、外链的封控
-12. 页面视觉升级（主题色、导航样式、背景层次与卡片观感优化）
-13. 对象存储从本地扩展到 S3/OSS（S3 兼容）
-14. 版本标识机制（后端 `/api/version` + 前端 `appVersion` + 构建脚本注入）
-15. 发布流程自动化（version.sh、build_web_production.sh、rollback.sh、health_check.sh）
-16. 合规与说明页面（用户协议、隐私政策、社区规范、举报说明）
-17. 多管理员权限分级（一级管理员 / 二级管理员）
-18. 用户等级体系与帖子置顶申请（一级用户直置顶、二级用户申请置顶、二级用户申请升级一级）
-
-### 待完成
-
-- 暂无（README 中原有待完成项已完成）
-
-
-### 内测意见一（已落实 2026-03-07）
-1. 注册头像改为本地图片上传（不再要求手填 URL）
-2. 注册页移除手填学号，学号自动取注册邮箱前缀
-3. 登录改为"学号 + 密码"，后端兼容邮箱/学号两种标识
-4. 未配置 SMTP 时启用内测验证码兜底（默认 `123456`），避免注册流程中断
-### 内测意见二（已落实 2026-03-07）
-1. 帖子详情页支持 URL 状态同步，刷新后可自动恢复到同一帖子
-2. 启用 SMTP 真实邮箱验证码链路（内测部署已按环境变量开启）
-3. 发送验证码失败时对"邮箱不存在/不可达"场景给出明确提示
-4. 私信申请同意/拒绝后保留状态并展示"已同意/已拒绝"
-5. 个人中心收藏数量改为按真实可见收藏帖计算，与收藏列表对齐
-
-## 上线前检查清单
-
-### 当前判断
-
-- 现阶段已具备小范围内测能力
-- 若目标是正式公网长期运行，当前仍缺少一层生产化能力
-- 主要差距不在页面数量，而在生产配置收口、运维可靠性、风控闭环、通知与私信的完整度
-
-### 正式上线执行清单（建议按顺序推进）
-
-1. 账号与环境配置收口
-   - [ ] 移除 demo 账号、默认管理员密码、默认演示配置
-   - [ ] 关闭前端接口失败 fallback 本地 Mock
-   - [ ] 关闭 `debugCode` 返回和调试验证码兜底能力
-   - [ ] 区分开发 / 测试 / 生产环境变量，并整理成明确模板
-2. 安全与权限
-   - [ ] 增加登录限流、验证码限流、发帖 / 评论 / 私信 / 举报频控
-   - [ ] 补齐找回密码、改密异常处理、登录会话管理、强制下线
-   - [ ] 为管理员关键操作补齐审计日志：审核、封禁、恢复、置顶审批、升级审批
-   - [ ] 继续细化管理员权限，避免非必要的高权限操作暴露
-3. 内容风控与运营闭环
-   - [ ] 完善敏感词、重复内容、骚扰私信、恶意举报的拦截与留痕
-   - [ ] 明确匿名边界文案：前台匿名、后台可追溯真实账号
-   - [ ] 明确举报、申诉、账号恢复、一级用户升级、帖子置顶申请的处理 SLA
-   - [ ] 为管理员后台补强筛选、排序、搜索，确保内容量上来后还能运营
-4. 生产基础设施
-   - [ ] 绑定正式域名并启用 HTTPS
-   - [ ] 若面向中国大陆正式提供服务，完成备案与上线材料准备
-   - [ ] systemd / Nginx / 防火墙配置做成稳定的生产模板
-   - [ ] 明确静态资源缓存策略、版本回滚策略和前端强刷更新策略
-5. 数据与存储可靠性
-   - [ ] 将正式数据库切换到 MySQL 或 PostgreSQL
-   - [ ] 将图片、头像、上传文件切换到正式对象存储
-   - [ ] 建立数据库备份、对象存储备份、恢复演练与回滚预案
-   - [ ] 为 schema 变更补齐迁移脚本，避免上线后手工改库
-6. 可观测性与发布验收
-   - [ ] 增加服务健康检查、错误日志、访问日志、磁盘与内存监控
-   - [ ] 配置告警：服务挂掉、数据库异常、SMTP 失败、对象存储失败
-   - [ ] 补齐最小可用自动化测试：注册、登录、发帖、评论、收藏、私信、举报、管理员审核
-   - [ ] 固化上线前人工验收脚本：用户主流程、管理员主流程、通知、私信、申诉、置顶审批
-
-### P0：正式上线前必须完成
-
-1. 收口内测/演示能力
-   - 关闭前端接口失败时回退本地 Mock 的逻辑
-   - 关闭调试验证码返回 `debugCode`
-   - 移除或禁用 demo 账号、默认管理员密码、默认演示配置
-   - 明确区分开发环境、测试环境、生产环境配置
-2. 完成正式部署基础设施
-   - 绑定正式域名
-   - 启用 HTTPS
-   - 配置健康检查、进程守护、日志轮转
-   - 落实备份与恢复方案
-   - 若仅面向中国大陆正式提供服务，按要求完成备案
-3. 将默认运行存储切到正式方案
-   - 数据库切换为 MySQL 或 PostgreSQL
-   - 图片与头像切换到正式对象存储
-   - 明确迁移、回滚、容灾方案
-4. 补齐核心风控闭环
-   - 强化发帖、评论、私信、上传的频率限制
-   - 完善敏感内容识别与拦截策略
-   - 建立违规内容复核与追溯机制
-   - 保证管理员关键操作有完整审计记录
-
-### P1：上线后高频会暴露的功能缺口
-
-1. 完善私信能力（已完成 2026-03-20）
-   - 未读数与红点提醒
-   - 已读状态
-   - 拉黑或屏蔽
-   - 删除会话
-   - 更明确的发送失败与重试提示
-2. 补齐通知中心（已完成 2026-03-20，已部署现网）
-   - 评论通知
-   - 回复通知
-   - 收藏或点赞通知
-   - 举报处理结果通知
-   - 系统公告通知
-3. 继续增强管理员后台（首批已完成 2026-03-20）
-   - 批量审核
-   - 更强的筛选、排序与搜索
-   - 数据导出
-   - 申诉处理
-   - 管理员注销违规账号权限
-   - 已注销账号恢复
-   - ~~多管理员权限分级~~（已完成 2026-03-22）
-4. 完善账号安全能力
-   - 登录会话管理
-   - 强制下线
-   - 更完整的改密与找回密码异常处理
-   - 更换绑定邮箱流程
-5. 用户等级与帖子置顶能力（已完成 2026-03-22）
-   - ~~一级 / 二级用户等级~~
-   - ~~一级用户直接置顶~~
-   - ~~二级用户帖子置顶申请~~
-   - ~~二级用户升级一级用户申请~~
-
-### P2：可用性与长期维护能力
-
-1. ~~建立自动化测试~~（待完成）
-   - 注册
-   - 登录
-   - 发帖
-   - 图片上传
-   - 私信
-   - 举报
-   - 管理员审核
-   - 找回密码
-2. ~~完善发布流程~~（已完成）
-   - ~~一键部署~~
-   - ~~版本标识~~
-   - ~~回滚方案~~
-   - ~~前端静态资源缓存更新策略~~
-3. ~~补充合规与说明页面~~（已完成）
-   - ~~用户协议~~
-   - ~~隐私政策~~
-   - ~~内容管理规则~~
-   - ~~举报处理说明~~
-
-### 结论
-
-- 当前版本适合继续做校园内测
-- 若要作为正式站点长期稳定运行，优先完成 P0，再按 P1 补齐用户日常高频能力
+本项目仅供西安电子科技大学校内使用。
