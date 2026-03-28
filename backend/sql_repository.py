@@ -203,6 +203,7 @@ class SqliteTreeholeRepository:
               pin_started_at TEXT NULL,
               pin_expires_at TEXT NULL,
               pin_duration_minutes INTEGER NOT NULL DEFAULT 0,
+              view_count INTEGER NOT NULL DEFAULT 0,
               created_at TEXT NOT NULL,
               updated_at TEXT NOT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
@@ -667,6 +668,7 @@ class SqliteTreeholeRepository:
             SELECT id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
                    visibility, is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
+                   view_count,
                    created_at, updated_at, deleted, review_status, risk_marked
             FROM posts
             ORDER BY created_at DESC, id DESC
@@ -698,6 +700,7 @@ class SqliteTreeholeRepository:
                     "pinStartedAt": _to_str(row["pin_started_at"]),
                     "pinExpiresAt": _to_str(row["pin_expires_at"]),
                     "pinDurationMinutes": _to_int(row["pin_duration_minutes"], 0),
+                    "viewCount": _to_int(row["view_count"], 0),
                     "createdAt": row["created_at"],
                     "updatedAt": row["updated_at"],
                     "deleted": _to_bool(row["deleted"]),
@@ -1238,8 +1241,9 @@ class SqliteTreeholeRepository:
                       id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
                       visibility, is_anonymous,
                       author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
+                      view_count,
                       created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
@@ -1261,6 +1265,7 @@ class SqliteTreeholeRepository:
                         _to_str(post.get("pinStartedAt")) or None,
                         _to_str(post.get("pinExpiresAt")) or None,
                         _to_int(post.get("pinDurationMinutes"), 0),
+                        _to_int(post.get("viewCount"), 0),
                         _to_str(post.get("createdAt")) or created_now,
                         _to_str(post.get("updatedAt")) or created_now,
                         _to_bool_int(post.get("deleted")),

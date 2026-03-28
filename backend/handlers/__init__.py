@@ -66,6 +66,7 @@ from handlers._message_handler import (
     handle_get_conversations,
     handle_get_messages,
     handle_get_requests,
+    handle_message_recall,
     handle_reject_request,
     handle_send_message,
     handle_send_request,
@@ -97,6 +98,7 @@ from handlers._post_handler import (
     handle_update_post,
     handle_delete_comment,
     handle_delete_post,
+    handle_increment_view,
 )
 from handlers._static_handler import (
     handle_storage_get,
@@ -205,6 +207,7 @@ __all__ = [
     "handle_update_post",
     "handle_delete_comment",
     "handle_delete_post",
+    "handle_increment_view",
     # static
     "handle_storage_get",
     "handle_web_fallback_get",

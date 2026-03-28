@@ -182,6 +182,28 @@ class MessagesController extends StateNotifier<MessagesState> {
     removeConversation(conversationId);
   }
 
+  Future<void> recallMessage({required String conversationId, required String messageId}) async {
+    try {
+      await _ref.read(messageRepositoryProvider).recallMessage(
+        conversationId: conversationId,
+        messageId: messageId,
+      );
+    } catch (_) {}
+  }
+
+  void removeMessage(String conversationId, String messageId) {
+    // Update conversation preview: show the second-to-last message as the new preview
+    final List<ConversationItem> rows = List<ConversationItem>.from(state.conversations);
+    final int idx = rows.indexWhere((c) => c.id == conversationId);
+    if (idx >= 0) {
+      rows[idx] = rows[idx].copyWith(
+        lastMessage: '对方撤回了一条消息',
+        timeText: _formatNowTime(),
+      );
+      state = state.copyWith(conversations: rows, clearError: true);
+    }
+  }
+
   String _formatNowTime() {
     final DateTime now = DateTime.now();
     final String hh = now.hour.toString().padLeft(2, '0');

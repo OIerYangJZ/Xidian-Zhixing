@@ -134,6 +134,10 @@ class PostCard extends StatelessWidget {
                   ),
                   const Spacer(),
                   _metric(
+                      icon: Icons.visibility_outlined,
+                      value: post.viewCount),
+                  const SizedBox(width: 10),
+                  _metric(
                       icon: Icons.mode_comment_outlined,
                       value: post.commentCount),
                   const SizedBox(width: 10),

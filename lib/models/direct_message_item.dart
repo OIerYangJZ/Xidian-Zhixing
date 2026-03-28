@@ -21,6 +21,13 @@ class DirectMessageItem {
   final String readAt;
   final String deliveryStatus;
 
+  bool get canRecall {
+    if (!fromMe || deliveryStatus == 'failed') return false;
+    final created = DateTime.tryParse(createdAt)?.toUtc();
+    if (created == null) return false;
+    return DateTime.now().toUtc().difference(created).inSeconds <= 120;
+  }
+
   factory DirectMessageItem.fromJson(Map<String, dynamic> json) {
     final String readAt = (json['readAt'] ?? '').toString();
     final bool isRead = _toBool(json['isRead']) ?? readAt.trim().isNotEmpty;

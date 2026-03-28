@@ -65,6 +65,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
+      // 触发阅读量计数（静默忽略失败）
+      postRepo.incrementView(widget.postId);
       final post = await postRepo.fetchPostDetail(widget.postId);
       final comments = await postRepo.fetchComments(widget.postId);
 

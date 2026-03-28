@@ -842,3 +842,74 @@ def handle_unblock_peer(
     add_audit_log(db, user["id"], "unblock_user", f"解除屏蔽用户 {peer_user_id}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"blocked": False}})
+
+
+def handle_message_recall(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    message_id: str,
+) -> None:
+    """DELETE /api/messages/messages/<id>/recall"""
+    user = _require_auth(handler, db)
+    if user is None:
+        return
+
+    parsed = handler.path.split("?")
+    query_params = {}
+    if len(parsed) > 1:
+        from urllib.parse import parse_qs
+        query_params = parse_qs(parsed[1])
+
+    conversation_id = query_params.get("conversationId", [None])[0]
+    if not conversation_id:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少 conversationId 参数")
+        return
+
+    conv = next(
+        (
+            c
+            for c in db.get("conversations", [])
+            if c.get("id") == conversation_id and c.get("userId") == user["id"]
+        ),
+        None,
+    )
+    if conv is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "会话不存在")
+        return
+
+    peer_user_id = str(conv.get("peerUserId", "")).strip()
+    conv_key = _globals.conversation_key_for_users(user["id"], peer_user_id)
+
+    msg = next(
+        (
+            m
+            for m in db.get("directMessages", [])
+            if m.get("id") == message_id
+            and m.get("conversationKey") == conv_key
+            and not m.get("deleted")
+        ),
+        None,
+    )
+    if msg is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "消息不存在")
+        return
+
+    if msg.get("senderUserId") != user["id"]:
+        json_error(handler, HTTPStatus.FORBIDDEN, "只能撤回自己的消息")
+        return
+
+    msg_created = parse_iso(msg.get("createdAt"))
+    if msg_created is None:
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "消息时间解析失败")
+        return
+
+    from helpers import now_utc
+    elapsed = (now_utc() - msg_created).total_seconds()
+    if elapsed > 120:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "消息已超过 2 分钟，无法撤回")
+        return
+
+    msg["deleted"] = True
+    add_audit_log(db, user["id"], "recall_message", f"撤回消息: {message_id}")
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})

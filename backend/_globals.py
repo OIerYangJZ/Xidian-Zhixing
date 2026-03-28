@@ -302,13 +302,14 @@ def sort_posts_for_view(
         def hot_score(p: dict[str, Any]) -> float:
             likes = max(0, int(p.get("likeCount", 0) or 0))
             comments = max(0, int(p.get("commentCount", 0) or 0))
+            views = max(0, int(p.get("viewCount", 0) or 0))
             created = p.get("createdAt", "")
             try:
                 from helpers._datetime_helpers import parse_iso
                 ts = parse_iso(created).timestamp()
             except Exception:
                 ts = 0
-            return likes * 2 + comments - ts / 1e9
+            return likes * 2 + comments * 3 + views - ts / 1e9
         return sorted(posts, key=hot_score, reverse=True)
     elif sort_by == "oldest":
         return sorted(posts, key=lambda x: x.get("createdAt", ""))

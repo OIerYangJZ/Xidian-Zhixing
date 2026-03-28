@@ -431,18 +431,13 @@ class PostRepository {
     try {
       final dynamic response = await _apiClient.get(ApiEndpoints.myPosts);
       final List<dynamic> list = extractList(response);
-      final List<PostItem> posts = list
+      return list
           .map((dynamic item) => PostItem.fromJson(asMap(item)))
           .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
           .toList();
-      if (posts.isNotEmpty || !AppConfig.enableMockFallback) {
-        return posts;
-      }
     } catch (_) {
-      // ignore and fallback
+      return const <PostItem>[];
     }
-
-    return mockPosts.take(3).toList();
   }
 
   Future<void> updateMyPostStatus({
@@ -457,6 +452,17 @@ class PostRepository {
 
   Future<void> deleteMyPost(String postId) {
     return _apiClient.delete(ApiEndpoints.postById(postId));
+  }
+
+  Future<void> incrementView(String postId) async {
+    try {
+      await _apiClient.post(
+        ApiEndpoints.postView(postId),
+        body: const <String, dynamic>{},
+      );
+    } catch (_) {
+      // 阅读量计数失败不影响主流程，静默忽略
+    }
   }
 
   Future<PinPostActionResult> submitPinRequest({

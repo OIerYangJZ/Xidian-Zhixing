@@ -208,6 +208,10 @@ server.py (~745行)
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
 | 0.1.0+12 | 2026-03-27 | **后端模块化拆分**：将 `backend/server.py`（原 3620 行）拆分为职责清晰的模块结构，最终行数 745 行（-79%）；`backend/_globals.py` 作为全局状态单点，配置常量和运行时对象统一管理；`backend/helpers/` 子模块化（`auth_helpers`、`datetime_helpers`、`http_helpers`、`mailer`、`rate_limit`），消除 server.py 中 ~140 行 helpers 函数副本；`backend/services/` 子模块化（`_db_service`、`_user_service`），消除 server.py 中 ~870 行 services 函数副本；`backend/handlers/` 解耦为 8 个独立模块（`_auth_handler`、`_post_handler`、`_comment_handler`、`_message_handler`、`_user_handler`、`_notification_handler`、`_admin_handler`、`_static_handler`、`_upload_handler`），server.py 仅保留路由分发；补充 `services/_db_service.py` 中 handlers 依赖的缺失函数（`list_posts`、`build_admin_*_rows`、`serialize_*`、`build_export_payload`、`public_system_settings`、`build_pagination_meta`）；修复 handlers 与 services 间的循环导入；修复 `_globals.py` 中 `_lazy_proxy` 函数代理 handler 需要的 helpers/services 子模块函数；API `/api/version`、`/api/health`、`/api/channels`、`/api/posts` 测试通过 |
+| 0.1.0+13 | 2026-03-28 | **移动端登录修复**：修复移动端（Android/iOS）无法登录的问题。根本原因是移动端默认 API 地址为 `localhost:8080`，但移动设备上 `localhost` 指向设备自身而非后端服务器；`AppConfig.apiBaseUrl` 移动端默认值从 `http://localhost:8080/api` 改为 `http://81.69.16.134/api`（腾讯云公网 IP，现网生产地址）；`MobileConfig.apiBaseUrl` 同步更新；仍支持通过 `--dart-define=MOBILE_API_BASE_URL=...` 注入真实服务器地址 |
+| 0.1.0+14 | 2026-03-28 | **移动端消息页优化**：① 删除消息页 Tab 栏（「会话」「私信申请」切换），改为直接显示会话列表；② 修复会话界面 AppBar 标题和消息气泡中对方头像显示，改用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 处理相对路径 URL；③ 消息气泡框内显示发送时间（对方消息显示 `HH:mm`，自己消息以半透明文字显示）；④ 删除聊天页的表情发送功能（表情按钮、`_buildEmojiBar`、`_toggleEmoji`、`_onTapEmoji` 等全部移除） |
+| 0.1.0+15 | 2026-03-28 | **移动端帖子卡片样式重构**：参考 Instagram 风格重设计。标题统一改为 18sp Bold 突出显示；图文帖（hasImage）改为 PageView 全屏图片展示（固定 280dp 高），支持左右滑动切换 + 底部圆点指示器 + 点击进入全屏查看（InteractiveViewer 缩放），正文不再在卡片内显示；纯文帖保留 Big Text Poster（短内容<50字无标题）和正文截断（最多4行）；新建 `full_screen_image_page.dart` 全屏图片查看页；删除旧 `_ImageGrid` 小图网格。纯移动端 UI 调整，无跨端兼容条目新增。 |
+| 0.1.0+16 | 2026-03-28 | **热度排序优化**：① 消除双重排序：后端 `list_posts()` 在 `sort_by="hot"` 时跳过预排序，由 `sort_posts_for_view` 全权负责；② 引入阅读量指标：新增 `POST /api/posts/<id>/view` 端点（防刷：每用户每帖每天计1次），`posts` 表增加 `viewCount` 字段，`serialize_post` 返回 `viewCount`；③ 调整热度算法：`likes * 2 + comments - ts/1e9` → `likes * 2 + comments * 3 + viewCount - ts/1e9`（评论权重从×1提升到×3，阅读量纳入计算）；④ 前端：Web 端 `PostCard` 和移动端 `PostCard` 均显示阅读量（眼睛图标+数字），`PostItem` 模型新增 `viewCount` 字段，帖子详情页打开时触发阅读计数 |
 | 0.1.0+11 | 2026-03-26 | **工程审计整改（P2）**：后端 `backend/server.py` 添加 Python `logging` 结构化日志系统（`logging` 标准库，`_configure_logging()` 配置，`%(asctime)s | %(levelname)-8s | %(message)s` 格式）；所有 8 处 `print()` 调用全部替换为 `_logger.info()` / `_logger.warning()` / `_logger.debug()`；调试验证码开关激活时自动切换为 DEBUG 级别；`_handle_web_delete` 异常处理器由 `f"Internal server error: {error}"` 改为 `logger.exception()` + 固定文本 `"Internal server error"`，消除内部信息泄漏；`deploy/tencent/backend.env.example` 新增 `BACKEND_ALLOW_DEBUG_VERIFY_CODE` 和 `BACKEND_INCLUDE_DEBUG_CODE` 的 WARNING 注释，说明生产环境必须为 false |
 | 0.1.0+10 | 2026-03-26 | **工程审计整改（P0+P1）**：删除废弃 `lib_mobile/` 目录（40 文件）和 `backup_lib/` 目录（80 文件）并从 git 移除；`backup_lib/` 加入 `.gitignore`；从 `pubspec.yaml` 移除未使用的 `date_format` 依赖；`admin_models.dart`（732 行）拆分为 `lib/models/admin/` 子目录（9 个独立文件，每文件 < 200 行）；确认 `lib/main.dart` 为唯一入口后删除 `lib/mobile/main.dart`（冗余入口）；新建 `lib/core/theme/shared_colors.dart` 统一跨端品牌色，`app_theme.dart` 和 `mobile_theme.dart` 均引用 `SharedColors` |
 | 0.1.0+9 | 2026-03-26 | **后端**：新增 `POST /api/messages/conversations/direct` 端点（微信模式，无需申请直接创建/进入会话）；**移动端**：私信按钮改为直接进入或创建会话（替代原申请制流程）；他人主页头像点击跳转其个人主页；消息页新增 TabBar（会话列表 + 私信申请管理）；会话列表左滑删除；聊天页 AppBar 头像+昵称可点击进入对方主页；聊天页菜单新增屏蔽/解除屏蔽入口；聊天页消息气泡长按弹出操作菜单（复制/删除）；消息未读红点 Badge 跟随 Tab 栏显示 |
@@ -230,15 +234,15 @@ server.py (~745行)
 | 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 关于 / 退出登录；注销账号双重确认流程 | 仅移动端 |
 | 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 |
 | 帖子详情页（PostDetailPage） | 紧凑布局、底部操作栏压缩、AvatarWidget 头像 | 仅移动端 |
-| 消息页（MessagesPage） | TabBar 无外层 padding、头像尺寸优化、无 mock 数据回退；新增私信申请 Tab | 仅移动端 |
+| 消息页（MessagesPage） | 会话列表直接展示，无 Tab 切换；头像使用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 正确加载；会话列表点击跳转聊天 | 仅移动端（`lib/mobile/features/messages/`） |
 | AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib/mobile/features/widgets/`） |
 | 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
 | 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
 | 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
-| 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；聊天页消息气泡长按菜单（复制/删除）；屏蔽/解除屏蔽入口 | 仅移动端 |
+| 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；长按气泡 WeChat 风格浮层（复制/转发/详情/回复/撤回）；消息详情显示秒级时间；屏蔽/解除屏蔽入口；批量选中删除；转发到联系人会话 | 仅移动端 |
 | 匿名头像点击提示 | 非自己帖子头像点击弹出 SnackBar「暂不支持查看该用户主页」；自己帖子点击跳转 `/profile` | ~~已废弃~~ 现已实现：非匿名帖点击头像跳转 `/user/:id` 公开主页，支持关注和私信 |
 | 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
 
 ---
 
-*最后更新：2026-03-27（v0.1.0+12）*
+*最后更新：2026-03-28（v0.1.0+16）*

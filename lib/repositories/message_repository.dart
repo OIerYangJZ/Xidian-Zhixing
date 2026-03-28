@@ -126,4 +126,11 @@ class MessageRepository {
     final Map<String, dynamic> data = extractMap(response);
     return ConversationItem.fromJson(data);
   }
+
+  Future<void> recallMessage({required String conversationId, required String messageId}) {
+    return _apiClient.delete(
+      ApiEndpoints.dmMessageRecall(messageId),
+      queryParameters: {'conversationId': conversationId},
+    );
+  }
 }

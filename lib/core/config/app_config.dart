@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode, TargetPlatform, defaultTargetPlatform;
 
 class AppConfig {
   // 运行时可通过 --dart-define=API_BASE_URL=http://host:port/api 覆盖
@@ -13,12 +13,15 @@ class AppConfig {
       return mobileUrl;
     }
     // 移动端通过 --dart-define=MOBILE_API_BASE_URL=... 注入
-    if (!kIsWeb &&
+    final isMobile = !kIsWeb &&
         (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS)) {
+            defaultTargetPlatform == TargetPlatform.iOS);
+    if (isMobile) {
+      // 移动端默认直连现网 HTTP（腾讯云公网 IP）；后续切 HTTPS 后应改回域名地址。
+      // 如果通过 --dart-define 注入了真实地址，则优先使用注入值
       return const String.fromEnvironment(
         'MOBILE_API_BASE_URL',
-        defaultValue: 'http://localhost:8080/api',
+        defaultValue: 'http://81.69.16.134/api',
       );
     }
     if (kReleaseMode) {

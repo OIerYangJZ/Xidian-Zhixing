@@ -17,6 +17,8 @@ Future<PostItem?> openPostDetailPage(
       ),
     );
     try {
+      // 触发阅读量计数（静默忽略失败）
+      AppRepositories.posts.incrementView(post.id);
       return await AppRepositories.posts.fetchPostDetail(post.id);
     } catch (_) {
       return null;

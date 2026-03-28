@@ -18,6 +18,7 @@ Post, comment, report, favorite, like, and appeal endpoints:
   POST re("/api/posts/([^/]+)/like")                 — toggle like
   POST re("/api/posts/([^/]+)/favorite")              — toggle favorite
   POST re("/api/posts/([^/]+)/pin-request")          — request pin-top
+  POST re("/api/posts/([^/]+)/view")                  — increment view count
   DELETE re("/api/posts/([^/]+)")                     — delete own post
   DELETE re("/api/comments/([^/]+)")                  — delete own comment
   DELETE re("/api/posts/([^/]+)/favorite")            — remove favorite
@@ -865,6 +866,47 @@ def handle_toggle_favorite(
     )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"favorited": favorited, "likeCount": like_count, "favoriteCount": favorite_count}})
+
+
+def handle_increment_view(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    post_id: str,
+) -> None:
+    """POST /api/posts/<id>/view"""
+    viewer, _ = auth_user(handler, db)
+    viewer_user_id = str(viewer.get("id", "")) if viewer else ""
+
+    post = next(
+        (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
+        None,
+    )
+    if post is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+    if not _can_view_post(post, viewer_user_id):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+
+    today = now_iso()[:10]
+
+    already_recorded = any(
+        v.get("userId") == viewer_user_id
+        and v.get("postId") == post_id
+        and v.get("date") == today
+        for v in db.get("postViews", [])
+    )
+    if not already_recorded:
+        db.setdefault("postViews", []).append({
+            "userId": viewer_user_id,
+            "postId": post_id,
+            "date": today,
+            "createdAt": now_iso(),
+        })
+        post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0)) + 1
+        save_db(db)
+
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "viewCount": max(0, int(post.get("viewCount", 0) or 0))}})
 
 
 def handle_pin_request(

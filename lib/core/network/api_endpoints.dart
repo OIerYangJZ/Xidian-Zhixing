@@ -67,6 +67,7 @@ class ApiEndpoints {
   static String postFavorite(String postId) => '/posts/$postId/favorite';
   static String postUnfavorite(String postId) => '/posts/$postId/favorite';
   static String postPinRequest(String postId) => '/posts/$postId/pin-request';
+  static String postView(String postId) => '/posts/$postId/view';
 
   static String dmRequestAction(String requestId, String action) =>
       '/messages/requests/$requestId/$action';
@@ -76,6 +77,8 @@ class ApiEndpoints {
       '/messages/conversations/$conversationId';
   static String dmConversationBlock(String conversationId, bool block) =>
       '/messages/conversations/$conversationId/${block ? 'block' : 'unblock'}';
+  static String dmMessageRecall(String messageId) =>
+      '/messages/messages/$messageId/recall';
   static String notificationRead(String notificationId) =>
       '/notifications/$notificationId/read';
 

@@ -63,6 +63,7 @@ class PostItem {
     required this.commentCount,
     required this.likeCount,
     required this.favoriteCount,
+    this.viewCount = 0,
     required this.status,
     required this.allowComment,
     required this.allowDm,
@@ -99,6 +100,7 @@ class PostItem {
   final int commentCount;
   final int likeCount;
   final int favoriteCount;
+  final int viewCount;
   final PostStatus status;
   final bool allowComment;
   final bool allowDm;
@@ -159,6 +161,7 @@ class PostItem {
       commentCount: _int(json, <String>['commentCount', 'commentsCount']) ?? 0,
       likeCount: _int(json, <String>['likeCount', 'likes']) ?? 0,
       favoriteCount: _int(json, <String>['favoriteCount', 'collectCount']) ?? 0,
+      viewCount: _int(json, <String>['viewCount']) ?? 0,
       status: PostStatusCodec.fromDynamic(json['status']),
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
@@ -221,6 +224,7 @@ class PostItem {
     int? commentCount,
     int? likeCount,
     int? favoriteCount,
+    int? viewCount,
     PostStatus? status,
     bool? allowComment,
     bool? allowDm,
@@ -257,6 +261,7 @@ class PostItem {
       commentCount: commentCount ?? this.commentCount,
       likeCount: likeCount ?? this.likeCount,
       favoriteCount: favoriteCount ?? this.favoriteCount,
+      viewCount: viewCount ?? this.viewCount,
       status: status ?? this.status,
       allowComment: allowComment ?? this.allowComment,
       allowDm: allowDm ?? this.allowDm,

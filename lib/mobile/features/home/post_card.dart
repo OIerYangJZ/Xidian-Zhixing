@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -7,8 +9,9 @@ import '../../core/theme/mobile_theme.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../widgets/avatar_widget.dart';
+import 'full_screen_image_page.dart';
 
-/// Twitter 风格帖子卡片
+/// Instagram 风格帖子卡片
 /// 无边距、无圆角、无阴影、全宽紧贴屏幕
 class PostCard extends ConsumerStatefulWidget {
   final PostItem post;
@@ -36,6 +39,10 @@ class _PostCardState extends ConsumerState<PostCard> {
   int _likeCount = 0;
   int _favoriteCount = 0;
   bool _busy = false;
+  int _currentImageIndex = 0;
+  late PageController _pageController;
+  bool _showDots = false;
+  Timer? _dotsHideTimer;
 
   @override
   void initState() {
@@ -44,6 +51,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     _isFavorited = widget.post.isFavorited;
     _likeCount = widget.post.likeCount;
     _favoriteCount = widget.post.favoriteCount;
+    _pageController = PageController();
   }
 
   @override
@@ -54,7 +62,29 @@ class _PostCardState extends ConsumerState<PostCard> {
       _isFavorited = widget.post.isFavorited;
       _likeCount = widget.post.likeCount;
       _favoriteCount = widget.post.favoriteCount;
+      _currentImageIndex = 0;
+      _showDots = false;
+      _dotsHideTimer?.cancel();
+      _pageController.jumpToPage(0);
     }
+  }
+
+  @override
+  void dispose() {
+    _dotsHideTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _openFullScreenImage(int initialIndex) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => FullScreenImagePage(
+          imageUrls: widget.post.imageUrls,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
   }
 
   Future<void> _handleLike() async {
@@ -148,7 +178,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildContent() {
-    // 检测短文本帖子（无图片，内容<50字）
     final isShortTextPost = !widget.post.hasImage &&
                             widget.post.imageUrls.isEmpty &&
                             widget.post.content.length < 50 &&
@@ -158,20 +187,157 @@ class _PostCardState extends ConsumerState<PostCard> {
       return _buildShortTextContent();
     }
 
+    if (widget.post.hasImage && widget.post.imageUrls.isNotEmpty) {
+      return _buildImagePostContent();
+    }
+
+    return _buildTextPostContent();
+  }
+
+  /// 图文帖：标题 + PageView 图片（无正文）
+  Widget _buildImagePostContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 头部行：昵称 · 时间 · 频道（彩色圆点前缀）
         _buildHeaderRow(),
         const SizedBox(height: 4),
 
-        // 标题
+        // 标题 - 18sp Bold
         if (widget.post.title.isNotEmpty) ...[
           Text(
             widget.post.title,
             style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: MobileTheme.textPrimary,
+              height: 1.3,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+        ],
+
+        // 图片 PageView - 固定高度 280dp
+        _buildImagePageView(),
+
+        // 标签
+        if (widget.post.tags.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          _buildTags(),
+        ],
+
+        const SizedBox(height: 8),
+        _buildActionBar(),
+      ],
+    );
+  }
+
+  Widget _buildImagePageView() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: SizedBox(
+        height: 280,
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: _pageController,
+              itemCount: widget.post.imageUrls.length,
+            onPageChanged: (index) {
+              _dotsHideTimer?.cancel();
+              setState(() {
+                _currentImageIndex = index;
+                _showDots = true;
+              });
+              _dotsHideTimer = Timer(const Duration(seconds: 1), () {
+                if (mounted) setState(() => _showDots = false);
+              });
+            },
+              itemBuilder: (context, index) {
+                final fullUrl = _resolveImageUrl(widget.post.imageUrls[index]);
+                return GestureDetector(
+                  onTap: () => _openFullScreenImage(index),
+                  child: CachedNetworkImage(
+                    imageUrl: fullUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    placeholder: (context, url) => Container(
+                      color: MobileTheme.divider,
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: MobileTheme.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: MobileTheme.divider,
+                      child: const Icon(
+                        Icons.image_not_supported_outlined,
+                        color: MobileTheme.textTertiary,
+                        size: 32,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          // 圆点指示器 - 仅滑动时显示，停止1秒后自动隐藏
+          if (widget.post.imageUrls.length > 1 && _showDots)
+            Positioned(
+              bottom: 12,
+              left: 0,
+              right: 0,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(widget.post.imageUrls.length, (i) {
+                  final isActive = _currentImageIndex == i;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 3),
+                    width: isActive ? 8 : 6,
+                    height: isActive ? 8 : 6,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isActive
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 2,
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 纯文帖：标题 + 正文（最多4行）
+  Widget _buildTextPostContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildHeaderRow(),
+        const SizedBox(height: 4),
+
+        // 标题 - 18sp Bold
+        if (widget.post.title.isNotEmpty) ...[
+          Text(
+            widget.post.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
               color: MobileTheme.textPrimary,
               height: 1.3,
             ),
@@ -181,7 +347,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           const SizedBox(height: 4),
         ],
 
-        // 内容（最多 3 行）
+        // 正文 - 最多 4 行
         Text(
           widget.post.content,
           style: const TextStyle(
@@ -189,31 +355,23 @@ class _PostCardState extends ConsumerState<PostCard> {
             color: MobileTheme.textPrimary,
             height: 1.4,
           ),
-          maxLines: 3,
+          maxLines: 4,
           overflow: TextOverflow.ellipsis,
         ),
 
-        // 图片网格（大图模式）
-        if (widget.post.hasImage && widget.post.imageUrls.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _ImageGrid(imageUrls: widget.post.imageUrls),
-        ],
-
-        // 标签（无背景，纯彩色 # 前缀）
+        // 标签
         if (widget.post.tags.isNotEmpty) ...[
           const SizedBox(height: 8),
           _buildTags(),
         ],
 
         const SizedBox(height: 8),
-
-        // 底部互动栏
         _buildActionBar(),
       ],
     );
   }
 
-  /// 短文本大字报效果
+  /// 短文本大字报效果（无图 + 字数<50 + 无标题）
   Widget _buildShortTextContent() {
     final colors = [
       const Color(0xFFFFE5E5),
@@ -260,7 +418,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   Widget _buildHeaderRow() {
     return Row(
       children: [
-        // 昵称
         Text(
           widget.post.authorAlias,
           style: const TextStyle(
@@ -270,10 +427,8 @@ class _PostCardState extends ConsumerState<PostCard> {
           ),
         ),
         const SizedBox(width: 6),
-        // 彩色圆点 + 频道名
         _ChannelDot(channel: widget.post.channel),
         const Spacer(),
-        // 时间
         Text(
           _formatTime(widget.post.createdAt),
           style: const TextStyle(
@@ -372,6 +527,10 @@ class _PostCardState extends ConsumerState<PostCard> {
       return '${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
     }
   }
+
+  String _resolveImageUrl(String imageUrl) {
+    return imageUrl.startsWith('http') ? imageUrl : AppConfig.resolveUrl(imageUrl);
+  }
 }
 
 /// 频道彩色圆点 + 频道名文本
@@ -415,24 +574,6 @@ class _ChannelDot extends StatelessWidget {
             color: color,
           ),
         ),
-        if (channel == '问答' && false) ...[
-          const SizedBox(width: 4),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-            decoration: BoxDecoration(
-              color: MobileTheme.success.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.zero,
-            ),
-            child: const Text(
-              '已解决',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: MobileTheme.success,
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -483,87 +624,6 @@ class _ActionButton extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ImageGrid extends StatelessWidget {
-  final List<String> imageUrls;
-
-  const _ImageGrid({required this.imageUrls});
-
-  @override
-  Widget build(BuildContext context) {
-    final displayUrls = imageUrls.take(3).toList();
-    final remaining = imageUrls.length - 3;
-
-    return SizedBox(
-      height: 80,
-      child: Row(
-        children: [
-          for (int i = 0; i < displayUrls.length; i++) ...[
-            if (i > 0) const SizedBox(width: 4),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.zero,
-                child: _buildImage(displayUrls[i]),
-              ),
-            ),
-          ],
-          if (remaining > 0) ...[
-            const SizedBox(width: 4),
-            SizedBox(
-              width: 80,
-              child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.zero,
-                  color: MobileTheme.textTertiary.withValues(alpha: 0.15),
-                ),
-                child: Center(
-                  child: Text(
-                    '+$remaining',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: MobileTheme.textSecondary,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImage(String imageUrl) {
-    final fullUrl =
-        imageUrl.startsWith('http') ? imageUrl : AppConfig.resolveUrl(imageUrl);
-    return CachedNetworkImage(
-      imageUrl: fullUrl,
-      fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
-        color: MobileTheme.background,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: MobileTheme.primary,
-            ),
-          ),
-        ),
-      ),
-      errorWidget: (context, url, error) => Container(
-        color: MobileTheme.background,
-        child: const Icon(
-          Icons.image_not_supported_outlined,
-          color: MobileTheme.textTertiary,
-          size: 24,
         ),
       ),
     );

@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
 
 /// 聊天页
-/// 支持消息气泡、时间戳分组、表情栏、发送消息
+/// 支持消息气泡、时间戳分组、发送消息
 class ChatPage extends ConsumerStatefulWidget {
   final String conversationId;
   final String? peerName;
@@ -36,9 +38,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _isLoading = true;
   String? _error;
   bool _isSending = false;
-  bool _showEmoji = false;
   bool _firstMessageWarningDismissed = false;
   bool _blockedByMe = false;
+  bool _selectMode = false;
+  final Set<String> _selectedMessages = {};
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -113,7 +117,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     setState(() {
       _messages.add(tempMessage);
-      _showEmoji = false;
     });
     _scrollToBottom();
 
@@ -186,89 +189,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
-  void _toggleEmoji() {
-    setState(() {
-      _showEmoji = !_showEmoji;
-    });
-    if (_showEmoji) {
-      _focusNode.unfocus();
-    }
-  }
-
-  void _onTapEmoji(String emoji) {
-    final text = _messageController.text;
-    final selection = _messageController.selection;
-    final newText = text.replaceRange(
-      selection.start,
-      selection.end,
-      emoji,
-    );
-    _messageController.value = TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(
-        offset: selection.start + emoji.length,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MobileTheme.background,
-      appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        title: GestureDetector(
-          onTap: widget.peerUserId != null
-              ? () => context.push('/user/${widget.peerUserId}')
-              : null,
-          child: Row(
-            children: [
-              // 头像
-              if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                  backgroundImage: NetworkImage(widget.peerAvatar!),
-                )
-              else
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                  child: Text(
-                    (widget.peerName ?? '用户').substring(0, 1),
-                    style: const TextStyle(
-                      color: MobileTheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.peerName ?? '聊天',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_horiz),
-            onPressed: () => _showOptionsSheet(),
-          ),
-        ],
-      ),
+      appBar: _selectMode ? _buildSelectModeAppBar() : _buildNormalAppBar(),
       body: Column(
         children: [
           // 首条消息提示横幅
@@ -285,9 +210,93 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
 
           // 输入区域
-          _buildInputArea(),
+          if (!_selectMode) _buildInputArea(),
         ],
       ),
+    );
+  }
+
+  PreferredSizeWidget _buildNormalAppBar() {
+    return AppBar(
+      backgroundColor: MobileTheme.surface,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => context.pop(),
+      ),
+      title: GestureDetector(
+        onTap: widget.peerUserId != null
+            ? () => context.push('/user/${widget.peerUserId}')
+            : null,
+        child: Row(
+          children: [
+            // 头像
+            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                backgroundImage: CachedNetworkImageProvider(
+                  widget.peerAvatar!.startsWith('http')
+                      ? widget.peerAvatar!
+                      : AppConfig.resolveUrl(widget.peerAvatar!),
+                ),
+              )
+            else
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                child: Text(
+                  (widget.peerName ?? '用户').substring(0, 1),
+                  style: const TextStyle(
+                    color: MobileTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.peerName ?? '聊天',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.more_horiz),
+          onPressed: () => _showOptionsSheet(),
+        ),
+      ],
+    );
+  }
+
+  PreferredSizeWidget _buildSelectModeAppBar() {
+    return AppBar(
+      backgroundColor: MobileTheme.surface,
+      leading: IconButton(
+        icon: const Icon(Icons.close),
+        onPressed: _exitSelectMode,
+      ),
+      title: Text(
+        '已选择 ${_selectedMessages.length} 条',
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.delete),
+          onPressed: _batchDelete,
+        ),
+      ],
     );
   }
 
@@ -342,9 +351,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return GestureDetector(
       onTap: () {
         _focusNode.unfocus();
-        setState(() {
-          _showEmoji = false;
-        });
+        _hideOverlay();
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -420,6 +427,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Widget _buildMessageBubble(DirectMessageItem message) {
     final isMe = message.fromMe;
+    final isSelected = _selectedMessages.contains(message.id);
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -433,7 +441,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
               CircleAvatar(
                 radius: 16,
-                backgroundImage: NetworkImage(widget.peerAvatar!),
+                backgroundImage: CachedNetworkImageProvider(
+                  widget.peerAvatar!.startsWith('http')
+                      ? widget.peerAvatar!
+                      : AppConfig.resolveUrl(widget.peerAvatar!),
+                ),
               )
             else
               CircleAvatar(
@@ -457,7 +469,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               children: [
                 // 消息气泡
                 GestureDetector(
-                  onLongPress: () => _showMessageActions(message),
+                  onTap: _selectMode ? () => _toggleSelect(message) : null,
+                  onLongPress: () => _showMessageOverlay(message),
                   child: Container(
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.7,
@@ -493,100 +506,362 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   ),
                 ),
 
-                // 发送状态
-                if (isMe)
+                // 发送失败重试
+                if (isMe && message.deliveryStatus == 'failed')
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          message.deliveryStatus == 'sending'
-                              ? '发送中...'
-                              : message.deliveryStatus == 'failed'
-                                  ? '点击重试'
-                                  : '',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: message.deliveryStatus == 'failed'
-                                ? MobileTheme.error
-                                : MobileTheme.textTertiary,
-                          ),
+                    child: GestureDetector(
+                      onTap: () => _retrySend(message),
+                      child: const Text(
+                        '点击重试',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: MobileTheme.error,
+                          fontWeight: FontWeight.w600,
                         ),
-                        if (message.deliveryStatus == 'failed')
-                          GestureDetector(
-                            onTap: () => _retrySend(message),
-                            child: const Text(
-                              ' 重试',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: MobileTheme.primary,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                      ],
+                      ),
                     ),
                   ),
               ],
             ),
           ),
-          if (isMe) const SizedBox(width: 8),
+          if (isMe) ...[
+            const SizedBox(width: 8),
+            // 对方头像
+            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
+              CircleAvatar(
+                radius: 16,
+                backgroundImage: CachedNetworkImageProvider(
+                  widget.peerAvatar!.startsWith('http')
+                      ? widget.peerAvatar!
+                      : AppConfig.resolveUrl(widget.peerAvatar!),
+                ),
+              )
+            else
+              CircleAvatar(
+                radius: 16,
+                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                child: Text(
+                  (widget.peerName ?? '我').substring(0, 1),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: MobileTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+          ],
+          if (_selectMode)
+            GestureDetector(
+              onTap: () => _toggleSelect(message),
+              child: Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.only(left: 6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isSelected
+                      ? MobileTheme.primary
+                      : Colors.transparent,
+                  border: Border.all(
+                    color: isSelected
+                        ? MobileTheme.primary
+                        : MobileTheme.textTertiary,
+                    width: 1.5,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(Icons.check, size: 14, color: Colors.white)
+                    : null,
+              ),
+            ),
         ],
       ),
     );
   }
 
-  void _retrySend(DirectMessageItem failedMessage) {
-    // 移除失败消息并重新发送
-    setState(() {
-      _messages.removeWhere((m) => m.id == failedMessage.id);
-    });
-    _messageController.text = failedMessage.content;
-    _handleSend();
+  void _showMessageOverlay(DirectMessageItem message) {
+    _hideOverlay();
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
+    if (box == null) return;
+    final pos = box.localToGlobal(Offset.zero);
+
+    _overlayEntry = OverlayEntry(
+      builder: (ctx) => Stack(
+        children: [
+          GestureDetector(
+            onTap: _hideOverlay,
+            behavior: HitTestBehavior.opaque,
+            child: Container(color: Colors.transparent),
+          ),
+          Positioned(
+            left: pos.dx - 30,
+            top: pos.dy - 60,
+            child: _MessageActionBar(
+              message: message,
+              onCopy: () {
+                Clipboard.setData(ClipboardData(text: message.content));
+                _hideOverlay();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('已复制到剪贴板')),
+                );
+              },
+              onForward: () => _openForwardPicker(message),
+              onDetail: () => _showMessageDetail(message),
+              onReply: () => _handleReply(message),
+              onRecall: () => _handleRecall(message),
+            ),
+          ),
+        ],
+      ),
+    );
+    Overlay.of(context).insert(_overlayEntry!);
   }
 
-  void _showMessageActions(DirectMessageItem message) {
-    final isMe = message.fromMe;
+  void _hideOverlay() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  void _toggleSelect(DirectMessageItem message) {
+    setState(() {
+      if (_selectedMessages.contains(message.id)) {
+        _selectedMessages.remove(message.id);
+        if (_selectedMessages.isEmpty) {
+          _selectMode = false;
+        }
+      } else {
+        _selectedMessages.add(message.id);
+      }
+    });
+  }
+
+  void _exitSelectMode() {
+    setState(() {
+      _selectMode = false;
+      _selectedMessages.clear();
+    });
+  }
+
+  Future<void> _batchDelete() async {
+    if (_selectedMessages.isEmpty) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('批量删除'),
+        content: Text('确定删除选中的 ${_selectedMessages.length} 条消息吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('删除', style: TextStyle(color: MobileTheme.error)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final repo = ref.read(messageRepositoryProvider);
+    for (final id in _selectedMessages.toList()) {
+      await repo.recallMessage(conversationId: widget.conversationId, messageId: id);
+    }
+    setState(() {
+      _messages.removeWhere((m) => _selectedMessages.contains(m.id));
+      _selectedMessages.clear();
+      _selectMode = false;
+    });
+  }
+
+  Future<void> _handleRecall(DirectMessageItem message) async {
+    _hideOverlay();
+    try {
+      await ref.read(messageRepositoryProvider).recallMessage(
+        conversationId: widget.conversationId,
+        messageId: message.id,
+      );
+      setState(() {
+        _messages.removeWhere((m) => m.id == message.id);
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('消息已撤回')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('撤回失败: $e')),
+        );
+      }
+    }
+  }
+
+  String _formatFullTime(String createdAt) {
+    final dt = DateTime.tryParse(createdAt)?.toUtc().toLocal() ?? DateTime.now();
+    return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+  }
+
+  void _showMessageDetail(DirectMessageItem message) {
+    _hideOverlay();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('消息详情'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _detailRow('发送时间', _formatFullTime(message.createdAt)),
+            _detailRow('发送方', message.fromMe ? '我' : message.senderAlias),
+            _detailRow(
+              '状态',
+              message.deliveryStatus == 'read'
+                  ? '已送达'
+                  : message.deliveryStatus == 'sent'
+                      ? '已发送'
+                      : message.deliveryStatus == 'failed'
+                          ? '发送失败'
+                          : message.deliveryStatus,
+            ),
+            if (!message.fromMe && message.isRead)
+              _detailRow('已读状态', '已读'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('关闭'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 70,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: MobileTheme.textTertiary,
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: MobileTheme.textPrimary,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openForwardPicker(DirectMessageItem message) {
+    _hideOverlay();
+    final conversations = ref.read(messagesControllerProvider).conversations;
+    final available = conversations
+        .where((c) => !c.isBlocked && c.id != widget.conversationId)
+        .toList();
+
     showModalBottomSheet(
       context: context,
       backgroundColor: MobileTheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.content_copy, color: MobileTheme.textSecondary),
-              title: const Text('复制'),
-              onTap: () async {
-                Navigator.pop(context);
-                await Clipboard.setData(ClipboardData(text: message.content));
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已复制到剪贴板')),
-                  );
-                }
-              },
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text(
+              '转发给',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
-            if (isMe)
-              ListTile(
-                leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
-                title: const Text('删除'),
+          ),
+          if (available.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(32),
+              child: Text(
+                '暂无其他会话',
+                style: TextStyle(color: MobileTheme.textTertiary),
+              ),
+            )
+          else
+            ...available.map(
+              (c) => ListTile(
+                leading: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                  backgroundImage: c.avatarUrl.isNotEmpty
+                      ? CachedNetworkImageProvider(
+                          c.avatarUrl.startsWith('http')
+                              ? c.avatarUrl
+                              : AppConfig.resolveUrl(c.avatarUrl),
+                        )
+                      : null,
+                  child: c.avatarUrl.isEmpty
+                      ? const Icon(Icons.person,
+                          color: MobileTheme.primary, size: 18)
+                      : null,
+                ),
+                title: Text(c.name),
                 onTap: () async {
-                  Navigator.pop(context);
-                  setState(() {
-                    _messages.removeWhere((m) => m.id == message.id);
-                  });
+                  Navigator.pop(ctx);
+                  try {
+                    await ref.read(messageRepositoryProvider).sendConversationMessage(
+                          conversationId: c.id,
+                          content: '[转发] ${message.content}',
+                        );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('已转发')),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('转发失败: $e')),
+                      );
+                    }
+                  }
                 },
               ),
-            const SizedBox(height: 8),
-          ],
-        ),
+            ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
+  }
+
+  void _handleReply(DirectMessageItem message) {
+    _hideOverlay();
+    _messageController.text = '回复 ${message.senderAlias}：';
+    _scrollToBottom();
+    _focusNode.requestFocus();
+  }
+
+  void _retrySend(DirectMessageItem failedMessage) {
+    setState(() {
+      _messages.removeWhere((m) => m.id == failedMessage.id);
+    });
+    _messageController.text = failedMessage.content;
+    _handleSend();
   }
 
   Widget _buildInputArea() {
@@ -609,37 +884,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 表情栏
-            if (_showEmoji) _buildEmojiBar(),
-
-            // 输入框
             Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // 表情按钮
-                  GestureDetector(
-                    onTap: _toggleEmoji,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Icon(
-                        _showEmoji
-                            ? Icons.keyboard
-                            : Icons.emoji_emotions_outlined,
-                        color: MobileTheme.textSecondary,
-                        size: 26,
-                      ),
-                    ),
-                  ),
-
-                  // 输入框
                   Expanded(
                     child: Container(
-                      constraints: const BoxConstraints(
-                        maxHeight: 120,
-                        minHeight: 36,
-                      ),
+                      constraints: const BoxConstraints(maxHeight: 120, minHeight: 36),
                       decoration: BoxDecoration(
                         color: MobileTheme.background,
                         borderRadius: BorderRadius.circular(20),
@@ -649,48 +901,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         focusNode: _focusNode,
                         maxLines: null,
                         textInputAction: TextInputAction.newline,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: MobileTheme.textPrimary,
-                        ),
+                        style: const TextStyle(fontSize: 16, color: MobileTheme.textPrimary),
                         decoration: const InputDecoration(
                           hintText: '输入消息...',
-                          hintStyle: TextStyle(
-                            color: MobileTheme.textTertiary,
-                            fontSize: 15,
-                          ),
+                          hintStyle: TextStyle(color: MobileTheme.textTertiary, fontSize: 15),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
-                        onTap: () {
-                          if (_showEmoji) {
-                            setState(() {
-                              _showEmoji = false;
-                            });
-                          }
-                        },
-                        onChanged: (value) {
-                          setState(() {}); // 刷新发送按钮状态
-                        },
+                        onChanged: (_) => setState(() {}),
                       ),
                     ),
                   ),
-
                   const SizedBox(width: 8),
-
-                  // 发送按钮
                   GestureDetector(
                     onTap: _canSend() ? _handleSend : null,
                     child: Container(
                       width: 44,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: _canSend()
-                            ? MobileTheme.primary
-                            : MobileTheme.textTertiary.withValues(alpha: 0.3),
+                        color: _canSend() ? MobileTheme.primary : MobileTheme.textTertiary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: _isSending
@@ -698,17 +927,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                               child: SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               ),
                             )
-                          : const Icon(
-                              Icons.send,
-                              color: Colors.white,
-                              size: 20,
-                            ),
+                          : const Icon(Icons.send, color: Colors.white, size: 20),
                     ),
                   ),
                 ],
@@ -720,9 +942,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  bool _canSend() {
-    return _messageController.text.trim().isNotEmpty && !_isSending;
-  }
+  bool _canSend() => _messageController.text.trim().isNotEmpty && !_isSending;
 
   Widget _buildFirstMessageBanner() {
     return Container(
@@ -737,11 +957,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           Expanded(
             child: Text(
               '你与对方尚未建立会话。在对方回复或关注你之前，你只能发送一条消息，请谨慎措辞。',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF92400E),
-                height: 1.4,
-              ),
+              style: const TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.4),
             ),
           ),
           GestureDetector(
@@ -752,120 +968,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmojiBar() {
-    final emojis = [
-      '😀',
-      '😃',
-      '😄',
-      '😁',
-      '😆',
-      '😅',
-      '🤣',
-      '😂',
-      '🙂',
-      '😉',
-      '😊',
-      '😇',
-      '🥰',
-      '😍',
-      '🤩',
-      '😘',
-      '😋',
-      '😛',
-      '😜',
-      '🤪',
-      '😝',
-      '🤗',
-      '🤭',
-      '🤫',
-      '🤔',
-      '🤐',
-      '🤨',
-      '😐',
-      '😑',
-      '😶',
-      '😏',
-      '😒',
-      '🙄',
-      '😬',
-      '😮‍💨',
-      '🤥',
-      '😌',
-      '😔',
-      '😪',
-      '🤤',
-      '😴',
-      '😷',
-      '🤒',
-      '🤕',
-      '🤢',
-      '🤮',
-      '🤧',
-      '🥵',
-      '🥶',
-      '🥴',
-      '😵',
-      '🤯',
-      '🤠',
-      '🥳',
-      '😎',
-      '🤓',
-      '😕',
-      '😟',
-      '🙁',
-      '😮',
-      '😯',
-      '😲',
-      '😳',
-      '🥺',
-      '😦',
-      '😧',
-      '😨',
-      '😰',
-      '😥',
-      '😢',
-      '😭',
-      '😱',
-      '👍',
-      '👎',
-      '👏',
-      '🙌',
-      '🤝',
-      '🙏',
-      '💪',
-      '🤘',
-    ];
-
-    return Container(
-      height: 200,
-      decoration: const BoxDecoration(
-        color: MobileTheme.surface,
-        border: Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
-        ),
-      ),
-      child: GridView.builder(
-        padding: const EdgeInsets.all(8),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 8,
-          childAspectRatio: 1,
-        ),
-        itemCount: emojis.length,
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () => _onTapEmoji(emojis[index]),
-            child: Center(
-              child: Text(
-                emojis[index],
-                style: const TextStyle(fontSize: 24),
-              ),
-            ),
-          );
-        },
       ),
     );
   }
@@ -882,8 +984,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading:
-                  const Icon(Icons.delete_outline, color: MobileTheme.error),
+              leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
               title: const Text('删除会话'),
               onTap: () {
                 Navigator.pop(context);
@@ -902,8 +1003,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_add_outlined,
-                  color: MobileTheme.primary),
+              leading: const Icon(Icons.person_add_outlined, color: MobileTheme.primary),
               title: const Text('查看对方主页'),
               onTap: () {
                 Navigator.pop(context);
@@ -934,9 +1034,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             onPressed: () async {
               Navigator.pop(dialogContext);
               try {
-                ref
-                    .read(messagesControllerProvider.notifier)
-                    .deleteConversation(widget.conversationId);
+                ref.read(messagesControllerProvider.notifier).deleteConversation(widget.conversationId);
                 if (mounted) {
                   context.pop();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -985,17 +1083,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   block: isBlocking,
                 );
                 if (mounted) {
-                  setState(() {
-                    _blockedByMe = isBlocking;
-                  });
+                  setState(() => _blockedByMe = isBlocking);
                   ref.read(messagesControllerProvider.notifier).updateConversationFlags(
                     conversationId: widget.conversationId,
                     blockedByMe: isBlocking,
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(isBlocking ? '已屏蔽对方' : '已解除屏蔽'),
-                    ),
+                    SnackBar(content: Text(isBlocking ? '已屏蔽对方' : '已解除屏蔽')),
                   );
                 }
               } catch (e) {
@@ -1012,6 +1106,68 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: Text(isBlocking ? '屏蔽' : '解除屏蔽'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _MessageActionBar extends StatelessWidget {
+  final DirectMessageItem message;
+  final VoidCallback onCopy;
+  final VoidCallback onForward;
+  final VoidCallback onDetail;
+  final VoidCallback onReply;
+  final VoidCallback onRecall;
+
+  const _MessageActionBar({
+    required this.message,
+    required this.onCopy,
+    required this.onForward,
+    required this.onDetail,
+    required this.onReply,
+    required this.onRecall,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isRecallable = message.canRecall;
+
+    final buttons = <Widget>[];
+    buttons.add(_actionButton(Icons.content_copy, '复制', onCopy));
+    buttons.add(_actionButton(Icons.ios_share, '转发', onForward));
+    buttons.add(_actionButton(Icons.info_outline, '详情', onDetail));
+    buttons.add(_actionButton(Icons.reply, '回复', onReply));
+    if (isRecallable) {
+      buttons.add(_actionButton(Icons.undo, '撤回', onRecall));
+    }
+
+    return Material(
+      elevation: 4,
+      borderRadius: BorderRadius.circular(8),
+      color: const Color(0xFF4A4A4A),
+      child: IntrinsicHeight(
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: buttons.map((b) => Flexible(child: b)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _actionButton(IconData icon, String label, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(height: 2),
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
+          ],
+        ),
       ),
     );
   }

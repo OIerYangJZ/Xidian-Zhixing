@@ -464,13 +464,14 @@ def list_posts(
     author_id: str = "",
     viewer_user_id: str = "",
     sort_by: str = "latest",
+    include_rejected: bool = False,
 ) -> list[dict[str, Any]]:
     """Return filtered post rows."""
     posts = []
     for post in db.get("posts", []):
         if post.get("deleted"):
             continue
-        if post.get("reviewStatus") not in ("approved", "resolved"):
+        if not include_rejected and post.get("reviewStatus") not in ("approved", "resolved"):
             continue
         if channel and post.get("channel") != channel:
             continue
@@ -485,8 +486,22 @@ def list_posts(
             content = str(post.get("content", "")).lower()
             if keyword not in title and keyword not in content:
                 continue
+        post_id = str(post.get("id", "")).strip()
+        post["likeCount"] = sum(
+            1
+            for like in db.get("likes", [])
+            if str(like.get("postId", "")).strip() == post_id
+        )
+        post["commentCount"] = sum(
+            1
+            for comment in db.get("comments", [])
+            if not comment.get("deleted")
+            and str(comment.get("postId", "")).strip() == post_id
+        )
+        post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0))
         posts.append(post)
-    posts.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    if sort_by != "hot":
+        posts.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
     return posts
 
 
@@ -826,6 +841,7 @@ def serialize_post(
         "commentCount": comment_count,
         "likeCount": like_count,
         "favoriteCount": favorite_count,
+        "viewCount": max(0, int(post.get("viewCount", 0) or 0)),
         "liked": liked,
         "favorited": favorited,
         "status": post.get("status", "ongoing"),
@@ -1115,6 +1131,7 @@ def default_db() -> dict[str, Any]:
         "auditLogs": [],
         "accountCancellationRequests": [],
         "mediaUploads": [],
+        "postViews": [],
     }
 
     for row in _globals.SEED_POSTS:
@@ -1380,7 +1397,7 @@ def migrate_db(db: dict[str, Any]) -> bool:
             "updatedAt": str(post.get("createdAt", now_iso())),
             "reviewStatus": "approved", "riskMarked": False,
             "deleted": False, "allowComment": True, "allowDm": True, "visibility": "public",
-            "contentFormat": "plain", "markdownSource": "",
+            "contentFormat": "plain", "markdownSource": "", "viewCount": 0,
         }.items():
             if k not in post:
                 post[k] = v

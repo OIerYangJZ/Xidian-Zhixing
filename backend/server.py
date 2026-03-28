@@ -561,6 +561,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _post_handler.handle_toggle_favorite(self, db, match_fav.group(1))
                 return
 
+            match_view = re.fullmatch(r"/api/posts/([^/]+)/view", path)
+            if match_view:
+                _post_handler.handle_increment_view(self, db, match_view.group(1))
+                return
+
             if path == "/api/admin/reviews/batch":
                 _admin_handler.handle_admin_review_batch(self, db)
                 return
@@ -695,6 +700,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_conversation = re.fullmatch(r"/api/messages/conversations/([^/]+)", path)
             if match_conversation:
                 _message_handler.handle_delete_conversation(self, db, match_conversation.group(1))
+                return
+
+            match_message_recall = re.fullmatch(
+                r"/api/messages/messages/([^/]+)/recall",
+                path,
+            )
+            if match_message_recall:
+                _message_handler.handle_message_recall(self, db, match_message_recall.group(1))
                 return
 
             match_favorite = re.fullmatch(r"/api/posts/([^/]+)/favorite", path)
