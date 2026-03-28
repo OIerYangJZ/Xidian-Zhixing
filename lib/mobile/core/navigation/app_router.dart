@@ -6,9 +6,6 @@ import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
 import 'package:xdu_treehole_web/repositories/app_repositories.dart';
 import '../../features/shell/mobile_shell.dart';
 import '../../features/auth/login_page.dart';
-import '../../features/auth/register_page.dart';
-import '../../features/auth/verify_page.dart';
-import '../../features/auth/reset_password_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/messages/messages_page.dart';
@@ -80,18 +77,15 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/auth/register',
-      builder: (context, state) => const RegisterPage(),
+      builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
       path: '/auth/verify',
-      builder: (context, state) {
-        final email = state.uri.queryParameters['email'];
-        return VerifyPage(email: email);
-      },
+      builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
       path: '/auth/reset-password',
-      builder: (context, state) => const ResetPasswordPage(),
+      builder: (context, state) => const LoginPage(),
     ),
 
     // 主页面（底部 Tab 导航）— 3 tabs: 首页 / 消息 / 我的
@@ -188,7 +182,7 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/profile/change-password',
-      builder: (context, state) => const ResetPasswordPage(),
+      builder: (context, state) => const SettingsMainPage(),
     ),
     GoRoute(
       path: '/profile/edit',

@@ -23,7 +23,7 @@ RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y curl nginx python3 python3-venv
+apt-get install -y curl nginx openssl python3 python3-pil python3-requests python3-venv
 
 if ! id -u "$APP_USER" >/dev/null 2>&1; then
   useradd --system --home "$APP_DIR" --shell /usr/sbin/nologin "$APP_USER"

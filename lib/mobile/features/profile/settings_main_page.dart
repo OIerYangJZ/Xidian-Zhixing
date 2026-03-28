@@ -149,8 +149,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                     _ListTile(
                       icon: Icons.lock_reset_outlined,
                       iconColor: MobileTheme.primary,
-                      title: '修改密码',
-                      onTap: () => context.push('/profile/change-password'),
+                      title: '统一认证密码',
+                      onTap: () => _showToast('请前往西电统一身份认证修改密码'),
                     ),
                     const Divider(
                         height: 0.5, indent: 56, color: MobileTheme.divider),
@@ -391,13 +391,13 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('请输入当前登录密码以确认注销申请：', style: TextStyle(fontSize: 14)),
+              const Text('请输入统一认证密码以确认注销申请：', style: TextStyle(fontSize: 14)),
               const SizedBox(height: 16),
               TextField(
                 controller: passwordController,
                 obscureText: obscure,
                 decoration: InputDecoration(
-                  hintText: '当前密码',
+                  hintText: '统一认证密码',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -426,14 +426,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       }
                       setDialogState(() => submitting = true);
                       try {
-                        // 用密码验证身份（调用登录接口）
-                        final email = AuthStore
-                                    .instance.currentUser?.studentId !=
-                                null
-                            ? '${AuthStore.instance.currentUser!.studentId}@stu.xidian.edu.cn'
-                            : '';
+                        final studentId =
+                            AuthStore.instance.currentUser?.studentId ?? '';
                         await ref.read(authRepositoryProvider).login(
-                              identifier: email,
+                              identifier: studentId,
                               password: passwordController.text,
                             );
                         if (!ctx.mounted) return;
@@ -443,7 +439,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                         setDialogState(() => submitting = false);
                         if (ctx.mounted) {
                           ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(content: Text('密码错误，请重新输入')),
+                            const SnackBar(content: Text('统一认证密码错误，请重新输入')),
                           );
                         }
                       }

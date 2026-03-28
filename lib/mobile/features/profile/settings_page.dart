@@ -227,8 +227,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       _buildActionTile(
                         icon: Icons.lock_reset_outlined,
                         iconColor: MobileTheme.textSecondary,
-                        title: '修改密码',
-                        onTap: () => context.go('/auth/reset-password'),
+                        title: '统一认证密码',
+                        onTap: () => _showToast('请前往西电统一身份认证修改密码'),
                       ),
                     ],
                   ),

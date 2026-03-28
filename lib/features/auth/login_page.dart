@@ -7,10 +7,7 @@ import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../admin/admin_login_page.dart';
-import 'register_page.dart';
-import 'reset_password_page.dart';
 import '../../widgets/home_shell.dart';
-import 'verify_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -62,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                     ),
                     const SizedBox(height: 6),
-                    const Text('仅限西电学生，前台匿名，后台可追责。'),
+                    const Text('仅限西电学生，使用西电统一身份认证登录。'),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _studentIdController,
@@ -78,7 +75,7 @@ class _LoginPageState extends State<LoginPage> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: '密码',
+                        labelText: '统一认证密码',
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                     ),
@@ -103,31 +100,9 @@ class _LoginPageState extends State<LoginPage> {
                       label: Text(_isBusy ? '登录中...' : '登录'),
                     ),
                     const SizedBox(height: 8),
-                    OutlinedButton.icon(
-                      onPressed: _isBusy
-                          ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const RegisterPage(),
-                                ),
-                              );
-                            },
-                      icon: const Icon(Icons.person_add_alt_1_rounded),
-                      label: const Text('去注册（新账号）'),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isBusy
-                          ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const ResetPasswordPage(),
-                                ),
-                              );
-                            },
-                      child: const Text('忘记密码'),
+                    const Text(
+                      '树洞普通用户已切换为统一认证登录，不再提供站内注册、邮箱验证和本地找回密码。',
+                      style: TextStyle(fontSize: 12, color: Colors.black54),
                     ),
                     TextButton.icon(
                       onPressed: _isBusy
@@ -203,33 +178,8 @@ class _LoginPageState extends State<LoginPage> {
         );
         return;
       }
-
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => VerifyPage(
-            campusEmail: _resolveCampusEmail(studentId, result),
-            password: password,
-          ),
-        ),
-      );
     } on ApiException catch (error) {
-      // 部分后端会在未认证时直接返回错误，仍允许继续走验证码页。
-      final String msg = error.message.toLowerCase();
-      if (msg.contains('verify') || msg.contains('验证码') || msg.contains('认证')) {
-        if (!mounted) {
-          return;
-        }
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => VerifyPage(
-              campusEmail: _resolveCampusEmail(studentId, null),
-              password: password,
-            ),
-          ),
-        );
-      } else {
-        _showError(error.message);
-      }
+      _showError(error.message);
     } catch (error) {
       _showError('登录失败：$error');
     } finally {
@@ -239,16 +189,6 @@ class _LoginPageState extends State<LoginPage> {
         });
       }
     }
-  }
-
-  String _resolveCampusEmail(String studentId, AuthLoginResult? result) {
-    final String? email = result?.email?.trim();
-    if (email != null &&
-        email.isNotEmpty &&
-        (email.endsWith('@stu.xidian.edu.cn') || email.endsWith('@xidian.edu.cn'))) {
-      return email;
-    }
-    return '${studentId.trim()}@stu.xidian.edu.cn';
   }
 
   void _showError(String message) {

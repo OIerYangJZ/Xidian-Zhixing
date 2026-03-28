@@ -528,6 +528,7 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "posts", "pin_started_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_expires_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_duration_minutes", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "posts", "view_count", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "dm_requests", "from_user_id", "TEXT NULL")
         self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")

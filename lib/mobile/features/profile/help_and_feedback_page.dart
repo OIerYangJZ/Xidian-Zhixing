@@ -24,14 +24,14 @@ class HelpAndFeedbackPage extends StatelessWidget {
           _buildFAQItem(
             context,
             icon: Icons.lock_outline,
-            title: '学号无法注册？',
-            description: '请确认学号格式正确（8位数字），且未曾用此学号注册过西电树洞。如已注册过，可尝试找回密码。',
+            title: '统一认证登录失败？',
+            description: '请确认学号和西电统一身份认证密码输入正确；如果验证码多次失败，可稍后重试。',
           ),
           _buildFAQItem(
             context,
             icon: Icons.mail_outline,
-            title: '收不到验证码邮件？',
-            description: '请检查垃圾邮件文件夹，或将 @xidian.edu.cn 加入邮箱白名单。如长期未收到，可联系管理员处理。',
+            title: '为什么没有注册和找回密码？',
+            description: '普通用户已切换为西电统一身份认证登录，不再提供站内注册、邮箱验证和本地找回密码。',
           ),
           _buildFAQItem(
             context,

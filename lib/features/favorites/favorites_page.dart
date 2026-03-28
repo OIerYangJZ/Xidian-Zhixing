@@ -288,17 +288,10 @@ class FavoritesPageState extends State<FavoritesPage> {
       return text.contains(keyword);
     }).toList();
 
-    rows.sort((PostItem a, PostItem b) {
-      if (_sortMode == FavoriteSortMode.hot) {
-        final int byFavorite = b.favoriteCount.compareTo(a.favoriteCount);
-        if (byFavorite != 0) {
-          return byFavorite;
-        }
-      }
-      return b.createdAt.compareTo(a.createdAt);
-    });
-
-    return rows;
+    return sortPostsForView(
+      rows,
+      sort: _sortMode == FavoriteSortMode.hot ? PostSort.hot : PostSort.latest,
+    );
   }
 
   Future<void> _unfavorite(PostItem post) async {

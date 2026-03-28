@@ -298,23 +298,70 @@ def sort_posts_for_view(
     sort_by: str = "latest",
 ) -> list[dict[str, Any]]:
     """Sort posts for display. sort_by: latest | hot | oldest."""
+    import math
+    import time
+    from helpers._datetime_helpers import parse_iso
+    from services._user_service import is_post_pin_active
+
+    def parse_time(value: Any) -> float:
+        try:
+            return parse_iso(str(value or "")).timestamp()
+        except Exception:
+            return 0.0
+
+    def compare_latest_key(row: dict[str, Any]) -> tuple[str, str]:
+        return (str(row.get("createdAt", "")), str(row.get("id", "")))
+
+    def engagement_score(row: dict[str, Any]) -> int:
+        likes = max(0, int(row.get("likeCount", 0) or 0))
+        comments = max(0, int(row.get("commentCount", 0) or 0))
+        favorites = max(0, int(row.get("favoriteCount", 0) or 0))
+        views = min(500, max(0, int(row.get("viewCount", 0) or 0)))
+        return (likes * 3) + (comments * 5) + (favorites * 2) + views
+
+    def hot_score(row: dict[str, Any]) -> float:
+        age_hours = max(1.0, abs(time.time() - parse_time(row.get("createdAt", ""))) / 3600.0)
+        decay = math.pow(age_hours + 2.0, 0.85)
+        created_tie_breaker = parse_time(row.get("createdAt", "")) / 1_000_000_000_000_000.0
+        return (engagement_score(row) / decay) + created_tie_breaker
+
+    active_pinned = [row for row in posts if is_post_pin_active(row)]
+    normal_rows = [row for row in posts if not is_post_pin_active(row)]
+
+    active_pinned.sort(
+        key=lambda row: (
+            str(row.get("pinStartedAt", "")),
+            str(row.get("createdAt", "")),
+            str(row.get("id", "")),
+        ),
+        reverse=True,
+    )
+
     if sort_by == "hot":
-        def hot_score(p: dict[str, Any]) -> float:
-            likes = max(0, int(p.get("likeCount", 0) or 0))
-            comments = max(0, int(p.get("commentCount", 0) or 0))
-            views = max(0, int(p.get("viewCount", 0) or 0))
-            created = p.get("createdAt", "")
-            try:
-                from helpers._datetime_helpers import parse_iso
-                ts = parse_iso(created).timestamp()
-            except Exception:
-                ts = 0
-            return likes * 2 + comments * 3 + views - ts / 1e9
-        return sorted(posts, key=hot_score, reverse=True)
+        normal_rows.sort(
+            key=lambda row: (
+                hot_score(row),
+                engagement_score(row),
+                str(row.get("createdAt", "")),
+                str(row.get("id", "")),
+            ),
+            reverse=True,
+        )
+    elif sort_by == "likes":
+        normal_rows.sort(
+            key=lambda row: (
+                max(0, int(row.get("likeCount", 0) or 0)),
+                str(row.get("createdAt", "")),
+                str(row.get("id", "")),
+            ),
+            reverse=True,
+        )
     elif sort_by == "oldest":
-        return sorted(posts, key=lambda x: x.get("createdAt", ""))
+        normal_rows.sort(key=lambda row: compare_latest_key(row))
     else:  # latest
-        return sorted(posts, key=lambda x: x.get("createdAt", ""), reverse=True)
+        normal_rows.sort(key=lambda row: compare_latest_key(row), reverse=True)
+
+    return [*active_pinned, *normal_rows]
 
 
 def get_image_max_bytes(db: dict[str, Any]) -> int:

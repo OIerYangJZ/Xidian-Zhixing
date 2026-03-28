@@ -1,3 +1,5 @@
+import '../core/config/app_config.dart';
+
 class CommentItem {
   CommentItem({
     required this.id,
@@ -65,11 +67,13 @@ class CommentItem {
       content: (json['content'] ?? '').toString(),
       createdAt: createdAt,
       likeCount: _toInt(json['likeCount']) ?? 0,
-      authorAvatar: (json['authorAvatar'] ??
-              json['authorAvatarUrl'] ??
-              json['avatar'] ??
-              '')
-          .toString(),
+      authorAvatar: AppConfig.resolveUrl(
+        (json['authorAvatar'] ??
+                json['authorAvatarUrl'] ??
+                json['avatar'] ??
+                '')
+            .toString(),
+      ),
       isLiked: _toBool(json['isLiked'] ?? json['liked']) ?? false,
       isPinned: _toBool(json['isPinned'] ?? json['pinned']) ?? false,
       parentId: (json['parentId'] ?? '').toString(),

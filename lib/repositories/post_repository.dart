@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
@@ -31,12 +33,113 @@ extension PostSortCodec on PostSort {
       case PostSort.latest:
         return '按发布时间';
       case PostSort.hot:
-        return '综合排序';
+        return '热度排序';
       case PostSort.likes:
         return '按点赞量';
     }
   }
 }
+
+List<PostItem> sortPostsForView(
+  Iterable<PostItem> posts, {
+  PostSort sort = PostSort.latest,
+  DateTime? now,
+}) {
+  final DateTime anchor = now ?? DateTime.now();
+  final List<PostItem> activePinned = <PostItem>[];
+  final List<PostItem> normalPosts = <PostItem>[];
+
+  for (final PostItem post in posts) {
+    if (_isActivePinned(post, anchor)) {
+      activePinned.add(post);
+    } else {
+      normalPosts.add(post);
+    }
+  }
+
+  activePinned.sort((PostItem a, PostItem b) {
+    final int byPinStart = _safeDate(b.pinStartedAt ?? b.createdAt)
+        .compareTo(_safeDate(a.pinStartedAt ?? a.createdAt));
+    if (byPinStart != 0) {
+      return byPinStart;
+    }
+    return _compareByLatest(a, b);
+  });
+
+  switch (sort) {
+    case PostSort.hot:
+      normalPosts.sort((PostItem a, PostItem b) {
+        final int byHot = _hotScore(b, anchor).compareTo(_hotScore(a, anchor));
+        if (byHot != 0) {
+          return byHot;
+        }
+        final int byEngagement =
+            _engagementScore(b).compareTo(_engagementScore(a));
+        if (byEngagement != 0) {
+          return byEngagement;
+        }
+        return _compareByLatest(a, b);
+      });
+      break;
+    case PostSort.likes:
+      normalPosts.sort((PostItem a, PostItem b) {
+        final int byLikes = b.likeCount.compareTo(a.likeCount);
+        if (byLikes != 0) {
+          return byLikes;
+        }
+        return _compareByLatest(a, b);
+      });
+      break;
+    case PostSort.latest:
+      normalPosts.sort(_compareByLatest);
+      break;
+  }
+
+  return <PostItem>[...activePinned, ...normalPosts];
+}
+
+bool _isActivePinned(PostItem post, DateTime now) {
+  if (!post.isPinned) {
+    return false;
+  }
+  if (post.pinStartedAt != null && post.pinStartedAt!.isAfter(now)) {
+    return false;
+  }
+  if (post.pinExpiresAt != null && !post.pinExpiresAt!.isAfter(now)) {
+    return false;
+  }
+  return true;
+}
+
+int _compareByLatest(PostItem a, PostItem b) {
+  final int byCreated = b.createdAt.compareTo(a.createdAt);
+  if (byCreated != 0) {
+    return byCreated;
+  }
+  return b.id.compareTo(a.id);
+}
+
+int _engagementScore(PostItem post) {
+  final int cappedViews = math.min(post.viewCount, 500);
+  return (post.likeCount * 3) +
+      (post.commentCount * 5) +
+      (post.favoriteCount * 2) +
+      cappedViews;
+}
+
+double _hotScore(PostItem post, DateTime now) {
+  final double ageHours = math.max(
+    1,
+    now.difference(post.createdAt).inMinutes.abs() / 60.0,
+  );
+  final double engagement = _engagementScore(post).toDouble();
+  final double decay = math.pow(ageHours + 2, 0.85).toDouble();
+  final double recencyTieBreaker =
+      post.createdAt.millisecondsSinceEpoch / 1000000000000000.0;
+  return (engagement / decay) + recencyTieBreaker;
+}
+
+DateTime _safeDate(DateTime value) => value.toUtc();
 
 class CreatePostInput {
   CreatePostInput({
@@ -182,7 +285,7 @@ class PostRepository {
           .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
           .toList();
       if (posts.isNotEmpty || !AppConfig.enableMockFallback) {
-        return posts;
+        return sortPostsForView(posts, sort: sort);
       }
     } catch (_) {
       // ignore and fallback
@@ -514,16 +617,7 @@ class PostRepository {
           matchStatus;
     }).toList();
 
-    rows.sort((PostItem a, PostItem b) {
-      if (sort == PostSort.likes) {
-        final int byLikes = b.likeCount.compareTo(a.likeCount);
-        if (byLikes != 0) {
-          return byLikes;
-        }
-      }
-      return b.createdAt.compareTo(a.createdAt);
-    });
-    return rows;
+    return sortPostsForView(rows, sort: sort);
   }
 
   FavoriteActionResult _parseFavoriteActionResult(

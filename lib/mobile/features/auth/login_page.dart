@@ -38,11 +38,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final authRepo = ref.read(authRepositoryProvider);
-      final raw = _identifierController.text.trim();
-      // 自动拼接学校邮箱后缀
-      final identifier = raw.contains('@') ? raw : '$raw@stu.xidian.edu.cn';
       final result = await authRepo.login(
-        identifier: identifier,
+        identifier: _identifierController.text.trim(),
         password: _passwordController.text,
       );
 
@@ -59,10 +56,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ref.invalidate(notificationsControllerProvider);
         ref.invalidate(messagesControllerProvider);
         context.go('/');
-      } else {
-        // 需要邮箱验证
-        context.go(
-            '/auth/verify?email=${Uri.encodeComponent(result.email ?? identifier)}');
       }
     } catch (e) {
       if (mounted) {
@@ -125,6 +118,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 8),
+              const Text(
+                '使用西电统一身份认证登录',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: MobileTheme.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 48),
 
               // 登录表单
@@ -132,10 +134,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // 邮箱/学号输入框
+                    // 学号输入框
                     TextFormField(
                       controller: _identifierController,
-                      keyboardType: TextInputType.emailAddress,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       decoration: const InputDecoration(
                         hintText: '学号',
@@ -158,6 +160,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       onFieldSubmitted: (_) => _handleLogin(),
                       decoration: InputDecoration(
                         hintText: '密码',
+                        labelText: '统一认证密码',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -226,23 +229,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 24),
 
-              // 注册和找回密码
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () => context.go('/auth/register'),
-                    child: const Text('注册账号'),
-                  ),
-                  TextButton(
-                    onPressed: () => context.push('/profile/help-feedback'),
-                    child: const Text('帮助与反馈'),
-                  ),
-                  TextButton(
-                    onPressed: () => context.go('/auth/reset-password'),
-                    child: const Text('忘记密码'),
-                  ),
-                ],
+              const Text(
+                '普通用户已切换为统一认证登录，不再提供站内注册、邮箱验证和本地找回密码。',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: MobileTheme.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => context.push('/profile/help-feedback'),
+                child: const Text('帮助与反馈'),
               ),
               const SizedBox(height: 32),
 

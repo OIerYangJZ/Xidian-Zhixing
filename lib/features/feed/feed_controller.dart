@@ -69,7 +69,7 @@ class FeedController extends StateNotifier<FeedState> {
               );
       state = state.copyWith(
         channels: <String>['全部', ...channels.toSet()],
-        posts: posts,
+        posts: sortPostsForView(posts, sort: state.sort),
         loading: false,
         clearError: true,
         page: 1,
@@ -93,7 +93,7 @@ class FeedController extends StateNotifier<FeedState> {
                 sort: state.sort,
               );
       state = state.copyWith(
-        posts: posts,
+        posts: sortPostsForView(posts, sort: state.sort),
         clearError: true,
         page: 1,
         hasMore: posts.length >= 20,
@@ -116,7 +116,7 @@ class FeedController extends StateNotifier<FeedState> {
                 sort: state.sort,
               );
       state = state.copyWith(
-        posts: posts,
+        posts: sortPostsForView(posts, sort: state.sort),
         loading: false,
         clearError: true,
         page: 1,
@@ -142,7 +142,7 @@ class FeedController extends StateNotifier<FeedState> {
                 sort: sort,
               );
       state = state.copyWith(
-        posts: posts,
+        posts: sortPostsForView(posts, sort: sort),
         loading: false,
         clearError: true,
         page: 1,
@@ -168,11 +168,19 @@ class FeedController extends StateNotifier<FeedState> {
                     : state.selectedChannel,
                 sort: state.sort,
               );
+      final Set<String> existingIds =
+          state.posts.map((PostItem item) => item.id).toSet();
+      final List<PostItem> uniqueMorePosts = morePosts
+          .where((PostItem item) => existingIds.add(item.id))
+          .toList(growable: false);
       state = state.copyWith(
-        posts: [...state.posts, ...morePosts],
+        posts: sortPostsForView(
+          <PostItem>[...state.posts, ...uniqueMorePosts],
+          sort: state.sort,
+        ),
         loadingMore: false,
         page: nextPage,
-        hasMore: morePosts.length >= 20,
+        hasMore: morePosts.length >= 20 && uniqueMorePosts.isNotEmpty,
       );
     } catch (_) {
       state = state.copyWith(loadingMore: false);
@@ -188,7 +196,10 @@ class FeedController extends StateNotifier<FeedState> {
     }
     final List<PostItem> posts = List<PostItem>.from(state.posts);
     posts[index] = updated;
-    state = state.copyWith(posts: posts, clearError: true);
+    state = state.copyWith(
+      posts: sortPostsForView(posts, sort: state.sort),
+      clearError: true,
+    );
   }
 }
 

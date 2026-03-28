@@ -17,6 +17,11 @@ class FeedPage extends ConsumerStatefulWidget {
 }
 
 class _FeedPageState extends ConsumerState<FeedPage> {
+  static const List<PostSort> _webSorts = <PostSort>[
+    PostSort.latest,
+    PostSort.hot,
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -47,19 +52,21 @@ class _FeedPageState extends ConsumerState<FeedPage> {
             const SizedBox(height: 10),
             _buildChannelPanel(state),
             const SizedBox(height: 6),
-          ...state.posts.map(
-            (PostItem post) => PostCard(
-              post: post,
-              onTap: () async {
-                final PostItem? updated =
-                    await openPostDetailPage(context, post: post);
-                if (updated == null || !mounted) {
-                  return;
-                }
-                ref.read(feedControllerProvider.notifier).replacePost(updated);
-              },
+            ...state.posts.map(
+              (PostItem post) => PostCard(
+                post: post,
+                onTap: () async {
+                  final PostItem? updated =
+                      await openPostDetailPage(context, post: post);
+                  if (updated == null || !mounted) {
+                    return;
+                  }
+                  ref
+                      .read(feedControllerProvider.notifier)
+                      .replacePost(updated);
+                },
+              ),
             ),
-          ),
             if (state.posts.isEmpty)
               const Padding(
                 padding: EdgeInsets.all(24),
@@ -241,7 +248,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
               Text('排序', style: TextStyle(fontWeight: FontWeight.w700)),
             ],
           ),
-          ...PostSort.values.map(
+          ..._webSorts.map(
             (PostSort sort) => ChoiceChip(
               avatar: Icon(
                 sort == PostSort.latest

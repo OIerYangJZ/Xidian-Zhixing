@@ -16,6 +16,11 @@ class SearchPage extends ConsumerStatefulWidget {
 }
 
 class _SearchPageState extends ConsumerState<SearchPage> {
+  static const List<PostSort> _webSorts = <PostSort>[
+    PostSort.latest,
+    PostSort.hot,
+  ];
+
   final TextEditingController _queryController = TextEditingController();
 
   @override
@@ -123,7 +128,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   ),
-                  items: PostSort.values
+                  items: _webSorts
                       .map(
                         (PostSort value) => DropdownMenuItem<PostSort>(
                           value: value,

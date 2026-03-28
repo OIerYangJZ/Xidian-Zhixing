@@ -1,12 +1,18 @@
 # XDU Treehole Backend (Python)
 
-一个本地后端，核心 API 使用 Python 标准库实现；启用 S3/OSS 对象存储时需额外安装 `boto3`。
+一个本地后端，核心 API 使用 Python 标准库实现；普通用户统一认证登录依赖 `requests + Pillow + openssl`；启用 S3/OSS 对象存储时需额外安装 `boto3`。
 后端也可直接托管 Flutter Web 构建产物（默认 `build/web`），用于单端口内测发布。
 
 ## 启动
 
 ```bash
 python3 backend/server.py
+```
+
+如果你的环境缺少统一认证登录依赖，先安装：
+
+```bash
+python3 -m pip install requests Pillow
 ```
 
 推荐（显式环境变量）：
@@ -145,13 +151,13 @@ curl http://127.0.0.1:8080/api/channels
 
 ## 默认测试账号
 
-- 普通用户：`demo@stu.xidian.edu.cn / 123456`
+- 普通用户：使用 `学号 + 西电统一身份认证密码` 登录；首次成功登录会自动创建本地树洞账号并按学号映射老用户
 - 管理员：`admin / admin123456`（首次初始化；独立账号体系，不复用用户密码）
-- 密码在数据库中以 PBKDF2-SHA256 哈希存储（兼容旧明文自动迁移）
+- 管理员密码在数据库中以 PBKDF2-SHA256 哈希存储（兼容旧明文自动迁移）
 
 ## 真实邮箱验证码配置
 
-后端现在默认按 SMTP 实际发送验证码邮件。未配置 SMTP 时，`/api/auth/send-code` 会返回错误。
+普通用户登录已改为西电统一身份认证，不再使用注册/邮箱验证码/本地密码找回；SMTP 仍可用于项目内其他邮件通知能力。
 
 QQ 邮箱示例：
 
@@ -176,7 +182,7 @@ BACKEND_INCLUDE_DEBUG_CODE=true
 
 ## 已实现接口
 
-- 认证：`/auth/send-code` `/auth/login`（支持学号或邮箱标识） `/auth/verify` `/auth/resend-code` `/auth/logout`
+- 认证：`/auth/login`（普通用户统一认证登录） `/auth/logout`
 - 用户：`/users/me` `/users/privacy`
 - 频道/帖子：`/channels` `/posts` `/posts/mine` `/posts/favorites` `/posts/{id}`
 - 上传/图片：`/uploads/images` `/uploads/mine` `/storage/{key}`

@@ -498,6 +498,11 @@ def list_posts(
             if not comment.get("deleted")
             and str(comment.get("postId", "")).strip() == post_id
         )
+        post["favoriteCount"] = sum(
+            1
+            for favorite_row in db.get("favorites", [])
+            if str(favorite_row.get("postId", "")).strip() == post_id
+        )
         post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0))
         posts.append(post)
     if sort_by != "hot":

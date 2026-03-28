@@ -748,7 +748,7 @@ def main() -> None:
         )
     else:
         _logger.info("SMTP: not configured (set BACKEND_SMTP_* to enable email verification)")
-    _logger.info(f"Demo user account: demo@stu.xidian.edu.cn / 123456")
+    _logger.info("User auth: 学号 + 西电统一身份认证密码")
     _logger.info(f"Admin account: {DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD}")
     if verify_code_debug_enabled():
         _logger.debug("Debug verify code enabled: 123456")

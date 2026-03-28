@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/config/app_config.dart';
 import '../../models/comment_item.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -48,8 +49,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> supplementaryImageUrls =
-        _supplementaryImageUrls(_post);
+    final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
     return Scaffold(
       appBar: AppBar(title: const Text('帖子详情')),
       body: _loading
@@ -214,9 +214,26 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         ..._comments.asMap().entries.map(
                               (MapEntry<int, CommentItem> entry) => ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: CircleAvatar(
-                                    child: Text('${entry.key + 1}')),
-                                title: Text(entry.value.authorAlias),
+                                leading: _buildCommentAvatar(entry.value),
+                                title: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        entry.value.authorAlias,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${entry.key + 1} 楼',
+                                      style: const TextStyle(
+                                        color: Colors.black45,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: <Widget>[
@@ -367,6 +384,24 @@ class _PostDetailPageState extends State<PostDetailPage> {
         });
       }
     }
+  }
+
+  Widget _buildCommentAvatar(CommentItem comment) {
+    final String avatarUrl = AppConfig.resolveUrl(
+      (comment.authorAvatar ?? '').trim(),
+    );
+    final String fallback = comment.authorAlias.trim().isEmpty
+        ? '匿'
+        : comment.authorAlias.trim().characters.first;
+
+    if (avatarUrl.isNotEmpty) {
+      return CircleAvatar(
+        backgroundImage: NetworkImage(avatarUrl),
+      );
+    }
+    return CircleAvatar(
+      child: Text(fallback),
+    );
   }
 
   Future<void> _submitComment() async {

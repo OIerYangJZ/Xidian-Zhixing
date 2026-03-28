@@ -175,7 +175,10 @@ class SearchController extends StateNotifier<SearchState> {
     }
     final List<PostItem> results = List<PostItem>.from(state.results);
     results[index] = updated;
-    state = state.copyWith(results: results, clearError: true);
+    state = state.copyWith(
+      results: sortPostsForView(results, sort: state.sort),
+      clearError: true,
+    );
   }
 }
 
