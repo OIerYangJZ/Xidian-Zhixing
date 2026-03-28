@@ -5,10 +5,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/media/image_picker_adapter.dart';
+import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
+import '../../core/state/app_providers.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/post_item.dart';
+import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
+import '../../widgets/post_content_body.dart';
 import 'create_post_controller.dart';
 
 class CreatePostPage extends ConsumerStatefulWidget {
@@ -19,25 +23,35 @@ class CreatePostPage extends ConsumerStatefulWidget {
 }
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
+  static const int _plainTextMaxLength = 3000;
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _anonymousAliasController =
       TextEditingController();
+  final FocusNode _contentFocusNode = FocusNode();
 
   String? _selectedChannel;
   PostStatus _status = PostStatus.ongoing;
-  bool _allowComment = true;
-  bool _allowDm = true;
   bool _useAnonymousAlias = false;
+  bool _useMarkdown = false;
+  bool _privateOnly = false;
   int? _selectedPinDurationMinutes;
   bool _pickingImages = false;
+  bool _pastingMarkdownImages = false;
+  MarkdownClipboardImageDetach? _detachMarkdownPasteListener;
   final List<PickedImageData> _pickedImages = <PickedImageData>[];
+  final Map<String, String> _markdownImageUploadIdsByUrl = <String, String>{};
 
   @override
   void initState() {
     super.initState();
+    _detachMarkdownPasteListener = registerMarkdownClipboardImageListener(
+      focusNode: _contentFocusNode,
+      onImagesPasted: _handleMarkdownImagesPasted,
+    );
     Future<void>.microtask(
       () => ref.read(createPostControllerProvider.notifier).loadChannels(),
     );
@@ -45,17 +59,20 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   @override
   void dispose() {
+    _detachMarkdownPasteListener?.call();
     _titleController.dispose();
     _contentController.dispose();
     _tagsController.dispose();
     _anonymousAliasController.dispose();
+    _contentFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final CreatePostState state = ref.watch(createPostControllerProvider);
-    final bool isBusy = state.submitting || _pickingImages;
+    final bool isBusy =
+        state.submitting || _pickingImages || _pastingMarkdownImages;
     final List<String> channels =
         state.channels.isNotEmpty ? state.channels : const <String>['未分类'];
     final String selectedChannel = _deriveSelectedChannel(channels);
@@ -73,9 +90,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           children: <Widget>[
             if (isBusy)
               _ProgressCard(
-                text: _pickingImages
-                    ? '读取图片中...'
-                    : (state.progressText ?? '提交中...'),
+                text: _pastingMarkdownImages
+                    ? '上传粘贴图片中...'
+                    : _pickingImages
+                        ? '读取图片中...'
+                        : (state.progressText ?? '提交中...'),
               ),
             Form(
               key: _formKey,
@@ -108,14 +127,52 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  SwitchListTile(
+                    value: _useMarkdown,
+                    onChanged: isBusy
+                        ? null
+                        : _handleMarkdownToggle,
+                    title: const Text('使用 Markdown 编辑'),
+                    subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                  const SizedBox(height: 6),
                   TextFormField(
+                    key: ValueKey<String>(
+                      _useMarkdown ? 'markdown-editor' : 'plain-editor',
+                    ),
                     controller: _contentController,
+                    focusNode: _contentFocusNode,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
                     minLines: 6,
                     maxLines: 10,
-                    maxLength: 2500,
-                    decoration: const InputDecoration(
-                      labelText: '正文',
-                      hintText: '描述越完整，越容易获得帮助',
+                    maxLength: _useMarkdown ? null : _plainTextMaxLength,
+                    maxLengthEnforcement: _useMarkdown
+                        ? null
+                        : MaxLengthEnforcement.enforced,
+                    autocorrect: !_useMarkdown,
+                    enableSuggestions: !_useMarkdown,
+                    enableIMEPersonalizedLearning: !_useMarkdown,
+                    smartDashesType: _useMarkdown
+                        ? SmartDashesType.disabled
+                        : SmartDashesType.enabled,
+                    smartQuotesType: _useMarkdown
+                        ? SmartQuotesType.disabled
+                        : SmartQuotesType.enabled,
+                    spellCheckConfiguration: _useMarkdown
+                        ? const SpellCheckConfiguration.disabled()
+                        : null,
+                    decoration: InputDecoration(
+                      alignLabelWithHint: true,
+                      labelText: _useMarkdown ? 'Markdown 源码' : '正文',
+                      hintText: _useMarkdown
+                          ? '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```'
+                          : '描述越完整，越容易获得帮助',
+                      helperText: _useMarkdown
+                          ? 'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。'
+                          : '纯文本模式最多 3000 字。切换模式会清空当前正文。',
+                      helperMaxLines: 2,
                     ),
                     validator: (String? value) {
                       if (value == null || value.trim().isEmpty) {
@@ -123,6 +180,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       }
                       if (value.trim().length < 8) {
                         return '正文至少 8 个字';
+                      }
+                      if (!_useMarkdown && value.length > _plainTextMaxLength) {
+                        return '纯文本正文最多 $_plainTextMaxLength 字';
                       }
                       return null;
                     },
@@ -132,6 +192,58 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     controller: _contentController,
                     compact: true,
                   ),
+                  if (_useMarkdown) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .outlineVariant
+                              .withValues(alpha: 0.6),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            '实时预览',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 10),
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _contentController,
+                            builder: (
+                              BuildContext context,
+                              TextEditingValue value,
+                              Widget? child,
+                            ) {
+                              final String source = value.text.trim();
+                              if (source.isEmpty) {
+                                return const Text(
+                                  '输入 Markdown 源码后，这里会显示渲染效果。',
+                                  style: TextStyle(color: Colors.black54),
+                                );
+                              }
+                              return PostContentBody(
+                                content: '',
+                                contentFormat: 'markdown',
+                                markdownSource: source,
+                                selectable: false,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     initialValue: selectedChannel,
@@ -194,9 +306,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         : (bool value) {
                             setState(() {
                               _useAnonymousAlias = value;
-                              if (value) {
-                                _allowDm = false;
-                              }
                             });
                           },
                     title: const Text('本帖使用匿名身份'),
@@ -222,29 +331,33 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     ),
                   ],
                   const SizedBox(height: 8),
-                  SwitchListTile(
-                    value: _allowComment,
+                  DropdownButtonFormField<String>(
+                    initialValue: _privateOnly ? 'private' : 'public',
+                    decoration: const InputDecoration(labelText: '可见范围'),
+                    items: const <DropdownMenuItem<String>>[
+                      DropdownMenuItem<String>(
+                        value: 'public',
+                        child: Text('所有人可见'),
+                      ),
+                      DropdownMenuItem<String>(
+                        value: 'private',
+                        child: Text('仅自己可见'),
+                      ),
+                    ],
                     onChanged: isBusy
                         ? null
-                        : (bool value) {
+                        : (String? value) {
                             setState(() {
-                              _allowComment = value;
+                              _privateOnly = value == 'private';
                             });
                           },
-                    title: const Text('允许评论'),
-                    contentPadding: EdgeInsets.zero,
                   ),
-                  SwitchListTile(
-                    value: _useAnonymousAlias ? false : _allowDm,
-                    onChanged: isBusy || _useAnonymousAlias
-                        ? null
-                        : (bool value) {
-                            setState(() {
-                              _allowDm = value;
-                            });
-                          },
-                    title: Text(_useAnonymousAlias ? '匿名帖子不可私信' : '允许私信'),
-                    contentPadding: EdgeInsets.zero,
+                  const SizedBox(height: 4),
+                  Text(
+                    _privateOnly
+                        ? '仅你自己能在“我的帖子”里看到这条内容。'
+                        : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                    style: const TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                   if (state.isLevelOneUser) ...<Widget>[
                     const SizedBox(height: 8),
@@ -416,6 +529,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       return;
     }
 
+    _pruneMarkdownImageMappings();
+    final String rawContent = _contentController.text;
+    final String submittedContent = _useMarkdown ? rawContent : rawContent.trim();
     final List<String> tags = _tagsController.text
         .split(RegExp(r'[,，\s\n]+'))
         .map((String item) => item.trim())
@@ -437,11 +553,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final PostItem? created =
         await ref.read(createPostControllerProvider.notifier).submit(
               title: _titleController.text.trim(),
-              content: _contentController.text.trim(),
+              content: submittedContent,
+              useMarkdown: _useMarkdown,
               channel: selectedChannel,
               tags: tags,
-              allowComment: _allowComment,
-              allowDm: _useAnonymousAlias ? false : _allowDm,
+              privateOnly: _privateOnly,
               status: _status,
               useAnonymousAlias: _useAnonymousAlias,
               anonymousAlias: _useAnonymousAlias
@@ -450,6 +566,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               pinDurationMinutes:
                   state.isLevelOneUser ? _selectedPinDurationMinutes : null,
               uploadPayloads: uploadPayloads,
+              preUploadedImageIds: _useMarkdown
+                  ? _markdownImageUploadIdsByUrl.values.toList()
+                  : const <String>[],
             );
 
     if (!mounted || created == null) {
@@ -463,6 +582,149 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ),
     );
     Navigator.of(context).pop(true);
+  }
+
+  void _handleMarkdownToggle(bool value) {
+    if (_useMarkdown == value) {
+      return;
+    }
+    setState(() {
+      _useMarkdown = value;
+      _contentController.value = const TextEditingValue();
+      _markdownImageUploadIdsByUrl.clear();
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            value
+                ? '已切换到 Markdown 编辑，当前正文已清空。'
+                : '已切换到纯文本编辑，当前正文已清空。',
+          ),
+        ),
+      );
+  }
+
+  Future<void> _handleMarkdownImagesPasted(List<PickedImageData> images) async {
+    if (!_useMarkdown || !mounted || images.isEmpty) {
+      return;
+    }
+
+    _pruneMarkdownImageMappings();
+    const int maxImages = 9;
+    final int remaining =
+        maxImages - (_pickedImages.length + _markdownImageUploadIdsByUrl.length);
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('最多上传 9 张图片')),
+      );
+      return;
+    }
+
+    final List<PickedImageData> accepted = images.take(remaining).toList();
+    if (accepted.isEmpty) {
+      return;
+    }
+
+    setState(() {
+      _pastingMarkdownImages = true;
+    });
+
+    try {
+      final List<String> snippets = <String>[];
+      for (final PickedImageData image in accepted) {
+        final UploadedImageItem uploaded =
+            await ref.read(postRepositoryProvider).uploadImage(
+                  fileName: image.fileName,
+                  contentType: image.contentType,
+                  dataBase64: image.dataBase64,
+                );
+        final String alt = _deriveMarkdownImageAlt(image.fileName);
+        snippets.add('![$alt](${uploaded.url})');
+        _markdownImageUploadIdsByUrl[uploaded.url] = uploaded.id;
+      }
+      _insertMarkdownSnippet(snippets.join('\n\n'));
+
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text('已插入 ${accepted.length} 张 Markdown 图片'),
+          ),
+        );
+      if (images.length > accepted.length) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
+            ),
+          ),
+        );
+      }
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('粘贴图片失败：$error')),
+        );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _pastingMarkdownImages = false;
+        });
+      }
+    }
+  }
+
+  void _insertMarkdownSnippet(String snippet) {
+    final TextEditingValue currentValue = _contentController.value;
+    final TextSelection selection = currentValue.selection.isValid
+        ? currentValue.selection
+        : TextSelection.collapsed(offset: currentValue.text.length);
+    final int start = selection.start.clamp(0, currentValue.text.length);
+    final int end = selection.end.clamp(0, currentValue.text.length);
+    final String before = currentValue.text.substring(0, start);
+    final String after = currentValue.text.substring(end);
+
+    String inserted = snippet;
+    if (before.isNotEmpty && !before.endsWith('\n')) {
+      inserted = '\n\n$inserted';
+    }
+    if (after.isNotEmpty && !after.startsWith('\n')) {
+      inserted = '$inserted\n\n';
+    }
+
+    final String nextText = '$before$inserted$after';
+    final int caretOffset = (before + inserted).length;
+    _contentController.value = TextEditingValue(
+      text: nextText,
+      selection: TextSelection.collapsed(offset: caretOffset),
+    );
+  }
+
+  void _pruneMarkdownImageMappings() {
+    final String source = _contentController.text;
+    _markdownImageUploadIdsByUrl.removeWhere(
+      (String url, String _) => !source.contains(url),
+    );
+  }
+
+  String _deriveMarkdownImageAlt(String fileName) {
+    final String trimmed = fileName.trim();
+    if (trimmed.isEmpty) {
+      return '图片';
+    }
+    final int dotIndex = trimmed.lastIndexOf('.');
+    final String baseName = dotIndex > 0 ? trimmed.substring(0, dotIndex) : trimmed;
+    final String sanitized = baseName.trim();
+    return sanitized.isEmpty ? '图片' : sanitized;
   }
 }
 

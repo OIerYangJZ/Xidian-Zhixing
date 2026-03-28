@@ -189,11 +189,14 @@ class SqliteTreeholeRepository:
               id TEXT PRIMARY KEY,
               title TEXT NOT NULL,
               content TEXT NOT NULL,
+              content_format TEXT NOT NULL DEFAULT 'plain',
+              markdown_source TEXT NOT NULL DEFAULT '',
               channel TEXT NOT NULL,
               has_image INTEGER NOT NULL DEFAULT 0,
               status TEXT NOT NULL,
               allow_comment INTEGER NOT NULL DEFAULT 1,
               allow_dm INTEGER NOT NULL DEFAULT 0,
+              visibility TEXT NOT NULL DEFAULT 'public',
               is_anonymous INTEGER NULL,
               author_alias TEXT NOT NULL,
               author_id TEXT NULL,
@@ -518,6 +521,9 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "posts", "is_anonymous", "INTEGER NULL")
+        self._ensure_column(conn, "posts", "visibility", "TEXT NOT NULL DEFAULT 'public'")
+        self._ensure_column(conn, "posts", "content_format", "TEXT NOT NULL DEFAULT 'plain'")
+        self._ensure_column(conn, "posts", "markdown_source", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "posts", "pin_started_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_expires_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_duration_minutes", "INTEGER NOT NULL DEFAULT 0")
@@ -658,8 +664,8 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, title, content, channel, has_image, status, allow_comment, allow_dm,
-                   is_anonymous,
+            SELECT id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
+                   visibility, is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                    created_at, updated_at, deleted, review_status, risk_marked
             FROM posts
@@ -672,12 +678,15 @@ class SqliteTreeholeRepository:
                     "id": post_id,
                     "title": row["title"],
                     "content": row["content"],
+                    "contentFormat": _to_str(row["content_format"]) or "plain",
+                    "markdownSource": _to_str(row["markdown_source"]),
                     "channel": row["channel"],
                     "tags": list(tag_map.get(post_id, [])),
                     "hasImage": _to_bool(row["has_image"]),
                     "status": row["status"],
                     "allowComment": _to_bool(row["allow_comment"]),
                     "allowDm": _to_bool(row["allow_dm"]),
+                    "visibility": _to_str(row["visibility"]) or "public",
                     "isAnonymous": _infer_post_is_anonymous(
                         users_by_id=users_by_id,
                         author_alias=_to_str(row["author_alias"]),
@@ -1226,21 +1235,24 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO posts (
-                      id, title, content, channel, has_image, status, allow_comment, allow_dm,
-                      is_anonymous,
+                      id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
+                      visibility, is_anonymous,
                       author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
                       created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
                         _to_str(post.get("title")),
                         _to_str(post.get("content")),
+                        "markdown" if _to_str(post.get("contentFormat")).strip().lower() == "markdown" else "plain",
+                        _to_str(post.get("markdownSource")),
                         _to_str(post.get("channel"), "未分类"),
                         _to_bool_int(post.get("hasImage")),
                         _to_str(post.get("status"), "ongoing"),
                         _to_bool_int(post.get("allowComment", True)),
                         _to_bool_int(post.get("allowDm", False)),
+                        "private" if _to_str(post.get("visibility")).strip().lower() == "private" else "public",
                         None
                         if post.get("isAnonymous") is None
                         else _to_bool_int(post.get("isAnonymous")),

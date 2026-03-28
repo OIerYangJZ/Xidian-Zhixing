@@ -2,6 +2,7 @@ import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
+import '../core/utils/markdown_utils.dart';
 import '../data/mock_data.dart';
 import '../models/comment_item.dart';
 import '../models/post_item.dart';
@@ -41,10 +42,13 @@ class CreatePostInput {
   CreatePostInput({
     required this.title,
     required this.content,
+    this.contentFormat = 'plain',
+    this.markdownSource,
     required this.channel,
     required this.tags,
     required this.allowComment,
     required this.allowDm,
+    required this.privateOnly,
     required this.status,
     required this.hasImage,
     this.pinDurationMinutes,
@@ -55,10 +59,13 @@ class CreatePostInput {
 
   final String title;
   final String content;
+  final String contentFormat;
+  final String? markdownSource;
   final String channel;
   final List<String> tags;
   final bool allowComment;
   final bool allowDm;
+  final bool privateOnly;
   final PostStatus status;
   final bool hasImage;
   final int? pinDurationMinutes;
@@ -70,10 +77,16 @@ class CreatePostInput {
     return <String, dynamic>{
       'title': title,
       'content': content,
+      'contentFormat': contentFormat.trim().toLowerCase() == 'markdown'
+          ? 'markdown'
+          : 'plain',
+      if ((markdownSource ?? '').trim().isNotEmpty)
+        'markdownSource': markdownSource!.trim(),
       'channel': channel,
       'tags': tags,
       'allowComment': allowComment,
       'allowDm': allowDm,
+      'visibility': privateOnly ? 'private' : 'public',
       'status': status.apiValue,
       'hasImage': hasImage || imageUploadIds.isNotEmpty,
       if (pinDurationMinutes != null && pinDurationMinutes! > 0)
@@ -209,7 +222,15 @@ class PostRepository {
     return PostItem(
       id: 'local-${DateTime.now().millisecondsSinceEpoch}',
       title: input.title,
-      content: input.content,
+      content: input.contentFormat.trim().toLowerCase() == 'markdown'
+          ? (markdownToPlainText(input.markdownSource ?? input.content)
+                  .trim()
+                  .isEmpty
+              ? input.content
+              : markdownToPlainText(input.markdownSource ?? input.content))
+          : input.content,
+      contentFormat: input.contentFormat,
+      markdownSource: input.markdownSource ?? '',
       channel: input.channel,
       tags: input.tags,
       authorAlias: input.useAnonymousAlias
@@ -226,6 +247,7 @@ class PostRepository {
       status: input.status,
       allowComment: input.allowComment,
       allowDm: input.useAnonymousAlias ? false : input.allowDm,
+      isPrivate: input.privateOnly,
       isPinned: (input.pinDurationMinutes ?? 0) > 0,
       pinDurationMinutes: input.pinDurationMinutes ?? 0,
     );

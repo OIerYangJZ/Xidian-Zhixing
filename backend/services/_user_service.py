@@ -74,9 +74,9 @@ def user_avatar_url(user: dict[str, Any] | None) -> str:
     return normalize_avatar_url(str(user.get("avatarUrl", "")))
 
 
-def normalize_optional_bool(value: Any) -> bool | None:
+def normalize_optional_bool(value: Any, default: bool | None = None) -> bool | None:
     if value is None:
-        return None
+        return default
     if isinstance(value, bool):
         return value
     if isinstance(value, (int, float)):
@@ -87,7 +87,7 @@ def normalize_optional_bool(value: Any) -> bool | None:
             return True
         if normalized in {"0", "false", "no", "off"}:
             return False
-    return None
+    return default
 
 
 def is_post_anonymous(db: dict[str, Any], post: dict[str, Any]) -> bool:
@@ -110,8 +110,18 @@ def is_post_anonymous(db: dict[str, Any], post: dict[str, Any]) -> bool:
     return author_alias != nickname
 
 
+def normalize_post_visibility(value: Any) -> str:
+    return "private" if str(value or "").strip().lower() == "private" else "public"
+
+
+def is_post_private(post: dict[str, Any]) -> bool:
+    return normalize_post_visibility(post.get("visibility")) == "private"
+
+
 def effective_post_allow_dm(db: dict[str, Any], post: dict[str, Any]) -> bool:
-    if not bool(post.get("allowDm", True)):
+    if is_post_anonymous(db, post):
+        return False
+    if is_post_private(post):
         return False
     author_id = str(post.get("authorId", "")).strip()
     if not author_id:
@@ -122,14 +132,33 @@ def effective_post_allow_dm(db: dict[str, Any], post: dict[str, Any]) -> bool:
     return bool(author.get("allowStrangerDm", True))
 
 
+def can_request_dm_from_post(
+    db: dict[str, Any],
+    *,
+    viewer_user_id: str,
+    post: dict[str, Any],
+) -> bool:
+    viewer = viewer_user_id.strip()
+    author_id = str(post.get("authorId", "")).strip()
+    if not viewer or not author_id or viewer == author_id:
+        return False
+    if not effective_post_allow_dm(db, post):
+        return False
+    if is_user_blocked(db, viewer, author_id):
+        return False
+    if is_user_blocked(db, author_id, viewer):
+        return False
+    return True
+
+
 def is_user_following(db: dict[str, Any], follower_id: str, followed_id: str) -> bool:
     follower = follower_id.strip()
     followed = followed_id.strip()
-    if not follower or not followed:
+    if not follower or not followed or follower == followed:
         return False
     return any(
-        str(row.get("followerId", "")).strip() == follower
-        and str(row.get("followedId", "")).strip() == followed
+        str(row.get("followerUserId", "")).strip() == follower
+        and str(row.get("followeeUserId", "")).strip() == followed
         for row in db.get("userFollows", [])
     )
 
@@ -141,7 +170,8 @@ def count_following(db: dict[str, Any], user_id: str) -> int:
     return sum(
         1
         for row in db.get("userFollows", [])
-        if str(row.get("followerId", "")).strip() == uid
+        if str(row.get("followerUserId", "")).strip() == uid
+        and find_user_by_id(db, str(row.get("followeeUserId", "")).strip()) is not None
     )
 
 
@@ -152,31 +182,27 @@ def count_followers(db: dict[str, Any], user_id: str) -> int:
     return sum(
         1
         for row in db.get("userFollows", [])
-        if str(row.get("followedId", "")).strip() == uid
+        if str(row.get("followeeUserId", "")).strip() == uid
+        and find_user_by_id(db, str(row.get("followerUserId", "")).strip()) is not None
     )
 
 
 def build_follow_user_item(
     db: dict[str, Any],
-    row: dict[str, Any],
     *,
+    target_user_id: str,
     viewer_user_id: str,
-    is_following_direction: bool = True,
 ) -> dict[str, Any] | None:
-    target_id = (
-        str(row.get("followedId", "")).strip()
-        if is_following_direction
-        else str(row.get("followerId", "")).strip()
-    )
+    target_id = target_user_id.strip()
     target = find_user_by_id(db, target_id)
     if target is None:
         return None
-    is_anonymous = target.get("deleted") or not str(target.get("nickname", "")).strip()
     return {
-        "id": target_id,
-        "alias": user_nickname(target) if not is_anonymous else "匿名同学",
-        "avatarUrl": user_avatar_url(target) if not is_anonymous else "",
+        "userId": target_id,
+        "nickname": user_nickname(target),
+        "avatarUrl": user_avatar_url(target),
         "isFollowing": is_user_following(db, viewer_user_id, target_id),
+        "isFollower": is_user_following(db, target_id, viewer_user_id),
     }
 
 
@@ -186,16 +212,25 @@ def list_following_users(
     user_id: str,
     viewer_user_id: str,
 ) -> list[dict[str, Any]]:
-    uid = user_id.strip()
-    return [
-        item
-        for row in db.get("userFollows", [])
-        if str(row.get("followerId", "")).strip() == uid
-        and (
-            item := build_follow_user_item(db, row, viewer_user_id=viewer_user_id, is_following_direction=True)
+    rows: list[dict[str, Any]] = []
+    for follow in db.get("userFollows", []):
+        if str(follow.get("followerUserId", "")).strip() != user_id.strip():
+            continue
+        item = build_follow_user_item(
+            db,
+            target_user_id=str(follow.get("followeeUserId", "")).strip(),
+            viewer_user_id=viewer_user_id,
         )
-        is not None
-    ]
+        if item is not None:
+            item["_createdAt"] = str(follow.get("createdAt", ""))
+            rows.append(item)
+    rows.sort(
+        key=lambda item: (str(item.get("_createdAt", "")), str(item.get("userId", ""))),
+        reverse=True,
+    )
+    for item in rows:
+        item.pop("_createdAt", None)
+    return rows
 
 
 def list_follower_users(
@@ -204,16 +239,25 @@ def list_follower_users(
     user_id: str,
     viewer_user_id: str,
 ) -> list[dict[str, Any]]:
-    uid = user_id.strip()
-    return [
-        item
-        for row in db.get("userFollows", [])
-        if str(row.get("followedId", "")).strip() == uid
-        and (
-            item := build_follow_user_item(db, row, viewer_user_id=viewer_user_id, is_following_direction=False)
+    rows: list[dict[str, Any]] = []
+    for follow in db.get("userFollows", []):
+        if str(follow.get("followeeUserId", "")).strip() != user_id.strip():
+            continue
+        item = build_follow_user_item(
+            db,
+            target_user_id=str(follow.get("followerUserId", "")).strip(),
+            viewer_user_id=viewer_user_id,
         )
-        is not None
-    ]
+        if item is not None:
+            item["_createdAt"] = str(follow.get("createdAt", ""))
+            rows.append(item)
+    rows.sort(
+        key=lambda item: (str(item.get("_createdAt", "")), str(item.get("userId", ""))),
+        reverse=True,
+    )
+    for item in rows:
+        item.pop("_createdAt", None)
+    return rows
 
 
 def list_friend_users(
@@ -221,33 +265,28 @@ def list_friend_users(
     *,
     user_id: str,
 ) -> list[dict[str, Any]]:
-    uid = user_id.strip()
-    follower_ids: set[str] = {
-        str(row.get("followerId", "")).strip()
+    following_ids = {
+        str(row.get("followeeUserId", "")).strip()
         for row in db.get("userFollows", [])
-        if str(row.get("followedId", "")).strip() == uid
+        if str(row.get("followerUserId", "")).strip() == user_id.strip()
     }
-    following_ids: set[str] = {
-        str(row.get("followedId", "")).strip()
+    follower_ids = {
+        str(row.get("followerUserId", "")).strip()
         for row in db.get("userFollows", [])
-        if str(row.get("followerId", "")).strip() == uid
+        if str(row.get("followeeUserId", "")).strip() == user_id.strip()
     }
-    friend_ids = follower_ids & following_ids
-    result: list[dict[str, Any]] = []
-    for fid in friend_ids:
-        user = find_user_by_id(db, fid)
-        if user is None:
-            continue
-        result.append(
-            {
-                "id": fid,
-                "alias": user_nickname(user),
-                "avatarUrl": user_avatar_url(user),
-                "isFollowing": True,
-            }
+    mutual_ids = sorted(following_ids & follower_ids)
+    rows: list[dict[str, Any]] = []
+    for target_user_id in mutual_ids:
+        item = build_follow_user_item(
+            db,
+            target_user_id=target_user_id,
+            viewer_user_id=user_id,
         )
-    result.sort(key=lambda x: str(x.get("id", "")))
-    return result
+        if item is not None:
+            rows.append(item)
+    rows.sort(key=lambda item: (str(item.get("nickname", "")), str(item.get("userId", ""))))
+    return rows
 
 
 def can_request_dm_to_user(
@@ -258,32 +297,21 @@ def can_request_dm_to_user(
 ) -> bool:
     viewer = viewer_user_id.strip()
     target = target_user_id.strip()
-    if not viewer or not target:
+    if not viewer or not target or viewer == target:
         return False
-    if viewer == target:
-        return False
+
+    viewer_user = find_user_by_id(db, viewer)
     target_user = find_user_by_id(db, target)
-    if target_user is None:
+    if viewer_user is None or target_user is None:
         return False
-    if bool(target_user.get("deleted")):
-        return False
-    if bool(target_user.get("banned")):
+    if not bool(target_user.get("showContactable", True)):
         return False
     if not bool(target_user.get("allowStrangerDm", True)):
         return False
-    if not is_user_following(db, viewer, target):
-        existing_request = next(
-            (
-                row
-                for row in db.get("dmRequests", [])
-                if str(row.get("fromUserId", "")).strip() == viewer
-                and str(row.get("toUserId", "")).strip() == target
-                and str(row.get("status", "pending")).lower() == "pending"
-            ),
-            None,
-        )
-        if existing_request is None:
-            return False
+    if is_user_blocked(db, viewer, target):
+        return False
+    if is_user_blocked(db, target, viewer):
+        return False
     return True
 
 
@@ -345,7 +373,7 @@ def normalize_user_level(value: Any) -> int:
     try:
         level = int(value)
     except (TypeError, ValueError):
-        return USER_LEVEL_TWO
+        return _globals.USER_LEVEL_TWO
     return _globals.USER_LEVEL_ONE if level == _globals.USER_LEVEL_ONE else _globals.USER_LEVEL_TWO
 
 
@@ -1090,7 +1118,6 @@ def cancel_user_account(
         if row.get("userId") != user_id and row.get("actorId") != user_id
     ]
 
-    from helpers import OBJECT_STORAGE
     avatar_key = ""
     avatar_url = user.get("avatarUrl", "")
     if avatar_url:
@@ -1100,7 +1127,7 @@ def cancel_user_account(
             avatar_key = avatar_url[idx + len(marker):].strip().lstrip("/")
     if avatar_key:
         try:
-            OBJECT_STORAGE.delete(avatar_key)
+            _globals.OBJECT_STORAGE.delete(avatar_key)
         except Exception:
             pass
     user["avatarUrl"] = ""
@@ -1116,7 +1143,7 @@ def cancel_user_account(
         object_key = str(upload.get("objectKey", "")).strip()
         if object_key:
             try:
-                OBJECT_STORAGE.delete(object_key)
+                _globals.OBJECT_STORAGE.delete(object_key)
             except Exception:
                 pass
 

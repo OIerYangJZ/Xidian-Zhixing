@@ -43,6 +43,7 @@ Admin & moderation endpoints:
 from __future__ import annotations
 
 import re
+import secrets
 from typing import Any
 
 from http import HTTPStatus
@@ -97,7 +98,7 @@ from services import (
 
 
 def _require_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
-    admin, _ = auth_admin_helper(handler, db)
+    admin, _ = auth_admin(handler, db)
     if admin is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员未登录或登录已过期")
         return None
@@ -157,7 +158,7 @@ def handle_admin_auth_login(
     send_json(
         handler,
         HTTPStatus.OK,
-        {"data": {"token": token, **serialize_admin_auth_payload(admin_payload)}},
+        {"data": {"token": token, **admin_payload}},
     )
 
 
@@ -166,7 +167,7 @@ def handle_admin_auth_logout(
     db: dict[str, Any],
 ) -> None:
     """POST /api/admin/auth/logout"""
-    admin, token = auth_admin_helper(handler, db)
+    admin, token = auth_admin(handler, db)
     if admin is None:
         return
     if token:
@@ -578,7 +579,8 @@ def handle_admin_report_action(
 
     target_type = str(report.get("targetType", "")).strip()
     target_id = str(report.get("targetId", "")).strip()
-    owner_id = target_owner(db, target_type, target_id)
+    owner = target_owner(db, target_id)
+    owner_id = str(owner.get("authorId", "")).strip() if owner else ""
 
     if owner_id and action in {"delete", "warn", "ban"}:
         notif_title = "内容处理通知"
@@ -639,9 +641,8 @@ def handle_admin_post_pin_request_action(
     if post and action == "approve":
         from services import apply_post_pin
         apply_post_pin(
-            db, post,
+            post,
             duration_minutes=int(req.get("durationMinutes", 1440)),
-            actor_id=str(admin.get("adminId", "")),
         )
 
     owner_id = str(post.get("authorId", "")) if post else ""
@@ -697,11 +698,11 @@ def handle_admin_user_level_request_action(
     req["reviewNote"] = review_note or ""
 
     if target_user and action == "approve":
-        target_user["userLevel"] = _globals.USER_LEVEL_TWO
+        target_user["userLevel"] = _globals.USER_LEVEL_ONE
 
     if target_user:
         title = "升级申请已通过" if action == "approve" else "升级申请已驳回"
-        content = f"您的一年级用户升级申请已被{'通过' if action == 'approve' else '驳回'}。"
+        content = f"您的一级用户升级申请已被{'通过' if action == 'approve' else '驳回'}。"
         create_notification(
             db,
             user_id=user_id,
@@ -919,7 +920,12 @@ def handle_admin_cancellation_action(
 
     if action == "approve" and target_user:
         cancel_user_account(db, target_user, actor_id=admin.get("adminId", "-"), detail="账号注销申请通过")
-        sync_cancellation_requests_after_admin_cancel(db, user_id)
+        sync_cancellation_requests_after_admin_cancel(
+            db,
+            user_id=user_id,
+            handled_by=str(admin.get("adminId", "")).strip(),
+            review_note="账号注销申请通过",
+        )
         add_audit_log(db, admin.get("adminId", "-"), "approve_cancellation", f"通过账号注销申请 {user_id}")
 
     save_db(db)

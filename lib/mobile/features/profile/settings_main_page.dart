@@ -152,14 +152,16 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '修改密码',
                       onTap: () => context.push('/profile/change-password'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.edit_outlined,
                       iconColor: MobileTheme.textSecondary,
                       title: '编辑资料',
                       onTap: () => context.push('/profile/edit'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.no_accounts_outlined,
                       iconColor: MobileTheme.error,
@@ -180,7 +182,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       icon: Icons.chat_bubble_outline,
                       iconColor: MobileTheme.primary,
                       title: '允许陌生人私信',
-                      subtitle: '关闭后只有互相关注才能私信',
+                      subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
                       value: _profile?.allowStrangerDm ?? false,
                       onChanged: _saving
                           ? null
@@ -190,7 +192,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                                     _profile?.showContactable ?? false,
                               ),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _SwitchTileRow(
                       icon: Icons.visibility_outlined,
                       iconColor: MobileTheme.accent,
@@ -220,7 +223,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '通知设置',
                       onTap: () => _showComingSoonDialog('通知设置'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.vibration_outlined,
                       iconColor: MobileTheme.textSecondary,
@@ -242,28 +246,32 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '用户协议',
                       onTap: () => context.push('/legal/terms'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.privacy_tip_outlined,
                       iconColor: MobileTheme.textSecondary,
                       title: '隐私政策',
                       onTap: () => context.push('/legal/privacy'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.gavel_outlined,
                       iconColor: MobileTheme.textSecondary,
                       title: '社区规范',
                       onTap: () => context.push('/legal/guidelines'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.flag_outlined,
                       iconColor: MobileTheme.textSecondary,
                       title: '举报说明',
                       onTap: () => context.push('/legal/report'),
                     ),
-                    const Divider(height: 0.5, indent: 56, color: MobileTheme.divider),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
                     _ListTile(
                       icon: Icons.help_outline,
                       iconColor: MobileTheme.textSecondary,
@@ -280,7 +288,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                 _ListCard(
                   children: [
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       child: Row(
                         children: [
                           Icon(Icons.info_outline,
@@ -382,8 +391,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('请输入当前登录密码以确认注销申请：',
-                  style: TextStyle(fontSize: 14)),
+              const Text('请输入当前登录密码以确认注销申请：', style: TextStyle(fontSize: 14)),
               const SizedBox(height: 16),
               TextField(
                 controller: passwordController,
@@ -419,7 +427,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       setDialogState(() => submitting = true);
                       try {
                         // 用密码验证身份（调用登录接口）
-                        final email = AuthStore.instance.currentUser?.studentId != null
+                        final email = AuthStore
+                                    .instance.currentUser?.studentId !=
+                                null
                             ? '${AuthStore.instance.currentUser!.studentId}@stu.xidian.edu.cn'
                             : '';
                         await ref.read(authRepositoryProvider).login(

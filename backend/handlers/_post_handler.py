@@ -41,6 +41,7 @@ from helpers import (
     parse_bool,
     read_json_body,
     sanitize_alias,
+    send_rate_limit_error,
     send_json,
 )
 from services import (
@@ -51,6 +52,8 @@ from services import (
     find_user_by_email,
     find_user_by_id,
     iso_to_time_text,
+    is_level_one_user,
+    is_post_private,
     is_user_following,
     latest_pending_appeal_for_user,
     latest_pending_post_pin_request_for_post,
@@ -59,14 +62,18 @@ from services import (
     list_following_users,
     list_posts,
     next_id,
+    parse_pin_duration_minutes,
     normalize_optional_bool,
+    normalize_post_visibility,
     post_counts,
     recalc_post_has_image,
     save_db,
+    serialize_admin_post_pin_request,
     serialize_comment,
     serialize_notification,
     serialize_post,
     serialize_public_user_profile,
+    is_post_pin_active,
     user_avatar_url,
     user_nickname,
 )
@@ -80,9 +87,50 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     return user
 
 
+def _can_view_post(post: dict[str, Any], viewer_user_id: str) -> bool:
+    if not is_post_private(post):
+        return True
+    author_id = str(post.get("authorId", "")).strip()
+    return bool(viewer_user_id and viewer_user_id == author_id)
+
+
+def _normalize_post_content_format(value: Any) -> str:
+    return "markdown" if str(value or "").strip().lower() == "markdown" else "plain"
+
+
+def _markdown_to_plain_text(source: str) -> str:
+    text = source.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(
+        r"```([\s\S]*?)```",
+        lambda match: f"\n{(match.group(1) or '').strip()}\n",
+        text,
+    )
+    text = re.sub(r"`([^`]*)`", lambda match: match.group(1) or "", text)
+    text = re.sub(
+        r"!\[([^\]]*)\]\([^)]+\)",
+        lambda match: (match.group(1) or "").strip() or "图片",
+        text,
+    )
+    text = re.sub(r"\[([^\]]+)\]\([^)]+\)", lambda match: match.group(1) or "", text)
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"^\s{0,3}#{1,6}\s*", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s{0,3}>\s?", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*[-*+]\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*\d+\.\s+", "", text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*([-*_]\s*){3,}$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"[*_~]", "", text)
+    text = text.replace("|", " ")
+    text = re.sub(r"[ \t]+\n", "\n", text)
+    text = re.sub(r"\n[ \t]+", "\n", text)
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_id: str) -> dict[str, Any]:
     author_id = str(comment.get("userId", "")).strip()
     author_user = find_user_by_id(db, author_id)
+    is_anonymous = bool(comment.get("isAnonymous", True))
     liked = bool(
         viewer_user_id
         and any(
@@ -97,11 +145,13 @@ def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_
         "authorAlias": _globals.sanitize_alias(str(comment.get("authorAlias", "")), fallback="匿名同学"),
         "authorId": author_id,
         "authorAvatarUrl": user_avatar_url(author_user),
+        "authorUserId": "" if is_anonymous else author_id,
         "likeCount": max(0, int(comment.get("likeCount", 0) or 0)),
         "liked": liked,
         "createdAt": comment.get("createdAt", ""),
-        "isAnonymous": bool(comment.get("isAnonymous", True)),
+        "isAnonymous": is_anonymous,
         "reviewStatus": str(comment.get("reviewStatus", "approved")),
+        "parentId": str(comment.get("parentId", "")).strip(),
     }
 
 
@@ -145,6 +195,8 @@ def handle_get_posts(
 
     filtered_posts = []
     for post in list_posts(db, sort_by=sort_by):
+        if not _can_view_post(post, viewer_user_id):
+            continue
         if channel and post.get("channel") != channel:
             continue
         if status and str(post.get("status", "")).lower() != status:
@@ -207,7 +259,10 @@ def handle_get_posts_favorites(
         return
 
     fav_post_ids = {f["postId"] for f in db["favorites"] if f.get("userId") == user["id"]}
-    rows = [p for p in list_posts(db) if p.get("id") in fav_post_ids]
+    rows = [
+        p for p in list_posts(db)
+        if p.get("id") in fav_post_ids and _can_view_post(p, user["id"])
+    ]
     send_json(
         handler,
         HTTPStatus.OK,
@@ -381,6 +436,9 @@ def handle_get_post(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
+    if not _can_view_post(post, viewer_user_id):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
 
     send_json(handler, HTTPStatus.OK, {"data": serialize_post(db, post, viewer_user_id=viewer_user_id)})
 
@@ -401,11 +459,17 @@ def handle_get_post_comments(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
+    if not _can_view_post(post, viewer_user_id):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
 
     rows = [
         _serialize_comment(db, comment, viewer_user_id)
-        for comment in list_comments(db)
-        if comment.get("postId") == post_id
+        for comment in list_comments(
+            db,
+            post_id=post_id,
+            viewer_user_id=viewer_user_id,
+        )
     ]
     rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
     send_json(handler, HTTPStatus.OK, {"data": rows})
@@ -424,58 +488,117 @@ def handle_create_post(
     user = _require_auth(handler, db)
     if user is None:
         return
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发帖")
+        return
 
     body = read_json_body(handler)
     title = str(body.get("title", "")).strip()
-    content = str(body.get("content", "")).strip()
+    raw_content = str(body.get("content", "")).strip()
+    content_format = _normalize_post_content_format(body.get("contentFormat"))
+    markdown_source = ""
+    content = raw_content
+    if content_format == "markdown":
+        markdown_source = str(body.get("markdownSource", raw_content)).strip() or raw_content
+        content = _markdown_to_plain_text(markdown_source) or markdown_source
+    available_channels = list(
+        dict.fromkeys(["综合", *(db.get("channels", []) or []), *_globals.DEFAULT_CHANNELS])
+    )
     channel = str(body.get("channel", "")).strip()
-    tags: list[str] = body.get("tags", [])
-    image_ids: list[str] = body.get("imageIds", [])
-    allow_comment = normalize_optional_bool(body.get("allowComment"), default=True)
-    allow_dm = normalize_optional_bool(body.get("allowDm"), default=True)
+    if not channel:
+        channel = available_channels[0] if available_channels else "综合"
+    raw_tags = body.get("tags", [])
+    tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()] if isinstance(raw_tags, list) else []
+    raw_image_ids = body.get("imageUploadIds") or body.get("imageIds") or []
+    image_ids = [str(image_id).strip() for image_id in raw_image_ids if str(image_id).strip()] if isinstance(raw_image_ids, list) else []
+    use_anonymous_alias = bool(body.get("useAnonymousAlias"))
+    anonymous_alias = sanitize_alias(str(body.get("anonymousAlias", "")).strip(), fallback="")
+    status = str(body.get("status", "ongoing")).strip().lower()
+    visibility = normalize_post_visibility(body.get("visibility"))
+    pin_duration_minutes = parse_pin_duration_minutes(body.get("pinDurationMinutes"))
 
-    if not content:
+    if not raw_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
         return
-    if channel and channel not in db.get("channels", []):
+    if channel not in available_channels:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的频道")
         return
-
-    ip = _globals.get_client_ip(handler)
-    if not check_ip_rate_limit(handler, db, ip):
-        return
-    rate_key = f"post::{user['id']}"
-    if not consume_rate_limit(db, rate_key, max_requests=10, window_seconds=3600):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "发帖过于频繁，请稍后再试")
+    if pin_duration_minutes is not None and not is_level_one_user(user):
+        json_error(handler, HTTPStatus.FORBIDDEN, "仅一级用户可在发帖时直接置顶")
         return
 
-    risk_score = assess_text_risk(content, db=db)
-    if risk_score >= 3:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容可能包含敏感词或违规信息，请修改后重试")
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="post",
+        setting_key="postRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["postRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="发帖",
+            retry_after_seconds=retry_after,
+        )
+        return
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "post")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="发帖",
+            retry_after_seconds=ip_retry_after,
+        )
         return
 
-    author_alias = _globals.sanitize_alias(user_nickname(user), fallback="匿名同学")
+    risk_marked, high_risk, risk_reasons = assess_text_risk(
+        db,
+        " ".join([title, content, " ".join(tags)]),
+    )
+    if high_risk:
+        json_error(
+            handler,
+            HTTPStatus.BAD_REQUEST,
+            f"内容触发高风险风控：{'; '.join(risk_reasons)}",
+        )
+        add_audit_log(db, user["id"], "risk_block_post", ";".join(risk_reasons))
+        save_db(db)
+        return
+
+    author_alias = user_nickname(user)
+    if use_anonymous_alias:
+        author_alias = anonymous_alias or "匿名同学"
     has_image = False
-    approved_count = 0
+    picked_uploads: list[dict[str, Any]] = []
     for img_id in image_ids:
         upload = next((u for u in db.get("mediaUploads", []) if u.get("id") == img_id), None)
-        if upload is not None and upload.get("uploaderId") == user["id"] and not upload.get("deleted"):
-            if str(upload.get("status", "pending")).lower() == "approved":
-                has_image = True
-                approved_count += 1
+        if upload is None or upload.get("deleted"):
+            json_error(handler, HTTPStatus.BAD_REQUEST, f"图片不存在: {img_id}")
+            return
+        if upload.get("uploaderId") != user["id"]:
+            json_error(handler, HTTPStatus.FORBIDDEN, f"图片无权限绑定: {img_id}")
+            return
+        if upload.get("postId"):
+            json_error(handler, HTTPStatus.BAD_REQUEST, f"图片已绑定帖子: {img_id}")
+            return
+        picked_uploads.append(upload)
+        if str(upload.get("status", "approved")).strip().lower() != "rejected":
+            has_image = True
 
     post = {
         "id": next_id(db, "post", "p"),
         "title": title,
         "content": content,
+        "contentFormat": content_format,
+        "markdownSource": markdown_source,
         "channel": channel,
-        "tags": [str(t).strip() for t in tags if str(t).strip()],
-        "hasImage": has_image,
+        "tags": tags,
+        "hasImage": has_image or bool(picked_uploads),
         "imageIds": image_ids,
-        "status": "open",
-        "allowComment": bool(allow_comment),
-        "allowDm": bool(allow_dm),
-        "authorAlias": author_alias,
+        "status": status if status in {"ongoing", "resolved", "closed"} else "ongoing",
+        "allowComment": True,
+        "allowDm": not use_anonymous_alias,
+        "visibility": visibility,
+        "authorAlias": _globals.sanitize_alias(author_alias, fallback="匿名同学"),
         "authorId": user["id"],
         "pinStartedAt": "",
         "pinExpiresAt": "",
@@ -484,13 +607,40 @@ def handle_create_post(
         "updatedAt": now_iso(),
         "deleted": False,
         "reviewStatus": "approved",
-        "riskMarked": False,
-        "isAnonymous": False,
+        "riskMarked": risk_marked,
+        "isAnonymous": use_anonymous_alias,
     }
+    if pin_duration_minutes is not None:
+        apply_post_pin(
+            post,
+            duration_minutes=pin_duration_minutes,
+            started_at=post["createdAt"],
+        )
     db["posts"].append(post)
+    for upload in picked_uploads:
+        upload["postId"] = post["id"]
+        upload_status = str(upload.get("status", "approved")).strip().lower()
+        if upload_status != "rejected":
+            upload["status"] = "approved"
+            upload["moderationReason"] = ""
+            if not str(upload.get("reviewNote", "")).strip():
+                upload["reviewNote"] = "发帖时自动通过"
+            upload["reviewedAt"] = post["createdAt"]
+    recalc_post_has_image(db, post["id"])
     add_audit_log(db, user["id"], "create_post", f"发布帖子 {post['id']}")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": serialize_post(db, post, viewer_user_id=user["id"])})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": serialize_post(
+                db,
+                post,
+                include_unapproved_images=True,
+                viewer_user_id=user["id"],
+            )
+        },
+    )
 
 
 def handle_create_comment(
@@ -502,12 +652,18 @@ def handle_create_comment(
     user = _require_auth(handler, db)
     if user is None:
         return
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法评论")
+        return
 
     post = next(
         (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
         None,
     )
     if post is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+    if not _can_view_post(post, user["id"]):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
     if not post.get("allowComment", True):
@@ -520,17 +676,38 @@ def handle_create_comment(
         json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容不能为空")
         return
 
-    ip = _globals.get_client_ip(handler)
-    if not check_ip_rate_limit(handler, db, ip):
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="comment",
+        setting_key="commentRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["commentRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="评论",
+            retry_after_seconds=retry_after,
+        )
         return
-    rate_key = f"comment::{user['id']}"
-    if not consume_rate_limit(db, rate_key, max_requests=30, window_seconds=3600):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "评论过于频繁，请稍后再试")
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "comment")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="评论",
+            retry_after_seconds=ip_retry_after,
+        )
         return
 
-    risk_score = assess_text_risk(comment_content, db=db)
-    if risk_score >= 3:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容可能包含敏感词或违规信息，请修改后重试")
+    risk_marked, high_risk, risk_reasons = assess_text_risk(db, comment_content)
+    if high_risk:
+        json_error(
+            handler,
+            HTTPStatus.BAD_REQUEST,
+            f"评论触发高风险风控：{'; '.join(risk_reasons)}",
+        )
+        add_audit_log(db, user["id"], "risk_block_comment", ";".join(risk_reasons))
+        save_db(db)
         return
 
     author_alias = _globals.sanitize_alias(user_nickname(user), fallback="匿名同学")
@@ -544,7 +721,7 @@ def handle_create_comment(
         "createdAt": now_iso(),
         "deleted": False,
         "reviewStatus": "approved",
-        "riskMarked": False,
+        "riskMarked": risk_marked,
         "isAnonymous": True,
     }
     db["comments"].append(comment)
@@ -584,6 +761,9 @@ def handle_toggle_like(
         None,
     )
     if post is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+    if not _can_view_post(post, user["id"]):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
@@ -635,6 +815,9 @@ def handle_toggle_favorite(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
+    if not _can_view_post(post, user["id"]):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
 
     existing = next(
         (f for f in db["favorites"] if f.get("userId") == user["id"] and f.get("postId") == post_id),
@@ -663,7 +846,16 @@ def handle_toggle_favorite(
         db["favorites"] = [f for f in db["favorites"] if not (f.get("userId") == user["id"] and f.get("postId") == post_id)]
         add_audit_log(db, user["id"], "unfavorite_post", f"取消收藏帖子 {post_id}")
 
-    _, like_count, favorite_count = post_counts(db, post_id)
+    like_count = sum(
+        1
+        for like in db.get("likes", [])
+        if str(like.get("postId", "")).strip() == post_id
+    )
+    favorite_count = sum(
+        1
+        for favorite_row in db.get("favorites", [])
+        if str(favorite_row.get("postId", "")).strip() == post_id
+    )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"favorited": favorited, "likeCount": like_count, "favoriteCount": favorite_count}})
 
@@ -691,16 +883,77 @@ def handle_pin_request(
 
     body = read_json_body(handler)
     duration_minutes = int(body.get("durationMinutes", 1440))
+    reason = str(body.get("reason", "")).strip()
+
+    if is_level_one_user(user):
+        if is_post_pin_active(post):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子当前已在置顶中")
+            return
+        apply_post_pin(post, duration_minutes=duration_minutes)
+        add_audit_log(
+            db,
+            user["id"],
+            "direct_pin_post",
+            f"{post_id}:{duration_minutes}",
+        )
+        save_db(db)
+        send_json(
+            handler,
+            HTTPStatus.OK,
+            {
+                "message": "帖子已置顶",
+                "data": {
+                    "mode": "direct",
+                    "post": serialize_post(
+                        db,
+                        post,
+                        viewer_user_id=user["id"],
+                    ),
+                },
+            },
+        )
+        return
+
+    if is_post_pin_active(post):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子当前已在置顶中")
+        return
 
     existing = latest_pending_post_pin_request_for_post(db, post_id)
     if existing is not None:
         json_error(handler, HTTPStatus.CONFLICT, "该帖子已有待处理的置顶申请")
         return
 
-    apply_post_pin(db, post, duration_minutes=duration_minutes, actor_id=user["id"])
-    add_audit_log(db, user["id"], "request_pin", f"为帖子 {post_id} 申请置顶 {duration_minutes} 分钟")
+    request = {
+        "id": next_id(db, "pinRequest", "pin"),
+        "postId": post_id,
+        "userId": str(user.get("id", "")).strip(),
+        "durationMinutes": duration_minutes,
+        "reason": reason,
+        "status": "pending",
+        "adminNote": "",
+        "createdAt": now_iso(),
+        "handledAt": "",
+        "handledBy": "",
+    }
+    db.setdefault("postPinRequests", []).append(request)
+    add_audit_log(
+        db,
+        user["id"],
+        "submit_post_pin_request",
+        f"{request['id']}:{post_id}:{duration_minutes}",
+    )
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+    send_json(
+        handler,
+        HTTPStatus.CREATED,
+        {
+            "message": "置顶申请已提交，请等待管理员审核",
+            "data": {
+                "mode": "pending",
+                "request": serialize_admin_post_pin_request(db, request),
+            },
+        },
+    )
 
 
 def handle_submit_report(
@@ -728,8 +981,46 @@ def handle_submit_report(
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的举报原因")
         return
 
-    if not consume_rate_limit(db, f"report::{user['id']}", max_requests=10, window_seconds=3600):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "举报过于频繁，请稍后再试")
+    if target_type == "post":
+        post = next(
+            (p for p in db["posts"] if p.get("id") == target_id and not p.get("deleted")),
+            None,
+        )
+        if post is None or not _can_view_post(post, user["id"]):
+            json_error(handler, HTTPStatus.NOT_FOUND, "目标内容不存在")
+            return
+    else:
+        comment = next(
+            (c for c in db["comments"] if c.get("id") == target_id and not c.get("deleted")),
+            None,
+        )
+        if comment is None:
+            json_error(handler, HTTPStatus.NOT_FOUND, "目标内容不存在")
+            return
+        comment_post = next(
+            (
+                p for p in db["posts"]
+                if p.get("id") == comment.get("postId") and not p.get("deleted")
+            ),
+            None,
+        )
+        if comment_post is None or not _can_view_post(comment_post, user["id"]):
+            json_error(handler, HTTPStatus.NOT_FOUND, "目标内容不存在")
+            return
+
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="report",
+        setting_key="reportRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["reportRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="举报",
+            retry_after_seconds=retry_after,
+        )
         return
 
     report = {
@@ -827,8 +1118,8 @@ def handle_update_post(
 
     body = read_json_body(handler)
     new_status = str(body.get("status", "")).strip().lower()
-    if new_status in {"open", "resolved", "closed"}:
-        post["status"] = new_status
+    if new_status in {"ongoing", "open", "resolved", "closed"}:
+        post["status"] = "ongoing" if new_status == "open" else new_status
         post["updatedAt"] = now_iso()
         add_audit_log(db, user["id"], "update_post_status", f"更新帖子状态为 {new_status}")
         save_db(db)
@@ -908,11 +1199,28 @@ def handle_remove_favorite(
     if user is None:
         return
 
+    post = next(
+        (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
+        None,
+    )
+    if post is None or not _can_view_post(post, user["id"]):
+        json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+        return
+
     db["favorites"] = [
         f for f in db["favorites"]
         if not (f.get("userId") == user["id"] and f.get("postId") == post_id)
     ]
-    _, like_count, favorite_count = post_counts(db, post_id)
+    like_count = sum(
+        1
+        for like in db.get("likes", [])
+        if str(like.get("postId", "")).strip() == post_id
+    )
+    favorite_count = sum(
+        1
+        for favorite_row in db.get("favorites", [])
+        if str(favorite_row.get("postId", "")).strip() == post_id
+    )
     add_audit_log(db, user["id"], "unfavorite_post", f"取消收藏帖子 {post_id}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "likeCount": like_count, "favoriteCount": favorite_count}})

@@ -11,6 +11,7 @@ import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
+import 'package:xdu_treehole_web/widgets/post_content_body.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
 
@@ -230,7 +231,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           _post = _post!.copyWith(
             commentCount: _post!.commentCount + 1,
           );
-          _comments = comments;
+          _comments = _buildCommentTree(comments);
           _replyingTo = null; // 清空回复状态
         });
         ScaffoldMessenger.of(context).showSnackBar(
@@ -256,7 +257,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     if (_post == null || !_post!.canMessageAuthor) return;
     try {
       final messageRepo = ref.read(messageRepositoryProvider);
-      final conversation = await messageRepo.createDirectConversation(_post!.authorUserId);
+      final conversation = await messageRepo.createDirectConversation(
+        _post!.authorUserId,
+        fromPostId: _post!.id,
+      );
       if (!mounted) return;
       context.push(
         '/chat/${conversation.id}?name=${Uri.encodeComponent(conversation.name)}&avatar=${Uri.encodeComponent(conversation.avatarUrl)}',
@@ -430,13 +434,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildContent() {
     return Column(
       children: [
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadData,
-              color: MobileTheme.primary,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _loadData,
+            color: MobileTheme.primary,
+            child: SingleChildScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -459,6 +463,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   Widget _buildPostContent() {
     final post = _post!;
+    final List<String> supplementaryImageUrls = _supplementaryImageUrls(post);
 
     return Container(
       color: MobileTheme.surface,
@@ -475,7 +480,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   onTap: () {
                     if (post.isOwnPost) {
                       context.push('/profile');
-                    } else if (!post.isAnonymous && post.authorUserId.isNotEmpty) {
+                    } else if (!post.isAnonymous &&
+                        post.authorUserId.isNotEmpty) {
                       context.push('/user/${post.authorUserId}');
                     }
                   },
@@ -585,21 +591,25 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           // 正文
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            child: Text(
-              post.content,
+            child: DefaultTextStyle.merge(
               style: const TextStyle(
                 fontSize: 16,
                 color: MobileTheme.textPrimary,
-                height: 1.55,
+              ),
+              child: PostContentBody(
+                content: post.content,
+                contentFormat: post.contentFormat,
+                markdownSource: post.markdownSource,
+                selectable: false,
               ),
             ),
           ),
 
           // 图片
-          if (post.hasImage && post.imageUrls.isNotEmpty)
+          if (post.hasImage && supplementaryImageUrls.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: PostImageGrid(imageUrls: post.imageUrls),
+              child: PostImageGrid(imageUrls: supplementaryImageUrls),
             ),
 
           // 标签
@@ -651,6 +661,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         ],
       ),
     );
+  }
+
+  List<String> _supplementaryImageUrls(PostItem post) {
+    if (!post.isMarkdown || post.markdownSource.trim().isEmpty) {
+      return post.imageUrls;
+    }
+    return post.imageUrls
+        .where((String url) => !post.markdownSource.contains(url))
+        .toList();
   }
 
   Widget _buildCommentsSection() {
@@ -856,7 +875,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   /// 递归渲染嵌套评论列表
-  Widget _buildCommentList(List<CommentItem> comments, {bool isNested = false}) {
+  Widget _buildCommentList(List<CommentItem> comments,
+      {bool isNested = false}) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),

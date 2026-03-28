@@ -26,6 +26,7 @@ from helpers import (
     normalize_avatar_url,
     now_iso,
     read_json_body,
+    send_rate_limit_error,
     send_json,
 )
 from services import (
@@ -73,13 +74,18 @@ def handle_upload_image(
     db: dict[str, Any],
 ) -> None:
     """POST /api/uploads/images"""
-    user = auth_user_helper(handler, db)
+    user, _ = auth_user_helper(handler, db)
     if user is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
+    if user.get("banned"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
+        return
 
     body = read_json_body(handler)
-    image_data_base64 = str(body.get("imageDataBase64", "")).strip()
+    image_data_base64 = str(
+        body.get("imageDataBase64", body.get("dataBase64", "")),
+    ).strip()
     file_name = str(body.get("fileName", "image.png")).strip() or "image.png"
     content_type = str(body.get("contentType", "")).strip().lower()
     post_id = str(body.get("postId", "")).strip()
@@ -116,20 +122,32 @@ def handle_upload_image(
         )
         return
 
-    ip = _globals.get_client_ip(handler)
-    if not check_ip_rate_limit(handler, db, ip):
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "upload")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="图片上传",
+            retry_after_seconds=ip_retry_after,
+        )
         return
-    if not consume_rate_limit(db, f"upload::{user['id']}", max_requests=30, window_seconds=3600):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "上传过于频繁，请稍后再试")
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="upload",
+        setting_key="uploadRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["uploadRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="图片上传",
+            retry_after_seconds=retry_after,
+        )
         return
 
     sha = calc_sha256_hex(image_bytes)
-    dup_result = check_duplicate_image_hash(db, user["id"], sha)
-    if dup_result is not None:
+    if check_duplicate_image_hash(db, sha):
         add_audit_log(db, user["id"], "reupload_duplicate", f"重复上传图片 {sha[:12]}")
-        save_db(db)
-        send_json(handler, HTTPStatus.OK, {"data": dup_result})
-        return
 
     moderation_status, moderation_reason = moderate_image_upload(
         file_name=file_name,
@@ -195,7 +213,7 @@ def handle_upload_avatar(
     db: dict[str, Any],
 ) -> None:
     """POST /api/users/avatar"""
-    user = auth_user_helper(handler, db)
+    user, _ = auth_user_helper(handler, db)
     if user is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return

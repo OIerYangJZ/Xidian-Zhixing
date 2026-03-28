@@ -49,6 +49,8 @@ class PostItem {
     required this.id,
     required this.title,
     required this.content,
+    this.contentFormat = 'plain',
+    this.markdownSource = '',
     required this.channel,
     required this.tags,
     required this.authorAlias,
@@ -63,6 +65,7 @@ class PostItem {
     required this.allowComment,
     required this.allowDm,
     this.isAnonymous = false,
+    this.isPrivate = false,
     this.isPinned = false,
     this.pinStartedAt,
     this.pinExpiresAt,
@@ -82,6 +85,8 @@ class PostItem {
   final String id;
   final String title;
   final String content;
+  final String contentFormat;
+  final String markdownSource;
   final String channel;
   final List<String> tags;
   final String authorAlias;
@@ -96,6 +101,7 @@ class PostItem {
   final bool allowComment;
   final bool allowDm;
   final bool isAnonymous;
+  final bool isPrivate;
   final bool isPinned;
   final DateTime? pinStartedAt;
   final DateTime? pinExpiresAt;
@@ -111,6 +117,10 @@ class PostItem {
   final List<String> imageUrls;
   final List<String> uploadedImageIds;
 
+  bool get isMarkdown =>
+      contentFormat.trim().toLowerCase() == 'markdown' &&
+      markdownSource.trim().isNotEmpty;
+
   factory PostItem.fromJson(Map<String, dynamic> json) {
     final dynamic tagsValue = json['tags'] ?? json['tagList'];
     final dynamic imagesValue = json['images'] ?? json['imageList'];
@@ -123,13 +133,20 @@ class PostItem {
       id: _str(json, <String>['id', 'postId']) ?? '',
       title: _str(json, <String>['title']) ?? '',
       content: _str(json, <String>['content', 'body']) ?? '',
+      contentFormat:
+          _str(json, <String>['contentFormat'])?.trim().toLowerCase() ==
+                  'markdown'
+              ? 'markdown'
+              : 'plain',
+      markdownSource: _str(json, <String>['markdownSource']) ?? '',
       channel: _str(json, <String>['channel', 'channelName']) ?? '未分类',
       tags: _toStringList(tagsValue),
       authorAlias:
           _str(json, <String>['authorAlias', 'anonymousName', 'alias']) ??
               '匿名同学',
       authorUserId: _str(json, <String>['authorUserId', 'authorId']) ?? '',
-      authorAvatarUrl: _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
+      authorAvatarUrl:
+          _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
       createdAt:
           _date(json, <String>['createdAt', 'createTime', 'publishTime']) ??
               DateTime.now(),
@@ -143,6 +160,8 @@ class PostItem {
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
       isAnonymous: _bool(json, <String>['isAnonymous']) ?? false,
+      isPrivate: _bool(json, <String>['isPrivate']) ??
+          ((_str(json, <String>['visibility']) ?? 'public') == 'private'),
       isPinned: _bool(json, <String>['isPinned']) ?? false,
       pinStartedAt: _date(json, <String>['pinStartedAt']),
       pinExpiresAt: _date(json, <String>['pinExpiresAt']),
@@ -154,8 +173,7 @@ class PostItem {
       canViewAuthorProfile:
           _bool(json, <String>['canViewAuthorProfile']) ?? false,
       canFollowAuthor: _bool(json, <String>['canFollowAuthor']) ?? false,
-      isFollowingAuthor:
-          _bool(json, <String>['isFollowingAuthor']) ?? false,
+      isFollowingAuthor: _bool(json, <String>['isFollowingAuthor']) ?? false,
       isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
       isLiked: _bool(json, <String>['liked', 'isLiked']) ?? false,
@@ -168,11 +186,14 @@ class PostItem {
     return <String, dynamic>{
       'title': title,
       'content': content,
+      'contentFormat': contentFormat,
+      if (markdownSource.trim().isNotEmpty) 'markdownSource': markdownSource,
       'channel': channel,
       'tags': tags,
       'status': status.apiValue,
       'allowComment': allowComment,
       'allowDm': allowDm,
+      'visibility': isPrivate ? 'private' : 'public',
       'hasImage': hasImage,
       if (pinDurationMinutes > 0) 'pinDurationMinutes': pinDurationMinutes,
     };
@@ -182,6 +203,8 @@ class PostItem {
     String? id,
     String? title,
     String? content,
+    String? contentFormat,
+    String? markdownSource,
     String? channel,
     List<String>? tags,
     String? authorAlias,
@@ -196,6 +219,7 @@ class PostItem {
     bool? allowComment,
     bool? allowDm,
     bool? isAnonymous,
+    bool? isPrivate,
     bool? isPinned,
     DateTime? pinStartedAt,
     DateTime? pinExpiresAt,
@@ -215,6 +239,8 @@ class PostItem {
       id: id ?? this.id,
       title: title ?? this.title,
       content: content ?? this.content,
+      contentFormat: contentFormat ?? this.contentFormat,
+      markdownSource: markdownSource ?? this.markdownSource,
       channel: channel ?? this.channel,
       tags: tags ?? this.tags,
       authorAlias: authorAlias ?? this.authorAlias,
@@ -229,14 +255,14 @@ class PostItem {
       allowComment: allowComment ?? this.allowComment,
       allowDm: allowDm ?? this.allowDm,
       isAnonymous: isAnonymous ?? this.isAnonymous,
+      isPrivate: isPrivate ?? this.isPrivate,
       isPinned: isPinned ?? this.isPinned,
       pinStartedAt: pinStartedAt ?? this.pinStartedAt,
       pinExpiresAt: pinExpiresAt ?? this.pinExpiresAt,
       pinDurationMinutes: pinDurationMinutes ?? this.pinDurationMinutes,
       pinDurationLabel: pinDurationLabel ?? this.pinDurationLabel,
       canMessageAuthor: canMessageAuthor ?? this.canMessageAuthor,
-      canViewAuthorProfile:
-          canViewAuthorProfile ?? this.canViewAuthorProfile,
+      canViewAuthorProfile: canViewAuthorProfile ?? this.canViewAuthorProfile,
       canFollowAuthor: canFollowAuthor ?? this.canFollowAuthor,
       isFollowingAuthor: isFollowingAuthor ?? this.isFollowingAuthor,
       isOwnPost: isOwnPost ?? this.isOwnPost,

@@ -306,6 +306,7 @@ class ProfilePageState extends State<ProfilePage> {
             children: <Widget>[
               SwitchListTile(
                 title: const Text('允许陌生人私信'),
+                subtitle: const Text('关闭后，其他人无法通过你的公开主页或帖子给你发起私信'),
                 value: profile.allowStrangerDm,
                 onChanged: _saving
                     ? null

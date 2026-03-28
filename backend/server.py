@@ -266,7 +266,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             # Channels
             if path == "/api/channels":
-                send_json(self, HTTPStatus.OK, {"data": db.get("channels", DEFAULT_CHANNELS)})
+                channel_rows = list(dict.fromkeys(["综合", *(db.get("channels", []) or []), *_globals.DEFAULT_CHANNELS]))
+                send_json(self, HTTPStatus.OK, {"data": channel_rows})
                 return
 
             # Notifications
@@ -407,8 +408,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_post(self, path: str) -> None:
-        body = read_json_body(self)
-
         with DB_LOCK:
             db = load_db()
 
@@ -463,6 +462,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/messages/requests":
                 _message_handler.handle_send_request(self, db)
+                return
+
+            if path == "/api/messages/conversations/direct":
+                _message_handler.handle_direct_conversation(self, db)
                 return
 
             if path == "/api/uploads/images":
@@ -635,8 +638,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_patch(self, path: str) -> None:
-        body = read_json_body(self)
-
         with DB_LOCK:
             db = load_db()
 

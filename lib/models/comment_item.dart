@@ -46,7 +46,11 @@ class CommentItem {
       content: (json['content'] ?? '').toString(),
       createdAt: createdAt,
       likeCount: _toInt(json['likeCount']) ?? 0,
-      authorAvatar: (json['authorAvatar'] ?? json['avatar'] ?? '').toString(),
+      authorAvatar: (json['authorAvatar'] ??
+              json['authorAvatarUrl'] ??
+              json['avatar'] ??
+              '')
+          .toString(),
       isLiked: json['isLiked'] ?? json['liked'] ?? false,
       isPinned: json['isPinned'] ?? json['pinned'] ?? false,
       parentId: (json['parentId'] ?? '').toString(),

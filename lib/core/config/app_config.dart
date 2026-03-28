@@ -21,7 +21,12 @@ class AppConfig {
         defaultValue: 'http://localhost:8080/api',
       );
     }
-    // Web/默认环境变量
+    if (kReleaseMode) {
+      return const String.fromEnvironment(
+        'API_BASE_URL',
+        defaultValue: '/api',
+      );
+    }
     return const String.fromEnvironment(
       'API_BASE_URL',
       defaultValue: 'http://localhost:8080/api',

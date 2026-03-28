@@ -89,8 +89,8 @@ def handle_level_upgrade_request(
         return
 
     current = normalize_user_level(user.get("userLevel"))
-    if current >= _globals.USER_LEVEL_TWO:
-        json_error(handler, HTTPStatus.CONFLICT, "您已是一年级用户，无需申请")
+    if current == _globals.USER_LEVEL_ONE:
+        json_error(handler, HTTPStatus.CONFLICT, "您已是一级用户，无需申请")
         return
 
     existing = latest_user_level_request_for_user(db, user["id"])
@@ -99,22 +99,29 @@ def handle_level_upgrade_request(
         return
 
     body = read_json_body(handler)
-    reason = str(body.get("reason", "申请升级为一年级用户")).strip()
+    reason = str(body.get("reason", "申请升级为一级用户")).strip()
 
     req = {
         "id": next_id(db, "levelRequest", "lr"),
         "userId": user["id"],
         "email": str(user.get("email", "")).strip().lower(),
         "currentLevel": current,
-        "requestedLevel": _globals.USER_LEVEL_TWO,
+        "targetLevel": _globals.USER_LEVEL_ONE,
         "reason": reason,
         "status": "pending",
-        "result": "",
+        "adminNote": "",
         "createdAt": now_iso(),
         "handledAt": "",
         "handledBy": "",
     }
     db["userLevelRequests"].append(req)
-    add_audit_log(db, user["id"], "request_level_upgrade", f"申请升级为一年级用户: {reason}")
+    add_audit_log(db, user["id"], "request_level_upgrade", f"申请升级为一级用户: {reason}")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": serialize_user_level_request_summary(req)})
+    send_json(
+        handler,
+        HTTPStatus.CREATED,
+        {
+            "message": "一级用户申请已提交，请等待一级管理员审核",
+            "data": serialize_user_level_request_summary(req),
+        },
+    )

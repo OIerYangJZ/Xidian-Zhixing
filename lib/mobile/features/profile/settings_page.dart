@@ -176,7 +176,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         icon: Icons.chat_bubble_outline,
                         iconColor: MobileTheme.primary,
                         title: '允许陌生人私信',
-                        subtitle: '关闭后，只有互相关注的用户才能给你发私信',
+                        subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
                         value: _profile?.allowStrangerDm ?? false,
                         onChanged: _saving
                             ? null

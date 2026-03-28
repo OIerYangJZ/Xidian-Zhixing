@@ -170,6 +170,7 @@ void main() {
           tags: <String>['测试'],
           allowComment: true,
           allowDm: false,
+          privateOnly: false,
           status: PostStatus.ongoing,
           hasImage: false,
         );
@@ -188,6 +189,7 @@ void main() {
           tags: <String>[],
           allowComment: true,
           allowDm: false,
+          privateOnly: false,
           status: PostStatus.ongoing,
           hasImage: false,
           imageUploadIds: <String>['img1', 'img2'],
@@ -205,6 +207,7 @@ void main() {
           tags: <String>['标签1', '标签2'],
           allowComment: true,
           allowDm: true,
+          privateOnly: false,
           status: PostStatus.resolved,
           hasImage: true,
           useAnonymousAlias: true,

@@ -97,15 +97,16 @@ class CreatePostController extends StateNotifier<CreatePostState> {
   Future<PostItem?> submit({
     required String title,
     required String content,
+    required bool useMarkdown,
     required String channel,
     required List<String> tags,
-    required bool allowComment,
-    required bool allowDm,
+    required bool privateOnly,
     required PostStatus status,
     required bool useAnonymousAlias,
     String? anonymousAlias,
     int? pinDurationMinutes,
     required List<UploadPayload> uploadPayloads,
+    List<String> preUploadedImageIds = const <String>[],
   }) async {
     state = state.copyWith(
       submitting: true,
@@ -114,7 +115,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
     );
 
     try {
-      final List<String> uploadedIds = <String>[];
+      final List<String> uploadedIds = List<String>.from(preUploadedImageIds);
       final List<String> uploadedUrls = <String>[];
       for (int i = 0; i < uploadPayloads.length; i += 1) {
         state = state.copyWith(
@@ -137,10 +138,13 @@ class CreatePostController extends StateNotifier<CreatePostState> {
                 CreatePostInput(
                   title: title,
                   content: content,
+                  contentFormat: useMarkdown ? 'markdown' : 'plain',
+                  markdownSource: useMarkdown ? content : null,
                   channel: channel,
                   tags: tags,
-                  allowComment: allowComment,
-                  allowDm: allowDm,
+                  allowComment: true,
+                  allowDm: !useAnonymousAlias,
+                  privateOnly: privateOnly,
                   status: status,
                   hasImage: uploadedIds.isNotEmpty,
                   pinDurationMinutes: pinDurationMinutes,

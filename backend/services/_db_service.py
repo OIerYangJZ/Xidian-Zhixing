@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from typing import Any
 
 import _globals
@@ -710,62 +711,136 @@ def serialize_post(
     *,
     include_unapproved_images: bool = False,
 ) -> dict[str, Any]:
-    from services._user_service import user_avatar_url
+    from services._user_service import (
+        can_request_dm_from_post,
+        can_request_dm_to_user,
+        effective_post_allow_dm,
+        is_post_anonymous,
+        is_post_pin_active,
+        is_post_private,
+        is_user_following,
+        parse_pin_duration_minutes,
+        pin_duration_label,
+        user_avatar_url,
+    )
 
+    post_id = str(post.get("id", "")).strip()
     author_id = str(post.get("authorId", "")).strip()
+    is_anonymous = is_post_anonymous(db, post)
+    is_private = is_post_private(post)
     author_user = None
-    for u in db.get("users", []):
-        if str(u.get("id", "")) == author_id:
-            author_user = u
+    for user in db.get("users", []):
+        if str(user.get("id", "")).strip() == author_id:
+            author_user = user
             break
+
+    comment_count = sum(
+        1
+        for comment in db.get("comments", [])
+        if not comment.get("deleted") and str(comment.get("postId", "")).strip() == post_id
+    )
+    like_count = sum(
+        1
+        for like in db.get("likes", [])
+        if str(like.get("postId", "")).strip() == post_id
+    )
+    favorite_count = sum(
+        1
+        for favorite_row in db.get("favorites", [])
+        if str(favorite_row.get("postId", "")).strip() == post_id
+    )
     liked = bool(
         viewer_user_id
         and any(
-            x for x in db.get("likes", [])
-            if x.get("userId") == viewer_user_id and x.get("postId") == post.get("id")
+            x
+            for x in db.get("likes", [])
+            if x.get("userId") == viewer_user_id and x.get("postId") == post_id
         )
     )
-    favorite = bool(
+    favorited = bool(
         viewer_user_id
         and any(
-            x for x in db.get("favorites", [])
-            if x.get("userId") == viewer_user_id and x.get("postId") == post.get("id")
+            x
+            for x in db.get("favorites", [])
+            if x.get("userId") == viewer_user_id and x.get("postId") == post_id
         )
     )
-    # Build image URLs
-    post_id = str(post.get("id", ""))
-    image_urls = []
+
+    image_urls: list[str] = []
+    uploaded_image_ids: list[str] = []
     for upload in db.get("mediaUploads", []):
-        if upload.get("postId") == post_id:
-            status = str(upload.get("status", ""))
-            if status in ("approved", "") or include_unapproved_images:
-                url = str(upload.get("url", ""))
-                if url:
-                    image_urls.append(url)
+        if str(upload.get("postId", "")).strip() != post_id:
+            continue
+        status = str(upload.get("status", "")).strip().lower()
+        if status not in {"", "approved"} and not include_unapproved_images:
+            continue
+        upload_id = str(upload.get("id", "")).strip()
+        upload_url = str(upload.get("url", "")).strip()
+        if upload_id:
+            uploaded_image_ids.append(upload_id)
+        if upload_url:
+            image_urls.append(upload_url)
+
+    can_view_author_profile = bool(
+        viewer_user_id
+        and not is_anonymous
+        and not is_private
+        and author_id
+        and author_user is not None
+    )
+    can_follow_author = bool(
+        can_view_author_profile and viewer_user_id != author_id
+    )
+    is_following_author = bool(
+        can_follow_author and is_user_following(db, viewer_user_id, author_id)
+    )
+    can_message_author = bool(
+        can_view_author_profile
+        and viewer_user_id != author_id
+        and can_request_dm_from_post(
+            db,
+            viewer_user_id=viewer_user_id,
+            post=post,
+        )
+    )
+
     return {
-        "id": post.get("id", ""),
+        "id": post_id,
         "title": post.get("title", ""),
         "content": post.get("content", ""),
+        "contentFormat": "markdown" if str(post.get("contentFormat", "")).strip().lower() == "markdown" else "plain",
+        "markdownSource": str(post.get("markdownSource", "")),
         "channel": post.get("channel", ""),
         "tags": post.get("tags", []),
-        "hasImage": bool(post.get("hasImage")),
-        "imageUrls": image_urls,
-        "likeCount": max(0, int(post.get("likeCount", 0) or 0)),
-        "commentCount": max(0, int(post.get("commentCount", 0) or 0)),
-        "favoriteCount": max(0, int(post.get("favoriteCount", 0) or 0)),
-        "liked": liked,
-        "favorite": favorite,
         "authorAlias": post.get("authorAlias", "匿名同学"),
-        "authorId": author_id,
-        "authorAvatarUrl": user_avatar_url(author_user) if author_user else "",
+        "isAnonymous": is_anonymous,
+        "authorAvatarUrl": "" if is_anonymous else user_avatar_url(author_user),
+        "authorUserId": author_id if can_view_author_profile else "",
         "createdAt": post.get("createdAt", ""),
         "updatedAt": post.get("updatedAt", ""),
+        "hasImage": bool(post.get("hasImage", False)) or bool(image_urls),
+        "imageUrls": image_urls,
+        "uploadedImageIds": uploaded_image_ids,
+        "commentCount": comment_count,
+        "likeCount": like_count,
+        "favoriteCount": favorite_count,
+        "liked": liked,
+        "favorited": favorited,
         "status": post.get("status", "ongoing"),
-        "isAnonymous": bool(post.get("isAnonymous", True)),
         "allowComment": bool(post.get("allowComment", True)),
-        "allowDm": bool(post.get("allowDm", True)),
+        "allowDm": effective_post_allow_dm(db, post),
+        "visibility": str(post.get("visibility", "public")),
+        "isPrivate": is_private,
+        "isPinned": is_post_pin_active(post),
         "pinStartedAt": post.get("pinStartedAt", ""),
         "pinExpiresAt": post.get("pinExpiresAt", ""),
+        "pinDurationMinutes": parse_pin_duration_minutes(post.get("pinDurationMinutes")) or 0,
+        "pinDurationLabel": pin_duration_label(post.get("pinDurationMinutes")),
+        "canViewAuthorProfile": can_view_author_profile,
+        "canFollowAuthor": can_follow_author,
+        "isFollowingAuthor": is_following_author,
+        "canMessageAuthor": can_message_author,
+        "isOwnPost": bool(viewer_user_id and viewer_user_id == author_id),
     }
 
 
@@ -1048,12 +1123,15 @@ def default_db() -> dict[str, Any]:
                 "id": post_id,
                 "title": row["title"],
                 "content": row["content"],
+                "contentFormat": str(row.get("contentFormat", "plain") or "plain"),
+                "markdownSource": str(row.get("markdownSource", "") or ""),
                 "channel": row["channel"],
                 "tags": row["tags"],
                 "hasImage": row["hasImage"],
                 "status": row["status"],
                 "allowComment": row["allowComment"],
                 "allowDm": row["allowDm"],
+                "visibility": str(row.get("visibility", "public") or "public"),
                 "authorAlias": row["authorAlias"],
                 "authorId": row["authorId"],
                 "pinStartedAt": "",
@@ -1142,7 +1220,15 @@ def ensure_db() -> None:
     first_boot = not _globals.SQL_DB_FILE.exists()
     _globals.REPOSITORY.initialize(default_db)
 
-    if first_boot and _globals.LEGACY_DB_FILE.exists():
+    default_sql_path = (_globals.DATA_DIR / "treehole.db").resolve()
+    current_sql_path = _globals.SQL_DB_FILE.resolve()
+    import_legacy_json = os.environ.get("BACKEND_IMPORT_LEGACY_JSON", "").strip() == "1"
+
+    if (
+        first_boot
+        and _globals.LEGACY_DB_FILE.exists()
+        and (current_sql_path == default_sql_path or import_legacy_json)
+    ):
         try:
             with _globals.LEGACY_DB_FILE.open("r", encoding="utf-8") as f:
                 legacy_db = json.load(f)
@@ -1197,6 +1283,42 @@ def migrate_db(db: dict[str, Any]) -> bool:
     if "userFollows" not in db or not isinstance(db.get("userFollows"), list):
         db["userFollows"] = []
         changed = True
+    else:
+        normalized_follows: list[dict[str, Any]] = []
+        seen_follows: set[tuple[str, str]] = set()
+        for follow in db.get("userFollows", []):
+            if not isinstance(follow, dict):
+                changed = True
+                continue
+            follower_user_id = str(
+                follow.get("followerUserId")
+                or follow.get("followerId")
+                or ""
+            ).strip()
+            followee_user_id = str(
+                follow.get("followeeUserId")
+                or follow.get("followeeId")
+                or follow.get("followedId")
+                or ""
+            ).strip()
+            if not follower_user_id or not followee_user_id or follower_user_id == followee_user_id:
+                changed = True
+                continue
+            follow_key = (follower_user_id, followee_user_id)
+            if follow_key in seen_follows:
+                changed = True
+                continue
+            seen_follows.add(follow_key)
+            normalized_follows.append(
+                {
+                    "followerUserId": follower_user_id,
+                    "followeeUserId": followee_user_id,
+                    "createdAt": str(follow.get("createdAt", "")).strip() or _globals.now_iso(),
+                }
+            )
+        if normalized_follows != db.get("userFollows", []):
+            db["userFollows"] = normalized_follows
+            changed = True
     if "appeals" not in db or not isinstance(db.get("appeals"), list):
         db["appeals"] = []
         changed = True
@@ -1255,11 +1377,26 @@ def migrate_db(db: dict[str, Any]) -> bool:
             "pinStartedAt": "", "pinExpiresAt": "", "pinDurationMinutes": 0,
             "updatedAt": str(post.get("createdAt", now_iso())),
             "reviewStatus": "approved", "riskMarked": False,
-            "deleted": False, "allowComment": True, "allowDm": True,
+            "deleted": False, "allowComment": True, "allowDm": True, "visibility": "public",
+            "contentFormat": "plain", "markdownSource": "",
         }.items():
             if k not in post:
                 post[k] = v
                 changed = True
+        normalized_content_format = "markdown" if str(post.get("contentFormat", "plain")).strip().lower() == "markdown" else "plain"
+        if normalized_content_format != str(post.get("contentFormat", "plain")):
+            post["contentFormat"] = normalized_content_format
+            changed = True
+        if normalized_content_format != "markdown" and str(post.get("markdownSource", "")).strip():
+            post["markdownSource"] = ""
+            changed = True
+        if normalized_content_format == "markdown" and not str(post.get("markdownSource", "")).strip():
+            post["markdownSource"] = str(post.get("content", ""))
+            changed = True
+        normalized_visibility = "private" if str(post.get("visibility", "public")).strip().lower() == "private" else "public"
+        if normalized_visibility != str(post.get("visibility", "public")):
+            post["visibility"] = normalized_visibility
+            changed = True
         if "isAnonymous" not in post:
             author_alias = str(post.get("authorAlias", "")).strip()
             author_id = str(post.get("authorId", "")).strip()

@@ -30,6 +30,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   final List<String> _channels = [
     '全部',
+    '综合',
     '学习',
     '吐槽日常',
     '失物招领',

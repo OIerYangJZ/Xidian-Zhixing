@@ -29,16 +29,20 @@ from helpers import (
     now_iso,
     read_json_body,
     sanitize_alias,
+    send_rate_limit_error,
     send_json,
 )
 from services import (
     add_audit_log,
     auth_user as auth_user_helper,
+    can_request_dm_from_post,
     can_request_dm_to_user,
     conversation_block_state,
     deliver_message_to_conversation_pair,
+    effective_post_allow_dm,
     find_user_by_id,
     get_setting_int,
+    is_post_anonymous,
     is_user_blocked,
     list_comments,
     mark_conversation_read,
@@ -64,6 +68,29 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     return user
 
 
+def _resolve_post_dm_target(
+    db: dict[str, Any],
+    *,
+    from_post_id: str,
+    target_user_id: str,
+) -> tuple[dict[str, Any] | None, str, str | None]:
+    post = next(
+        (
+            item
+            for item in db.get("posts", [])
+            if str(item.get("id", "")).strip() == from_post_id
+            and not item.get("deleted")
+        ),
+        None,
+    )
+    if post is None:
+        return None, "", "帖子不存在"
+    author_id = str(post.get("authorId", "")).strip()
+    if target_user_id and target_user_id != author_id:
+        return None, "", "帖子作者与私信目标不一致"
+    return post, author_id, None
+
+
 def _conversations_for_user(
     db: dict[str, Any],
     user_id: str,
@@ -81,6 +108,9 @@ def handle_get_requests(
     user = _require_auth(handler, db)
     if user is None:
         return
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送私信申请")
+        return
 
     requests = []
     for row in db["dmRequests"]:
@@ -88,7 +118,7 @@ def handle_get_requests(
             continue
         status = str(row.get("status", "pending")).strip().lower() or "pending"
         from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
-        from_alias = svc_user_nickname(from_user) if from_user else sanitize_alias(
+        from_alias = user_nickname(from_user) if from_user else sanitize_alias(
             str(row.get("fromAlias", "")),
             fallback="匿名同学",
         )
@@ -128,49 +158,126 @@ def handle_send_request(
 
     body = read_json_body(handler)
     target_user_id = str(body.get("targetUserId", "")).strip()
-    from_post_id = str(body.get("fromPostId", "")).strip()
+    post_id = str(body.get("postId") or body.get("fromPostId") or "").strip()
     reason = str(body.get("reason", "想认识你")).strip()
+    if len(reason) > 120:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "私信申请理由不能超过 120 个字符")
+        return
+
+    post = None
+    if post_id:
+        post, target_user_id, error_message = _resolve_post_dm_target(
+            db,
+            from_post_id=post_id,
+            target_user_id=target_user_id,
+        )
+        if error_message:
+            status = HTTPStatus.BAD_REQUEST if error_message == "帖子作者与私信目标不一致" else HTTPStatus.NOT_FOUND
+            json_error(handler, status, error_message)
+            return
+        if str(post.get("reviewStatus", "approved")).lower() == "rejected":
+            json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在")
+            return
+        if is_post_anonymous(db, post):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
+            return
+        if not effective_post_allow_dm(db, post):
+            target = find_user_by_id(db, str(post.get("authorId", "")).strip())
+            if target is not None and not bool(target.get("allowStrangerDm", True)):
+                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+            else:
+                json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
+            return
 
     if not target_user_id:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少目标用户")
+        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少联系对象")
         return
     if target_user_id == user["id"]:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "不能给自己发私信")
+        json_error(handler, HTTPStatus.BAD_REQUEST, "不能给自己发送私信申请")
         return
 
     target = find_user_by_id(db, target_user_id)
     if target is None or target.get("deleted"):
-        json_error(handler, HTTPStatus.NOT_FOUND, "目标用户不存在")
+        json_error(handler, HTTPStatus.NOT_FOUND, "联系对象不存在")
         return
 
-    if is_user_blocked(db, user["id"], target_user_id):
-        json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发私信")
-        return
-    if is_user_blocked(db, target_user_id, user["id"]):
-        json_error(handler, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发私信")
-        return
-
-    if not can_request_dm_to_user(db, target):
-        json_error(handler, HTTPStatus.FORBIDDEN, "对方不允许陌生人私信")
-        return
-
-    rate_key = f"dm_request::{target_user_id}"
-    if not consume_rate_limit(db, rate_key, max_requests=3, window_seconds=3600):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "发送私信过于频繁，请稍后再试")
-        return
-
-    post = None
-    if from_post_id:
-        post = next((p for p in db["posts"] if p.get("id") == from_post_id and not p.get("deleted")), None)
-        if post is None:
-            json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在")
+    if post is not None:
+        if not can_request_dm_from_post(
+            db,
+            viewer_user_id=str(user.get("id", "")),
+            post=post,
+        ):
+            if not bool(target.get("allowStrangerDm", True)):
+                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+                return
+            if is_user_blocked(db, user["id"], target_user_id):
+                json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
+                return
+            if is_user_blocked(db, target_user_id, user["id"]):
+                json_error(handler, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
+                return
+            json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
             return
-        if str(post.get("authorId", "")).strip() != target_user_id:
-            json_error(handler, HTTPStatus.BAD_REQUEST, "帖子作者与目标用户不匹配")
+    elif not can_request_dm_to_user(
+        db,
+        viewer_user_id=str(user.get("id", "")),
+        target_user_id=target_user_id,
+    ):
+        if not bool(target.get("showContactable", True)):
+            json_error(handler, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
             return
-        if not post.get("allowDm", True):
-            json_error(handler, HTTPStatus.FORBIDDEN, "该帖子作者关闭了私信功能")
+        if not bool(target.get("allowStrangerDm", True)):
+            json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
             return
+        if is_user_blocked(db, user["id"], target_user_id):
+            json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
+            return
+        if is_user_blocked(db, target_user_id, user["id"]):
+            json_error(handler, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
+            return
+        json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
+        return
+
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="dm_request",
+        setting_key="dmRequestRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["dmRequestRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="发送私信申请",
+            retry_after_seconds=retry_after,
+        )
+        return
+
+    existing_conversation = next(
+        (
+            row
+            for row in db.get("conversations", [])
+            if row.get("userId") == user["id"]
+            and row.get("peerUserId") == target_user_id
+        ),
+        None,
+    )
+    if existing_conversation is not None:
+        existing_conversation["deleted"] = False
+        existing_conversation["updatedAt"] = now_iso()
+        save_db(db)
+        send_json(
+            handler,
+            HTTPStatus.OK,
+            {
+                "message": "你们已经可以直接私信了",
+                "data": {
+                    "conversationId": existing_conversation.get("id", ""),
+                    "alreadyAvailable": True,
+                },
+            },
+        )
+        return
 
     existing = next(
         (r for r in db["dmRequests"]
@@ -179,25 +286,45 @@ def handle_send_request(
         None,
     )
     if existing:
-        send_json(handler, HTTPStatus.OK, {"data": {"alreadyPending": True, "id": existing.get("id")}})
+        send_json(
+            handler,
+            HTTPStatus.OK,
+            {
+                "message": "私信申请已发送，请等待对方处理",
+                "data": existing,
+            },
+        )
         return
 
+    created_at = now_iso()
     req = {
         "id": next_id(db, "request", "req"),
         "toUserId": target_user_id,
         "fromUserId": user["id"],
-        "fromAlias": svc_user_nickname(user),
+        "fromAlias": user_nickname(user),
         "fromAvatarUrl": user_avatar_url(user),
-        "postId": from_post_id,
-        "reason": reason,
+        "postId": post_id,
+        "reason": reason or "想和你继续交流这个话题",
         "status": "pending",
-        "createdAt": now_iso(),
-        "updatedAt": now_iso(),
+        "createdAt": created_at,
+        "updatedAt": created_at,
     }
     db["dmRequests"].append(req)
-    add_audit_log(db, user["id"], "send_dm_request", f"向用户 {target_user_id} 发送私信请求")
+    add_audit_log(
+        db,
+        user["id"],
+        "create_dm_request",
+        f"to={target_user_id} post={post_id or '-'}",
+    )
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "id": req["id"]}})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "message": "私信申请已发送",
+            "data": req,
+        },
+    )
 
 
 def handle_accept_request(
@@ -208,6 +335,9 @@ def handle_accept_request(
     """POST /api/messages/requests/<id>/accept"""
     user = _require_auth(handler, db)
     if user is None:
+        return
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送消息")
         return
 
     req = next(
@@ -223,7 +353,13 @@ def handle_accept_request(
 
     req["status"] = "accepted"
     req["updatedAt"] = now_iso()
-    sync_conversation_pair(db, user["id"], str(req.get("fromUserId", "")))
+    sync_conversation_pair(
+        db,
+        left_user_id=user["id"],
+        right_user_id=str(req.get("fromUserId", "")),
+        last_message="已同意私信申请，开始聊天吧。",
+        updated_at=str(req.get("updatedAt", "")),
+    )
     add_audit_log(db, user["id"], "accept_dm_request", f"接受来自 {req.get('fromUserId')} 的私信请求")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
@@ -271,7 +407,7 @@ def handle_get_conversations(
     for row in rows:
         peer_user_id = str(row.get("peerUserId", "")).strip()
         peer_user = find_user_by_id(db, peer_user_id)
-        name = svc_user_nickname(peer_user) if peer_user else sanitize_alias(
+        name = user_nickname(peer_user) if peer_user else sanitize_alias(
             str(row.get("name", "")), fallback="匿名同学",
         )
         avatar_url = user_avatar_url(peer_user)
@@ -310,6 +446,29 @@ def handle_direct_conversation(
 
     body = read_json_body(handler)
     target_user_id = str(body.get("targetUserId", "")).strip()
+    post_id = str(body.get("postId") or body.get("fromPostId") or "").strip()
+    post: dict[str, Any] | None = None
+
+    if post_id:
+        post, target_user_id, error_message = _resolve_post_dm_target(
+            db,
+            from_post_id=post_id,
+            target_user_id=target_user_id,
+        )
+        if error_message:
+            status = HTTPStatus.BAD_REQUEST if error_message == "帖子作者与私信目标不一致" else HTTPStatus.NOT_FOUND
+            json_error(handler, status, error_message)
+            return
+        if is_post_anonymous(db, post):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
+            return
+        if not effective_post_allow_dm(db, post):
+            target_user = find_user_by_id(db, str(post.get("authorId", "")).strip())
+            if target_user is not None and not bool(target_user.get("allowStrangerDm", True)):
+                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+            else:
+                json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
+            return
 
     if not target_user_id:
         json_error(handler, HTTPStatus.BAD_REQUEST, "缺少目标用户")
@@ -355,41 +514,80 @@ def handle_direct_conversation(
                 "data": {
                     "id": existing.get("id"),
                     "peerUserId": target_user_id,
-                    "peerAlias": svc_user_nickname(target_user),
+                    "name": user_nickname(target_user),
+                    "avatarUrl": user_avatar_url(target_user),
+                    "lastMessage": existing.get("lastMessage", "") or "开始聊天吧",
+                    "timeText": _globals.iso_to_time_text(existing.get("updatedAt")),
+                    "unreadCount": max(0, int(existing.get("unreadCount", 0) or 0)),
+                    "hasUnread": int(existing.get("unreadCount", 0) or 0) > 0,
                     "blockedByMe": blocked_by_me,
                     "blockedByPeer": blocked_by_peer,
-                    "alreadyExisted": True,
                 }
             },
         )
         return
 
-    peer_user = find_user_by_id(db, target_user_id)
-    conversation = {
-        "id": next_id(db, "conversation", "conv"),
-        "userId": user["id"],
-        "peerUserId": target_user_id,
-        "name": svc_user_nickname(peer_user),
-        "avatarUrl": user_avatar_url(peer_user) or "",
-        "lastMessage": "",
-        "unreadCount": 0,
-        "lastReadAt": "",
-        "updatedAt": now,
-        "deleted": False,
-    }
-    db["conversations"].append(conversation)
-    sync_conversation_pair(db, user["id"], target_user_id)
+    if post is not None:
+        if not can_request_dm_from_post(
+            db,
+            viewer_user_id=str(user.get("id", "")),
+            post=post,
+        ):
+            if not bool(target_user.get("allowStrangerDm", True)):
+                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+                return
+            json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
+            return
+    elif not can_request_dm_to_user(
+        db,
+        viewer_user_id=str(user.get("id", "")),
+        target_user_id=target_user_id,
+    ):
+        if not bool(target_user.get("showContactable", True)):
+            json_error(handler, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
+            return
+        if not bool(target_user.get("allowStrangerDm", True)):
+            json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
+            return
+        json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
+        return
+
+    sync_conversation_pair(
+        db,
+        left_user_id=user["id"],
+        right_user_id=target_user_id,
+        last_message="开始聊天吧",
+        updated_at=now,
+    )
     add_audit_log(db, user["id"], "create_direct_conversation", f"与用户 {target_user_id} 创建私信会话")
+    new_conv = next(
+        (
+            row
+            for row in db.get("conversations", [])
+            if row.get("userId") == user["id"]
+            and row.get("peerUserId") == target_user_id
+        ),
+        None,
+    )
     save_db(db)
+    if new_conv is None:
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "会话创建失败")
+        return
     send_json(
         handler,
-        HTTPStatus.OK,
+        HTTPStatus.CREATED,
         {
             "data": {
-                "id": conversation["id"],
+                "id": new_conv.get("id", ""),
                 "peerUserId": target_user_id,
-                "peerAlias": svc_user_nickname(peer_user),
-                "alreadyExisted": False,
+                "name": user_nickname(target_user),
+                "avatarUrl": user_avatar_url(target_user),
+                "lastMessage": "开始聊天吧",
+                "timeText": _globals.iso_to_time_text(now),
+                "unreadCount": 0,
+                "hasUnread": False,
+                "blockedByMe": False,
+                "blockedByPeer": False,
             }
         },
     )
@@ -421,16 +619,25 @@ def handle_get_messages(
 
     conv_key = _globals.conversation_key_for_users(str(user.get("id", "")), peer_user_id)
     messages = [
-        serialize_direct_message(msg)
+        serialize_direct_message(
+            db,
+            msg,
+            viewer_user_id=str(user.get("id", "")),
+        )
         for msg in db.get("directMessages", [])
         if msg.get("conversationKey") == conv_key and not msg.get("deleted")
     ]
-    messages.sort(key=lambda m: m.get("createdAt", ""))
+    messages.sort(key=lambda m: (m.get("createdAt", ""), m.get("id", "")))
 
-    mark_conversation_read(db, str(user.get("id", "")), peer_user_id)
-    save_db(db)
+    changed = mark_conversation_read(
+        db,
+        user_id=str(user.get("id", "")),
+        conversation=conv,
+    )
+    if changed:
+        save_db(db)
 
-    send_json(handler, HTTPStatus.OK, {"data": {"items": messages}})
+    send_json(handler, HTTPStatus.OK, {"data": messages})
 
 
 def handle_send_message(
@@ -465,23 +672,80 @@ def handle_send_message(
     if not content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "消息内容不能为空")
         return
-
-    ip = _globals.get_client_ip(handler)
-    if not check_ip_rate_limit(handler, db, ip):
-        return
-    if not consume_rate_limit(db, f"dm::{peer_user_id}", max_requests=20, window_seconds=60):
-        json_error(handler, HTTPStatus.TOO_MANY_REQUESTS, "发送消息过于频繁，请稍后再试")
+    if len(content) > 1000:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "单条消息不能超过 1000 个字符")
         return
 
-    risk_score = assess_text_risk(content, db=db, min_length=1)
-    if risk_score >= 3:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "消息内容可能包含敏感词或违规信息，请修改后重试")
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="message",
+        setting_key="messageRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["messageRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="发送私信",
+            retry_after_seconds=retry_after,
+        )
+        return
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "message")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="发送私信",
+            retry_after_seconds=ip_retry_after,
+        )
         return
 
-    deliver_message_to_conversation_pair(db, str(user.get("id", "")), peer_user_id, content)
+    _, high_risk, risk_reasons = assess_text_risk(db, content)
+    if high_risk:
+        json_error(
+            handler,
+            HTTPStatus.BAD_REQUEST,
+            f"消息触发高风险风控：{'; '.join(risk_reasons)}",
+        )
+        add_audit_log(db, user["id"], "risk_block_message", ";".join(risk_reasons))
+        save_db(db)
+        return
+
+    created_at = now_iso()
+    message = {
+        "id": next_id(db, "message", "m"),
+        "conversationKey": _globals.conversation_key_for_users(
+            str(user.get("id", "")),
+            peer_user_id,
+        ),
+        "senderUserId": str(user.get("id", "")),
+        "receiverUserId": peer_user_id,
+        "content": content,
+        "createdAt": created_at,
+        "readAt": "",
+        "deleted": False,
+    }
+    db.setdefault("directMessages", []).append(message)
+    deliver_message_to_conversation_pair(
+        db,
+        sender_user_id=str(user.get("id", "")),
+        receiver_user_id=peer_user_id,
+        last_message=content,
+        updated_at=created_at,
+    )
     add_audit_log(db, user["id"], "send_message", f"向用户 {peer_user_id} 发送私信: {content[:20]}")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "message": "发送成功",
+            "data": serialize_direct_message(
+                db,
+                message,
+                viewer_user_id=str(user.get("id", "")),
+            ),
+        },
+    )
 
 
 def handle_delete_conversation(
@@ -530,12 +794,18 @@ def handle_block_peer(
 
     peer_user_id = str(conv.get("peerUserId", "")).strip()
     if not is_user_blocked(db, user["id"], peer_user_id):
+        blocked_at = now_iso()
         db["userBlocks"].append({
-            "blockerId": user["id"],
-            "blockedId": peer_user_id,
-            "createdAt": now_iso(),
+            "blockerUserId": user["id"],
+            "blockedUserId": peer_user_id,
+            "createdAt": blocked_at,
         })
-        reject_pending_dm_requests_between(db, user["id"], peer_user_id)
+        reject_pending_dm_requests_between(
+            db,
+            left_user_id=user["id"],
+            right_user_id=peer_user_id,
+            updated_at=blocked_at,
+        )
         add_audit_log(db, user["id"], "block_user", f"屏蔽用户 {peer_user_id}")
         save_db(db)
 
@@ -564,7 +834,10 @@ def handle_unblock_peer(
     peer_user_id = str(conv.get("peerUserId", "")).strip()
     db["userBlocks"][:] = [
         b for b in db["userBlocks"]
-        if not (b.get("blockerId") == user["id"] and b.get("blockedId") == peer_user_id)
+        if not (
+            b.get("blockerUserId") == user["id"]
+            and b.get("blockedUserId") == peer_user_id
+        )
     ]
     add_audit_log(db, user["id"], "unblock_user", f"解除屏蔽用户 {peer_user_id}")
     save_db(db)

@@ -1,6 +1,7 @@
 import '../models/post_item.dart';
 
 const List<String> kChannels = <String>[
+  '综合',
   '找对象',
   '找搭子',
   '交友扩列',

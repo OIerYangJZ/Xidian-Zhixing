@@ -47,8 +47,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   bool _showStatusSelector = false;
 
   // Visibility
-  bool _allowComment = true;
-  bool _allowDm = false;
+  bool _privateOnly = false;
 
   @override
   void initState() {
@@ -81,7 +80,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _channels = ['全部', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
+          _channels = ['综合', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
           _isLoadingChannels = false;
         });
       }
@@ -177,8 +176,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   String _generateAnonymousAlias() {
     final adjectives = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
     final nouns = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
-    final adj = adjectives[(DateTime.now().millisecondsSinceEpoch ~/ 13) % adjectives.length];
-    final noun = nouns[(DateTime.now().millisecondsSinceEpoch ~/ 17) % nouns.length];
+    final adj = adjectives[
+        (DateTime.now().millisecondsSinceEpoch ~/ 13) % adjectives.length];
+    final noun =
+        nouns[(DateTime.now().millisecondsSinceEpoch ~/ 17) % nouns.length];
     return '$adj$noun';
   }
 
@@ -209,10 +210,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       final input = CreatePostInput(
         title: _titleController.text.trim(),
         content: content,
-        channel: _selectedChannel == '全部' ? '全部' : _selectedChannel,
+        channel: _selectedChannel,
         tags: _selectedTags,
-        allowComment: _allowComment,
-        allowDm: _isAnonymous ? false : _allowDm,
+        allowComment: true,
+        allowDm: !_isAnonymous,
+        privateOnly: _privateOnly,
         status: _postStatus,
         hasImage: _selectedImages.isNotEmpty,
         imageUploadIds: _uploadedImageIds,
@@ -347,16 +349,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     },
                     children: _isLoadingChannels
                         ? [const SizedBox(width: 16)]
-                        : _channels.map((c) => _PillChip(
-                              label: c,
-                              isSelected: c == _selectedChannel,
-                              onTap: () {
-                                setState(() {
-                                  _selectedChannel = c;
-                                  _showChannelSelector = false;
-                                });
-                              },
-                            )).toList(),
+                        : _channels
+                            .map((c) => _PillChip(
+                                  label: c,
+                                  isSelected: c == _selectedChannel,
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedChannel = c;
+                                      _showChannelSelector = false;
+                                    });
+                                  },
+                                ))
+                            .toList(),
                   ),
 
                   const Divider(height: 0.5, color: MobileTheme.divider),
@@ -411,14 +415,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       child: Wrap(
                         spacing: 6,
                         runSpacing: 6,
-                        children: _selectedTags.map((tag) => _SelectedTagChip(
-                              label: tag,
-                              onRemove: () {
-                                setState(() {
-                                  _selectedTags.remove(tag);
-                                });
-                              },
-                            )).toList(),
+                        children: _selectedTags
+                            .map((tag) => _SelectedTagChip(
+                                  label: tag,
+                                  onRemove: () {
+                                    setState(() {
+                                      _selectedTags.remove(tag);
+                                    });
+                                  },
+                                ))
+                            .toList(),
                       ),
                     ),
 
@@ -467,8 +473,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   ),
 
                   // 图片预览横排
-                  if (_selectedImages.isNotEmpty)
-                    _buildImagePreview(),
+                  if (_selectedImages.isNotEmpty) _buildImagePreview(),
 
                   const SizedBox(height: 8),
                 ],
@@ -513,7 +518,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // 内联选择器展开区（频道 / 标签 / 状态）
-                  if (_showChannelSelector || _showTagSelector || _showStatusSelector)
+                  if (_showChannelSelector ||
+                      _showTagSelector ||
+                      _showStatusSelector)
                     _buildInlineSelectorArea(),
 
                   // 工具栏图标行
@@ -562,11 +569,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                             setState(() {
                               _isAnonymous = !_isAnonymous;
                               if (_isAnonymous) {
-                                _allowDm = false;
                                 if (_anonymousAlias.isEmpty) {
                                   _anonymousAlias = _generateAnonymousAlias();
                                 }
-                                _anonymousAliasController.text = _anonymousAlias;
+                                _anonymousAliasController.text =
+                                    _anonymousAlias;
                               }
                             });
                           },
@@ -574,13 +581,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         const Spacer(),
                         // 可见性选项
                         _VisibilitySelector(
-                          allowComment: _allowComment,
-                          allowDm: _isAnonymous ? false : _allowDm,
-                          allowDmEnabled: !_isAnonymous,
-                          onChanged: (comment, dm) {
+                          privateOnly: _privateOnly,
+                          onChanged: (privateOnly) {
                             setState(() {
-                              _allowComment = comment;
-                              _allowDm = _isAnonymous ? false : dm;
+                              _privateOnly = privateOnly;
                             });
                           },
                         ),
@@ -901,21 +905,18 @@ class _SelectedTagChip extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  final PostStatus? status;
-  final String? label;
-  final Color? color;
+  final PostStatus status;
 
-  const _StatusBadge({this.status, this.label, this.color});
+  const _StatusBadge({required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final displayLabel = label ?? status?.label ?? '';
-    final displayColor = color ??
-        (status == PostStatus.resolved
-            ? MobileTheme.success
-            : status == PostStatus.closed
-                ? MobileTheme.textSecondary
-                : MobileTheme.primary);
+    final displayLabel = status.label;
+    final displayColor = status == PostStatus.resolved
+        ? MobileTheme.success
+        : status == PostStatus.closed
+            ? MobileTheme.textSecondary
+            : MobileTheme.primary;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -971,15 +972,11 @@ class _ToolbarIconButton extends StatelessWidget {
 }
 
 class _VisibilitySelector extends StatelessWidget {
-  final bool allowComment;
-  final bool allowDm;
-  final bool allowDmEnabled;
-  final Function(bool comment, bool dm) onChanged;
+  final bool privateOnly;
+  final ValueChanged<bool> onChanged;
 
   const _VisibilitySelector({
-    required this.allowComment,
-    required this.allowDm,
-    required this.allowDmEnabled,
+    required this.privateOnly,
     required this.onChanged,
   });
 
@@ -993,13 +990,7 @@ class _VisibilitySelector extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            allowComment && allowDm
-                ? Icons.public
-                : allowComment
-                    ? Icons.chat_bubble_outline
-                    : allowDm
-                        ? Icons.mail_outline
-                        : Icons.lock_outline,
+            privateOnly ? Icons.lock_outline : Icons.public,
             size: 18,
             color: MobileTheme.textSecondary,
           ),
@@ -1014,18 +1005,10 @@ class _VisibilitySelector extends StatelessWidget {
       onSelected: (value) {
         switch (value) {
           case 'all':
-            onChanged(true, allowDmEnabled);
-            break;
-          case 'comment':
-            onChanged(true, false);
-            break;
-          case 'dm':
-            if (allowDmEnabled) {
-              onChanged(false, true);
-            }
+            onChanged(false);
             break;
           case 'private':
-            onChanged(false, false);
+            onChanged(true);
             break;
         }
       },
@@ -1033,27 +1016,14 @@ class _VisibilitySelector extends StatelessWidget {
         _buildVisibilityItem(
           'all',
           Icons.public,
-          allowDmEnabled ? '所有人可见' : '允许评论',
-          allowDmEnabled ? (allowComment && allowDm) : (allowComment && !allowDm),
+          '所有人可见',
+          !privateOnly,
         ),
-        _buildVisibilityItem(
-          'comment',
-          Icons.chat_bubble_outline,
-          '仅允许评论',
-          allowComment && !allowDm,
-        ),
-        if (allowDmEnabled)
-          _buildVisibilityItem(
-            'dm',
-            Icons.mail_outline,
-            '仅允许私信',
-            !allowComment && allowDm,
-          ),
         _buildVisibilityItem(
           'private',
           Icons.lock_outline,
           '仅自己可见',
-          !allowComment && !allowDm,
+          privateOnly,
         ),
       ],
     );
@@ -1269,24 +1239,21 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     hintText: '自定义标签',
-                    hintStyle:
-                        const TextStyle(fontSize: 13, color: MobileTheme.textTertiary),
+                    hintStyle: const TextStyle(
+                        fontSize: 13, color: MobileTheme.textTertiary),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: MobileTheme.divider),
+                      borderSide: const BorderSide(color: MobileTheme.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: MobileTheme.divider),
+                      borderSide: const BorderSide(color: MobileTheme.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide:
-                          const BorderSide(color: MobileTheme.primary),
+                      borderSide: const BorderSide(color: MobileTheme.primary),
                     ),
                     isDense: true,
                   ),

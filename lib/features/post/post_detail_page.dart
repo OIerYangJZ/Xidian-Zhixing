@@ -7,6 +7,8 @@ import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 import '../../widgets/image_gallery.dart';
+import '../../widgets/post_content_body.dart';
+import '../messages/chat_page.dart';
 import '../profile/public_user_profile_page.dart';
 
 class PostDetailPage extends StatefulWidget {
@@ -46,6 +48,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> supplementaryImageUrls =
+        _supplementaryImageUrls(_post);
     return Scaffold(
       appBar: AppBar(title: const Text('帖子详情')),
       body: _loading
@@ -94,10 +98,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 10),
-                      Text(_post.content),
-                      if (_post.imageUrls.isNotEmpty)
-                        ImageGallery(images: _post.imageUrls),
-                      if (_post.hasImage && _post.imageUrls.isEmpty)
+                      PostContentBody(
+                        content: _post.content,
+                        contentFormat: _post.contentFormat,
+                        markdownSource: _post.markdownSource,
+                        selectable: !_post.isMarkdown,
+                      ),
+                      if (supplementaryImageUrls.isNotEmpty)
+                        ImageGallery(images: supplementaryImageUrls),
+                      if (_post.hasImage && supplementaryImageUrls.isEmpty)
                         const Padding(
                           padding: EdgeInsets.only(top: 8),
                           child: Text(
@@ -116,7 +125,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             .toList(),
                       ),
                       const SizedBox(height: 8),
-                      Text('${_post.isAnonymous ? '匿名身份' : '作者'}：${_post.authorAlias}'),
+                      Text(
+                          '${_post.isAnonymous ? '匿名身份' : '作者'}：${_post.authorAlias}'),
                       Text('发布时间：${_post.createdAt.toLocal()}'),
                       const SizedBox(height: 12),
                       Wrap(
@@ -133,7 +143,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           if (_post.canFollowAuthor &&
                               _post.authorUserId.isNotEmpty)
                             OutlinedButton.icon(
-                              onPressed: _actionBusy ? null : _toggleFollowAuthor,
+                              onPressed:
+                                  _actionBusy ? null : _toggleFollowAuthor,
                               icon: Icon(
                                 _post.isFollowingAuthor
                                     ? Icons.person_remove_alt_1_outlined
@@ -162,11 +173,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             icon: const Icon(Icons.report_gmailerrorred),
                             label: const Text('举报'),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: _copyPostContent,
-                            icon: const Icon(Icons.copy_all_rounded),
-                            label: const Text('复制内容'),
-                          ),
+                          if (!_post.isMarkdown)
+                            OutlinedButton.icon(
+                              onPressed: _copyPostContent,
+                              icon: const Icon(Icons.copy_all_rounded),
+                              label: const Text('复制内容'),
+                            ),
                           if (_post.canMessageAuthor)
                             OutlinedButton.icon(
                               onPressed: _actionBusy ? null : _requestDm,
@@ -564,56 +576,52 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _copyPostContent() async {
-    final String text = '[${_post.channel}] ${_post.title}\\n${_post.content}';
+    if (_post.isMarkdown) {
+      _feedback('Markdown 帖子不支持复制内容');
+      return;
+    }
+    final String body = _post.isMarkdown ? _post.markdownSource : _post.content;
+    final String text = '[${_post.channel}] ${_post.title}\\n$body';
     await Clipboard.setData(ClipboardData(text: text));
     _feedback('已复制帖子内容');
   }
 
-  Future<void> _requestDm() async {
-    final TextEditingController reasonController = TextEditingController();
-    try {
-      final String? reason = await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('发送私信申请'),
-            content: TextField(
-              controller: reasonController,
-              maxLength: 120,
-              minLines: 2,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: '简单说明来意，便于对方决定是否通过',
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
-              ),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(reasonController.text.trim()),
-                child: const Text('发送申请'),
-              ),
-            ],
-          );
-        },
-      );
-      if (!mounted || reason == null) {
-        return;
-      }
+  List<String> _supplementaryImageUrls(PostItem post) {
+    if (!post.isMarkdown || post.markdownSource.trim().isEmpty) {
+      return post.imageUrls;
+    }
+    return post.imageUrls
+        .where((String url) => !post.markdownSource.contains(url))
+        .toList();
+  }
 
+  Future<void> _requestDm() async {
+    if (_post.authorUserId.isEmpty || !_post.canMessageAuthor) {
+      return;
+    }
+    try {
       setState(() {
         _actionBusy = true;
       });
-      await AppRepositories.messages
-          .createDmRequest(postId: _post.id, reason: reason);
-      _feedback('私信申请已发送，请等待对方处理');
+      final conversation =
+          await AppRepositories.messages.createDirectConversation(
+        _post.authorUserId,
+        fromPostId: _post.id,
+      );
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => ChatPage(
+            conversation: conversation,
+            peerUserId: _post.authorUserId,
+          ),
+        ),
+      );
     } catch (error) {
-      _feedback('发送私信申请失败：$error');
+      _feedback('无法发起私信：$error');
     } finally {
-      reasonController.dispose();
       if (mounted) {
         setState(() {
           _actionBusy = false;

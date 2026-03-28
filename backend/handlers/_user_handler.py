@@ -31,10 +31,13 @@ from helpers import (
 from services import (
     add_audit_log,
     auth_user as auth_user_helper,
+    current_user_level,
     find_user_by_id,
     is_user_following,
+    is_level_one_user,
     latest_account_cancellation_request_for_user,
     latest_user_level_request_for_user,
+    list_posts,
     list_follower_users,
     list_following_users,
     list_friend_users,
@@ -44,6 +47,7 @@ from services import (
     serialize_public_user_profile,
     serialize_user_level_request_summary,
     user_avatar_url,
+    user_level_label,
     user_nickname,
 )
 
@@ -61,6 +65,16 @@ def handle_get_me(
     uid = str(user.get("id", "")).strip()
     cancellation_req = latest_account_cancellation_request_for_user(db, uid)
     level_req = latest_user_level_request_for_user(db, uid)
+    favorite_post_ids = {
+        str(x.get("postId", ""))
+        for x in db.get("favorites", [])
+        if x.get("userId") == user["id"]
+    }
+    favorite_count = sum(
+        1
+        for post in list_posts(db)
+        if str(post.get("id", "")) in favorite_post_ids
+    )
 
     send_json(
         handler,
@@ -68,21 +82,26 @@ def handle_get_me(
         {
             "data": {
                 "id": uid,
+                "alias": user_nickname(user),
                 "nickname": user_nickname(user),
+                "studentId": str(user.get("studentId", "")).strip(),
                 "avatarUrl": user_avatar_url(user),
-                "userLevel": user.get("userLevel", _globals.USER_LEVEL_TWO),
                 "verified": bool(user.get("verified")),
                 "verifiedAt": str(user.get("verifiedAt", "")).strip(),
-                "createdAt": str(user.get("createdAt", "")).strip(),
-                "email": str(user.get("email", "")).strip(),
-                "studentId": str(user.get("studentId", "")).strip(),
                 "allowStrangerDm": bool(user.get("allowStrangerDm", True)),
                 "showContactable": bool(user.get("showContactable", True)),
+                "favoriteCount": favorite_count,
+                "isAdmin": bool(user.get("isAdmin", False)),
+                "userLevel": current_user_level(user),
+                "userLevelLabel": user_level_label(current_user_level(user)),
+                "isLevelOneUser": is_level_one_user(user),
+                "email": str(user.get("email", "")).strip(),
+                "levelUpgradeRequest": serialize_user_level_request_summary(level_req) if level_req else None,
+                "accountCancellationRequest": serialize_account_cancellation_request(cancellation_req) if cancellation_req else None,
+                "createdAt": str(user.get("createdAt", "")).strip(),
                 "deleted": bool(user.get("deleted", False)),
                 "banned": bool(user.get("banned", False)),
                 "muted": bool(user.get("muted", False)),
-                "cancellationRequest": serialize_account_cancellation_request(cancellation_req) if cancellation_req else None,
-                "levelUpgradeRequest": serialize_user_level_request_summary(level_req) if level_req else None,
             }
         },
     )
@@ -94,16 +113,27 @@ def handle_get_user(
     user_id: str,
 ) -> None:
     """GET /api/users/<id>"""
-    auth_user_helper(handler, db)  # ensure auth header is consumed
+    viewer, _ = auth_user_helper(handler, db)
+    if viewer is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
+        return
     target = find_user_by_id(db, user_id)
     if target is None or target.get("deleted"):
         json_error(handler, HTTPStatus.NOT_FOUND, "用户不存在")
         return
 
-    viewer, _ = auth_user_helper(handler, db)
     viewer_id = str(viewer.get("id", "")) if viewer else ""
-
-    send_json(handler, HTTPStatus.OK, {"data": serialize_public_user_profile(db, target, viewer_id=viewer_id)})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": serialize_public_user_profile(
+                db,
+                target_user=target,
+                viewer_user_id=viewer_id,
+            )
+        },
+    )
 
 
 def handle_update_me(
@@ -151,8 +181,14 @@ def handle_update_privacy(
         return
 
     body = read_json_body(handler)
-    user["allowStrangerDm"] = normalize_optional_bool(body.get("allowStrangerDm"), default=True)
-    user["showContactable"] = normalize_optional_bool(body.get("showContactable"), default=True)
+    user["allowStrangerDm"] = normalize_optional_bool(
+        body.get("allowStrangerDm"),
+        default=True,
+    )
+    user["showContactable"] = normalize_optional_bool(
+        body.get("showContactable"),
+        default=True,
+    )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
@@ -183,13 +219,13 @@ def handle_follow(
         return
 
     db["userFollows"].append({
-        "followerId": user["id"],
-        "followeeId": target_user_id,
+        "followerUserId": user["id"],
+        "followeeUserId": target_user_id,
         "createdAt": _globals.now_iso(),
     })
-    add_audit_log(db, user["id"], "follow", f"关注用户 {target_user_id}")
+    add_audit_log(db, user["id"], "follow_user", target_user_id)
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"followed": True, "already": False}})
+    send_json(handler, HTTPStatus.OK, {"data": {"userId": target_user_id, "following": True}})
 
 
 def handle_unfollow(
@@ -205,11 +241,14 @@ def handle_unfollow(
 
     db["userFollows"][:] = [
         f for f in db["userFollows"]
-        if not (f.get("followerId") == user["id"] and f.get("followeeId") == target_user_id)
+        if not (
+            str(f.get("followerUserId", "")).strip() == str(user.get("id", "")).strip()
+            and str(f.get("followeeUserId", "")).strip() == target_user_id
+        )
     ]
-    add_audit_log(db, user["id"], "unfollow", f"取消关注用户 {target_user_id}")
+    add_audit_log(db, user["id"], "unfollow_user", target_user_id)
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"followed": False}})
+    send_json(handler, HTTPStatus.OK, {"data": {"userId": target_user_id, "following": False}})
 
 
 def handle_get_following(
@@ -222,7 +261,17 @@ def handle_get_following(
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
 
-    send_json(handler, HTTPStatus.OK, {"data": list_following_users(db, user["id"])})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": list_following_users(
+                db,
+                user_id=user["id"],
+                viewer_user_id=user["id"],
+            )
+        },
+    )
 
 
 def handle_get_followers(
@@ -235,7 +284,17 @@ def handle_get_followers(
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
 
-    send_json(handler, HTTPStatus.OK, {"data": list_follower_users(db, user["id"])})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": list_follower_users(
+                db,
+                user_id=user["id"],
+                viewer_user_id=user["id"],
+            )
+        },
+    )
 
 
 def handle_get_friends(
@@ -248,4 +307,8 @@ def handle_get_friends(
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
 
-    send_json(handler, HTTPStatus.OK, {"data": list_friend_users(db, user["id"])})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": list_friend_users(db, user_id=user["id"])},
+    )
