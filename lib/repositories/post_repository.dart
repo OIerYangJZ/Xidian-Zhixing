@@ -295,7 +295,25 @@ class PostRepository {
         return comments;
       }
     } catch (_) {
-      // ignore and fallback
+      final List<String> fallback =
+          mockCommentsByPostId[postId] ?? const <String>[];
+      if (fallback.isNotEmpty) {
+        return fallback
+            .asMap()
+            .entries
+            .map(
+              (MapEntry<int, String> entry) => CommentItem(
+                id: 'mock-${entry.key + 1}',
+                authorAlias: '匿名同学-${entry.key + 1}',
+                content: entry.value,
+                createdAt: DateTime.now()
+                    .subtract(Duration(minutes: 5 * (entry.key + 1))),
+                likeCount: 0,
+              ),
+            )
+            .toList();
+      }
+      rethrow;
     }
 
     final List<String> fallback =
