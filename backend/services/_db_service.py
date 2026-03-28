@@ -10,6 +10,7 @@ from helpers._auth_helpers import (
     hash_password,
     is_password_hashed,
     normalize_avatar_url,
+    normalize_media_url,
     sanitize_alias,
     student_id_from_email,
 )
@@ -501,10 +502,11 @@ def list_comments(
             continue
         if comment.get("deleted"):
             continue
-        if comment.get("reviewStatus") not in ("approved", "resolved"):
+        status = str(comment.get("reviewStatus", "")).strip().lower()
+        if status == "rejected":
             continue
         comments.append(comment)
-    comments.sort(key=lambda x: x.get("createdAt", ""))
+    comments.sort(key=lambda x: str(x.get("createdAt", "") or ""))
     return comments
 
 
@@ -629,7 +631,7 @@ def build_admin_image_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
     for upload in db.get("mediaUploads", []):
         rows.append({
             "id": upload.get("id", ""),
-            "url": upload.get("url", ""),
+            "url": normalize_media_url(str(upload.get("url", ""))),
             "fileName": upload.get("fileName", ""),
             "contentType": upload.get("contentType", ""),
             "status": upload.get("status", "pending"),
@@ -650,7 +652,7 @@ def build_image_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
             continue
         rows.append({
             "id": upload.get("id", ""),
-            "url": upload.get("url", ""),
+            "url": normalize_media_url(str(upload.get("url", ""))),
             "fileName": upload.get("fileName", ""),
             "contentType": upload.get("contentType", ""),
             "sizeBytes": int(upload.get("sizeBytes", 0)),
@@ -665,7 +667,7 @@ def serialize_image_upload(upload: dict[str, Any]) -> dict[str, Any]:
     """Serialize an image upload row."""
     return {
         "id": upload.get("id", ""),
-        "url": upload.get("url", ""),
+        "url": normalize_media_url(str(upload.get("url", ""))),
         "fileName": upload.get("fileName", ""),
         "contentType": upload.get("contentType", ""),
         "sizeBytes": int(upload.get("sizeBytes", 0)),
@@ -775,7 +777,7 @@ def serialize_post(
         if status not in {"", "approved"} and not include_unapproved_images:
             continue
         upload_id = str(upload.get("id", "")).strip()
-        upload_url = str(upload.get("url", "")).strip()
+        upload_url = normalize_media_url(str(upload.get("url", "")).strip())
         if upload_id:
             uploaded_image_ids.append(upload_id)
         if upload_url:

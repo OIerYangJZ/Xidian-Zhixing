@@ -52,6 +52,30 @@ class AppConfig {
 
     final Uri? parsed = Uri.tryParse(trimmed);
     if (parsed != null && parsed.hasScheme) {
+      final String host = parsed.host.trim().toLowerCase();
+      if (_isLoopbackHost(host)) {
+        final String path = parsed.path.isEmpty ? '/' : parsed.path;
+        if (trimmed.startsWith('/')) {
+          return Uri.base.resolve(trimmed).toString();
+        }
+        final Uri? apiUri = Uri.tryParse(apiBaseUrl);
+        if (apiUri != null && apiUri.hasScheme && apiUri.hasAuthority) {
+          return apiUri.resolveUri(
+            Uri(
+              path: path,
+              query: parsed.hasQuery ? parsed.query : null,
+              fragment: parsed.hasFragment ? parsed.fragment : null,
+            ),
+          ).toString();
+        }
+        return Uri.base.resolveUri(
+          Uri(
+            path: path,
+            query: parsed.hasQuery ? parsed.query : null,
+            fragment: parsed.hasFragment ? parsed.fragment : null,
+          ),
+        ).toString();
+      }
       return parsed.toString();
     }
     if (trimmed.startsWith('//')) {
@@ -70,5 +94,12 @@ class AppConfig {
       return apiUri.resolve(trimmed).toString();
     }
     return Uri.base.resolve(trimmed).toString();
+  }
+
+  static bool _isLoopbackHost(String host) {
+    return host == 'localhost' ||
+        host == '127.0.0.1' ||
+        host == '0.0.0.0' ||
+        host == '::1';
   }
 }

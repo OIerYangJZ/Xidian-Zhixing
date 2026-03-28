@@ -138,19 +138,26 @@ def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_
             if x.get("userId") == viewer_user_id and x.get("commentId") == comment.get("id")
         )
     )
+    like_count_raw = comment.get("likeCount", 0)
+    try:
+        like_count = max(0, int(like_count_raw or 0))
+    except (TypeError, ValueError):
+        like_count = 0
+    author_avatar_url = user_avatar_url(author_user)
     return {
         "id": comment.get("id", ""),
         "postId": comment.get("postId", ""),
         "content": comment.get("content", ""),
         "authorAlias": _globals.sanitize_alias(str(comment.get("authorAlias", "")), fallback="匿名同学"),
         "authorId": author_id,
-        "authorAvatarUrl": user_avatar_url(author_user),
+        "authorAvatarUrl": author_avatar_url,
+        "authorAvatar": author_avatar_url,
         "authorUserId": "" if is_anonymous else author_id,
-        "likeCount": max(0, int(comment.get("likeCount", 0) or 0)),
+        "likeCount": like_count,
         "liked": liked,
         "createdAt": comment.get("createdAt", ""),
         "isAnonymous": is_anonymous,
-        "reviewStatus": str(comment.get("reviewStatus", "approved")),
+        "reviewStatus": str(comment.get("reviewStatus", "approved") or "approved"),
         "parentId": str(comment.get("parentId", "")).strip(),
     }
 
@@ -471,7 +478,7 @@ def handle_get_post_comments(
             viewer_user_id=viewer_user_id,
         )
     ]
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    rows.sort(key=lambda x: str(x.get("createdAt", "") or ""), reverse=True)
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
 

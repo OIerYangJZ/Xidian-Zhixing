@@ -6,6 +6,7 @@ import hmac
 import re
 import secrets
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 import _globals
 
@@ -115,6 +116,42 @@ def normalize_avatar_url(value: str) -> str:
     if lowered.startswith("/api/storage/") or lowered.startswith("http://") or lowered.startswith("https://"):
         return text
     return ""
+
+
+def normalize_media_url(value: str) -> str:
+    text = value.strip()
+    if not text:
+        return ""
+
+    lowered = text.lower()
+    if lowered.startswith("/api/storage/"):
+        return text
+    if lowered.startswith("api/storage/"):
+        return f"/{text.lstrip('/')}"
+    if lowered.startswith("//"):
+        return text
+
+    if lowered.startswith("http://") or lowered.startswith("https://"):
+        try:
+            parsed = urlsplit(text)
+        except ValueError:
+            return ""
+        host = (parsed.hostname or "").strip().lower()
+        if host in {"localhost", "127.0.0.1", "0.0.0.0", "::1"}:
+            marker = "/api/storage/"
+            path_lowered = parsed.path.lower()
+            idx = path_lowered.find(marker)
+            if idx >= 0:
+                normalized_path = parsed.path[idx:]
+                if not normalized_path.startswith("/api/storage/"):
+                    normalized_path = marker + normalized_path.lstrip("/")
+                return urlunsplit(("", "", normalized_path, parsed.query, ""))
+        return text
+
+    clean_text = text.lstrip("/")
+    if not clean_text or ".." in clean_text:
+        return ""
+    return f"/api/storage/{clean_text}"
 
 
 def extract_local_object_key_from_url(value: str) -> str:

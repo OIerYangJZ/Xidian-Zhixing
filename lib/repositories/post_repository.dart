@@ -287,10 +287,22 @@ class PostRepository {
       final dynamic response =
           await _apiClient.get(ApiEndpoints.postComments(postId));
       final List<dynamic> list = extractList(response);
-      final List<CommentItem> comments = list
-          .map((dynamic item) => CommentItem.fromJson(asMap(item)))
-          .where((CommentItem item) => item.content.isNotEmpty)
-          .toList();
+      final List<CommentItem> comments = <CommentItem>[];
+      for (final dynamic item in list) {
+        final Map<String, dynamic> row = asMap(item);
+        if (row.isEmpty) {
+          continue;
+        }
+        try {
+          final CommentItem comment = CommentItem.fromJson(row);
+          if (comment.id.isEmpty || comment.content.isEmpty) {
+            continue;
+          }
+          comments.add(comment);
+        } catch (_) {
+          continue;
+        }
+      }
       if (comments.isNotEmpty || !AppConfig.enableMockFallback) {
         return comments;
       }

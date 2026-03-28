@@ -39,6 +39,25 @@ class CommentItem {
           : DateTime.fromMillisecondsSinceEpoch(created);
     }
 
+    final dynamic rawReplies = json['replies'];
+    final List<CommentItem> parsedReplies = <CommentItem>[];
+    if (rawReplies is List) {
+      for (final dynamic reply in rawReplies) {
+        if (reply is Map<String, dynamic>) {
+          parsedReplies.add(CommentItem.fromJson(reply));
+        } else if (reply is Map) {
+          parsedReplies.add(
+            CommentItem.fromJson(
+              reply.map(
+                (dynamic key, dynamic value) =>
+                    MapEntry<String, dynamic>(key.toString(), value),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
     return CommentItem(
       id: (json['id'] ?? json['commentId'] ?? '').toString(),
       authorAlias:
@@ -51,13 +70,10 @@ class CommentItem {
               json['avatar'] ??
               '')
           .toString(),
-      isLiked: json['isLiked'] ?? json['liked'] ?? false,
-      isPinned: json['isPinned'] ?? json['pinned'] ?? false,
+      isLiked: _toBool(json['isLiked'] ?? json['liked']) ?? false,
+      isPinned: _toBool(json['isPinned'] ?? json['pinned']) ?? false,
       parentId: (json['parentId'] ?? '').toString(),
-      replies: (json['replies'] as List<dynamic>?)
-              ?.map((r) => CommentItem.fromJson(r as Map<String, dynamic>))
-              .toList() ??
-          [],
+      replies: parsedReplies,
       authorUserId: (json['authorUserId'] ?? json['authorId'] ?? '').toString(),
     );
   }
@@ -71,6 +87,25 @@ class CommentItem {
     }
     if (value is String) {
       return int.tryParse(value);
+    }
+    return null;
+  }
+
+  static bool? _toBool(dynamic value) {
+    if (value is bool) {
+      return value;
+    }
+    if (value is num) {
+      return value != 0;
+    }
+    if (value is String) {
+      final String normalized = value.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1') {
+        return true;
+      }
+      if (normalized == 'false' || normalized == '0') {
+        return false;
+      }
     }
     return null;
   }

@@ -1,3 +1,5 @@
+import '../core/config/app_config.dart';
+
 enum PostStatus {
   ongoing,
   resolved,
@@ -145,8 +147,9 @@ class PostItem {
           _str(json, <String>['authorAlias', 'anonymousName', 'alias']) ??
               '匿名同学',
       authorUserId: _str(json, <String>['authorUserId', 'authorId']) ?? '',
-      authorAvatarUrl:
-          _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
+      authorAvatarUrl: AppConfig.resolveUrl(
+        _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
+      ),
       createdAt:
           _date(json, <String>['createdAt', 'createTime', 'publishTime']) ??
               DateTime.now(),
@@ -177,7 +180,10 @@ class PostItem {
       isOwnPost: _bool(json, <String>['isOwnPost']) ?? false,
       isFavorited: _bool(json, <String>['favorited', 'isFavorited']) ?? false,
       isLiked: _bool(json, <String>['liked', 'isLiked']) ?? false,
-      imageUrls: _toStringList(imageUrlsValue),
+      imageUrls: _toStringList(imageUrlsValue)
+          .map(AppConfig.resolveUrl)
+          .where((String value) => value.isNotEmpty)
+          .toList(),
       uploadedImageIds: _toStringList(uploadedImageIdsValue),
     );
   }

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../core/config/app_config.dart';
+
 class ImageGallery extends StatelessWidget {
   const ImageGallery({
     super.key,
@@ -136,8 +138,9 @@ class _ImageTileState extends State<_ImageTile> {
       }
     }
 
+    final String resolvedUrl = AppConfig.resolveUrl(widget.imageUrl);
     return Image.network(
-      widget.imageUrl,
+      resolvedUrl,
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
@@ -263,8 +266,9 @@ class _ViewerImageState extends State<_ViewerImage> {
       }
     }
 
+    final String resolvedUrl = AppConfig.resolveUrl(widget.imageUrl);
     return Image.network(
-      widget.imageUrl,
+      resolvedUrl,
       fit: BoxFit.contain,
       loadingBuilder: (BuildContext context, Widget child,
           ImageChunkEvent? loadingProgress) {
