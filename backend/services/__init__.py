@@ -9,6 +9,7 @@ from services._db_service import (
     auth_admin,
     auth_user,
     build_admin_account_rows,
+    build_admin_account_cancellation_rows,
     build_admin_appeal_rows,
     build_admin_post_pin_request_rows,
     build_admin_report_rows,
@@ -116,6 +117,7 @@ __all__ = [
     # admin helpers
     "admin_role_label",
     "build_admin_account_rows",
+    "build_admin_account_cancellation_rows",
     "build_admin_appeal_rows",
     "build_admin_post_pin_request_rows",
     "build_admin_report_rows",

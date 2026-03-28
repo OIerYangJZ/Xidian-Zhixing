@@ -287,23 +287,29 @@ def handle_admin_users(
 def handle_admin_post_pin_requests(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
+    query: dict[str, list[str]],
 ) -> None:
     """GET /api/admin/post-pin-requests"""
     admin = _require_admin(handler, db)
     if admin is None:
         return
-    send_json(handler, HTTPStatus.OK, {"data": build_admin_post_pin_request_rows(db)})
+    status = (query.get("status", ["all"])[0] or "all").strip().lower()
+    keyword = (query.get("keyword", [""])[0] or "").strip()
+    send_json(handler, HTTPStatus.OK, {"data": build_admin_post_pin_request_rows(db, status=status, keyword=keyword)})
 
 
 def handle_admin_user_level_requests(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
+    query: dict[str, list[str]],
 ) -> None:
     """GET /api/admin/user-level-requests"""
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return
-    send_json(handler, HTTPStatus.OK, {"data": build_admin_user_level_request_rows(db)})
+    status = (query.get("status", ["all"])[0] or "all").strip().lower()
+    keyword = (query.get("keyword", [""])[0] or "").strip()
+    send_json(handler, HTTPStatus.OK, {"data": build_admin_user_level_request_rows(db, status=status, keyword=keyword)})
 
 
 def handle_admin_admin_accounts(
@@ -320,24 +326,30 @@ def handle_admin_admin_accounts(
 def handle_admin_account_cancellation_requests(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
+    query: dict[str, list[str]],
 ) -> None:
     """GET /api/admin/account-cancellation-requests"""
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return
     from services import build_admin_account_cancellation_rows
-    send_json(handler, HTTPStatus.OK, {"data": build_admin_account_cancellation_rows(db)})
+    status = (query.get("status", ["all"])[0] or "all").strip().lower()
+    keyword = (query.get("keyword", [""])[0] or "").strip()
+    send_json(handler, HTTPStatus.OK, {"data": build_admin_account_cancellation_rows(db, status=status, keyword=keyword)})
 
 
 def handle_admin_appeals(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
+    query: dict[str, list[str]],
 ) -> None:
     """GET /api/admin/appeals"""
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return
-    send_json(handler, HTTPStatus.OK, {"data": build_admin_appeal_rows(db)})
+    status = (query.get("status", ["all"])[0] or "all").strip().lower()
+    keyword = (query.get("keyword", [""])[0] or "").strip()
+    send_json(handler, HTTPStatus.OK, {"data": build_admin_appeal_rows(db, status=status, keyword=keyword)})
 
 
 def handle_admin_export(

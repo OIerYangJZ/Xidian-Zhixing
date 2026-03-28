@@ -377,19 +377,19 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _admin_handler.handle_admin_users(self, db)
                 return
             if path == "/api/admin/post-pin-requests":
-                _admin_handler.handle_admin_post_pin_requests(self, db)
+                _admin_handler.handle_admin_post_pin_requests(self, db, query)
                 return
             if path == "/api/admin/user-level-requests":
-                _admin_handler.handle_admin_user_level_requests(self, db)
+                _admin_handler.handle_admin_user_level_requests(self, db, query)
                 return
             if path == "/api/admin/admin-accounts":
                 _admin_handler.handle_admin_admin_accounts(self, db)
                 return
             if path == "/api/admin/account-cancellation-requests":
-                _admin_handler.handle_admin_account_cancellation_requests(self, db)
+                _admin_handler.handle_admin_account_cancellation_requests(self, db, query)
                 return
             if path == "/api/admin/appeals":
-                _admin_handler.handle_admin_appeals(self, db)
+                _admin_handler.handle_admin_appeals(self, db, query)
                 return
             if path == "/api/admin/export":
                 _admin_handler.handle_admin_export(self, db, query)

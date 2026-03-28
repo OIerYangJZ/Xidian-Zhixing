@@ -275,56 +275,187 @@ def build_admin_account_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
 # Admin list row builders (used by _admin_handler)
 # ---------------------------------------------------------------------------
 
-def build_admin_user_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def build_admin_user_rows(
+    db: dict[str, Any],
+    *,
+    include_deleted: bool = False,
+) -> list[dict[str, Any]]:
     """Return serialised user rows for admin user management."""
-    rows = []
+    from services._user_service import (
+        current_user_level,
+        latest_account_cancellation_request_for_user,
+        latest_pending_appeal_for_user,
+        latest_user_level_request_for_user,
+        user_avatar_url,
+        user_level_label,
+        user_nickname,
+    )
+
+    rows: list[dict[str, Any]] = []
     for user in db.get("users", []):
-        if user.get("deleted"):
+        if user.get("deleted") and not include_deleted:
             continue
-        rows.append({
-            "id": user.get("id", ""),
-            "email": user.get("email", ""),
-            "nickname": user.get("nickname", ""),
-            "alias": user.get("alias", ""),
-            "studentId": user.get("studentId", ""),
-            "userLevel": user.get("userLevel", 2),
-            "verified": bool(user.get("verified")),
-            "banned": bool(user.get("banned")),
-            "muted": bool(user.get("muted")),
-            "createdAt": user.get("createdAt", ""),
-        })
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+        uid = str(user.get("id", "")).strip()
+        pending_cancellation = latest_account_cancellation_request_for_user(
+            db,
+            uid,
+            status="pending",
+        )
+        pending_appeal = latest_pending_appeal_for_user(db, uid)
+        pending_level_request = latest_user_level_request_for_user(
+            db,
+            uid,
+            status="pending",
+        )
+        post_count = sum(
+            1
+            for post in db.get("posts", [])
+            if not post.get("deleted") and str(post.get("authorId", "")).strip() == uid
+        )
+        comment_count = sum(
+            1
+            for comment in db.get("comments", [])
+            if not comment.get("deleted") and str(comment.get("userId", "")).strip() == uid
+        )
+        report_count = sum(
+            1
+            for report in db.get("reports", [])
+            if str(report.get("userId", "")).strip() == uid
+        )
+        level = current_user_level(user)
+        rows.append(
+            {
+                "id": uid,
+                "email": user.get("email", ""),
+                "studentId": str(user.get("studentId", "")),
+                "alias": user_nickname(user),
+                "avatarUrl": user_avatar_url(user),
+                "verified": bool(user.get("verified", False)),
+                "userLevel": level,
+                "userLevelLabel": user_level_label(level),
+                "banned": bool(user.get("banned", False)),
+                "muted": bool(user.get("muted", False)),
+                "deleted": bool(user.get("deleted", False)),
+                "postCount": post_count,
+                "commentCount": comment_count,
+                "reportCount": report_count,
+                "createdAt": user.get("createdAt", ""),
+                "hasPendingCancellationRequest": pending_cancellation is not None,
+                "hasPendingAppeal": pending_appeal is not None,
+                "hasPendingLevelUpgradeRequest": pending_level_request is not None,
+            }
+        )
+    rows.sort(
+        key=lambda item: (
+            0 if item.get("deleted") else 1,
+            str(item.get("createdAt", "")),
+        ),
+        reverse=True,
+    )
     return rows
 
 
-def build_admin_report_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def build_admin_report_rows(
+    db: dict[str, Any],
+    *,
+    status: str = "all",
+    reason: str = "",
+) -> list[dict[str, Any]]:
     """Return serialised report rows for admin."""
-    rows = []
+    normalized_status = status.strip().lower() or "all"
+    normalized_reason = reason.strip()
+    rows: list[dict[str, Any]] = []
     for report in db.get("reports", []):
-        rows.append({
-            "id": report.get("id", ""),
-            "reporterAlias": report.get("reporterAlias", "匿名"),
-            "reportedAlias": report.get("reportedAlias", "匿名"),
-            "reason": report.get("reason", ""),
-            "status": report.get("status", "pending"),
-            "createdAt": report.get("createdAt", ""),
-        })
+        row_status = str(report.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_reason and str(report.get("reason", "")) != normalized_reason:
+            continue
+        rows.append(
+            {
+                "id": report.get("id", ""),
+                "targetType": report.get("targetType", "other"),
+                "targetId": report.get("targetId", "unknown"),
+                "reason": report.get("reason", "其他"),
+                "description": report.get("description", ""),
+                "status": row_status,
+                "result": report.get("result", ""),
+                "reporterAlias": report.get("reporterAlias", "匿名同学"),
+                "createdAt": report.get("createdAt", ""),
+                "handledAt": report.get("handledAt", ""),
+                "handledBy": report.get("handledBy", ""),
+            }
+        )
     rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
     return rows
 
 
-def build_admin_appeal_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def build_admin_account_cancellation_rows(
+    db: dict[str, Any],
+    *,
+    status: str = "all",
+    keyword: str = "",
+) -> list[dict[str, Any]]:
+    from services._user_service import serialize_account_cancellation_request
+
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("accountCancellationRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(request.get("userNickname", "")).lower(),
+                    str(request.get("userEmail", "")).lower(),
+                    str(request.get("studentId", "")).lower(),
+                    str(request.get("reason", "")).lower(),
+                    str(request.get("userId", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialize_account_cancellation_request(request))
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
+    return rows
+
+
+def build_admin_appeal_rows(
+    db: dict[str, Any],
+    *,
+    status: str = "all",
+    keyword: str = "",
+) -> list[dict[str, Any]]:
     """Return serialised appeal rows for admin."""
-    rows = []
+    from services._user_service import serialize_appeal
+
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
     for appeal in db.get("appeals", []):
-        rows.append({
-            "id": appeal.get("id", ""),
-            "userId": appeal.get("userId", ""),
-            "reason": appeal.get("reason", ""),
-            "status": appeal.get("status", "pending"),
-            "createdAt": appeal.get("createdAt", ""),
-        })
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+        row_status = str(appeal.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(appeal.get("userEmail", "")).lower(),
+                    str(appeal.get("studentId", "")).lower(),
+                    str(appeal.get("userNickname", "")).lower(),
+                    str(appeal.get("appealType", "")).lower(),
+                    str(appeal.get("title", "")).lower(),
+                    str(appeal.get("content", "")).lower(),
+                    str(appeal.get("targetId", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialize_appeal(db, appeal))
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
     return rows
 
 
@@ -334,72 +465,142 @@ def build_admin_review_rows(
     target_type: str = "",
     status: str = "",
 ) -> list[dict[str, Any]]:
-    """Return combined review rows (posts + comments + uploads)."""
+    """Return combined review rows (posts + comments)."""
+    from services._user_service import find_user_by_id, user_nickname
+
+    normalized_type = target_type.strip().lower() or "post"
+    normalized_status = status.strip().lower() or "pending"
     rows: list[dict[str, Any]] = []
-    # Posts pending review
-    if not target_type or target_type == "post":
+
+    if normalized_type == "post":
         for post in db.get("posts", []):
-            if post.get("reviewStatus") not in ("pending", "rejected"):
+            row_status = str(post.get("reviewStatus", "approved")).strip().lower() or "approved"
+            if normalized_status != "all" and row_status != normalized_status:
                 continue
-            if status and status != "pending":
-                continue
-            rows.append({
-                "id": post.get("id", ""),
-                "type": "post",
-                "title": post.get("title", ""),
-                "content": post.get("content", ""),
-                "authorAlias": post.get("authorAlias", ""),
-                "status": post.get("reviewStatus", "pending"),
-                "riskMarked": bool(post.get("riskMarked")),
-                "createdAt": post.get("createdAt", ""),
-            })
-    # Comments pending review
-    if not target_type or target_type == "comment":
+            author_user = find_user_by_id(
+                db,
+                str(post.get("authorId", "")).strip(),
+                include_deleted=True,
+            )
+            rows.append(
+                {
+                    "id": post.get("id", ""),
+                    "targetType": "post",
+                    "title": post.get("title", ""),
+                    "content": post.get("content", ""),
+                    "authorAlias": post.get("authorAlias", "匿名同学"),
+                    "authorUserId": str(post.get("authorId", "")),
+                    "authorNickname": user_nickname(author_user),
+                    "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                    "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
+                    "createdAt": post.get("createdAt", ""),
+                    "reviewStatus": row_status,
+                    "riskMarked": bool(post.get("riskMarked", False)),
+                    "deleted": bool(post.get("deleted", False)),
+                }
+            )
+        return rows
+
+    if normalized_type == "comment":
         for comment in db.get("comments", []):
-            if comment.get("reviewStatus") not in ("pending", "rejected"):
+            row_status = str(comment.get("reviewStatus", "approved")).strip().lower() or "approved"
+            if normalized_status != "all" and row_status != normalized_status:
                 continue
-            if status and status != "pending":
-                continue
-            rows.append({
-                "id": comment.get("id", ""),
-                "type": "comment",
-                "content": comment.get("content", ""),
-                "authorAlias": comment.get("authorAlias", ""),
-                "status": comment.get("reviewStatus", "pending"),
-                "createdAt": comment.get("createdAt", ""),
-            })
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-    return rows
+            author_user = find_user_by_id(
+                db,
+                str(comment.get("userId", "")).strip(),
+                include_deleted=True,
+            )
+            rows.append(
+                {
+                    "id": comment.get("id", ""),
+                    "targetType": "comment",
+                    "title": f"评论 @ 帖子 {comment.get('postId', '-')}",
+                    "content": comment.get("content", ""),
+                    "authorAlias": comment.get("authorAlias", "匿名同学"),
+                    "authorUserId": str(comment.get("userId", "")),
+                    "authorNickname": user_nickname(author_user),
+                    "authorEmail": str(author_user.get("email", "")) if author_user else "",
+                    "authorStudentId": str(author_user.get("studentId", "")) if author_user else "",
+                    "createdAt": comment.get("createdAt", ""),
+                    "reviewStatus": row_status,
+                    "riskMarked": bool(comment.get("riskMarked", False)),
+                    "deleted": bool(comment.get("deleted", False)),
+                }
+            )
+        return rows
+
+    raise ValueError("type 仅支持 post/comment")
 
 
-def build_admin_user_level_request_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def build_admin_user_level_request_rows(
+    db: dict[str, Any],
+    *,
+    status: str = "all",
+    keyword: str = "",
+) -> list[dict[str, Any]]:
     """Return user level upgrade request rows."""
-    rows = []
-    for req in db.get("userLevelRequests", []):
-        rows.append({
-            "id": req.get("id", ""),
-            "userId": req.get("userId", ""),
-            "requestedLevel": req.get("requestedLevel", 2),
-            "status": req.get("status", "pending"),
-            "createdAt": req.get("createdAt", ""),
-        })
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    from services._user_service import serialize_admin_user_level_request
+
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("userLevelRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        serialized = serialize_admin_user_level_request(db, request)
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(serialized.get("userId", "")).lower(),
+                    str(serialized.get("userEmail", "")).lower(),
+                    str(serialized.get("studentId", "")).lower(),
+                    str(serialized.get("userNickname", "")).lower(),
+                    str(serialized.get("reason", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialized)
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
     return rows
 
 
-def build_admin_post_pin_request_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def build_admin_post_pin_request_rows(
+    db: dict[str, Any],
+    *,
+    status: str = "all",
+    keyword: str = "",
+) -> list[dict[str, Any]]:
     """Return post pin request rows."""
-    rows = []
-    for req in db.get("postPinRequests", []):
-        rows.append({
-            "id": req.get("id", ""),
-            "postId": req.get("postId", ""),
-            "requesterId": req.get("requesterId", ""),
-            "durationMinutes": req.get("durationMinutes", 0),
-            "status": req.get("status", "pending"),
-            "createdAt": req.get("createdAt", ""),
-        })
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
+    from services._user_service import serialize_admin_post_pin_request
+
+    normalized_status = status.strip().lower() or "all"
+    normalized_keyword = keyword.strip().lower()
+    rows: list[dict[str, Any]] = []
+    for request in db.get("postPinRequests", []):
+        row_status = str(request.get("status", "pending")).strip().lower() or "pending"
+        if normalized_status != "all" and row_status != normalized_status:
+            continue
+        serialized = serialize_admin_post_pin_request(db, request)
+        if normalized_keyword:
+            merged = " ".join(
+                [
+                    str(serialized.get("postId", "")).lower(),
+                    str(serialized.get("postTitle", "")).lower(),
+                    str(serialized.get("userId", "")).lower(),
+                    str(serialized.get("userEmail", "")).lower(),
+                    str(serialized.get("userNickname", "")).lower(),
+                    str(serialized.get("reason", "")).lower(),
+                ]
+            )
+            if normalized_keyword not in merged:
+                continue
+        rows.append(serialized)
+    rows.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+    rows.sort(key=lambda item: 0 if item.get("status") == "pending" else 1)
     return rows
 
 
