@@ -18,6 +18,9 @@ jobs:
           channel: stable
           cache: true
 
+      - name: XDYou (traintime_pda) for path dependency
+        run: bash scripts/setup_xdyou.sh
+
       - run: flutter pub get
       - run: flutter analyze
 
@@ -31,6 +34,9 @@ jobs:
         with:
           channel: stable
           cache: true
+
+      - name: XDYou (traintime_pda) for path dependency
+        run: bash scripts/setup_xdyou.sh
 
       - run: flutter pub get
       - run: flutter test

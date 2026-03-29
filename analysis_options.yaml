@@ -5,6 +5,7 @@ analyzer:
     - build/**
     - lib_mobile/**
     - backup_lib/**
+    - packages/traintime_pda/**
 
 linter:
   rules:

@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/user_profile.dart';
 
-class AuthStore {
+class AuthStore extends ChangeNotifier {
   AuthStore._();
 
   static final AuthStore instance = AuthStore._();
@@ -25,16 +26,19 @@ class AuthStore {
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _token = _prefs?.getString(_tokenKey);
+    notifyListeners();
   }
 
   Future<void> saveToken(String token) async {
     _token = token;
     await _prefs?.setString(_tokenKey, token);
+    notifyListeners();
   }
 
   Future<void> clear() async {
     _token = null;
     _currentUser = null;
     await _prefs?.remove(_tokenKey);
+    notifyListeners();
   }
 }

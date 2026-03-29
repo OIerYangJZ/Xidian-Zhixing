@@ -142,6 +142,8 @@ xduWhisperBox/
 │   ├── features/                   # 功能模块（与 lib/features/ 平行独立实现）
 │   ├── main.dart                   # 移动端入口（由 lib/main.dart 通过 kIsWeb 分流调用）
 │   └── lib_mobile.dart            # 移动端 barrel file
+├── packages/                       # 可选本地依赖（gitignore，见 scripts/setup_xdyou.sh）
+│   └── traintime_pda/              # XDYou（Traintime PDA / watermeter）源码，MPL-2.0
 ├── scripts/                        # 部署与构建脚本
 │   ├── build_web_beta.sh           # 内测 Web 构建
 │   ├── build_web_production.sh     # 生产 Web 构建
@@ -151,6 +153,7 @@ xduWhisperBox/
 │   ├── package_release.sh          # 发布包打包
 │   ├── rollback.sh                 # 版本回滚
 │   ├── run_backend_beta.sh         # 内测后端启动
+│   ├── setup_xdyou.sh              # 拉取 traintime_pda 至 packages/（移动端嵌入 XDYou）
 │   └── version.sh                  # 版本信息生成
 ├── .github/
 │   └── workflows/
@@ -207,6 +210,8 @@ server.py (~745行)
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+18 | 2026-03-29 | **校园 Tab 仅登录可见**：`AuthStore` 继承 `ChangeNotifier` 并在 `init`/`saveToken`/`clear` 时 `notifyListeners()`；`GoRouter` 增加 `refreshListenable: AuthStore.instance`；`MobileShell` 用 `ListenableBuilder` 监听登录态，仅 `isAuthenticated` 时展示「校园」Tab，未登录时底部为 3 Tab（首页/消息/我的）并映射 branch 0、1、3；若未登录仍停留在校园 branch 则下一帧切回首页 |
+| 0.1.0+17 | 2026-03-29 | **移动端嵌入 XDYou**：通过 path 依赖引入 `watermeter`（[Traintime PDA](https://github.com/BenderBlog/traintime_pda)，MPL-2.0）；`scripts/setup_xdyou.sh` 拉取源码至 `packages/traintime_pda`（目录已 gitignore）；`lib/mobile/integrations/xdyou_bootstrap.dart` 复现独立应用启动时的本地存储与通知初始化；底部 Tab 增加「校园」路由 `/xdyou` 全屏嵌入 `MyApp`；Dart SDK 提升至 `>=3.8.0`；`analysis_options` 排除 `packages/traintime_pda`；CI 在 `flutter pub get` 前执行 `setup_xdyou.sh` |
 | 0.1.0+12 | 2026-03-27 | **后端模块化拆分**：将 `backend/server.py`（原 3620 行）拆分为职责清晰的模块结构，最终行数 745 行（-79%）；`backend/_globals.py` 作为全局状态单点，配置常量和运行时对象统一管理；`backend/helpers/` 子模块化（`auth_helpers`、`datetime_helpers`、`http_helpers`、`mailer`、`rate_limit`），消除 server.py 中 ~140 行 helpers 函数副本；`backend/services/` 子模块化（`_db_service`、`_user_service`），消除 server.py 中 ~870 行 services 函数副本；`backend/handlers/` 解耦为 8 个独立模块（`_auth_handler`、`_post_handler`、`_comment_handler`、`_message_handler`、`_user_handler`、`_notification_handler`、`_admin_handler`、`_static_handler`、`_upload_handler`），server.py 仅保留路由分发；补充 `services/_db_service.py` 中 handlers 依赖的缺失函数（`list_posts`、`build_admin_*_rows`、`serialize_*`、`build_export_payload`、`public_system_settings`、`build_pagination_meta`）；修复 handlers 与 services 间的循环导入；修复 `_globals.py` 中 `_lazy_proxy` 函数代理 handler 需要的 helpers/services 子模块函数；API `/api/version`、`/api/health`、`/api/channels`、`/api/posts` 测试通过 |
 | 0.1.0+13 | 2026-03-28 | **移动端登录修复**：修复移动端（Android/iOS）无法登录的问题。根本原因是移动端默认 API 地址为 `localhost:8080`，但移动设备上 `localhost` 指向设备自身而非后端服务器；`AppConfig.apiBaseUrl` 移动端默认值从 `http://localhost:8080/api` 改为 `http://81.69.16.134/api`（腾讯云公网 IP，现网生产地址）；`MobileConfig.apiBaseUrl` 同步更新；仍支持通过 `--dart-define=MOBILE_API_BASE_URL=...` 注入真实服务器地址 |
 | 0.1.0+14 | 2026-03-28 | **移动端消息页优化**：① 删除消息页 Tab 栏（「会话」「私信申请」切换），改为直接显示会话列表；② 修复会话界面 AppBar 标题和消息气泡中对方头像显示，改用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 处理相对路径 URL；③ 消息气泡框内显示发送时间（对方消息显示 `HH:mm`，自己消息以半透明文字显示）；④ 删除聊天页的表情发送功能（表情按钮、`_buildEmojiBar`、`_toggleEmoji`、`_onTapEmoji` 等全部移除） |
@@ -242,7 +247,8 @@ server.py (~745行)
 | 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；长按气泡 WeChat 风格浮层（复制/转发/详情/回复/撤回）；消息详情显示秒级时间；屏蔽/解除屏蔽入口；批量选中删除；转发到联系人会话 | 仅移动端 |
 | 匿名头像点击提示 | 非自己帖子头像点击弹出 SnackBar「暂不支持查看该用户主页」；自己帖子点击跳转 `/profile` | ~~已废弃~~ 现已实现：非匿名帖点击头像跳转 `/user/:id` 公开主页，支持关注和私信 |
 | 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
+| 校园 Tab（XDYou 嵌入） | 底部导航「校园」嵌入完整 XDYou（课表/成绩/教务等）；**仅已登录树洞账号时显示该 Tab**；依赖 `packages/traintime_pda`，需运行 `scripts/setup_xdyou.sh` | 仅移动端（`lib/mobile/features/xdyou/`） |
 
 ---
 
-*最后更新：2026-03-28（v0.1.0+16）*
+*最后更新：2026-03-29（v0.1.0+18）*

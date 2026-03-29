@@ -23,6 +23,8 @@ import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
+import '../../features/xdyou/xdyou_host_page_stub.dart'
+    if (dart.library.io) '../../features/xdyou/xdyou_host_page.dart';
 import '../../features/admin/admin_login_page.dart';
 import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
 import 'package:xdu_treehole_web/features/legal/terms_of_service_page.dart';
@@ -68,6 +70,7 @@ String? _authGuard(BuildContext context, GoRouterState state) {
 /// 路由配置
 final appRouter = GoRouter(
   initialLocation: '/',
+  refreshListenable: AuthStore.instance,
   redirect: _authGuard,
   routes: [
     // 认证路由（未登录状态）
@@ -88,7 +91,7 @@ final appRouter = GoRouter(
       builder: (context, state) => const LoginPage(),
     ),
 
-    // 主页面（底部 Tab 导航）— 3 tabs: 首页 / 消息 / 我的
+    // 主页面（底部 Tab 导航）— 4 tabs: 首页 / 消息 / 校园(XDYou) / 我的
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MobileShell(navigationShell: navigationShell);
@@ -109,6 +112,15 @@ final appRouter = GoRouter(
             GoRoute(
               path: '/messages',
               builder: (context, state) => const MessagesPage(),
+            ),
+          ],
+        ),
+        // 校园助手（嵌入 XDYou / Traintime PDA）
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: '/xdyou',
+              builder: (context, state) => const XdyouHostPage(),
             ),
           ],
         ),
