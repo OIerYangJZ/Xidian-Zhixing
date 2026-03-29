@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
-import '../../integrations/xdyou_bootstrap.dart';
+import '../../integrations/xdyou_bootstrap_stub.dart'
+    if (dart.library.io) '../../integrations/xdyou_bootstrap.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
