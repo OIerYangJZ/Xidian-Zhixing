@@ -42,6 +42,3 @@ zzzzz.txt
 
 # Old backup
 backup_lib/
-
-# XDYou（traintime_pda）由 scripts/setup_xdyou.sh 拉取；本地可保留 vendor 副本
-packages/traintime_pda/

@@ -1,0 +1,371 @@
+// Copyright 2023-2025 BenderBlog Rodriguez and contributors
+// Copyright 2025 Traintime PDA authors.
+// SPDX-License-Identifier: MPL-2.0 OR Apache-2.0
+
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:styled_widget/styled_widget.dart';
+import 'package:watermeter/model/xidian_ids/classtable.dart';
+import 'package:watermeter/page/classtable/class_add/class_add_window.dart';
+import 'package:watermeter/page/classtable/class_page/class_change_list.dart';
+import 'package:watermeter/page/classtable/class_table_view/class_table_view.dart';
+import 'package:watermeter/page/classtable/classtable_constant.dart';
+import 'package:watermeter/page/classtable/classtable_state.dart';
+import 'package:watermeter/page/classtable/class_page/not_arranged_class_list.dart';
+import 'package:watermeter/page/classtable/class_page/week_choice_view.dart';
+import 'package:watermeter/page/public_widget/toast.dart';
+import 'package:watermeter/repository/network_session.dart';
+import 'package:watermeter/repository/preference.dart' as preference;
+import 'package:watermeter/repository/xidian_ids/classtable_session.dart';
+
+class ContentClassTablePage extends StatefulWidget {
+  const ContentClassTablePage({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _ContentClassTablePageState();
+}
+
+class _ContentClassTablePageState extends State<ContentClassTablePage> {
+  /// Check whether listener is pushed...
+  //bool isPushedListener = false;
+
+  /// A lock of the week choice row.
+  /// When locked, choiceWeek cannot be changed.
+  bool isTopRowLocked = false;
+
+  /// Classtable pageView controller.
+  late PageController pageControl;
+
+  /// Week choice row controller.
+  late PageController rowControl;
+
+  late BoxDecoration decoration;
+  late ClassTableWidgetState classTableState;
+
+  void _switchPage() {
+    setState(() => isTopRowLocked = true);
+    Future.wait([
+      rowControl.animateToPage(
+        classTableState.chosenWeek,
+        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: changePageTime),
+      ),
+      pageControl.animateToPage(
+        classTableState.chosenWeek,
+        curve: Curves.easeInOutCubic,
+        duration: const Duration(milliseconds: changePageTime),
+      ),
+    ]).then((value) => isTopRowLocked = false);
+  }
+
+  @override
+  void dispose() {
+    classTableState.removeListener(_switchPage);
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    classTableState = ClassTableState.of(context)!.controllers;
+
+    pageControl = PageController(
+      initialPage: classTableState.chosenWeek,
+      keepPage: true,
+    );
+
+    /// (weekButtonWidth + 2 * weekButtonHorizontalPadding)
+    /// is the width of the week choose button.
+    rowControl = PageController(
+      initialPage: classTableState.chosenWeek,
+      viewportFraction:
+          (weekButtonWidth + 2 * weekButtonHorizontalPadding) /
+          ClassTableState.of(context)!.constraints.minWidth,
+      keepPage: true,
+    );
+
+    /// Let controllers listen to the currentWeek's change.
+    // if (isPushedListener == false) {
+    classTableState.addListener(_switchPage);
+    //  isPushedListener = true;
+    //}
+
+    /// Init the background.
+    File image = File("${supportPath.path}/${ClassTableFile.decorationName}");
+    decoration = BoxDecoration(
+      image:
+          (preference.getBool(preference.Preference.decorated) &&
+              image.existsSync())
+          ? DecorationImage(
+              image: FileImage(image),
+              fit: BoxFit.cover,
+              opacity: Theme.of(context).brightness == Brightness.dark
+                  ? 0.4
+                  : 1.0,
+            )
+          : null,
+    );
+    super.didChangeDependencies();
+  }
+
+  /// A row shows a series of buttons about the classtable's index.
+  ///
+  /// This is at the top of the classtable. It contains a series of
+  /// buttons which shows the week index, as well as an overview in a 5x5 dot gridview.
+  ///
+  /// When user click on the button, the pageview will show the class table of the
+  /// week the button suggested.
+  Widget _topView() {
+    return SizedBox(
+      /// Related to the overview of the week.
+      height: MediaQuery.sizeOf(context).height >= 500
+          ? topRowHeightBig
+          : topRowHeightSmall,
+
+      child: Container(
+        padding: const EdgeInsets.only(top: 2, bottom: 4),
+        color: Theme.of(context).colorScheme.surface,
+        child: PageView.builder(
+          padEnds: false,
+          controller: rowControl,
+          physics: const ClampingScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          itemCount: classTableState.semesterLength,
+          itemBuilder: (BuildContext context, int index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(
+                horizontal: weekButtonHorizontalPadding,
+              ),
+              child: SizedBox(
+                width: weekButtonWidth,
+                child: Card(
+                  color: Theme.of(context).highlightColor.withValues(
+                    alpha: classTableState.chosenWeek == index ? 0.3 : 0.0,
+                  ),
+                  elevation: 0.0,
+                  child: InkWell(
+                    /// The following themes are the same as the Material 3 Card Radius.
+                    borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                    onTap: () {
+                      if (isTopRowLocked == false) {
+                        classTableState.chosenWeek = index;
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(5),
+                      child: WeekChoiceView(index: index),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(FlutterI18n.translate(context, "classtable.page_title")),
+        leading: BackButton(
+          onPressed: () =>
+              Navigator.of(ClassTableState.of(context)!.parentContext).pop(),
+        ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert),
+            itemBuilder: (BuildContext context) => <PopupMenuItem<String>>[
+              PopupMenuItem<String>(
+                value: 'A',
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    "classtable.popup_menu.not_arranged",
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'B',
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    "classtable.popup_menu.class_changed",
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'C',
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    "classtable.popup_menu.add_class",
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'I',
+                child: Text(
+                  FlutterI18n.translate(
+                    context,
+                    "classtable.popup_menu.refresh_classtable",
+                  ),
+                ),
+              ),
+            ],
+            onSelected: (String action) async {
+              switch (action) {
+                case 'A':
+                  var notArranged = ClassTableState.of(
+                    context,
+                  )!.controllers.notArranged;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return NotArrangedClassList(notArranged: notArranged);
+                      },
+                    ),
+                  );
+                  break;
+                case 'B':
+                  var classChange = ClassTableState.of(
+                    context,
+                  )!.controllers.classChange;
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (BuildContext context) {
+                        return ClassChangeList(classChanges: classChange);
+                      },
+                    ),
+                  );
+                  break;
+                case 'C':
+                  int semesterLength = ClassTableState.of(
+                    context,
+                  )!.controllers.semesterLength;
+                  (ClassDetail, TimeArrangement)? data =
+                      await Navigator.of(
+                        context,
+                      ).push<(ClassDetail, TimeArrangement)>(
+                        MaterialPageRoute(
+                          builder: (BuildContext context) {
+                            return ClassAddWindow(
+                              semesterLength: semesterLength,
+                            );
+                          },
+                        ),
+                      );
+                  if (context.mounted && data != null) {
+                    await ClassTableState.of(
+                      context,
+                    )!.controllers.addUserDefinedClass(data.$1, data.$2);
+                  }
+                  break;
+                case 'I':
+                  bool isAccepted =
+                      await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: Text(
+                            FlutterI18n.translate(
+                              context,
+                              "setting.class_refresh_title",
+                            ),
+                          ),
+                          content: Text(
+                            FlutterI18n.translate(
+                              context,
+                              "setting.class_refresh_content",
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              style: TextButton.styleFrom(
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                foregroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.onPrimary,
+                              ),
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text(
+                                FlutterI18n.translate(context, "cancel"),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text(
+                                FlutterI18n.translate(context, "confirm"),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ) ??
+                      false;
+                  if (context.mounted && isAccepted) {
+                    await classTableState.updateClasstable(context).then((
+                      data,
+                    ) {
+                      if (context.mounted) {
+                        showToast(
+                          context: context,
+                          msg: FlutterI18n.translate(
+                            context,
+                            "classtable.refresh_classtable.success",
+                          ),
+                        );
+                      }
+                    });
+                  }
+              }
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          PreferredSize(
+            preferredSize: Size.fromHeight(
+              MediaQuery.sizeOf(context).height >= 500
+                  ? topRowHeightBig
+                  : topRowHeightSmall,
+            ),
+            child: _topView(),
+          ),
+          DecoratedBox(
+            decoration: decoration,
+            child: _classTablePage(),
+          ).expanded(),
+        ],
+      ),
+    );
+  }
+
+  /// The [_classTablePage] is controlled by [pageControl].
+  Widget _classTablePage() => PageView.builder(
+    scrollDirection: Axis.horizontal,
+    controller: pageControl,
+    onPageChanged: (value) {
+      /// When [pageControl.animateTo] triggered,
+      /// page view will try to refresh the [chosenWeek] everytime the page
+      /// view changed into a new page. Because animateTo will load every page
+      /// it passed.
+      ///
+      /// So that's the [isTopRowLocked] is used for. When week choice row is
+      /// locked, it will not refresh the [chosenWeek]. And when [chosenWeek]
+      /// is equal to the current page, unlock the [isTopRowLocked].
+      if (isTopRowLocked == false) {
+        classTableState.chosenWeek = value;
+      }
+    },
+    itemCount: classTableState.semesterLength,
+    itemBuilder: (context, index) => LayoutBuilder(
+      builder: (context, constraint) =>
+          ClassTableView(constraint: constraint, index: index),
+    ),
+  );
+}
