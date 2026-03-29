@@ -5,12 +5,35 @@
 import 'dart:io';
 
 import 'package:flex_color_scheme/flex_color_scheme.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:get/get.dart';
 import 'package:watermeter/repository/logger.dart';
 import 'package:watermeter/repository/preference.dart' as preference;
 import 'package:watermeter/themes/color_seed.dart';
+
+class _PackageAwareTranslationLoader extends FileTranslationLoader {
+  _PackageAwareTranslationLoader({
+    super.fallbackFile,
+    super.basePath,
+    super.useCountryCode,
+    super.forcedLocale,
+  });
+
+  static const _packageBasePath = 'packages/watermeter/assets/flutter_i18n';
+
+  @override
+  Future<String> loadString(final String fileName, final String extension) async {
+    try {
+      return await super.loadString(fileName, extension);
+    } catch (_) {
+      final packagePath = '$_packageBasePath/$fileName.$extension';
+      log.info('[Locale] Fallback to package asset: $packagePath');
+      return assetBundle.loadString(packagePath, cache: !kDebugMode);
+    }
+  }
+}
 
 class ThemeController extends GetxController {
   late ThemeMode colorState;
@@ -26,7 +49,7 @@ class ThemeController extends GetxController {
     if (_i18nDelegate == null || _cachedLocale != locale) {
       _cachedLocale = locale;
       _i18nDelegate = FlutterI18nDelegate(
-        translationLoader: FileTranslationLoader(
+        translationLoader: _PackageAwareTranslationLoader(
           basePath: 'assets/flutter_i18n',
           fallbackFile: "zh_CN",
           useCountryCode: true,
