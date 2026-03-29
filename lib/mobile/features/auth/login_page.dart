@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import '../../integrations/xdyou_bootstrap.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -46,7 +47,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (!mounted) return;
 
       if (result.verified) {
-        // 登录成功，拉取用户信息后跳转
+        // 登录成功，同步账号密码到 XDYou
+        try {
+          await syncTreeholeCredentialsToXdyou(
+            _identifierController.text.trim(),
+            _passwordController.text,
+          );
+        } catch (_) {}
+
+        // 拉取用户信息后跳转
         try {
           final profile = await ref.read(userRepositoryProvider).fetchProfile();
           AuthStore.instance.setCurrentUser(profile);

@@ -8,6 +8,9 @@ import 'package:watermeter/repository/logger.dart';
 import 'package:watermeter/repository/network_session.dart' as repo_general;
 import 'package:watermeter/repository/notification/notification_registrar.dart';
 import 'package:watermeter/repository/preference.dart' as wm_pref;
+import 'package:watermeter/controller/theme_controller.dart';
+import 'package:get/get.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 bool _xdyouEmbedReady = false;
 
@@ -28,6 +31,12 @@ Future<void> ensureXdyouEmbedInitialized() async {
     cacheOptions: const SharedPreferencesWithCacheOptions(),
   );
   wm_pref.packageInfo = await PackageInfo.fromPlatform();
+
+  // 初始化 GetX ThemeController（必须在 MyApp 构建前完成，否则 i18n 无法加载）
+  if (!Get.isRegistered<ThemeController>()) {
+    Get.put(ThemeController());
+  }
+
   _xdyouEmbedReady = true;
   log.info('XDYou embed: storage ready');
 }
@@ -53,5 +62,17 @@ bool xdyouIsFirstLogin() {
   return u.isEmpty || p.isEmpty;
 }
 
+/// 同步树洞账号密码到 XDYou 登录系统
+Future<void> syncTreeholeCredentialsToXdyou(String username, String password) async {
+  await ensureXdyouEmbedInitialized();
+  wm_pref.setString(wm_pref.Preference.idsAccount, username);
+  wm_pref.setString(wm_pref.Preference.idsPassword, password);
+  log.info('XDYou: synced credentials from treehole');
+}
+
 /// 嵌套在树洞 [MaterialApp.router] 内的 XDYou 根界面（内含独立 [MaterialApp]）。
-Widget buildXdyouApp() => MyApp(isFirst: xdyouIsFirstLogin());
+/// 如果树洞已登录，则跳过 XDYou 的登录页面。
+Widget buildXdyouApp() {
+  final treeHoleLoggedIn = AuthStore.instance.isAuthenticated;
+  return MyApp(isFirst: !treeHoleLoggedIn && xdyouIsFirstLogin());
+}

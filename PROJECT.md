@@ -143,7 +143,7 @@ xduWhisperBox/
 │   ├── main.dart                   # 移动端入口（由 lib/main.dart 通过 kIsWeb 分流调用）
 │   └── lib_mobile.dart            # 移动端 barrel file
 ├── packages/                       # 可选本地依赖（gitignore，见 scripts/setup_xdyou.sh）
-│   └── traintime_pda/              # XDYou（Traintime PDA / watermeter）源码，MPL-2.0
+│   └── traintime_pda/              # XDYou子APP，只需兼容移动端APP
 ├── scripts/                        # 部署与构建脚本
 │   ├── build_web_beta.sh           # 内测 Web 构建
 │   ├── build_web_production.sh     # 生产 Web 构建
@@ -210,6 +210,9 @@ server.py (~745行)
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+21 | 2026-03-29 | **修复 traintime_pda 子 App 中文字体不显示**：`packages/traintime_pda/lib/main.dart` 移除不可靠的 `chinese_font_library` 的 `useSystemChineseFont()` 调用（在嵌套 MaterialApp 场景下 platform channel 返回空字体名导致所有文字无字体渲染）；改为在 `DefaultTextStyle.merge` 中显式指定 `fontFamily: 'Noto Sans SC'`（Android 系统内置思源黑体）；`flutter analyze` 零 error |
+| 0.1.0+20 | 2026-03-29 | `android/gradle.properties` 移除 `TLSv1.1` 和 `TLSv1` 不安全协议，保留 `TLSv1.2`/`TLSv1.3`；`flutter pub get` 确认 `device_calendar` 和 `sprintf` 共 2 个依赖移除生效；**修复 device_calendar 残留源码未清理**：此前 v0.1.0+20 仅删除了 `pubspec.yaml` 中的 `device_calendar` 声明，但 `classtable_state.dart` 的 import 和依赖代码未同步删除，导致 `flutter run` 报 `device_calendar` 包找不到的错误；现已彻底删除 `classtable_state.dart` 中的 `import 'package:device_calendar/device_calendar.dart'`、`import 'package:timezone/data/latest.dart' as tz` 及 `events`/`iCalenderStr`/`outputToCalendar` 三个成员（约 267 行）；`flutter analyze` 零 error；`flutter pub get` 正常 |
+| 0.1.0+19 | 2026-03-29 | **精简 traintime_pda 包（方案 A）**：用户手动删除 `packages/traintime_pda/` 下非源码目录（`android/`、`ios/`、`linux/`、`windows/`、`pigeon_bridge/`、`test/`、`docs/`、`fastlane/`、`tool/`、`.github/`、`.vscode/`、`.flutter/`、`blobs/`、`XDYou-Poster.jpg`）；精简 `assets/` 目录（从 102 文件裁剪至 4 文件：`icon.png` + 3 个 i18n yaml）；`pubspec.yaml` 删除 `flutter_launcher_icons`、`flutter_native_splash` 配置段及对应依赖；`flutter pub get` 确认 `flutter_native_splash` 移除生效；`flutter analyze` 无 error；由于子 App 仅运行于移动端，无需添加 Web 兼容 stub |
 | 0.1.0+18 | 2026-03-29 | **校园 Tab 仅登录可见**：`AuthStore` 继承 `ChangeNotifier` 并在 `init`/`saveToken`/`clear` 时 `notifyListeners()`；`GoRouter` 增加 `refreshListenable: AuthStore.instance`；`MobileShell` 用 `ListenableBuilder` 监听登录态，仅 `isAuthenticated` 时展示「校园」Tab，未登录时底部为 3 Tab（首页/消息/我的）并映射 branch 0、1、3；若未登录仍停留在校园 branch 则下一帧切回首页 |
 | 0.1.0+17 | 2026-03-29 | **移动端嵌入 XDYou**：通过 path 依赖引入 `watermeter`（[Traintime PDA](https://github.com/BenderBlog/traintime_pda)，MPL-2.0）；`scripts/setup_xdyou.sh` 拉取源码至 `packages/traintime_pda`（目录已 gitignore）；`lib/mobile/integrations/xdyou_bootstrap.dart` 复现独立应用启动时的本地存储与通知初始化；底部 Tab 增加「校园」路由 `/xdyou` 全屏嵌入 `MyApp`；Dart SDK 提升至 `>=3.8.0`；`analysis_options` 排除 `packages/traintime_pda`；CI 在 `flutter pub get` 前执行 `setup_xdyou.sh` |
 | 0.1.0+12 | 2026-03-27 | **后端模块化拆分**：将 `backend/server.py`（原 3620 行）拆分为职责清晰的模块结构，最终行数 745 行（-79%）；`backend/_globals.py` 作为全局状态单点，配置常量和运行时对象统一管理；`backend/helpers/` 子模块化（`auth_helpers`、`datetime_helpers`、`http_helpers`、`mailer`、`rate_limit`），消除 server.py 中 ~140 行 helpers 函数副本；`backend/services/` 子模块化（`_db_service`、`_user_service`），消除 server.py 中 ~870 行 services 函数副本；`backend/handlers/` 解耦为 8 个独立模块（`_auth_handler`、`_post_handler`、`_comment_handler`、`_message_handler`、`_user_handler`、`_notification_handler`、`_admin_handler`、`_static_handler`、`_upload_handler`），server.py 仅保留路由分发；补充 `services/_db_service.py` 中 handlers 依赖的缺失函数（`list_posts`、`build_admin_*_rows`、`serialize_*`、`build_export_payload`、`public_system_settings`、`build_pagination_meta`）；修复 handlers 与 services 间的循环导入；修复 `_globals.py` 中 `_lazy_proxy` 函数代理 handler 需要的 helpers/services 子模块函数；API `/api/version`、`/api/health`、`/api/channels`、`/api/posts` 测试通过 |
@@ -251,4 +254,4 @@ server.py (~745行)
 
 ---
 
-*最后更新：2026-03-29（v0.1.0+18）*
+*最后更新：2026-03-29（v0.1.0+21，已修复 traintime_pda 嵌套时中文字体不显示）*

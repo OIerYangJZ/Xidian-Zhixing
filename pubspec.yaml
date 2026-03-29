@@ -1,5 +1,5 @@
 name: xdu_treehole_web
-description: 西电树洞 Web MVP built with Flutter.
+description: See电 - 西电树洞移动端
 publish_to: 'none'
 version: 0.1.0+18
 
@@ -34,3 +34,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - packages/traintime_pda/assets/flutter_i18n/
