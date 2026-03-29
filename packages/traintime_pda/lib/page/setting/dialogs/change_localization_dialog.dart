@@ -31,47 +31,46 @@ class _ChangeLanguageDialogState extends State<ChangeLanguageDialog> {
         color: Theme.of(context).colorScheme.onSurface,
       ),
       content: SingleChildScrollView(
-        child: RadioGroup(
-          groupValue: Localization.values
-              .firstWhere(
-                (index) =>
-                    index.string ==
-                    preference.getString(preference.Preference.localization),
-              )
-              .index,
-          onChanged: (int? value) async {
-            if (value == null) return;
-            await preference
-                .setString(
-                  preference.Preference.localization,
-                  Localization.values[value].string,
-                )
-                .then((value) {
-                  ThemeController toChange = Get.put(ThemeController());
-                  toChange.updateTheme();
-                });
-            
-            // To update course reminders according to new localization
-            await CourseReminderService().cancelAllCourseNotifications();
-            await CourseReminderService().scheduleNotificationsFromCourseData(
-              daysToSchedule:
-                  preference.prefs.getInt('notification_days_to_schedule') ?? 7,
-              minutesBefore:
-                  preference.prefs.getInt('notification_minutes_before') ?? 5,
-            );
-          },
-          child: Column(
-            children: List<Widget>.generate(
-              Localization.values.length,
-              (index) => RadioListTile<int>(
-                title: Text(
-                  FlutterI18n.translate(
-                    context,
-                    Localization.values[index].toShow,
-                  ),
+        child: Column(
+          children: List<Widget>.generate(
+            Localization.values.length,
+            (index) => RadioListTile<int>(
+              title: Text(
+                FlutterI18n.translate(
+                  context,
+                  Localization.values[index].toShow,
                 ),
-                value: index,
               ),
+              value: index,
+              groupValue: Localization.values
+                  .firstWhere(
+                    (item) =>
+                        item.string ==
+                        preference.getString(preference.Preference.localization),
+                  )
+                  .index,
+              onChanged: (int? value) async {
+                if (value == null) return;
+                await preference
+                    .setString(
+                      preference.Preference.localization,
+                      Localization.values[value].string,
+                    )
+                    .then((value) {
+                      ThemeController toChange = Get.put(ThemeController());
+                      toChange.updateTheme();
+                    });
+
+                await CourseReminderService().cancelAllCourseNotifications();
+                await CourseReminderService().scheduleNotificationsFromCourseData(
+                  daysToSchedule:
+                      preference.prefs.getInt('notification_days_to_schedule') ?? 7,
+                  minutesBefore:
+                      preference.prefs.getInt('notification_minutes_before') ?? 5,
+                );
+
+                if (mounted) setState(() {});
+              },
             ),
           ),
         ),

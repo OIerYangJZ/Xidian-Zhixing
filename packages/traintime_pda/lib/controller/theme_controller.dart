@@ -27,6 +27,7 @@ class ThemeController extends GetxController {
       _cachedLocale = locale;
       _i18nDelegate = FlutterI18nDelegate(
         translationLoader: FileTranslationLoader(
+          basePath: 'assets/flutter_i18n',
           fallbackFile: "zh_CN",
           useCountryCode: true,
           forcedLocale: locale,
