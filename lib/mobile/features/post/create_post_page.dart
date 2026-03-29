@@ -10,6 +10,7 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 /// 发帖页 — Instagram 极简风格
 /// 无卡片、无冗余设置项、底部工具栏图标操作
@@ -32,6 +33,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final _anonymousAliasController = TextEditingController();
   bool _isAnonymous = false;
   String _anonymousAlias = '';
+
+  int? _selectedPinDurationMinutes;
+  bool _showPinSelector = false;
 
   final List<XFile> _selectedImages = [];
   final List<String> _uploadedImageIds = [];
@@ -220,6 +224,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         imageUploadIds: _uploadedImageIds,
         useAnonymousAlias: _isAnonymous,
         anonymousAlias: _isAnonymous ? _anonymousAliasController.text : null,
+        pinDurationMinutes: _selectedPinDurationMinutes,
       );
 
       await postRepo.createPost(input);
@@ -278,6 +283,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   bool get _canPublish =>
       _contentController.text.trim().isNotEmpty && !_isPublishing;
+
+  bool get _canPin =>
+      AuthStore.instance.currentUser?.isLevelOneUser ?? false;
 
   @override
   Widget build(BuildContext context) {
@@ -569,12 +577,27 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                             setState(() {
                               _isAnonymous = !_isAnonymous;
                               if (_isAnonymous) {
-                                if (_anonymousAlias.isEmpty) {
-                                  _anonymousAlias = _generateAnonymousAlias();
-                                }
-                                _anonymousAliasController.text =
-                                    _anonymousAlias;
+                                _anonymousAlias = _generateAnonymousAlias();
+                                _anonymousAliasController.text = _anonymousAlias;
+                              } else {
+                                _anonymousAlias = '';
+                                _anonymousAliasController.clear();
                               }
+                            });
+                          },
+                        ),
+                        // 置顶按钮
+                        if (_canPin) _ToolbarIconButton(
+                          icon: _selectedPinDurationMinutes != null
+                              ? Icons.push_pin
+                              : Icons.push_pin_outlined,
+                          isActive: _selectedPinDurationMinutes != null,
+                          onTap: () {
+                            setState(() {
+                              _showPinSelector = !_showPinSelector;
+                              _showChannelSelector = false;
+                              _showTagSelector = false;
+                              _showStatusSelector = false;
                             });
                           },
                         ),
@@ -745,6 +768,70 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             _showTagSelector = false;
           });
         },
+      );
+    }
+
+    if (_showPinSelector) {
+      final pinOptions = [
+        _PinOption(label: '不置顶', minutes: null),
+        _PinOption(label: '置顶 1 天', minutes: 1440),
+        _PinOption(label: '置顶 3 天', minutes: 4320),
+        _PinOption(label: '置顶 7 天', minutes: 10080),
+        _PinOption(label: '置顶 30 天', minutes: 43200),
+      ];
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.push_pin, size: 16, color: MobileTheme.primary),
+                const SizedBox(width: 6),
+                const Text(
+                  '发帖后立即置顶',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: MobileTheme.primary),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: pinOptions.map((opt) {
+                final isSelected = opt.minutes == _selectedPinDurationMinutes;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedPinDurationMinutes = opt.minutes;
+                      _showPinSelector = false;
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? MobileTheme.primary.withValues(alpha: 0.12)
+                          : MobileTheme.background,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                      ),
+                    ),
+                    child: Text(
+                      opt.label,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       );
     }
 
@@ -1274,4 +1361,10 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
       ),
     );
   }
+}
+
+class _PinOption {
+  final String label;
+  final int? minutes;
+  const _PinOption({required this.label, required this.minutes});
 }

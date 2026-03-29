@@ -8,6 +8,8 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 /// 聊天页
 /// 支持消息气泡、时间戳分组、发送消息
@@ -43,6 +45,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _selectMode = false;
   final Set<String> _selectedMessages = {};
   OverlayEntry? _overlayEntry;
+
+  UserProfile? get _currentUser => AuthStore.instance.currentUser;
+  String get _myAvatar => _currentUser?.avatarUrl ?? '';
+  String get _myUserId => _currentUser?.userId ?? '';
 
   @override
   void initState() {
@@ -437,29 +443,33 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
-            // 对方头像
-            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
-              CircleAvatar(
-                radius: 16,
-                backgroundImage: CachedNetworkImageProvider(
-                  widget.peerAvatar!.startsWith('http')
-                      ? widget.peerAvatar!
-                      : AppConfig.resolveUrl(widget.peerAvatar!),
-                ),
-              )
-            else
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                child: Text(
-                  (widget.peerName ?? '用户').substring(0, 1),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: MobileTheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            // 对方头像（可点击进入对方主页）
+            GestureDetector(
+              onTap: widget.peerUserId != null
+                  ? () => context.push('/user/${widget.peerUserId}')
+                  : null,
+              child: widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 16,
+                      backgroundImage: CachedNetworkImageProvider(
+                        widget.peerAvatar!.startsWith('http')
+                            ? widget.peerAvatar!
+                            : AppConfig.resolveUrl(widget.peerAvatar!),
+                      ),
+                    )
+                  : CircleAvatar(
+                      radius: 16,
+                      backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                      child: Text(
+                        (widget.peerName ?? '用户').substring(0, 1),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: MobileTheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+            ),
             const SizedBox(width: 8),
           ],
           Flexible(
@@ -469,8 +479,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               children: [
                 // 消息气泡
                 GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: _selectMode ? () => _toggleSelect(message) : null,
-                  onLongPress: () => _showMessageOverlay(message),
+                  onLongPressStart: (details) => _showMessageOverlay(message, details.globalPosition),
                   child: Container(
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.7,
@@ -527,29 +538,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
           if (isMe) ...[
             const SizedBox(width: 8),
-            // 对方头像
-            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
-              CircleAvatar(
-                radius: 16,
-                backgroundImage: CachedNetworkImageProvider(
-                  widget.peerAvatar!.startsWith('http')
-                      ? widget.peerAvatar!
-                      : AppConfig.resolveUrl(widget.peerAvatar!),
-                ),
-              )
-            else
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                child: Text(
-                  (widget.peerName ?? '我').substring(0, 1),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: MobileTheme.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            // 自己头像（可点击进入个人主页）
+            GestureDetector(
+              onTap: _myUserId.isNotEmpty
+                  ? () => context.push('/user/$_myUserId')
+                  : null,
+              child: _myAvatar.isNotEmpty
+                  ? CircleAvatar(
+                      radius: 16,
+                      backgroundImage: CachedNetworkImageProvider(
+                        _myAvatar.startsWith('http')
+                            ? _myAvatar
+                            : AppConfig.resolveUrl(_myAvatar),
+                      ),
+                    )
+                  : CircleAvatar(
+                      radius: 16,
+                      backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                      child: const Icon(Icons.person, size: 16, color: MobileTheme.primary),
+                    ),
+            ),
           ],
           if (_selectMode)
             GestureDetector(
@@ -580,11 +588,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  void _showMessageOverlay(DirectMessageItem message) {
+  void _showMessageOverlay(DirectMessageItem message, Offset globalPosition) {
     _hideOverlay();
-    final RenderBox? box = context.findRenderObject() as RenderBox?;
-    if (box == null) return;
-    final pos = box.localToGlobal(Offset.zero);
+    HapticFeedback.mediumImpact();
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -595,8 +601,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: Container(color: Colors.transparent),
           ),
           Positioned(
-            left: pos.dx - 30,
-            top: pos.dy - 60,
+            left: globalPosition.dx - 60,
+            top: globalPosition.dy - 70,
             child: _MessageActionBar(
               message: message,
               onCopy: () {

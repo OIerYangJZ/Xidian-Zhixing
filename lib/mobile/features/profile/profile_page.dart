@@ -511,7 +511,11 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
           onLike: () async {
             try {
               final repo = ref.read(postRepositoryProvider);
-              await repo.likePost(post.id);
+              if (post.isLiked) {
+                await repo.unlikePost(post.id);
+              } else {
+                await repo.likePost(post.id);
+              }
               _load();
             } catch (_) {}
           },
@@ -581,7 +585,11 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
           onLike: () async {
             try {
               final repo = ref.read(postRepositoryProvider);
-              await repo.likePost(post.id);
+              if (post.isLiked) {
+                await repo.unlikePost(post.id);
+              } else {
+                await repo.likePost(post.id);
+              }
               _load();
             } catch (_) {}
           },

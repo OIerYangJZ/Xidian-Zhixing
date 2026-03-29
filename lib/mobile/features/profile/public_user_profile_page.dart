@@ -308,7 +308,11 @@ class _PublicUserProfilePageState
                         onLike: () async {
                           try {
                             final repo = ref.read(postRepositoryProvider);
-                            await repo.likePost(post.id);
+                            if (post.isLiked) {
+                              await repo.unlikePost(post.id);
+                            } else {
+                              await repo.likePost(post.id);
+                            }
                             _load();
                           } catch (_) {}
                         },

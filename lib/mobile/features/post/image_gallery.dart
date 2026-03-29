@@ -22,10 +22,10 @@ class ImageGallery extends StatefulWidget {
     required List<String> imageUrls,
     int initialIndex = 0,
   }) {
-    Navigator.of(context).push(
+      Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        barrierColor: Colors.black87,
+        barrierColor: Colors.black,
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,

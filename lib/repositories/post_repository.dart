@@ -468,6 +468,11 @@ class PostRepository {
         .post(ApiEndpoints.postLike(postId), body: const <String, dynamic>{});
   }
 
+  Future<void> unlikePost(String postId) {
+    return _apiClient
+        .post(ApiEndpoints.postLike(postId), body: const <String, dynamic>{});
+  }
+
   Future<FavoriteActionResult> favoritePost(String postId) async {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.postFavorite(postId),

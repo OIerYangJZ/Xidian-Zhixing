@@ -81,15 +81,19 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _handleLike(PostItem post) async {
-    // 乐观更新：先本地更新，API 失败再回滚
+    final wasLiked = post.isLiked;
     final optimistic = post.copyWith(
-      isLiked: !post.isLiked,
-      likeCount: post.likeCount + (post.isLiked ? -1 : 1),
+      isLiked: !wasLiked,
+      likeCount: post.likeCount + (wasLiked ? -1 : 1),
     );
     ref.read(feedControllerProvider.notifier).replacePost(optimistic);
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      await postRepo.likePost(post.id);
+      if (wasLiked) {
+        await postRepo.unlikePost(post.id);
+      } else {
+        await postRepo.likePost(post.id);
+      }
     } catch (_) {
       ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {

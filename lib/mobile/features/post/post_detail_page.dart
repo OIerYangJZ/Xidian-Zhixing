@@ -31,6 +31,7 @@ class PostDetailPage extends ConsumerStatefulWidget {
 
 class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   PostItem? _post;
+  bool _postIsLiked = false;
   List<CommentItem> _comments = [];
   bool _isLoading = true;
   String? _error;
@@ -73,6 +74,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       if (mounted) {
         setState(() {
           _post = post;
+          _postIsLiked = post.isLiked;
           _comments = _buildCommentTree(comments);
           _isLoading = false;
         });
@@ -119,26 +121,31 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Future<void> _handleLike() async {
     if (_isLiking || _post == null) return;
 
-    // 乐观更新
+    final wasLiked = _postIsLiked;
     final previousPost = _post!;
     setState(() {
       _isLiking = true;
       _post = _post!.copyWith(
-        likeCount: _post!.likeCount + 1,
+        likeCount: wasLiked ? _post!.likeCount - 1 : _post!.likeCount + 1,
       );
+      _postIsLiked = !wasLiked;
     });
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      await postRepo.likePost(widget.postId);
+      if (wasLiked) {
+        await postRepo.unlikePost(widget.postId);
+      } else {
+        await postRepo.likePost(widget.postId);
+      }
     } catch (e) {
-      // 回滚
       if (mounted) {
         setState(() {
           _post = previousPost;
+          _postIsLiked = wasLiked;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('点赞失败: $e')),
+          SnackBar(content: Text('操作失败: $e')),
         );
       }
     } finally {
@@ -480,11 +487,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 // 头像
                 GestureDetector(
                   onTap: () {
-                    if (post.isOwnPost) {
-                      context.push('/profile');
-                    } else if (!post.isAnonymous &&
-                        post.authorUserId.isNotEmpty) {
-                      context.push('/user/${post.authorUserId}');
+                    // 匿名帖一律不能通过头像查看主页
+                    if (!post.isAnonymous && post.authorUserId.isNotEmpty) {
+                      if (post.isOwnPost) {
+                        context.push('/profile');
+                      } else {
+                        context.push('/user/${post.authorUserId}');
+                      }
                     }
                   },
                   child: AvatarWidget(
@@ -749,7 +758,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 icon: Icons.favorite_border,
                 activeIcon: Icons.favorite,
                 label: post.likeCount > 0 ? '${post.likeCount}' : '点赞',
-                isActive: false,
+                isActive: _postIsLiked,
                 isLoading: _isLiking,
                 onTap: _handleLike,
               ),
@@ -772,7 +781,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 activeIcon: Icons.chat_bubble,
                 label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
                 isActive: false,
-                onTap: () {},
+                onTap: () {
+                  _scrollController.animateTo(
+                    _scrollController.position.maxScrollExtent,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOut,
+                  );
+                },
               ),
 
               const Spacer(),

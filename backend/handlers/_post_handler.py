@@ -731,6 +731,7 @@ def handle_create_comment(
         "reviewStatus": "approved",
         "riskMarked": risk_marked,
         "isAnonymous": True,
+        "parentId": str(body.get("parentId", "")).strip(),
     }
     db["comments"].append(comment)
 

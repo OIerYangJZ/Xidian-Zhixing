@@ -210,6 +210,7 @@ server.py (~745行)
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+22 | 2026-03-29 | **移动端优化与修复**：① 修复点赞 toggle 逻辑（`likePost`/`unlikePost` 应由前端判断后调用对应 API）；修复主页卡片（PostCard）点赞后再次点击不取消的问题；② 修复楼中楼回复：后端 `handle_create_comment` 创建评论时添加 `parentId` 字段，`_serialize_comment` 已包含此字段，评论树正确渲染；③ 修复帖子详情页底部评论 icon 无响应的问题，改为滚动到评论区；④ 修复私信页自己消息气泡显示对方头像的问题，改为显示当前用户头像；⑤ 修复私信页消息气泡旁头像点击无导航的问题，添加 `GestureDetector` + `context.push('/user/...')`；⑥ 修复私信页长按消息气泡无响应的问题，改用 `onLongPressStart` + `HapticFeedback` + 正确的全局坐标传递；⑦ 新增一级账号发帖置顶功能（`pinDurationMinutes` 选择器，1/3/7/30天选项）；⑧ 统一移动端和 Web 图片浏览器样式（均使用 `barrierColor: Colors.black` + 顶部浮动关闭按钮和页码指示器）；⑨ 修复匿名帖仍可点击头像进入主页的问题，改为匿名帖一律不响应头像点击；⑩ 修复发帖页匿名按钮每次点击随机生成新昵称（而非仅首次开启时生成）；⑪ `PostRepository` 新增 `unlikePost` 方法；⑫ 私信页 ChatPage 新增 `AuthStore.instance.currentUser` 头像获取 |
 | 0.1.0+21 | 2026-03-29 | **修复 traintime_pda 子 App 中文字体不显示**：`packages/traintime_pda/lib/main.dart` 移除不可靠的 `chinese_font_library` 的 `useSystemChineseFont()` 调用（在嵌套 MaterialApp 场景下 platform channel 返回空字体名导致所有文字无字体渲染）；改为在 `DefaultTextStyle.merge` 中显式指定 `fontFamily: 'Noto Sans SC'`（Android 系统内置思源黑体）；`flutter analyze` 零 error |
 | 0.1.0+20 | 2026-03-29 | `android/gradle.properties` 移除 `TLSv1.1` 和 `TLSv1` 不安全协议，保留 `TLSv1.2`/`TLSv1.3`；`flutter pub get` 确认 `device_calendar` 和 `sprintf` 共 2 个依赖移除生效；**修复 device_calendar 残留源码未清理**：此前 v0.1.0+20 仅删除了 `pubspec.yaml` 中的 `device_calendar` 声明，但 `classtable_state.dart` 的 import 和依赖代码未同步删除，导致 `flutter run` 报 `device_calendar` 包找不到的错误；现已彻底删除 `classtable_state.dart` 中的 `import 'package:device_calendar/device_calendar.dart'`、`import 'package:timezone/data/latest.dart' as tz` 及 `events`/`iCalenderStr`/`outputToCalendar` 三个成员（约 267 行）；`flutter analyze` 零 error；`flutter pub get` 正常 |
 | 0.1.0+19 | 2026-03-29 | **精简 traintime_pda 包（方案 A）**：用户手动删除 `packages/traintime_pda/` 下非源码目录（`android/`、`ios/`、`linux/`、`windows/`、`pigeon_bridge/`、`test/`、`docs/`、`fastlane/`、`tool/`、`.github/`、`.vscode/`、`.flutter/`、`blobs/`、`XDYou-Poster.jpg`）；精简 `assets/` 目录（从 102 文件裁剪至 4 文件：`icon.png` + 3 个 i18n yaml）；`pubspec.yaml` 删除 `flutter_launcher_icons`、`flutter_native_splash` 配置段及对应依赖；`flutter pub get` 确认 `flutter_native_splash` 移除生效；`flutter analyze` 无 error；由于子 App 仅运行于移动端，无需添加 Web 兼容 stub |
@@ -248,10 +249,10 @@ server.py (~745行)
 | 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
 | 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
 | 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；长按气泡 WeChat 风格浮层（复制/转发/详情/回复/撤回）；消息详情显示秒级时间；屏蔽/解除屏蔽入口；批量选中删除；转发到联系人会话 | 仅移动端 |
-| 匿名头像点击提示 | 非自己帖子头像点击弹出 SnackBar「暂不支持查看该用户主页」；自己帖子点击跳转 `/profile` | ~~已废弃~~ 现已实现：非匿名帖点击头像跳转 `/user/:id` 公开主页，支持关注和私信 |
+| 匿名头像点击 | 匿名帖不能点击头像进入主页；非匿名帖点击头像进入公开主页（支持关注和私信） | 仅移动端（`lib/mobile/features/`）|
 | 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
 | 校园 Tab（XDYou 嵌入） | 底部导航「校园」嵌入完整 XDYou（课表/成绩/教务等）；**仅已登录树洞账号时显示该 Tab**；依赖 `packages/traintime_pda`，需运行 `scripts/setup_xdyou.sh` | 仅移动端（`lib/mobile/features/xdyou/`） |
 
 ---
 
-*最后更新：2026-03-29（v0.1.0+21，已修复 traintime_pda 嵌套时中文字体不显示）*
+*最后更新：2026-03-29（v0.1.0+22，移动端优化与修复：点赞toggle、楼中楼、评论icon、头像显示、长按菜单、置顶功能、图片浏览器样式统一、匿名帖子头像、匿名昵称随机化）*

@@ -163,10 +163,13 @@ class _PostCardState extends ConsumerState<PostCard> {
     final bool hasUserId = widget.post.authorUserId.isNotEmpty;
     return GestureDetector(
       onTap: () {
-        if (widget.post.isOwnPost) {
-          context.push('/profile');
-        } else if (!isAnon && hasUserId) {
-          context.push('/user/${widget.post.authorUserId}');
+        // 匿名帖一律不能通过头像查看主页
+        if (!isAnon && hasUserId) {
+          if (widget.post.isOwnPost) {
+            context.push('/profile');
+          } else {
+            context.push('/user/${widget.post.authorUserId}');
+          }
         }
       },
       child: AvatarWidget(
