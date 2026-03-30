@@ -95,68 +95,10 @@ class _SettingWindowState extends State<SettingWindow> {
       ),
     ];
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF1F8FB), Color(0xFFEAF3F8)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-          Text.rich(
-            TextSpan(
-              children: [
-                TextSpan(
-                  text: Platform.isIOS || Platform.isMacOS || Platform.isAndroid
-                      ? "XDYou"
-                      : 'Traintime PDA',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const TextSpan(
-                  text: '\nWritten by BenderBlog Rodriguez and contributors',
-                ),
-              ],
-            ),
-          ).padding(horizontal: 8.0),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
           const SizedBox(height: 20),
-          ReXCard(
-            title: _buildListSubtitle(
-              FlutterI18n.translate(context, "setting.about"),
-            ),
-            remaining: const [],
-            bottomRow: Column(
-              children: [
-                ListTile(
-                  title: Text(
-                    FlutterI18n.translate(
-                      context,
-                      "setting.about_this_program",
-                    ),
-                  ),
-                  subtitle: Text(
-                    FlutterI18n.translate(
-                      context,
-                      "setting.version",
-                      translationParams: {
-                        "version":
-                            "${preference.packageInfo.version}+"
-                            "${preference.packageInfo.buildNumber}",
-                      },
-                    ),
-                  ),
-                  onTap: () => context.pushReplacement(const AboutPage()),
-                  trailing: const Icon(Icons.navigate_next),
-                ),
-                const Divider(),
-              ],
-            ),
-          ),
           ReXCard(
             title: _buildListSubtitle(
               FlutterI18n.translate(context, "setting.ui_setting"),
@@ -181,45 +123,6 @@ class _SettingWindowState extends State<SettingWindow> {
                       builder: (context) => const ChangeColorDialog(),
                     );
                   },
-                ),
-                const Divider(),
-                ListTile(
-                  title: Text(
-                    FlutterI18n.translate(
-                      context,
-                      "setting.brightness_setting",
-                    ),
-                  ),
-                  subtitle: Text(
-                    demoBlueModeName[preference.getInt(
-                      preference.Preference.brightness,
-                    )],
-                  ),
-                  trailing: ToggleButtons(
-                    isSelected: List<bool>.generate(
-                      3,
-                      (index) =>
-                          index ==
-                          preference.getInt(preference.Preference.brightness),
-                    ),
-                    onPressed: (int value) {
-                      preference
-                          .setInt(preference.Preference.brightness, value)
-                          .then((value) {
-                            setState(() {
-                              ThemeController toChange = Get.put(
-                                ThemeController(),
-                              );
-                              toChange.updateTheme();
-                            });
-                          });
-                    },
-                    children: const [
-                      Icon(Icons.phone_android_rounded),
-                      Icon(Icons.light_mode_rounded),
-                      Icon(Icons.dark_mode_rounded),
-                    ],
-                  ),
                 ),
                 const Divider(),
                 ListTile(
@@ -250,37 +153,6 @@ class _SettingWindowState extends State<SettingWindow> {
                       });
                     },
                   ),
-                ),
-                const Divider(),
-                ListTile(
-                  title: Text(
-                    FlutterI18n.translate(
-                      context,
-                      "setting.localization_dialog.title",
-                    ),
-                  ),
-                  subtitle: Text(
-                    FlutterI18n.translate(
-                      context,
-                      Localization.values
-                          .firstWhere(
-                            (value) =>
-                                value.string ==
-                                preference.getString(
-                                  preference.Preference.localization,
-                                ),
-                          )
-                          .toShow,
-                    ),
-                  ),
-                  trailing: const Icon(Icons.navigate_next),
-                  onTap: () {
-                    showDialog(
-                      barrierDismissible: false,
-                      context: context,
-                      builder: (context) => const ChangeLanguageDialog(),
-                    );
-                  },
                 ),
               ],
             ),
@@ -919,9 +791,39 @@ class _SettingWindowState extends State<SettingWindow> {
               ],
             ),
           ),
+          ReXCard(
+            title: _buildListSubtitle(
+              FlutterI18n.translate(context, "setting.about"),
+            ),
+            remaining: const [],
+            bottomRow: Column(
+              children: [
+                ListTile(
+                  title: Text(
+                    FlutterI18n.translate(
+                      context,
+                      "setting.about_this_program",
+                    ),
+                  ),
+                  subtitle: Text(
+                    FlutterI18n.translate(
+                      context,
+                      "setting.version",
+                      translationParams: {
+                        "version":
+                            "${preference.packageInfo.version}+"
+                            "${preference.packageInfo.buildNumber}",
+                      },
+                    ),
+                  ),
+                  onTap: () => context.pushReplacement(const AboutPage()),
+                  trailing: const Icon(Icons.navigate_next),
+                ),
+              ],
+            ),
+          ),
         ],
-      ),
-    ).constrained(maxWidth: 600).center().safeArea(top: true),
+      ).constrained(maxWidth: 600).center().safeArea(top: true),
     );
   }
 }

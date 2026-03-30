@@ -18,7 +18,7 @@ extension HomeCardPadding on Widget {
       style: ButtonStyle(
         padding: const WidgetStatePropertyAll(EdgeInsets.zero),
         shape: WidgetStatePropertyAll(
-          RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+          RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(14)),
         ),
         iconColor: WidgetStatePropertyAll(
           Theme.of(context).colorScheme.primary,
@@ -26,10 +26,15 @@ extension HomeCardPadding on Widget {
         iconSize: WidgetStateProperty.all(20),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
           final colorScheme = Theme.of(context).colorScheme;
+          final brightness = Theme.of(context).brightness;
           if (type == HomeCardType.filled) {
-            return colorScheme.surfaceContainerHigh;
+            return brightness == Brightness.light
+                ? Colors.white
+                : colorScheme.surfaceContainerHigh;
           }
-          return colorScheme.surfaceContainerLow;
+          return brightness == Brightness.light
+              ? Colors.white
+              : colorScheme.surfaceContainerLow;
         }),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           final colorScheme = Theme.of(context).colorScheme;

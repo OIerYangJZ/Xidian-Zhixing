@@ -110,17 +110,7 @@ class _MainPageState extends State<MainPage> {
           centerTitle: false,
           expandedHeight: 160,
           pinned: true,
-          surfaceTintColor: Colors.transparent,
           flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFEAF4FA), Color(0xFFF1F8FB)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-            ),
             centerTitle: false,
             titlePadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -174,38 +164,30 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
       ],
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF1F8FB), Color(0xFFEAF3F8)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: RefreshIndicator(
-          onRefresh: () async {
+      body: RefreshIndicator(
+        onRefresh: () async {
+          showToast(
+            context: context,
+            msg: FlutterI18n.translate(context, "homepage.loading_message"),
+          );
+          await update(
+            context: context,
+            sliderCaptcha: (String cookieStr) {
+              return SliderCaptchaClientProvider(
+                cookie: cookieStr,
+              ).solve(context);
+            },
+          );
+          if (context.mounted) {
             showToast(
               context: context,
-              msg: FlutterI18n.translate(context, "homepage.loading_message"),
+              msg: FlutterI18n.translate(context, "homepage.loaded"),
             );
-            await update(
-              context: context,
-              sliderCaptcha: (String cookieStr) {
-                return SliderCaptchaClientProvider(
-                  cookie: cookieStr,
-                ).solve(context);
-              },
-            );
-            if (context.mounted) {
-              showToast(
-                context: context,
-                msg: FlutterI18n.translate(context, "homepage.loaded"),
-              );
-            }
-          },
-          child: ListView(
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            children: [
+          }
+        },
+        child: ListView(
+          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          children: [
             const ClassTableCard().padding(bottom: 8),
             ElectricityCard().padding(bottom: 8),
             SchoolnetCard().padding(bottom: 8),
@@ -224,7 +206,6 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ],
-        ),
         ),
       ),
     );

@@ -771,7 +771,7 @@ setting:
    # 剩下乱七八糟的窗口
    change_color_dialog:
       title: "Color setting"
-      default: "Default"
+      teal: "Teal"
       blue: "Sky Blue"
       deepPurple: "Deep Purple"
       green: "Spring Green"

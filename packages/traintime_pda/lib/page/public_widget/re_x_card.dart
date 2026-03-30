@@ -83,7 +83,9 @@ class ReXCard extends StatelessWidget {
           child: bottomRow,
         ).padding(horizontal: _rem, top: 0.75 * _rem, bottom: _rem),
       ],
-    ).card(elevation: 0);
+    ).card(
+      elevation: 0,
+    );
   }
 }
 

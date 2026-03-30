@@ -727,12 +727,12 @@ setting:
     content: 因為技術限制，用戶需要自行關閉窗口，然後重新打開應用。
   change_color_dialog:
     title: 顏色設置
-    default: 默認顏色
-    blue: 聰明藍
-    deepPurple: 基佬紫
-    green: 春風綠
-    orange: 明日香橙
-    pink: 櫻花粉
+    teal: 青
+    blue: 藍
+    deepPurple: 紫
+    green: 綠
+    orange: 橙
+    pink: 粉
   change_brightness_dialog:
     title: 亮度設置
     follow_setting: 跟隨系統

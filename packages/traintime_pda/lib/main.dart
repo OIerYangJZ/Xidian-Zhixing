@@ -153,8 +153,8 @@ class _MyAppState extends State<MyApp> {
         theme: FlexThemeData.light(
           colors: c.color.first,
           usedColors: 1,
-          surfaceMode: FlexSurfaceMode.highSurfaceLowScaffold,
-          blendLevel: 2,
+          surfaceMode: FlexSurfaceMode.levelSurfacesLowScaffold,
+          blendLevel: 0,
           tabBarStyle: FlexTabBarStyle.forAppBar,
           subThemesData: const FlexSubThemesData(
             interactionEffects: true,

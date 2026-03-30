@@ -761,12 +761,12 @@ setting:
     # 剩下乱七八糟的窗口
     change_color_dialog:
         title: "颜色设置"
-        default: "默认颜色"
-        blue: "聪明蓝"
-        deepPurple: "基佬紫"
-        green: "春风绿"
-        orange: "明日香橙"
-        pink: "樱花粉"
+        teal: "青"
+        blue: "蓝"
+        deepPurple: "紫"
+        green: "绿"
+        orange: "橙"
+        pink: "粉"
     change_brightness_dialog:
         title: "亮度设置"
         follow_setting: "跟随系统"
