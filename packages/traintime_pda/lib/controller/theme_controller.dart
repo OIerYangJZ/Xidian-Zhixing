@@ -80,14 +80,17 @@ class ThemeController extends GetxController {
 
   void updateTheme() {
     // 优先读取树洞主 App 的覆写值（单向覆写）
-    String treeholeBrightness = preference.prefs.getString(_treeholeBrightnessKey) ?? '';
-    String treeholeColor      = preference.prefs.getString(_treeholeColorSeedKey) ?? '';
-    String treeholeLoc        = preference.prefs.getString(_treeholeLocalizeKey) ?? '';
+    final int? treeholeBrightness =
+        preference.prefs.getInt(_treeholeBrightnessKey);
+    final int? treeholeColor =
+        preference.prefs.getInt(_treeholeColorSeedKey);
+    final String treeholeLoc =
+        preference.prefs.getString(_treeholeLocalizeKey) ?? '';
 
     log.info("[ThemeController] Changing color...");
     int index;
-    if (treeholeColor.isNotEmpty) {
-      index = int.tryParse(treeholeColor) ?? 0;
+    if (treeholeColor != null) {
+      index = treeholeColor;
     } else {
       index = preference.getInt(preference.Preference.color);
     }
@@ -95,8 +98,8 @@ class ThemeController extends GetxController {
 
     log.info("[ThemeController] Changing brightness...");
     int brightnessIndex;
-    if (treeholeBrightness.isNotEmpty) {
-      brightnessIndex = int.tryParse(treeholeBrightness) ?? 1;
+    if (treeholeBrightness != null) {
+      brightnessIndex = treeholeBrightness;
     } else {
       brightnessIndex = preference.getInt(preference.Preference.brightness);
     }
