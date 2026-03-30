@@ -189,12 +189,12 @@ class _HomePageState extends ConsumerState<HomePage> {
             // 小红书风格 AppBar：频道选择器 + 排序 + 操作按钮全部在顶部
             SliverAppBar(
               pinned: true,
-              expandedHeight: 56,
+              expandedHeight: 50,
               backgroundColor: MobileTheme.surface,
               elevation: 0,
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
-              toolbarHeight: 56,
+              toolbarHeight: 50,
               titleSpacing: 0,
               systemOverlayStyle: SystemUiOverlayStyle.dark,
               title: Row(
@@ -254,7 +254,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           .switchChannel(channel);
                     },
                     child: Container(
-                      width: 40,
+                      width: 60,
                       height: 40,
                       decoration: BoxDecoration(
                         color: MobileTheme.background,
@@ -277,11 +277,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.search, size: 22),
+                  icon: const Icon(Icons.search, size: 24),
                   onPressed: () => context.push('/search'),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 22),
+                  icon: const Icon(Icons.notifications_outlined, size: 24),
                   onPressed: () => context.push('/notifications'),
                 ),
                 const SizedBox(width: 4),
@@ -632,7 +632,7 @@ class _CompactSortOption extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          size: 16,
+          size: 20,
           color: isSelected ? MobileTheme.primary : MobileTheme.textTertiary,
         ),
       ),

@@ -71,3 +71,47 @@ class SearchHistoryNotifier extends StateNotifier<List<String>> {
     state = [];
   }
 }
+
+/// 返回键处理器注册器（供 RootBackButtonDispatcher 使用）
+/// Shell 在 initState 时注册，路由器在收到系统返回键时调用
+final mobileBackHandlerProvider = StateNotifierProvider<MobileBackHandlerNotifier, MobileBackHandlerState>((ref) {
+  return MobileBackHandlerNotifier();
+});
+
+class MobileBackHandlerState {
+  final int currentBranch;
+  final bool isLoggedIn;
+  final void Function(int branch) handler;
+
+  const MobileBackHandlerState({
+    this.currentBranch = 0,
+    this.isLoggedIn = false,
+    required this.handler,
+  });
+
+  MobileBackHandlerState copyWith({
+    int? currentBranch,
+    bool? isLoggedIn,
+    void Function(int branch)? handler,
+  }) {
+    return MobileBackHandlerState(
+      currentBranch: currentBranch ?? this.currentBranch,
+      isLoggedIn: isLoggedIn ?? this.isLoggedIn,
+      handler: handler ?? this.handler,
+    );
+  }
+}
+
+class MobileBackHandlerNotifier extends StateNotifier<MobileBackHandlerState> {
+  MobileBackHandlerNotifier() : super(const MobileBackHandlerState(handler: _noopHandler));
+
+  static void _noopHandler(int branch) {}
+
+  void register(void Function(int branch) handler) {
+    state = state.copyWith(handler: handler);
+  }
+
+  void updateState({required int currentBranch, required bool isLoggedIn}) {
+    state = state.copyWith(currentBranch: currentBranch, isLoggedIn: isLoggedIn);
+  }
+}

@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -68,7 +68,7 @@ class MobileShell extends ConsumerStatefulWidget {
 }
 
 class _MobileShellState extends ConsumerState<MobileShell>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   /// 记录是否已提示"再按一次退出"
   bool _backHintShown = false;
 
@@ -83,12 +83,14 @@ class _MobileShellState extends ConsumerState<MobileShell>
   /// 当前活跃 display index（用于同步 PageView）
   int _currentDisplayIndex = 0;
 
-  /// 当前是否由 PageView 驱动的切换（避免循环触发）
-  bool _isPageViewScrolling = false;
+  /// 缓存当前登录态和 branch（用于在回调中访问最新值）
+  bool _loggedIn = false;
+  int _currentBranch = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     _currentDisplayIndex = widget.navigationShell.currentIndex;
     _pageController = PageController(initialPage: _currentDisplayIndex);
@@ -102,6 +104,14 @@ class _MobileShellState extends ConsumerState<MobileShell>
     );
 
     BottomNavVisibilityNotifier.instance.addListener(_onNavVisibilityChanged);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // App 切回前台时重置退出提示状态
+    if (state == AppLifecycleState.resumed) {
+      _backHintShown = false;
+    }
   }
 
   void _onNavVisibilityChanged() {
@@ -126,51 +136,72 @@ class _MobileShellState extends ConsumerState<MobileShell>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     BottomNavVisibilityNotifier.instance.removeListener(_onNavVisibilityChanged);
     _pageController.dispose();
     _navAnimController.dispose();
     super.dispose();
   }
 
-  /// 切换到指定 Tab（由底部栏点击或 PageView 滑动触发）
-  void _switchToTab(int displayIndex, {bool fromPageView = false}) {
+  /// 切换到指定 Tab
+  void _switchToTab(int displayIndex) {
     if (displayIndex == _currentDisplayIndex) return;
 
-    if (fromPageView) {
-      _isPageViewScrolling = true;
-      _currentDisplayIndex = displayIndex;
-    } else {
-      _currentDisplayIndex = displayIndex;
-      if (_pageController.hasClients) {
-        _pageController.jumpToPage(displayIndex);
-      }
-    }
+    _currentDisplayIndex = displayIndex;
 
-    final loggedIn = AuthStore.instance.isAuthenticated;
-    final target = MobileShell._branchIndexForDisplay(loggedIn, displayIndex);
+    final target = MobileShell._branchIndexForDisplay(_loggedIn, displayIndex);
 
-    // 延迟到当前帧结束后执行，避免 PageView 动画未完成时 goBranch 被 GoRouter 拒绝
-    SchedulerBinding.instance.addPostFrameCallback((_) {
+    widget.navigationShell.goBranch(
+      target,
+      initialLocation: target == widget.navigationShell.currentIndex,
+    );
+  }
+
+  /// PageView 滑动结束后，同步 GoRouter 路由状态
+  void _onPageViewIdle(int index) {
+    _currentDisplayIndex = index;
+
+    final target = MobileShell._branchIndexForDisplay(_loggedIn, index);
+    if (target == widget.navigationShell.currentIndex) return;
+
+    widget.navigationShell.goBranch(
+      target,
+      initialLocation: false,
+    );
+
+    // GoRouter 更新 navigationShell.currentIndex 后，同步 PageView
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      widget.navigationShell.goBranch(
-        target,
-        initialLocation: target == widget.navigationShell.currentIndex,
-      );
+      final expectedDisplay =
+          MobileShell._displayIndexForBranch(_loggedIn, target);
+      if (_pageController.hasClients &&
+          _pageController.page?.round() != expectedDisplay) {
+        _pageController.jumpToPage(expectedDisplay);
+      }
     });
   }
 
-  /// PageView 滑动结束回调
-  void _onPageViewChanged(int index) {
-    _currentDisplayIndex = index;
-    _isPageViewScrolling = false;
-    _switchToTab(index, fromPageView: true);
+  /// 退出应用
+  void _exitApp() {
+    if (Platform.isAndroid) {
+      SystemNavigator.pop();
+    } else {
+      exit(0);
+    }
   }
 
-  /// 处理硬件/系统返回键
-  Future<void> _handleBackPress(int branch) async {
+  /// 滚动首页到顶部
+  void _scrollHomeToTop() {
+    ref.read(scrollToTopTriggerProvider.notifier).state =
+        DateTime.now().millisecondsSinceEpoch;
+  }
+
+  /// 处理返回键（使用传入的 branch 值，而非闭包捕获）
+  void _handleBackPress(int branch) {
     if (!mounted) return;
 
     if (branch == 0) {
+      // 首页：检查 Navigator 是否可 pop（是否有子页面）
       final navigator = Navigator.of(context);
       if (navigator.canPop()) {
         navigator.pop();
@@ -178,36 +209,23 @@ class _MobileShellState extends ConsumerState<MobileShell>
       }
 
       if (_backHintShown) {
-        exit(0);
+        _exitApp();
       } else {
         _backHintShown = true;
         _scrollHomeToTop();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('再按一次退出应用'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        _showExitHint();
         Future<void>.delayed(const Duration(seconds: 3), () {
           if (mounted) _backHintShown = false;
         });
       }
     } else {
+      // 消息/校园/我的：第一次切回首页，第二次退出
       if (_backHintShown) {
-        exit(0);
+        _exitApp();
       } else {
         _backHintShown = true;
-        widget.navigationShell.goBranch(0);
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('再按一次退出应用'),
-            duration: Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        _switchToTab(0);
+        _showExitHint();
         Future<void>.delayed(const Duration(seconds: 3), () {
           if (mounted) _backHintShown = false;
         });
@@ -215,9 +233,17 @@ class _MobileShellState extends ConsumerState<MobileShell>
     }
   }
 
-  void _scrollHomeToTop() {
-    ref.read(scrollToTopTriggerProvider.notifier).state =
-        DateTime.now().millisecondsSinceEpoch;
+  void _showExitHint() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('再按一次退出应用'),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+      ),
+    );
   }
 
   @override
@@ -226,89 +252,116 @@ class _MobileShellState extends ConsumerState<MobileShell>
     final notificationsState = ref.watch(notificationsControllerProvider);
     final notificationUnreadCount = notificationsState.unreadCount;
 
-    return ListenableBuilder(
-      listenable: AuthStore.instance,
-      builder: (context, _) {
-        final loggedIn = AuthStore.instance.isAuthenticated;
-        final branch = widget.navigationShell.currentIndex;
+    // 在 build 最开始同步最新值，确保 PopScope 回调拿到正确的 branch
+    _loggedIn = AuthStore.instance.isAuthenticated;
+    _currentBranch = widget.navigationShell.currentIndex;
 
-        if (!loggedIn && branch == 2) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (context.mounted) widget.navigationShell.goBranch(0);
-          });
+    final displayIndex =
+        MobileShell._displayIndexForBranch(_loggedIn, _currentBranch);
+
+    // 保持 PageView 同步
+    final currentPage = _pageController.hasClients
+        ? (_pageController.page?.round() ?? 0)
+        : 0;
+    if (currentPage != displayIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) {
+          _pageController.jumpToPage(displayIndex);
         }
+      });
+    }
 
-        // 计算当前 display index
-        int displayIndex = MobileShell._displayIndexForBranch(loggedIn, branch);
+    if (!_loggedIn && _currentBranch == 2) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.navigationShell.goBranch(0);
+      });
+    }
 
-        // 保持 PageView 同步（用户通过底部栏点击切换时）
-        if (!_isPageViewScrolling && _pageController.hasClients) {
-          final currentPage = _pageController.page?.round() ?? 0;
-          if (currentPage != displayIndex) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted && _pageController.hasClients) {
-                _pageController.jumpToPage(displayIndex);
-              }
-            });
-          }
-        }
+    // 在 PopScope 构建时获取最新 branch，传递给回调
+    final branchForCallback = _currentBranch;
 
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, result) async {
-            if (didPop) return;
-            await _handleBackPress(branch);
-          },
-          child: Scaffold(
-            body: _TabBody(
-              pageController: _pageController,
-              tabCount: loggedIn ? 4 : 3,
-              onPageChanged: _onPageViewChanged,
-            ),
-            bottomNavigationBar: _BottomNavBar(
-              currentIndex: displayIndex,
-              messageUnreadCount: messageUnreadCount,
-              notificationUnreadCount: notificationUnreadCount,
-              loggedIn: loggedIn,
-              onTap: (index) => _switchToTab(index),
-              slideAnim: _navSlideAnim,
-            ),
-          ),
-        );
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) return;
+        // 直接调用，不 await，避免异步丢失
+        _handleBackPress(branchForCallback);
       },
+      child: Scaffold(
+        body: _TabBody(
+          pageController: _pageController,
+          tabCount: _loggedIn ? 4 : 3,
+          onPageIdle: _onPageViewIdle,
+        ),
+        bottomNavigationBar: _BottomNavBar(
+          currentIndex: displayIndex,
+          messageUnreadCount: messageUnreadCount,
+          notificationUnreadCount: notificationUnreadCount,
+          loggedIn: _loggedIn,
+          onTap: _switchToTab,
+          slideAnim: _navSlideAnim,
+        ),
+      ),
     );
   }
 }
 
 /// PageView Tab 内容区
-class _TabBody extends StatelessWidget {
-  final PageController pageController;
-  final int tabCount;
-  final void Function(int) onPageChanged;
-
+class _TabBody extends StatefulWidget {
   const _TabBody({
     required this.pageController,
     required this.tabCount,
-    required this.onPageChanged,
+    required this.onPageIdle,
   });
+
+  final PageController pageController;
+  final int tabCount;
+  final void Function(int) onPageIdle;
+
+  @override
+  State<_TabBody> createState() => _TabBodyState();
+}
+
+class _TabBodyState extends State<_TabBody> {
+  int _lastNotifiedPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _lastNotifiedPage = widget.pageController.initialPage;
+    widget.pageController.addListener(_onPageIdle);
+  }
+
+  @override
+  void dispose() {
+    widget.pageController.removeListener(_onPageIdle);
+    super.dispose();
+  }
+
+  void _onPageIdle() {
+    final page = widget.pageController.page?.round() ?? 0;
+    if (page != _lastNotifiedPage) {
+      _lastNotifiedPage = page;
+      widget.onPageIdle(page);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return PageView.builder(
-      controller: pageController,
-      itemCount: tabCount,
+      controller: widget.pageController,
+      itemCount: widget.tabCount,
       physics: const BouncingScrollPhysics(),
-      onPageChanged: onPageChanged,
       itemBuilder: (context, index) {
-        // index: 0=首页 1=消息 2=校园(登录) 3=我的
-        // 未登录: 0=首页 1=消息 2=我的
         switch (index) {
           case 0:
-            return _HomeTabWrapper(tabCount: tabCount, pageController: pageController);
+            return _HomeTabWrapper(
+              tabCount: widget.tabCount,
+              pageController: widget.pageController,
+            );
           case 1:
             return const MessagesPage();
           case 2:
-            // 登录时显示校园，未登录时显示我的
             final loggedIn = AuthStore.instance.isAuthenticated;
             if (loggedIn) {
               return const XdyouHostPage();
@@ -365,7 +418,6 @@ class _HomeTabWrapperState extends State<_HomeTabWrapper> {
           return false;
         }
 
-        // Overscroll：向上快速滑过顶部时切换到上一个 Tab
         if (notification is OverscrollNotification) {
           if (notification.velocity < -200) {
             final currentPage = widget.pageController.page?.round() ?? 0;
@@ -512,7 +564,6 @@ class _NavItem extends StatelessWidget {
       color: color,
     );
 
-    // 红点 Badge（右上角显示未读数）
     if (badgeCount > 0) {
       iconWidget = Badge(
         isLabelVisible: true,

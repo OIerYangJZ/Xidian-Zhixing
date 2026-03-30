@@ -814,7 +814,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           IconButton(
             icon: const Icon(Icons.share_outlined),
             color: Colors.black87,
-            iconSize: 26,
+            iconSize: 22,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () {
@@ -1134,14 +1134,14 @@ class _ActionItem extends StatelessWidget {
                 )
               : Icon(
                   isActive ? activeIcon : icon,
-                  size: 26,
+                  size: 22,
                   color: effectiveColor,
                 ),
-          const SizedBox(width: 7),
+          const SizedBox(width: 4),
           Text(
             label,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               color: effectiveColor,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
             ),

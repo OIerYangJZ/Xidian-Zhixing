@@ -474,7 +474,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeColor: const Color(0xFFFF2D55),
             onTap: _busy ? null : _handleLike,
           ),
-          const SizedBox(width: 28),
+          const SizedBox(width: 24),
           _ActionButton(
             icon: Icons.star_border,
             activeIcon: Icons.star,
@@ -483,7 +483,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeColor: const Color(0xFFFF9500),
             onTap: _busy ? null : _handleFavorite,
           ),
-          const SizedBox(width: 28),
+          const SizedBox(width: 24),
           _ActionButton(
             icon: Icons.chat_bubble_outline,
             activeIcon: Icons.chat_bubble,
@@ -600,15 +600,15 @@ class _ActionButton extends StatelessWidget {
           children: [
             Icon(
               isActive ? activeIcon : icon,
-              size: 24,
+              size: 22,
               color: effectiveColor,
             ),
             if (count > 0) ...[
-              const SizedBox(width: 5),
+              const SizedBox(width: 4),
               Text(
                 count.toString(),
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 14,
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
