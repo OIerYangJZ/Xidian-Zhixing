@@ -169,8 +169,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleLogin(),
                       decoration: InputDecoration(
-                        hintText: '密码',
-                        labelText: '统一认证密码',
+                        hintText: '统一认证密码',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -187,10 +186,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '请输入密码';
-                        }
-                        if (value.length < 6) {
-                          return '密码至少6位';
+                          return '请输入统一认证密码';
                         }
                         return null;
                       },
@@ -240,7 +236,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 24),
 
               const Text(
-                '普通用户已切换为统一认证登录，不再提供站内注册、邮箱验证和本地找回密码。',
+                '密码仅用于登录验证，不会上传至云端。密码和一站式数据仅存储在本地，用于访问一站式功能，这部分数据不能同步到云端。',
                 style: TextStyle(
                   fontSize: 12,
                   color: MobileTheme.textSecondary,
@@ -248,9 +244,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => context.push('/profile/help-feedback'),
-                child: const Text('帮助与反馈'),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () => context.push('/profile/help-feedback'),
+                  child: const Text('帮助与反馈'),
+                ),
               ),
               const SizedBox(height: 32),
 

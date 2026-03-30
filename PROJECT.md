@@ -319,6 +319,7 @@ lib/mobile/main.dart
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+25 | 2026-03-30 | **登录页 UI 与交互修复**：① 密码输入框 `hintText` 改为"统一认证密码"（与学号框样式一致，均为浅灰 placeholder）；② 登录按钮下方提示文案改为"您的密码信息不会上传至任何服务器，仅存储在手机本地。"；③ 修复「帮助与反馈」按钮被父级 `CrossAxisAlignment.stretch` 撑满宽度导致点击区域异常的问题，包裹 `Align(alignment: Alignment.center)` 恢复自然宽度；`flutter analyze` 零 error；**删除注册功能**：移除移动端 `register_page.dart` 文件、`lib_mobile.dart` 中的 export 及 `app_router.dart` 中 `/auth/register` 路由；`flutter analyze` 零 error |
 | 0.1.0+24 | 2026-03-30 | **树洞→XDYou 状态同步**：① 新建 `AppSettingsStore`（`lib/mobile/core/state/app_settings_store.dart`）管理主 App 主题亮度（`ThemeMode`）和语言（`Locale`）的持久化，单例模式；② `xdyou_bootstrap.dart` 新增 `TreeholeSharedKeys` 常量类（`treehole_brightness` / `treehole_color_seed` / `treehole_localization`）和三个同步函数（`syncTreeholeThemeToXdyou` / `syncTreeholeLanguageToXdyou` / `syncAllToXdyou`）；③ `ThemeController` 的 `updateTheme()` 优先读取 `treehole_*` 覆写 key，fallback 到 XDYou 原生偏好，实现单向覆写；④ `settings_main_page.dart` 新增「外观」区块，支持切换主题（跟随系统/浅色/深色）和语言（简体中文/繁體中文/English）；⑤ 登录页改用 `syncAllToXdyou` 一键同步全部状态；⑥ `main.dart` 初始化 `AppSettingsStore` 并驱动 `MaterialApp.router` 的 `themeMode`；`flutter analyze` 零 error |
 | 0.1.0+23 | 2026-03-30 | **移动端帖子详情页优化**：① 将点赞/收藏/评论/分享操作栏从页面底部 Column 移至帖子内容与评论区之间（`_buildActionBar()` + `GlobalKey` 精确定位评论区）；评论区跳转逻辑改为 `_scrollToComments()` → `Scrollable.ensureVisible` 滚动到评论区标题；② 将表情输入框从 `CommentInputBar` 内部拆分独立为 `EmojiPickerBar` 组件；`PostDetailPage` 自己管理 `_showEmoji` 状态，`bottomNavigationBar` 中 `EmojiPickerBar` 位于 `CommentInputBar` 上方，弹出时从页面最底部往上展开；`_CommentInputBarState.insertEmoji()` 暴露给父组件调用；③ 修复表情栏展开时收起键盘（`_FocusScope.of(context).unfocus()`），防止键盘和表情栏同时出现导致布局空白；④ 评论头像点击添加 `HitTestBehavior.opaque`，修复点击不跳转个人主页的问题；`flutter analyze` 零 error |
 | 0.1.0+21 | 2026-03-29 | **修复 traintime_pda 子 App 中文字体不显示**：`packages/traintime_pda/lib/main.dart` 移除不可靠的 `chinese_font_library` 的 `useSystemChineseFont()` 调用（在嵌套 MaterialApp 场景下 platform channel 返回空字体名导致所有文字无字体渲染）；改为在 `DefaultTextStyle.merge` 中显式指定 `fontFamily: 'Noto Sans SC'`（Android 系统内置思源黑体）；`flutter analyze` 零 error |
@@ -358,4 +359,4 @@ lib/mobile/main.dart
 
 ---
 
-*最后更新：2026-03-30（v0.1.0+24，全面更新 README.md 和 PROJECT.md：新增移动端专属功能章节、更新目录结构（含 lib/mobile/ 详细展开和 traintime_pda 子模块）、新增移动端模块架构图（含 AppSettingsStore → XDYou 同步流向）、扩充未跨端适配功能表（新增 XduLoginPage、AppSettingsStore、XDYou 集成层、EmojiPickerBar、CommentInputBar API 等 5 项）；README.md 全面重写：新增特性说明、完整目录结构、跨端架构说明、API 文档扩充（阅读量端点）、环境变量说明、部署说明）*
+*最后更新：2026-03-30（v0.1.0+25，登录页 UI 与交互修复：密码框 placeholder 改为"统一认证密码"、提示文案改为本地存储说明、修复帮助与反馈按钮点击区域问题）*

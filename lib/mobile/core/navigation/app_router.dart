@@ -39,6 +39,8 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   final isAuthRoute = state.matchedLocation.startsWith('/auth');
   final isAdminRoute = state.matchedLocation.startsWith('/admin');
   final isAdminLoginRoute = state.matchedLocation == '/admin/login';
+  final isPublicRoute = state.matchedLocation == '/profile/help-feedback' ||
+      state.matchedLocation.startsWith('/legal/');
 
   // 如果是管理员路由
   if (isAdminRoute) {
@@ -59,8 +61,8 @@ String? _authGuard(BuildContext context, GoRouterState state) {
     return null;
   }
 
-  // 其他路由需要登录
-  if (!isLoggedIn) {
+  // 其他路由需要登录（公开路由除外）
+  if (!isLoggedIn && !isPublicRoute) {
     return '/auth/login';
   }
 
@@ -76,10 +78,6 @@ final appRouter = GoRouter(
     // 认证路由（未登录状态）
     GoRoute(
       path: '/auth/login',
-      builder: (context, state) => const LoginPage(),
-    ),
-    GoRoute(
-      path: '/auth/register',
       builder: (context, state) => const LoginPage(),
     ),
     GoRoute(
