@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +12,20 @@ import 'package:watermeter/repository/preference.dart' as wm_pref;
 import 'package:watermeter/controller/theme_controller.dart';
 import 'package:get/get.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/mobile/core/state/app_settings_store.dart';
+import 'package:xdu_treehole_web/mobile/integrations/xdyou_sync_bridge.dart';
+
+/// 树洞主 App → XDYou 子 App 共享的 SharedPreferences key 常量。
+/// 主 App 将状态写入这些 key，XDYou 的 ThemeController 优先读取并覆写原生设置。
+abstract class TreeholeSharedKeys {
+  // 主题设置
+  /// 0=system, 1=light, 2=dark（对应 Flutter ThemeMode.index）
+  static const String brightness    = 'treehole_brightness';
+  /// 0-5，颜色种子索引（对应 XDYou pdaColorScheme）
+  static const String colorSeed     = 'treehole_color_seed';
+  /// 'zh_CN' / 'zh_TW' / 'en_US'
+  static const String localization  = 'treehole_localization';
+}
 
 bool _xdyouEmbedReady = false;
 
@@ -36,6 +51,18 @@ Future<void> ensureXdyouEmbedInitialized() async {
   if (!Get.isRegistered<ThemeController>()) {
     Get.put(ThemeController());
   }
+
+  // 将同步函数注册到 AppSettingsStore（打破循环 import）
+  registerXdyouSyncFunctions(
+    syncTheme: syncTreeholeThemeToXdyou,
+    syncLocale: syncTreeholeLanguageToXdyou,
+  );
+
+  // 注册同步函数到桥接层（打破 xdyou_bootstrap ↔ app_settings_store 循环 import）
+  registerXdyouSyncFunctions(
+    syncTheme: syncTreeholeThemeToXdyou,
+    syncLocale: syncTreeholeLanguageToXdyou,
+  );
 
   _xdyouEmbedReady = true;
   log.info('XDYou embed: storage ready');
@@ -68,6 +95,38 @@ Future<void> syncTreeholeCredentialsToXdyou(String username, String password) as
   wm_pref.setString(wm_pref.Preference.idsAccount, username);
   wm_pref.setString(wm_pref.Preference.idsPassword, password);
   log.info('XDYou: synced credentials from treehole');
+}
+
+/// 将树洞主题设置同步到 XDYou SharedPreferences（覆盖 XDYou 原生 key）
+Future<void> syncTreeholeThemeToXdyou() async {
+  await ensureXdyouEmbedInitialized();
+  final brightness = AppSettingsStore.instance.xdyouBrightness;
+  final colorSeed  = AppSettingsStore.instance.xdyouColorSeed;
+  await wm_pref.setInt(wm_pref.Preference.brightness, brightness);
+  await wm_pref.setInt(wm_pref.Preference.color, colorSeed);
+  if (Get.isRegistered<ThemeController>()) {
+    Get.find<ThemeController>().updateTheme();
+  }
+  log.info('XDYou: synced theme brightness=$brightness colorSeed=$colorSeed');
+}
+
+/// 将树洞语言设置同步到 XDYou SharedPreferences
+Future<void> syncTreeholeLanguageToXdyou() async {
+  await ensureXdyouEmbedInitialized();
+  final loc = AppSettingsStore.instance.xdyouLocalization;
+  await wm_pref.setString(wm_pref.Preference.localization, loc);
+  if (Get.isRegistered<ThemeController>()) {
+    Get.find<ThemeController>().updateTheme();
+  }
+  log.info('XDYou: synced language=$loc');
+}
+
+/// 一键同步全部（登录时调用）
+Future<void> syncAllToXdyou(String username, String password) async {
+  await syncTreeholeCredentialsToXdyou(username, password);
+  await syncTreeholeThemeToXdyou();
+  await syncTreeholeLanguageToXdyou();
+  log.info('XDYou: synced all settings from treehole');
 }
 
 /// 嵌套在树洞 [MaterialApp.router] 内的 XDYou 根界面（内含独立 [MaterialApp]）。

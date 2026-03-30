@@ -39,12 +39,19 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   bool _isFavoriting = false;
   bool _isPostingComment = false;
   bool _isFollowing = false;
+  bool _showEmoji = false;
 
   // 回复状态
   CommentItem? _replyingTo;
 
   // 用于键盘弹起时自动滚动到底部
   final ScrollController _scrollController = ScrollController();
+
+  // 用于滚动到评论区
+  final GlobalKey _commentsSectionKey = GlobalKey();
+
+  // 用于操作评论输入框
+  final GlobalKey<dynamic> _commentInputKey = GlobalKey();
 
   @override
   void dispose() {
@@ -326,6 +333,36 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     }
   }
 
+  void _scrollToComments() {
+    final keyContext = _commentsSectionKey.currentContext;
+    if (keyContext != null) {
+      Scrollable.ensureVisible(
+        keyContext,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+      );
+    }
+  }
+
+  void _toggleEmoji() {
+    // 收起键盘，防止键盘和表情栏同时出现导致布局空白
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _showEmoji = !_showEmoji;
+    });
+  }
+
+  void _onEmojiTap(String emoji) {
+    // 通过 GlobalKey 找到 CommentInputBar 内部状态，调用 insertEmoji
+    final inputState = _commentInputKey.currentState;
+    if (inputState != null) {
+      // dynamic call — insertEmoji 是 _CommentInputBarState 的公开方法
+      // ignore: avoid_dynamic_calls
+      inputState.insertEmoji(emoji);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -353,16 +390,30 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   ? _buildEmptyView()
                   : _buildContent(),
       bottomNavigationBar: _post != null && _post!.allowComment
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_replyingTo != null) _buildReplyBanner(),
-                CommentInputBar(
-                  onSubmit: _handleSubmitComment,
-                  autofocus: false,
-                  scrollController: _scrollController,
+          ? Container(
+              decoration: const BoxDecoration(
+                color: MobileTheme.surface,
+                border: Border(
+                  top: BorderSide(color: MobileTheme.divider, width: 0.5),
                 ),
-              ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_replyingTo != null) _buildReplyBanner(),
+                    CommentInputBar(
+                      key: _commentInputKey,
+                      onSubmit: _handleSubmitComment,
+                      autofocus: false,
+                      scrollController: _scrollController,
+                      onEmojiToggle: _toggleEmoji,
+                    ),
+                    if (_showEmoji) EmojiPickerBar(onEmojiTap: _onEmojiTap),
+                  ],
+                ),
+              ),
             )
           : null,
     );
@@ -456,6 +507,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   // 帖子内容
                   _buildPostContent(),
 
+                  // 操作栏：点赞/收藏/评论/分享
+                  _buildActionBar(),
+
+                  const Divider(height: 1),
+
                   // 评论区
                   _buildCommentsSection(),
                 ],
@@ -463,9 +519,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
           ),
         ),
-
-        // 底部操作栏
-        _buildBottomActions(),
       ],
     );
   }
@@ -685,6 +738,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   Widget _buildCommentsSection() {
     return Container(
+      key: _commentsSectionKey,
       color: MobileTheme.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -737,80 +791,65 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     );
   }
 
-  Widget _buildBottomActions() {
+  Widget _buildActionBar() {
     final post = _post!;
 
     return Container(
-      decoration: const BoxDecoration(
-        color: MobileTheme.surface,
-        border: Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
-            children: [
-              // 点赞
-              _ActionItem(
-                icon: Icons.favorite_border,
-                activeIcon: Icons.favorite,
-                label: post.likeCount > 0 ? '${post.likeCount}' : '点赞',
-                isActive: _postIsLiked,
-                isLoading: _isLiking,
-                onTap: _handleLike,
-              ),
-              const SizedBox(width: 20),
-
-              // 收藏
-              _ActionItem(
-                icon: Icons.star_border,
-                activeIcon: Icons.star,
-                label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '收藏',
-                isActive: post.isFavorited,
-                isLoading: _isFavoriting,
-                onTap: _handleFavorite,
-              ),
-              const SizedBox(width: 20),
-
-              // 评论
-              _ActionItem(
-                icon: Icons.chat_bubble_outline,
-                activeIcon: Icons.chat_bubble,
-                label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
-                isActive: false,
-                onTap: () {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                },
-              ),
-
-              const Spacer(),
-
-              // 分享
-              IconButton(
-                icon: const Icon(Icons.share_outlined),
-                color: MobileTheme.textSecondary,
-                iconSize: 22,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(
-                    text: '查看西电树洞帖子: ${widget.postId}',
-                  ));
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('链接已复制到剪贴板')),
-                  );
-                },
-              ),
-            ],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          // 点赞
+          _ActionItem(
+            icon: Icons.favorite_border,
+            activeIcon: Icons.favorite,
+            label: post.likeCount > 0 ? '${post.likeCount}' : '点赞',
+            isActive: _postIsLiked,
+            isLoading: _isLiking,
+            onTap: _handleLike,
           ),
-        ),
+          const SizedBox(width: 20),
+
+          // 收藏
+          _ActionItem(
+            icon: Icons.star_border,
+            activeIcon: Icons.star,
+            label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '收藏',
+            isActive: post.isFavorited,
+            isLoading: _isFavoriting,
+            onTap: _handleFavorite,
+          ),
+          const SizedBox(width: 20),
+
+          // 评论
+          _ActionItem(
+            icon: Icons.chat_bubble_outline,
+            activeIcon: Icons.chat_bubble,
+            label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
+            isActive: false,
+            onTap: () {
+              _scrollToComments();
+            },
+          ),
+
+          const Spacer(),
+
+          // 分享
+          IconButton(
+            icon: const Icon(Icons.share_outlined),
+            color: MobileTheme.textSecondary,
+            iconSize: 22,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            onPressed: () {
+              Clipboard.setData(ClipboardData(
+                text: '查看西电树洞帖子: ${widget.postId}',
+              ));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('链接已复制到剪贴板')),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -978,6 +1017,7 @@ class _CommentTile extends StatelessWidget {
               ),
               // 头像
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: comment.authorUserId.isNotEmpty
                     ? () => context.push('/user/${comment.authorUserId}')
                     : null,

@@ -25,17 +25,15 @@ class BorrowInfoCard extends StatelessWidget {
     return [
       CachedNetworkImage(
         imageUrl: toUse.imageUrl ?? "",
-        placeholder: (context, url) => Image.asset(
-          "assets/art/pda_empty_cover.jpg",
-          width: 176 * 0.5,
-          height: 250 * 0.5,
-          fit: BoxFit.fitHeight,
+        placeholder: (context, url) => Icon(
+          Icons.menu_book_outlined,
+          size: 176 * 0.5 * 0.7,
+          color: Theme.of(context).colorScheme.outline,
         ),
-        errorWidget: (context, url, error) => Image.asset(
-          "assets/art/pda_empty_cover.jpg",
-          width: 176 * 0.5,
-          height: 250 * 0.5,
-          fit: BoxFit.fitHeight,
+        errorWidget: (context, url, error) => Icon(
+          Icons.menu_book_outlined,
+          size: 176 * 0.5 * 0.7,
+          color: Theme.of(context).colorScheme.outline,
         ),
         width: 176 * 0.5,
         height: 250 * 0.5,

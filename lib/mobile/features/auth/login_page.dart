@@ -48,9 +48,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (!mounted) return;
 
       if (result.verified) {
-        // 登录成功，同步账号密码到 XDYou
+        // 同步全部状态到 XDYou（凭据 + 主题 + 语言）
         try {
-          await syncTreeholeCredentialsToXdyou(
+          await syncAllToXdyou(
             _identifierController.text.trim(),
             _passwordController.text,
           );

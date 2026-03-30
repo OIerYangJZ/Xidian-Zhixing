@@ -236,6 +236,31 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
 
                 const SizedBox(height: 16),
 
+                // 外观区
+                _SectionHeader(title: '外观'),
+                _ListCard(
+                  children: [
+                    _ListTile(
+                      icon: Icons.brightness_6_outlined,
+                      iconColor: MobileTheme.textSecondary,
+                      title: '主题',
+                      subtitle: _themeModeLabel(ref.watch(appSettingsProvider).themeMode),
+                      onTap: _showThemeDialog,
+                    ),
+                    const Divider(
+                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    _ListTile(
+                      icon: Icons.language_outlined,
+                      iconColor: MobileTheme.textSecondary,
+                      title: '语言',
+                      subtitle: _localeLabel(ref.watch(appSettingsProvider).locale ?? const Locale('zh', 'CN')),
+                      onTap: _showLanguageDialog,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
                 // 关于区
                 _SectionHeader(title: '关于'),
                 _ListCard(
@@ -376,6 +401,114 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     );
   }
 
+  void _showThemeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('外观'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ThemeOption(
+                title: '跟随系统',
+                value: ThemeMode.system,
+                current: ref.read(appSettingsProvider).themeMode,
+                onTap: () => _setBrightness(ThemeMode.system, ctx),
+              ),
+              _ThemeOption(
+                title: '浅色',
+                value: ThemeMode.light,
+                current: ref.read(appSettingsProvider).themeMode,
+                onTap: () => _setBrightness(ThemeMode.light, ctx),
+              ),
+              _ThemeOption(
+                title: '深色',
+                value: ThemeMode.dark,
+                current: ref.read(appSettingsProvider).themeMode,
+                onTap: () => _setBrightness(ThemeMode.dark, ctx),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setBrightness(ThemeMode mode, BuildContext dialogContext) async {
+    await ref.read(appSettingsProvider.notifier).setBrightness(mode);
+    Navigator.pop(dialogContext);
+    _showToast('已切换到 ${_themeModeLabel(mode)}');
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    if (mode == ThemeMode.system) return '跟随系统';
+    if (mode == ThemeMode.light)  return '浅色';
+    if (mode == ThemeMode.dark)   return '深色';
+    return '未知';
+  }
+
+  void _showLanguageDialog() {
+    final currentLocale = ref.read(appSettingsProvider).locale;
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('语言'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _LocaleOption(
+                title: '简体中文',
+                locale: const Locale('zh', 'CN'),
+                current: currentLocale,
+                onTap: () => _setLocale(const Locale('zh', 'CN'), ctx),
+              ),
+              _LocaleOption(
+                title: '繁體中文',
+                locale: const Locale('zh', 'TW'),
+                current: currentLocale,
+                onTap: () => _setLocale(const Locale('zh', 'TW'), ctx),
+              ),
+              _LocaleOption(
+                title: 'English',
+                locale: const Locale('en', 'US'),
+                current: currentLocale,
+                onTap: () => _setLocale(const Locale('en', 'US'), ctx),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _setLocale(Locale loc, BuildContext dialogContext) async {
+    await ref.read(appSettingsProvider.notifier).setLocale(loc);
+    Navigator.pop(dialogContext);
+    _showToast('已切换到 ${_localeLabel(loc)}');
+  }
+
+  String _localeLabel(Locale loc) {
+    final code = '${loc.languageCode}_${loc.countryCode ?? ''}';
+    if (code == 'zh_CN') return '简体中文';
+    if (code == 'zh_TW') return '繁體中文';
+    if (code == 'en_US') return 'English';
+    return '${loc.languageCode}_${loc.countryCode ?? ''}';
+  }
+
   void _showCancelAccountPassword() {
     final passwordController = TextEditingController();
     bool obscure = true;
@@ -488,6 +621,55 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
   }
 }
 
+class _ThemeOption extends StatelessWidget {
+  final String title;
+  final ThemeMode value;
+  final ThemeMode current;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.title,
+    required this.value,
+    required this.current,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = value == current;
+    return ListTile(
+      title: Text(title),
+      trailing: isSelected ? const Icon(Icons.check, color: MobileTheme.primary) : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _LocaleOption extends StatelessWidget {
+  final String title;
+  final Locale locale;
+  final Locale? current;
+  final VoidCallback onTap;
+
+  const _LocaleOption({
+    required this.title,
+    required this.locale,
+    required this.current,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = locale.languageCode == current?.languageCode &&
+        locale.countryCode == current?.countryCode;
+    return ListTile(
+      title: Text(title),
+      trailing: isSelected ? const Icon(Icons.check, color: MobileTheme.primary) : null,
+      onTap: onTap,
+    );
+  }
+}
+
 class _SectionHeader extends StatelessWidget {
   final String title;
 
@@ -532,6 +714,7 @@ class _ListTile extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String title;
+  final String? subtitle;
   final Color? titleColor;
   final VoidCallback onTap;
 
@@ -539,6 +722,7 @@ class _ListTile extends StatelessWidget {
     required this.icon,
     required this.iconColor,
     required this.title,
+    this.subtitle,
     this.titleColor,
     required this.onTap,
   });
@@ -555,13 +739,28 @@ class _ListTile extends StatelessWidget {
             Icon(icon, size: 22, color: iconColor),
             const SizedBox(width: 14),
             Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  color: titleColor ?? MobileTheme.textPrimary,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: titleColor ?? MobileTheme.textPrimary,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: MobileTheme.textTertiary,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             Icon(Icons.chevron_right,

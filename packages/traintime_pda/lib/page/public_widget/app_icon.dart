@@ -2,8 +2,7 @@
 // Copyright 2025 Traintime PDA authors.
 // SPDX-License-Identifier: MPL-2.0
 
-import 'dart:io';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class AppIconWidget extends StatelessWidget {
   final double size;
@@ -12,15 +11,9 @@ class AppIconWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.all(Radius.circular(29 * size / 120)),
-      child: Image.asset(
-        (Platform.isIOS || Platform.isMacOS)
-            ? "assets/Icon-App-iTunes.png"
-            : "assets/icon.png",
-        width: size,
-        height: size,
-      ),
+    return Icon(
+      Icons.apps,
+      size: size,
     );
   }
 }

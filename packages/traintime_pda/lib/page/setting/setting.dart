@@ -21,7 +21,6 @@ import 'package:watermeter/page/setting/dialogs/change_localization_dialog.dart'
 import 'package:watermeter/page/setting/dialogs/electricity_account_dialog.dart';
 import 'package:watermeter/page/setting/dialogs/schoolnet_password_dialog.dart';
 import 'package:watermeter/page/setting/dialogs/semester_switch_dialog.dart';
-import 'package:watermeter/page/setting/dialogs/update_dialog.dart';
 import 'package:watermeter/page/setting/notification_page/notification_debug_page.dart';
 import 'package:watermeter/page/setting/notification_page/notification_page.dart';
 import 'package:watermeter/repository/localization.dart';
@@ -35,7 +34,6 @@ import 'package:watermeter/controller/exam_controller.dart';
 import 'package:watermeter/controller/theme_controller.dart';
 import 'package:watermeter/page/setting/about_page/about_page.dart';
 import 'package:watermeter/page/setting/dialogs/experiment_password_dialog.dart';
-import 'package:watermeter/repository/pda_service_session.dart';
 import 'package:watermeter/repository/pick_file.dart';
 import 'package:watermeter/repository/preference.dart' as preference;
 import 'package:watermeter/page/setting/dialogs/electricity_password_dialog.dart';
@@ -97,9 +95,17 @@ class _SettingWindowState extends State<SettingWindow> {
       ),
     ];
     return Scaffold(
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF1F8FB), Color(0xFFEAF3F8)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           Text.rich(
             TextSpan(
               children: [
@@ -148,71 +154,6 @@ class _SettingWindowState extends State<SettingWindow> {
                   trailing: const Icon(Icons.navigate_next),
                 ),
                 const Divider(),
-                ListTile(
-                  title: Text(
-                    FlutterI18n.translate(context, "setting.check_update"),
-                  ),
-                  subtitle: Obx(
-                    () => Text(
-                      FlutterI18n.translate(
-                        context,
-                        "setting.latest_version",
-                        translationParams: {
-                          "latest":
-                              updateMessage.value?.code ??
-                              FlutterI18n.translate(context, "setting.waiting"),
-                        },
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    showToast(
-                      context: context,
-                      msg: FlutterI18n.translate(
-                        context,
-                        "setting.fetching_update",
-                      ),
-                    );
-                    checkUpdate().then(
-                      (value) async {
-                        if (context.mounted) {
-                          if ((value ?? false) && updateMessage.value != null) {
-                            await showDialog(
-                              context: context,
-                              builder: (context) => Obx(
-                                () => UpdateDialog(
-                                  updateMessage: updateMessage.value!,
-                                ),
-                              ),
-                            );
-                          } else {
-                            showToast(
-                              context: context,
-                              msg: FlutterI18n.translate(
-                                context,
-                                value == null
-                                    ? "setting.current_testing"
-                                    : "setting.current_stable",
-                              ),
-                            );
-                          }
-                        }
-                      },
-                      onError: (e, s) {
-                        if (context.mounted) {
-                          showToast(
-                            context: context,
-                            msg: FlutterI18n.translate(
-                              context,
-                              "setting.fetch_failed",
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  },
-                  trailing: const Icon(Icons.navigate_next),
-                ),
               ],
             ),
           ),
@@ -979,7 +920,8 @@ class _SettingWindowState extends State<SettingWindow> {
             ),
           ),
         ],
-      ).constrained(maxWidth: 600).center().safeArea(top: true),
+      ),
+    ).constrained(maxWidth: 600).center().safeArea(top: true),
     );
   }
 }

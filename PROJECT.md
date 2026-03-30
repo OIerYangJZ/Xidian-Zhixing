@@ -1,4 +1,4 @@
-# See电（西电树洞）项目进程文档
+# See电（西电树洞）项目文档
 
 ## 1. 项目概述
 
@@ -6,32 +6,35 @@
 
 ### 应用定位
 
-- 为校内同学提供一个自由、平等、匿名的交流空间
+- 为校内同学提供一个自由、平等的交流空间
 - 支持多种话题频道，满足学习、生活、情感、吐槽等场景需求
 - 强调社区治理能力，配备完善的内容审核、举报处理和用户管理体系
 
-### 核心功能
+### 核心功能（Web 端 + 移动端）
 
 **社区交流**
 
 - 帖子发布与浏览（支持频道分类、多图上传）
-- 评论与回复
-- 点赞与收藏
+- 评论与回复：嵌套评论树（最多3层缩进），回复 `@alias` 提醒
+- 点赞、收藏与阅读量：阅读量通过独立端点计入热度算法（防刷：每用户每帖每天计1次）
 - 搜索与筛选（关键词、频道、状态、有图、可私信等条件）
+- 热度算法：`likes × 2 + comments × 3 + viewCount - ts/1e9`
 
 **用户体系**
 
-- 校内邮箱注册与登录（学号 + 密码）
+- 校内邮箱注册与登录（学号 + 密码）；移动端：统一身份认证（学号 + 统一认证密码，`@stu.xidian.edu.cn` 自动拼接）
 - 用户等级体系：一级用户（享有直接置顶帖子权限）、二级用户
 - 匿名发帖：前台完全匿名，管理员后台可追溯真实账号
 - 个人中心（资料查看、头像上传、我的帖子、我的评论、我的收藏、我的举报）
-- 账号注销申请
+- 账号注销申请（双重确认 + 密码验证）
 
 **社交互动**
 
 - 私信功能：私信申请 → 对方同意 → 双向会话建立
+- 私信直接进入（微信模式）：无需申请流程，直接创建/进入会话
 - 会话屏蔽（拉黑）：屏蔽后禁止继续发起私信和发送消息
-- 消息未读数与已读状态
+- 消息未读数与已读状态；长按气泡操作菜单（复制/删除）
+- 关注/粉丝系统：互相关注标记为好友
 
 **通知中心**
 
@@ -48,21 +51,28 @@
 - 举报处理
 - 用户管理（账号状态管理、注销/恢复）
 - 申诉处理
-- 数据导出
+- 数据导出（CSV）
 - 敏感词与系统配置管理
 - 帖子置顶审批
 - 一级用户升级申请审批
 
 **合规与说明**
 
-- 用户协议
-- 隐私政策
-- 社区规范
-- 举报说明
+- 用户协议、隐私政策、社区规范、举报说明
+
+**移动端专属功能**
+
+- **登录/注册页**（`XduLoginPage`）：统一身份认证入口，管理登录和 Admin 登录两个入口；登录成功后一键同步登录凭证、主题、语言到 XDYou 子 App
+- **设置主页**（`SettingsMainPage`）：账号安全 / 隐私开关（陌生私信、联系方式可见）/ 通知 / 外观（主题、语言）/ 账号注销双重确认流程
+- **XDYou 校园服务**（嵌入底部「校园」Tab，仅登录可见）：课表、成绩、电费、空教室、图书馆、运动打卡、宿舍水费等
+- **树洞→XDYou 状态同步**：主 App 的主题（跟随系统/浅色/深色）、语言（简体中文/繁體中文/English）、登录凭证通过 SharedPreferences 单向同步到 XDYou 子 App；XDYou `ThemeController` 优先读取 `treehole_*` 覆写 key，fallback 到原生偏好
+- **帖子详情页**（`PostDetailPage`）：操作栏（点赞/收藏/评论/分享）内置于正文与评论区之间，支持嵌套评论树、举报流程、关注/私信作者、表情输入；评论区跳转使用 `Scrollable.ensureVisible` 精确滚动
+- **表情输入组件**（`EmojiPickerBar`）：96 个常用 emoji 网格，与键盘互斥（展开时收起键盘防止布局空白）；`insertEmoji()` 方法通过 `GlobalKey` 暴露给父组件调用
+- **消息页**（`MessagesPage`）：会话列表直接展示，无 Tab 切换；头像使用 `CachedNetworkImage` 正确加载；会话列表左滑删除；聊天页菜单提供屏蔽/解除屏蔽入口
 
 ---
 
-## 2. 目录结构
+## 2. 目录结构和技术说明
 
 ```
 xduWhisperBox/
@@ -138,12 +148,47 @@ xduWhisperBox/
 │   ├── repositories/               # Repository 层（7 个文件）
 │   └── widgets/                    # 公共组件（4 个文件）
 ├── lib/mobile/                     # Flutter 移动端（Android / iOS）
-│   ├── core/                       # 核心基础设施（config、navigation、state、theme）
-│   ├── features/                   # 功能模块（与 lib/features/ 平行独立实现）
-│   ├── main.dart                   # 移动端入口（由 lib/main.dart 通过 kIsWeb 分流调用）
+│   ├── core/                       # 核心基础设施
+│   │   ├── config/                 # MobileConfig（移动端 API 地址默认值）
+│   │   ├── navigation/             # 移动端路由（app_router）
+│   │   ├── state/                  # AppSettingsStore + MobileProviders
+│   │   │   ├── app_settings_store.dart  # 主题/语言持久化 + XDYou 同步触发
+│   │   │   └── mobile_providers.dart    # Riverpod Provider 统一入口
+│   │   └── theme/                  # MobileTheme + SharedColors
+│   ├── features/                   # 功能模块（移动端独立实现）
+│   │   ├── admin/                  # 管理员后台（移动端）
+│   │   ├── auth/
+│   │   │   └── login_page.dart     # XduLoginPage：统一身份认证登录入口
+│   │   ├── feed/                   # 首页信息流
+│   │   ├── messages/              # 消息页（会话列表 + 聊天）
+│   │   ├── notifications/          # 通知中心
+│   │   ├── post/
+│   │   │   ├── comment_input_bar.dart  # 评论输入栏（emoji 插入 API）
+│   │   │   └── post_detail_page.dart   # 帖子详情页（嵌套评论树 + 操作栏）
+│   │   ├── profile/
+│   │   │   └── settings_main_page.dart # 设置主页（主题/语言/隐私/账号注销）
+│   │   └── widgets/                # 移动端公共组件（AvatarWidget 等）
+│   ├── integrations/               # XDYou 集成层（移动端，仅移动端打包）
+│   │   ├── xdyou_bootstrap.dart     # 真机：初始化 XDYou + 注册同步函数
+│   │   ├── xdyou_bootstrap_stub.dart # Web stub：所有函数为空操作
+│   │   └── xdyou_sync_bridge.dart    # 函数指针桥接层（打破循环 import）
+│   ├── main.dart                  # 移动端入口（初始化所有 Store + runApp）
 │   └── lib_mobile.dart            # 移动端 barrel file
 ├── packages/                       # 可选本地依赖（gitignore，见 scripts/setup_xdyou.sh）
-│   └── traintime_pda/              # XDYou子APP，只需兼容移动端APP
+│   └── traintime_pda/              # XDYou 子 App（移动端嵌入，MPL-2.0）
+│       └── lib/
+│           ├── controller/
+│           │   └── theme_controller.dart  # XDYou 主题/语言控制器
+│           │                                # （读取 treehole_* 覆写 key，fallback 原生偏好）
+│           ├── page/
+│           │   ├── homepage/
+│           │   │   ├── home_card_padding.dart  # 通用卡片样式扩展（OutlinedButton 包装）
+│           │   │   └── homepage.dart            # XDYou 主仪表盘（课表/电费/图书馆等）
+│           │   └── setting/
+│           │       └── setting.dart             # XDYou 设置页（主题/语言/账号/缓存等）
+│           └── themes/
+│               └── color_seed.dart              # XDYou 品牌色定义（pdaTealLight/Dark
+│                                                 # 与树洞 SharedColors.primary 对齐）
 ├── scripts/                        # 部署与构建脚本
 │   ├── build_web_beta.sh           # 内测 Web 构建
 │   ├── build_web_production.sh     # 生产 Web 构建
@@ -168,8 +213,8 @@ xduWhisperBox/
 ├── docs/                           # 文档
 ├── test/                           # 前端测试
 ├── web/                            # Web 静态资源（index.html、manifest.json）
-├── pubspec.yaml                    # Flutter 依赖配置
-├── analysis_options.yaml           # Dart Lint 配置（自定义规则 + 排除废弃目录）
+├── pubspec.yaml                    # Flutter 依赖配置（Dart SDK >=3.8.0）
+├── analysis_options.yaml           # Dart Lint 配置（排除 traintime_pda 目录）
 ├── .gitignore                      # Git 忽略配置
 └── README.md                       # 项目主说明
 ```
@@ -204,55 +249,113 @@ server.py (~745行)
         └── _static_handler.py     # 静态文件：存储文件读取/Web 兜底
 ```
 
+### 移动端模块架构图
+
+```
+lib/mobile/main.dart
+  │
+  ├── 初始化阶段（按顺序）
+  │     ├── AuthStore.instance.init()        # 恢复登录态
+  │     ├── AdminAuthStore.instance.init()   # 恢复管理员登录态
+  │     ├── EmojiSettingsStore.instance      # 表情偏好
+  │     └── AppSettingsStore.instance.init()  # 主题/语言持久化恢复
+  │
+  └── XduTreeholeMobileApp (ConsumerWidget)
+        │
+        ├── appSettingsProvider (ChangeNotifierProvider)
+        │     └─ 驱动 MaterialApp.router 的 themeMode / locale
+        │
+        ├── MobileProviders（Re-exports lib/core/state/ 的所有 Provider）
+        │     ├─ authRepositoryProvider
+        │     ├─ feedControllerProvider
+        │     ├─ notificationsControllerProvider
+        │     ├─ messagesControllerProvider
+        │     └─ appSettingsProvider
+        │
+        ├── app_router（GoRouter）
+        │     ├─ /auth/login   → XduLoginPage
+        │     ├─ /             → MobileShell (4-Tab: 首页/消息/校园/我的)
+        │     ├─ /xdyou       → buildXdyouApp()（嵌入 XDYou MyApp）
+        │     └─ ...其他路由...
+        │
+        └── xdyou_bootstrap.dart（条件导入，仅移动端生效）
+              │
+              ├─ ensureXdyouEmbedInitialized()
+              │     ├─ 初始化 SharedPreferencesWithCache
+              │     ├─ Get.put(ThemeController())
+              │     └─ registerXdyouSyncFunctions(syncTheme, syncLocale)
+              │
+              ├─ initXdyouNotificationServices()
+              │     └─ 初始化所有 NotificationServiceRegistrar
+              │
+              └─ buildXdyouApp()
+                    └─ MyApp(isFirst: !loggedIn && xdyouIsFirstLogin())
+
+状态同步流向（AppSettingsStore → XDYou）：
+
+  用户变更主题/语言
+       │
+       ▼
+  AppSettingsStore.setBrightness() / setLocale()
+       │
+       ├─→ SharedPreferences['treehole_brightness'] = index
+       ├─→ SharedPreferences['treehole_localization'] = locale
+       │
+       ▼
+  callSyncThemeToXdyou() / callSyncLocaleToXdyou()
+       │  (xdyou_sync_bridge.dart 函数指针)
+       ▼
+  xdyou_bootstrap.dart 注册的 sync lambda
+       │
+       ├─→ SharedPreferences['color'] = seed
+       └─→ ThemeController.updateTheme()
+             ├─ 优先读取 treehole_brightness / treehole_color_seed / treehole_localization
+             └─ fallback 到 XDYou 原生 Preference 值
+```
+
 ---
 
 ## 3. 版本历史
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
-| 0.1.0+22 | 2026-03-29 | **移动端优化与修复**：① 修复点赞 toggle 逻辑（`likePost`/`unlikePost` 应由前端判断后调用对应 API）；修复主页卡片（PostCard）点赞后再次点击不取消的问题；② 修复楼中楼回复：后端 `handle_create_comment` 创建评论时添加 `parentId` 字段，`_serialize_comment` 已包含此字段，评论树正确渲染；③ 修复帖子详情页底部评论 icon 无响应的问题，改为滚动到评论区；④ 修复私信页自己消息气泡显示对方头像的问题，改为显示当前用户头像；⑤ 修复私信页消息气泡旁头像点击无导航的问题，添加 `GestureDetector` + `context.push('/user/...')`；⑥ 修复私信页长按消息气泡无响应的问题，改用 `onLongPressStart` + `HapticFeedback` + 正确的全局坐标传递；⑦ 新增一级账号发帖置顶功能（`pinDurationMinutes` 选择器，1/3/7/30天选项）；⑧ 统一移动端和 Web 图片浏览器样式（均使用 `barrierColor: Colors.black` + 顶部浮动关闭按钮和页码指示器）；⑨ 修复匿名帖仍可点击头像进入主页的问题，改为匿名帖一律不响应头像点击；⑩ 修复发帖页匿名按钮每次点击随机生成新昵称（而非仅首次开启时生成）；⑪ `PostRepository` 新增 `unlikePost` 方法；⑫ 私信页 ChatPage 新增 `AuthStore.instance.currentUser` 头像获取 |
+| 0.1.0+24 | 2026-03-30 | **树洞→XDYou 状态同步**：① 新建 `AppSettingsStore`（`lib/mobile/core/state/app_settings_store.dart`）管理主 App 主题亮度（`ThemeMode`）和语言（`Locale`）的持久化，单例模式；② `xdyou_bootstrap.dart` 新增 `TreeholeSharedKeys` 常量类（`treehole_brightness` / `treehole_color_seed` / `treehole_localization`）和三个同步函数（`syncTreeholeThemeToXdyou` / `syncTreeholeLanguageToXdyou` / `syncAllToXdyou`）；③ `ThemeController` 的 `updateTheme()` 优先读取 `treehole_*` 覆写 key，fallback 到 XDYou 原生偏好，实现单向覆写；④ `settings_main_page.dart` 新增「外观」区块，支持切换主题（跟随系统/浅色/深色）和语言（简体中文/繁體中文/English）；⑤ 登录页改用 `syncAllToXdyou` 一键同步全部状态；⑥ `main.dart` 初始化 `AppSettingsStore` 并驱动 `MaterialApp.router` 的 `themeMode`；`flutter analyze` 零 error |
+| 0.1.0+23 | 2026-03-30 | **移动端帖子详情页优化**：① 将点赞/收藏/评论/分享操作栏从页面底部 Column 移至帖子内容与评论区之间（`_buildActionBar()` + `GlobalKey` 精确定位评论区）；评论区跳转逻辑改为 `_scrollToComments()` → `Scrollable.ensureVisible` 滚动到评论区标题；② 将表情输入框从 `CommentInputBar` 内部拆分独立为 `EmojiPickerBar` 组件；`PostDetailPage` 自己管理 `_showEmoji` 状态，`bottomNavigationBar` 中 `EmojiPickerBar` 位于 `CommentInputBar` 上方，弹出时从页面最底部往上展开；`_CommentInputBarState.insertEmoji()` 暴露给父组件调用；③ 修复表情栏展开时收起键盘（`_FocusScope.of(context).unfocus()`），防止键盘和表情栏同时出现导致布局空白；④ 评论头像点击添加 `HitTestBehavior.opaque`，修复点击不跳转个人主页的问题；`flutter analyze` 零 error |
 | 0.1.0+21 | 2026-03-29 | **修复 traintime_pda 子 App 中文字体不显示**：`packages/traintime_pda/lib/main.dart` 移除不可靠的 `chinese_font_library` 的 `useSystemChineseFont()` 调用（在嵌套 MaterialApp 场景下 platform channel 返回空字体名导致所有文字无字体渲染）；改为在 `DefaultTextStyle.merge` 中显式指定 `fontFamily: 'Noto Sans SC'`（Android 系统内置思源黑体）；`flutter analyze` 零 error |
 | 0.1.0+20 | 2026-03-29 | `android/gradle.properties` 移除 `TLSv1.1` 和 `TLSv1` 不安全协议，保留 `TLSv1.2`/`TLSv1.3`；`flutter pub get` 确认 `device_calendar` 和 `sprintf` 共 2 个依赖移除生效；**修复 device_calendar 残留源码未清理**：此前 v0.1.0+20 仅删除了 `pubspec.yaml` 中的 `device_calendar` 声明，但 `classtable_state.dart` 的 import 和依赖代码未同步删除，导致 `flutter run` 报 `device_calendar` 包找不到的错误；现已彻底删除 `classtable_state.dart` 中的 `import 'package:device_calendar/device_calendar.dart'`、`import 'package:timezone/data/latest.dart' as tz` 及 `events`/`iCalenderStr`/`outputToCalendar` 三个成员（约 267 行）；`flutter analyze` 零 error；`flutter pub get` 正常 |
 | 0.1.0+19 | 2026-03-29 | **精简 traintime_pda 包（方案 A）**：用户手动删除 `packages/traintime_pda/` 下非源码目录（`android/`、`ios/`、`linux/`、`windows/`、`pigeon_bridge/`、`test/`、`docs/`、`fastlane/`、`tool/`、`.github/`、`.vscode/`、`.flutter/`、`blobs/`、`XDYou-Poster.jpg`）；精简 `assets/` 目录（从 102 文件裁剪至 4 文件：`icon.png` + 3 个 i18n yaml）；`pubspec.yaml` 删除 `flutter_launcher_icons`、`flutter_native_splash` 配置段及对应依赖；`flutter pub get` 确认 `flutter_native_splash` 移除生效；`flutter analyze` 无 error；由于子 App 仅运行于移动端，无需添加 Web 兼容 stub |
 | 0.1.0+18 | 2026-03-29 | **校园 Tab 仅登录可见**：`AuthStore` 继承 `ChangeNotifier` 并在 `init`/`saveToken`/`clear` 时 `notifyListeners()`；`GoRouter` 增加 `refreshListenable: AuthStore.instance`；`MobileShell` 用 `ListenableBuilder` 监听登录态，仅 `isAuthenticated` 时展示「校园」Tab，未登录时底部为 3 Tab（首页/消息/我的）并映射 branch 0、1、3；若未登录仍停留在校园 branch 则下一帧切回首页 |
 | 0.1.0+17 | 2026-03-29 | **移动端嵌入 XDYou**：通过 path 依赖引入 `watermeter`（[Traintime PDA](https://github.com/BenderBlog/traintime_pda)，MPL-2.0）；`scripts/setup_xdyou.sh` 拉取源码至 `packages/traintime_pda`（目录已 gitignore）；`lib/mobile/integrations/xdyou_bootstrap.dart` 复现独立应用启动时的本地存储与通知初始化；底部 Tab 增加「校园」路由 `/xdyou` 全屏嵌入 `MyApp`；Dart SDK 提升至 `>=3.8.0`；`analysis_options` 排除 `packages/traintime_pda`；CI 在 `flutter pub get` 前执行 `setup_xdyou.sh` |
-| 0.1.0+12 | 2026-03-27 | **后端模块化拆分**：将 `backend/server.py`（原 3620 行）拆分为职责清晰的模块结构，最终行数 745 行（-79%）；`backend/_globals.py` 作为全局状态单点，配置常量和运行时对象统一管理；`backend/helpers/` 子模块化（`auth_helpers`、`datetime_helpers`、`http_helpers`、`mailer`、`rate_limit`），消除 server.py 中 ~140 行 helpers 函数副本；`backend/services/` 子模块化（`_db_service`、`_user_service`），消除 server.py 中 ~870 行 services 函数副本；`backend/handlers/` 解耦为 8 个独立模块（`_auth_handler`、`_post_handler`、`_comment_handler`、`_message_handler`、`_user_handler`、`_notification_handler`、`_admin_handler`、`_static_handler`、`_upload_handler`），server.py 仅保留路由分发；补充 `services/_db_service.py` 中 handlers 依赖的缺失函数（`list_posts`、`build_admin_*_rows`、`serialize_*`、`build_export_payload`、`public_system_settings`、`build_pagination_meta`）；修复 handlers 与 services 间的循环导入；修复 `_globals.py` 中 `_lazy_proxy` 函数代理 handler 需要的 helpers/services 子模块函数；API `/api/version`、`/api/health`、`/api/channels`、`/api/posts` 测试通过 |
-| 0.1.0+13 | 2026-03-28 | **移动端登录修复**：修复移动端（Android/iOS）无法登录的问题。根本原因是移动端默认 API 地址为 `localhost:8080`，但移动设备上 `localhost` 指向设备自身而非后端服务器；`AppConfig.apiBaseUrl` 移动端默认值从 `http://localhost:8080/api` 改为 `http://81.69.16.134/api`（腾讯云公网 IP，现网生产地址）；`MobileConfig.apiBaseUrl` 同步更新；仍支持通过 `--dart-define=MOBILE_API_BASE_URL=...` 注入真实服务器地址 |
-| 0.1.0+14 | 2026-03-28 | **移动端消息页优化**：① 删除消息页 Tab 栏（「会话」「私信申请」切换），改为直接显示会话列表；② 修复会话界面 AppBar 标题和消息气泡中对方头像显示，改用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 处理相对路径 URL；③ 消息气泡框内显示发送时间（对方消息显示 `HH:mm`，自己消息以半透明文字显示）；④ 删除聊天页的表情发送功能（表情按钮、`_buildEmojiBar`、`_toggleEmoji`、`_onTapEmoji` 等全部移除） |
-| 0.1.0+15 | 2026-03-28 | **移动端帖子卡片样式重构**：参考 Instagram 风格重设计。标题统一改为 18sp Bold 突出显示；图文帖（hasImage）改为 PageView 全屏图片展示（固定 280dp 高），支持左右滑动切换 + 底部圆点指示器 + 点击进入全屏查看（InteractiveViewer 缩放），正文不再在卡片内显示；纯文帖保留 Big Text Poster（短内容<50字无标题）和正文截断（最多4行）；新建 `full_screen_image_page.dart` 全屏图片查看页；删除旧 `_ImageGrid` 小图网格。纯移动端 UI 调整，无跨端兼容条目新增。 |
-| 0.1.0+16 | 2026-03-28 | **热度排序优化**：① 消除双重排序：后端 `list_posts()` 在 `sort_by="hot"` 时跳过预排序，由 `sort_posts_for_view` 全权负责；② 引入阅读量指标：新增 `POST /api/posts/<id>/view` 端点（防刷：每用户每帖每天计1次），`posts` 表增加 `viewCount` 字段，`serialize_post` 返回 `viewCount`；③ 调整热度算法：`likes * 2 + comments - ts/1e9` → `likes * 2 + comments * 3 + viewCount - ts/1e9`（评论权重从×1提升到×3，阅读量纳入计算）；④ 前端：Web 端 `PostCard` 和移动端 `PostCard` 均显示阅读量（眼睛图标+数字），`PostItem` 模型新增 `viewCount` 字段，帖子详情页打开时触发阅读计数 |
-| 0.1.0+11 | 2026-03-26 | **工程审计整改（P2）**：后端 `backend/server.py` 添加 Python `logging` 结构化日志系统（`logging` 标准库，`_configure_logging()` 配置，`%(asctime)s | %(levelname)-8s | %(message)s` 格式）；所有 8 处 `print()` 调用全部替换为 `_logger.info()` / `_logger.warning()` / `_logger.debug()`；调试验证码开关激活时自动切换为 DEBUG 级别；`_handle_web_delete` 异常处理器由 `f"Internal server error: {error}"` 改为 `logger.exception()` + 固定文本 `"Internal server error"`，消除内部信息泄漏；`deploy/tencent/backend.env.example` 新增 `BACKEND_ALLOW_DEBUG_VERIFY_CODE` 和 `BACKEND_INCLUDE_DEBUG_CODE` 的 WARNING 注释，说明生产环境必须为 false |
-| 0.1.0+10 | 2026-03-26 | **工程审计整改（P0+P1）**：删除废弃 `lib_mobile/` 目录（40 文件）和 `backup_lib/` 目录（80 文件）并从 git 移除；`backup_lib/` 加入 `.gitignore`；从 `pubspec.yaml` 移除未使用的 `date_format` 依赖；`admin_models.dart`（732 行）拆分为 `lib/models/admin/` 子目录（9 个独立文件，每文件 < 200 行）；确认 `lib/main.dart` 为唯一入口后删除 `lib/mobile/main.dart`（冗余入口）；新建 `lib/core/theme/shared_colors.dart` 统一跨端品牌色，`app_theme.dart` 和 `mobile_theme.dart` 均引用 `SharedColors` |
-| 0.1.0+9 | 2026-03-26 | **后端**：新增 `POST /api/messages/conversations/direct` 端点（微信模式，无需申请直接创建/进入会话）；**移动端**：私信按钮改为直接进入或创建会话（替代原申请制流程）；他人主页头像点击跳转其个人主页；消息页新增 TabBar（会话列表 + 私信申请管理）；会话列表左滑删除；聊天页 AppBar 头像+昵称可点击进入对方主页；聊天页菜单新增屏蔽/解除屏蔽入口；聊天页消息气泡长按弹出操作菜单（复制/删除）；消息未读红点 Badge 跟随 Tab 栏显示 |
-| 0.1.0+8 | 2026-03-26 | **后端**：评论列表 API 新增 `authorAvatar` 和 `authorUserId` 字段；帖子列表 API 支持 `authorId` 查询参数；**数据模型**：`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段，`CommentItem` 新增 `authorUserId` 字段；**移动端**：发帖页/主页频道列表将"其他"改名为"综合"；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；帖子详情页作者头像同理；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；我的页面：统计行删除"收藏"数字、TabBar 保持3个Tab、帖子Tab和收藏Tab改为图文卡片 `PostCard` 视图 |
-| 0.1.0+6 | 2026-03-25 | 清理重复移动端目录，删除旧 `lib_mobile/`，保留 `lib/mobile/` 作为唯一移动端源码目录；同步项目文档中的移动端路径说明 |
-| 0.1.0+5 | 2026-03-25 | 修复消息页加载不出（`MessagesPage` 恢复 `ConsumerStatefulWidget`，`initState` 触发 `loadInitial()`）；修复头像点击逻辑（自己帖子跳转 `/profile`，其他帖子提示「暂不支持查看该用户主页」） |
-| 0.1.0+4 | 2026-03-25 | 重构底部导航（3 Tab：首页/消息/我的）；搜索入口移至首页 AppBar；管理员后台修复（使用真实 Web 端 AdminConsolePage）；实现关注/粉丝系统（API 端点 + Repository + 个人主页底部弹窗列表 + 好友标记）；消息页移除私信申请 Tab，改为首条消息警告横幅；帮助与反馈入口加入登录/注册页；头像点击逻辑（自己帖子跳我的主页，其他提示暂不支持）；管理员控制台恢复完整功能 |
-| 0.1.0+2 | 2026-03-25 | 修复移动端 6 个问题：① 首页点赞/收藏改为乐观更新不再全量刷新 ② 下拉刷新添加 AlwaysScrollableScrollPhysics ③ 消息页移除 mock 数据回退 ④ 发帖页匿名模式添加昵称输入框 ⑤ 我的页登录后自动 fetchProfile、收藏 Tab 真实数据 ⑥ 设置页修改密码路由修复、关于区各页正确跳转 |
-| 0.1.0+1 | 2026-03-25 | 优化 Android 构建方式：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，无需 `--target` 参数，`flutter build apk` 直接可用 |
-| 0.1.0+1 | 2026-03-25 | 首个 Android ARM64 Release APK；修复 `lib_mobile/` 未被纳入编译的问题（改用 `--target lib_mobile/main.dart` 构建）；修复 `PostCard` 引用不存在字段 `avatarUrl` / `nickname` 的编译错误 |
+| 0.1.0+12~16 | 2026-03-27~28 | **后端模块化拆分**：`backend/server.py`（原 3620 行）拆分为 `helpers/`（5 个子模块）、`services/`（`_db_service`、`_user_service`）、`handlers/`（9 个功能域处理器），最终行数 745 行（-79%）；**移动端功能完善**：修复移动端登录 API 地址（`localhost:8080` → `81.69.16.134:8080`）；消息页改为会话列表直接展示（删除私信申请 Tab）；帖子卡片重构为 Instagram 风格（PageView 图片展示）；引入阅读量指标 + 热度算法优化（`likes×2 + comments×3 + viewCount - ts/1e9`）；帖子列表 API 支持 `authorId` 查询；评论列表 API 新增 `authorAvatar` 和 `authorUserId` |
+| 0.1.0+10~11 | 2026-03-26 | **工程审计整改**：删除废弃 `lib_mobile/`（40 文件）和 `backup_lib/`（80 文件）目录；`admin_models.dart`（732 行）拆分为 `lib/models/admin/` 子目录（9 个独立文件，每文件 < 200 行）；新建 `lib/core/theme/shared_colors.dart` 统一跨端品牌色；后端添加 Python `logging` 结构化日志系统（替换所有 `print()`）；异常处理器消除内部信息泄漏；环境变量模板新增生产安全警告 |
+| 0.1.0+8~9 | 2026-03-26 | **私信微信模式 + 匿名/非匿名头像**：后端新增 `POST /api/messages/conversations/direct` 端点（无需申请直接创建会话）；移动端私信按钮直接进入或创建会话；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段 |
+| 0.1.0+4~6 | 2026-03-25 | **移动端早期建设**：清理重复移动端目录，确认 `lib/mobile/` 为唯一源码目录；重构底部导航（3 Tab：首页/消息/我的）；实现关注/粉丝系统（API 端点 + Repository + 好友标记）；管理员控制台恢复完整功能；修复消息页加载、头像点击、首页点赞乐观更新、下拉刷新、收藏 Tab 真实数据等多个 bug |
+| 0.1.0+1~5 | 2026-03-25 | **首个 Android APK 发布**：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，`flutter build apk` 直接可用；首个 Android ARM64 Release APK 构建成功 |
 
 ## 4. 未跨端兼容的功能
 
 > 以下记录尚未同时在 Web 端和移动端适配的功能，跨端适配完成后请删除对应条目。
 
-| 功能名称 | 描述 | 当前实现平台 |
-|----------|------|-------------|
-| 移动端整体 UI 风格 | Twitter/Instagram 风格重构：纯白背景、无卡片/无圆角/无阴影、紧凑布局、频道彩色圆点、FAB 发帖按钮 | 仅移动端（`lib/mobile/`） |
-| 个人主页（ProfilePage） | 背景色条 + 重叠头像 + 统计行 + Tab（帖子/收藏/动态）+ 右上角设置入口 | 仅移动端 |
-| 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 关于 / 退出登录；注销账号双重确认流程 | 仅移动端 |
-| 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 |
-| 帖子详情页（PostDetailPage） | 紧凑布局、底部操作栏压缩、AvatarWidget 头像 | 仅移动端 |
-| 消息页（MessagesPage） | 会话列表直接展示，无 Tab 切换；头像使用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 正确加载；会话列表点击跳转聊天 | 仅移动端（`lib/mobile/features/messages/`） |
-| AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib/mobile/features/widgets/`） |
-| 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 |
-| 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 |
-| 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 |
-| 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；长按气泡 WeChat 风格浮层（复制/转发/详情/回复/撤回）；消息详情显示秒级时间；屏蔽/解除屏蔽入口；批量选中删除；转发到联系人会话 | 仅移动端 |
-| 匿名头像点击 | 匿名帖不能点击头像进入主页；非匿名帖点击头像进入公开主页（支持关注和私信） | 仅移动端（`lib/mobile/features/`）|
-| 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 |
-| 校园 Tab（XDYou 嵌入） | 底部导航「校园」嵌入完整 XDYou（课表/成绩/教务等）；**仅已登录树洞账号时显示该 Tab**；依赖 `packages/traintime_pda`，需运行 `scripts/setup_xdyou.sh` | 仅移动端（`lib/mobile/features/xdyou/`） |
+| 功能名称 | 描述 | 当前实现平台 | 备注 |
+|----------|------|-------------|------|
+| 个人主页（ProfilePage） | 背景色条 + 重叠头像 + 统计行 + Tab（帖子/收藏/动态）+ 右上角设置入口 | 仅移动端 | |
+| 设置主页（SettingsMainPage） | 独立设置页：账号安全 / 隐私开关 / 通知 / 外观（主题/语言） / 账号注销 | 仅移动端 | 外观区块 v0.1.0+24 新增 |
+| 发帖页（CreatePostPage） | 极简发帖：内联频道选择器、底部工具栏、匿名昵称输入、PopupMenu 可见性选择 | 仅移动端 | |
+| 帖子详情页（PostDetailPage） | 操作栏置于正文与评论区之间 + 嵌套评论树（最多3层缩进）+ EmojiPickerBar + 举报流程 + 关注/私信作者 | 仅移动端 | 操作栏位置/嵌套评论/表情输入 v0.1.0+23/24 重构 |
+| 消息页（MessagesPage） | 会话列表直接展示，无 Tab 切换；头像使用 `CachedNetworkImage` + `AppConfig.resolveUrl()` 正确加载 | 仅移动端（`lib/mobile/features/messages/`） | |
+| AvatarWidget | 使用 `AppConfig.resolveUrl()` + `CachedNetworkImage` 正确加载头像 | 仅移动端（`lib/mobile/features/widgets/`） | |
+| 统一身份认证登录（XduLoginPage） | 学号 + 统一认证密码，`@stu.xidian.edu.cn` 自动拼接；登录后一键同步登录凭证/主题/语言到 XDYou | 仅移动端（`lib/mobile/features/auth/login_page.dart`） | v0.1.0+24 新增文件 |
+| AppSettingsStore | 主题（ThemeMode）+ 语言（Locale）的持久化与 XDYou 同步触发；单例 ChangeNotifier | 仅移动端（`lib/mobile/core/state/app_settings_store.dart`） | v0.1.0+24 新增文件 |
+| XDYou 集成层 | `xdyou_bootstrap.dart`（真机）/ `xdyou_bootstrap_stub.dart`（Web 空操作）/ `xdyou_sync_bridge.dart`（函数指针桥接） | 仅移动端（`lib/mobile/integrations/`） | v0.1.0+24 新增文件 |
+| EmojiPickerBar | 96 个常用 emoji 网格，与键盘互斥（展开时收起键盘防止布局空白）；`insertEmoji()` API 通过 GlobalKey 暴露 | 仅移动端（`lib/mobile/features/post/comment_input_bar.dart`） | v0.1.0+24 新增组件 |
+| CommentInputBar（含 insertEmoji API） | 评论输入栏公开 `insertEmoji()` 方法供父组件调用；聚焦时自动滚动到输入框 | 仅移动端（`lib/mobile/features/post/comment_input_bar.dart`） | v0.1.0+23 新增 API |
+| 学号登录（自动拼接邮箱后缀） | 登录/注册只需填学号，系统自动拼接 `@stu.xidian.edu.cn` | 仅移动端 | |
+| 关注/粉丝系统（FollowSystem） | 粉丝/关注数实时显示，点击弹出列表，互相关注标记为好友；API 端点 + `FollowUserItem` 模型 + Repository 方法 | 仅移动端 | |
+| 首条消息警告横幅 | 对话无历史消息时显示横幅提示"只能发1条消息"，对方回复或关注后解锁 | 仅移动端 | |
+| 私信直接进入（微信模式） | 私信按钮直接进入或创建会话，无需申请流程；长按气泡 WeChat 风格浮层（复制/转发/详情/回复/撤回）；消息详情显示秒级时间；屏蔽/解除屏蔽入口；批量选中删除；转发到联系人会话 | 仅移动端 | |
+| 匿名头像点击 | 匿名帖不能点击头像进入主页；非匿名帖点击头像进入公开主页（支持关注和私信） | 仅移动端（`lib/mobile/features/`） | |
+| 帮助与反馈入口（登录/注册页） | 登录页底部行增加「帮助与反馈」按钮；注册页底部同样添加入口 | 仅移动端 | |
 
 ---
 
-*最后更新：2026-03-29（v0.1.0+22，移动端优化与修复：点赞toggle、楼中楼、评论icon、头像显示、长按菜单、置顶功能、图片浏览器样式统一、匿名帖子头像、匿名昵称随机化）*
+*最后更新：2026-03-30（v0.1.0+24，全面更新 README.md 和 PROJECT.md：新增移动端专属功能章节、更新目录结构（含 lib/mobile/ 详细展开和 traintime_pda 子模块）、新增移动端模块架构图（含 AppSettingsStore → XDYou 同步流向）、扩充未跨端适配功能表（新增 XduLoginPage、AppSettingsStore、XDYou 集成层、EmojiPickerBar、CommentInputBar API 等 5 项）；README.md 全面重写：新增特性说明、完整目录结构、跨端架构说明、API 文档扩充（阅读量端点）、环境变量说明、部署说明）*

@@ -12,9 +12,10 @@ class SplitPagePlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Opacity(
-          opacity: 0.25,
-          child: Image.asset("assets/Icon-App-iTunes-Background.png"),
+        child: Icon(
+          Icons.laptop_mac_outlined,
+          size: 200,
+          color: Theme.of(context).colorScheme.outline,
         ).constrained(maxWidth: 300),
       ),
     );

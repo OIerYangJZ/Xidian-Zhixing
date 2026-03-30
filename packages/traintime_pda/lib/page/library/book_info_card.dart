@@ -21,17 +21,15 @@ class BookInfoCard extends StatelessWidget {
     return [
       CachedNetworkImage(
         imageUrl: toUse.imageUrl ?? "",
-        placeholder: (context, url) => Image.asset(
-          "assets/art/pda_empty_cover.jpg",
-          width: 176 * 0.6,
-          height: 250 * 0.6,
-          fit: BoxFit.fill,
+        placeholder: (context, url) => Icon(
+          Icons.menu_book_outlined,
+          size: 176 * 0.6 * 0.7,
+          color: Theme.of(context).colorScheme.outline,
         ),
-        errorWidget: (context, url, error) => Image.asset(
-          "assets/art/pda_empty_cover.jpg",
-          width: 176 * 0.6,
-          height: 250 * 0.6,
-          fit: BoxFit.fill,
+        errorWidget: (context, url, error) => Icon(
+          Icons.menu_book_outlined,
+          size: 176 * 0.6 * 0.7,
+          color: Theme.of(context).colorScheme.outline,
         ),
         width: 176 * 0.6,
         height: 250 * 0.6,

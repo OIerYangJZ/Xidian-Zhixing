@@ -8,6 +8,8 @@ import 'core/navigation/app_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
 import 'package:xdu_treehole_web/core/emoji/emoji_settings_store.dart';
+import 'core/state/app_settings_store.dart';
+import 'core/state/mobile_providers.dart' show appSettingsProvider;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +22,7 @@ Future<void> main() async {
   await AuthStore.instance.init();
   await AdminAuthStore.instance.init();
   await EmojiSettingsStore.instance.init();
+  await AppSettingsStore.instance.init();
 
   // 设置状态栏样式
   SystemChrome.setSystemUIOverlayStyle(
@@ -48,12 +51,13 @@ class XduTreeholeMobileApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(appSettingsProvider);
     return MaterialApp.router(
       title: '西电树洞',
       debugShowCheckedModeBanner: false,
       theme: MobileTheme.lightTheme,
       darkTheme: MobileTheme.darkTheme,
-      themeMode: ThemeMode.light,
+      themeMode: settings.themeMode,
       routerConfig: appRouter,
     );
   }

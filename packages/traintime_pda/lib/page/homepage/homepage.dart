@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:watermeter/page/homepage/info_widget/schoolnet_card.dart';
-import 'package:watermeter/page/homepage/notice_card/update_card.dart';
 import 'package:watermeter/page/homepage/toolbox/class_attendance_card.dart';
 import 'package:watermeter/page/public_widget/toast.dart';
 import 'package:get/get.dart';
@@ -111,7 +110,17 @@ class _MainPageState extends State<MainPage> {
           centerTitle: false,
           expandedHeight: 160,
           pinned: true,
+          surfaceTintColor: Colors.transparent,
           flexibleSpace: FlexibleSpaceBar(
+            background: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFFEAF4FA), Color(0xFFF1F8FB)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
             centerTitle: false,
             titlePadding: const EdgeInsets.symmetric(
               horizontal: 20,
@@ -165,31 +174,38 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
       ],
-      body: RefreshIndicator(
-        onRefresh: () async {
-          showToast(
-            context: context,
-            msg: FlutterI18n.translate(context, "homepage.loading_message"),
-          );
-          await update(
-            context: context,
-            sliderCaptcha: (String cookieStr) {
-              return SliderCaptchaClientProvider(
-                cookie: cookieStr,
-              ).solve(context);
-            },
-          );
-          if (context.mounted) {
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFFF1F8FB), Color(0xFFEAF3F8)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: RefreshIndicator(
+          onRefresh: () async {
             showToast(
               context: context,
-              msg: FlutterI18n.translate(context, "homepage.loaded"),
+              msg: FlutterI18n.translate(context, "homepage.loading_message"),
             );
-          }
-        },
-        child: ListView(
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          children: [
-            UpdateCard().padding(bottom: 8),
+            await update(
+              context: context,
+              sliderCaptcha: (String cookieStr) {
+                return SliderCaptchaClientProvider(
+                  cookie: cookieStr,
+                ).solve(context);
+              },
+            );
+            if (context.mounted) {
+              showToast(
+                context: context,
+                msg: FlutterI18n.translate(context, "homepage.loaded"),
+              );
+            }
+          },
+          child: ListView(
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            children: [
             const ClassTableCard().padding(bottom: 8),
             ElectricityCard().padding(bottom: 8),
             SchoolnetCard().padding(bottom: 8),
@@ -208,6 +224,7 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

@@ -137,8 +137,9 @@ class ClassTableFile extends EhallSession {
     bool isUserDefinedSemester = preference.getBool(
       preference.Preference.isUserDefinedSemester,
     );
-    if (preference.parseSemesterCodeToInt(semesterCode) >
-        preference.parseSemesterCodeToInt(currentSemesterCode)) {
+    if (currentSemesterCode.isEmpty ||
+        preference.parseSemesterCodeToInt(semesterCode) >
+            preference.parseSemesterCodeToInt(currentSemesterCode)) {
       await preference.setString(
         preference.Preference.currentSemester,
         semesterCode,
@@ -321,8 +322,9 @@ class ClassTableFile extends EhallSession {
     bool isUserDefinedSemester = preference.getBool(
       preference.Preference.isUserDefinedSemester,
     );
-    if (preference.parseSemesterCodeToInt(semesterCode) >
-            preference.parseSemesterCodeToInt(currentSemesterCode) &&
+    if ((currentSemesterCode.isEmpty ||
+            preference.parseSemesterCodeToInt(semesterCode) >
+                preference.parseSemesterCodeToInt(currentSemesterCode)) &&
         !isUserDefinedSemester) {
       await preference.setString(
         preference.Preference.currentSemester,

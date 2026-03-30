@@ -72,37 +72,64 @@ class ThemeController extends GetxController {
     updateTheme();
   }
 
+  /// Treehole host app override keys (treehole_*).
+  /// When set, these take precedence over watermeter's native preferences.
+  static const String _treeholeBrightnessKey = 'treehole_brightness';
+  static const String _treeholeColorSeedKey  = 'treehole_color_seed';
+  static const String _treeholeLocalizeKey  = 'treehole_localization';
+
   void updateTheme() {
+    // 优先读取树洞主 App 的覆写值（单向覆写）
+    String treeholeBrightness = preference.prefs.getString(_treeholeBrightnessKey) ?? '';
+    String treeholeColor      = preference.prefs.getString(_treeholeColorSeedKey) ?? '';
+    String treeholeLoc        = preference.prefs.getString(_treeholeLocalizeKey) ?? '';
+
     log.info("[ThemeController] Changing color...");
-    int index = preference.getInt(preference.Preference.color);
+    int index;
+    if (treeholeColor.isNotEmpty) {
+      index = int.tryParse(treeholeColor) ?? 0;
+    } else {
+      index = preference.getInt(preference.Preference.color);
+    }
     color = pdaColorScheme.sublist(index * 2, index * 2 + 1);
 
     log.info("[ThemeController] Changing brightness...");
-    colorState =
-        demoBlueModeMap[preference.getInt(preference.Preference.brightness)]!;
+    int brightnessIndex;
+    if (treeholeBrightness.isNotEmpty) {
+      brightnessIndex = int.tryParse(treeholeBrightness) ?? 1;
+    } else {
+      brightnessIndex = preference.getInt(preference.Preference.brightness);
+    }
+    colorState = demoBlueModeMap[brightnessIndex]!;
+
     log.info("[ThemeController] Changing locale...");
-    String localization = preference.getString(
-      preference.Preference.localization,
-    );
-    if (localization.isEmpty) {
-      String systemLocale = Platform.localeName;
-      log.info("[ThemeController] System lang $systemLocale");
-      if (systemLocale.contains("zh")) {
-        if (Platform.isIOS || Platform.isMacOS) {
-          if (systemLocale.contains("Hans")) {
-            localization = "zh_CN";
+    String localization;
+    if (treeholeLoc.isNotEmpty) {
+      localization = treeholeLoc;
+    } else {
+      localization = preference.getString(
+        preference.Preference.localization,
+      );
+      if (localization.isEmpty) {
+        String systemLocale = Platform.localeName;
+        log.info("[ThemeController] System lang $systemLocale");
+        if (systemLocale.contains("zh")) {
+          if (Platform.isIOS || Platform.isMacOS) {
+            if (systemLocale.contains("Hans")) {
+              localization = "zh_CN";
+            } else {
+              localization = "zh_TW";
+            }
           } else {
-            localization = "zh_TW";
+            if (systemLocale.contains("CN") || systemLocale.contains("SG")) {
+              localization = "zh_CN";
+            } else {
+              localization = "zh_TW";
+            }
           }
         } else {
-          if (systemLocale.contains("CN") || systemLocale.contains("SG")) {
-            localization = "zh_CN";
-          } else {
-            localization = "zh_TW";
-          }
+          localization = "en_US";
         }
-      } else {
-        localization = "en_US";
       }
     }
     log.info("[ThemeController] Locale to set $localization");

@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'app_settings_store.dart';
 import 'package:xdu_treehole_web/features/messages/messages_controller.dart'
     show messagesControllerProvider;
 import 'package:xdu_treehole_web/features/notifications/notifications_controller.dart'
@@ -15,6 +17,13 @@ export 'package:xdu_treehole_web/features/notifications/notifications_controller
     show notificationsControllerProvider;
 
 /// Mobile-only Providers
+
+/// 应用级设置（主题、语言）
+final appSettingsProvider = ChangeNotifierProvider<AppSettingsStore>((ref) {
+  // AppSettingsStore 是单例，直接返回已有实例
+  ref.onDispose(() {});
+  return AppSettingsStore.instance;
+});
 
 /// 当前 Tab 索引
 final currentTabIndexProvider = StateProvider<int>((ref) => 0);

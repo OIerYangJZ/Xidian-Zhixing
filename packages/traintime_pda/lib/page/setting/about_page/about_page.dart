@@ -10,7 +10,6 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:watermeter/page/public_widget/app_icon.dart';
 import 'package:watermeter/page/public_widget/re_x_card.dart';
-import 'package:watermeter/page/setting/about_page/easter_egg_page.dart';
 import 'package:watermeter/page/setting/about_page/developer_widget.dart';
 import 'package:watermeter/page/setting/about_page/link_widget.dart';
 import 'package:watermeter/repository/preference.dart' as preference;
@@ -300,12 +299,7 @@ class _AboutPageState extends State<AboutPage> {
           ),
         ]
         .toColumn(crossAxisAlignment: CrossAxisAlignment.center)
-        .padding(all: 32)
-        .gestures(
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => const EasterEggPage()),
-          ),
-        );
+        .padding(all: 32);
   }
 
   Widget get _developerList => ReXCard(

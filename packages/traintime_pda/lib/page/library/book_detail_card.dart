@@ -32,17 +32,15 @@ class _BookDetailCardState extends State<BookDetailCard> {
           children: [
             CachedNetworkImage(
                   imageUrl: widget.toUse.imageUrl ?? "",
-                  placeholder: (context, url) => Image.asset(
-                    "assets/art/pda_empty_cover.jpg",
-                    width: 120,
-                    height: 150,
-                    fit: BoxFit.fill,
+                  placeholder: (context, url) => Icon(
+                    Icons.menu_book_outlined,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.outline,
                   ),
-                  errorWidget: (context, url, error) => Image.asset(
-                    "assets/art/pda_empty_cover.jpg",
-                    width: 120,
-                    height: 150,
-                    fit: BoxFit.fill,
+                  errorWidget: (context, url, error) => Icon(
+                    Icons.menu_book_outlined,
+                    size: 80,
+                    color: Theme.of(context).colorScheme.outline,
                   ),
                   width: 120,
                   height: 150,

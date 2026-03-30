@@ -81,7 +81,11 @@ class _ClassTableViewState extends State<ClassTableView> {
             child: Column(
               children: [
                 SizedBox(height: blockheight(8)),
-                Image.asset("assets/art/pda_classtable_empty.png", scale: 2),
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
                 const SizedBox(height: 20),
                 ...FlutterI18n.translate(
                   context,

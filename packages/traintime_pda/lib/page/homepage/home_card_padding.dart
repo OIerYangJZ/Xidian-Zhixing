@@ -18,7 +18,7 @@ extension HomeCardPadding on Widget {
       style: ButtonStyle(
         padding: const WidgetStatePropertyAll(EdgeInsets.zero),
         shape: WidgetStatePropertyAll(
-          RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(14)),
+          RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
         ),
         iconColor: WidgetStatePropertyAll(
           Theme.of(context).colorScheme.primary,

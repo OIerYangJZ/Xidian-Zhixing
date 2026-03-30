@@ -8,31 +8,30 @@ enum EmptyListViewType { reading, singing, rolling, defaultimg }
 
 class EmptyListView extends StatelessWidget {
   final String text;
-  final String assets;
 
-  static String _getAssets(EmptyListViewType type) {
-    switch (type) {
-      case EmptyListViewType.reading:
-        return "assets/art/pda_girl_reading.png";
-      case EmptyListViewType.rolling:
-        return "assets/art/pda_classtable_empty.png";
-      default:
-        return "assets/art/pda_girl_default.png";
-    }
-  }
-
-  EmptyListView({
+  const EmptyListView({
     super.key,
     required this.text,
-    required EmptyListViewType type,
-  }) : assets = _getAssets(type);
+    this.type = EmptyListViewType.defaultimg,
+  });
+
+  final EmptyListViewType type;
 
   @override
   Widget build(BuildContext context) {
+    IconData icon;
+    switch (type) {
+      case EmptyListViewType.reading:
+        icon = Icons.auto_stories_outlined;
+      case EmptyListViewType.rolling:
+        icon = Icons.calendar_today_outlined;
+      default:
+        icon = Icons.inbox_outlined;
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Image.asset(assets, scale: 1.5),
+        Icon(icon, size: 80, color: Theme.of(context).colorScheme.outline),
         const Divider(color: Colors.transparent),
         Text(text),
       ],
