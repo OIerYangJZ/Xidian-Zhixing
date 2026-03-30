@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../widgets/avatar_widget.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/state/mobile_providers.dart';
+import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
@@ -552,7 +552,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   child: AvatarWidget(
                     avatarUrl: post.isAnonymous ? null : post.authorAvatarUrl,
                     nickname: post.authorAlias,
-                    radius: 20,
+                    radius: 26,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -574,7 +574,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                           Text(
                             _formatTime(post.createdAt),
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: MobileTheme.textTertiary,
                             ),
                           ),
@@ -696,32 +696,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               ),
             ),
 
-          // 频道信息
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: MobileTheme.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                  child: Text(
-                    post.channel,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: MobileTheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );
@@ -795,7 +769,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final post = _post!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       child: Row(
         children: [
           // 点赞
@@ -805,9 +779,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             label: post.likeCount > 0 ? '${post.likeCount}' : '点赞',
             isActive: _postIsLiked,
             isLoading: _isLiking,
+            activeColor: const Color(0xFFFF2D55),
             onTap: _handleLike,
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 24),
 
           // 收藏
           _ActionItem(
@@ -816,9 +791,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '收藏',
             isActive: post.isFavorited,
             isLoading: _isFavoriting,
+            activeColor: const Color(0xFFFF9500),
             onTap: _handleFavorite,
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 24),
 
           // 评论
           _ActionItem(
@@ -826,6 +802,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             activeIcon: Icons.chat_bubble,
             label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
             isActive: false,
+            activeColor: MobileTheme.primary,
             onTap: () {
               _scrollToComments();
             },
@@ -836,8 +813,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           // 分享
           IconButton(
             icon: const Icon(Icons.share_outlined),
-            color: MobileTheme.textSecondary,
-            iconSize: 22,
+            color: Colors.black87,
+            iconSize: 26,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () {
@@ -952,20 +929,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 1) {
-      return '刚刚';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
-    } else {
-      return DateFormat('MM-dd HH:mm').format(dateTime);
-    }
+    return formatRelativeTime(dateTime);
   }
 }
 
@@ -983,8 +947,8 @@ class _CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 头像尺寸：每缩进一层缩小2dp，最多缩到10dp
-    final double avatarRadius = (17 - indentLevel * 2).clamp(10, 17).toDouble();
+    // 头像尺寸：每缩进一层缩小2dp，最多缩到14dp（基础从22开始）
+    final double avatarRadius = (22 - indentLevel * 2).clamp(14, 22).toDouble();
     // 左侧缩进：每层20dp，最大缩进60dp
     final double leftPadding = (indentLevel * 20).clamp(0, 60).toDouble();
     // 最多渲染3层嵌套（indentLevel 0/1/2），超过则不再缩进但继续渲染
@@ -1047,13 +1011,13 @@ class _CommentTile extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          _formatTime(comment.createdAt),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: MobileTheme.textTertiary,
+                          Text(
+                            _formatTime(comment.createdAt),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: MobileTheme.textTertiary,
+                            ),
                           ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
@@ -1127,20 +1091,7 @@ class _CommentTile extends StatelessWidget {
   }
 
   String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 1) {
-      return '刚刚';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
-    } else {
-      return DateFormat('MM-dd').format(dateTime);
-    }
+    return formatRelativeTime(dateTime);
   }
 }
 
@@ -1151,6 +1102,7 @@ class _ActionItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final bool isLoading;
+  final Color activeColor;
   final VoidCallback onTap;
 
   const _ActionItem({
@@ -1159,36 +1111,38 @@ class _ActionItem extends StatelessWidget {
     required this.label,
     required this.isActive,
     this.isLoading = false,
+    required this.activeColor,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Color effectiveColor =
+        isActive ? activeColor : Colors.black87;
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Row(
         children: [
           isLoading
               ? const SizedBox(
-                  width: 20,
-                  height: 20,
+                  width: 24,
+                  height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: MobileTheme.textTertiary,
+                    color: Colors.black54,
                   ),
                 )
               : Icon(
                   isActive ? activeIcon : icon,
-                  size: 22,
-                  color:
-                      isActive ? MobileTheme.accent : MobileTheme.textSecondary,
+                  size: 26,
+                  color: effectiveColor,
                 ),
-          const SizedBox(width: 6),
+          const SizedBox(width: 7),
           Text(
             label,
             style: TextStyle(
-              fontSize: 14,
-              color: isActive ? MobileTheme.accent : MobileTheme.textSecondary,
+              fontSize: 16,
+              color: effectiveColor,
               fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
             ),
           ),

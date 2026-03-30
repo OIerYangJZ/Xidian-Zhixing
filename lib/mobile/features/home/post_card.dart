@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../widgets/avatar_widget.dart';
@@ -210,12 +211,12 @@ class _PostCardState extends ConsumerState<PostCard> {
           Text(
             widget.post.title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: MobileTheme.textPrimary,
               height: 1.3,
             ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 8),
@@ -339,12 +340,12 @@ class _PostCardState extends ConsumerState<PostCard> {
           Text(
             widget.post.title,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.bold,
               color: MobileTheme.textPrimary,
-              height: 1.3,
+              height: 1.5,
             ),
-            maxLines: 2,
+            maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
@@ -400,7 +401,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           child: Text(
             widget.post.content,
             style: const TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: MobileTheme.textPrimary,
               height: 1.5,
@@ -435,7 +436,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         Text(
           _formatTime(widget.post.createdAt),
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 14,
             color: MobileTheme.textTertiary,
           ),
         ),
@@ -462,7 +463,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildActionBar() {
     return SizedBox(
-      height: 32,
+      height: 36,
       child: Row(
         children: [
           _ActionButton(
@@ -470,19 +471,19 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.favorite,
             count: _likeCount,
             isActive: _isLiked,
-            activeColor: MobileTheme.accent,
+            activeColor: const Color(0xFFFF2D55),
             onTap: _busy ? null : _handleLike,
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 28),
           _ActionButton(
             icon: Icons.star_border,
             activeIcon: Icons.star,
             count: _favoriteCount,
             isActive: _isFavorited,
-            activeColor: MobileTheme.warning,
+            activeColor: const Color(0xFFFF9500),
             onTap: _busy ? null : _handleFavorite,
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 28),
           _ActionButton(
             icon: Icons.chat_bubble_outline,
             activeIcon: Icons.chat_bubble,
@@ -498,8 +499,8 @@ class _PostCardState extends ConsumerState<PostCard> {
               padding: EdgeInsets.all(4),
               child: Icon(
                 Icons.share_outlined,
-                size: 18,
-                color: MobileTheme.textTertiary,
+                size: 22,
+                color: Colors.black87,
               ),
             ),
           ),
@@ -515,20 +516,7 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 1) {
-      return '刚刚';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
-    } else {
-      return '${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-    }
+    return formatRelativeTime(dateTime);
   }
 
   String _resolveImageUrl(String imageUrl) {
@@ -601,27 +589,27 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = isActive ? activeColor : MobileTheme.textTertiary;
+    final effectiveColor = isActive ? activeColor : Colors.black87;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        height: 32,
+        height: 36,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               isActive ? activeIcon : icon,
-              size: 18,
+              size: 24,
               color: effectiveColor,
             ),
             if (count > 0) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Text(
                 count.toString(),
-                style: TextStyle(
-                  fontSize: 13,
-                  color: effectiveColor,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),

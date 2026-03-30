@@ -31,6 +31,9 @@ final currentTabIndexProvider = StateProvider<int>((ref) => 0);
 /// 骨架屏加载状态
 final skeletonLoadingProvider = StateProvider<bool>((ref) => false);
 
+/// 首页滚动到顶部触发器（每次变化即触发一次滚动）
+final scrollToTopTriggerProvider = StateProvider<int>((ref) => 0);
+
 /// 通知未读数
 final notificationUnreadCountProvider = Provider<int>((ref) {
   final notificationsState = ref.watch(notificationsControllerProvider);

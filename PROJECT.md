@@ -119,7 +119,7 @@ xduWhisperBox/
 │   │   ├── network/                # 网络请求（ApiClient、ApiEndpoints、JsonUtils）
 │   │   ├── state/                  # 状态管理（AppProviders）
 │   │   ├── theme/                  # 主题（AppTheme + SharedColors 统一跨端颜色）
-│   │   └── utils/                  # 工具函数（Web 文件下载）
+│   │   └── utils/                  # 工具函数（Web 文件下载、时间格式化）
 │   ├── data/                       # Mock 数据
 │   ├── features/                   # 功能模块
 │   │   ├── admin/                  # 管理员后台
@@ -154,7 +154,8 @@ xduWhisperBox/
 │   │   ├── state/                  # AppSettingsStore + MobileProviders
 │   │   │   ├── app_settings_store.dart  # 主题/语言持久化 + XDYou 同步触发
 │   │   │   └── mobile_providers.dart    # Riverpod Provider 统一入口
-│   │   └── theme/                  # MobileTheme + SharedColors
+│   │   ├── theme/                  # MobileTheme + SharedColors
+│   │   └── utils/                  # 工具函数（时间格式化 time_utils）
 │   ├── features/                   # 功能模块（移动端独立实现）
 │   │   ├── admin/                  # 管理员后台（移动端）
 │   │   ├── auth/
@@ -319,6 +320,8 @@ lib/mobile/main.dart
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+29 | 2026-03-30 | **修复帖子详情页收藏按钮颜色**：`_ActionItem` 添加 `activeColor` 参数替代原来写死的粉色 `0xFFFF2D55`；点赞用红色 `0xFFFF2D55`，收藏用橙色 `0xFFFF9500`（与主页一致），评论用 `MobileTheme.primary`；`flutter analyze` 零 error |
+| 0.1.0+28 | 2026-03-30 | **移动端底部导航栏与 Tab 交互全面升级**：① 底部导航栏图标从默认尺寸增大到 **28px**，选中/未选中文案字重分别加粗到 `FontWeight.w700/w600`，高度从 60 增大到 68；② 消息 Tab 图标增加红色 Badge 点，未读数 > 0 时显示红色小圆点；③ 首页"我的"Tab 增加通知红点 Badge，显示未读通知数；④ 首页向上滑动帖子时自动隐藏底部导航栏，向下滑动时自动展开（`BottomNavVisibilityNotifier` 全局单例 ChangeNotifier + `AnimatedBuilder`）；⑤ 首页顶部导航栏添加 `titleSpacing: 0` 和 `systemOverlayStyle: SystemUiOverlayStyle.dark`，使标题更贴合左侧，状态栏更清晰；⑥ **左右滑动切换 Tab**：重构 `MobileShell` 为 PageView + 直接页面 Widget 结构（非 StatefulNavigationShell），支持首页 → 消息 → 校园 → 我的四个页面之间左右滑动切换；首页 overscroll（向上快速拖过顶部）自动切换到上一个 Tab；`flutter analyze` 零 error |
 | 0.1.0+25 | 2026-03-30 | **登录页 UI 与交互修复**：① 密码输入框 `hintText` 改为"统一认证密码"（与学号框样式一致，均为浅灰 placeholder）；② 登录按钮下方提示文案改为"您的密码信息不会上传至任何服务器，仅存储在手机本地。"；③ 修复「帮助与反馈」按钮被父级 `CrossAxisAlignment.stretch` 撑满宽度导致点击区域异常的问题，包裹 `Align(alignment: Alignment.center)` 恢复自然宽度；`flutter analyze` 零 error；**删除注册功能**：移除移动端 `register_page.dart` 文件、`lib_mobile.dart` 中的 export 及 `app_router.dart` 中 `/auth/register` 路由；`flutter analyze` 零 error |
 | 0.1.0+24 | 2026-03-30 | **树洞→XDYou 状态同步**：① 新建 `AppSettingsStore`（`lib/mobile/core/state/app_settings_store.dart`）管理主 App 主题亮度（`ThemeMode`）和语言（`Locale`）的持久化，单例模式；② `xdyou_bootstrap.dart` 新增 `TreeholeSharedKeys` 常量类（`treehole_brightness` / `treehole_color_seed` / `treehole_localization`）和三个同步函数（`syncTreeholeThemeToXdyou` / `syncTreeholeLanguageToXdyou` / `syncAllToXdyou`）；③ `ThemeController` 的 `updateTheme()` 优先读取 `treehole_*` 覆写 key，fallback 到 XDYou 原生偏好，实现单向覆写；④ `settings_main_page.dart` 新增「外观」区块，支持切换主题（跟随系统/浅色/深色）和语言（简体中文/繁體中文/English）；⑤ 登录页改用 `syncAllToXdyou` 一键同步全部状态；⑥ `main.dart` 初始化 `AppSettingsStore` 并驱动 `MaterialApp.router` 的 `themeMode`；`flutter analyze` 零 error |
 | 0.1.0+23 | 2026-03-30 | **移动端帖子详情页优化**：① 将点赞/收藏/评论/分享操作栏从页面底部 Column 移至帖子内容与评论区之间（`_buildActionBar()` + `GlobalKey` 精确定位评论区）；评论区跳转逻辑改为 `_scrollToComments()` → `Scrollable.ensureVisible` 滚动到评论区标题；② 将表情输入框从 `CommentInputBar` 内部拆分独立为 `EmojiPickerBar` 组件；`PostDetailPage` 自己管理 `_showEmoji` 状态，`bottomNavigationBar` 中 `EmojiPickerBar` 位于 `CommentInputBar` 上方，弹出时从页面最底部往上展开；`_CommentInputBarState.insertEmoji()` 暴露给父组件调用；③ 修复表情栏展开时收起键盘（`_FocusScope.of(context).unfocus()`），防止键盘和表情栏同时出现导致布局空白；④ 评论头像点击添加 `HitTestBehavior.opaque`，修复点击不跳转个人主页的问题；`flutter analyze` 零 error |
@@ -359,4 +362,4 @@ lib/mobile/main.dart
 
 ---
 
-*最后更新：2026-03-30（v0.1.0+25，登录页 UI 与交互修复：密码框 placeholder 改为"统一认证密码"、提示文案改为本地存储说明、修复帮助与反馈按钮点击区域问题）*
+*最后更新：2026-03-30（v0.1.0+27，移动端首页 UI 全面优化：频道选择器改为三横线 dropdown、返回键逻辑重构、主页和详情页按钮放大为黑色）*

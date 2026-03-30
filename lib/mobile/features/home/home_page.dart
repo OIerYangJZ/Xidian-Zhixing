@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/state/mobile_providers.dart';
 import '../../features/widgets/shimmer_loading.dart';
-import 'package:xdu_treehole_web/core/state/app_providers.dart';
-import 'package:xdu_treehole_web/features/feed/feed_controller.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'post_card.dart';
+import '../shell/mobile_shell.dart';
 
 /// 每个频道对应的图标和颜色
 final _channelMeta = {
@@ -51,6 +52,30 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(feedControllerProvider.notifier).loadInitial();
     });
     _scrollController.addListener(_onScroll);
+    // ref.listen 只能在 build 中调用，用 Future.microtask 延迟到首次 build 之后再注册
+    Future<void>.microtask(() {
+      if (!mounted) return;
+      ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
+        _scrollToTop();
+      });
+    });
+  }
+
+  void _scrollToTop() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOutCubic,
+      );
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 每次回到首页时恢复底部导航栏可见性
+    BottomNavVisibilityNotifier.instance.show();
   }
 
   @override
@@ -128,97 +153,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
-  /// 显示频道选择器底部弹窗
-  void _showChannelPicker(BuildContext context, FeedState feedState) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: MobileTheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: MobileTheme.divider,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '选择频道',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: MobileTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: GridView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.2,
-                ),
-                itemCount: feedState.channels.length,
-                itemBuilder: (context, index) {
-                  final channel = feedState.channels[index];
-                  final isSelected = channel == feedState.selectedChannel;
-                  final meta = _channelMeta[channel];
-                  return GestureDetector(
-                    onTap: () {
-                      ref.read(feedControllerProvider.notifier).switchChannel(channel);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected ? MobileTheme.primary.withValues(alpha: 0.1) : MobileTheme.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected ? MobileTheme.primary : MobileTheme.divider,
-                          width: isSelected ? 1.5 : 0.5,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            meta?.icon ?? Icons.grid_view_rounded,
-                            size: 24,
-                            color: isSelected ? MobileTheme.primary : (meta?.color ?? MobileTheme.textSecondary),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            channel,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              color: isSelected ? MobileTheme.primary : MobileTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      ),
-    );
-  }
-
   /// 将指定 channel chip 滚动到可视区域中央
   void _scrollChannelToCenter(int index) {
     if (!_channelScrollController.hasClients) return;
@@ -261,42 +195,75 @@ class _HomePageState extends ConsumerState<HomePage> {
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
               toolbarHeight: 56,
+              titleSpacing: 0,
+              systemOverlayStyle: SystemUiOverlayStyle.dark,
               title: Row(
                 children: [
-                  // 频道下拉选择器
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => _showChannelPicker(context, feedState),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: MobileTheme.background,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _channelMeta[feedState.selectedChannel]?.icon ?? Icons.grid_view_rounded,
-                              size: 16,
-                              color: _channelMeta[feedState.selectedChannel]?.color ?? MobileTheme.textSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Flexible(
-                              child: Text(
-                                feedState.selectedChannel,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                  color: MobileTheme.textPrimary,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                  // 频道下拉选择器（仅三横线图标）
+                  PopupMenuButton<String>(
+                    offset: const Offset(0, 48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    color: MobileTheme.surface,
+                    itemBuilder: (context) {
+                      return feedState.channels.map((channel) {
+                        final isSelected = channel == feedState.selectedChannel;
+                        final meta = _channelMeta[channel];
+                        return PopupMenuItem<String>(
+                          value: channel,
+                          height: 48,
+                          child: Row(
+                            children: [
+                              Icon(
+                                meta?.icon ?? Icons.grid_view_rounded,
+                                size: 20,
+                                color: isSelected
+                                    ? MobileTheme.primary
+                                    : (meta?.color ?? MobileTheme.textSecondary),
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down, size: 18, color: MobileTheme.textSecondary),
-                          ],
-                        ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  channel,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? MobileTheme.primary
+                                        : MobileTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              if (isSelected)
+                                const Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: MobileTheme.primary,
+                                ),
+                            ],
+                          ),
+                        );
+                      }).toList();
+                    },
+                    onSelected: (channel) {
+                      ref
+                          .read(feedControllerProvider.notifier)
+                          .switchChannel(channel);
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: MobileTheme.background,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.menu,
+                        size: 22,
+                        color: MobileTheme.textPrimary,
                       ),
                     ),
                   ),

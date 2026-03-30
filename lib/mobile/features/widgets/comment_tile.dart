@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:xdu_treehole_web/models/comment_item.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/utils/time_utils.dart';
 import 'avatar_widget.dart';
 
 /// 评论列表项组件
@@ -46,7 +47,7 @@ class CommentTile extends StatelessWidget {
                 AvatarWidget(
                   avatarUrl: comment.authorAvatar,
                   nickname: comment.authorNickname,
-                  radius: isNested ? 16 : 20,
+                  radius: isNested ? 18 : 22,
                 ),
                 const SizedBox(width: 10),
 
@@ -96,7 +97,7 @@ class CommentTile extends StatelessWidget {
                           Text(
                             _formatTime(comment.createdAt),
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: MobileTheme.textTertiary,
                             ),
                           ),
@@ -205,20 +206,7 @@ class CommentTile extends StatelessWidget {
   }
 
   String _formatTime(DateTime dateTime) {
-    final now = DateTime.now();
-    final diff = now.difference(dateTime);
-
-    if (diff.inMinutes < 1) {
-      return '刚刚';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}分钟前';
-    } else if (diff.inHours < 24) {
-      return '${diff.inHours}小时前';
-    } else if (diff.inDays < 7) {
-      return '${diff.inDays}天前';
-    } else {
-      return '${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')}';
-    }
+    return formatRelativeTime(dateTime);
   }
 }
 
