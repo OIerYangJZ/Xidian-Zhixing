@@ -168,6 +168,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
   /// PageView 婊戝姩缁撴潫鍚庯紝鍚屾 GoRouter 璺敱鐘舵€?
   void _onPageViewIdle(int index) {
     _currentDisplayIndex = index;
+    BottomNavVisibilityNotifier.instance.show();
 
     final target = MobileShell._branchIndexForDisplay(_loggedIn, index);
     if (target == widget.navigationShell.currentIndex) return;

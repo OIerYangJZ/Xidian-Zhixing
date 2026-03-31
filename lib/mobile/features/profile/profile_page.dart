@@ -418,12 +418,14 @@ class _StatChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final row = Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
           value,
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
+            height: 1.0,
             color: primaryColor ?? colors.textPrimary,
           ),
         ),
@@ -432,6 +434,7 @@ class _StatChip extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 13,
+            height: 1.0,
             color: secondaryColor ?? colors.textSecondary,
           ),
         ),
@@ -793,11 +796,18 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
         final c = _comments[i];
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: c.postId.trim().isEmpty
-              ? null
-              : () => context.push(
-                    '/post/${Uri.encodeComponent(c.postId)}?commentId=${Uri.encodeComponent(c.id)}',
-                  ),
+          onTap: () {
+            final String postId = c.postId.trim();
+            if (postId.isEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('暂时无法定位到原帖，请刷新后重试')),
+              );
+              return;
+            }
+            context.push(
+              '/post/${Uri.encodeComponent(postId)}?commentId=${Uri.encodeComponent(c.id)}',
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(

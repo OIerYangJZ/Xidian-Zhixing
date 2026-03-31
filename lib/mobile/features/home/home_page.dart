@@ -770,20 +770,20 @@ class _CompactSortOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colors.divider.withValues(alpha: 0.9)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: isSelected ? MobileTheme.primary : colors.textTertiary,
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        splashColor: colors.divider.withValues(alpha: 0.85),
+        highlightColor: colors.divider.withValues(alpha: 0.2),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: Icon(
+            icon,
+            size: 20,
+            color: isSelected ? MobileTheme.primary : colors.textTertiary,
+          ),
         ),
       ),
     );

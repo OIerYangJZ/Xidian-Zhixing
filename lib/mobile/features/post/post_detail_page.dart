@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 import '../widgets/avatar_widget.dart';
 
@@ -16,8 +17,8 @@ import 'package:xdu_treehole_web/widgets/post_content_body.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
 
-/// 帖子详情页
-/// 包含帖子正文、图片画廊、评论列表、点赞/收藏/举报交互
+/// 甯栧瓙璇︽儏椤?
+/// 鍖呭惈甯栧瓙姝ｆ枃銆佸浘鐗囩敾寤娿€佽瘎璁哄垪琛ㄣ€佺偣璧?鏀惰棌/涓炬姤浜や簰
 class PostDetailPage extends ConsumerStatefulWidget {
   final String postId;
   final String? initialCommentId;
@@ -42,18 +43,19 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   bool _isFavoriting = false;
   bool _isPostingComment = false;
   bool _isFollowing = false;
+  bool _isDeletingComment = false;
   bool _showEmoji = false;
 
-  // 回复状态
+  // 鍥炲鐘舵€?
   CommentItem? _replyingTo;
 
-  // 用于键盘弹起时自动滚动到底部
+  // 鐢ㄤ簬閿洏寮硅捣鏃惰嚜鍔ㄦ粴鍔ㄥ埌搴曢儴
   final ScrollController _scrollController = ScrollController();
 
-  // 用于滚动到评论区
+  // 鐢ㄤ簬婊氬姩鍒拌瘎璁哄尯
   final GlobalKey _commentsSectionKey = GlobalKey();
 
-  // 用于操作评论输入框
+  // 鐢ㄤ簬鎿嶄綔璇勮杈撳叆妗?
   final GlobalKey<dynamic> _commentInputKey = GlobalKey();
   final Map<String, GlobalKey> _commentItemKeys = <String, GlobalKey>{};
   String _initialCommentId = '';
@@ -69,7 +71,25 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   void initState() {
     super.initState();
     _initialCommentId = (widget.initialCommentId ?? '').trim();
+    _ensureCurrentUserLoaded();
     _loadData(recordView: true);
+  }
+
+  String get _currentUserId => AuthStore.instance.currentUser?.userId ?? '';
+
+  Future<void> _ensureCurrentUserLoaded() async {
+    if (_currentUserId.isNotEmpty) {
+      return;
+    }
+    try {
+      final profile = await ref.read(userRepositoryProvider).fetchProfile();
+      AuthStore.instance.setCurrentUser(profile);
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (_) {
+      // ignore
+    }
   }
 
   Future<void> _loadData({bool recordView = false}) async {
@@ -106,7 +126,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     }
   }
 
-  /// 将扁平的评论列表转换为嵌套树结构
+  /// 灏嗘墎骞崇殑璇勮鍒楄〃杞崲涓哄祵濂楁爲缁撴瀯
   List<CommentItem> _buildCommentTree(List<CommentItem> flat) {
     final Map<String, CommentItem> map = {};
     for (final c in flat) {
@@ -164,7 +184,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
       }
     } finally {
       if (mounted) {
@@ -178,7 +198,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Future<void> _handleFavorite() async {
     if (_isFavoriting || _post == null) return;
 
-    // 乐观更新
+    // 涔愯鏇存柊
     final previousPost = _post!;
     final wasFavorited = _post!.isFavorited;
     setState(() {
@@ -199,14 +219,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         await postRepo.favoritePost(widget.postId);
       }
     } catch (e) {
-      // 回滚
+      // 鍥炴粴
       if (mounted) {
         setState(() {
           _post = previousPost;
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
       }
     } finally {
       if (mounted) {
@@ -234,7 +254,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     if (result != null && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('举报成功，我们会尽快处理')));
+      ).showSnackBar(const SnackBar(content: Text('涓炬姤鎴愬姛锛屾垜浠細灏藉揩澶勭悊')));
     }
   }
 
@@ -253,25 +273,25 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         parentId: _replyingTo?.id,
       );
 
-      // 重新加载评论
+      // 閲嶆柊鍔犺浇璇勮
       final comments = await postRepo.fetchComments(widget.postId);
 
-      // 乐观更新帖子评论数
+      // 涔愯鏇存柊甯栧瓙璇勮鏁?
       if (mounted && _post != null) {
         setState(() {
           _post = _post!.copyWith(commentCount: _post!.commentCount + 1);
           _comments = _buildCommentTree(comments);
-          _replyingTo = null; // 清空回复状态
+          _replyingTo = null; // 娓呯┖鍥炲鐘舵€?
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('评论成功')));
+        ).showSnackBar(const SnackBar(content: Text('璇勮鎴愬姛')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('评论失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('璇勮澶辫触: $e')));
       }
     } finally {
       if (mounted) {
@@ -298,7 +318,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('无法发起私信: $e')));
+      ).showSnackBar(SnackBar(content: Text('鏃犳硶鍙戣捣绉佷俊: $e')));
     }
   }
 
@@ -326,17 +346,72 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('关注成功')));
+      ).showSnackBar(const SnackBar(content: Text('鍏虫敞鎴愬姛')));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
       }
     } finally {
       if (mounted) {
         setState(() {
           _isFollowing = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleDeleteComment(CommentItem comment) async {
+    if (_isDeletingComment) {
+      return;
+    }
+    final bool confirmed = await showDialog<bool>(
+          context: context,
+          builder: (BuildContext dialogContext) => AlertDialog(
+            title: const Text('Delete Comment'),
+            content: const Text('Delete this comment permanently?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('鍙栨秷'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text(
+                  '鍒犻櫎',
+                  style: TextStyle(color: MobileTheme.error),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed) {
+      return;
+    }
+    setState(() {
+      _isDeletingComment = true;
+    });
+    try {
+      await ref.read(userRepositoryProvider).deleteMyComment(comment.id);
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Comment deleted')));
+      await _loadData(recordView: false);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('鍒犻櫎澶辫触: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isDeletingComment = false;
         });
       }
     }
@@ -383,7 +458,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _toggleEmoji() {
-    // 收起键盘，防止键盘和表情栏同时出现导致布局空白
+    // 鏀惰捣閿洏锛岄槻姝㈤敭鐩樺拰琛ㄦ儏鏍忓悓鏃跺嚭鐜板鑷村竷灞€绌虹櫧
     FocusScope.of(context).unfocus();
     setState(() {
       _showEmoji = !_showEmoji;
@@ -391,10 +466,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _onEmojiTap(String emoji) {
-    // 通过 GlobalKey 找到 CommentInputBar 内部状态，调用 insertEmoji
+    // 閫氳繃 GlobalKey 鎵惧埌 CommentInputBar 鍐呴儴鐘舵€侊紝璋冪敤 insertEmoji
     final inputState = _commentInputKey.currentState;
     if (inputState != null) {
-      // dynamic call — insertEmoji 是 _CommentInputBarState 的公开方法
+      // dynamic call 鈥?insertEmoji 鏄?_CommentInputBarState 鐨勫叕寮€鏂规硶
       // ignore: avoid_dynamic_calls
       inputState.insertEmoji(emoji);
     }
@@ -411,7 +486,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('帖子详情'),
+        title: const Text('甯栧瓙璇︽儏'),
         actions: [
           if (_post != null)
             IconButton(
@@ -487,7 +562,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '回复 @${_replyingTo!.authorAlias}',
+              '鍥炲 @${_replyingTo!.authorAlias}',
               style: const TextStyle(fontSize: 13, color: MobileTheme.primary),
               overflow: TextOverflow.ellipsis,
             ),
@@ -521,7 +596,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(onPressed: _loadData, child: const Text('重试')),
+            ElevatedButton(onPressed: _loadData, child: const Text('閲嶈瘯')),
           ],
         ),
       ),
@@ -531,7 +606,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildEmptyView() {
     final colors = MobileColors.of(context);
     return Center(
-      child: Text('帖子不存在或已被删除', style: TextStyle(color: colors.textSecondary)),
+      child: Text('甯栧瓙涓嶅瓨鍦ㄦ垨宸茶鍒犻櫎', style: TextStyle(color: colors.textSecondary)),
     );
   }
 
@@ -548,15 +623,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 帖子内容
+                  // 甯栧瓙鍐呭
                   _buildPostContent(),
 
-                  // 操作栏：点赞/收藏/评论/分享
+                  // 鎿嶄綔鏍忥細鐐硅禐/鏀惰棌/璇勮/鍒嗕韩
                   _buildActionBar(),
 
                   const Divider(height: 1),
 
-                  // 评论区
+                  // 璇勮鍖?
                   _buildCommentsSection(),
                 ],
               ),
@@ -577,15 +652,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 作者信息
+          // 浣滆€呬俊鎭?
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             child: Row(
               children: [
-                // 头像
+                // 澶村儚
                 GestureDetector(
                   onTap: () {
-                    // 匿名帖或自己的帖子不跳转（自己的帖子无法从全屏页 push Shell 分支路由）
+                    // 鍖垮悕甯栨垨鑷繁鐨勫笘瀛愪笉璺宠浆锛堣嚜宸辩殑甯栧瓙鏃犳硶浠庡叏灞忛〉 push Shell 鍒嗘敮璺敱锛?
                     if (!post.isAnonymous &&
                         post.authorUserId.isNotEmpty &&
                         !post.isOwnPost) {
@@ -635,7 +710,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
-                                '已解决',
+                                'Resolved',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: MobileTheme.success,
@@ -655,7 +730,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   TextButton.icon(
                     onPressed: _isFollowing ? null : _handleFollowAuthor,
                     icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
-                    label: const Text('关注'),
+                    label: const Text('鍏虫敞'),
                     style: TextButton.styleFrom(
                       foregroundColor: MobileTheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -665,7 +740,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
           ),
 
-          // 标题
+          // 鏍囬
           if (post.title.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 0, 25, 4),
@@ -681,7 +756,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               ),
             ),
 
-          // 正文
+          // 姝ｆ枃
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: DefaultTextStyle.merge(
@@ -695,14 +770,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
           ),
 
-          // 图片
+          // 鍥剧墖
           if (post.hasImage && supplementaryImageUrls.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: PostImageGrid(imageUrls: supplementaryImageUrls),
             ),
 
-          // 标签
+          // 鏍囩
           if (post.tags.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -743,13 +818,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 评论区标题
+          // 璇勮鍖烘爣棰?
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
                 Text(
-                  '评论',
+                  '璇勮',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -761,13 +836,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
           ),
 
-          // 评论列表
+          // 璇勮鍒楄〃
           if (_comments.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
-                  '暂无评论，快来抢沙发~',
+                  '鏆傛棤璇勮锛屽揩鏉ユ姠娌欏彂~',
                   style: TextStyle(color: colors.textTertiary, fontSize: 14),
                 ),
               ),
@@ -787,7 +862,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       child: Row(
         children: [
-          // 点赞
+          // 鐐硅禐
           _ActionItem(
             icon: Icons.favorite_border,
             activeIcon: Icons.favorite,
@@ -799,7 +874,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           ),
           const SizedBox(width: 22),
 
-          // 收藏
+          // 鏀惰棌
           _ActionItem(
             icon: Icons.star_border,
             activeIcon: Icons.star,
@@ -812,7 +887,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           ),
           const SizedBox(width: 22),
 
-          // 评论
+          // 璇勮
           _ActionItem(
             icon: Icons.chat_bubble_outline,
             activeIcon: Icons.chat_bubble,
@@ -826,7 +901,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
           const Spacer(),
 
-          // 分享
+          // 鍒嗕韩
           IconButton(
             icon: Icon(Icons.share_outlined, color: colors.textPrimary),
             iconSize: 22,
@@ -834,11 +909,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             constraints: const BoxConstraints(),
             onPressed: () {
               Clipboard.setData(
-                ClipboardData(text: '查看西电树洞帖子: ${widget.postId}'),
+                ClipboardData(text: '鏌ョ湅瑗跨數鏍戞礊甯栧瓙: ${widget.postId}'),
               );
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('链接已复制到剪贴板')));
+              ).showSnackBar(
+                const SnackBar(content: Text('Link copied to clipboard')),
+              );
             },
           ),
         ],
@@ -863,7 +940,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 Icons.flag_outlined,
                 color: MobileTheme.error,
               ),
-              title: const Text('举报'),
+              title: const Text('涓炬姤'),
               onTap: () {
                 Navigator.pop(context);
                 _handleReport();
@@ -875,7 +952,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   Icons.delete_outline,
                   color: MobileTheme.error,
                 ),
-                title: const Text('删除'),
+                title: const Text('鍒犻櫎'),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmDelete();
@@ -892,12 +969,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除这篇帖子吗？此操作不可恢复。'),
+        title: const Text('纭鍒犻櫎'),
+        content: const Text('Delete this post permanently?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: const Text('鍙栨秷'),
           ),
           TextButton(
             onPressed: () async {
@@ -909,25 +986,25 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   context.pop();
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(const SnackBar(content: Text('删除成功')));
+                  ).showSnackBar(const SnackBar(content: Text('鍒犻櫎鎴愬姛')));
                 }
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
+                  ).showSnackBar(SnackBar(content: Text('鍒犻櫎澶辫触: $e')));
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            child: const Text('删除'),
+            child: const Text('鍒犻櫎'),
           ),
         ],
       ),
     );
   }
 
-  /// 递归渲染嵌套评论列表
+  /// 閫掑綊娓叉煋宓屽璇勮鍒楄〃
   Widget _buildCommentList(
     List<CommentItem> comments, {
     bool isNested = false,
@@ -946,6 +1023,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           indentLevel: isNested ? 1 : 0,
           onReply: (c) => setState(() => _replyingTo = c),
           commentKeyBuilder: _commentKeyFor,
+          currentUserId: _currentUserId,
+          onDelete: _handleDeleteComment,
         );
       },
     );
@@ -956,18 +1035,22 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 }
 
-/// 评论列表项
+/// 璇勮鍒楄〃椤?
 class _CommentTile extends StatefulWidget {
   final CommentItem comment;
   final void Function(CommentItem)? onReply;
   final int indentLevel;
   final GlobalKey Function(String commentId)? commentKeyBuilder;
+  final String currentUserId;
+  final Future<void> Function(CommentItem comment)? onDelete;
 
   const _CommentTile({
     required this.comment,
     this.onReply,
     this.indentLevel = 0,
     this.commentKeyBuilder,
+    this.currentUserId = '',
+    this.onDelete,
   });
 
   @override
@@ -996,7 +1079,7 @@ class _CommentTileState extends State<_CommentTile> {
 
   Future<void> _toggleLike(BuildContext context) async {
     final wasLiked = _isLiked;
-    // 乐观更新
+    // 涔愯鏇存柊
     setState(() {
       _isLiked = !wasLiked;
       _likeCount += wasLiked ? -1 : 1;
@@ -1011,7 +1094,7 @@ class _CommentTileState extends State<_CommentTile> {
         await repo.likeComment(widget.comment.id);
       }
     } catch (_) {
-      // 回滚
+      // 鍥炴粴
       if (mounted) {
         setState(() {
           _isLiked = wasLiked;
@@ -1021,194 +1104,252 @@ class _CommentTileState extends State<_CommentTile> {
     }
   }
 
+  bool get _canDelete {
+    final String userId = widget.currentUserId.trim();
+    return userId.isNotEmpty && userId == widget.comment.authorUserId;
+  }
+
+  Future<void> _showActionMenu(LongPressStartDetails details) async {
+    HapticFeedback.mediumImpact();
+    final media = MediaQuery.of(context);
+    final _CommentAction? action = await showMenu<_CommentAction>(
+      context: context,
+      color: MobileColors.of(context).surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      position: RelativeRect.fromLTRB(
+        details.globalPosition.dx,
+        details.globalPosition.dy - 10,
+        media.size.width - details.globalPosition.dx,
+        media.size.height - details.globalPosition.dy,
+      ),
+      items: <PopupMenuEntry<_CommentAction>>[
+        const PopupMenuItem<_CommentAction>(
+          value: _CommentAction.copy,
+          child: Text('澶嶅埗'),
+        ),
+        if (_canDelete && widget.onDelete != null)
+          const PopupMenuItem<_CommentAction>(
+            value: _CommentAction.delete,
+            child: Text('鍒犻櫎', style: TextStyle(color: MobileTheme.error)),
+          ),
+      ],
+    );
+    if (!mounted || action == null) {
+      return;
+    }
+    if (action == _CommentAction.copy) {
+      await Clipboard.setData(ClipboardData(text: widget.comment.content));
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Comment copied')));
+      return;
+    }
+    if (action == _CommentAction.delete && _canDelete) {
+      await widget.onDelete?.call(widget.comment);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final comment = widget.comment;
     final colors = MobileColors.of(context);
-    // 头像尺寸：每缩进一层缩小2dp，最多缩到14dp（基础从22开始）
+    // 澶村儚灏哄锛氭瘡缂╄繘涓€灞傜缉灏?dp锛屾渶澶氱缉鍒?4dp锛堝熀纭€浠?2寮€濮嬶級
     final double avatarRadius = (22 - widget.indentLevel * 2)
         .clamp(14, 22)
         .toDouble();
-    // 左侧缩进：每层20dp，最大缩进60dp
+    // 宸︿晶缂╄繘锛氭瘡灞?0dp锛屾渶澶х缉杩?0dp
     final double leftPadding = (widget.indentLevel * 20)
         .clamp(0, 60)
         .toDouble();
-    // 视觉缩进最多展示到 3 层，避免过深嵌套把正文挤没；
-    // 但评论内容本身继续递归渲染，不截断楼中楼。
+    // 瑙嗚缂╄繘鏈€澶氬睍绀哄埌 3 灞傦紝閬垮厤杩囨繁宓屽鎶婃鏂囨尋娌★紱
+    // 浣嗚瘎璁哄唴瀹规湰韬户缁€掑綊娓叉煋锛屼笉鎴柇妤间腑妤笺€?
     final int effectiveIndent = widget.indentLevel.clamp(0, 3);
+    final double guideWidth = effectiveIndent * 12.0;
 
     return Container(
       key: widget.commentKeyBuilder?.call(comment.id),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 左侧缩进 + 竖线
-              SizedBox(
-                width: leftPadding + (effectiveIndent > 0 ? 12 : 16),
-                child: effectiveIndent > 0
-                    ? Row(
-                        children: [
-                          SizedBox(width: leftPadding),
-                          ...List.generate(effectiveIndent, (i) {
-                            return Container(
-                              width: 2,
-                              margin: const EdgeInsets.only(right: 10),
-                              color: colors.divider,
-                            );
-                          }),
-                        ],
-                      )
-                    : SizedBox(width: leftPadding),
-              ),
-              // 头像
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: comment.authorUserId.isNotEmpty
-                    ? () => context.push('/user/${comment.authorUserId}')
-                    : null,
-                child: AvatarWidget(
-                  avatarUrl: comment.authorAvatar,
-                  nickname: comment.authorAlias,
-                  radius: avatarRadius,
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onLongPressStart: _showActionMenu,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                // 宸︿晶缂╄繘 + 绔栫嚎
+                SizedBox(
+                  width: leftPadding + (effectiveIndent > 0 ? guideWidth : 16),
+                  child: effectiveIndent > 0
+                      ? Row(
+                          children: [
+                            SizedBox(width: leftPadding),
+                            ...List.generate(effectiveIndent, (i) {
+                              return Container(
+                                width: 2,
+                                margin: const EdgeInsets.only(right: 10),
+                                color: colors.divider,
+                              );
+                            }),
+                          ],
+                        )
+                      : SizedBox(width: leftPadding),
                 ),
-              ),
-              const SizedBox(width: 10),
-              // 内容
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 昵称 + 时间
-                    Row(
-                      children: [
-                        Flexible(
-                          child: GestureDetector(
-                            onTap: comment.authorUserId.isNotEmpty
-                                ? () => context.push(
-                                    '/user/${comment.authorUserId}',
-                                  )
-                                : null,
-                            child: Text(
-                              comment.authorAlias,
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: comment.authorUserId.isNotEmpty
-                                    ? MobileTheme.primary
-                                    : colors.textPrimary,
+                // 澶村儚
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: comment.authorUserId.isNotEmpty
+                        ? () => context.push('/user/${comment.authorUserId}')
+                        : null,
+                    child: AvatarWidget(
+                      avatarUrl: comment.authorAvatar,
+                      nickname: comment.authorAlias,
+                      radius: avatarRadius,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // 鍐呭
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 鏄电О + 鏃堕棿
+                      Row(
+                        children: [
+                          Flexible(
+                            child: GestureDetector(
+                              onTap: comment.authorUserId.isNotEmpty
+                                  ? () => context.push(
+                                      '/user/${comment.authorUserId}',
+                                    )
+                                  : null,
+                              child: Text(
+                                comment.authorAlias,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: comment.authorUserId.isNotEmpty
+                                      ? MobileTheme.primary
+                                      : colors.textPrimary,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _formatTime(comment.createdAt),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: colors.textTertiary,
+                          const SizedBox(width: 6),
+                          Text(
+                            _formatTime(comment.createdAt),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.textTertiary,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    // 正文：点击触发回复
-                    GestureDetector(
-                      onTap: () => widget.onReply?.call(comment),
-                      behavior: HitTestBehavior.opaque,
-                      child: Text(
-                        comment.content,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textPrimary,
-                          height: 1.4,
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+                      // 姝ｆ枃锛氱偣鍑昏Е鍙戝洖澶?
+                      GestureDetector(
+                        onTap: () => widget.onReply?.call(comment),
+                        behavior: HitTestBehavior.opaque,
+                        child: Text(
+                          comment.content,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colors.textPrimary,
+                            height: 1.4,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    // 底部操作栏：点赞 + 回复数
-                    Row(
-                      children: [
-                        // 点赞
-                        GestureDetector(
-                          onTap: () => _toggleLike(context),
-                          behavior: HitTestBehavior.opaque,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _isLiked
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                size: 18,
-                                color: _isLiked
-                                    ? MobileTheme.accent
-                                    : colors.textPrimary,
-                              ),
-                              if (_likeCount > 0) ...[
-                                const SizedBox(width: 3),
-                                Text(
-                                  '$_likeCount',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: _isLiked
-                                        ? MobileTheme.accent
-                                        : colors.textPrimary,
-                                  ),
+                      const SizedBox(height: 8),
+                      // 搴曢儴鎿嶄綔鏍忥細鐐硅禐 + 鍥炲鏁?
+                      Row(
+                        children: [
+                          // 鐐硅禐
+                          GestureDetector(
+                            onTap: () => _toggleLike(context),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _isLiked
+                                      ? Icons.favorite_rounded
+                                      : Icons.favorite_border_rounded,
+                                  size: 18,
+                                  color: _isLiked
+                                      ? MobileTheme.accent
+                                      : colors.textPrimary,
                                 ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                        // 回复数
-                        GestureDetector(
-                          onTap: () => widget.onReply?.call(comment),
-                          behavior: HitTestBehavior.opaque,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.chat_bubble_outline_rounded,
-                                size: 18,
-                                color: colors.textPrimary,
-                              ),
-                              if (comment.effectiveReplyCount > 0) ...[
-                                const SizedBox(width: 3),
-                                Text(
-                                  '${comment.effectiveReplyCount}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colors.textPrimary,
+                                if (_likeCount > 0) ...[
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '$_likeCount',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: _isLiked
+                                          ? MobileTheme.accent
+                                          : colors.textPrimary,
+                                    ),
                                   ),
-                                ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                          const SizedBox(width: 20),
+                          // 鍥炲鏁?
+                          GestureDetector(
+                            onTap: () => widget.onReply?.call(comment),
+                            behavior: HitTestBehavior.opaque,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.chat_bubble_outline_rounded,
+                                  size: 18,
+                                  color: colors.textPrimary,
+                                ),
+                                if (comment.effectiveReplyCount > 0) ...[
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${comment.effectiveReplyCount}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ),
                 ),
+                ],
               ),
-            ],
-          ),
-        ),
-        // 递归渲染子回复；超过 3 层后不再增加视觉缩进，但继续显示内容
-        if (comment.replies.isNotEmpty)
-          ...comment.replies.map(
-            (reply) => _CommentTile(
-              comment: reply,
-              indentLevel: widget.indentLevel + 1,
-              onReply: widget.onReply,
-              commentKeyBuilder: widget.commentKeyBuilder,
             ),
           ),
+          // 閫掑綊娓叉煋瀛愬洖澶嶏紱瓒呰繃 3 灞傚悗涓嶅啀澧炲姞瑙嗚缂╄繘锛屼絾缁х画鏄剧ず鍐呭
+          if (comment.replies.isNotEmpty)
+            ...comment.replies.map(
+              (reply) => _CommentTile(
+                comment: reply,
+                indentLevel: widget.indentLevel + 1,
+                onReply: widget.onReply,
+                commentKeyBuilder: widget.commentKeyBuilder,
+                currentUserId: widget.currentUserId,
+                onDelete: widget.onDelete,
+              ),
+            ),
         ],
       ),
     );
@@ -1219,7 +1360,9 @@ class _CommentTileState extends State<_CommentTile> {
   }
 }
 
-/// 底部操作按钮
+/// 搴曢儴鎿嶄綔鎸夐挳
+enum _CommentAction { copy, delete }
+
 class _ActionItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
@@ -1279,7 +1422,7 @@ class _ActionItem extends StatelessWidget {
   }
 }
 
-/// 举报表单
+/// 涓炬姤琛ㄥ崟
 class _ReportSheet extends StatefulWidget {
   final String postId;
   final PostRepository postRepo;
@@ -1295,7 +1438,7 @@ class _ReportSheetState extends State<_ReportSheet> {
   final _descriptionController = TextEditingController();
   bool _isSubmitting = false;
 
-  final _reasons = ['垃圾广告', '人身攻击', '色情低俗', '违法违规', '虚假信息', '侵犯隐私', '其他'];
+  final _reasons = ['鍨冨溇骞垮憡', '浜鸿韩鏀诲嚮', '鑹叉儏浣庝織', '杩濇硶杩濊', '铏氬亣淇℃伅', '渚电姱闅愮', '鍏朵粬'];
 
   @override
   void dispose() {
@@ -1307,7 +1450,7 @@ class _ReportSheetState extends State<_ReportSheet> {
     if (_selectedReason == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('请选择举报原因')));
+      ).showSnackBar(const SnackBar(content: Text('璇烽€夋嫨涓炬姤鍘熷洜')));
       return;
     }
 
@@ -1330,7 +1473,7 @@ class _ReportSheetState extends State<_ReportSheet> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('举报失败: $e')));
+        ).showSnackBar(SnackBar(content: Text('涓炬姤澶辫触: $e')));
       }
     } finally {
       if (mounted) {
@@ -1356,7 +1499,7 @@ class _ReportSheetState extends State<_ReportSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '举报原因',
+            '涓炬姤鍘熷洜',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -1410,7 +1553,7 @@ class _ReportSheetState extends State<_ReportSheet> {
             controller: _descriptionController,
             maxLines: 3,
             decoration: const InputDecoration(
-              hintText: '补充说明（可选）',
+              hintText: '琛ュ厖璇存槑锛堝彲閫夛級',
               border: OutlineInputBorder(),
             ),
           ),
@@ -1431,7 +1574,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('提交举报'),
+                  : const Text('鎻愪氦涓炬姤'),
             ),
           ),
         ],
@@ -1439,3 +1582,4 @@ class _ReportSheetState extends State<_ReportSheet> {
     );
   }
 }
+
