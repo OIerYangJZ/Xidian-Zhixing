@@ -21,10 +21,7 @@ import 'comment_input_bar.dart';
 class PostDetailPage extends ConsumerStatefulWidget {
   final String postId;
 
-  const PostDetailPage({
-    super.key,
-    required this.postId,
-  });
+  const PostDetailPage({super.key, required this.postId});
 
   @override
   ConsumerState<PostDetailPage> createState() => _PostDetailPageState();
@@ -63,10 +60,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   @override
   void initState() {
     super.initState();
-    _loadData();
+    _loadData(recordView: true);
   }
 
-  Future<void> _loadData() async {
+  Future<void> _loadData({bool recordView = false}) async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -74,8 +71,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      // 触发阅读量计数（静默忽略失败）
-      postRepo.incrementView(widget.postId);
+      if (recordView) {
+        await postRepo.incrementView(widget.postId);
+      }
       final post = await postRepo.fetchPostDetail(widget.postId);
       final comments = await postRepo.fetchComments(widget.postId);
 
@@ -153,9 +151,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           _post = previousPost;
           _postIsLiked = wasLiked;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('操作失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -176,8 +174,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       _isFavoriting = true;
       _post = _post!.copyWith(
         isFavorited: !wasFavorited,
-        favoriteCount:
-            wasFavorited ? _post!.favoriteCount - 1 : _post!.favoriteCount + 1,
+        favoriteCount: wasFavorited
+            ? _post!.favoriteCount - 1
+            : _post!.favoriteCount + 1,
       );
     });
 
@@ -194,9 +193,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         setState(() {
           _post = previousPost;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('操作失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -216,13 +215,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (context) => _ReportSheet(
-          postId: widget.postId, postRepo: ref.read(postRepositoryProvider)),
+        postId: widget.postId,
+        postRepo: ref.read(postRepositoryProvider),
+      ),
     );
 
     if (result != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('举报成功，我们会尽快处理')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('举报成功，我们会尽快处理')));
     }
   }
 
@@ -247,21 +248,19 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       // 乐观更新帖子评论数
       if (mounted && _post != null) {
         setState(() {
-          _post = _post!.copyWith(
-            commentCount: _post!.commentCount + 1,
-          );
+          _post = _post!.copyWith(commentCount: _post!.commentCount + 1);
           _comments = _buildCommentTree(comments);
           _replyingTo = null; // 清空回复状态
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('评论成功')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('评论成功')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('评论失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('评论失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -286,9 +285,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('无法发起私信: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('无法发起私信: $e')));
     }
   }
 
@@ -318,14 +317,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       setState(() {
         _post = post.copyWith(isFollowingAuthor: nextFollowing);
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(nextFollowing ? '关注成功' : '已取消关注')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(nextFollowing ? '关注成功' : '已取消关注')));
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('操作失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -389,10 +388,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildErrorView()
-              : _post == null
-                  ? _buildEmptyView()
-                  : _buildContent(),
+          ? _buildErrorView()
+          : _post == null
+          ? _buildEmptyView()
+          : _buildContent(),
       bottomNavigationBar: _post != null && _post!.allowComment
           ? Container(
               decoration: BoxDecoration(
@@ -454,10 +453,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           Expanded(
             child: Text(
               '回复 @${_replyingTo!.authorAlias}',
-              style: const TextStyle(
-                fontSize: 13,
-                color: MobileTheme.primary,
-              ),
+              style: const TextStyle(fontSize: 13, color: MobileTheme.primary),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -482,25 +478,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadData,
-              child: const Text('重试'),
-            ),
+            ElevatedButton(onPressed: _loadData, child: const Text('重试')),
           ],
         ),
       ),
@@ -510,10 +496,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildEmptyView() {
     final colors = MobileColors.of(context);
     return Center(
-      child: Text(
-        '帖子不存在或已被删除',
-        style: TextStyle(color: colors.textSecondary),
-      ),
+      child: Text('帖子不存在或已被删除', style: TextStyle(color: colors.textSecondary)),
     );
   }
 
@@ -611,8 +594,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color:
-                                    MobileTheme.success.withValues(alpha: 0.1),
+                                color: MobileTheme.success.withValues(
+                                  alpha: 0.1,
+                                ),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
@@ -669,10 +653,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: DefaultTextStyle.merge(
-              style: TextStyle(
-                fontSize: 12,
-                color: colors.textPrimary,
-              ),
+              style: TextStyle(fontSize: 12, color: colors.textPrimary),
               child: PostContentBody(
                 content: post.content,
                 contentFormat: post.contentFormat,
@@ -708,7 +689,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 }).toList(),
               ),
             ),
-
         ],
       ),
     );
@@ -756,10 +736,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               child: Center(
                 child: Text(
                   '暂无评论，快来抢沙发~',
-                  style: TextStyle(
-                    color: colors.textTertiary,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: colors.textTertiary, fontSize: 14),
                 ),
               ),
             )
@@ -824,12 +801,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () {
-              Clipboard.setData(ClipboardData(
-                text: '查看西电树洞帖子: ${widget.postId}',
-              ));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('链接已复制到剪贴板')),
+              Clipboard.setData(
+                ClipboardData(text: '查看西电树洞帖子: ${widget.postId}'),
               );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('链接已复制到剪贴板')));
             },
           ),
         ],
@@ -850,8 +827,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading:
-                  const Icon(Icons.flag_outlined, color: MobileTheme.error),
+              leading: const Icon(
+                Icons.flag_outlined,
+                color: MobileTheme.error,
+              ),
               title: const Text('举报'),
               onTap: () {
                 Navigator.pop(context);
@@ -860,8 +839,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             ),
             if (_post!.isOwnPost)
               ListTile(
-                leading:
-                    const Icon(Icons.delete_outline, color: MobileTheme.error),
+                leading: const Icon(
+                  Icons.delete_outline,
+                  color: MobileTheme.error,
+                ),
                 title: const Text('删除'),
                 onTap: () {
                   Navigator.pop(context);
@@ -894,15 +875,15 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 await postRepo.deleteMyPost(widget.postId);
                 if (mounted) {
                   context.pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('删除成功')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('删除成功')));
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('删除失败: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
                 }
               }
             },
@@ -915,8 +896,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   /// 递归渲染嵌套评论列表
-  Widget _buildCommentList(List<CommentItem> comments,
-      {bool isNested = false}) {
+  Widget _buildCommentList(
+    List<CommentItem> comments, {
+    bool isNested = false,
+  }) {
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -984,7 +967,9 @@ class _CommentTileState extends State<_CommentTile> {
       _likeCount += wasLiked ? -1 : 1;
     });
     try {
-      final repo = ProviderScope.containerOf(context).read(postRepositoryProvider);
+      final repo = ProviderScope.containerOf(
+        context,
+      ).read(postRepositoryProvider);
       if (wasLiked) {
         await repo.unlikeComment(widget.comment.id);
       } else {
@@ -1006,10 +991,15 @@ class _CommentTileState extends State<_CommentTile> {
     final comment = widget.comment;
     final colors = MobileColors.of(context);
     // 头像尺寸：每缩进一层缩小2dp，最多缩到14dp（基础从22开始）
-    final double avatarRadius = (22 - widget.indentLevel * 2).clamp(14, 22).toDouble();
+    final double avatarRadius = (22 - widget.indentLevel * 2)
+        .clamp(14, 22)
+        .toDouble();
     // 左侧缩进：每层20dp，最大缩进60dp
-    final double leftPadding = (widget.indentLevel * 20).clamp(0, 60).toDouble();
-    // 最多渲染3层嵌套（indentLevel 0/1/2），超过则不再缩进但继续渲染
+    final double leftPadding = (widget.indentLevel * 20)
+        .clamp(0, 60)
+        .toDouble();
+    // 视觉缩进最多展示到 3 层，避免过深嵌套把正文挤没；
+    // 但评论内容本身继续递归渲染，不截断楼中楼。
     final int effectiveIndent = widget.indentLevel.clamp(0, 3);
 
     return Column(
@@ -1061,7 +1051,9 @@ class _CommentTileState extends State<_CommentTile> {
                         Flexible(
                           child: GestureDetector(
                             onTap: comment.authorUserId.isNotEmpty
-                                ? () => context.push('/user/${comment.authorUserId}')
+                                ? () => context.push(
+                                    '/user/${comment.authorUserId}',
+                                  )
                                 : null,
                             child: Text(
                               comment.authorAlias,
@@ -1112,9 +1104,13 @@ class _CommentTileState extends State<_CommentTile> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                _isLiked
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
                                 size: 18,
-                                color: _isLiked ? MobileTheme.accent : colors.textPrimary,
+                                color: _isLiked
+                                    ? MobileTheme.accent
+                                    : colors.textPrimary,
                               ),
                               if (_likeCount > 0) ...[
                                 const SizedBox(width: 3),
@@ -1122,7 +1118,9 @@ class _CommentTileState extends State<_CommentTile> {
                                   '$_likeCount',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: _isLiked ? MobileTheme.accent : colors.textPrimary,
+                                    color: _isLiked
+                                        ? MobileTheme.accent
+                                        : colors.textPrimary,
                                   ),
                                 ),
                               ],
@@ -1164,8 +1162,8 @@ class _CommentTileState extends State<_CommentTile> {
             ],
           ),
         ),
-        // 递归渲染子回复（最多嵌套3层）
-        if (comment.replies.isNotEmpty && widget.indentLevel < 3)
+        // 递归渲染子回复；超过 3 层后不再增加视觉缩进，但继续显示内容
+        if (comment.replies.isNotEmpty)
           ...comment.replies.map(
             (reply) => _CommentTile(
               comment: reply,
@@ -1208,8 +1206,7 @@ class _ActionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final inactiveColor = colors.textPrimary;
-    final Color effectiveColor =
-        isActive ? activeColor : inactiveColor;
+    final Color effectiveColor = isActive ? activeColor : inactiveColor;
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Row(
@@ -1259,15 +1256,7 @@ class _ReportSheetState extends State<_ReportSheet> {
   final _descriptionController = TextEditingController();
   bool _isSubmitting = false;
 
-  final _reasons = [
-    '垃圾广告',
-    '人身攻击',
-    '色情低俗',
-    '违法违规',
-    '虚假信息',
-    '侵犯隐私',
-    '其他',
-  ];
+  final _reasons = ['垃圾广告', '人身攻击', '色情低俗', '违法违规', '虚假信息', '侵犯隐私', '其他'];
 
   @override
   void dispose() {
@@ -1277,9 +1266,9 @@ class _ReportSheetState extends State<_ReportSheet> {
 
   Future<void> _submit() async {
     if (_selectedReason == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请选择举报原因')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请选择举报原因')));
       return;
     }
 
@@ -1300,9 +1289,9 @@ class _ReportSheetState extends State<_ReportSheet> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('举报失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('举报失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -1358,8 +1347,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                         : colors.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color:
-                          isSelected ? MobileTheme.error : colors.divider,
+                      color: isSelected ? MobileTheme.error : colors.divider,
                     ),
                   ),
                   child: Text(
@@ -1369,8 +1357,9 @@ class _ReportSheetState extends State<_ReportSheet> {
                       color: isSelected
                           ? MobileTheme.error
                           : colors.textSecondary,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                     ),
                   ),
                 ),

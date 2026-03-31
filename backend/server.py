@@ -341,6 +341,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/users/me":
                 _user_handler.handle_get_me(self, db)
                 return
+            if path == "/api/users/search":
+                _user_handler.handle_search_users(self, db, query)
+                return
 
             _user_match = re.fullmatch(r"/api/users/([^/]+)", path)
             if _user_match:

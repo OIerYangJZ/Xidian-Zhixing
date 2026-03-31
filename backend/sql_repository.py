@@ -119,6 +119,9 @@ class SqliteTreeholeRepository:
               nickname TEXT NOT NULL DEFAULT '',
               student_id TEXT NOT NULL DEFAULT '',
               avatar_url TEXT NOT NULL DEFAULT '',
+              bio TEXT NOT NULL DEFAULT '',
+              gender TEXT NOT NULL DEFAULT '',
+              background_image_url TEXT NOT NULL DEFAULT '',
               user_level INTEGER NOT NULL DEFAULT 2,
               verified INTEGER NOT NULL DEFAULT 0,
               verified_at TEXT NULL,
@@ -323,6 +326,9 @@ class SqliteTreeholeRepository:
               sender_user_id TEXT NOT NULL,
               receiver_user_id TEXT NOT NULL,
               content TEXT NOT NULL,
+              reply_to_id TEXT NULL,
+              reply_to_sender TEXT NOT NULL DEFAULT '',
+              reply_to_content TEXT NOT NULL DEFAULT '',
               created_at TEXT NOT NULL,
               read_at TEXT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
@@ -520,6 +526,9 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "nickname", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "bio", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "gender", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "background_image_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "posts", "is_anonymous", "INTEGER NULL")
         self._ensure_column(conn, "posts", "visibility", "TEXT NOT NULL DEFAULT 'public'")
         self._ensure_column(conn, "posts", "content_format", "TEXT NOT NULL DEFAULT 'plain'")
@@ -535,6 +544,9 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "conversations", "unread_count", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "conversations", "last_read_at", "TEXT NULL")
         self._ensure_column(conn, "conversations", "deleted", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "direct_messages", "reply_to_id", "TEXT NULL")
+        self._ensure_column(conn, "direct_messages", "reply_to_sender", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "direct_messages", "reply_to_content", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "direct_messages", "read_at", "TEXT NULL")
         self._ensure_column(conn, "likes", "comment_id", "TEXT NULL")
         self._ensure_column(conn, "likes", "post_id", "TEXT NULL")
@@ -584,7 +596,8 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, email, password, alias, nickname, student_id, avatar_url, user_level, verified, verified_at,
+            SELECT id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
+                   user_level, verified, verified_at,
                    allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
             FROM users
             ORDER BY created_at, id
@@ -600,6 +613,9 @@ class SqliteTreeholeRepository:
                     "nickname": nickname,
                     "studentId": _to_str(row["student_id"]),
                     "avatarUrl": _to_str(row["avatar_url"]),
+                    "bio": _to_str(row["bio"]),
+                    "gender": _to_str(row["gender"]),
+                    "backgroundImageUrl": _to_str(row["background_image_url"]),
                     "userLevel": _to_int(row["user_level"], 2),
                     "verified": _to_bool(row["verified"]),
                     "verifiedAt": _to_str(row["verified_at"]),
@@ -841,7 +857,8 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, conversation_key, sender_user_id, receiver_user_id, content, created_at, read_at, deleted
+            SELECT id, conversation_key, sender_user_id, receiver_user_id, content,
+                   reply_to_id, reply_to_sender, reply_to_content, created_at, read_at, deleted
             FROM direct_messages
             ORDER BY created_at ASC, id ASC
             """
@@ -853,6 +870,9 @@ class SqliteTreeholeRepository:
                     "senderUserId": row["sender_user_id"],
                     "receiverUserId": row["receiver_user_id"],
                     "content": row["content"],
+                    "replyToId": _to_str(row["reply_to_id"]),
+                    "replyToSender": _to_str(row["reply_to_sender"]),
+                    "replyToContent": _to_str(row["reply_to_content"]),
                     "createdAt": row["created_at"],
                     "readAt": _to_str(row["read_at"]),
                     "deleted": _to_bool(row["deleted"]),
@@ -1093,9 +1113,10 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO users (
-                      id, email, password, alias, nickname, student_id, avatar_url, user_level, verified, verified_at,
+                      id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
+                      user_level, verified, verified_at,
                       allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1105,6 +1126,9 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("nickname")) or _to_str(row.get("alias"), "匿名同学"),
                         _to_str(row.get("studentId")),
                         _to_str(row.get("avatarUrl")),
+                        _to_str(row.get("bio")),
+                        _to_str(row.get("gender")),
+                        _to_str(row.get("backgroundImageUrl")),
                         _to_int(row.get("userLevel"), 2),
                         _to_bool_int(row.get("verified")),
                         _to_str(row.get("verifiedAt")) or None,
@@ -1482,8 +1506,9 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO direct_messages (
-                      id, conversation_key, sender_user_id, receiver_user_id, content, created_at, read_at, deleted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                      id, conversation_key, sender_user_id, receiver_user_id, content,
+                      reply_to_id, reply_to_sender, reply_to_content, created_at, read_at, deleted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         message_id,
@@ -1491,6 +1516,9 @@ class SqliteTreeholeRepository:
                         sender_user_id,
                         receiver_user_id,
                         _to_str(row.get("content")),
+                        _to_str(row.get("replyToId")) or None,
+                        _to_str(row.get("replyToSender")),
+                        _to_str(row.get("replyToContent")),
                         _to_str(row.get("createdAt")) or created_now,
                         _to_str(row.get("readAt")) or None,
                         _to_bool_int(row.get("deleted")),

@@ -27,6 +27,8 @@ from helpers import (
     is_campus_email,
     json_error,
     now_iso,
+    now_utc,
+    parse_iso,
     read_json_body,
     sanitize_alias,
     send_rate_limit_error,
@@ -48,6 +50,7 @@ from services import (
     mark_conversation_read,
     next_id,
     post_counts,
+    refresh_conversation_pair_metadata,
     reject_pending_dm_requests_between,
     save_db,
     serialize_direct_message,
@@ -666,15 +669,44 @@ def handle_send_message(
     if is_user_blocked(db, peer_user_id, user["id"]):
         json_error(handler, HTTPStatus.FORBIDDEN, "对方已将你屏蔽，暂时无法发送消息")
         return
+    conversation_key = _globals.conversation_key_for_users(
+        str(user.get("id", "")),
+        peer_user_id,
+    )
 
     body = read_json_body(handler)
     content = str(body.get("content", "")).strip()
+    reply_to_id = str(body.get("replyToId", "")).strip()
     if not content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "消息内容不能为空")
         return
     if len(content) > 1000:
         json_error(handler, HTTPStatus.BAD_REQUEST, "单条消息不能超过 1000 个字符")
         return
+
+    reply_to_sender = ""
+    reply_to_content = ""
+    if reply_to_id:
+        reply_message = next(
+            (
+                item
+                for item in db.get("directMessages", [])
+                if str(item.get("id", "")).strip() == reply_to_id
+                and str(item.get("conversationKey", "")).strip() == conversation_key
+                and not item.get("deleted")
+            ),
+            None,
+        )
+        if reply_message is None:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "回复的消息不存在或已被撤回")
+            return
+        reply_sender_user = find_user_by_id(
+            db,
+            str(reply_message.get("senderUserId", "")).strip(),
+            include_deleted=True,
+        )
+        reply_to_sender = user_nickname(reply_sender_user)
+        reply_to_content = str(reply_message.get("content", "")).strip()
 
     allowed, retry_after = consume_rate_limit(
         db,
@@ -713,13 +745,13 @@ def handle_send_message(
     created_at = now_iso()
     message = {
         "id": next_id(db, "message", "m"),
-        "conversationKey": _globals.conversation_key_for_users(
-            str(user.get("id", "")),
-            peer_user_id,
-        ),
+        "conversationKey": conversation_key,
         "senderUserId": str(user.get("id", "")),
         "receiverUserId": peer_user_id,
         "content": content,
+        "replyToId": reply_to_id,
+        "replyToSender": reply_to_sender,
+        "replyToContent": reply_to_content,
         "createdAt": created_at,
         "readAt": "",
         "deleted": False,
@@ -903,13 +935,18 @@ def handle_message_recall(
         json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "消息时间解析失败")
         return
 
-    from helpers import now_utc
     elapsed = (now_utc() - msg_created).total_seconds()
     if elapsed > 120:
         json_error(handler, HTTPStatus.BAD_REQUEST, "消息已超过 2 分钟，无法撤回")
         return
 
     msg["deleted"] = True
+    refresh_conversation_pair_metadata(
+        db,
+        left_user_id=str(msg.get("senderUserId", "")).strip(),
+        right_user_id=str(msg.get("receiverUserId", "")).strip(),
+        updated_at=now_iso(),
+    )
     add_audit_log(db, user["id"], "recall_message", f"撤回消息: {message_id}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})

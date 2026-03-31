@@ -6,7 +6,6 @@ import '../core/navigation/url_query_state.dart';
 import '../models/conversation_item.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
-import '../features/favorites/favorites_page.dart';
 import '../features/feed/feed_page.dart';
 import '../features/messages/messages_page.dart';
 import '../features/messages/messages_controller.dart';
@@ -14,7 +13,6 @@ import '../features/notifications/notification_center_page.dart';
 import '../features/notifications/notifications_controller.dart';
 import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
-import '../features/search/search_page.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -26,24 +24,14 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
   bool _postUrlHandled = false;
-  final GlobalKey<FavoritesPageState> _favoritesPageKey =
-      GlobalKey<FavoritesPageState>();
   final GlobalKey<ProfilePageState> _profilePageKey =
       GlobalKey<ProfilePageState>();
 
-  static const List<String> _titles = <String>[
-    '首页',
-    '搜索',
-    '消息',
-    '收藏',
-    '个人中心',
-  ];
+  static const List<String> _titles = <String>['首页', '消息', '个人中心'];
 
   static const List<String> _subtitles = <String>[
     '发现校园新鲜事',
-    '按关键词精准查找',
     '查看私信与申请',
-    '收集你关注的内容',
     '管理你的账号信息',
   ];
 
@@ -63,19 +51,19 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Widget build(BuildContext context) {
     final List<Widget> pages = <Widget>[
       const FeedPage(),
-      const SearchPage(),
       const MessagesPage(),
-      FavoritesPage(key: _favoritesPageKey),
       ProfilePage(key: _profilePageKey),
     ];
     final MessagesState messagesState = ref.watch(messagesControllerProvider);
-    final NotificationsState notificationsState =
-        ref.watch(notificationsControllerProvider);
+    final NotificationsState notificationsState = ref.watch(
+      notificationsControllerProvider,
+    );
     final int unreadCount = messagesState.conversations.fold<int>(
       0,
       (int sum, ConversationItem item) => sum + item.unreadCount,
     );
-    final bool showMessageDot = unreadCount > 0 ||
+    final bool showMessageDot =
+        unreadCount > 0 ||
         messagesState.requests.any((item) => item.status == 'pending');
     final int notificationUnreadCount = notificationsState.unreadCount;
     return Scaffold(
@@ -159,7 +147,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               colors: <Color>[
                 Color(0xFF0E7490),
                 Color(0xFF155E75),
-                Color(0xFF0F766E)
+                Color(0xFF0F766E),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -205,7 +193,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           IndexedStack(index: _currentIndex, children: pages),
         ],
       ),
-      floatingActionButton: _currentIndex <= 1
+      floatingActionButton: _currentIndex == 0
           ? FloatingActionButton.extended(
               onPressed: _openCreatePost,
               icon: const Icon(Icons.edit_square),
@@ -219,10 +207,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           setState(() {
             _currentIndex = index;
           });
-          if (index == 3) {
-            _favoritesPageKey.currentState?.refreshFavorites();
-          }
-          if (index == 4) {
+          if (index == 2) {
             _profilePageKey.currentState?.refreshProfile();
           }
         },
@@ -231,11 +216,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             icon: const Icon(Icons.home_outlined),
             selectedIcon: _selectedIcon(Icons.home_rounded),
             label: '首页',
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.manage_search_outlined),
-            selectedIcon: _selectedIcon(Icons.manage_search_rounded),
-            label: '搜索',
           ),
           NavigationDestination(
             icon: _messageNavIcon(
@@ -249,11 +229,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               showDot: showMessageDot,
             ),
             label: '消息',
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.bookmark_outline),
-            selectedIcon: _selectedIcon(Icons.bookmark_rounded),
-            label: '收藏',
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),
@@ -288,8 +263,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     return Badge(
       isLabelVisible: true,
       smallSize: 8,
-      label:
-          badgeCount > 0 ? Text(badgeCount > 99 ? '99+' : '$badgeCount') : null,
+      label: badgeCount > 0
+          ? Text(badgeCount > 99 ? '99+' : '$badgeCount')
+          : null,
       child: icon,
     );
   }
@@ -302,9 +278,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('帖子已发布并立即展示。')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('帖子已发布并立即展示。')));
   }
 
   Future<void> _restorePostFromUrlIfNeeded() async {

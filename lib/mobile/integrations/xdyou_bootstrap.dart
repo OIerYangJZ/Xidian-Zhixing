@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,11 +19,13 @@ import 'package:xdu_treehole_web/mobile/integrations/xdyou_sync_bridge.dart';
 abstract class TreeholeSharedKeys {
   // 主题设置
   /// 0=system, 1=light, 2=dark（对应 Flutter ThemeMode.index）
-  static const String brightness    = 'treehole_brightness';
+  static const String brightness = 'treehole_brightness';
+
   /// 0-5，颜色种子索引（对应 XDYou pdaColorScheme）
-  static const String colorSeed     = 'treehole_color_seed';
+  static const String colorSeed = 'treehole_color_seed';
+
   /// 'zh_CN' / 'zh_TW' / 'en_US'
-  static const String localization  = 'treehole_localization';
+  static const String localization = 'treehole_localization';
 }
 
 bool _xdyouEmbedReady = false;
@@ -90,7 +91,10 @@ bool xdyouIsFirstLogin() {
 }
 
 /// 同步树洞账号密码到 XDYou 登录系统
-Future<void> syncTreeholeCredentialsToXdyou(String username, String password) async {
+Future<void> syncTreeholeCredentialsToXdyou(
+  String username,
+  String password,
+) async {
   await ensureXdyouEmbedInitialized();
   wm_pref.setString(wm_pref.Preference.idsAccount, username);
   wm_pref.setString(wm_pref.Preference.idsPassword, password);
@@ -101,9 +105,12 @@ Future<void> syncTreeholeCredentialsToXdyou(String username, String password) as
 Future<void> syncTreeholeThemeToXdyou() async {
   await ensureXdyouEmbedInitialized();
   final brightness = AppSettingsStore.instance.xdyouBrightness;
-  final colorSeed  = AppSettingsStore.instance.xdyouColorSeed;
+  final colorSeed = AppSettingsStore.instance.xdyouColorSeed;
+  await wm_pref.prefs.setInt(TreeholeSharedKeys.brightness, brightness);
+  await wm_pref.prefs.setInt(TreeholeSharedKeys.colorSeed, colorSeed);
   await wm_pref.setInt(wm_pref.Preference.brightness, brightness);
   await wm_pref.setInt(wm_pref.Preference.color, colorSeed);
+  await wm_pref.prefs.reloadCache();
   if (Get.isRegistered<ThemeController>()) {
     Get.find<ThemeController>().updateTheme();
   }
@@ -114,7 +121,9 @@ Future<void> syncTreeholeThemeToXdyou() async {
 Future<void> syncTreeholeLanguageToXdyou() async {
   await ensureXdyouEmbedInitialized();
   final loc = AppSettingsStore.instance.xdyouLocalization;
+  await wm_pref.prefs.setString(TreeholeSharedKeys.localization, loc);
   await wm_pref.setString(wm_pref.Preference.localization, loc);
+  await wm_pref.prefs.reloadCache();
   if (Get.isRegistered<ThemeController>()) {
     Get.find<ThemeController>().updateTheme();
   }

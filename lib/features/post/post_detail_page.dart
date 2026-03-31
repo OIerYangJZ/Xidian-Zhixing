@@ -37,7 +37,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void initState() {
     super.initState();
     _post = widget.post;
-    _loadDetail();
+    _loadDetail(recordView: true);
   }
 
   @override
@@ -60,8 +60,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text(_error!,
-                        style: const TextStyle(color: Colors.red)),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ),
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -76,7 +78,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         children: <Widget>[
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Theme.of(
                                 context,
@@ -92,9 +96,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       const SizedBox(height: 10),
                       Text(
                         _post.title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
+                        style: Theme.of(context).textTheme.headlineSmall
                             ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 10),
@@ -126,7 +128,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                          '${_post.isAnonymous ? '匿名身份' : '作者'}：${_post.authorAlias}'),
+                        '${_post.isAnonymous ? '匿名身份' : '作者'}：${_post.authorAlias}',
+                      ),
                       Text('发布时间：${_post.createdAt.toLocal()}'),
                       const SizedBox(height: 12),
                       Wrap(
@@ -143,8 +146,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           if (_post.canFollowAuthor &&
                               _post.authorUserId.isNotEmpty)
                             OutlinedButton.icon(
-                              onPressed:
-                                  _actionBusy ? null : _toggleFollowAuthor,
+                              onPressed: _actionBusy
+                                  ? null
+                                  : _toggleFollowAuthor,
                               icon: Icon(
                                 _post.isFollowingAuthor
                                     ? Icons.person_remove_alt_1_outlined
@@ -161,9 +165,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           ),
                           OutlinedButton.icon(
                             onPressed: _actionBusy ? null : _toggleFavorite,
-                            icon: Icon(_post.isFavorited
-                                ? Icons.bookmark
-                                : Icons.bookmark_border),
+                            icon: Icon(
+                              _post.isFavorited
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                            ),
                             label: Text(
                               '${_post.isFavorited ? '取消收藏' : '收藏'} ${_post.favoriteCount}',
                             ),
@@ -201,10 +207,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        '评论区（${_comments.length}）',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        '评论区（${_countComments(_comments)}）',
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 10),
@@ -212,72 +216,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         const Text('暂无评论，来抢沙发。')
                       else
                         ..._comments.asMap().entries.map(
-                              (MapEntry<int, CommentItem> entry) => ListTile(
-                                contentPadding: EdgeInsets.zero,
-                                leading: _buildCommentAvatar(entry.value),
-                                title: Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text(
-                                        entry.value.authorAlias,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      '${entry.key + 1} 楼',
-                                      style: const TextStyle(
-                                        color: Colors.black45,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(entry.value.content),
-                                    Row(
-                                      children: <Widget>[
-                                        TextButton.icon(
-                                          style: TextButton.styleFrom(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                            ),
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                          ),
-                                          onPressed: _actionBusy
-                                              ? null
-                                              : () => _prepareReply(
-                                                    comment: entry.value,
-                                                  ),
-                                          icon: const Icon(
-                                            Icons.reply_outlined,
-                                            size: 16,
-                                          ),
-                                          label: const Text('回复'),
-                                        ),
-                                        Text(
-                                          '${entry.value.likeCount} 赞',
-                                          style: const TextStyle(
-                                            color: Colors.black54,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                trailing: IconButton(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : () => _reportComment(entry.value.id),
-                                  icon: const Icon(Icons.flag_outlined),
-                                ),
+                          (MapEntry<int, CommentItem> entry) =>
+                              _CommentThreadTile(
+                                comment: entry.value,
+                                floorLabel: '${entry.key + 1} 楼',
+                                onReply: _actionBusy
+                                    ? null
+                                    : (CommentItem comment) =>
+                                          _prepareReply(comment: comment),
+                                onReport: _actionBusy
+                                    ? null
+                                    : (String commentId) =>
+                                          _reportComment(commentId),
+                                onOpenAuthor: _openCommentAuthor,
                               ),
-                            ),
+                        ),
                       const SizedBox(height: 8),
                       if (_replyToCommentId != null && _replyToAlias != null)
                         Container(
@@ -287,12 +240,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withValues(
-                                  alpha: 0.08,
-                                ),
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Row(
@@ -326,7 +276,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         maxLines: 4,
                         decoration: InputDecoration(
                           hintText: _replyToCommentId == null
-                              ? '发表评论（支持一级评论/二级回复）'
+                              ? '发表评论（支持楼中楼回复）'
                               : '输入回复内容',
                         ),
                       ),
@@ -352,23 +302,34 @@ class _PostDetailPageState extends State<PostDetailPage> {
     );
   }
 
-  Future<void> _loadDetail() async {
+  Future<void> _loadDetail({bool recordView = false}) async {
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
-      final PostItem detail =
-          await AppRepositories.posts.fetchPostDetail(widget.post.id);
-      final List<CommentItem> comments =
-          await AppRepositories.posts.fetchComments(widget.post.id);
+      if (recordView) {
+        final int? nextViewCount = await AppRepositories.posts.incrementView(
+          widget.post.id,
+        );
+        if (mounted && nextViewCount != null) {
+          setState(() {
+            _post = _post.copyWith(viewCount: nextViewCount);
+          });
+        }
+      }
+      final PostItem detail = await AppRepositories.posts.fetchPostDetail(
+        widget.post.id,
+      );
+      final List<CommentItem> comments = await AppRepositories.posts
+          .fetchComments(widget.post.id);
       if (!mounted) {
         return;
       }
       setState(() {
         _post = detail;
-        _comments = comments;
+        _comments = _buildCommentTree(comments);
       });
     } catch (error) {
       if (!mounted) {
@@ -386,22 +347,30 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
-  Widget _buildCommentAvatar(CommentItem comment) {
-    final String avatarUrl = AppConfig.resolveUrl(
-      (comment.authorAvatar ?? '').trim(),
-    );
-    final String fallback = comment.authorAlias.trim().isEmpty
-        ? '匿'
-        : comment.authorAlias.trim().characters.first;
-
-    if (avatarUrl.isNotEmpty) {
-      return CircleAvatar(
-        backgroundImage: NetworkImage(avatarUrl),
-      );
+  List<CommentItem> _buildCommentTree(List<CommentItem> flatComments) {
+    final Map<String, CommentItem> commentMap = <String, CommentItem>{};
+    for (final CommentItem comment in flatComments) {
+      commentMap[comment.id] = comment.copyWith(replies: <CommentItem>[]);
     }
-    return CircleAvatar(
-      child: Text(fallback),
-    );
+    final List<CommentItem> roots = <CommentItem>[];
+    for (final CommentItem comment in flatComments) {
+      final CommentItem node = commentMap[comment.id]!;
+      if (comment.parentId.isEmpty ||
+          !commentMap.containsKey(comment.parentId)) {
+        roots.add(node);
+      } else {
+        commentMap[comment.parentId]!.replies.add(node);
+      }
+    }
+    return roots;
+  }
+
+  int _countComments(List<CommentItem> comments) {
+    int total = 0;
+    for (final CommentItem comment in comments) {
+      total += 1 + _countComments(comment.replies);
+    }
+    return total;
   }
 
   Future<void> _submitComment() async {
@@ -422,13 +391,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
         parentId: _replyToCommentId,
       );
       _commentController.clear();
-      final List<CommentItem> comments =
-          await AppRepositories.posts.fetchComments(_post.id);
+      final List<CommentItem> comments = await AppRepositories.posts
+          .fetchComments(_post.id);
       if (!mounted) {
         return;
       }
       setState(() {
-        _comments = comments;
+        _comments = _buildCommentTree(comments);
         _replyToCommentId = null;
         _replyToAlias = null;
       });
@@ -465,14 +434,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return;
       }
 
-      final int nextCount = result.favoriteCount ??
+      final int nextCount =
+          result.favoriteCount ??
           (result.favorited
               ? (currentFavorited
-                  ? _post.favoriteCount
-                  : _post.favoriteCount + 1)
+                    ? _post.favoriteCount
+                    : _post.favoriteCount + 1)
               : (currentFavorited
-                  ? (_post.favoriteCount > 0 ? _post.favoriteCount - 1 : 0)
-                  : _post.favoriteCount));
+                    ? (_post.favoriteCount > 0 ? _post.favoriteCount - 1 : 0)
+                    : _post.favoriteCount));
 
       setState(() {
         _post = _post.copyWith(
@@ -638,11 +608,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         _actionBusy = true;
       });
-      final conversation =
-          await AppRepositories.messages.createDirectConversation(
-        _post.authorUserId,
-        fromPostId: _post.id,
-      );
+      final conversation = await AppRepositories.messages
+          .createDirectConversation(_post.authorUserId, fromPostId: _post.id);
       if (!mounted) {
         return;
       }
@@ -682,9 +649,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return;
       }
       setState(() {
-        _post = _post.copyWith(
-          isFollowingAuthor: !_post.isFollowingAuthor,
-        );
+        _post = _post.copyWith(isFollowingAuthor: !_post.isFollowingAuthor);
       });
       _feedback(_post.isFollowingAuthor ? '关注成功' : '已取消关注');
     } catch (error) {
@@ -702,16 +667,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
     if (_post.authorUserId.isEmpty) {
       return;
     }
+    _openCommentAuthor(_post.authorUserId);
+  }
+
+  void _openCommentAuthor(String userId) {
+    if (userId.isEmpty) {
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => PublicUserProfilePage(userId: _post.authorUserId),
+        builder: (_) => PublicUserProfilePage(userId: userId),
       ),
     );
   }
 
-  void _prepareReply({
-    required CommentItem comment,
-  }) {
+  void _prepareReply({required CommentItem comment}) {
     setState(() {
       _replyToCommentId = comment.id;
       _replyToAlias = comment.authorAlias;
@@ -746,7 +716,258 @@ class _PostDetailPageState extends State<PostDetailPage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _CommentThreadTile extends StatefulWidget {
+  const _CommentThreadTile({
+    required this.comment,
+    required this.onReply,
+    required this.onReport,
+    required this.onOpenAuthor,
+    this.floorLabel,
+    this.depth = 0,
+  });
+
+  final CommentItem comment;
+  final ValueChanged<CommentItem>? onReply;
+  final ValueChanged<String>? onReport;
+  final ValueChanged<String> onOpenAuthor;
+  final String? floorLabel;
+  final int depth;
+
+  @override
+  State<_CommentThreadTile> createState() => _CommentThreadTileState();
+}
+
+class _CommentThreadTileState extends State<_CommentThreadTile> {
+  late bool _isLiked;
+  late int _likeCount;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = widget.comment.isLiked;
+    _likeCount = widget.comment.likeCount;
+  }
+
+  @override
+  void didUpdateWidget(covariant _CommentThreadTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.comment.id != widget.comment.id ||
+        oldWidget.comment.isLiked != widget.comment.isLiked ||
+        oldWidget.comment.likeCount != widget.comment.likeCount) {
+      _isLiked = widget.comment.isLiked;
+      _likeCount = widget.comment.likeCount;
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    if (_busy) {
+      return;
+    }
+    final bool wasLiked = _isLiked;
+    setState(() {
+      _busy = true;
+      _isLiked = !wasLiked;
+      _likeCount += wasLiked ? -1 : 1;
+    });
+    try {
+      if (wasLiked) {
+        await AppRepositories.posts.unlikeComment(widget.comment.id);
+      } else {
+        await AppRepositories.posts.likeComment(widget.comment.id);
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLiked = wasLiked;
+        _likeCount += wasLiked ? 1 : -1;
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final CommentItem comment = widget.comment;
+    final double leftInset = (widget.depth * 18).clamp(0, 54).toDouble();
+    final String avatarUrl = AppConfig.resolveUrl(
+      (comment.authorAvatar ?? '').trim(),
+    );
+    final String fallback = comment.authorAlias.trim().isEmpty
+        ? '匿'
+        : comment.authorAlias.trim().characters.first;
+
+    return Padding(
+      padding: EdgeInsets.only(left: leftInset, top: 8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: widget.depth == 0 ? Colors.white : const Color(0xFFF7F8FB),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: widget.depth == 0
+                ? const Color(0xFFE9EDF5)
+                : const Color(0xFFE2E6EF),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                GestureDetector(
+                  onTap: comment.authorUserId.isEmpty
+                      ? null
+                      : () => widget.onOpenAuthor(comment.authorUserId),
+                  child: CircleAvatar(
+                    radius: 18,
+                    backgroundImage: avatarUrl.isEmpty
+                        ? null
+                        : NetworkImage(avatarUrl),
+                    child: avatarUrl.isEmpty ? Text(fallback) : null,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: comment.authorUserId.isEmpty
+                                  ? null
+                                  : () => widget.onOpenAuthor(
+                                      comment.authorUserId,
+                                    ),
+                              child: Text(
+                                comment.authorAlias,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: comment.authorUserId.isEmpty
+                                      ? Colors.black87
+                                      : Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (widget.floorLabel != null)
+                            Text(
+                              widget.floorLabel!,
+                              style: const TextStyle(
+                                color: Colors.black45,
+                                fontSize: 12,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        comment.createdAt.toLocal().toString(),
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              comment.content,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black87,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: <Widget>[
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: widget.onReply == null
+                      ? null
+                      : () => widget.onReply!(comment),
+                  icon: const Icon(Icons.reply_outlined, size: 16),
+                  label: const Text('回复'),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: _isLiked
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                  ),
+                  onPressed: _busy ? null : _toggleLike,
+                  icon: Icon(
+                    _isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
+                    size: 16,
+                  ),
+                  label: Text('$_likeCount'),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: widget.onReport == null
+                      ? null
+                      : () => widget.onReport!(comment.id),
+                  icon: const Icon(Icons.flag_outlined, size: 16),
+                  label: const Text('举报'),
+                ),
+                if (comment.effectiveReplyCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, top: 8),
+                    child: Text(
+                      '${comment.effectiveReplyCount} 条回复',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            if (comment.replies.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 4),
+              ...comment.replies.map(
+                (CommentItem reply) => _CommentThreadTile(
+                  comment: reply,
+                  depth: widget.depth + 1,
+                  onReply: widget.onReply,
+                  onReport: widget.onReport,
+                  onOpenAuthor: widget.onOpenAuthor,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

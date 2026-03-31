@@ -76,16 +76,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     try {
       final messageRepo = ref.read(messageRepositoryProvider);
-      final messages =
-          await messageRepo.fetchConversationMessages(widget.conversationId);
-      // 后端已在获取消息时自动标记已读，这里同步更新本地状态
-      ref.read(messagesControllerProvider.notifier).markConversationRead(
+      final messages = await messageRepo.fetchConversationMessages(
         widget.conversationId,
       );
+      // 后端已在获取消息时自动标记已读，这里同步更新本地状态
+      ref
+          .read(messagesControllerProvider.notifier)
+          .markConversationRead(widget.conversationId);
 
       // 查找会话的屏蔽状态
       final conversations = ref.read(messagesControllerProvider).conversations;
-      final conversation = conversations.where((c) => c.id == widget.conversationId).firstOrNull;
+      final conversation = conversations
+          .where((c) => c.id == widget.conversationId)
+          .firstOrNull;
 
       if (mounted) {
         setState(() {
@@ -126,6 +129,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       isRead: false,
       readAt: '',
       deliveryStatus: 'sending',
+      serverCanRecall: true,
       replyToId: replyTarget?.id,
       replyToSender: replyTarget?.senderAlias,
       replyToContent: replyTarget?.content,
@@ -166,10 +170,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           }
         });
         // 更新上层会话列表的预览和未读数
-        ref.read(messagesControllerProvider.notifier).updateConversationPreview(
-          conversationId: widget.conversationId,
-          message: content,
-        );
+        ref
+            .read(messagesControllerProvider.notifier)
+            .updateConversationPreview(
+              conversationId: widget.conversationId,
+              message: content,
+            );
       }
     } catch (e) {
       // 发送失败，标记为失败状态
@@ -187,15 +193,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               isRead: false,
               readAt: '',
               deliveryStatus: 'failed',
+              serverCanRecall: false,
               replyToId: replyTarget?.id,
               replyToSender: replyTarget?.senderAlias,
               replyToContent: replyTarget?.content,
             );
           }
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发送失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('发送失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -227,7 +234,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       body: Column(
         children: [
           // 首条消息提示横幅
-          if (!_isLoading && _messages.isEmpty && !_firstMessageWarningDismissed)
+          if (!_isLoading &&
+              _messages.isEmpty &&
+              !_firstMessageWarningDismissed)
             _buildFirstMessageBanner(),
 
           // 消息列表
@@ -235,8 +244,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _error != null
-                    ? _buildErrorView()
-                    : _buildMessageList(),
+                ? _buildErrorView()
+                : _buildMessageList(),
           ),
 
           // 输入区域
@@ -318,16 +327,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ),
       title: Text(
         '已选择 ${_selectedMessages.length} 条',
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
       ),
       actions: [
-        IconButton(
-          icon: const Icon(Icons.delete),
-          onPressed: _batchDelete,
-        ),
+        IconButton(icon: const Icon(Icons.delete), onPressed: _batchDelete),
       ],
     );
   }
@@ -340,25 +343,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadMessages,
-              child: const Text('重试'),
-            ),
+            ElevatedButton(onPressed: _loadMessages, child: const Text('重试')),
           ],
         ),
       ),
@@ -371,10 +364,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return Center(
         child: Text(
           '暂无消息，开始聊天吧~',
-          style: TextStyle(
-            color: colors.textTertiary,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: colors.textTertiary, fontSize: 14),
         ),
       );
     }
@@ -413,7 +403,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       // 解析 UTC 时间并转换为本地时区，避免时区偏差
       final messageTime =
           DateTime.tryParse(message.createdAt)?.toUtc().toLocal() ??
-              DateTime.now();
+          DateTime.now();
       final label = _formatTimeLabel(messageTime);
 
       if (lastTime == null || _shouldShowTimeLabel(lastTime, messageTime)) {
@@ -452,10 +442,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
         label,
-        style: TextStyle(
-          fontSize: 12,
-          color: colors.textTertiary,
-        ),
+        style: TextStyle(fontSize: 12, color: colors.textTertiary),
       ),
     );
   }
@@ -468,8 +455,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment:
-            isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -489,7 +477,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     )
                   : CircleAvatar(
                       radius: 16,
-                      backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                      backgroundColor: MobileTheme.primary.withValues(
+                        alpha: 0.1,
+                      ),
                       child: Text(
                         (widget.peerName ?? '用户').substring(0, 1),
                         style: const TextStyle(
@@ -504,14 +494,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 // 消息气泡
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: _selectMode ? () => _toggleSelect(message) : null,
-                  onLongPressStart: (details) => _showMessageOverlay(message, details.globalPosition),
+                  onLongPressStart: (details) =>
+                      _showMessageOverlay(message, details.globalPosition),
                   child: Container(
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.7,
@@ -597,8 +589,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     )
                   : CircleAvatar(
                       radius: 16,
-                      backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
-                      child: const Icon(Icons.person, size: 16, color: MobileTheme.primary),
+                      backgroundColor: MobileTheme.primary.withValues(
+                        alpha: 0.1,
+                      ),
+                      child: const Icon(
+                        Icons.person,
+                        size: 16,
+                        color: MobileTheme.primary,
+                      ),
                     ),
             ),
           ],
@@ -611,9 +609,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 margin: const EdgeInsets.only(left: 6),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected
-                      ? MobileTheme.primary
-                      : Colors.transparent,
+                  color: isSelected ? MobileTheme.primary : Colors.transparent,
                   border: Border.all(
                     color: isSelected
                         ? MobileTheme.primary
@@ -634,6 +630,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   void _showMessageOverlay(DirectMessageItem message, Offset globalPosition) {
     _hideOverlay();
     HapticFeedback.mediumImpact();
+    final media = MediaQuery.of(context);
+    final double maxWidth = media.size.width - 24;
+    final int actionCount = message.canRecall ? 5 : 4;
+    final double estimatedWidth = (actionCount * 62.0)
+        .clamp(228.0, maxWidth)
+        .toDouble();
+    final double left = (globalPosition.dx - estimatedWidth / 2)
+        .clamp(12.0, media.size.width - estimatedWidth - 12.0)
+        .toDouble();
+    final double top = (globalPosition.dy - 76.0)
+        .clamp(media.padding.top + 8.0, media.size.height - 76.0)
+        .toDouble();
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -644,16 +652,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: Container(color: Colors.transparent),
           ),
           Positioned(
-            left: globalPosition.dx - 60,
-            top: globalPosition.dy - 70,
+            left: left,
+            top: top,
             child: _MessageActionBar(
               message: message,
+              maxWidth: maxWidth,
               onCopy: () {
                 Clipboard.setData(ClipboardData(text: message.content));
                 _hideOverlay();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('已复制到剪贴板')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
               },
               onForward: () => _openForwardPicker(message),
               onDetail: () => _showMessageDetail(message),
@@ -694,11 +703,24 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Future<void> _batchDelete() async {
     if (_selectedMessages.isEmpty) return;
+    final recallableIds = _messages
+        .where(
+          (message) =>
+              _selectedMessages.contains(message.id) && message.canRecall,
+        )
+        .map((message) => message.id)
+        .toSet();
+    if (recallableIds.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('只能撤回 2 分钟内自己发送的消息')));
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('批量删除'),
-        content: Text('确定删除选中的 ${_selectedMessages.length} 条消息吗？'),
+        content: Text('确定撤回选中的 ${recallableIds.length} 条消息吗？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -714,11 +736,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     if (confirmed != true) return;
 
     final repo = ref.read(messageRepositoryProvider);
-    for (final id in _selectedMessages.toList()) {
-      await repo.recallMessage(conversationId: widget.conversationId, messageId: id);
+    for (final id in recallableIds) {
+      await repo.recallMessage(
+        conversationId: widget.conversationId,
+        messageId: id,
+      );
     }
     setState(() {
-      _messages.removeWhere((m) => _selectedMessages.contains(m.id));
+      _messages.removeWhere((m) => recallableIds.contains(m.id));
       _selectedMessages.clear();
       _selectMode = false;
     });
@@ -726,30 +751,54 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   Future<void> _handleRecall(DirectMessageItem message) async {
     _hideOverlay();
+    if (!message.canRecall) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('只能撤回 2 分钟内自己发送的消息')));
+      return;
+    }
+    final recalledLastMessage =
+        _messages.isNotEmpty && _messages.last.id == message.id;
     try {
-      await ref.read(messageRepositoryProvider).recallMessage(
-        conversationId: widget.conversationId,
-        messageId: message.id,
-      );
+      await ref
+          .read(messageRepositoryProvider)
+          .recallMessage(
+            conversationId: widget.conversationId,
+            messageId: message.id,
+          );
       setState(() {
         _messages.removeWhere((m) => m.id == message.id);
+        _selectedMessages.remove(message.id);
+        if (_replyingTo?.id == message.id) {
+          _replyingTo = null;
+        }
       });
+      if (recalledLastMessage) {
+        final remaining = _messages;
+        ref
+            .read(messagesControllerProvider.notifier)
+            .updateConversationPreview(
+              conversationId: widget.conversationId,
+              message: remaining.isEmpty ? '开始聊天吧' : remaining.last.content,
+            );
+      }
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('消息已撤回')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('消息已撤回')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('撤回失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('撤回失败: $e')));
       }
     }
   }
 
   String _formatFullTime(String createdAt) {
-    final dt = DateTime.tryParse(createdAt)?.toUtc().toLocal() ?? DateTime.now();
+    final dt =
+        DateTime.tryParse(createdAt)?.toUtc().toLocal() ?? DateTime.now();
     return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} '
         '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
   }
@@ -771,13 +820,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               message.deliveryStatus == 'read'
                   ? '已送达'
                   : message.deliveryStatus == 'sent'
-                      ? '已发送'
-                      : message.deliveryStatus == 'failed'
-                          ? '发送失败'
-                          : message.deliveryStatus,
+                  ? '已发送'
+                  : message.deliveryStatus == 'failed'
+                  ? '发送失败'
+                  : message.deliveryStatus,
             ),
-            if (!message.fromMe && message.isRead)
-              _detailRow('已读状态', '已读'),
+            if (!message.fromMe && message.isRead) _detailRow('已读状态', '已读'),
           ],
         ),
         actions: [
@@ -801,19 +849,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             width: 70,
             child: Text(
               label,
-              style: TextStyle(
-                color: colors.textTertiary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: colors.textTertiary, fontSize: 13),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(
-                color: colors.textPrimary,
-                fontSize: 13,
-              ),
+              style: TextStyle(color: colors.textPrimary, fontSize: 13),
             ),
           ),
         ],
@@ -866,28 +908,33 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         )
                       : null,
                   child: c.avatarUrl.isEmpty
-                      ? const Icon(Icons.person,
-                          color: MobileTheme.primary, size: 18)
+                      ? const Icon(
+                          Icons.person,
+                          color: MobileTheme.primary,
+                          size: 18,
+                        )
                       : null,
                 ),
                 title: Text(c.name),
                 onTap: () async {
                   Navigator.pop(ctx);
                   try {
-                    await ref.read(messageRepositoryProvider).sendConversationMessage(
+                    await ref
+                        .read(messageRepositoryProvider)
+                        .sendConversationMessage(
                           conversationId: c.id,
                           content: '[转发] ${message.content}',
                         );
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('已转发')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(const SnackBar(content: Text('已转发')));
                     }
                   } catch (e) {
                     if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('转发失败: $e')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('转发失败: $e')));
                     }
                   }
                 },
@@ -919,12 +966,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     bool isMe,
     MobileColors colors,
   ) {
-    final quoteColor =
-        isMe ? Colors.white.withValues(alpha: 0.25) : MobileTheme.primary.withValues(alpha: 0.08);
-    final accentColor =
-        isMe ? Colors.white.withValues(alpha: 0.85) : MobileTheme.primary;
-    final textColor =
-        isMe ? Colors.white.withValues(alpha: 0.9) : colors.textSecondary;
+    final quoteColor = isMe
+        ? Colors.white.withValues(alpha: 0.25)
+        : MobileTheme.primary.withValues(alpha: 0.08);
+    final accentColor = isMe
+        ? Colors.white.withValues(alpha: 0.85)
+        : MobileTheme.primary;
+    final textColor = isMe
+        ? Colors.white.withValues(alpha: 0.9)
+        : colors.textSecondary;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
@@ -990,9 +1040,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        border: Border(
-          top: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1016,7 +1064,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 children: [
                   Expanded(
                     child: Container(
-                      constraints: const BoxConstraints(maxHeight: 120, minHeight: 36),
+                      constraints: const BoxConstraints(
+                        maxHeight: 120,
+                        minHeight: 36,
+                      ),
                       decoration: BoxDecoration(
                         color: colors.background,
                         borderRadius: BorderRadius.circular(20),
@@ -1026,12 +1077,21 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         focusNode: _focusNode,
                         maxLines: null,
                         textInputAction: TextInputAction.newline,
-                        style: TextStyle(fontSize: 16, color: colors.textPrimary),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: colors.textPrimary,
+                        ),
                         decoration: InputDecoration(
                           hintText: '输入消息...',
-                          hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
+                          hintStyle: TextStyle(
+                            color: colors.textTertiary,
+                            fontSize: 15,
+                          ),
                           border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
@@ -1044,7 +1104,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       width: 44,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: _canSend() ? MobileTheme.primary : colors.textTertiary.withValues(alpha: 0.3),
+                        color: _canSend()
+                            ? MobileTheme.primary
+                            : colors.textTertiary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: _isSending
@@ -1052,10 +1114,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                               child: SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               ),
                             )
-                          : const Icon(Icons.send, color: Colors.white, size: 20),
+                          : const Icon(
+                              Icons.send,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                     ),
                   ),
                 ],
@@ -1075,9 +1144,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       padding: const EdgeInsets.fromLTRB(12, 8, 8, 4),
       decoration: BoxDecoration(
         color: colors.background,
-        border: Border(
-          top: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -1109,10 +1176,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   msg.content,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 ),
               ],
             ),
@@ -1144,7 +1208,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           Expanded(
             child: Text(
               '你与对方尚未建立会话。在对方回复或关注你之前，你只能发送一条消息，请谨慎措辞。',
-              style: const TextStyle(fontSize: 13, color: Color(0xFF92400E), height: 1.4),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF92400E),
+                height: 1.4,
+              ),
             ),
           ),
           GestureDetector(
@@ -1172,7 +1240,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.delete_outline, color: MobileTheme.error),
+              leading: const Icon(
+                Icons.delete_outline,
+                color: MobileTheme.error,
+              ),
               title: const Text('删除会话'),
               onTap: () {
                 Navigator.pop(context);
@@ -1191,7 +1262,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.person_add_outlined, color: MobileTheme.primary),
+              leading: const Icon(
+                Icons.person_add_outlined,
+                color: MobileTheme.primary,
+              ),
               title: const Text('查看对方主页'),
               onTap: () {
                 Navigator.pop(context);
@@ -1222,18 +1296,20 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             onPressed: () async {
               Navigator.pop(dialogContext);
               try {
-                ref.read(messagesControllerProvider.notifier).deleteConversation(widget.conversationId);
+                ref
+                    .read(messagesControllerProvider.notifier)
+                    .deleteConversation(widget.conversationId);
                 if (mounted) {
                   context.pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('会话已删除')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('会话已删除')));
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('删除失败: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
                 }
               }
             },
@@ -1252,9 +1328,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       builder: (dialogContext) => AlertDialog(
         title: Text(isBlocking ? '屏蔽对方' : '解除屏蔽'),
         content: Text(
-          isBlocking
-              ? '确定要屏蔽对方吗？屏蔽后对方将无法给你发送消息。'
-              : '确定要解除屏蔽吗？解除后对方可以继续给你发消息。',
+          isBlocking ? '确定要屏蔽对方吗？屏蔽后对方将无法给你发送消息。' : '确定要解除屏蔽吗？解除后对方可以继续给你发消息。',
         ),
         actions: [
           TextButton(
@@ -1272,24 +1346,28 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 );
                 if (mounted) {
                   setState(() => _blockedByMe = isBlocking);
-                  ref.read(messagesControllerProvider.notifier).updateConversationFlags(
-                    conversationId: widget.conversationId,
-                    blockedByMe: isBlocking,
-                  );
+                  ref
+                      .read(messagesControllerProvider.notifier)
+                      .updateConversationFlags(
+                        conversationId: widget.conversationId,
+                        blockedByMe: isBlocking,
+                      );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(isBlocking ? '已屏蔽对方' : '已解除屏蔽')),
                   );
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('操作失败: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
                 }
               }
             },
             style: TextButton.styleFrom(
-              foregroundColor: isBlocking ? MobileTheme.error : MobileTheme.primary,
+              foregroundColor: isBlocking
+                  ? MobileTheme.error
+                  : MobileTheme.primary,
             ),
             child: Text(isBlocking ? '屏蔽' : '解除屏蔽'),
           ),
@@ -1301,6 +1379,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
 class _MessageActionBar extends StatelessWidget {
   final DirectMessageItem message;
+  final double maxWidth;
   final VoidCallback onCopy;
   final VoidCallback onForward;
   final VoidCallback onDetail;
@@ -1309,6 +1388,7 @@ class _MessageActionBar extends StatelessWidget {
 
   const _MessageActionBar({
     required this.message,
+    required this.maxWidth,
     required this.onCopy,
     required this.onForward,
     required this.onDetail,
@@ -1333,10 +1413,13 @@ class _MessageActionBar extends StatelessWidget {
       elevation: 4,
       borderRadius: BorderRadius.circular(8),
       color: const Color(0xFF4A4A4A),
-      child: IntrinsicHeight(
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: buttons.map((b) => Flexible(child: b)).toList(),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: IntrinsicHeight(
+            child: Row(mainAxisSize: MainAxisSize.min, children: buttons),
+          ),
         ),
       ),
     );
@@ -1353,7 +1436,10 @@ class _MessageActionBar extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 20),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(color: Colors.white, fontSize: 10)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white, fontSize: 10),
+            ),
           ],
         ),
       ),

@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
@@ -165,18 +167,23 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         );
       }
 
-      await ref.read(userRepositoryProvider).updateProfile(
+      await ref
+          .read(userRepositoryProvider)
+          .updateProfile(
             nickname: nickname,
             avatarUrl: newAvatarUrl,
             bio: _bioController.text.trim(),
             backgroundImageUrl: newBgUrl,
             gender: _gender,
           );
+      final updatedProfile = await ref
+          .read(userRepositoryProvider)
+          .fetchProfile();
+      AuthStore.instance.setCurrentUser(updatedProfile);
 
       if (!mounted) return;
 
       _showToast('资料已保存');
-      ref.invalidate(userRepositoryProvider);
 
       await Future.delayed(const Duration(milliseconds: 500));
       if (!mounted) return;
@@ -195,9 +202,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -220,21 +227,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: MobileTheme.primary),
+                      strokeWidth: 2,
+                      color: MobileTheme.primary,
+                    ),
                   )
                 : const Text(
                     '保存',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
           ),
         ],
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary))
+              child: CircularProgressIndicator(color: MobileTheme.primary),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
@@ -251,14 +258,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         ),
                         child: Row(
                           children: [
-                            const Icon(Icons.error_outline,
-                                size: 18, color: MobileTheme.error),
+                            const Icon(
+                              Icons.error_outline,
+                              size: 18,
+                              color: MobileTheme.error,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _error!,
                                 style: const TextStyle(
-                                    fontSize: 13, color: MobileTheme.error),
+                                  fontSize: 13,
+                                  color: MobileTheme.error,
+                                ),
                               ),
                             ),
                           ],
@@ -271,8 +283,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: colors.divider.withValues(alpha: 0.5),
-                            width: 0.5),
+                          color: colors.divider.withValues(alpha: 0.5),
+                          width: 0.5,
+                        ),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -343,7 +356,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: colors.divider.withValues(alpha: 0.5), width: 0.5),
+          color: colors.divider.withValues(alpha: 0.5),
+          width: 0.5,
+        ),
       ),
       child: Column(
         children: [
@@ -411,11 +426,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       );
     }
 
-    return AvatarWidget(
-      avatarUrl: url,
-      nickname: nickname,
-      radius: 48,
-    );
+    return AvatarWidget(avatarUrl: url, nickname: nickname, radius: 48);
   }
 
   Widget _buildGenderSelector() {
@@ -423,13 +434,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '性别',
-          style: TextStyle(
-            fontSize: 14,
-            color: colors.textSecondary,
-          ),
-        ),
+        Text('性别', style: TextStyle(fontSize: 14, color: colors.textSecondary)),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -455,7 +460,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? MobileTheme.primary.withValues(alpha: 0.1) : colors.surface,
+            color: isSelected
+                ? MobileTheme.primary.withValues(alpha: 0.1)
+                : colors.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: isSelected ? MobileTheme.primary : colors.divider,
@@ -488,18 +495,25 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   Widget _buildBackgroundImageSection() {
     final colors = MobileColors.of(context);
-    String? displayUrl;
+    ImageProvider? imageProvider;
     if (_selectedBgBase64 != null) {
-      displayUrl = 'data:image/jpeg;base64,$_selectedBgBase64';
+      final bytes = base64Decode(_selectedBgBase64!);
+      imageProvider = MemoryImage(Uint8List.fromList(bytes));
     } else if (_backgroundImageUrl != null && _backgroundImageUrl!.isNotEmpty) {
-      displayUrl = _backgroundImageUrl;
+      final resolved = AppConfig.resolveUrl(_backgroundImageUrl!);
+      if (resolved.isNotEmpty) {
+        imageProvider = NetworkImage(resolved);
+      }
     }
 
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.divider.withValues(alpha: 0.5), width: 0.5),
+        border: Border.all(
+          color: colors.divider.withValues(alpha: 0.5),
+          width: 0.5,
+        ),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -522,23 +536,27 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 color: colors.background,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: colors.divider, width: 0.5),
-                image: displayUrl != null
-                    ? DecorationImage(
-                        image: NetworkImage(displayUrl),
-                        fit: BoxFit.cover,
-                      )
+                image: imageProvider != null
+                    ? DecorationImage(image: imageProvider, fit: BoxFit.cover)
                     : null,
               ),
-              child: displayUrl == null
+              child: imageProvider == null
                   ? Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.image_outlined, size: 32, color: colors.textSecondary),
+                          Icon(
+                            Icons.image_outlined,
+                            size: 32,
+                            color: colors.textSecondary,
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             '点击选择背景图',
-                            style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.textSecondary,
+                            ),
                           ),
                         ],
                       ),
@@ -549,7 +567,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                         color: Colors.black.withValues(alpha: 0.3),
                       ),
                       child: Center(
-                        child: Icon(Icons.edit, color: Colors.white.withValues(alpha: 0.8)),
+                        child: Icon(
+                          Icons.edit,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
                       ),
                     ),
             ),

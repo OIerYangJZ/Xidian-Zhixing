@@ -10,26 +10,27 @@ class AppSettingsStore extends ChangeNotifier {
 
   SharedPreferences? _prefs;
 
-  static const String _brightnessKey = 'treehole_brightness'; // ThemeMode.index: 0=system, 1=light, 2=dark
-  static const String _localeKey     = 'treehole_locale';     // 'zh_CN', 'zh_TW', 'en_US'
+  static const String _brightnessKey =
+      'treehole_brightness'; // ThemeMode.index: 0=system, 1=light, 2=dark
+  static const String _localeKey =
+      'treehole_localization'; // 'zh_CN', 'zh_Hant', 'en_US'
+  static const String _legacyLocaleKey = 'treehole_locale';
 
   ThemeMode _themeMode = ThemeMode.light;
   Locale? _locale;
 
   ThemeMode get themeMode => _themeMode;
-  Locale? get locale     => _locale;
+  Locale? get locale => _locale;
 
   /// 应用启动时调用，从 SharedPreferences 恢复持久化状态。
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _themeMode = ThemeMode.values[_prefs!.getInt(_brightnessKey) ?? 1];
-    final loc = _prefs!.getString(_localeKey);
-    if (loc != null && loc.isNotEmpty) {
-      final parts = loc.split('_');
-      _locale = parts.length == 2 ? Locale(parts[0], parts[1]) : Locale(parts[0]);
-    } else {
-      _locale = const Locale('zh', 'CN');
-    }
+    final String loc =
+        _prefs!.getString(_localeKey) ??
+        _prefs!.getString(_legacyLocaleKey) ??
+        'zh_CN';
+    _locale = _parseLocaleCode(loc);
     notifyListeners();
   }
 
@@ -45,9 +46,10 @@ class AppSettingsStore extends ChangeNotifier {
 
   /// 设置语言并持久化，同时同步到 XDYou。
   Future<void> setLocale(Locale loc) async {
-    _locale = loc;
-    final code = '${loc.languageCode}_${loc.countryCode ?? ''}';
+    _locale = _normalizeLocale(loc);
+    final code = _storageLocaleCode(_locale!);
     await _prefs?.setString(_localeKey, code);
+    await _prefs?.setString(_legacyLocaleKey, code);
     notifyListeners();
     try {
       await callSyncLocaleToXdyou();
@@ -66,7 +68,50 @@ class AppSettingsStore extends ChangeNotifier {
 
   /// XDYou localization 对应字符串，如 'zh_CN'
   String get xdyouLocalization {
-    if (_locale == null) return 'zh_CN';
-    return '${_locale!.languageCode}_${_locale!.countryCode ?? ''}';
+    final Locale locale = _locale ?? const Locale('zh', 'CN');
+    if (locale.languageCode == 'zh' && locale.scriptCode == 'Hant') {
+      return 'zh_TW';
+    }
+    if (locale.languageCode == 'en') {
+      return 'en_US';
+    }
+    return 'zh_CN';
+  }
+
+  Locale _normalizeLocale(Locale locale) {
+    if (locale.languageCode == 'zh' &&
+        (locale.scriptCode == 'Hant' || locale.countryCode == 'TW')) {
+      return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+    }
+    if (locale.languageCode == 'en') {
+      return const Locale('en');
+    }
+    return const Locale('zh', 'CN');
+  }
+
+  Locale _parseLocaleCode(String raw) {
+    final String code = raw.trim();
+    switch (code) {
+      case 'zh_TW':
+      case 'zh_Hant':
+        return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+      case 'en':
+      case 'en_US':
+        return const Locale('en');
+      case 'zh':
+      case 'zh_CN':
+      default:
+        return const Locale('zh', 'CN');
+    }
+  }
+
+  String _storageLocaleCode(Locale locale) {
+    if (locale.languageCode == 'zh' && locale.scriptCode == 'Hant') {
+      return 'zh_Hant';
+    }
+    if (locale.languageCode == 'en') {
+      return 'en_US';
+    }
+    return 'zh_CN';
   }
 }

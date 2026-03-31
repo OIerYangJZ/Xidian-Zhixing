@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
@@ -26,11 +27,15 @@ class ProfilePage extends StatefulWidget {
 class ProfilePageState extends State<ProfilePage> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _avatarUrlController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _backgroundUrlController =
+      TextEditingController();
 
   UserProfile? _profile;
   bool _loading = true;
   bool _saving = false;
   String? _error;
+  String _gender = '';
 
   @override
   void initState() {
@@ -44,6 +49,8 @@ class ProfilePageState extends State<ProfilePage> {
   void dispose() {
     _nicknameController.dispose();
     _avatarUrlController.dispose();
+    _bioController.dispose();
+    _backgroundUrlController.dispose();
     super.dispose();
   }
 
@@ -53,7 +60,8 @@ class ProfilePageState extends State<ProfilePage> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final UserProfile profile = _profile ??
+    final UserProfile profile =
+        _profile ??
         UserProfile(
           nickname: '匿名同学',
           studentId: '',
@@ -85,40 +93,7 @@ class ProfilePageState extends State<ProfilePage> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(_error!, style: const TextStyle(color: Colors.red)),
           ),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: <Widget>[
-              _buildAvatar(profile.avatarUrl, profile.nickname),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      profile.nickname,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                        '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}'),
-                    Text('邮箱：${profile.email.isEmpty ? '-' : profile.email}'),
-                    Text(
-                      '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+        _buildProfileHero(profile),
         const SizedBox(height: 10),
         Card(
           child: Column(
@@ -130,8 +105,8 @@ class ProfilePageState extends State<ProfilePage> {
                   profile.isLevelOneUser
                       ? '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长'
                       : levelUpgradeRequest == null
-                          ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
-                          : _levelUpgradeSubtitle(levelUpgradeRequest),
+                      ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
+                      : _levelUpgradeSubtitle(levelUpgradeRequest),
                 ),
                 trailing: Text(
                   profile.userLevelLabel,
@@ -146,8 +121,8 @@ class ProfilePageState extends State<ProfilePage> {
                     child: FilledButton.tonalIcon(
                       onPressed:
                           _saving || levelUpgradeRequest?.status == 'pending'
-                              ? null
-                              : _promptLevelUpgradeRequest,
+                          ? null
+                          : _promptLevelUpgradeRequest,
                       icon: const Icon(Icons.arrow_circle_up_outlined),
                       label: Text(
                         levelUpgradeRequest?.status == 'pending'
@@ -169,10 +144,9 @@ class ProfilePageState extends State<ProfilePage> {
               children: <Widget>[
                 Text(
                   '个人信息',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 10),
                 TextField(
@@ -203,6 +177,58 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 10),
+                TextField(
+                  controller: _bioController,
+                  enabled: !_saving,
+                  maxLines: 2,
+                  maxLength: 100,
+                  decoration: const InputDecoration(
+                    labelText: '个性签名',
+                    hintText: '介绍一下自己吧',
+                    prefixIcon: Icon(Icons.edit_note_outlined),
+                    alignLabelWithHint: true,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  initialValue: _gender,
+                  decoration: const InputDecoration(
+                    labelText: '性别',
+                    prefixIcon: Icon(Icons.wc_outlined),
+                  ),
+                  items: const <DropdownMenuItem<String>>[
+                    DropdownMenuItem<String>(value: '', child: Text('不显示')),
+                    DropdownMenuItem<String>(value: '男', child: Text('男')),
+                    DropdownMenuItem<String>(value: '女', child: Text('女')),
+                  ],
+                  onChanged: _saving
+                      ? null
+                      : (String? value) {
+                          setState(() {
+                            _gender = value ?? '';
+                          });
+                        },
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _backgroundUrlController,
+                  enabled: !_saving,
+                  decoration: const InputDecoration(
+                    labelText: '主页背景图 URL',
+                    hintText: 'https://...',
+                    prefixIcon: Icon(Icons.wallpaper_outlined),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _saving ? null : _pickAndUploadBackgroundImage,
+                    icon: const Icon(Icons.landscape_outlined),
+                    label: const Text('选择图片并上传背景图'),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
@@ -226,7 +252,8 @@ class ProfilePageState extends State<ProfilePage> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                        builder: (_) => const MyPostsPage()),
+                      builder: (_) => const MyPostsPage(),
+                    ),
                   );
                 },
               ),
@@ -237,7 +264,8 @@ class ProfilePageState extends State<ProfilePage> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                        builder: (_) => const MyCommentsPage()),
+                      builder: (_) => const MyCommentsPage(),
+                    ),
                   );
                 },
               ),
@@ -248,7 +276,8 @@ class ProfilePageState extends State<ProfilePage> {
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
-                        builder: (_) => const MyReportsPage()),
+                      builder: (_) => const MyReportsPage(),
+                    ),
                   );
                 },
               ),
@@ -405,13 +434,113 @@ class ProfilePageState extends State<ProfilePage> {
         Center(
           child: Text(
             '西电树洞 v${AppConfig.appVersion}',
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildProfileHero(UserProfile profile) {
+    final String backgroundImageUrl = AppConfig.resolveUrl(
+      profile.backgroundImageUrl.trim(),
+    );
+    final ThemeData theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            height: 144,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
+              color: theme.colorScheme.primary.withValues(alpha: 0.08),
+              image: backgroundImageUrl.isEmpty
+                  ? null
+                  : DecorationImage(
+                      image: NetworkImage(backgroundImageUrl),
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Transform.translate(
+                  offset: const Offset(0, -24),
+                  child: _buildAvatar(profile.avatarUrl, profile.nickname),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          profile.nickname,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        if (profile.bio.trim().isNotEmpty)
+                          Text(
+                            profile.bio.trim(),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+                        if (profile.gender.trim().isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: <Widget>[
+                              Icon(
+                                profile.gender == '男'
+                                    ? Icons.male
+                                    : Icons.female,
+                                size: 16,
+                                color: Colors.black54,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                profile.gender.trim(),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Text(
+                          '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
+                        ),
+                        Text(
+                          '邮箱：${profile.email.isEmpty ? '-' : profile.email}',
+                        ),
+                        Text(
+                          '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -434,9 +563,31 @@ class ProfilePageState extends State<ProfilePage> {
         ),
       );
     }
-    return CircleAvatar(
-      radius: 30,
-      child: Text(label),
+    return CircleAvatar(radius: 30, child: Text(label));
+  }
+
+  UserProfile _fallbackProfile() {
+    return UserProfile(
+      nickname: _nicknameController.text.trim().isEmpty
+          ? '匿名同学'
+          : _nicknameController.text.trim(),
+      studentId: '',
+      avatarUrl: _avatarUrlController.text.trim(),
+      email: '',
+      verified: false,
+      verifiedAt: '-',
+      allowStrangerDm: _profile?.allowStrangerDm ?? false,
+      showContactable: _profile?.showContactable ?? false,
+      favoriteCount: _profile?.favoriteCount ?? 0,
+      userLevel: _profile?.userLevel ?? 2,
+      userLevelLabel: _profile?.userLevelLabel ?? '二级用户',
+      isLevelOneUser: _profile?.isLevelOneUser ?? false,
+      isAdmin: _profile?.isAdmin ?? false,
+      levelUpgradeRequest: _profile?.levelUpgradeRequest,
+      accountCancellationRequest: _profile?.accountCancellationRequest,
+      bio: _bioController.text.trim(),
+      backgroundImageUrl: _backgroundUrlController.text.trim(),
+      gender: _gender,
     );
   }
 
@@ -451,10 +602,14 @@ class ProfilePageState extends State<ProfilePage> {
       if (!mounted) {
         return;
       }
+      AuthStore.instance.setCurrentUser(profile);
       setState(() {
         _profile = profile;
         _nicknameController.text = profile.nickname;
         _avatarUrlController.text = profile.avatarUrl;
+        _bioController.text = profile.bio;
+        _backgroundUrlController.text = profile.backgroundImageUrl;
+        _gender = profile.gender;
       });
     } catch (error) {
       if (!mounted) {
@@ -472,14 +627,57 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _pickAndUploadBackgroundImage() async {
+    setState(() {
+      _saving = true;
+    });
+
+    try {
+      final List<PickedImageData> selected = await pickImageFiles(
+        multiple: false,
+      );
+      if (!mounted || selected.isEmpty) {
+        return;
+      }
+      final PickedImageData image = selected.first;
+      final String backgroundUrl = await AppRepositories.users
+          .uploadBackgroundImage(
+            fileName: image.fileName,
+            contentType: image.contentType,
+            dataBase64: image.dataBase64,
+          );
+      if (!mounted) {
+        return;
+      }
+      if (backgroundUrl.trim().isNotEmpty) {
+        _backgroundUrlController.text = backgroundUrl.trim();
+      }
+      setState(() {
+        _profile = (_profile ?? _fallbackProfile()).copyWith(
+          backgroundImageUrl: _backgroundUrlController.text.trim(),
+        );
+      });
+      _toast('背景图上传成功');
+    } catch (error) {
+      _toast('背景图上传失败：$error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+    }
+  }
+
   Future<void> _pickAndUploadAvatar() async {
     setState(() {
       _saving = true;
     });
 
     try {
-      final List<PickedImageData> selected =
-          await pickImageFiles(multiple: false);
+      final List<PickedImageData> selected = await pickImageFiles(
+        multiple: false,
+      );
       if (!mounted || selected.isEmpty) {
         return;
       }
@@ -496,27 +694,9 @@ class ProfilePageState extends State<ProfilePage> {
         _avatarUrlController.text = avatarUrl.trim();
       }
       setState(() {
-        _profile = (_profile ??
-                UserProfile(
-                  nickname: _nicknameController.text.trim().isEmpty
-                      ? '匿名同学'
-                      : _nicknameController.text.trim(),
-                  studentId: '',
-                  avatarUrl: '',
-                  email: '',
-                  verified: false,
-                  verifiedAt: '-',
-                  allowStrangerDm: false,
-                  showContactable: false,
-                  favoriteCount: 0,
-                  userLevel: 2,
-                  userLevelLabel: '二级用户',
-                  isLevelOneUser: false,
-                  isAdmin: false,
-                  levelUpgradeRequest: null,
-                  accountCancellationRequest: null,
-                ))
-            .copyWith(avatarUrl: _avatarUrlController.text.trim());
+        _profile = (_profile ?? _fallbackProfile()).copyWith(
+          avatarUrl: _avatarUrlController.text.trim(),
+        );
       });
       _toast('头像上传成功');
     } catch (error) {
@@ -533,6 +713,8 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> _saveProfile() async {
     final String nickname = _nicknameController.text.trim();
     final String avatarUrl = _avatarUrlController.text.trim();
+    final String bio = _bioController.text.trim();
+    final String backgroundImageUrl = _backgroundUrlController.text.trim();
     if (nickname.isEmpty) {
       _toast('昵称不能为空');
       return;
@@ -546,33 +728,23 @@ class ProfilePageState extends State<ProfilePage> {
       await AppRepositories.users.updateProfile(
         nickname: nickname,
         avatarUrl: avatarUrl,
+        bio: bio,
+        backgroundImageUrl: backgroundImageUrl,
+        gender: _gender,
       );
+      final UserProfile nextProfile = (_profile ?? _fallbackProfile()).copyWith(
+        nickname: nickname,
+        avatarUrl: avatarUrl,
+        bio: bio,
+        backgroundImageUrl: backgroundImageUrl,
+        gender: _gender,
+      );
+      AuthStore.instance.setCurrentUser(nextProfile);
       if (!mounted) {
         return;
       }
       setState(() {
-        _profile = (_profile ??
-                UserProfile(
-                  nickname: nickname,
-                  studentId: '',
-                  avatarUrl: '',
-                  email: '',
-                  verified: false,
-                  verifiedAt: '-',
-                  allowStrangerDm: false,
-                  showContactable: false,
-                  favoriteCount: 0,
-                  userLevel: 2,
-                  userLevelLabel: '二级用户',
-                  isLevelOneUser: false,
-                  isAdmin: false,
-                  levelUpgradeRequest: null,
-                  accountCancellationRequest: null,
-                ))
-            .copyWith(
-          nickname: nickname,
-          avatarUrl: avatarUrl,
-        );
+        _profile = nextProfile;
       });
       _toast('资料已更新');
     } catch (error) {
@@ -603,28 +775,29 @@ class ProfilePageState extends State<ProfilePage> {
         return;
       }
       setState(() {
-        _profile = (_profile ??
-                UserProfile(
-                  nickname: '匿名同学',
-                  studentId: '',
-                  avatarUrl: '',
-                  email: '',
-                  verified: false,
-                  verifiedAt: '-',
-                  allowStrangerDm: false,
-                  showContactable: false,
-                  favoriteCount: 0,
-                  userLevel: 2,
-                  userLevelLabel: '二级用户',
-                  isLevelOneUser: false,
-                  isAdmin: false,
-                  levelUpgradeRequest: null,
-                  accountCancellationRequest: null,
-                ))
-            .copyWith(
-          allowStrangerDm: allowStrangerDm,
-          showContactable: showContactable,
-        );
+        _profile =
+            (_profile ??
+                    UserProfile(
+                      nickname: '匿名同学',
+                      studentId: '',
+                      avatarUrl: '',
+                      email: '',
+                      verified: false,
+                      verifiedAt: '-',
+                      allowStrangerDm: false,
+                      showContactable: false,
+                      favoriteCount: 0,
+                      userLevel: 2,
+                      userLevelLabel: '二级用户',
+                      isLevelOneUser: false,
+                      isAdmin: false,
+                      levelUpgradeRequest: null,
+                      accountCancellationRequest: null,
+                    ))
+                .copyWith(
+                  allowStrangerDm: allowStrangerDm,
+                  showContactable: showContactable,
+                );
       });
       _toast('隐私设置已更新');
     } catch (error) {
@@ -701,44 +874,33 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _promptLevelUpgradeRequest() async {
-    final TextEditingController controller = TextEditingController();
-    final String? reason = await showDialog<String>(
+    final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('申请成为一级用户'),
-          content: TextField(
-            controller: controller,
-            minLines: 3,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: '申请说明（可选）',
-              hintText: '例如：长期活跃、愿意承担内容维护责任等',
-            ),
-          ),
+          content: const Text('确认提交一级用户申请吗？'),
           actions: <Widget>[
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(context).pop(false),
               child: const Text('取消'),
             ),
             FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
+              onPressed: () => Navigator.of(context).pop(true),
               child: const Text('确认提交'),
             ),
           ],
         );
       },
     );
-    controller.dispose();
-    if (reason == null) {
+    if (confirmed != true) {
       return;
     }
     setState(() {
       _saving = true;
     });
     try {
-      await AppRepositories.users.submitLevelUpgradeRequest(reason: reason);
+      await AppRepositories.users.submitLevelUpgradeRequest();
       await _loadProfile();
       if (!mounted) {
         return;
@@ -803,7 +965,8 @@ class ProfilePageState extends State<ProfilePage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

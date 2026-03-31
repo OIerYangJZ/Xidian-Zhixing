@@ -149,7 +149,7 @@ class CommentTile extends StatelessWidget {
                             const SizedBox(width: 16),
                             GestureDetector(
                               onTap: onTap,
-                              child: const Text(
+                              child: Text(
                                 '展开 ${comment.replies.length} 条回复',
                                 style: TextStyle(
                                   fontSize: 12,

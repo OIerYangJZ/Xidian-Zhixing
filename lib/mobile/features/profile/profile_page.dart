@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../shell/mobile_shell.dart';
+import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -109,6 +110,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final user = _profile ?? AuthStore.instance.currentUser;
+    final backgroundImageUrl = AppConfig.resolveUrl(
+      user?.backgroundImageUrl ?? '',
+    );
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -127,9 +131,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
         centerTitle: false,
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_outlined,
-                color: colors.textPrimary, size: 22),
-            onPressed: () => context.push('/profile/settings/main'),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: colors.textPrimary,
+              size: 22,
+            ),
+            onPressed: () async {
+              await context.push('/profile/settings/main');
+              if (mounted) {
+                await _loadProfile();
+              }
+            },
           ),
         ],
       ),
@@ -145,12 +157,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // 背景图
-                    if (user?.backgroundImageUrl != null && user!.backgroundImageUrl.isNotEmpty)
+                    if (backgroundImageUrl.isNotEmpty)
                       Container(
                         height: 120,
                         decoration: BoxDecoration(
                           image: DecorationImage(
-                            image: NetworkImage(user.backgroundImageUrl),
+                            image: NetworkImage(backgroundImageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -171,12 +183,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                           Transform.translate(
                             offset: const Offset(0, -24),
                             child: GestureDetector(
-                              onTap: () => context.push('/profile/edit'),
+                              onTap: () async {
+                                await context.push('/profile/edit');
+                                if (mounted) {
+                                  await _loadProfile();
+                                }
+                              },
                               child: Container(
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                      color: colors.surface, width: 4),
+                                    color: colors.surface,
+                                    width: 4,
+                                  ),
                                 ),
                                 child: AvatarWidget(
                                   avatarUrl: user?.avatarUrl,
@@ -191,14 +210,23 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                           Transform.translate(
                             offset: const Offset(0, -16),
                             child: GestureDetector(
-                              onTap: () => context.push('/profile/edit'),
+                              onTap: () async {
+                                await context.push('/profile/edit');
+                                if (mounted) {
+                                  await _loadProfile();
+                                }
+                              },
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 6),
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: colors.surface,
                                   border: Border.all(
-                                      color: colors.divider, width: 1),
+                                    color: colors.divider,
+                                    width: 1,
+                                  ),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
@@ -284,7 +312,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                           const SizedBox(width: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: MobileTheme.accent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
@@ -313,9 +343,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                       indicatorSize: TabBarIndicatorSize.tab,
                       dividerColor: Colors.transparent,
                       labelStyle: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                       unselectedLabelStyle: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w500),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                       isScrollable: false,
                       tabs: const [
                         Tab(text: '帖子'),
@@ -331,11 +365,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
         },
         body: TabBarView(
           controller: _tabController,
-          children: [
-            _MyPostsTab(),
-            _MyFavoritesTab(),
-            _MyActivitiesTab(),
-          ],
+          children: [_MyPostsTab(), _MyFavoritesTab(), _MyActivitiesTab()],
         ),
       ),
     );
@@ -365,10 +395,7 @@ class _StatChip extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            color: colors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 13, color: colors.textSecondary),
         ),
       ],
     );
@@ -426,10 +453,7 @@ class _FollowListSheet extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     '${users.length}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: colors.textSecondary),
                   ),
                 ],
               ),
@@ -452,8 +476,7 @@ class _FollowListSheet extends StatelessWidget {
                       children: [
                         if (mutual.isNotEmpty) ...[
                           Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
                               '好友',
                               style: TextStyle(
@@ -512,8 +535,7 @@ class _FollowUserTile extends StatelessWidget {
       ),
       trailing: user.isMutual
           ? Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
                 color: MobileTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
@@ -566,7 +588,8 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Center(
-          child: CircularProgressIndicator(color: MobileTheme.primary));
+        child: CircularProgressIndicator(color: MobileTheme.primary),
+      );
     }
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
@@ -640,7 +663,8 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Center(
-          child: CircularProgressIndicator(color: MobileTheme.primary));
+        child: CircularProgressIndicator(color: MobileTheme.primary),
+      );
     }
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
@@ -698,8 +722,7 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
 
   Future<void> _load() async {
     try {
-      final comments =
-          await ref.read(userRepositoryProvider).fetchMyComments();
+      final comments = await ref.read(userRepositoryProvider).fetchMyComments();
       if (!mounted) return;
       setState(() {
         _comments = comments;
@@ -716,15 +739,15 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
     final colors = MobileColors.of(context);
     if (_loading) {
       return Center(
-          child: CircularProgressIndicator(color: MobileTheme.primary));
+        child: CircularProgressIndicator(color: MobileTheme.primary),
+      );
     }
     if (_comments.isEmpty) {
       return _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
     }
     return ListView.separated(
       itemCount: _comments.length,
-      separatorBuilder: (_, __) =>
-          Divider(height: 0.5, color: colors.divider),
+      separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.divider),
       itemBuilder: (context, i) {
         final c = _comments[i];
         return Padding(
@@ -734,28 +757,21 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
             children: [
               Text(
                 c.postTitle,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: colors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 c.content,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: colors.textPrimary,
-                ),
+                style: TextStyle(fontSize: 14, color: colors.textPrimary),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 4),
               Text(
                 c.timeText,
-                style: TextStyle(
-                    fontSize: 12, color: colors.textTertiary),
+                style: TextStyle(fontSize: 12, color: colors.textTertiary),
               ),
             ],
           ),
@@ -783,10 +799,7 @@ class _EmptyHint extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               text,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textTertiary,
-              ),
+              style: TextStyle(fontSize: 14, color: colors.textTertiary),
             ),
           ],
         ),

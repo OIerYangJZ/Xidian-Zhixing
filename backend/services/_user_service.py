@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from datetime import timezone
 from typing import Any
 
 import _globals
-from helpers._auth_helpers import normalize_avatar_url, sanitize_alias
-from helpers._datetime_helpers import now_iso, parse_iso
+from helpers._auth_helpers import normalize_avatar_url, normalize_media_url, sanitize_alias
+from helpers._datetime_helpers import now_iso, now_utc, parse_iso
 from services._db_service import next_id
 
 
@@ -351,12 +352,56 @@ def serialize_public_user_profile(
         "isFollower": is_user_following(db, target_user_id, viewer_user_id),
         "isOwnProfile": bool(viewer_user_id and viewer_user_id == target_user_id),
         "canFollow": bool(viewer_user_id and viewer_user_id != target_user_id),
+        "bio": str(target_user.get("bio", "")).strip(),
+        "gender": str(target_user.get("gender", "")).strip(),
+        "backgroundImageUrl": normalize_media_url(str(target_user.get("backgroundImageUrl", "")).strip()),
         "canDirectMessage": can_request_dm_to_user(
             db,
             viewer_user_id=viewer_user_id,
             target_user_id=target_user_id,
         ),
     }
+
+
+def search_public_users(
+    db: dict[str, Any],
+    *,
+    viewer_user_id: str,
+    keyword: str,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    normalized_keyword = keyword.strip().lower()
+    if not normalized_keyword:
+        return []
+
+    rows: list[tuple[int, int, str, dict[str, Any]]] = []
+    for user in db.get("users", []):
+        if not isinstance(user, dict) or user.get("deleted"):
+            continue
+        nickname = user_nickname(user).strip()
+        if not nickname:
+            continue
+        normalized_nickname = nickname.lower()
+        if normalized_keyword not in normalized_nickname:
+            continue
+
+        if normalized_nickname == normalized_keyword:
+            priority = 0
+        elif normalized_nickname.startswith(normalized_keyword):
+            priority = 1
+        else:
+            priority = 2
+
+        profile = serialize_public_user_profile(
+            db,
+            target_user=user,
+            viewer_user_id=viewer_user_id,
+        )
+        follower_count = int(profile.get("followerCount", 0) or 0)
+        rows.append((priority, -follower_count, nickname, profile))
+
+    rows.sort(key=lambda item: (item[0], item[1], item[2]))
+    return [item[3] for item in rows[: max(1, limit)]]
 
 
 def current_user_level(user: dict[str, Any] | None) -> int:
@@ -631,6 +676,66 @@ def deliver_message_to_conversation_pair(
     )
 
 
+def refresh_conversation_pair_metadata(
+    db: dict[str, Any],
+    *,
+    left_user_id: str,
+    right_user_id: str,
+    updated_at: str = "",
+) -> None:
+    left_user_id = left_user_id.strip()
+    right_user_id = right_user_id.strip()
+    if not left_user_id or not right_user_id:
+        return
+
+    conversation_key = conversation_key_for_users(left_user_id, right_user_id)
+    messages = [
+        row
+        for row in db.get("directMessages", [])
+        if str(row.get("conversationKey", "")).strip() == conversation_key
+        and not row.get("deleted")
+    ]
+    messages.sort(key=lambda row: (str(row.get("createdAt", "")), str(row.get("id", ""))))
+
+    preview = "开始聊天吧"
+    if messages:
+        preview = str(messages[-1].get("content", "")).strip() or preview
+
+    effective_updated_at = (
+        (str(messages[-1].get("createdAt", "")).strip() if messages else "")
+        or updated_at.strip()
+        or now_iso()
+    )
+
+    def unread_count_for(user_id: str) -> int:
+        return sum(
+            1
+            for row in messages
+            if str(row.get("receiverUserId", "")).strip() == user_id
+            and not str(row.get("readAt", "")).strip()
+        )
+
+    for user_id, peer_user_id in (
+        (left_user_id, right_user_id),
+        (right_user_id, left_user_id),
+    ):
+        row = next(
+            (
+                item
+                for item in db.get("conversations", [])
+                if item.get("userId") == user_id
+                and item.get("peerUserId") == peer_user_id
+            ),
+            None,
+        )
+        if row is None:
+            continue
+        row["lastMessage"] = preview
+        row["updatedAt"] = effective_updated_at
+        row["unreadCount"] = unread_count_for(user_id)
+        row["deleted"] = False
+
+
 def mark_conversation_read(
     db: dict[str, Any],
     *,
@@ -694,18 +799,53 @@ def serialize_direct_message(
 ) -> dict[str, Any]:
     sender_user_id = str(row.get("senderUserId", ""))
     sender_user = find_user_by_id(db, sender_user_id, include_deleted=True)
+    created_at = str(row.get("createdAt", ""))
     read_at = str(row.get("readAt", "")).strip()
+    reply_to_id = str(row.get("replyToId", "")).strip()
+    reply_to_sender = str(row.get("replyToSender", "")).strip()
+    reply_to_content = str(row.get("replyToContent", "")).strip()
+    from_me = viewer_user_id == sender_user_id
+
+    can_recall = False
+    created_dt = parse_iso(created_at)
+    if from_me and created_dt is not None:
+        if created_dt.tzinfo is None:
+            created_dt = created_dt.replace(tzinfo=timezone.utc)
+        can_recall = (now_utc() - created_dt).total_seconds() <= 120
+
+    if reply_to_id and (not reply_to_sender or not reply_to_content):
+        reply_message = next(
+            (
+                item
+                for item in db.get("directMessages", [])
+                if str(item.get("id", "")).strip() == reply_to_id
+            ),
+            None,
+        )
+        if reply_message is not None:
+            reply_to_content = reply_to_content or str(reply_message.get("content", "")).strip()
+            reply_sender_user = find_user_by_id(
+                db,
+                str(reply_message.get("senderUserId", "")).strip(),
+                include_deleted=True,
+            )
+            reply_to_sender = reply_to_sender or user_nickname(reply_sender_user)
+
     return {
         "id": str(row.get("id", "")),
         "content": str(row.get("content", "")),
-        "createdAt": str(row.get("createdAt", "")),
-        "timeText": iso_to_time_text(str(row.get("createdAt", ""))),
-        "fromMe": viewer_user_id == sender_user_id,
+        "createdAt": created_at,
+        "timeText": iso_to_time_text(created_at),
+        "fromMe": from_me,
         "senderUserId": sender_user_id,
         "senderAlias": user_nickname(sender_user),
         "readAt": read_at,
         "isRead": bool(read_at),
         "deliveryStatus": "read" if read_at else "sent",
+        "canRecall": can_recall,
+        "replyToId": reply_to_id or None,
+        "replyToSender": reply_to_sender or None,
+        "replyToContent": reply_to_content or None,
     }
 
 

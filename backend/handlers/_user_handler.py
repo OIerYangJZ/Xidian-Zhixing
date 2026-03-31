@@ -24,6 +24,7 @@ from helpers import (
     is_valid_student_id,
     json_error,
     normalize_avatar_url,
+    normalize_media_url,
     read_json_body,
     sanitize_alias,
     send_json,
@@ -43,6 +44,7 @@ from services import (
     list_friend_users,
     normalize_optional_bool,
     save_db,
+    search_public_users,
     serialize_account_cancellation_request,
     serialize_public_user_profile,
     serialize_user_level_request_summary,
@@ -86,6 +88,9 @@ def handle_get_me(
                 "nickname": user_nickname(user),
                 "studentId": str(user.get("studentId", "")).strip(),
                 "avatarUrl": user_avatar_url(user),
+                "bio": str(user.get("bio", "")).strip(),
+                "gender": str(user.get("gender", "")).strip(),
+                "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
                 "verified": bool(user.get("verified")),
                 "verifiedAt": str(user.get("verifiedAt", "")).strip(),
                 "allowStrangerDm": bool(user.get("allowStrangerDm", True)),
@@ -136,6 +141,35 @@ def handle_get_user(
     )
 
 
+def handle_search_users(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    query: dict[str, list[str]],
+) -> None:
+    """GET /api/users/search?keyword=..."""
+    viewer, _ = auth_user_helper(handler, db)
+    if viewer is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
+        return
+
+    keyword = str((query.get("keyword") or [""])[0]).strip()
+    if not keyword:
+        send_json(handler, HTTPStatus.OK, {"data": []})
+        return
+
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": search_public_users(
+                db,
+                viewer_user_id=str(viewer.get("id", "")).strip(),
+                keyword=keyword,
+            )
+        },
+    )
+
+
 def handle_update_me(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -148,11 +182,20 @@ def handle_update_me(
 
     body = read_json_body(handler)
     new_nickname = sanitize_alias(str(body.get("nickname", "")), fallback="")
-    new_avatar = normalize_avatar_url(str(body.get("avatarUrl", "")), default="")
+    new_avatar = normalize_avatar_url(str(body.get("avatarUrl", "")))
+    new_background_image = normalize_media_url(str(body.get("backgroundImageUrl", "")))
     new_student_id = str(body.get("studentId", "")).strip()
+    new_bio = str(body.get("bio", "")).strip()
+    new_gender = str(body.get("gender", "")).strip()
 
     if new_student_id and not is_valid_student_id(new_student_id):
         json_error(handler, HTTPStatus.BAD_REQUEST, "学号格式不正确（需为 6-20 位字母或数字）")
+        return
+    if len(new_bio) > 100:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "个性签名不能超过 100 个字符")
+        return
+    if new_gender not in {"", "男", "女"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "性别仅支持：男、女")
         return
 
     if new_nickname and new_nickname != user_nickname(user):
@@ -166,8 +209,25 @@ def handle_update_me(
     if new_student_id:
         user["studentId"] = new_student_id
 
+    user["bio"] = new_bio
+    user["gender"] = new_gender
+    user["backgroundImageUrl"] = new_background_image
+
+    add_audit_log(db, user["id"], "update_profile", "更新个人资料")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "nickname": user_nickname(user)}})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": {
+                "ok": True,
+                "nickname": user_nickname(user),
+                "bio": str(user.get("bio", "")).strip(),
+                "gender": str(user.get("gender", "")).strip(),
+                "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
+            }
+        },
+    )
 
 
 def handle_update_privacy(

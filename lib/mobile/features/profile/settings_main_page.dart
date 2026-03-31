@@ -48,7 +48,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
   }) async {
     setState(() => _saving = true);
     try {
-      await ref.read(userRepositoryProvider).updatePrivacy(
+      await ref
+          .read(userRepositoryProvider)
+          .updatePrivacy(
             allowStrangerDm: allowStrangerDm,
             showContactable: showContactable,
           );
@@ -65,6 +67,61 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  Future<void> _promptLevelUpgradeRequest() async {
+    final profile = _profile;
+    if (profile == null || profile.isLevelOneUser) return;
+    final currentRequest = profile.levelUpgradeRequest;
+    if (currentRequest?.status == 'pending') {
+      _showToast('你已经提交过申请了，请等待管理员审核');
+      return;
+    }
+
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('申请成为一级用户'),
+        content: const Text('确认提交一级用户申请吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('确认提交'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _saving = true);
+    try {
+      await ref.read(userRepositoryProvider).submitLevelUpgradeRequest();
+      await _loadProfile();
+      _showToast('一级用户申请已提交');
+    } catch (e) {
+      _showToast('提交失败：$e');
+    } finally {
+      if (mounted) {
+        setState(() => _saving = false);
+      }
+    }
+  }
+
+  String _levelUpgradeSubtitle(UserLevelRequestSummary? request) {
+    if (request == null) {
+      return '当前为二级用户，可申请升级为一级用户';
+    }
+    final buffer = StringBuffer(
+      '${request.statusLabel} · ${request.createdAt}',
+    );
+    if (request.adminNote.trim().isNotEmpty) {
+      buffer.write(' · ${request.adminNote.trim()}');
+    }
+    return buffer.toString();
   }
 
   Future<void> _logout() async {
@@ -98,9 +155,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _showComingSoonDialog(String feature) {
@@ -139,7 +196,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary))
+              child: CircularProgressIndicator(color: MobileTheme.primary),
+            )
           : ListView(
               children: [
                 const SizedBox(height: 8),
@@ -154,16 +212,36 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '统一认证密码',
                       onTap: () => _showToast('请前往西电统一身份认证修改密码'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.edit_outlined,
                       iconColor: colors.textSecondary,
                       title: '编辑资料',
-                      onTap: () => context.push('/profile/edit'),
+                      onTap: () async {
+                        await context.push('/profile/edit');
+                        if (mounted) {
+                          await _loadProfile();
+                        }
+                      },
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    if (!(_profile?.isLevelOneUser ?? false)) ...[
+                      Divider(height: 0.5, indent: 56, color: colors.divider),
+                      _ListTile(
+                        icon: Icons.workspace_premium_outlined,
+                        iconColor: MobileTheme.accent,
+                        title: '申请成为一级用户',
+                        subtitle: _levelUpgradeSubtitle(
+                          _profile?.levelUpgradeRequest,
+                        ),
+                        onTap:
+                            _saving ||
+                                _profile?.levelUpgradeRequest?.status ==
+                                    'pending'
+                            ? null
+                            : _promptLevelUpgradeRequest,
+                      ),
+                    ],
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.no_accounts_outlined,
                       iconColor: MobileTheme.error,
@@ -189,13 +267,12 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       onChanged: _saving
                           ? null
                           : (value) => _updatePrivacy(
-                                allowStrangerDm: value,
-                                showContactable:
-                                    _profile?.showContactable ?? false,
-                              ),
+                              allowStrangerDm: value,
+                              showContactable:
+                                  _profile?.showContactable ?? false,
+                            ),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _SwitchTileRow(
                       icon: Icons.visibility_outlined,
                       iconColor: MobileTheme.accent,
@@ -205,10 +282,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       onChanged: _saving
                           ? null
                           : (value) => _updatePrivacy(
-                                allowStrangerDm:
-                                    _profile?.allowStrangerDm ?? false,
-                                showContactable: value,
-                              ),
+                              allowStrangerDm:
+                                  _profile?.allowStrangerDm ?? false,
+                              showContactable: value,
+                            ),
                     ),
                   ],
                 ),
@@ -225,8 +302,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '通知设置',
                       onTap: () => _showComingSoonDialog('通知设置'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.vibration_outlined,
                       iconColor: colors.textSecondary,
@@ -246,16 +322,20 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       icon: Icons.brightness_6_outlined,
                       iconColor: colors.textSecondary,
                       title: '主题',
-                      subtitle: _themeModeLabel(ref.watch(appSettingsProvider).themeMode),
+                      subtitle: _themeModeLabel(
+                        ref.watch(appSettingsProvider).themeMode,
+                      ),
                       onTap: _showThemeDialog,
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.language_outlined,
                       iconColor: colors.textSecondary,
                       title: '语言',
-                      subtitle: _localeLabel(ref.watch(appSettingsProvider).locale ?? const Locale('zh', 'CN')),
+                      subtitle: _localeLabel(
+                        ref.watch(appSettingsProvider).locale ??
+                            const Locale('zh', 'CN'),
+                      ),
                       onTap: _showLanguageDialog,
                     ),
                   ],
@@ -273,32 +353,28 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '用户协议',
                       onTap: () => context.push('/legal/terms'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.privacy_tip_outlined,
                       iconColor: colors.textSecondary,
                       title: '隐私政策',
                       onTap: () => context.push('/legal/privacy'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.gavel_outlined,
                       iconColor: colors.textSecondary,
                       title: '社区规范',
                       onTap: () => context.push('/legal/guidelines'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.flag_outlined,
                       iconColor: colors.textSecondary,
                       title: '举报说明',
                       onTap: () => context.push('/legal/report'),
                     ),
-                    Divider(
-                        height: 0.5, indent: 56, color: colors.divider),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.help_outline,
                       iconColor: colors.textSecondary,
@@ -315,12 +391,17 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                 _ListCard(
                   children: [
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline,
-                              size: 22, color: colors.textSecondary),
+                          Icon(
+                            Icons.info_outline,
+                            size: 22,
+                            color: colors.textSecondary,
+                          ),
                           const SizedBox(width: 14),
                           Text(
                             '版本号',
@@ -382,9 +463,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('注销账号'),
-        content: const Text(
-          '账号注销后将永久删除所有数据，且无法恢复。\n\n确认要注销账号吗？',
-        ),
+        content: const Text('账号注销后将永久删除所有数据，且无法恢复。\n\n确认要注销账号吗？'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -443,7 +522,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     );
   }
 
-  Future<void> _setBrightness(ThemeMode mode, BuildContext dialogContext) async {
+  Future<void> _setBrightness(
+    ThemeMode mode,
+    BuildContext dialogContext,
+  ) async {
     await ref.read(appSettingsProvider.notifier).setBrightness(mode);
     Navigator.pop(dialogContext);
     _showToast('已切换到 ${_themeModeLabel(mode)}');
@@ -451,8 +533,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
 
   String _themeModeLabel(ThemeMode mode) {
     if (mode == ThemeMode.system) return '跟随系统';
-    if (mode == ThemeMode.light)  return '浅色';
-    if (mode == ThemeMode.dark)   return '深色';
+    if (mode == ThemeMode.light) return '浅色';
+    if (mode == ThemeMode.dark) return '深色';
     return '未知';
   }
 
@@ -474,9 +556,18 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
               ),
               _LocaleOption(
                 title: '繁體中文',
-                locale: const Locale('zh', 'TW'),
+                locale: const Locale.fromSubtags(
+                  languageCode: 'zh',
+                  scriptCode: 'Hant',
+                ),
                 current: currentLocale,
-                onTap: () => _setLocale(const Locale('zh', 'TW'), ctx),
+                onTap: () => _setLocale(
+                  const Locale.fromSubtags(
+                    languageCode: 'zh',
+                    scriptCode: 'Hant',
+                  ),
+                  ctx,
+                ),
               ),
               _LocaleOption(
                 title: 'English',
@@ -504,10 +595,14 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
   }
 
   String _localeLabel(Locale loc) {
-    final code = '${loc.languageCode}_${loc.countryCode ?? ''}';
+    final code = loc.scriptCode != null && loc.scriptCode!.isNotEmpty
+        ? '${loc.languageCode}_${loc.scriptCode}'
+        : '${loc.languageCode}_${loc.countryCode ?? ''}';
     if (code == 'zh_CN') return '简体中文';
+    if (code == 'zh_Hant') return '繁體中文';
     if (code == 'zh_TW') return '繁體中文';
     if (code == 'en_US') return 'English';
+    if (code == 'en_') return 'English';
     return '${loc.languageCode}_${loc.countryCode ?? ''}';
   }
 
@@ -563,7 +658,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       try {
                         final studentId =
                             AuthStore.instance.currentUser?.studentId ?? '';
-                        await ref.read(authRepositoryProvider).login(
+                        await ref
+                            .read(authRepositoryProvider)
+                            .login(
                               identifier: studentId,
                               password: passwordController.text,
                             );
@@ -641,7 +738,9 @@ class _ThemeOption extends StatelessWidget {
     final isSelected = value == current;
     return ListTile(
       title: Text(title),
-      trailing: isSelected ? const Icon(Icons.check, color: MobileTheme.primary) : null,
+      trailing: isSelected
+          ? const Icon(Icons.check, color: MobileTheme.primary)
+          : null,
       onTap: onTap,
     );
   }
@@ -662,11 +761,14 @@ class _LocaleOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSelected = locale.languageCode == current?.languageCode &&
+    final isSelected =
+        locale.languageCode == current?.languageCode &&
         locale.countryCode == current?.countryCode;
     return ListTile(
       title: Text(title),
-      trailing: isSelected ? const Icon(Icons.check, color: MobileTheme.primary) : null,
+      trailing: isSelected
+          ? const Icon(Icons.check, color: MobileTheme.primary)
+          : null,
       onTap: onTap,
     );
   }
@@ -720,7 +822,7 @@ class _ListTile extends StatelessWidget {
   final String title;
   final String? subtitle;
   final Color? titleColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _ListTile({
     required this.icon,
@@ -768,8 +870,13 @@ class _ListTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                size: 20, color: colors.textTertiary),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: onTap == null
+                  ? colors.textTertiary.withValues(alpha: 0.5)
+                  : colors.textTertiary,
+            ),
           ],
         ),
       ),
@@ -818,10 +925,7 @@ class _SwitchTileRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colors.textTertiary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: colors.textTertiary),
                 ),
               ],
             ),
@@ -829,7 +933,7 @@ class _SwitchTileRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: MobileTheme.primary,
+            activeThumbColor: MobileTheme.primary,
           ),
         ],
       ),

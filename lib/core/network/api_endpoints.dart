@@ -9,6 +9,7 @@ class ApiEndpoints {
   static const String logout = '/auth/logout';
 
   static const String me = '/users/me';
+  static const String userSearch = '/users/search';
   static const String privacy = '/users/privacy';
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
@@ -87,8 +88,10 @@ class ApiEndpoints {
   static String reportById(String reportId) => '/reports/$reportId';
 
   static String adminReviewAction(
-          String targetType, String targetId, String action) =>
-      '/admin/reviews/$targetType/$targetId/$action';
+    String targetType,
+    String targetId,
+    String action,
+  ) => '/admin/reviews/$targetType/$targetId/$action';
   static const String adminReviewBatch = '/admin/reviews/batch';
 
   static String adminReportHandle(String reportId) =>

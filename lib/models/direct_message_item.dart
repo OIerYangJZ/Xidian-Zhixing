@@ -9,6 +9,7 @@ class DirectMessageItem {
     this.isRead = false,
     this.readAt = '',
     this.deliveryStatus = 'sent',
+    this.serverCanRecall,
     this.replyToId,
     this.replyToSender,
     this.replyToContent,
@@ -23,6 +24,7 @@ class DirectMessageItem {
   final bool isRead;
   final String readAt;
   final String deliveryStatus;
+  final bool? serverCanRecall;
 
   /// 回复引用字段（可选）
   final String? replyToId;
@@ -34,6 +36,7 @@ class DirectMessageItem {
 
   bool get canRecall {
     if (!fromMe || deliveryStatus == 'failed') return false;
+    if (serverCanRecall != null) return serverCanRecall!;
     final created = DateTime.tryParse(createdAt)?.toUtc();
     if (created == null) return false;
     return DateTime.now().toUtc().difference(created).inSeconds <= 120;
@@ -49,6 +52,7 @@ class DirectMessageItem {
     bool? isRead,
     String? readAt,
     String? deliveryStatus,
+    bool? serverCanRecall,
     String? replyToId,
     String? replyToSender,
     String? replyToContent,
@@ -63,6 +67,7 @@ class DirectMessageItem {
       isRead: isRead ?? this.isRead,
       readAt: readAt ?? this.readAt,
       deliveryStatus: deliveryStatus ?? this.deliveryStatus,
+      serverCanRecall: serverCanRecall ?? this.serverCanRecall,
       replyToId: replyToId ?? this.replyToId,
       replyToSender: replyToSender ?? this.replyToSender,
       replyToContent: replyToContent ?? this.replyToContent,
@@ -81,8 +86,9 @@ class DirectMessageItem {
       senderAlias: (json['senderAlias'] ?? '匿名同学').toString(),
       isRead: isRead,
       readAt: readAt,
-      deliveryStatus:
-          (json['deliveryStatus'] ?? (isRead ? 'read' : 'sent')).toString(),
+      deliveryStatus: (json['deliveryStatus'] ?? (isRead ? 'read' : 'sent'))
+          .toString(),
+      serverCanRecall: _toBool(json['canRecall']),
       replyToId: json['replyToId'] as String?,
       replyToSender: json['replyToSender'] as String?,
       replyToContent: json['replyToContent'] as String?,

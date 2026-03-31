@@ -931,7 +931,7 @@ def handle_increment_view(
     post_id: str,
 ) -> None:
     """POST /api/posts/<id>/view"""
-    viewer, _ = auth_user(handler, db)
+    viewer, _ = auth_user_helper(handler, db)
     viewer_user_id = str(viewer.get("id", "")) if viewer else ""
 
     post = next(
@@ -945,23 +945,8 @@ def handle_increment_view(
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
-    today = now_iso()[:10]
-
-    already_recorded = any(
-        v.get("userId") == viewer_user_id
-        and v.get("postId") == post_id
-        and v.get("date") == today
-        for v in db.get("postViews", [])
-    )
-    if not already_recorded:
-        db.setdefault("postViews", []).append({
-            "userId": viewer_user_id,
-            "postId": post_id,
-            "date": today,
-            "createdAt": now_iso(),
-        })
-        post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0)) + 1
-        save_db(db)
+    post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0)) + 1
+    save_db(db)
 
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "viewCount": max(0, int(post.get("viewCount", 0) or 0))}})
 

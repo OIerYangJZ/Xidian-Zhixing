@@ -7,6 +7,7 @@ import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 import '../post/create_post_page.dart';
+import '../search/search_page.dart';
 import 'feed_controller.dart';
 
 class FeedPage extends ConsumerStatefulWidget {
@@ -56,8 +57,10 @@ class _FeedPageState extends ConsumerState<FeedPage> {
               (PostItem post) => PostCard(
                 post: post,
                 onTap: () async {
-                  final PostItem? updated =
-                      await openPostDetailPage(context, post: post);
+                  final PostItem? updated = await openPostDetailPage(
+                    context,
+                    post: post,
+                  );
                   if (updated == null || !mounted) {
                     return;
                   }
@@ -146,7 +149,8 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,
                         side: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.8)),
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
                       ),
                       onPressed: () => ref
                           .read(feedControllerProvider.notifier)
@@ -167,8 +171,11 @@ class _FeedPageState extends ConsumerState<FeedPage> {
               color: Colors.white.withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(Icons.campaign_outlined,
-                color: Colors.white, size: 28),
+            child: const Icon(
+              Icons.campaign_outlined,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
         ],
       ),
@@ -210,15 +217,17 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       child: TextField(
         readOnly: true,
         decoration: const InputDecoration(
-          hintText: '搜索帖子标题、正文、频道、标签',
+          hintText: '搜索帖子内容，或按昵称搜索用户',
           prefixIcon: Icon(Icons.search_rounded),
           suffixIcon: Icon(Icons.tune_rounded),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('可在底部导航进入搜索页。')),
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const SearchPage(autofocus: true),
+            ),
           );
         },
       ),
@@ -232,8 +241,9 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(16),
-        border:
-            Border.all(color: const Color(0xFF155E75).withValues(alpha: 0.1)),
+        border: Border.all(
+          color: const Color(0xFF155E75).withValues(alpha: 0.1),
+        ),
       ),
       child: Wrap(
         spacing: 8,
@@ -318,8 +328,8 @@ class _FeedPageState extends ConsumerState<FeedPage> {
     if (!mounted || created != true) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('帖子已发布并立即展示。')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('帖子已发布并立即展示。')));
   }
 }

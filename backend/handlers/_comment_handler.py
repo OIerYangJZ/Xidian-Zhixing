@@ -99,7 +99,7 @@ def handle_level_upgrade_request(
         return
 
     body = read_json_body(handler)
-    reason = str(body.get("reason", "申请升级为一级用户")).strip()
+    reason = str(body.get("reason", "")).strip()
 
     req = {
         "id": next_id(db, "levelRequest", "lr"),
@@ -115,7 +115,12 @@ def handle_level_upgrade_request(
         "handledBy": "",
     }
     db["userLevelRequests"].append(req)
-    add_audit_log(db, user["id"], "request_level_upgrade", f"申请升级为一级用户: {reason}")
+    add_audit_log(
+        db,
+        user["id"],
+        "request_level_upgrade",
+        "申请升级为一级用户" if not reason else f"申请升级为一级用户: {reason}",
+    )
     save_db(db)
     send_json(
         handler,

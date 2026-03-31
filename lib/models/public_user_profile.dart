@@ -12,6 +12,7 @@ class PublicUserProfile {
     required this.canDirectMessage,
     this.bio = '',
     this.gender = '',
+    this.backgroundImageUrl = '',
   });
 
   final String id;
@@ -26,6 +27,7 @@ class PublicUserProfile {
   final bool canDirectMessage;
   final String bio;
   final String gender;
+  final String backgroundImageUrl;
 
   /// 兼容旧代码，userId 映射到 id
   String get userId => id;
@@ -44,6 +46,9 @@ class PublicUserProfile {
       canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
       bio: (json['bio'] ?? json['signature'] ?? '').toString(),
       gender: (json['gender'] ?? '').toString(),
+      backgroundImageUrl:
+          (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '')
+              .toString(),
     );
   }
 
@@ -60,6 +65,7 @@ class PublicUserProfile {
     bool? canDirectMessage,
     String? bio,
     String? gender,
+    String? backgroundImageUrl,
   }) {
     return PublicUserProfile(
       id: id ?? this.id,
@@ -74,6 +80,7 @@ class PublicUserProfile {
       canDirectMessage: canDirectMessage ?? this.canDirectMessage,
       bio: bio ?? this.bio,
       gender: gender ?? this.gender,
+      backgroundImageUrl: backgroundImageUrl ?? this.backgroundImageUrl,
     );
   }
 

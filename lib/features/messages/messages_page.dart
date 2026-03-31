@@ -121,8 +121,8 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
             child: Card(
               child: ListTile(
                 leading: GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(
+                  onTap: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute<void>(
                         builder: (_) => ChatPage(
                           conversation: session,
@@ -159,6 +159,10 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                         ),
                       ),
                     );
+                    if (!mounted) {
+                      return;
+                    }
+                    await ref.read(messagesControllerProvider.notifier).refresh();
                   },
                   child: _buildAvatar(session.avatarUrl, session.name),
                 ),

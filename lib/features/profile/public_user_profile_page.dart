@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/public_user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../messages/chat_page.dart';
 
 class PublicUserProfilePage extends ConsumerStatefulWidget {
-  const PublicUserProfilePage({
-    super.key,
-    required this.userId,
-  });
+  const PublicUserProfilePage({super.key, required this.userId});
 
   final String userId;
 
@@ -37,8 +35,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
       _error = null;
     });
     try {
-      final PublicUserProfile profile =
-          await ref.read(userRepositoryProvider).fetchUserProfile(widget.userId);
+      final PublicUserProfile profile = await ref
+          .read(userRepositoryProvider)
+          .fetchUserProfile(widget.userId);
       if (!mounted) {
         return;
       }
@@ -116,10 +115,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
         if (!mounted) return;
         await Navigator.of(context).push(
           MaterialPageRoute<void>(
-            builder: (_) => ChatPage(
-              conversation: conversation,
-              peerUserId: profile.id,
-            ),
+            builder: (_) =>
+                ChatPage(conversation: conversation, peerUserId: profile.id),
           ),
         );
         return;
@@ -138,28 +135,27 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
               maxLength: 120,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(
-                hintText: '简单说明来意，便于对方决定是否通过',
-              ),
+              decoration: const InputDecoration(hintText: '简单说明来意，便于对方决定是否通过'),
             ),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消')),
+                child: const Text('取消'),
+              ),
               FilledButton(
                 onPressed: () =>
                     Navigator.of(context).pop(reasonController.text.trim()),
-                child: const Text('发送申请')),
+                child: const Text('发送申请'),
+              ),
             ],
           );
         },
       );
       reasonController.dispose();
       if (!mounted || reason == null) return;
-      await ref.read(messageRepositoryProvider).createDmRequest(
-            targetUserId: profile.id,
-            reason: reason,
-          );
+      await ref
+          .read(messageRepositoryProvider)
+          .createDmRequest(targetUserId: profile.id, reason: reason);
       _feedback('私信申请已发送，请等待对方处理');
     } catch (error) {
       _feedback('无法发起私信：$error');
@@ -176,6 +172,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final PublicUserProfile? profile = _profile;
+    final String backgroundImageUrl = AppConfig.resolveUrl(
+      profile?.backgroundImageUrl ?? '',
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('个人主页')),
@@ -199,6 +198,22 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
+                          Container(
+                            height: 136,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.08,
+                              ),
+                              image: backgroundImageUrl.isEmpty
+                                  ? null
+                                  : DecorationImage(
+                                      image: NetworkImage(backgroundImageUrl),
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                           Row(
                             children: <Widget>[
                               _Avatar(
@@ -212,31 +227,61 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                   children: <Widget>[
                                     Text(
                                       profile.nickname,
-                                      style: theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                      ),
+                                      style: theme.textTheme.titleLarge
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
                                       '等级：${profile.userLevelLabel}',
                                       style: theme.textTheme.bodyMedium,
                                     ),
-                                    if (false)
-                                      Text(
-                                        '校验状态：已认证',
-                                        style: theme.textTheme.bodySmall,
-                                      ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
+                          if (profile.bio.trim().isNotEmpty) ...<Widget>[
+                            const SizedBox(height: 14),
+                            Text(
+                              profile.bio.trim(),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.black87,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                          if (profile.gender.trim().isNotEmpty) ...<Widget>[
+                            const SizedBox(height: 10),
+                            Row(
+                              children: <Widget>[
+                                Icon(
+                                  profile.gender == '男'
+                                      ? Icons.male
+                                      : Icons.female,
+                                  size: 16,
+                                  color: Colors.black54,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  profile.gender.trim(),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                           const SizedBox(height: 18),
                           Wrap(
                             spacing: 12,
                             runSpacing: 12,
                             children: <Widget>[
-                              _StatChip(label: '帖子', value: '${profile.postCount}'),
+                              _StatChip(
+                                label: '帖子',
+                                value: '${profile.postCount}',
+                              ),
                               _StatChip(
                                 label: '关注',
                                 value: '${profile.followingCount}',
@@ -247,7 +292,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                               ),
                             ],
                           ),
-                          if (profile.canFollow || profile.canDirectMessage) ...<Widget>[
+                          if (profile.canFollow ||
+                              profile.canDirectMessage) ...<Widget>[
                             const SizedBox(height: 18),
                             Wrap(
                               spacing: 10,
@@ -298,16 +344,14 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
 class _Avatar extends StatelessWidget {
-  const _Avatar({
-    required this.avatarUrl,
-    required this.nickname,
-  });
+  const _Avatar({required this.avatarUrl, required this.nickname});
 
   final String avatarUrl;
   final String nickname;
@@ -315,8 +359,10 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String displayName = nickname.trim().isEmpty ? '用户' : nickname.trim();
-    final ImageProvider<Object>? imageProvider =
-        avatarUrl.trim().isEmpty ? null : NetworkImage(avatarUrl.trim());
+    final String resolvedAvatarUrl = AppConfig.resolveUrl(avatarUrl.trim());
+    final ImageProvider<Object>? imageProvider = resolvedAvatarUrl.isEmpty
+        ? null
+        : NetworkImage(resolvedAvatarUrl);
     final String initial = displayName.substring(0, 1);
     return CircleAvatar(
       radius: 30,
@@ -327,10 +373,7 @@ class _Avatar extends StatelessWidget {
 }
 
 class _StatChip extends StatelessWidget {
-  const _StatChip({
-    required this.label,
-    required this.value,
-  });
+  const _StatChip({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -348,9 +391,9 @@ class _StatChip extends StatelessWidget {
         children: <Widget>[
           Text(
             value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 4),
           Text(label),

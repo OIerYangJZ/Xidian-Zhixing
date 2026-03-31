@@ -43,20 +43,18 @@ class UserRepository {
     String? backgroundImageUrl,
     String? gender,
   }) {
-    final body = <String, dynamic>{
-      'nickname': nickname,
-    };
+    final body = <String, dynamic>{'nickname': nickname};
 
-    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+    if (avatarUrl != null) {
       body['avatarUrl'] = avatarUrl;
     }
-    if (bio != null && bio.isNotEmpty) {
+    if (bio != null) {
       body['bio'] = bio;
     }
-    if (backgroundImageUrl != null && backgroundImageUrl.isNotEmpty) {
+    if (backgroundImageUrl != null) {
       body['backgroundImageUrl'] = backgroundImageUrl;
     }
-    if (gender != null && gender.isNotEmpty) {
+    if (gender != null) {
       body['gender'] = gender;
     }
 
@@ -168,8 +166,9 @@ class UserRepository {
 
   Future<ReportItem> fetchMyReportDetail(String reportId) async {
     try {
-      final dynamic response =
-          await _apiClient.get(ApiEndpoints.reportById(reportId));
+      final dynamic response = await _apiClient.get(
+        ApiEndpoints.reportById(reportId),
+      );
       final Map<String, dynamic> map = extractMap(response);
       if (map.isNotEmpty) {
         return ReportItem.fromJson(map);
@@ -254,6 +253,22 @@ class UserRepository {
     }
   }
 
+  Future<List<PublicUserProfile>> searchUsers(String keyword) async {
+    final String normalized = keyword.trim();
+    if (normalized.isEmpty) {
+      return <PublicUserProfile>[];
+    }
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.userSearch,
+      queryParameters: <String, dynamic>{'keyword': normalized},
+    );
+    final List<dynamic> list = extractList(response);
+    return list
+        .map((dynamic item) => PublicUserProfile.fromJson(asMap(item)))
+        .where((PublicUserProfile item) => item.id.isNotEmpty)
+        .toList();
+  }
+
   Future<void> followUser(String userId) {
     return _apiClient.post(
       ApiEndpoints.followUser(userId),
@@ -269,8 +284,9 @@ class UserRepository {
   }
 
   Future<PublicUserProfile> fetchUserProfile(String userId) async {
-    final dynamic response =
-        await _apiClient.get(ApiEndpoints.userProfile(userId));
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.userProfile(userId),
+    );
     final Map<String, dynamic> map = extractMap(response);
     if (map.isNotEmpty) {
       return PublicUserProfile.fromJson(map);
