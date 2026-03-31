@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 我的评论列表页
 class MyCommentsPage extends ConsumerStatefulWidget {
@@ -33,10 +34,11 @@ class _MyCommentsPageState extends ConsumerState<MyCommentsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('我的评论'),
       ),
       body: _isLoading
@@ -48,21 +50,23 @@ class _MyCommentsPageState extends ConsumerState<MyCommentsPage> {
   }
 
   Widget _buildEmptyView() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.comment_outlined,
-              size: 64, color: MobileTheme.textTertiary),
+              size: 64, color: colors.textTertiary),
           SizedBox(height: 16),
           Text('暂无评论',
-              style: TextStyle(fontSize: 16, color: MobileTheme.textSecondary)),
+              style: TextStyle(fontSize: 16, color: colors.textSecondary)),
         ],
       ),
     );
   }
 
   Widget _buildList() {
+    final colors = MobileColors.of(context);
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _comments.length,
@@ -71,21 +75,21 @@ class _MyCommentsPageState extends ConsumerState<MyCommentsPage> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: MobileTheme.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(12),
             border:
-                Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
+                Border.all(color: colors.divider.withValues(alpha: 0.5)),
           ),
-          child: const Column(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('评论内容...',
                   style:
-                      TextStyle(fontSize: 14, color: MobileTheme.textPrimary)),
+                      TextStyle(fontSize: 14, color: colors.textPrimary)),
               SizedBox(height: 8),
               Text('发表于 帖子标题',
                   style:
-                      TextStyle(fontSize: 12, color: MobileTheme.textTertiary)),
+                      TextStyle(fontSize: 12, color: colors.textTertiary)),
             ],
           ),
         );

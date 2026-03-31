@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -132,11 +133,12 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.showTopDivider)
-          Container(height: 0.5, color: MobileTheme.divider),
+          Container(height: 0.5, color: colors.divider),
         GestureDetector(
           onTap: widget.onTap,
           behavior: HitTestBehavior.opaque,
@@ -154,7 +156,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             ),
           ),
         ),
-        Container(height: 0.5, color: MobileTheme.divider),
+        Container(height: 0.5, color: colors.divider),
       ],
     );
   }
@@ -200,6 +202,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   /// 图文帖：标题 + PageView 图片（无正文）
   Widget _buildImagePostContent() {
+    final colors = MobileColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,10 +213,10 @@ class _PostCardState extends ConsumerState<PostCard> {
         if (widget.post.title.isNotEmpty) ...[
           Text(
             widget.post.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
               height: 1.3,
             ),
             maxLines: 1,
@@ -238,6 +241,7 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildImagePageView() {
+    final colors = MobileColors.of(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
@@ -266,7 +270,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                     fit: BoxFit.cover,
                     width: double.infinity,
                     placeholder: (context, url) => Container(
-                      color: MobileTheme.divider,
+                      color: colors.divider,
                       child: const Center(
                         child: SizedBox(
                           width: 24,
@@ -279,10 +283,10 @@ class _PostCardState extends ConsumerState<PostCard> {
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: MobileTheme.divider,
-                      child: const Icon(
+                      color: colors.divider,
+                      child: Icon(
                         Icons.image_not_supported_outlined,
-                        color: MobileTheme.textTertiary,
+                        color: colors.textTertiary,
                         size: 32,
                       ),
                     ),
@@ -329,6 +333,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   /// 纯文帖：标题 + 正文（最多4行）
   Widget _buildTextPostContent() {
+    final colors = MobileColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -339,10 +344,10 @@ class _PostCardState extends ConsumerState<PostCard> {
         if (widget.post.title.isNotEmpty) ...[
           Text(
             widget.post.title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
               height: 1.5,
             ),
             maxLines: 1,
@@ -354,9 +359,9 @@ class _PostCardState extends ConsumerState<PostCard> {
         // 正文 - 最多 4 行
         Text(
           widget.post.content,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
             height: 1.4,
           ),
           maxLines: 4,
@@ -377,14 +382,15 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   /// 短文本大字报效果（无图 + 字数<50 + 无标题）
   Widget _buildShortTextContent() {
-    final colors = [
+    final colors = MobileColors.of(context);
+    final bgColors = [
       const Color(0xFFFFE5E5),
       const Color(0xFFE5F5FF),
       const Color(0xFFFFF5E5),
       const Color(0xFFE5FFE5),
       const Color(0xFFF5E5FF),
     ];
-    final bgColor = colors[widget.post.id.hashCode % colors.length];
+    final bgColor = bgColors[widget.post.id.hashCode % bgColors.length];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -400,10 +406,10 @@ class _PostCardState extends ConsumerState<PostCard> {
           ),
           child: Text(
             widget.post.content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
               height: 1.5,
             ),
             textAlign: TextAlign.center,
@@ -420,14 +426,15 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildHeaderRow() {
+    final colors = MobileColors.of(context);
     return Row(
       children: [
         Text(
           widget.post.authorAlias,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(width: 6),
@@ -435,9 +442,9 @@ class _PostCardState extends ConsumerState<PostCard> {
         const Spacer(),
         Text(
           _formatTime(widget.post.createdAt),
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: MobileTheme.textTertiary,
+            color: colors.textTertiary,
           ),
         ),
       ],
@@ -531,7 +538,7 @@ class _ChannelDot extends StatelessWidget {
   const _ChannelDot({required this.channel});
 
   static const _channelColors = {
-    '全部': MobileTheme.textSecondary,
+    '全部': Color(0xFF8E8E93),
     '综合': Color(0xFF6B7FD7),
     '学习': Color(0xFF5E8FD4),
     '二手': Color(0xFF5EAF7C),

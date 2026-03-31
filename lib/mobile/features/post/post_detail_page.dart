@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../widgets/avatar_widget.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -207,9 +208,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Future<void> _handleReport() async {
+    final colors = MobileColors.of(context);
     final result = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -366,10 +368,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -392,10 +395,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   : _buildContent(),
       bottomNavigationBar: _post != null && _post!.allowComment
           ? Container(
-              decoration: const BoxDecoration(
-                color: MobileTheme.surface,
+              decoration: BoxDecoration(
+                color: colors.surface,
                 border: Border(
-                  top: BorderSide(color: MobileTheme.divider, width: 0.5),
+                  top: BorderSide(color: colors.divider, width: 0.5),
                 ),
               ),
               child: SafeArea(
@@ -452,22 +455,23 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Widget _buildErrorView() {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: const TextStyle(
-                color: MobileTheme.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 15,
               ),
               textAlign: TextAlign.center,
@@ -484,10 +488,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Widget _buildEmptyView() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Text(
         '帖子不存在或已被删除',
-        style: TextStyle(color: MobileTheme.textSecondary),
+        style: TextStyle(color: colors.textSecondary),
       ),
     );
   }
@@ -525,11 +530,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Widget _buildPostContent() {
+    final colors = MobileColors.of(context);
     final post = _post!;
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(post);
 
     return Container(
-      color: MobileTheme.surface,
+      color: colors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -561,10 +567,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                     children: [
                       Text(
                         post.authorAlias,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: MobileTheme.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 1),
@@ -572,9 +578,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                         children: [
                           Text(
                             _formatTime(post.createdAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: MobileTheme.textTertiary,
+                              color: colors.textTertiary,
                             ),
                           ),
                           if (post.status == PostStatus.resolved) ...[
@@ -630,10 +636,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               child: Text(
                 post.title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                   height: 1.3,
                 ),
               ),
@@ -643,9 +649,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: DefaultTextStyle.merge(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
-                color: MobileTheme.textPrimary,
+                color: colors.textPrimary,
               ),
               child: PostContentBody(
                 content: post.content,
@@ -698,9 +704,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Widget _buildCommentsSection() {
+    final colors = MobileColors.of(context);
     return Container(
       key: _commentsSectionKey,
-      color: MobileTheme.surface,
+      color: colors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -709,12 +716,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
-                const Text(
+                Text(
                   '评论',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: MobileTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -724,13 +731,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
           // 评论列表
           if (_comments.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
                   '暂无评论，快来抢沙发~',
                   style: TextStyle(
-                    color: MobileTheme.textTertiary,
+                    color: colors.textTertiary,
                     fontSize: 14,
                   ),
                 ),
@@ -811,9 +818,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _showOptionsSheet() {
+    final colors = MobileColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -926,6 +934,7 @@ class _CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     // 头像尺寸：每缩进一层缩小2dp，最多缩到14dp（基础从22开始）
     final double avatarRadius = (22 - indentLevel * 2).clamp(14, 22).toDouble();
     // 左侧缩进：每层20dp，最大缩进60dp
@@ -951,7 +960,7 @@ class _CommentTile extends StatelessWidget {
                             return Container(
                               width: 2,
                               margin: const EdgeInsets.only(right: 10),
-                              color: MobileTheme.divider,
+                              color: colors.divider,
                             );
                           }),
                         ],
@@ -981,10 +990,10 @@ class _CommentTile extends StatelessWidget {
                         Flexible(
                           child: Text(
                             comment.authorAlias,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: MobileTheme.textPrimary,
+                              color: colors.textPrimary,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -992,9 +1001,9 @@ class _CommentTile extends StatelessWidget {
                         const SizedBox(width: 6),
                           Text(
                             _formatTime(comment.createdAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: MobileTheme.textTertiary,
+                              color: colors.textTertiary,
                             ),
                           ),
                       ],
@@ -1002,9 +1011,9 @@ class _CommentTile extends StatelessWidget {
                     const SizedBox(height: 5),
                     Text(
                       comment.content,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
-                        color: MobileTheme.textPrimary,
+                        color: colors.textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -1020,28 +1029,28 @@ class _CommentTile extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text(
                             '${comment.likeCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: MobileTheme.textTertiary,
+                              color: colors.textTertiary,
                             ),
                           ),
                         ],
                         const SizedBox(width: 14),
                         GestureDetector(
                           onTap: () => onReply?.call(comment),
-                          child: const Row(
+                          child: Row(
                             children: [
                               Icon(
                                 Icons.reply,
                                 size: 13,
-                                color: MobileTheme.textTertiary,
+                                color: colors.textTertiary,
                               ),
-                              SizedBox(width: 3),
+                              const SizedBox(width: 3),
                               Text(
                                 '回复',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: MobileTheme.textTertiary,
+                                  color: colors.textTertiary,
                                 ),
                               ),
                             ],
@@ -1205,6 +1214,7 @@ class _ReportSheetState extends State<_ReportSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -1216,12 +1226,12 @@ class _ReportSheetState extends State<_ReportSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '举报原因',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -1244,11 +1254,11 @@ class _ReportSheetState extends State<_ReportSheet> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? MobileTheme.error.withValues(alpha: 0.1)
-                        : MobileTheme.background,
+                        : colors.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color:
-                          isSelected ? MobileTheme.error : MobileTheme.divider,
+                          isSelected ? MobileTheme.error : colors.divider,
                     ),
                   ),
                   child: Text(
@@ -1257,7 +1267,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                       fontSize: 14,
                       color: isSelected
                           ? MobileTheme.error
-                          : MobileTheme.textSecondary,
+                          : colors.textSecondary,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),

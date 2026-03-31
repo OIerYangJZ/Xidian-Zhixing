@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../features/widgets/shimmer_loading.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -13,7 +14,7 @@ import '../shell/mobile_shell.dart';
 
 /// 每个频道对应的图标和颜色
 final _channelMeta = {
-  '全部': const _ChannelMeta(Icons.grid_view_rounded, MobileTheme.textSecondary),
+  '全部': const _ChannelMeta(Icons.grid_view_rounded, Color(0xFF8E8E93)),
   '综合': const _ChannelMeta(Icons.dashboard_rounded, Color(0xFF6B7FD7)),
   '学习': const _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
   '二手': const _ChannelMeta(Icons.sell_rounded, Color(0xFF5EAF7C)),
@@ -41,7 +42,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   final _scrollController = ScrollController();
   final _channelScrollController = ScrollController();
 
-  /// FAB 是否已隐藏（向上滚动时隐藏以增大阅读区域）
+  /// FAB 是否已隐藏（与底部导航栏同步）
   bool _fabVisible = true;
   double _lastScrollOffset = 0;
 
@@ -52,6 +53,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(feedControllerProvider.notifier).loadInitial();
     });
     _scrollController.addListener(_onScroll);
+    BottomNavVisibilityNotifier.instance.addListener(_onNavVisibilityChanged);
+  }
+
+  void _onNavVisibilityChanged() {
+    if (!mounted) return;
+    final visible = BottomNavVisibilityNotifier.instance.visible;
+    if (_fabVisible != visible) {
+      setState(() => _fabVisible = visible);
+    }
   }
 
   void _scrollToTop() {
@@ -73,6 +83,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
+    BottomNavVisibilityNotifier.instance.removeListener(_onNavVisibilityChanged);
     _scrollController.dispose();
     _channelScrollController.dispose();
     super.dispose();
@@ -88,13 +99,15 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(feedControllerProvider.notifier).loadMoreIfNeeded();
     }
 
-    // FAB 显示/隐藏（向上滚 > 50 隐藏，向下滚 > 20 显示）
     final delta = currentScroll - _lastScrollOffset;
-    if (delta > 50 && _fabVisible) {
-      setState(() => _fabVisible = false);
-    } else if (delta < -20 && !_fabVisible) {
-      setState(() => _fabVisible = true);
+
+    // 底部导航栏显示/隐藏（任何明显方向性滚动即触发）
+    if (delta > 1) {
+      BottomNavVisibilityNotifier.instance.hide();
+    } else if (delta < -1) {
+      BottomNavVisibilityNotifier.instance.show();
     }
+
     _lastScrollOffset = currentScroll;
   }
 
@@ -166,14 +179,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final feedState = ref.watch(feedControllerProvider);
+    final notificationsState = ref.watch(notificationsControllerProvider);
     // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
     ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
       _scrollToTop();
     });
 
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(feedControllerProvider.notifier).refreshPosts();
@@ -187,7 +202,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             SliverAppBar(
               pinned: true,
               expandedHeight: 50,
-              backgroundColor: MobileTheme.surface,
+              backgroundColor: colors.surface,
               elevation: 0,
               scrolledUnderElevation: 0.5,
               surfaceTintColor: Colors.transparent,
@@ -202,7 +217,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    color: MobileTheme.surface,
+                    color: colors.surface,
                     itemBuilder: (context) {
                       return feedState.channels.map((channel) {
                         final isSelected = channel == feedState.selectedChannel;
@@ -217,7 +232,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 size: 20,
                                 color: isSelected
                                     ? MobileTheme.primary
-                                    : (meta?.color ?? MobileTheme.textSecondary),
+                                    : (meta?.color ?? colors.textSecondary),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
@@ -230,7 +245,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         : FontWeight.normal,
                                     color: isSelected
                                         ? MobileTheme.primary
-                                        : MobileTheme.textPrimary,
+                                        : colors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -254,13 +269,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                       width: 60,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: MobileTheme.background,
+                        color: colors.background,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.menu,
                         size: 22,
-                        color: MobileTheme.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                   ),
@@ -278,7 +293,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                   onPressed: () => context.push('/search'),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined, size: 24),
+                  icon: Badge(
+                    isLabelVisible: notificationsState.unreadCount > 0,
+                    label: Text(
+                      notificationsState.unreadCount > 99 ? '99+' : notificationsState.unreadCount.toString(),
+                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
+                    ),
+                    child: const Icon(Icons.notifications_outlined, size: 24),
+                  ),
                   onPressed: () => context.push('/notifications'),
                 ),
                 const SizedBox(width: 4),
@@ -396,11 +418,12 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final colors = MobileColors.of(context);
     final selectedIndex = channels.indexOf(selectedChannel);
 
     return Container(
       height: 44,
-      color: MobileTheme.surface,
+      color: colors.surface,
       child: Column(
         children: [
           Expanded(
@@ -455,8 +478,8 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                                   begin: Alignment.centerLeft,
                                   end: Alignment.centerRight,
                                   colors: [
-                                    MobileTheme.surface,
-                                    MobileTheme.surface.withValues(alpha: 0),
+                                    colors.surface,
+                                    colors.surface.withValues(alpha: 0),
                                   ],
                                 ),
                               ),
@@ -478,8 +501,8 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                                   begin: Alignment.centerRight,
                                   end: Alignment.centerLeft,
                                   colors: [
-                                    MobileTheme.surface,
-                                    MobileTheme.surface.withValues(alpha: 0),
+                                    colors.surface,
+                                    colors.surface.withValues(alpha: 0),
                                   ],
                                 ),
                               ),
@@ -489,7 +512,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                     ],
                   ),
           ),
-          Container(height: 0.5, color: MobileTheme.divider),
+          Container(height: 0.5, color: colors.divider),
         ],
       ),
     );
@@ -518,8 +541,9 @@ class _ChannelChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final effectiveColor =
-        isSelected ? MobileTheme.primary : MobileTheme.textSecondary;
+        isSelected ? MobileTheme.primary : colors.textSecondary;
     final effectiveIconColor = iconColor ?? effectiveColor;
 
     return GestureDetector(
@@ -531,10 +555,10 @@ class _ChannelChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? MobileTheme.primary.withValues(alpha: 0.12)
-              : MobileTheme.background,
+              : colors.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+            color: isSelected ? MobileTheme.primary : colors.divider,
             width: isSelected ? 1.2 : 0.8,
           ),
         ),
@@ -579,11 +603,12 @@ class _CompactSortToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: MobileTheme.background,
+        color: colors.background,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: MobileTheme.divider, width: 0.5),
+        border: Border.all(color: colors.divider, width: 0.5),
       ),
       padding: const EdgeInsets.all(2),
       child: Row(
@@ -618,19 +643,20 @@ class _CompactSortOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: isSelected ? MobileTheme.surface : Colors.transparent,
+          color: isSelected ? colors.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(
           icon,
           size: 20,
-          color: isSelected ? MobileTheme.primary : MobileTheme.textTertiary,
+          color: isSelected ? MobileTheme.primary : colors.textTertiary,
         ),
       ),
     );
@@ -672,11 +698,12 @@ class _SortToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: MobileTheme.background,
+        color: colors.background,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: MobileTheme.divider, width: 0.8),
+        border: Border.all(color: colors.divider, width: 0.8),
       ),
       padding: const EdgeInsets.all(3),
       child: Row(
@@ -711,6 +738,7 @@ class _SortOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -718,7 +746,7 @@ class _SortOption extends StatelessWidget {
         curve: Curves.easeOut,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? MobileTheme.surface : Colors.transparent,
+          color: isSelected ? colors.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Row(
@@ -732,7 +760,7 @@ class _SortOption extends StatelessWidget {
                   size: 13,
                   color: isSelected
                       ? MobileTheme.accent
-                      : MobileTheme.textTertiary,
+                      : colors.textTertiary,
                 ),
               ),
             Text(
@@ -741,7 +769,7 @@ class _SortOption extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color:
-                    isSelected ? MobileTheme.primary : MobileTheme.textTertiary,
+                    isSelected ? MobileTheme.primary : colors.textTertiary,
               ),
             ),
           ],
@@ -762,22 +790,23 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.wifi_off_rounded,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               message,
-              style: const TextStyle(
-                color: MobileTheme.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 15,
               ),
               textAlign: TextAlign.center,
@@ -811,6 +840,7 @@ class _EmptyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -831,19 +861,19 @@ class _EmptyView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               '暂无帖子',
               style: TextStyle(
-                color: MobileTheme.textPrimary,
+                color: colors.textPrimary,
                 fontSize: 17,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '成为第一个发布内容的人吧',
               style: TextStyle(
-                color: MobileTheme.textTertiary,
+                color: colors.textTertiary,
                 fontSize: 14,
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 我的举报列表页
 class MyReportsPage extends ConsumerStatefulWidget {
@@ -33,10 +34,11 @@ class _MyReportsPageState extends ConsumerState<MyReportsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('我的举报'),
       ),
       body: _isLoading
@@ -48,19 +50,21 @@ class _MyReportsPageState extends ConsumerState<MyReportsPage> {
   }
 
   Widget _buildEmptyView() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.flag_outlined, size: 64, color: MobileTheme.textTertiary),
-          SizedBox(height: 16),
-          Text('暂无举报记录', style: TextStyle(fontSize: 16, color: MobileTheme.textSecondary)),
+          Icon(Icons.flag_outlined, size: 64, color: colors.textTertiary),
+          const SizedBox(height: 16),
+          Text('暂无举报记录', style: TextStyle(fontSize: 16, color: colors.textSecondary)),
         ],
       ),
     );
   }
 
   Widget _buildList() {
+    final colors = MobileColors.of(context);
     return ListView.separated(
       padding: const EdgeInsets.all(16),
       itemCount: _reports.length,
@@ -69,9 +73,9 @@ class _MyReportsPageState extends ConsumerState<MyReportsPage> {
         return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: MobileTheme.surface,
+            color: colors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
+            border: Border.all(color: colors.divider.withValues(alpha: 0.5)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,14 +88,14 @@ class _MyReportsPageState extends ConsumerState<MyReportsPage> {
                       color: MobileTheme.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: const Text('处理中', style: TextStyle(fontSize: 12, color: MobileTheme.warning, fontWeight: FontWeight.w600)),
+                    child: Text('处理中', style: TextStyle(fontSize: 12, color: MobileTheme.warning, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              const Text('举报内容...', style: TextStyle(fontSize: 14, color: MobileTheme.textPrimary)),
+              Text('举报内容...', style: TextStyle(fontSize: 14, color: colors.textPrimary)),
               const SizedBox(height: 4),
-              const Text('举报原因', style: TextStyle(fontSize: 12, color: MobileTheme.textTertiary)),
+              Text('举报原因', style: TextStyle(fontSize: 12, color: colors.textTertiary)),
             ],
           ),
         );

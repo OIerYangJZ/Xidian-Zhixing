@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -125,11 +126,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: const Text('隐私设置'),
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
       ),
       body: _loading
           ? const Center(
@@ -164,10 +166,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 // 隐私设置
                 Container(
                   decoration: BoxDecoration(
-                    color: MobileTheme.surface,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: MobileTheme.divider.withValues(alpha: 0.5),
+                        color: colors.divider.withValues(alpha: 0.5),
                         width: 0.5),
                   ),
                   child: Column(
@@ -186,12 +188,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                                       _profile?.showContactable ?? false,
                                 ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(left: 56),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 56),
                         child: Divider(
                             height: 1,
                             thickness: 0.5,
-                            color: MobileTheme.divider),
+                            color: colors.divider),
                       ),
                       _buildSwitchTile(
                         icon: Icons.visibility_outlined,
@@ -216,17 +218,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 // 账号安全
                 Container(
                   decoration: BoxDecoration(
-                    color: MobileTheme.surface,
+                    color: colors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: MobileTheme.divider.withValues(alpha: 0.5),
+                        color: colors.divider.withValues(alpha: 0.5),
                         width: 0.5),
                   ),
                   child: Column(
                     children: [
                       _buildActionTile(
                         icon: Icons.lock_reset_outlined,
-                        iconColor: MobileTheme.textSecondary,
+                        iconColor: colors.textSecondary,
                         title: '统一认证密码',
                         onTap: () => _showToast('请前往西电统一身份认证修改密码'),
                       ),
@@ -265,6 +267,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required bool value,
     required ValueChanged<bool>? onChanged,
   }) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -277,18 +280,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: MobileTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: MobileTheme.textTertiary,
+                    color: colors.textTertiary,
                   ),
                 ),
               ],
@@ -310,6 +313,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     required String title,
     required VoidCallback onTap,
   }) {
+    final colors = MobileColors.of(context);
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -324,17 +328,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: MobileTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: MobileTheme.textTertiary,
+                color: colors.textTertiary,
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 帮助与反馈页
 class HelpAndFeedbackPage extends StatelessWidget {
@@ -9,17 +10,18 @@ class HelpAndFeedbackPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('帮助与反馈'),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // 常见问题
-          _buildSectionHeader('常见问题'),
+          _buildSectionHeader(context, '常见问题'),
           const SizedBox(height: 8),
           _buildFAQItem(
             context,
@@ -55,7 +57,7 @@ class HelpAndFeedbackPage extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 反馈入口
-          _buildSectionHeader('我要反馈'),
+          _buildSectionHeader(context, '我要反馈'),
           const SizedBox(height: 8),
           _buildMenuItem(
             context,
@@ -75,12 +77,12 @@ class HelpAndFeedbackPage extends StatelessWidget {
           const SizedBox(height: 24),
 
           // 联系管理员
-          _buildSectionHeader('联系管理员'),
+          _buildSectionHeader(context, '联系管理员'),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: MobileTheme.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -99,12 +101,12 @@ class HelpAndFeedbackPage extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         '仍有疑问？',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: MobileTheme.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -112,7 +114,7 @@ class HelpAndFeedbackPage extends StatelessWidget {
                         '可通过站内私信联系管理员，或发送邮件至平台管理员邮箱。',
                         style: TextStyle(
                           fontSize: 13,
-                          color: MobileTheme.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -128,13 +130,14 @@ class HelpAndFeedbackPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final colors = MobileColors.of(context);
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 13,
         fontWeight: FontWeight.w600,
-        color: MobileTheme.textSecondary,
+        color: colors.textSecondary,
         letterSpacing: 0.5,
       ),
     );
@@ -146,10 +149,11 @@ class HelpAndFeedbackPage extends StatelessWidget {
     required String title,
     required String description,
   }) {
+    final colors = MobileColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Theme(
@@ -158,19 +162,19 @@ class HelpAndFeedbackPage extends StatelessWidget {
           leading: Icon(icon, color: MobileTheme.primary, size: 20),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w500,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           childrenPadding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
           children: [
             Text(
               description,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: MobileTheme.textSecondary,
+                color: colors.textSecondary,
                 height: 1.6,
               ),
             ),
@@ -189,10 +193,11 @@ class HelpAndFeedbackPage extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final colors = MobileColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
@@ -218,24 +223,24 @@ class HelpAndFeedbackPage extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: MobileTheme.textPrimary,
+                        color: colors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13,
-                        color: MobileTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: MobileTheme.textTertiary, size: 20),
+              Icon(Icons.chevron_right, color: colors.textTertiary, size: 20),
             ],
           ),
         ),

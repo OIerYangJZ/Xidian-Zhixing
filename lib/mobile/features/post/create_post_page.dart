@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
@@ -289,17 +290,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final contentLen = _contentController.text.length;
     final canPublish = _canPublish;
 
     return Scaffold(
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         scrolledUnderElevation: 0.5,
         toolbarHeight: 48,
         leading: IconButton(
-          icon: const Icon(Icons.close, color: MobileTheme.textPrimary),
+          icon: Icon(Icons.close, color: colors.textPrimary),
           onPressed: _confirmDiscard,
         ),
         title: Text(
@@ -308,7 +310,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             fontSize: 13,
             color: contentLen > 2000
                 ? MobileTheme.error
-                : MobileTheme.textSecondary,
+                : colors.textSecondary,
           ),
         ),
         centerTitle: true,
@@ -319,7 +321,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               onPressed: canPublish ? _handlePublish : null,
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                disabledBackgroundColor: MobileTheme.divider,
+                disabledBackgroundColor: colors.divider,
                 backgroundColor: MobileTheme.primary,
               ),
               child: _isPublishing
@@ -371,21 +373,21 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                             .toList(),
                   ),
 
-                  const Divider(height: 0.5, color: MobileTheme.divider),
+                  Divider(height: 0.5, color: colors.divider),
 
                   // 标题输入（无边框极简）
                   TextField(
                     controller: _titleController,
                     maxLength: 50,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '标题（选填）',
                       hintStyle: TextStyle(
-                        color: MobileTheme.textTertiary,
+                        color: colors.textTertiary,
                         fontSize: 16,
                         fontWeight: FontWeight.normal,
                       ),
@@ -400,15 +402,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     controller: _contentController,
                     maxLines: null,
                     minLines: 8,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                       height: 1.6,
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '分享你的想法...',
                       hintStyle: TextStyle(
-                        color: MobileTheme.textTertiary,
+                        color: colors.textTertiary,
                         fontSize: 15,
                       ),
                       border: InputBorder.none,
@@ -442,22 +444,22 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: Row(
                         children: [
-                          const Icon(Icons.visibility_off_outlined,
-                              size: 16, color: MobileTheme.textSecondary),
+                          Icon(Icons.visibility_off_outlined,
+                              size: 16, color: colors.textSecondary),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
                               controller: _anonymousAliasController,
                               maxLength: 20,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
-                                color: MobileTheme.textPrimary,
+                                color: colors.textPrimary,
                               ),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText: '自定义匿名昵称（选填）',
                                 hintStyle: TextStyle(
                                   fontSize: 14,
-                                  color: MobileTheme.textTertiary,
+                                  color: colors.textTertiary,
                                 ),
                                 border: InputBorder.none,
                                 isDense: true,
@@ -494,18 +496,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
-                children: const [
-                  SizedBox(
+                children: [
+                  const SizedBox(
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     '图片上传中...',
                     style: TextStyle(
                       fontSize: 13,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -514,10 +516,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
           // 底部工具栏
           Container(
-            decoration: const BoxDecoration(
-              color: MobileTheme.surface,
+            decoration: BoxDecoration(
+              color: colors.surface,
               border: Border(
-                top: BorderSide(color: MobileTheme.divider, width: 0.5),
+                top: BorderSide(color: colors.divider, width: 0.5),
               ),
             ),
             child: SafeArea(
@@ -630,6 +632,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     required VoidCallback onTap,
     required List<Widget> children,
   }) {
+    final colors = MobileColors.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -641,9 +644,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    color: MobileTheme.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -656,7 +659,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   ),
                   child: Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: MobileTheme.primary,
@@ -669,7 +672,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       ? Icons.keyboard_arrow_up
                       : Icons.keyboard_arrow_down,
                   size: 18,
-                  color: MobileTheme.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ],
             ),
@@ -689,6 +692,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Widget _buildInlineSelectorArea() {
+    final colors = MobileColors.of(context);
     if (_showStatusSelector) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -710,12 +714,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? MobileTheme.primary.withValues(alpha: 0.12)
-                        : MobileTheme.background,
+                        : colors.background,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
                           ? MobileTheme.primary
-                          : MobileTheme.divider,
+                          : colors.divider,
                     ),
                   ),
                   child: Row(
@@ -730,7 +734,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         size: 13,
                         color: isSelected
                             ? MobileTheme.primary
-                            : MobileTheme.textSecondary,
+                            : colors.textSecondary,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -741,7 +745,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               isSelected ? FontWeight.w600 : FontWeight.normal,
                           color: isSelected
                               ? MobileTheme.primary
-                              : MobileTheme.textSecondary,
+                              : colors.textSecondary,
                         ),
                       ),
                     ],
@@ -786,9 +790,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.push_pin, size: 16, color: MobileTheme.primary),
+                Icon(Icons.push_pin, size: 16, color: MobileTheme.primary),
                 const SizedBox(width: 6),
-                const Text(
+                Text(
                   '发帖后立即置顶',
                   style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: MobileTheme.primary),
                 ),
@@ -812,10 +816,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? MobileTheme.primary.withValues(alpha: 0.12)
-                          : MobileTheme.background,
+                          : colors.background,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+                        color: isSelected ? MobileTheme.primary : colors.divider,
                       ),
                     ),
                     child: Text(
@@ -823,7 +827,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+                        color: isSelected ? MobileTheme.primary : colors.textSecondary,
                       ),
                     ),
                   ),
@@ -839,6 +843,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Widget _buildImagePreview() {
+    final colors = MobileColors.of(context);
     return SizedBox(
       height: 80,
       child: ListView.builder(
@@ -853,14 +858,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 width: 80,
                 margin: const EdgeInsets.only(right: 6),
                 decoration: BoxDecoration(
-                  color: MobileTheme.background,
+                  color: colors.background,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: MobileTheme.divider),
+                  border: Border.all(color: colors.divider),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add_photo_alternate_outlined,
                   size: 24,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
             );
@@ -874,7 +879,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 margin: const EdgeInsets.only(right: 6),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: MobileTheme.background,
+                  color: colors.background,
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -924,6 +929,7 @@ class _PillChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -931,10 +937,10 @@ class _PillChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? MobileTheme.primary.withValues(alpha: 0.12)
-              : MobileTheme.background,
+              : colors.background,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? MobileTheme.primary : MobileTheme.divider,
+            color: isSelected ? MobileTheme.primary : colors.divider,
           ),
         ),
         child: Text(
@@ -942,7 +948,7 @@ class _PillChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+            color: isSelected ? MobileTheme.primary : colors.textSecondary,
           ),
         ),
       ),
@@ -1036,6 +1042,7 @@ class _ToolbarIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1051,7 +1058,7 @@ class _ToolbarIconButton extends StatelessWidget {
         child: Icon(
           icon,
           size: 22,
-          color: isActive ? MobileTheme.primary : MobileTheme.textSecondary,
+          color: isActive ? MobileTheme.primary : colors.textSecondary,
         ),
       ),
     );
@@ -1069,23 +1076,24 @@ class _VisibilitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return PopupMenuButton<String>(
       offset: const Offset(0, -120),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: MobileTheme.surface,
+      color: colors.surface,
       icon: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             privateOnly ? Icons.lock_outline : Icons.public,
             size: 18,
-            color: MobileTheme.textSecondary,
+            color: colors.textSecondary,
           ),
           const SizedBox(width: 2),
-          const Icon(
+          Icon(
             Icons.arrow_drop_up,
             size: 18,
-            color: MobileTheme.textTertiary,
+            color: colors.textTertiary,
           ),
         ],
       ),
@@ -1101,12 +1109,14 @@ class _VisibilitySelector extends StatelessWidget {
       },
       itemBuilder: (context) => [
         _buildVisibilityItem(
+          context,
           'all',
           Icons.public,
           '所有人可见',
           !privateOnly,
         ),
         _buildVisibilityItem(
+          context,
           'private',
           Icons.lock_outline,
           '仅自己可见',
@@ -1117,11 +1127,13 @@ class _VisibilitySelector extends StatelessWidget {
   }
 
   PopupMenuItem<String> _buildVisibilityItem(
+    BuildContext context,
     String value,
     IconData icon,
     String label,
     bool isSelected,
   ) {
+    final colors = MobileColors.of(context);
     return PopupMenuItem<String>(
       value: value,
       child: Row(
@@ -1129,7 +1141,7 @@ class _VisibilitySelector extends StatelessWidget {
           Icon(
             icon,
             size: 18,
-            color: isSelected ? MobileTheme.primary : MobileTheme.textSecondary,
+            color: isSelected ? MobileTheme.primary : colors.textSecondary,
           ),
           const SizedBox(width: 10),
           Text(
@@ -1137,12 +1149,12 @@ class _VisibilitySelector extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              color: isSelected ? MobileTheme.primary : MobileTheme.textPrimary,
+              color: isSelected ? MobileTheme.primary : colors.textPrimary,
             ),
           ),
           const Spacer(),
           if (isSelected)
-            const Icon(Icons.check, size: 16, color: MobileTheme.primary),
+            Icon(Icons.check, size: 16, color: MobileTheme.primary),
         ],
       ),
     );
@@ -1231,11 +1243,12 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: MobileTheme.divider, width: 0.5),
+          bottom: BorderSide(color: colors.divider, width: 0.5),
         ),
       ),
       child: Column(
@@ -1247,10 +1260,10 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
             children: [
               Text(
                 '标签（${_tempSelected.length}/5）',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               Row(
@@ -1259,7 +1272,7 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                     onTap: () {
                       widget.onSelect(_tempSelected);
                     },
-                    child: const Text(
+                    child: Text(
                       '完成',
                       style: TextStyle(
                         fontSize: 13,
@@ -1271,8 +1284,8 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: widget.onClose,
-                    child: const Icon(Icons.close,
-                        size: 16, color: MobileTheme.textTertiary),
+                    child: Icon(Icons.close,
+                        size: 16, color: colors.textTertiary),
                   ),
                 ],
               ),
@@ -1293,12 +1306,12 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? MobileTheme.primary.withValues(alpha: 0.12)
-                        : MobileTheme.background,
+                        : colors.background,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
                           ? MobileTheme.primary
-                          : MobileTheme.divider,
+                          : colors.divider,
                     ),
                   ),
                   child: Text(
@@ -1309,7 +1322,7 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                           isSelected ? FontWeight.w600 : FontWeight.normal,
                       color: isSelected
                           ? MobileTheme.primary
-                          : MobileTheme.textSecondary,
+                          : colors.textSecondary,
                     ),
                   ),
                 ),
@@ -1326,21 +1339,21 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                   style: const TextStyle(fontSize: 13),
                   decoration: InputDecoration(
                     hintText: '自定义标签',
-                    hintStyle: const TextStyle(
-                        fontSize: 13, color: MobileTheme.textTertiary),
+                    hintStyle: TextStyle(
+                        fontSize: 13, color: colors.textTertiary),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.divider),
+                      borderSide: BorderSide(color: colors.divider),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.divider),
+                      borderSide: BorderSide(color: colors.divider),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: MobileTheme.primary),
+                      borderSide: BorderSide(color: MobileTheme.primary),
                     ),
                     isDense: true,
                   ),

@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
 
@@ -155,11 +156,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         title: const Text('编辑资料'),
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => context.pop(),
@@ -220,22 +222,22 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     const SizedBox(height: 24),
                     Container(
                       decoration: BoxDecoration(
-                        color: MobileTheme.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                            color: MobileTheme.divider.withValues(alpha: 0.5),
+                            color: colors.divider.withValues(alpha: 0.5),
                             width: 0.5),
                       ),
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             '基本信息',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
-                              color: MobileTheme.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -287,6 +289,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Widget _buildAvatarSection() {
+    final colors = MobileColors.of(context);
     final nickname = _nicknameController.text.isNotEmpty
         ? _nicknameController.text
         : (_profile?.nickname ?? '匿');
@@ -301,10 +304,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 24),
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-            color: MobileTheme.divider.withValues(alpha: 0.5), width: 0.5),
+            color: colors.divider.withValues(alpha: 0.5), width: 0.5),
       ),
       child: Column(
         children: [
@@ -322,7 +325,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     decoration: BoxDecoration(
                       color: MobileTheme.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(color: MobileTheme.surface, width: 3),
+                      border: Border.all(color: colors.surface, width: 3),
                     ),
                     child: const Icon(
                       Icons.camera_alt_outlined,
@@ -337,7 +340,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           const SizedBox(height: 12),
           GestureDetector(
             onTap: _saving ? null : _pickAvatar,
-            child: const Text(
+            child: Text(
               '点击更换头像',
               style: TextStyle(
                 fontSize: 14,

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
 import 'package:xdu_treehole_web/models/public_user_profile.dart';
@@ -119,10 +120,11 @@ class _PublicUserProfilePageState
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     if (_loadingProfile) {
-      return const Scaffold(
-        backgroundColor: MobileTheme.background,
-        body: Center(
+      return Scaffold(
+        backgroundColor: colors.background,
+        body: const Center(
           child: CircularProgressIndicator(color: MobileTheme.primary),
         ),
       );
@@ -130,18 +132,18 @@ class _PublicUserProfilePageState
 
     if (_profile == null) {
       return Scaffold(
-        backgroundColor: MobileTheme.background,
+        backgroundColor: colors.background,
         appBar: AppBar(
-          backgroundColor: MobileTheme.surface,
+          backgroundColor: colors.surface,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
           ),
         ),
-        body: const Center(
+        body: Center(
           child: Text(
             '用户不存在',
-            style: TextStyle(color: MobileTheme.textSecondary),
+            style: TextStyle(color: colors.textSecondary),
           ),
         ),
       );
@@ -150,32 +152,32 @@ class _PublicUserProfilePageState
     final profile = _profile!;
 
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             SliverAppBar(
               pinned: true,
-              backgroundColor: MobileTheme.surface,
+              backgroundColor: colors.surface,
               scrolledUnderElevation: 0.5,
               toolbarHeight: 48,
               title: Text(
                 profile.nickname,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               centerTitle: false,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: MobileTheme.textPrimary),
+                icon: Icon(Icons.arrow_back, color: colors.textPrimary),
                 onPressed: () => context.pop(),
               ),
             ),
             SliverToBoxAdapter(
               child: Container(
-                color: MobileTheme.surface,
+                color: colors.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -194,7 +196,7 @@ class _PublicUserProfilePageState
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: MobileTheme.surface, width: 4),
+                                    color: colors.surface, width: 4),
                               ),
                               child: AvatarWidget(
                                 avatarUrl: profile.avatarUrl,
@@ -228,10 +230,10 @@ class _PublicUserProfilePageState
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                       child: Text(
                         profile.nickname,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: MobileTheme.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ),
@@ -268,7 +270,7 @@ class _PublicUserProfilePageState
                         ],
                       ),
                     ),
-                    const Divider(height: 0.5, color: MobileTheme.divider),
+                    Divider(height: 0.5, color: colors.divider),
                   ],
                 ),
               ),
@@ -280,16 +282,16 @@ class _PublicUserProfilePageState
                 child: CircularProgressIndicator(color: MobileTheme.primary),
               )
             : _posts.isEmpty
-                ? const Center(
+                ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.article_outlined,
-                            size: 48, color: MobileTheme.textTertiary),
-                        SizedBox(height: 12),
+                            size: 48, color: colors.textTertiary),
+                        const SizedBox(height: 12),
                         Text('暂无帖子',
                             style: TextStyle(
-                                color: MobileTheme.textSecondary, fontSize: 14)),
+                                color: colors.textSecondary, fontSize: 14)),
                       ],
                     ),
                   )
@@ -339,22 +341,23 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Row(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(width: 3),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: MobileTheme.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
       ],
@@ -375,13 +378,14 @@ class _FollowButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     if (loading) {
       return Container(
         width: 80,
         height: 32,
         decoration: BoxDecoration(
-          color: MobileTheme.surface,
-          border: Border.all(color: MobileTheme.divider, width: 1),
+          color: colors.surface,
+          border: Border.all(color: colors.divider, width: 1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: const Center(
@@ -401,9 +405,9 @@ class _FollowButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isFollowing ? MobileTheme.surface : MobileTheme.primary,
+          color: isFollowing ? colors.surface : MobileTheme.primary,
           border: Border.all(
-            color: isFollowing ? MobileTheme.divider : MobileTheme.primary,
+            color: isFollowing ? colors.divider : MobileTheme.primary,
             width: 1,
           ),
           borderRadius: BorderRadius.circular(20),
@@ -413,7 +417,7 @@ class _FollowButton extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: isFollowing ? MobileTheme.textPrimary : Colors.white,
+            color: isFollowing ? colors.textPrimary : Colors.white,
           ),
         ),
       ),
@@ -428,27 +432,28 @@ class _DmButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: MobileTheme.surface,
-          border: Border.all(color: MobileTheme.divider, width: 1),
+          color: colors.surface,
+          border: Border.all(color: colors.divider, width: 1),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Row(
+        child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.mail_outline,
-                size: 14, color: MobileTheme.textPrimary),
-            SizedBox(width: 4),
+                size: 14, color: colors.textPrimary),
+            const SizedBox(width: 4),
             Text(
               '私信',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: MobileTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
           ],

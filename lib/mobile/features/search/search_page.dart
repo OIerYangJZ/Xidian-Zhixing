@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../home/post_card.dart';
@@ -106,9 +107,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   void _showFilterSheet() {
+    final colors = MobileColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
@@ -147,8 +149,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -170,8 +173,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildSearchBar() {
+    final colors = MobileColors.of(context);
     return Container(
-      color: MobileTheme.surface,
+      color: colors.surface,
       child: Column(
         children: [
           Padding(
@@ -199,7 +203,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                             )
                           : null,
                       filled: true,
-                      fillColor: MobileTheme.background,
+                      fillColor: colors.background,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
@@ -257,6 +261,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildFilterButton() {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: _showFilterSheet,
       child: Container(
@@ -264,11 +269,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         decoration: BoxDecoration(
           color: _hasActiveFilters
               ? MobileTheme.primary.withValues(alpha: 0.1)
-              : MobileTheme.background,
+              : colors.background,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color:
-                _hasActiveFilters ? MobileTheme.primary : MobileTheme.divider,
+                _hasActiveFilters ? MobileTheme.primary : colors.divider,
           ),
         ),
         child: Row(
@@ -279,7 +284,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               size: 20,
               color: _hasActiveFilters
                   ? MobileTheme.primary
-                  : MobileTheme.textSecondary,
+                  : colors.textSecondary,
             ),
             if (_hasActiveFilters) ...[
               const SizedBox(width: 4),
@@ -326,7 +331,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               color: MobileTheme.primary,
             ),
@@ -334,7 +339,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onRemove,
-            child: const Icon(
+            child: Icon(
               Icons.close,
               size: 14,
               color: MobileTheme.primary,
@@ -360,6 +365,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildSearchContent() {
+    final colors = MobileColors.of(context);
     final searchHistory = ref.watch(searchHistoryProvider);
 
     return SingleChildScrollView(
@@ -368,7 +374,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         children: [
           // 搜索历史
           if (searchHistory.isNotEmpty) ...[
-            const _SectionHeader(title: '搜索历史', showClear: true),
+            _SectionHeader(title: '搜索历史', showClear: true),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Wrap(
@@ -383,24 +389,24 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: MobileTheme.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: MobileTheme.divider),
+                        border: Border.all(color: colors.divider),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.history,
                             size: 14,
-                            color: MobileTheme.textTertiary,
+                            color: colors.textTertiary,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             keyword,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: MobileTheme.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -410,10 +416,10 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                                   .read(searchHistoryProvider.notifier)
                                   .remove(keyword);
                             },
-                            child: const Icon(
+                            child: Icon(
                               Icons.close,
                               size: 14,
-                              color: MobileTheme.textTertiary,
+                              color: colors.textTertiary,
                             ),
                           ),
                         ],
@@ -424,11 +430,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               ),
             ),
             const SizedBox(height: 16),
-            const Divider(height: 1),
+            Divider(height: 1),
           ],
 
           // 热门搜索
-          const _SectionHeader(title: '热门搜索'),
+          _SectionHeader(title: '热门搜索'),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Wrap(
@@ -447,11 +453,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     decoration: BoxDecoration(
                       color: index < 3
                           ? MobileTheme.accent.withValues(alpha: 0.1)
-                          : MobileTheme.surface,
+                          : colors.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color:
-                            index < 3 ? MobileTheme.accent : MobileTheme.divider,
+                            index < 3 ? MobileTheme.accent : colors.divider,
                       ),
                     ),
                     child: Row(
@@ -483,7 +489,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                             fontSize: 13,
                             color: index < 3
                                 ? MobileTheme.accent
-                                : MobileTheme.textSecondary,
+                                : colors.textSecondary,
                             fontWeight:
                                 index < 3 ? FontWeight.w600 : FontWeight.normal,
                           ),
@@ -497,7 +503,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
 
           const SizedBox(height: 16),
-          const Divider(height: 1),
+          Divider(height: 1),
 
           // 搜索提示
           Padding(
@@ -505,14 +511,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
                     Icon(
                       Icons.lightbulb_outline,
                       size: 16,
                       color: MobileTheme.primary,
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
                       '搜索技巧',
                       style: TextStyle(
@@ -524,13 +530,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   ],
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   '• 输入关键词搜索帖子标题和内容\n'
                   '• 使用筛选功能过滤频道、状态\n'
                   '• 点击热门搜索快速查找',
                   style: TextStyle(
                     fontSize: 12,
-                    color: MobileTheme.textSecondary,
+                    color: colors.textSecondary,
                     height: 1.5,
                   ),
                 ),
@@ -552,6 +558,7 @@ class _SectionHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 12),
       child: Row(
@@ -559,10 +566,10 @@ class _SectionHeader extends ConsumerWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           if (showClear)
@@ -570,7 +577,7 @@ class _SectionHeader extends ConsumerWidget {
               onTap: () {
                 ref.read(searchHistoryProvider.notifier).clear();
               },
-              child: const Text(
+              child: Text(
                 '清空',
                 style: TextStyle(
                   fontSize: 13,
@@ -619,6 +626,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: EdgeInsets.fromLTRB(
         16,
@@ -634,12 +642,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 '筛选',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               GestureDetector(
@@ -650,7 +658,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     _hasImage = null;
                   });
                 },
-                child: const Text(
+                child: Text(
                   '重置',
                   style: TextStyle(
                     fontSize: 14,
@@ -664,12 +672,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           const SizedBox(height: 20),
 
           // 频道筛选
-          const Text(
+          Text(
             '频道',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -692,12 +700,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                   decoration: BoxDecoration(
                     color: isSelected
                         ? MobileTheme.primary
-                        : MobileTheme.background,
+                        : colors.background,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isSelected
                           ? MobileTheme.primary
-                          : MobileTheme.divider,
+                          : colors.divider,
                     ),
                   ),
                   child: Text(
@@ -705,7 +713,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                     style: TextStyle(
                       fontSize: 14,
                       color:
-                          isSelected ? Colors.white : MobileTheme.textSecondary,
+                          isSelected ? Colors.white : colors.textSecondary,
                       fontWeight:
                           isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
@@ -718,12 +726,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           const SizedBox(height: 20),
 
           // 状态筛选
-          const Text(
+          Text(
             '状态',
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: MobileTheme.textPrimary,
+              color: colors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -747,12 +755,12 @@ class _FilterSheetState extends State<_FilterSheet> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? MobileTheme.primary
-                          : MobileTheme.background,
+                          : colors.background,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: isSelected
                             ? MobileTheme.primary
-                            : MobileTheme.divider,
+                            : colors.divider,
                       ),
                     ),
                     child: Text(
@@ -761,7 +769,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                         fontSize: 14,
                         color: isSelected
                             ? Colors.white
-                            : MobileTheme.textSecondary,
+                            : colors.textSecondary,
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.normal,
                       ),
@@ -777,12 +785,12 @@ class _FilterSheetState extends State<_FilterSheet> {
           // 图片筛选
           Row(
             children: [
-              const Text(
+              Text(
                 '仅显示有图片',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const Spacer(),

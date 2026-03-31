@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 
 /// 图片画廊组件
@@ -273,6 +274,7 @@ class PostImageGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final displayUrls = imageUrls.take(maxDisplay).toList();
     final remaining = imageUrls.length - maxDisplay;
 
@@ -285,14 +287,14 @@ class PostImageGrid extends StatelessWidget {
       children: [
         const SizedBox(height: 12),
         if (displayUrls.length == 1)
-          _buildSingleImage(context, displayUrls[0])
+          _buildSingleImage(context, displayUrls[0], colors)
         else
-          _buildGrid(context, displayUrls, remaining),
+          _buildGrid(context, displayUrls, remaining, colors),
       ],
     );
   }
 
-  Widget _buildSingleImage(BuildContext context, String url) {
+  Widget _buildSingleImage(BuildContext context, String url, MobileColors colors) {
     final fullUrl = url.startsWith('http') ? url : AppConfig.resolveUrl(url);
     return GestureDetector(
       onTap: () {
@@ -310,18 +312,18 @@ class PostImageGrid extends StatelessWidget {
             fit: BoxFit.contain,
             placeholder: (context, url) => Container(
               height: 200,
-              color: MobileTheme.background,
+              color: colors.background,
               child: const Center(
                 child: CircularProgressIndicator(),
               ),
             ),
             errorWidget: (context, url, error) => Container(
               height: 200,
-              color: MobileTheme.background,
-              child: const Center(
+              color: colors.background,
+              child: Center(
                 child: Icon(
                   Icons.image_not_supported_outlined,
-                  color: MobileTheme.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ),
@@ -335,6 +337,7 @@ class PostImageGrid extends StatelessWidget {
     BuildContext context,
     List<String> urls,
     int remaining,
+    MobileColors colors,
   ) {
     return SizedBox(
       height: 100,
@@ -356,11 +359,11 @@ class PostImageGrid extends StatelessWidget {
                   margin: EdgeInsets.only(left: index > 0 ? 4 : 0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8),
-                    color: MobileTheme.background,
+                    color: colors.background,
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: _buildNetworkImage(url),
+                    child: _buildNetworkImage(url, colors),
                   ),
                 ),
               ),
@@ -372,15 +375,15 @@ class PostImageGrid extends StatelessWidget {
               margin: const EdgeInsets.only(left: 4),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
-                color: MobileTheme.textTertiary.withValues(alpha: 0.2),
+                color: colors.textTertiary.withValues(alpha: 0.2),
               ),
               child: Center(
                 child: Text(
                   '+$remaining',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
-                    color: MobileTheme.textSecondary,
+                    color: colors.textSecondary,
                   ),
                 ),
               ),
@@ -390,13 +393,13 @@ class PostImageGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildNetworkImage(String url) {
+  Widget _buildNetworkImage(String url, MobileColors colors) {
     final fullUrl = url.startsWith('http') ? url : AppConfig.resolveUrl(url);
     return CachedNetworkImage(
       imageUrl: fullUrl,
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
-        color: MobileTheme.background,
+        color: colors.background,
         child: const Center(
           child: SizedBox(
             width: 20,
@@ -408,11 +411,11 @@ class PostImageGrid extends StatelessWidget {
         ),
       ),
       errorWidget: (context, url, error) => Container(
-        color: MobileTheme.background,
-        child: const Center(
+        color: colors.background,
+        child: Center(
           child: Icon(
             Icons.image_not_supported_outlined,
-            color: MobileTheme.textTertiary,
+            color: colors.textTertiary,
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 class VerifyPage extends ConsumerStatefulWidget {
@@ -129,8 +130,9 @@ class _VerifyPageState extends ConsumerState<VerifyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         leading: IconButton(
@@ -144,20 +146,21 @@ class _VerifyPageState extends ConsumerState<VerifyPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              const SizedBox(height: 32),
+              Text(
                 '验证邮箱',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 '我们已向 ${widget.email ?? ''} 发送了验证码',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
               ),
               const SizedBox(height: 32),
@@ -243,7 +246,7 @@ class _VerifyPageState extends ConsumerState<VerifyPage> {
                 child: _countdown > 0
                     ? Text(
                         '$_countdown 秒后可重新发送',
-                        style: const TextStyle(color: MobileTheme.textSecondary),
+                        style: TextStyle(color: colors.textSecondary),
                       )
                     : TextButton(
                         onPressed: _isResending ? null : _handleResendCode,

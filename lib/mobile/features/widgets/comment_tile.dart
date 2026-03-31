@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:xdu_treehole_web/models/comment_item.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/utils/time_utils.dart';
 import 'avatar_widget.dart';
 
@@ -25,6 +26,7 @@ class CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final isNested = indentLevel > 0;
     final leftPadding = isNested ? (indentLevel * 48.0).clamp(0.0, 160.0) : 0.0;
 
@@ -67,8 +69,8 @@ class CommentTile extends StatelessWidget {
                               fontSize: isNested ? 13 : 14,
                               fontWeight: FontWeight.w600,
                               color: isNested
-                                  ? MobileTheme.textSecondary
-                                  : MobileTheme.textPrimary,
+                                  ? colors.textSecondary
+                                  : colors.textPrimary,
                             ),
                           ),
                           if (comment.isPinned) ...[
@@ -96,9 +98,9 @@ class CommentTile extends StatelessWidget {
                           const Spacer(),
                           Text(
                             _formatTime(comment.createdAt),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
-                              color: MobileTheme.textTertiary,
+                              color: colors.textTertiary,
                             ),
                           ),
                         ],
@@ -111,7 +113,7 @@ class CommentTile extends StatelessWidget {
                         comment.content,
                         style: TextStyle(
                           fontSize: isNested ? 13 : 14,
-                          color: MobileTheme.textSecondary,
+                          color: colors.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -147,9 +149,9 @@ class CommentTile extends StatelessWidget {
                             const SizedBox(width: 16),
                             GestureDetector(
                               onTap: onTap,
-                              child: Text(
+                              child: const Text(
                                 '展开 ${comment.replies.length} 条回复',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
                                   color: MobileTheme.primary,
                                   fontWeight: FontWeight.w500,
@@ -177,7 +179,7 @@ class CommentTile extends StatelessWidget {
                     width: 2,
                     height: comment.replies.length * 72.0,
                     decoration: BoxDecoration(
-                      color: MobileTheme.divider,
+                      color: colors.divider,
                       borderRadius: BorderRadius.circular(1),
                     ),
                   ),
@@ -227,7 +229,8 @@ class _ActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isActive ? activeColor : MobileTheme.textTertiary;
+    final colors = MobileColors.of(context);
+    final color = isActive ? activeColor : colors.textTertiary;
 
     return GestureDetector(
       onTap: onTap,

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
+import '../shell/mobile_shell.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -24,6 +26,8 @@ class ProfilePage extends ConsumerStatefulWidget {
 class _ProfilePageState extends ConsumerState<ProfilePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final _scrollController = ScrollController();
+  double _lastScrollOffset = 0;
   UserProfile? _profile;
   List<FollowUserItem> _followers = [];
   List<FollowUserItem> _following = [];
@@ -32,14 +36,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _scrollController.addListener(_onScroll);
     _loadProfile();
     _loadFollowData();
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final delta = _scrollController.position.pixels - _lastScrollOffset;
+    if (delta > 1) {
+      BottomNavVisibilityNotifier.instance.hide();
+    } else if (delta < -1) {
+      BottomNavVisibilityNotifier.instance.show();
+    }
+    _lastScrollOffset = _scrollController.position.pixels;
   }
 
   Future<void> _loadProfile() async {
@@ -76,10 +93,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   }
 
   void _showFollowSheet(String title, List<FollowUserItem> users) {
+    final colors = MobileColors.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -89,38 +107,40 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final user = _profile ?? AuthStore.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         scrolledUnderElevation: 0.5,
         toolbarHeight: 48,
         title: Text(
           user?.nickname ?? '我的',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined,
-                color: MobileTheme.textPrimary, size: 22),
+            icon: Icon(Icons.settings_outlined,
+                color: colors.textPrimary, size: 22),
             onPressed: () => context.push('/profile/settings/main'),
           ),
         ],
       ),
       body: NestedScrollView(
+        controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
             // 个人信息区
             SliverToBoxAdapter(
               child: Container(
-                color: MobileTheme.surface,
+                color: colors.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -145,7 +165,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                      color: MobileTheme.surface, width: 4),
+                                      color: colors.surface, width: 4),
                                 ),
                                 child: AvatarWidget(
                                   avatarUrl: user?.avatarUrl,
@@ -165,17 +185,17 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 16, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: MobileTheme.surface,
+                                  color: colors.surface,
                                   border: Border.all(
-                                      color: MobileTheme.divider, width: 1),
+                                      color: colors.divider, width: 1),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '编辑资料',
                                   style: TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
-                                    color: MobileTheme.textPrimary,
+                                    color: colors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -190,10 +210,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                       child: Text(
                         user?.nickname ?? '匿名同学',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: MobileTheme.textPrimary,
+                          color: colors.textPrimary,
                         ),
                       ),
                     ),
@@ -235,13 +255,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                       ),
                     ),
 
-                    const Divider(height: 0.5, color: MobileTheme.divider),
+                    Divider(height: 0.5, color: colors.divider),
 
                     // TabBar
                     TabBar(
                       controller: _tabController,
-                      labelColor: MobileTheme.textPrimary,
-                      unselectedLabelColor: MobileTheme.textSecondary,
+                      labelColor: colors.textPrimary,
+                      unselectedLabelColor: colors.textSecondary,
                       indicatorColor: MobileTheme.primary,
                       indicatorSize: TabBarIndicatorSize.tab,
                       dividerColor: Colors.transparent,
@@ -284,22 +304,23 @@ class _StatChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final row = Row(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         const SizedBox(width: 3),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: MobileTheme.textSecondary,
+            color: colors.textSecondary,
           ),
         ),
       ],
@@ -320,6 +341,7 @@ class _FollowListSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final mutual = users.where((u) => u.isMutual).toList();
     final others = users.where((u) => !u.isMutual).toList();
 
@@ -337,7 +359,7 @@ class _FollowListSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: MobileTheme.divider,
+                color: colors.divider,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -348,33 +370,33 @@ class _FollowListSheet extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(width: 6),
                   Text(
                     '${users.length}',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 0.5, color: MobileTheme.divider),
+            Divider(height: 0.5, color: colors.divider),
             // 列表
             Expanded(
               child: users.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
                         '暂无数据',
                         style: TextStyle(
                           fontSize: 14,
-                          color: MobileTheme.textTertiary,
+                          color: colors.textTertiary,
                         ),
                       ),
                     )
@@ -382,28 +404,28 @@ class _FollowListSheet extends StatelessWidget {
                       controller: scrollCtrl,
                       children: [
                         if (mutual.isNotEmpty) ...[
-                          const Padding(
+                          Padding(
                             padding:
-                                EdgeInsets.fromLTRB(16, 12, 16, 4),
+                                const EdgeInsets.fromLTRB(16, 12, 16, 4),
                             child: Text(
                               '好友',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: MobileTheme.textSecondary,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ),
                           ...mutual.map((u) => _FollowUserTile(user: u)),
                           if (others.isNotEmpty)
-                            const Padding(
-                              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                               child: Text(
                                 '其他',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: MobileTheme.textSecondary,
+                                  color: colors.textSecondary,
                                 ),
                               ),
                             ),
@@ -426,6 +448,7 @@ class _FollowUserTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return ListTile(
       leading: AvatarWidget(
         avatarUrl: user.avatarUrl.isNotEmpty ? user.avatarUrl : null,
@@ -434,10 +457,10 @@ class _FollowUserTile extends StatelessWidget {
       ),
       title: Text(
         user.nickname,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
-          color: MobileTheme.textPrimary,
+          color: colors.textPrimary,
         ),
       ),
       trailing: user.isMutual
@@ -448,7 +471,7 @@ class _FollowUserTile extends StatelessWidget {
                 color: MobileTheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text(
+              child: Text(
                 '好友',
                 style: TextStyle(
                   fontSize: 12,
@@ -643,17 +666,18 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     if (_loading) {
-      return const Center(
+      return Center(
           child: CircularProgressIndicator(color: MobileTheme.primary));
     }
     if (_comments.isEmpty) {
-      return const _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
+      return _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
     }
     return ListView.separated(
       itemCount: _comments.length,
       separatorBuilder: (_, __) =>
-          const Divider(height: 0.5, color: MobileTheme.divider),
+          Divider(height: 0.5, color: colors.divider),
       itemBuilder: (context, i) {
         final c = _comments[i];
         return Padding(
@@ -663,9 +687,9 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
             children: [
               Text(
                 c.postTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -673,9 +697,9 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
               const SizedBox(height: 4),
               Text(
                 c.content,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
@@ -683,8 +707,8 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
               const SizedBox(height: 4),
               Text(
                 c.timeText,
-                style: const TextStyle(
-                    fontSize: 12, color: MobileTheme.textTertiary),
+                style: TextStyle(
+                    fontSize: 12, color: colors.textTertiary),
               ),
             ],
           ),
@@ -702,18 +726,19 @@ class _EmptyHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(top: 60),
         child: Column(
           children: [
-            Icon(icon, size: 48, color: MobileTheme.divider),
+            Icon(icon, size: 48, color: colors.divider),
             const SizedBox(height: 12),
             Text(
               text,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: MobileTheme.textTertiary,
+                color: colors.textTertiary,
               ),
             ),
           ],

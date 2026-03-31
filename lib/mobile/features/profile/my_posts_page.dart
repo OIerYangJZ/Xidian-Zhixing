@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 /// 我的帖子列表页
@@ -52,10 +53,11 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('我的帖子'),
       ),
       body: _isLoading
@@ -69,15 +71,14 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
   }
 
   Widget _buildErrorView() {
+    final colors = MobileColors.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline,
-              size: 64, color: MobileTheme.textTertiary),
+          Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
           const SizedBox(height: 16),
-          Text(_error!,
-              style: const TextStyle(color: MobileTheme.textSecondary)),
+          Text(_error!, style: TextStyle(color: colors.textSecondary)),
           const SizedBox(height: 24),
           ElevatedButton(onPressed: _loadPosts, child: const Text('重试')),
         ],
@@ -86,21 +87,22 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
   }
 
   Widget _buildEmptyView() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.article_outlined,
-              size: 64, color: MobileTheme.textTertiary),
-          SizedBox(height: 16),
+          Icon(Icons.article_outlined, size: 64, color: colors.textTertiary),
+          const SizedBox(height: 16),
           Text('暂无帖子',
-              style: TextStyle(fontSize: 16, color: MobileTheme.textSecondary)),
+              style: TextStyle(fontSize: 16, color: colors.textSecondary)),
         ],
       ),
     );
   }
 
   Widget _buildList() {
+    final colors = MobileColors.of(context);
     return RefreshIndicator(
       onRefresh: _loadPosts,
       color: MobileTheme.primary,
@@ -113,10 +115,10 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: MobileTheme.surface,
+              color: colors.surface,
               borderRadius: BorderRadius.circular(12),
               border:
-                  Border.all(color: MobileTheme.divider.withValues(alpha: 0.5)),
+                  Border.all(color: colors.divider.withValues(alpha: 0.5)),
             ),
             child: InkWell(
               onTap: () => context.push('/post/${post.id}'),
@@ -133,7 +135,7 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(post.channel,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 12,
                                 color: MobileTheme.primary,
                                 fontWeight: FontWeight.w600)),
@@ -147,7 +149,7 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
                             color: MobileTheme.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Text('已解决',
+                          child: Text('已解决',
                               style: TextStyle(
                                   fontSize: 10,
                                   color: MobileTheme.success,
@@ -158,28 +160,26 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(post.title.isNotEmpty ? post.title : post.content,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: MobileTheme.textPrimary),
+                          color: colors.textPrimary),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.favorite_border,
-                          size: 14, color: MobileTheme.textTertiary),
+                      Icon(Icons.favorite_border,
+                          size: 14, color: colors.textTertiary),
                       const SizedBox(width: 4),
                       Text('${post.likeCount}',
-                          style: const TextStyle(
-                              fontSize: 12, color: MobileTheme.textTertiary)),
+                          style: TextStyle(fontSize: 12, color: colors.textTertiary)),
                       const SizedBox(width: 16),
-                      const Icon(Icons.chat_bubble_outline,
-                          size: 14, color: MobileTheme.textTertiary),
+                      Icon(Icons.chat_bubble_outline,
+                          size: 14, color: colors.textTertiary),
                       const SizedBox(width: 4),
                       Text('${post.commentCount}',
-                          style: const TextStyle(
-                              fontSize: 12, color: MobileTheme.textTertiary)),
+                          style: TextStyle(fontSize: 12, color: colors.textTertiary)),
                     ],
                   ),
                 ],

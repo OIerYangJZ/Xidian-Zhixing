@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import 'package:xdu_treehole_web/repositories/app_repositories.dart';
 
 /// 管理员登录页
@@ -64,10 +65,11 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('管理员登录'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -82,29 +84,29 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
             const SizedBox(height: 40),
 
             // 标题
-            const Center(
+            Center(
               child: Column(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.admin_panel_settings,
                     size: 64,
                     color: MobileTheme.primary,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Text(
                     '管理员后台',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     '请输入管理员账号登录',
                     style: TextStyle(
                       fontSize: 14,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -114,12 +116,12 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
             const SizedBox(height: 48),
 
             // 用户名
-            const Text(
+            Text(
               '用户名',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: MobileTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
@@ -135,12 +137,12 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
             const SizedBox(height: 24),
 
             // 密码
-            const Text(
+            Text(
               '密码',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: MobileTheme.textPrimary,
+                color: colors.textPrimary,
               ),
             ),
             const SizedBox(height: 8),

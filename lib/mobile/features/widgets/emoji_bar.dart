@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 表情选择面板组件
 /// 网格展示 emoji，支持分类 tab 和点击插入回调
@@ -597,12 +598,13 @@ class _EmojiBarState extends State<EmojiBar>
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       height: 260,
-      decoration: const BoxDecoration(
-        color: MobileTheme.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         border: Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
+          top: BorderSide(color: colors.divider, width: 0.5),
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
@@ -610,17 +612,17 @@ class _EmojiBarState extends State<EmojiBar>
         children: [
           // 分类 Tab 条
           Container(
-            decoration: const BoxDecoration(
-              color: MobileTheme.surface,
+            decoration: BoxDecoration(
+              color: colors.surface,
               border: Border(
-                bottom: BorderSide(color: MobileTheme.divider, width: 0.5),
+                bottom: BorderSide(color: colors.divider, width: 0.5),
               ),
             ),
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
               labelColor: MobileTheme.primary,
-              unselectedLabelColor: MobileTheme.textSecondary,
+              unselectedLabelColor: colors.textSecondary,
               labelStyle:
                   const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
               unselectedLabelStyle: const TextStyle(fontSize: 13),

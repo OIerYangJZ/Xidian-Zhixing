@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../home/post_card.dart';
@@ -53,10 +54,11 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('我的收藏'),
       ),
       body: _isLoading
@@ -70,22 +72,23 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Widget _buildErrorView() {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: const TextStyle(
-                color: MobileTheme.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 15,
               ),
               textAlign: TextAlign.center,
@@ -102,32 +105,33 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   }
 
   Widget _buildEmptyView() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               Icons.star_border,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               '暂无收藏',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: MobileTheme.textSecondary,
+                color: colors.textSecondary,
               ),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '收藏你喜欢的帖子，方便以后查看',
               style: TextStyle(
                 fontSize: 14,
-                color: MobileTheme.textTertiary,
+                color: colors.textTertiary,
               ),
             ),
           ],

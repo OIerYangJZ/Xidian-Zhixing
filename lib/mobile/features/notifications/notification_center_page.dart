@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/notification_item.dart';
 
@@ -37,11 +38,12 @@ class _NotificationCenterPageState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(notificationsControllerProvider);
+    final colors = MobileColors.of(context);
 
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('通知中心'),
         actions: [
           if (state.unreadCount > 0)
@@ -68,21 +70,22 @@ class _NotificationCenterPageState
   }
 
   Widget _buildErrorState(String error) {
+    final colors = MobileColors.of(context);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
             size: 64,
-            color: MobileTheme.error,
+            color: colors.textTertiary,
           ),
           const SizedBox(height: 16),
           Text(
             error,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: MobileTheme.textSecondary,
+              color: colors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -97,21 +100,22 @@ class _NotificationCenterPageState
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    final colors = MobileColors.of(context);
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
             Icons.notifications_none,
             size: 64,
-            color: MobileTheme.textTertiary,
+            color: colors.textTertiary,
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             '暂无通知',
             style: TextStyle(
               fontSize: 16,
-              color: MobileTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -195,18 +199,19 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: notification.isRead
-              ? MobileTheme.surface
+              ? colors.surface
               : MobileTheme.primary.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: notification.isRead
-                ? MobileTheme.divider.withValues(alpha: 0.5)
+                ? colors.divider.withValues(alpha: 0.5)
                 : MobileTheme.primary.withValues(alpha: 0.3),
           ),
         ),
@@ -241,7 +246,7 @@ class _NotificationTile extends StatelessWidget {
                             fontWeight: notification.isRead
                                 ? FontWeight.w500
                                 : FontWeight.w600,
-                            color: MobileTheme.textPrimary,
+                            color: colors.textPrimary,
                           ),
                         ),
                       ),
@@ -259,9 +264,9 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.content,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -269,9 +274,9 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     notification.timeText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: MobileTheme.textTertiary,
+                      color: colors.textTertiary,
                     ),
                   ),
                 ],

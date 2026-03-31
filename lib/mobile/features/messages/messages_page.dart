@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
+import '../shell/mobile_shell.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/conversation_item.dart';
 
@@ -16,22 +18,44 @@ class MessagesPage extends ConsumerStatefulWidget {
 }
 
 class _MessagesPageState extends ConsumerState<MessagesPage> {
+  final _scrollController = ScrollController();
+  double _lastScrollOffset = 0;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(messagesControllerProvider.notifier).loadInitial();
     });
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final delta = _scrollController.position.pixels - _lastScrollOffset;
+    if (delta > 1) {
+      BottomNavVisibilityNotifier.instance.hide();
+    } else if (delta < -1) {
+      BottomNavVisibilityNotifier.instance.show();
+    }
+    _lastScrollOffset = _scrollController.position.pixels;
   }
 
   @override
   Widget build(BuildContext context) {
     final messagesState = ref.watch(messagesControllerProvider);
+    final colors = MobileColors.of(context);
 
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text(
           '消息',
           style: TextStyle(
@@ -45,6 +69,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
       body: _ConversationsTab(
         conversations: messagesState.conversations,
         loading: messagesState.loading,
+        scrollController: _scrollController,
       ),
     );
   }
@@ -53,35 +78,38 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
 class _ConversationsTab extends ConsumerWidget {
   final List<ConversationItem> conversations;
   final bool loading;
+  final ScrollController scrollController;
 
   const _ConversationsTab({
     required this.conversations,
     required this.loading,
+    required this.scrollController,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = MobileColors.of(context);
     if (loading) {
       return const Center(
         child: CircularProgressIndicator(color: MobileTheme.primary),
       );
     }
     if (conversations.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.chat_bubble_outline,
-                size: 64, color: MobileTheme.textTertiary),
-            SizedBox(height: 16),
+                size: 64, color: colors.textTertiary),
+            const SizedBox(height: 16),
             Text(
               '暂无会话',
-              style: TextStyle(color: MobileTheme.textSecondary, fontSize: 15),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               '点击他人帖子或评论中的头像，即可发起私信',
-              style: TextStyle(color: MobileTheme.textTertiary, fontSize: 13),
+              style: TextStyle(color: colors.textTertiary, fontSize: 13),
             ),
           ],
         ),
@@ -91,6 +119,7 @@ class _ConversationsTab extends ConsumerWidget {
     return RefreshIndicator(
       onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
       child: ListView.separated(
+        controller: scrollController,
         itemCount: conversations.length,
         separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
         itemBuilder: (context, index) {
@@ -145,6 +174,7 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       leading: GestureDetector(
@@ -160,7 +190,7 @@ class _ConversationTile extends StatelessWidget {
                 )
               : null,
           child: conversation.avatarUrl.isEmpty
-              ? const Icon(Icons.person, color: MobileTheme.primary, size: 22)
+              ? Icon(Icons.person, color: MobileTheme.primary, size: 22)
               : null,
         ),
       ),
@@ -182,14 +212,14 @@ class _ConversationTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               decoration: BoxDecoration(
-                color: MobileTheme.textTertiary.withValues(alpha: 0.2),
+                color: colors.textTertiary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(3),
               ),
-              child: const Text(
+              child: Text(
                 '已屏蔽',
                 style: TextStyle(
                   fontSize: 10,
-                  color: MobileTheme.textTertiary,
+                  color: colors.textTertiary,
                 ),
               ),
             ),
@@ -200,8 +230,8 @@ class _ConversationTile extends StatelessWidget {
         conversation.lastMessage,
         style: TextStyle(
           color: conversation.hasUnread
-              ? MobileTheme.textPrimary
-              : MobileTheme.textSecondary,
+              ? colors.textPrimary
+              : colors.textSecondary,
           fontSize: 13,
         ),
         maxLines: 1,
@@ -213,8 +243,8 @@ class _ConversationTile extends StatelessWidget {
         children: [
           Text(
             conversation.timeText,
-            style: const TextStyle(
-              color: MobileTheme.textTertiary,
+            style: TextStyle(
+              color: colors.textTertiary,
               fontSize: 12,
             ),
           ),

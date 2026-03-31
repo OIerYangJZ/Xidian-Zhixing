@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 管理员控制台页
 class AdminConsolePage extends ConsumerStatefulWidget {
@@ -32,10 +33,11 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         title: const Text('管理员后台'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -64,7 +66,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
                   const _SectionTitle(title: '内容管理'),
                   Container(
                     decoration: BoxDecoration(
-                      color: MobileTheme.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -109,7 +111,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
                   const _SectionTitle(title: '用户管理'),
                   Container(
                     decoration: BoxDecoration(
-                      color: MobileTheme.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -138,7 +140,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
                   const _SectionTitle(title: '系统管理'),
                   Container(
                     decoration: BoxDecoration(
-                      color: MobileTheme.surface,
+                      color: colors.surface,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -208,14 +210,15 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.w600,
-          color: MobileTheme.textPrimary,
+          color: colors.textPrimary,
         ),
       ),
     );
@@ -237,10 +240,11 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -258,9 +262,9 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: MobileTheme.textSecondary,
+              color: colors.textSecondary,
             ),
           ),
         ],
@@ -286,6 +290,7 @@ class _AdminMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -308,18 +313,18 @@ class _AdminMenuItem extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                     ),
                   ),
                 ],
@@ -342,9 +347,9 @@ class _AdminMenuItem extends StatelessWidget {
                 ),
               ),
             const SizedBox(width: 8),
-            const Icon(
+            Icon(
               Icons.chevron_right,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
           ],
         ),

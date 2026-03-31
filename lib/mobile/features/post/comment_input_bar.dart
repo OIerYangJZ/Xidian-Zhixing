@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 评论输入框组件
 /// 固定在底部，支持表情和图片附件
@@ -95,6 +96,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
     return Container(
       padding: EdgeInsets.fromLTRB(12, 8, 8, 8 + bottomInset),
@@ -106,9 +108,9 @@ class _CommentInputBarState extends State<CommentInputBar> {
             onTap: widget.onEmojiToggle,
             child: Container(
               padding: const EdgeInsets.all(8),
-              child: const Icon(
+              child: Icon(
                 Icons.emoji_emotions_outlined,
-                color: MobileTheme.textSecondary,
+                color: colors.textSecondary,
                 size: 24,
               ),
             ),
@@ -122,7 +124,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
                 minHeight: 36,
               ),
               decoration: BoxDecoration(
-                color: MobileTheme.background,
+                color: colors.background,
                 borderRadius: BorderRadius.circular(18),
               ),
               child: TextField(
@@ -131,14 +133,14 @@ class _CommentInputBarState extends State<CommentInputBar> {
                 autofocus: widget.autofocus,
                 maxLines: null,
                 textInputAction: TextInputAction.newline,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
                 decoration: InputDecoration(
                   hintText: widget.placeholder,
-                  hintStyle: const TextStyle(
-                    color: MobileTheme.textTertiary,
+                  hintStyle: TextStyle(
+                    color: colors.textTertiary,
                     fontSize: 15,
                   ),
                   border: InputBorder.none,
@@ -164,7 +166,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
               decoration: BoxDecoration(
                 color: _hasText
                     ? MobileTheme.primary
-                    : MobileTheme.textTertiary.withValues(alpha: 0.3),
+                    : colors.textTertiary.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Text(
@@ -172,7 +174,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
                 style: TextStyle(
                   color: _hasText
                       ? Colors.white
-                      : MobileTheme.textTertiary,
+                      : colors.textTertiary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -193,6 +195,7 @@ class EmojiPickerBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final emojis = [
       '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
       '🙂', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘',
@@ -208,10 +211,10 @@ class EmojiPickerBar extends StatelessWidget {
 
     return Container(
       height: 200,
-      decoration: const BoxDecoration(
-        color: MobileTheme.surface,
+      decoration: BoxDecoration(
+        color: colors.surface,
         border: Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
+          top: BorderSide(color: colors.divider, width: 0.5),
         ),
       ),
       child: GridView.builder(

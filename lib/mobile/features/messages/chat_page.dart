@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
@@ -197,8 +198,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: _selectMode ? _buildSelectModeAppBar() : _buildNormalAppBar(),
       body: Column(
         children: [
@@ -223,8 +225,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   PreferredSizeWidget _buildNormalAppBar() {
+    final colors = MobileColors.of(context);
     return AppBar(
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () => context.pop(),
@@ -284,8 +287,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   PreferredSizeWidget _buildSelectModeAppBar() {
+    final colors = MobileColors.of(context);
     return AppBar(
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       leading: IconButton(
         icon: const Icon(Icons.close),
         onPressed: _exitSelectMode,
@@ -307,22 +311,23 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildErrorView() {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.error_outline,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: const TextStyle(
-                color: MobileTheme.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 15,
               ),
               textAlign: TextAlign.center,
@@ -339,12 +344,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildMessageList() {
+    final colors = MobileColors.of(context);
     if (_messages.isEmpty) {
-      return const Center(
+      return Center(
         child: Text(
           '暂无消息，开始聊天吧~',
           style: TextStyle(
-            color: MobileTheme.textTertiary,
+            color: colors.textTertiary,
             fontSize: 14,
           ),
         ),
@@ -418,20 +424,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildTimeLabel(String label) {
+    final colors = MobileColors.of(context);
     return Container(
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
-          color: MobileTheme.textTertiary,
+          color: colors.textTertiary,
         ),
       ),
     );
   }
 
   Widget _buildMessageBubble(DirectMessageItem message) {
+    final colors = MobileColors.of(context);
     final isMe = message.fromMe;
     final isSelected = _selectedMessages.contains(message.id);
 
@@ -491,7 +499,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: isMe ? MobileTheme.primary : MobileTheme.surface,
+                      color: isMe ? MobileTheme.primary : colors.surface,
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(18),
                         topRight: const Radius.circular(18),
@@ -510,7 +518,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       message.content,
                       style: TextStyle(
                         fontSize: 15,
-                        color: isMe ? Colors.white : MobileTheme.textPrimary,
+                        color: isMe ? Colors.white : colors.textPrimary,
                         height: 1.4,
                       ),
                     ),
@@ -574,7 +582,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   border: Border.all(
                     color: isSelected
                         ? MobileTheme.primary
-                        : MobileTheme.textTertiary,
+                        : colors.textTertiary,
                     width: 1.5,
                   ),
                 ),
@@ -748,6 +756,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _detailRow(String label, String value) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -757,8 +766,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             width: 70,
             child: Text(
               label,
-              style: const TextStyle(
-                color: MobileTheme.textTertiary,
+              style: TextStyle(
+                color: colors.textTertiary,
                 fontSize: 13,
               ),
             ),
@@ -766,8 +775,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
-                color: MobileTheme.textPrimary,
+              style: TextStyle(
+                color: colors.textPrimary,
                 fontSize: 13,
               ),
             ),
@@ -786,7 +795,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: MobileColors.of(context).surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -871,11 +880,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   Widget _buildInputArea() {
+    final colors = MobileColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
-        border: const Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
+        color: colors.surface,
+        border: Border(
+          top: BorderSide(color: colors.divider, width: 0.5),
         ),
         boxShadow: [
           BoxShadow(
@@ -899,7 +909,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     child: Container(
                       constraints: const BoxConstraints(maxHeight: 120, minHeight: 36),
                       decoration: BoxDecoration(
-                        color: MobileTheme.background,
+                        color: colors.background,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: TextField(
@@ -907,12 +917,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         focusNode: _focusNode,
                         maxLines: null,
                         textInputAction: TextInputAction.newline,
-                        style: const TextStyle(fontSize: 16, color: MobileTheme.textPrimary),
-                        decoration: const InputDecoration(
+                        style: TextStyle(fontSize: 16, color: colors.textPrimary),
+                        decoration: InputDecoration(
                           hintText: '输入消息...',
-                          hintStyle: TextStyle(color: MobileTheme.textTertiary, fontSize: 15),
+                          hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
                           border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         ),
                         onChanged: (_) => setState(() {}),
                       ),
@@ -925,7 +935,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       width: 44,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: _canSend() ? MobileTheme.primary : MobileTheme.textTertiary.withValues(alpha: 0.3),
+                        color: _canSend() ? MobileTheme.primary : colors.textTertiary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: _isSending
@@ -979,9 +989,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _showOptionsSheet() {
+    final colors = MobileColors.of(context);
     showModalBottomSheet(
       context: context,
-      backgroundColor: MobileTheme.surface,
+      backgroundColor: colors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),

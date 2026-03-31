@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import '../../integrations/xdyou_bootstrap_stub.dart'
@@ -84,8 +85,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -110,30 +112,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 '西电树洞',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: MobileTheme.textPrimary,
+                  color: colors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 '欢迎回来',
                 style: TextStyle(
                   fontSize: 15,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 '使用西电统一身份认证登录',
                 style: TextStyle(
                   fontSize: 13,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -235,11 +237,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 24),
 
-              const Text(
+              Text(
                 '密码仅用于登录验证，不会上传至云端。密码和一站式数据仅存储在本地，用于访问一站式功能，这部分数据不能同步到云端。',
                 style: TextStyle(
                   fontSize: 12,
-                  color: MobileTheme.textSecondary,
+                  color: colors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -257,17 +259,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: MobileTheme.surface,
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: MobileTheme.divider),
+                  border: Border.all(color: colors.divider),
                 ),
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       '管理员入口',
                       style: TextStyle(
                         fontSize: 13,
-                        color: MobileTheme.textSecondary,
+                        color: colors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),

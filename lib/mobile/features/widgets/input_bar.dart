@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 /// 通用底部输入框组件
 /// 支持文本输入、发送按钮、图片/表情附件按钮、键盘弹出交互适配
@@ -118,11 +119,12 @@ class InputBarState extends State<InputBar> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
-        border: const Border(
-          top: BorderSide(color: MobileTheme.divider, width: 0.5),
+        color: colors.surface,
+        border: Border(
+          top: BorderSide(color: colors.divider, width: 0.5),
         ),
         boxShadow: [
           BoxShadow(
@@ -147,9 +149,9 @@ class InputBarState extends State<InputBar> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
+                    child: Icon(
                       Icons.emoji_emotions_outlined,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                       size: 24,
                     ),
                   ),
@@ -163,9 +165,9 @@ class InputBarState extends State<InputBar> {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(8),
-                    child: const Icon(
+                    child: Icon(
                       Icons.image_outlined,
-                      color: MobileTheme.textSecondary,
+                      color: colors.textSecondary,
                       size: 24,
                     ),
                   ),
@@ -179,7 +181,7 @@ class InputBarState extends State<InputBar> {
                     minHeight: 36,
                   ),
                   decoration: BoxDecoration(
-                    color: MobileTheme.background,
+                    color: colors.background,
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: TextField(
@@ -188,14 +190,14 @@ class InputBarState extends State<InputBar> {
                     autofocus: widget.autofocus,
                     maxLines: null,
                     textInputAction: TextInputAction.newline,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 15,
-                      color: MobileTheme.textPrimary,
+                      color: colors.textPrimary,
                     ),
                     decoration: InputDecoration(
                       hintText: widget.placeholder ?? '说点什么...',
-                      hintStyle: const TextStyle(
-                        color: MobileTheme.textTertiary,
+                      hintStyle: TextStyle(
+                        color: colors.textTertiary,
                         fontSize: 15,
                       ),
                       border: InputBorder.none,
@@ -221,13 +223,13 @@ class InputBarState extends State<InputBar> {
                   decoration: BoxDecoration(
                     color: _hasText
                         ? MobileTheme.primary
-                        : MobileTheme.textTertiary.withValues(alpha: 0.3),
+                        : colors.textTertiary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(18),
                   ),
                   child: Text(
                     widget.sendLabel,
                     style: TextStyle(
-                      color: _hasText ? Colors.white : MobileTheme.textTertiary,
+                      color: _hasText ? Colors.white : colors.textTertiary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../home/home_page.dart';
 import '../messages/messages_page.dart';
@@ -78,7 +79,6 @@ class _MobileShellState extends ConsumerState<MobileShell>
   /// 底部栏动画
   late final AnimationController _navAnimController;
   late final Animation<double> _navSlideAnim;
-  bool _navAnimating = false;
 
   /// 当前活跃 display index（用于同步 PageView）
   int _currentDisplayIndex = 0;
@@ -116,18 +116,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
 
   void _onNavVisibilityChanged() {
     if (!mounted) return;
-    final shouldHide = !BottomNavVisibilityNotifier.instance.visible;
-    if (shouldHide && !_navAnimating) {
-      _navAnimating = true;
-      _navAnimController.forward().then((_) {
-        if (mounted) _navAnimating = false;
-      });
-    } else if (!shouldHide && _navAnimating) {
-      _navAnimating = true;
-      _navAnimController.reverse().then((_) {
-        if (mounted) _navAnimating = false;
-      });
-    } else if (!shouldHide) {
+    if (BottomNavVisibilityNotifier.instance.visible) {
       _navAnimController.reverse();
     } else {
       _navAnimController.forward();
@@ -291,18 +280,39 @@ class _MobileShellState extends ConsumerState<MobileShell>
         return true;
       },
       child: Scaffold(
-        body: _TabBody(
-          pageController: _pageController,
-          tabCount: _loggedIn ? 4 : 3,
-          onPageIdle: _onPageViewIdle,
-        ),
-        bottomNavigationBar: _BottomNavBar(
-          currentIndex: displayIndex,
-          messageUnreadCount: messageUnreadCount,
-          notificationUnreadCount: notificationUnreadCount,
-          loggedIn: _loggedIn,
-          onTap: _switchToTab,
-          slideAnim: _navSlideAnim,
+        body: Stack(
+          children: [
+            AnimatedBuilder(
+              animation: _navSlideAnim,
+              builder: (context, child) {
+                final bottomInset = MediaQuery.paddingOf(context).bottom;
+                final navBarHeight = 68.0 + bottomInset;
+                final padding = (navBarHeight - _navSlideAnim.value).clamp(0.0, navBarHeight);
+                return Padding(
+                  padding: EdgeInsets.only(bottom: padding),
+                  child: child!,
+                );
+              },
+              child: _TabBody(
+                pageController: _pageController,
+                tabCount: _loggedIn ? 4 : 3,
+                onPageIdle: _onPageViewIdle,
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _BottomNavBar(
+                currentIndex: displayIndex,
+                messageUnreadCount: messageUnreadCount,
+                notificationUnreadCount: notificationUnreadCount,
+                loggedIn: _loggedIn,
+                onTap: _switchToTab,
+                slideAnim: _navSlideAnim,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -396,31 +406,11 @@ class _HomeTabWrapper extends StatefulWidget {
 }
 
 class _HomeTabWrapperState extends State<_HomeTabWrapper> {
-  bool _isScrollingDown = false;
-
   @override
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        if (notification is ScrollUpdateNotification) {
-          final delta = notification.scrollDelta ?? 0;
-
-          if (delta.abs() > 0.5) {
-            if (delta > 0) {
-              if (_isScrollingDown != true) {
-                _isScrollingDown = true;
-                BottomNavVisibilityNotifier.instance.show();
-              }
-            } else {
-              if (_isScrollingDown != false) {
-                _isScrollingDown = false;
-                BottomNavVisibilityNotifier.instance.hide();
-              }
-            }
-          }
-          return false;
-        }
-
+        // overscroll 向右滑动时切换到上一个 Tab
         if (notification is OverscrollNotification) {
           if (notification.velocity < -200) {
             final currentPage = widget.pageController.page?.round() ?? 0;
@@ -434,11 +424,6 @@ class _HomeTabWrapperState extends State<_HomeTabWrapper> {
           }
           return true;
         }
-
-        if (notification is ScrollStartNotification) {
-          _isScrollingDown = false;
-        }
-
         return false;
       },
       child: const HomePage(),
@@ -475,7 +460,7 @@ class _BottomNavBar extends StatelessWidget {
         );
       },
       child: Container(
-        height: 68,
+        height: 60,
         decoration: const BoxDecoration(
           color: Colors.white,
           border: Border(
@@ -559,7 +544,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSelected ? MobileTheme.primary : MobileTheme.textSecondary;
+    final colors = MobileColors.of(context);
+    final color = isSelected ? MobileTheme.primary : colors.textSecondary;
 
     Widget iconWidget = Icon(
       isSelected ? selectedIcon : icon,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 /// 设置主页 — Instagram 风格
@@ -120,17 +121,18 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Scaffold(
-      backgroundColor: MobileTheme.background,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: MobileTheme.surface,
+        backgroundColor: colors.surface,
         scrolledUnderElevation: 0.5,
-        title: const Text(
+        title: Text(
           '设置',
           style: TextStyle(
             fontSize: 17,
             fontWeight: FontWeight.w600,
-            color: MobileTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -152,16 +154,16 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '统一认证密码',
                       onTap: () => _showToast('请前往西电统一身份认证修改密码'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.edit_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '编辑资料',
                       onTap: () => context.push('/profile/edit'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.no_accounts_outlined,
                       iconColor: MobileTheme.error,
@@ -192,8 +194,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                                     _profile?.showContactable ?? false,
                               ),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _SwitchTileRow(
                       icon: Icons.visibility_outlined,
                       iconColor: MobileTheme.accent,
@@ -223,11 +225,11 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       title: '通知设置',
                       onTap: () => _showComingSoonDialog('通知设置'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.vibration_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '声音与振动',
                       onTap: () => _showComingSoonDialog('声音与振动'),
                     ),
@@ -242,16 +244,16 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                   children: [
                     _ListTile(
                       icon: Icons.brightness_6_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '主题',
                       subtitle: _themeModeLabel(ref.watch(appSettingsProvider).themeMode),
                       onTap: _showThemeDialog,
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.language_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '语言',
                       subtitle: _localeLabel(ref.watch(appSettingsProvider).locale ?? const Locale('zh', 'CN')),
                       onTap: _showLanguageDialog,
@@ -267,39 +269,39 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                   children: [
                     _ListTile(
                       icon: Icons.description_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '用户协议',
                       onTap: () => context.push('/legal/terms'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.privacy_tip_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '隐私政策',
                       onTap: () => context.push('/legal/privacy'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.gavel_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '社区规范',
                       onTap: () => context.push('/legal/guidelines'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.flag_outlined,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '举报说明',
                       onTap: () => context.push('/legal/report'),
                     ),
-                    const Divider(
-                        height: 0.5, indent: 56, color: MobileTheme.divider),
+                    Divider(
+                        height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(
                       icon: Icons.help_outline,
-                      iconColor: MobileTheme.textSecondary,
+                      iconColor: colors.textSecondary,
                       title: '帮助与反馈',
                       onTap: () => context.push('/profile/help-feedback'),
                     ),
@@ -312,27 +314,27 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                 _SectionHeader(title: '应用信息'),
                 _ListCard(
                   children: [
-                    const Padding(
+                    Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       child: Row(
                         children: [
                           Icon(Icons.info_outline,
-                              size: 22, color: MobileTheme.textSecondary),
-                          SizedBox(width: 14),
+                              size: 22, color: colors.textSecondary),
+                          const SizedBox(width: 14),
                           Text(
                             '版本号',
                             style: TextStyle(
                               fontSize: 15,
-                              color: MobileTheme.textPrimary,
+                              color: colors.textPrimary,
                             ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Text(
                             '1.0.0',
                             style: TextStyle(
                               fontSize: 14,
-                              color: MobileTheme.textSecondary,
+                              color: colors.textSecondary,
                             ),
                           ),
                         ],
@@ -352,7 +354,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       decoration: BoxDecoration(
-                        color: MobileTheme.surface,
+                        color: colors.surface,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Center(
@@ -677,14 +679,15 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Text(
         title.toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: MobileTheme.textSecondary,
+          color: colors.textSecondary,
           letterSpacing: 0.8,
         ),
       ),
@@ -699,10 +702,11 @@ class _ListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: MobileTheme.surface,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(children: children),
@@ -729,6 +733,7 @@ class _ListTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -747,16 +752,16 @@ class _ListTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
-                      color: titleColor ?? MobileTheme.textPrimary,
+                      color: titleColor ?? colors.textPrimary,
                     ),
                   ),
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       subtitle!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
-                        color: MobileTheme.textTertiary,
+                        color: colors.textTertiary,
                       ),
                     ),
                   ],
@@ -764,7 +769,7 @@ class _ListTile extends StatelessWidget {
               ),
             ),
             Icon(Icons.chevron_right,
-                size: 20, color: MobileTheme.textTertiary),
+                size: 20, color: colors.textTertiary),
           ],
         ),
       ),
@@ -791,6 +796,7 @@ class _SwitchTileRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -803,18 +809,18 @@ class _SwitchTileRow extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
-                    color: MobileTheme.textPrimary,
+                    color: colors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: MobileTheme.textTertiary,
+                    color: colors.textTertiary,
                   ),
                 ),
               ],

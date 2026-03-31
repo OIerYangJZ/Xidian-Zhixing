@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/mobile_theme.dart';
+import '../../core/theme/mobile_colors.dart';
 
 // ---------------------------------------------------------------------------
 // 全屏 Loading 遮罩
@@ -21,6 +22,7 @@ class LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Stack(
       children: [
         child,
@@ -59,9 +61,9 @@ class LoadingOverlay extends StatelessWidget {
                       const SizedBox(height: 12),
                       Text(
                         message!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
-                          color: MobileTheme.textSecondary,
+                          color: colors.textSecondary,
                         ),
                       ),
                     ],
@@ -109,6 +111,7 @@ class _LoadingButtonState extends State<LoadingButton> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     final bgColor = widget.backgroundColor ?? MobileTheme.primary;
     final fgColor = widget.foregroundColor ?? Colors.white;
 
@@ -120,7 +123,7 @@ class _LoadingButtonState extends State<LoadingButton> {
           onPressed: _enabled ? widget.onPressed : null,
           style: OutlinedButton.styleFrom(
             foregroundColor: bgColor,
-            side: BorderSide(color: _enabled ? bgColor : MobileTheme.textTertiary),
+            side: BorderSide(color: _enabled ? bgColor : colors.textTertiary),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -136,7 +139,7 @@ class _LoadingButtonState extends State<LoadingButton> {
       child: ElevatedButton(
         onPressed: _enabled ? widget.onPressed : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: _enabled ? bgColor : MobileTheme.textTertiary,
+          backgroundColor: _enabled ? bgColor : colors.textTertiary,
           foregroundColor: fgColor,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -188,6 +191,7 @@ class ErrorRetryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -197,13 +201,13 @@ class ErrorRetryWidget extends StatelessWidget {
             Icon(
               icon ?? Icons.wifi_off_rounded,
               size: 64,
-              color: MobileTheme.textTertiary,
+              color: colors.textTertiary,
             ),
             const SizedBox(height: 16),
             Text(
               message ?? '加载失败，请稍后重试',
-              style: const TextStyle(
-                color: MobileTheme.textSecondary,
+              style: TextStyle(
+                color: colors.textSecondary,
                 fontSize: 15,
               ),
               textAlign: TextAlign.center,
