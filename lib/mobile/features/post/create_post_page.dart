@@ -37,6 +37,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   int? _selectedPinDurationMinutes;
   bool _showPinSelector = false;
+  bool _isLevelOneUser = AuthStore.instance.currentUser?.isLevelOneUser ?? false;
 
   final List<XFile> _selectedImages = [];
   final List<String> _uploadedImageIds = [];
@@ -58,6 +59,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   void initState() {
     super.initState();
     _loadChannels();
+    _loadUserLevel();
     _contentController.addListener(() => setState(() {}));
   }
 
@@ -89,6 +91,23 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           _isLoadingChannels = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadUserLevel() async {
+    try {
+      final profile = await ref.read(userRepositoryProvider).fetchProfile();
+      AuthStore.instance.setCurrentUser(profile);
+      if (!mounted) return;
+      setState(() {
+        _isLevelOneUser = profile.isLevelOneUser;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLevelOneUser =
+            AuthStore.instance.currentUser?.isLevelOneUser ?? false;
+      });
     }
   }
 
@@ -286,7 +305,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       _contentController.text.trim().isNotEmpty && !_isPublishing;
 
   bool get _canPin =>
-      AuthStore.instance.currentUser?.isLevelOneUser ?? false;
+      _isLevelOneUser;
 
   @override
   Widget build(BuildContext context) {
@@ -530,7 +549,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   // 内联选择器展开区（频道 / 标签 / 状态）
                   if (_showChannelSelector ||
                       _showTagSelector ||
-                      _showStatusSelector)
+                      _showStatusSelector ||
+                      _showPinSelector)
                     _buildInlineSelectorArea(),
 
                   // 工具栏图标行
@@ -776,12 +796,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
 
     if (_showPinSelector) {
-      final pinOptions = [
+      const pinOptions = <_PinOption>[
         _PinOption(label: '不置顶', minutes: null),
-        _PinOption(label: '置顶 1 天', minutes: 1440),
-        _PinOption(label: '置顶 3 天', minutes: 4320),
-        _PinOption(label: '置顶 7 天', minutes: 10080),
-        _PinOption(label: '置顶 30 天', minutes: 43200),
+        _PinOption(label: '30 分钟', minutes: 30),
+        _PinOption(label: '1 小时', minutes: 60),
+        _PinOption(label: '2 小时', minutes: 120),
+        _PinOption(label: '3 小时', minutes: 180),
+        _PinOption(label: '1 天', minutes: 1440),
+        _PinOption(label: '3 天', minutes: 4320),
       ];
       return Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
