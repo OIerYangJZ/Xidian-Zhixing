@@ -214,7 +214,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
         _backHintShown = true;
         _scrollHomeToTop();
         _showExitHint();
-        Future<void>.delayed(const Duration(seconds: 3), () {
+        Future<void>.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) _backHintShown = false;
         });
       }
@@ -226,7 +226,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
         _backHintShown = true;
         _switchToTab(0);
         _showExitHint();
-        Future<void>.delayed(const Duration(seconds: 3), () {
+        Future<void>.delayed(const Duration(milliseconds: 1000), () {
           if (mounted) _backHintShown = false;
         });
       }
@@ -252,7 +252,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
     final notificationsState = ref.watch(notificationsControllerProvider);
     final notificationUnreadCount = notificationsState.unreadCount;
 
-    // 在 build 最开始同步最新值，确保 PopScope 回调拿到正确的 branch
+    // 在 build 最开始同步最新值，确保 BackButtonListener 回调拿到正确的 branch
     _loggedIn = AuthStore.instance.isAuthenticated;
     _currentBranch = widget.navigationShell.currentIndex;
 
@@ -277,15 +277,18 @@ class _MobileShellState extends ConsumerState<MobileShell>
       });
     }
 
-    // 在 PopScope 构建时获取最新 branch，传递给回调
+    // BackButtonListener 优先于 go_router 路由器接收 Android 返回键。
+    // go_router 14 的 RouterDelegate.popRoute() 不经过 Navigator.maybePop()，
+    // 因此 PopScope 无法拦截 Shell 层级的返回键，必须使用 BackButtonListener。
     final branchForCallback = _currentBranch;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (didPop) return;
-        // 直接调用，不 await，避免异步丢失
+    return BackButtonListener(
+      onBackButtonPressed: () async {
+        // 若 go_router 还有可弹出的页面（如帖子详情），交由路由器自行处理
+        if (context.canPop()) return false;
+        // 否则由 Shell 接管，执行自定义返回逻辑
         _handleBackPress(branchForCallback);
+        return true;
       },
       child: Scaffold(
         body: _TabBody(

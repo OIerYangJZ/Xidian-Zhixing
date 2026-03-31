@@ -110,6 +110,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         isLiked: c.isLiked,
         isPinned: c.isPinned,
         parentId: c.parentId,
+        authorUserId: c.authorUserId,
         replies: [],
       );
     }
@@ -540,19 +541,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 // 头像
                 GestureDetector(
                   onTap: () {
-                    // 匿名帖一律不能通过头像查看主页
-                    if (!post.isAnonymous && post.authorUserId.isNotEmpty) {
-                      if (post.isOwnPost) {
-                        context.push('/profile');
-                      } else {
-                        context.push('/user/${post.authorUserId}');
-                      }
+                    // 匿名帖或自己的帖子不跳转（自己的帖子无法从全屏页 push Shell 分支路由）
+                    if (!post.isAnonymous &&
+                        post.authorUserId.isNotEmpty &&
+                        !post.isOwnPost) {
+                      context.push('/user/${post.authorUserId}');
                     }
                   },
                   child: AvatarWidget(
                     avatarUrl: post.isAnonymous ? null : post.authorAvatarUrl,
                     nickname: post.authorAlias,
-                    radius: 26,
+                    radius: 24,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -620,51 +619,39 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                   ),
-                // 私信按钮
-                if (post.canMessageAuthor)
-                  TextButton.icon(
-                    onPressed: _handleDm,
-                    icon: const Icon(Icons.mail_outline, size: 16),
-                    label: const Text('私信'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: MobileTheme.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                    ),
-                  ),
               ],
             ),
           ),
 
-          const Divider(height: 1),
-
           // 标题
           if (post.title.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 6),
+              padding: const EdgeInsets.fromLTRB(25, 0, 25, 4),
               child: Text(
                 post.title,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 19,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: MobileTheme.textPrimary,
-                  height: 1.35,
+                  height: 1.3,
                 ),
               ),
             ),
 
           // 正文
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
             child: DefaultTextStyle.merge(
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 12,
                 color: MobileTheme.textPrimary,
               ),
               child: PostContentBody(
                 content: post.content,
                 contentFormat: post.contentFormat,
                 markdownSource: post.markdownSource,
-                selectable: false,
+                selectable: true,
               ),
             ),
           ),
@@ -731,18 +718,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   ),
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  '${_post!.commentCount} 条',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: MobileTheme.textSecondary,
-                  ),
-                ),
               ],
             ),
           ),
-
-          const Divider(height: 1),
 
           // 评论列表
           if (_comments.isEmpty)
@@ -769,38 +747,39 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final post = _post!;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       child: Row(
         children: [
           // 点赞
           _ActionItem(
             icon: Icons.favorite_border,
             activeIcon: Icons.favorite,
-            label: post.likeCount > 0 ? '${post.likeCount}' : '点赞',
+            label: post.likeCount > 0 ? '${post.likeCount}' : '',
             isActive: _postIsLiked,
             isLoading: _isLiking,
             activeColor: const Color(0xFFFF2D55),
             onTap: _handleLike,
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 22),
 
           // 收藏
           _ActionItem(
             icon: Icons.star_border,
             activeIcon: Icons.star,
-            label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '收藏',
+            label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '',
             isActive: post.isFavorited,
             isLoading: _isFavoriting,
             activeColor: const Color(0xFFFF9500),
             onTap: _handleFavorite,
+            iconSize: 25,
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 22),
 
           // 评论
           _ActionItem(
             icon: Icons.chat_bubble_outline,
             activeIcon: Icons.chat_bubble,
-            label: post.commentCount > 0 ? '${post.commentCount}' : '评论',
+            label: post.commentCount > 0 ? '${post.commentCount}' : '',
             isActive: false,
             activeColor: MobileTheme.primary,
             onTap: () {
@@ -922,7 +901,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         return _CommentTile(
           comment: comment,
           indentLevel: isNested ? 1 : 0,
-          onReply: () => setState(() => _replyingTo = comment),
+          onReply: (c) => setState(() => _replyingTo = c),
         );
       },
     );
@@ -936,7 +915,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 /// 评论列表项
 class _CommentTile extends StatelessWidget {
   final CommentItem comment;
-  final VoidCallback? onReply;
+  final void Function(CommentItem)? onReply;
   final int indentLevel;
 
   const _CommentTile({
@@ -1049,7 +1028,7 @@ class _CommentTile extends StatelessWidget {
                         ],
                         const SizedBox(width: 14),
                         GestureDetector(
-                          onTap: onReply,
+                          onTap: () => onReply?.call(comment),
                           child: const Row(
                             children: [
                               Icon(
@@ -1083,7 +1062,7 @@ class _CommentTile extends StatelessWidget {
             (reply) => _CommentTile(
               comment: reply,
               indentLevel: indentLevel + 1,
-              onReply: () {},
+              onReply: onReply,
             ),
           ),
       ],
@@ -1104,6 +1083,7 @@ class _ActionItem extends StatelessWidget {
   final bool isLoading;
   final Color activeColor;
   final VoidCallback onTap;
+  final double iconSize;
 
   const _ActionItem({
     required this.icon,
@@ -1113,6 +1093,7 @@ class _ActionItem extends StatelessWidget {
     this.isLoading = false,
     required this.activeColor,
     required this.onTap,
+    this.iconSize = 22,
   });
 
   @override
@@ -1134,7 +1115,7 @@ class _ActionItem extends StatelessWidget {
                 )
               : Icon(
                   isActive ? activeIcon : icon,
-                  size: 22,
+                  size: iconSize,
                   color: effectiveColor,
                 ),
           const SizedBox(width: 4),

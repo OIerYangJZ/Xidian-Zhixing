@@ -9,9 +9,15 @@ class XdyouHostPage extends StatefulWidget {
   State<XdyouHostPage> createState() => _XdyouHostPageState();
 }
 
-class _XdyouHostPageState extends State<XdyouHostPage> {
+class _XdyouHostPageState extends State<XdyouHostPage>
+    with AutomaticKeepAliveClientMixin {
   bool _ready = false;
   Object? _error;
+
+  /// 保持页面状态，防止在 PageView 切换 Tab 时被销毁重建。
+  /// XDYou（watermeter）内含 GetX 全局控制器，重建会引发状态冲突崩溃。
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -31,6 +37,7 @@ class _XdyouHostPageState extends State<XdyouHostPage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin 要求
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('校园助手')),

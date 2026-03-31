@@ -52,13 +52,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       ref.read(feedControllerProvider.notifier).loadInitial();
     });
     _scrollController.addListener(_onScroll);
-    // ref.listen 只能在 build 中调用，用 Future.microtask 延迟到首次 build 之后再注册
-    Future<void>.microtask(() {
-      if (!mounted) return;
-      ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
-        _scrollToTop();
-      });
-    });
   }
 
   void _scrollToTop() {
@@ -174,6 +167,10 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final feedState = ref.watch(feedControllerProvider);
+    // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
+    ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
+      _scrollToTop();
+    });
 
     return Scaffold(
       backgroundColor: MobileTheme.background,

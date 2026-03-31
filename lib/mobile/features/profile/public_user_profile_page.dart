@@ -190,20 +190,16 @@ class _PublicUserProfilePageState
                         children: [
                           Transform.translate(
                             offset: const Offset(0, -24),
-                            child: InkWell(
-                              onTap: () => context.push('/user/${profile.id}'),
-                              borderRadius: BorderRadius.circular(50),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: MobileTheme.surface, width: 4),
-                                ),
-                                child: AvatarWidget(
-                                  avatarUrl: profile.avatarUrl,
-                                  nickname: profile.nickname,
-                                  radius: 36,
-                                ),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: MobileTheme.surface, width: 4),
+                              ),
+                              child: AvatarWidget(
+                                avatarUrl: profile.avatarUrl,
+                                nickname: profile.nickname,
+                                radius: 36,
                               ),
                             ),
                           ),
