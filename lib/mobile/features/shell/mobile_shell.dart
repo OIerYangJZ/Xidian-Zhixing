@@ -529,7 +529,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavItem(
                   icon: Icons.home_outlined,
                   selectedIcon: Icons.home_rounded,
-                  label: '棣栭〉',
+                  label: '首页',
                   isSelected: currentIndex == 0,
                   iconSize: 28,
                   onTap: () => onTap(0),
@@ -538,7 +538,7 @@ class _BottomNavBar extends StatelessWidget {
               _NavItem(
                 icon: Icons.chat_bubble_outline,
                 selectedIcon: Icons.chat_bubble_rounded,
-                label: '娑堟伅',
+                label: '消息',
                 isSelected: currentIndex == (loggedIn ? 1 : 0),
                 iconSize: 28,
                 badgeCount: messageUnreadCount,
@@ -549,7 +549,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavItem(
                   icon: Icons.school_outlined,
                   selectedIcon: Icons.school_rounded,
-                  label: '鏍″洯',
+                  label: '校园',
                   isSelected: currentIndex == 2,
                   iconSize: 28,
                   onTap: () => onTap(2),
@@ -558,7 +558,7 @@ class _BottomNavBar extends StatelessWidget {
               _NavItem(
                 icon: Icons.person_outline,
                 selectedIcon: Icons.person_rounded,
-                label: '鎴戠殑',
+                label: '我的',
                 isSelected: currentIndex == (loggedIn ? 3 : 2),
                 iconSize: 28,
                 badgeCount: notificationUnreadCount,
