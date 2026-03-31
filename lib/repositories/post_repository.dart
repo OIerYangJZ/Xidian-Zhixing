@@ -473,6 +473,16 @@ class PostRepository {
         .post(ApiEndpoints.postLike(postId), body: const <String, dynamic>{});
   }
 
+  Future<void> likeComment(String commentId) {
+    return _apiClient
+        .post(ApiEndpoints.commentLike(commentId), body: const <String, dynamic>{});
+  }
+
+  Future<void> unlikeComment(String commentId) {
+    return _apiClient
+        .delete(ApiEndpoints.commentLike(commentId), body: const <String, dynamic>{});
+  }
+
   Future<FavoriteActionResult> favoritePost(String postId) async {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.postFavorite(postId),

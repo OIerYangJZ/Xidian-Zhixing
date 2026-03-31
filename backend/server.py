@@ -556,6 +556,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _post_handler.handle_toggle_like(self, db, match_like.group(1))
                 return
 
+            match_comment_like = re.fullmatch(r"/api/comments/([^/]+)/like", path)
+            if match_comment_like:
+                _post_handler.handle_toggle_comment_like(self, db, match_comment_like.group(1))
+                return
+
             match_fav = re.fullmatch(r"/api/posts/([^/]+)/favorite", path)
             if match_fav:
                 _post_handler.handle_toggle_favorite(self, db, match_fav.group(1))
@@ -690,6 +695,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_comment = re.fullmatch(r"/api/comments/([^/]+)", path)
             if match_comment:
                 _post_handler.handle_delete_comment(self, db, match_comment.group(1))
+                return
+
+            match_comment_unlike = re.fullmatch(r"/api/comments/([^/]+)/like", path)
+            if match_comment_unlike:
+                _post_handler.handle_toggle_comment_like(self, db, match_comment_unlike.group(1))
                 return
 
             match_post = re.fullmatch(r"/api/posts/([^/]+)", path)

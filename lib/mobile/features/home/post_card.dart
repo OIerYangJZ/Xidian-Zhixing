@@ -469,6 +469,7 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildActionBar() {
+    final colors = MobileColors.of(context);
     return SizedBox(
       height: 36,
       child: Row(
@@ -502,12 +503,12 @@ class _PostCardState extends ConsumerState<PostCard> {
           const Spacer(),
           GestureDetector(
             onTap: () => _handleShare(context),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
               child: Icon(
                 Icons.share_outlined,
                 size: 22,
-                color: Colors.black87,
+                color: colors.textPrimary,
               ),
             ),
           ),
@@ -551,7 +552,8 @@ class _ChannelDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _channelColors[channel] ?? MobileTheme.primary;
+    final displayChannel = channel == '其他' ? '综合' : channel;
+    final color = _channelColors[displayChannel] ?? MobileTheme.primary;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -565,7 +567,7 @@ class _ChannelDot extends StatelessWidget {
         ),
         const SizedBox(width: 4),
         Text(
-          channel,
+          displayChannel,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w500,
@@ -596,7 +598,9 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = isActive ? activeColor : Colors.black87;
+    final colors = MobileColors.of(context);
+    final inactiveColor = colors.textPrimary;
+    final effectiveColor = isActive ? activeColor : inactiveColor;
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -614,9 +618,9 @@ class _ActionButton extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 count.toString(),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  color: Colors.black87,
+                  color: effectiveColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),

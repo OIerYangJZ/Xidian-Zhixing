@@ -9,6 +9,9 @@ class DirectMessageItem {
     this.isRead = false,
     this.readAt = '',
     this.deliveryStatus = 'sent',
+    this.replyToId,
+    this.replyToSender,
+    this.replyToContent,
   });
 
   final String id;
@@ -21,11 +24,49 @@ class DirectMessageItem {
   final String readAt;
   final String deliveryStatus;
 
+  /// 回复引用字段（可选）
+  final String? replyToId;
+  final String? replyToSender;
+  final String? replyToContent;
+
+  bool get hasReply =>
+      replyToId != null && replyToContent != null && replyToContent!.isNotEmpty;
+
   bool get canRecall {
     if (!fromMe || deliveryStatus == 'failed') return false;
     final created = DateTime.tryParse(createdAt)?.toUtc();
     if (created == null) return false;
     return DateTime.now().toUtc().difference(created).inSeconds <= 120;
+  }
+
+  DirectMessageItem copyWith({
+    String? id,
+    String? content,
+    String? createdAt,
+    String? timeText,
+    bool? fromMe,
+    String? senderAlias,
+    bool? isRead,
+    String? readAt,
+    String? deliveryStatus,
+    String? replyToId,
+    String? replyToSender,
+    String? replyToContent,
+  }) {
+    return DirectMessageItem(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      timeText: timeText ?? this.timeText,
+      fromMe: fromMe ?? this.fromMe,
+      senderAlias: senderAlias ?? this.senderAlias,
+      isRead: isRead ?? this.isRead,
+      readAt: readAt ?? this.readAt,
+      deliveryStatus: deliveryStatus ?? this.deliveryStatus,
+      replyToId: replyToId ?? this.replyToId,
+      replyToSender: replyToSender ?? this.replyToSender,
+      replyToContent: replyToContent ?? this.replyToContent,
+    );
   }
 
   factory DirectMessageItem.fromJson(Map<String, dynamic> json) {
@@ -42,6 +83,9 @@ class DirectMessageItem {
       readAt: readAt,
       deliveryStatus:
           (json['deliveryStatus'] ?? (isRead ? 'read' : 'sent')).toString(),
+      replyToId: json['replyToId'] as String?,
+      replyToSender: json['replyToSender'] as String?,
+      replyToContent: json['replyToContent'] as String?,
     );
   }
 

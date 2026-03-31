@@ -22,11 +22,16 @@ class EditProfilePage extends ConsumerStatefulWidget {
 class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
+  final _bioController = TextEditingController();
 
   UserProfile? _profile;
   String? _avatarUrl;
   String? _selectedAvatarBase64;
   String? _selectedAvatarFileName;
+  String? _backgroundImageUrl;
+  String? _selectedBgBase64;
+  String? _selectedBgFileName;
+  String _gender = '';
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -42,6 +47,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void dispose() {
     _nicknameController.dispose();
+    _bioController.dispose();
     super.dispose();
   }
 
@@ -57,7 +63,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       setState(() {
         _profile = profile;
         _nicknameController.text = profile.nickname;
+        _bioController.text = profile.bio;
         _avatarUrl = profile.avatarUrl;
+        _backgroundImageUrl = profile.backgroundImageUrl;
+        _gender = profile.gender;
       });
     } catch (e) {
       if (!mounted) return;
@@ -97,6 +106,30 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
   }
 
+  Future<void> _pickBackgroundImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+      if (picked == null) return;
+
+      final bytes = await picked.readAsBytes();
+      final base64 = base64Encode(bytes);
+      final fileName = picked.name;
+
+      setState(() {
+        _selectedBgBase64 = base64;
+        _selectedBgFileName = fileName;
+      });
+    } catch (e) {
+      _showToast('图片选择失败');
+    }
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -112,6 +145,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
     try {
       String? newAvatarUrl = _avatarUrl;
+      String? newBgUrl = _backgroundImageUrl;
 
       if (_selectedAvatarBase64 != null) {
         final userRepo = ref.read(userRepositoryProvider);
@@ -122,9 +156,21 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         );
       }
 
+      if (_selectedBgBase64 != null) {
+        final userRepo = ref.read(userRepositoryProvider);
+        newBgUrl = await userRepo.uploadBackgroundImage(
+          fileName: _selectedBgFileName ?? 'background.jpg',
+          contentType: 'image/jpeg',
+          dataBase64: _selectedBgBase64!,
+        );
+      }
+
       await ref.read(userRepositoryProvider).updateProfile(
             nickname: nickname,
             avatarUrl: newAvatarUrl,
+            bio: _bioController.text.trim(),
+            backgroundImageUrl: newBgUrl,
+            gender: _gender,
           );
 
       if (!mounted) return;
@@ -232,14 +278,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            '基本信息',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
-                            ),
-                          ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _nicknameController,
@@ -259,28 +297,26 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                               return null;
                             },
                           ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _bioController,
+                            enabled: !_saving,
+                            maxLines: 2,
+                            maxLength: 100,
+                            decoration: const InputDecoration(
+                              labelText: '个性签名',
+                              hintText: '介绍一下自己吧',
+                              prefixIcon: Icon(Icons.edit_note_outlined),
+                              alignLabelWithHint: true,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildGenderSelector(),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: _saving ? null : _saveProfile,
-                        child: _saving
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
-                              )
-                            : const Text('保存修改'),
-                      ),
-                    ),
+                    const SizedBox(height: 16),
+                    _buildBackgroundImageSection(),
                   ],
                 ),
               ),
@@ -379,6 +415,158 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       avatarUrl: url,
       nickname: nickname,
       radius: 48,
+    );
+  }
+
+  Widget _buildGenderSelector() {
+    final colors = MobileColors.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '性别',
+          style: TextStyle(
+            fontSize: 14,
+            color: colors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            _buildGenderOption('男', Icons.male),
+            const SizedBox(width: 12),
+            _buildGenderOption('女', Icons.female),
+            const SizedBox(width: 12),
+            _buildGenderOption('', Icons.remove),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGenderOption(String value, IconData icon) {
+    final colors = MobileColors.of(context);
+    final isSelected = _gender == value;
+    final label = value.isEmpty ? '不显示' : value;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: _saving ? null : () => setState(() => _gender = value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? MobileTheme.primary.withValues(alpha: 0.1) : colors.surface,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? MobileTheme.primary : colors.divider,
+              width: isSelected ? 1.5 : 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? MobileTheme.primary : colors.textSecondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? MobileTheme.primary : colors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackgroundImageSection() {
+    final colors = MobileColors.of(context);
+    String? displayUrl;
+    if (_selectedBgBase64 != null) {
+      displayUrl = 'data:image/jpeg;base64,$_selectedBgBase64';
+    } else if (_backgroundImageUrl != null && _backgroundImageUrl!.isNotEmpty) {
+      displayUrl = _backgroundImageUrl;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.divider.withValues(alpha: 0.5), width: 0.5),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '主页背景',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: colors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: _saving ? null : _pickBackgroundImage,
+            child: Container(
+              height: 120,
+              decoration: BoxDecoration(
+                color: colors.background,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: colors.divider, width: 0.5),
+                image: displayUrl != null
+                    ? DecorationImage(
+                        image: NetworkImage(displayUrl),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: displayUrl == null
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.image_outlined, size: 32, color: colors.textSecondary),
+                          const SizedBox(height: 8),
+                          Text(
+                            '点击选择背景图',
+                            style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.black.withValues(alpha: 0.3),
+                      ),
+                      child: Center(
+                        child: Icon(Icons.edit, color: Colors.white.withValues(alpha: 0.8)),
+                      ),
+                    ),
+            ),
+          ),
+          if (_selectedBgBase64 != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                '已选择新背景图',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: MobileTheme.success.withValues(alpha: 0.8),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

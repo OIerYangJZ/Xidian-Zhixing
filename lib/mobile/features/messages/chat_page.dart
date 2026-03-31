@@ -47,6 +47,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   final Set<String> _selectedMessages = {};
   OverlayEntry? _overlayEntry;
 
+  /// 当前正在回复的消息
+  DirectMessageItem? _replyingTo;
+
   UserProfile? get _currentUser => AuthStore.instance.currentUser;
   String get _myAvatar => _currentUser?.avatarUrl ?? '';
   String get _myUserId => _currentUser?.userId ?? '';
@@ -106,8 +109,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final content = _messageController.text.trim();
     if (content.isEmpty || _isSending) return;
 
-    // 清空输入框
+    final replyTarget = _replyingTo;
+
+    // 清空输入框和回复状态
     _messageController.clear();
+    setState(() => _replyingTo = null);
 
     // 乐观更新：先添加消息到列表
     final tempMessage = DirectMessageItem(
@@ -120,6 +126,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       isRead: false,
       readAt: '',
       deliveryStatus: 'sending',
+      replyToId: replyTarget?.id,
+      replyToSender: replyTarget?.senderAlias,
+      replyToContent: replyTarget?.content,
     );
 
     setState(() {
@@ -136,14 +145,24 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       final sentMessage = await messageRepo.sendConversationMessage(
         conversationId: widget.conversationId,
         content: content,
+        replyToId: replyTarget?.id,
       );
+
+      // 后端若不支持回复字段，用乐观数据补充
+      final finalMessage = sentMessage.hasReply
+          ? sentMessage
+          : sentMessage.copyWith(
+              replyToId: replyTarget?.id,
+              replyToSender: replyTarget?.senderAlias,
+              replyToContent: replyTarget?.content,
+            );
 
       // 更新消息状态为已发送
       if (mounted) {
         setState(() {
           final index = _messages.indexWhere((m) => m.id == tempMessage.id);
           if (index != -1) {
-            _messages[index] = sentMessage;
+            _messages[index] = finalMessage;
           }
         });
         // 更新上层会话列表的预览和未读数
@@ -168,6 +187,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               isRead: false,
               readAt: '',
               deliveryStatus: 'failed',
+              replyToId: replyTarget?.id,
+              replyToSender: replyTarget?.senderAlias,
+              replyToContent: replyTarget?.content,
             );
           }
         });
@@ -494,10 +516,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     constraints: BoxConstraints(
                       maxWidth: MediaQuery.of(context).size.width * 0.7,
                     ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
                     decoration: BoxDecoration(
                       color: isMe ? MobileTheme.primary : colors.surface,
                       borderRadius: BorderRadius.only(
@@ -514,13 +532,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         ),
                       ],
                     ),
-                    child: Text(
-                      message.content,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isMe ? Colors.white : colors.textPrimary,
-                        height: 1.4,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // 引用块（Telegram 风格）
+                        if (message.hasReply)
+                          _buildQuotedMessage(message, isMe, colors),
+
+                        // 正文
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          child: Text(
+                            message.content,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: isMe ? Colors.white : colors.textPrimary,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -866,8 +901,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   void _handleReply(DirectMessageItem message) {
     _hideOverlay();
-    _messageController.text = '回复 ${message.senderAlias}：';
-    _scrollToBottom();
+    setState(() => _replyingTo = message);
     _focusNode.requestFocus();
   }
 
@@ -877,6 +911,78 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
     _messageController.text = failedMessage.content;
     _handleSend();
+  }
+
+  /// 气泡内引用块（Telegram 风格：半透明背景 + 左侧竖线 + 发送人 + 截断内容）
+  Widget _buildQuotedMessage(
+    DirectMessageItem message,
+    bool isMe,
+    MobileColors colors,
+  ) {
+    final quoteColor =
+        isMe ? Colors.white.withValues(alpha: 0.25) : MobileTheme.primary.withValues(alpha: 0.08);
+    final accentColor =
+        isMe ? Colors.white.withValues(alpha: 0.85) : MobileTheme.primary;
+    final textColor =
+        isMe ? Colors.white.withValues(alpha: 0.9) : colors.textSecondary;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(8, 8, 8, 0),
+      decoration: BoxDecoration(
+        color: quoteColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 左侧竖线
+            Container(
+              width: 3,
+              decoration: BoxDecoration(
+                color: accentColor,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10),
+                  bottomLeft: Radius.circular(10),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 发送人名称
+                    Text(
+                      message.replyToSender ?? '',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: accentColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    // 被引用内容（截断至2行）
+                    Text(
+                      message.replyToContent ?? '',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: textColor,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildInputArea() {
@@ -900,6 +1006,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // 回复预览条
+            if (_replyingTo != null) _buildReplyPreviewBar(colors),
+
             Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
               child: Row(
@@ -954,6 +1063,68 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// 输入框上方的回复预览条（Telegram 风格）
+  Widget _buildReplyPreviewBar(MobileColors colors) {
+    final msg = _replyingTo!;
+    final isMe = msg.fromMe;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 4),
+      decoration: BoxDecoration(
+        color: colors.background,
+        border: Border(
+          top: BorderSide(color: colors.divider, width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          // 左侧彩色竖线
+          Container(
+            width: 3,
+            height: 36,
+            decoration: BoxDecoration(
+              color: MobileTheme.primary,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isMe ? '我' : msg.senderAlias,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: MobileTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  msg.content,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // 关闭按钮
+          IconButton(
+            icon: Icon(Icons.close, size: 18, color: colors.textTertiary),
+            onPressed: () => setState(() => _replyingTo = null),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+          ),
+        ],
       ),
     );
   }

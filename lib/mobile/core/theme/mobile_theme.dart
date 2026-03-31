@@ -9,6 +9,7 @@ import 'mobile_colors.dart';
 class MobileTheme {
   // 品牌色 - 复用 SharedColors 中的跨端定义
   static const Color primary = SharedColors.primary;
+  static const Color primaryDark = Color(0xFF4DD0E1);
   static const Color accent = SharedColors.accent;
 
   // 背景色
@@ -278,7 +279,6 @@ class MobileTheme {
   /// 暗色主题（完整实现）
   static ThemeData get darkTheme {
     const _bg = Color(0xFF000000);
-    const _surface = Color(0xFF1C1C1E);
     const _textPrimary = Color(0xFFFFFFFF);
     const _textSecondary = Color(0xFF8E8E93);
     const _textTertiary = Color(0xFF48484A);
@@ -287,12 +287,12 @@ class MobileTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primaryColor: primary,
+      primaryColor: primaryDark,
       scaffoldBackgroundColor: _bg,
       colorScheme: const ColorScheme.dark(
-        primary: primary,
+        primary: primaryDark,
         secondary: accent,
-        surface: _surface,
+        surface: _bg,
         error: error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -302,8 +302,8 @@ class MobileTheme {
 
       appBarTheme: const AppBarTheme(
         elevation: 0,
-        scrolledUnderElevation: 0.5,
-        backgroundColor: _surface,
+        scrolledUnderElevation: 0,
+        backgroundColor: _bg,
         foregroundColor: _textPrimary,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: TextStyle(
@@ -315,8 +315,8 @@ class MobileTheme {
       ),
 
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: _surface,
-        selectedItemColor: primary,
+        backgroundColor: _bg,
+        selectedItemColor: primaryDark,
         unselectedItemColor: _textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -328,7 +328,7 @@ class MobileTheme {
       ),
 
       cardTheme: CardThemeData(
-        color: _surface,
+        color: _bg,
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: const RoundedRectangleBorder(
@@ -338,7 +338,7 @@ class MobileTheme {
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: _surface,
+        fillColor: _bg,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
@@ -351,7 +351,7 @@ class MobileTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: primary, width: 1.5),
+          borderSide: const BorderSide(color: primaryDark, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -362,7 +362,7 @@ class MobileTheme {
 
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: primaryDark,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -378,7 +378,7 @@ class MobileTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primary,
+          foregroundColor: primaryDark,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           textStyle: const TextStyle(
             fontSize: 15,
@@ -389,7 +389,7 @@ class MobileTheme {
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: primary,
+          foregroundColor: primaryDark,
           side: const BorderSide(color: primary),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -403,17 +403,17 @@ class MobileTheme {
       ),
 
       tabBarTheme: const TabBarThemeData(
-        labelColor: primary,
+        labelColor: primaryDark,
         unselectedLabelColor: _textSecondary,
-        indicatorColor: primary,
+        indicatorColor: primaryDark,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         unselectedLabelStyle:
             TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
 
       chipTheme: ChipThemeData(
-        backgroundColor: _surface,
-        selectedColor: primary.withValues(alpha: 0.15),
+        backgroundColor: _bg,
+        selectedColor: primaryDark.withValues(alpha: 0.15),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         shape: const RoundedRectangleBorder(
@@ -437,7 +437,7 @@ class MobileTheme {
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: _surface,
+        backgroundColor: _bg,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         titleTextStyle: const TextStyle(
@@ -452,7 +452,7 @@ class MobileTheme {
       ),
 
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: _surface,
+        backgroundColor: _bg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
         ),

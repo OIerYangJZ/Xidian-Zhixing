@@ -144,11 +144,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 背景色条
-                    Container(
-                      height: 60,
-                      color: MobileTheme.primary.withValues(alpha: 0.08),
-                    ),
+                    // 背景图
+                    if (user?.backgroundImageUrl != null && user!.backgroundImageUrl.isNotEmpty)
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: NetworkImage(user.backgroundImageUrl),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        height: 60,
+                        color: MobileTheme.primary.withValues(alpha: 0.08),
+                      ),
 
                     // 头像 + 编辑按钮
                     Padding(
@@ -217,6 +228,42 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                         ),
                       ),
                     ),
+
+                    // 个性签名
+                    if (user?.bio != null && user!.bio.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Text(
+                          user.bio,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                      ),
+
+                    // 性别标识
+                    if (user?.gender != null && user!.gender.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              user.gender == '男' ? Icons.male : Icons.female,
+                              size: 16,
+                              color: colors.textSecondary,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              user.gender,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                     // 数据统计行（无卡片，紧凑横排）
                     Padding(

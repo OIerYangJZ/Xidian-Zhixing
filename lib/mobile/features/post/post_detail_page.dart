@@ -407,19 +407,39 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (_replyingTo != null) _buildReplyBanner(),
-                    CommentInputBar(
-                      key: _commentInputKey,
-                      onSubmit: _handleSubmitComment,
-                      autofocus: false,
-                      scrollController: _scrollController,
-                      onEmojiToggle: _toggleEmoji,
-                    ),
-                    if (_showEmoji) EmojiPickerBar(onEmojiTap: _onEmojiTap),
+                    _buildBottomBarWithEmoji(),
                   ],
                 ),
               ),
             )
           : null,
+    );
+  }
+
+  Widget _buildBottomBarWithEmoji() {
+    return Stack(
+      children: [
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommentInputBar(
+              key: _commentInputKey,
+              onSubmit: _handleSubmitComment,
+              autofocus: false,
+              scrollController: _scrollController,
+              onEmojiToggle: _toggleEmoji,
+            ),
+            SizedBox(height: _showEmoji ? 200 : 0),
+          ],
+        ),
+        if (_showEmoji)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: EmojiPickerBar(onEmojiTap: _onEmojiTap),
+          ),
+      ],
     );
   }
 
@@ -752,6 +772,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   Widget _buildActionBar() {
     final post = _post!;
+    final colors = MobileColors.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -798,8 +819,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
           // 分享
           IconButton(
-            icon: const Icon(Icons.share_outlined),
-            color: Colors.black87,
+            icon: Icon(Icons.share_outlined, color: colors.textPrimary),
             iconSize: 22,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
@@ -921,7 +941,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 }
 
 /// 评论列表项
-class _CommentTile extends StatelessWidget {
+class _CommentTile extends StatefulWidget {
   final CommentItem comment;
   final void Function(CommentItem)? onReply;
   final int indentLevel;
@@ -933,14 +953,64 @@ class _CommentTile extends StatelessWidget {
   });
 
   @override
+  State<_CommentTile> createState() => _CommentTileState();
+}
+
+class _CommentTileState extends State<_CommentTile> {
+  late bool _isLiked;
+  late int _likeCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLiked = widget.comment.isLiked;
+    _likeCount = widget.comment.likeCount;
+  }
+
+  @override
+  void didUpdateWidget(_CommentTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.comment.id != widget.comment.id) {
+      _isLiked = widget.comment.isLiked;
+      _likeCount = widget.comment.likeCount;
+    }
+  }
+
+  Future<void> _toggleLike(BuildContext context) async {
+    final wasLiked = _isLiked;
+    // 乐观更新
+    setState(() {
+      _isLiked = !wasLiked;
+      _likeCount += wasLiked ? -1 : 1;
+    });
+    try {
+      final repo = ProviderScope.containerOf(context).read(postRepositoryProvider);
+      if (wasLiked) {
+        await repo.unlikeComment(widget.comment.id);
+      } else {
+        await repo.likeComment(widget.comment.id);
+      }
+    } catch (_) {
+      // 回滚
+      if (mounted) {
+        setState(() {
+          _isLiked = wasLiked;
+          _likeCount += wasLiked ? 1 : -1;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final comment = widget.comment;
     final colors = MobileColors.of(context);
     // 头像尺寸：每缩进一层缩小2dp，最多缩到14dp（基础从22开始）
-    final double avatarRadius = (22 - indentLevel * 2).clamp(14, 22).toDouble();
+    final double avatarRadius = (22 - widget.indentLevel * 2).clamp(14, 22).toDouble();
     // 左侧缩进：每层20dp，最大缩进60dp
-    final double leftPadding = (indentLevel * 20).clamp(0, 60).toDouble();
+    final double leftPadding = (widget.indentLevel * 20).clamp(0, 60).toDouble();
     // 最多渲染3层嵌套（indentLevel 0/1/2），超过则不再缩进但继续渲染
-    final int effectiveIndent = indentLevel.clamp(0, 3);
+    final int effectiveIndent = widget.indentLevel.clamp(0, 3);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -985,74 +1055,103 @@ class _CommentTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // 昵称 + 时间
                     Row(
                       children: [
                         Flexible(
-                          child: Text(
-                            comment.authorAlias,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
+                          child: GestureDetector(
+                            onTap: comment.authorUserId.isNotEmpty
+                                ? () => context.push('/user/${comment.authorUserId}')
+                                : null,
+                            child: Text(
+                              comment.authorAlias,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: comment.authorUserId.isNotEmpty
+                                    ? MobileTheme.primary
+                                    : colors.textPrimary,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 6),
-                          Text(
-                            _formatTime(comment.createdAt),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.textTertiary,
-                            ),
+                        Text(
+                          _formatTime(comment.createdAt),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colors.textTertiary,
                           ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
-                    Text(
-                      comment.content,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textPrimary,
-                        height: 1.4,
+                    // 正文：点击触发回复
+                    GestureDetector(
+                      onTap: () => widget.onReply?.call(comment),
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        comment.content,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.textPrimary,
+                          height: 1.4,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
+                    // 底部操作栏：点赞 + 回复数
                     Row(
                       children: [
-                        if (comment.likeCount > 0) ...[
-                          const Icon(
-                            Icons.favorite,
-                            size: 13,
-                            color: MobileTheme.accent,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${comment.likeCount}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: colors.textTertiary,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(width: 14),
+                        // 点赞
                         GestureDetector(
-                          onTap: () => onReply?.call(comment),
+                          onTap: () => _toggleLike(context),
+                          behavior: HitTestBehavior.opaque,
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                Icons.reply,
-                                size: 13,
-                                color: colors.textTertiary,
+                                _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                size: 18,
+                                color: _isLiked ? MobileTheme.accent : colors.textPrimary,
                               ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '回复',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: colors.textTertiary,
+                              if (_likeCount > 0) ...[
+                                const SizedBox(width: 3),
+                                Text(
+                                  '$_likeCount',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _isLiked ? MobileTheme.accent : colors.textPrimary,
+                                  ),
                                 ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 20),
+                        // 回复数
+                        GestureDetector(
+                          onTap: () => widget.onReply?.call(comment),
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline_rounded,
+                                size: 18,
+                                color: colors.textPrimary,
                               ),
+                              if (comment.effectiveReplyCount > 0) ...[
+                                const SizedBox(width: 3),
+                                Text(
+                                  '${comment.effectiveReplyCount}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colors.textPrimary,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -1066,12 +1165,12 @@ class _CommentTile extends StatelessWidget {
           ),
         ),
         // 递归渲染子回复（最多嵌套3层）
-        if (comment.replies.isNotEmpty && indentLevel < 3)
+        if (comment.replies.isNotEmpty && widget.indentLevel < 3)
           ...comment.replies.map(
             (reply) => _CommentTile(
               comment: reply,
-              indentLevel: indentLevel + 1,
-              onReply: onReply,
+              indentLevel: widget.indentLevel + 1,
+              onReply: widget.onReply,
             ),
           ),
       ],
@@ -1107,19 +1206,21 @@ class _ActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
+    final inactiveColor = colors.textPrimary;
     final Color effectiveColor =
-        isActive ? activeColor : Colors.black87;
+        isActive ? activeColor : inactiveColor;
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Row(
         children: [
           isLoading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.black54,
+                    color: inactiveColor,
                   ),
                 )
               : Icon(

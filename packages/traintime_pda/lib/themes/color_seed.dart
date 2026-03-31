@@ -59,7 +59,7 @@ sealed class TreeholeTealColor {
     tertiary: Color(0xFF80CBC4),
     tertiaryContainer: Color(0xFF004D40),
     tertiaryLightRef: Color(0xFF00897B),
-    appBarColor: Color(0xFF1C1C1E),
+    appBarColor: Color(0xFF000000),
     error: Color(0xFFFFB4AB),
     errorContainer: Color(0xFF93000A),
   );

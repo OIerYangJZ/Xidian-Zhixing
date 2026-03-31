@@ -83,10 +83,14 @@ class MessageRepository {
   Future<DirectMessageItem> sendConversationMessage({
     required String conversationId,
     required String content,
+    String? replyToId,
   }) async {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.dmConversationMessages(conversationId),
-      body: <String, dynamic>{'content': content},
+      body: <String, dynamic>{
+        'content': content,
+        if (replyToId != null) 'replyToId': replyToId,
+      },
     );
     final Map<String, dynamic> map = extractMap(response);
     return DirectMessageItem.fromJson(map);

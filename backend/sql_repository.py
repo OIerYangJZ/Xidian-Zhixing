@@ -238,11 +238,10 @@ class SqliteTreeholeRepository:
 
             CREATE TABLE IF NOT EXISTS likes (
               user_id TEXT NOT NULL,
-              post_id TEXT NOT NULL,
+              post_id TEXT NULL,
+              comment_id TEXT NULL,
               created_at TEXT NOT NULL,
-              PRIMARY KEY (user_id, post_id),
-              FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
-              FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+              PRIMARY KEY (user_id, post_id, comment_id)
             );
 
             CREATE TABLE IF NOT EXISTS favorites (
@@ -537,6 +536,8 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "conversations", "last_read_at", "TEXT NULL")
         self._ensure_column(conn, "conversations", "deleted", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "direct_messages", "read_at", "TEXT NULL")
+        self._ensure_column(conn, "likes", "comment_id", "TEXT NULL")
+        self._ensure_column(conn, "likes", "post_id", "TEXT NULL")
         conn.commit()
 
     def _ensure_column(self, conn: sqlite3.Connection, table_name: str, column_name: str, ddl: str) -> None:
@@ -734,8 +735,8 @@ class SqliteTreeholeRepository:
                 }
             )
 
-        for row in conn.execute("SELECT user_id, post_id FROM likes ORDER BY user_id, post_id"):
-            db["likes"].append({"userId": row["user_id"], "postId": row["post_id"]})
+        for row in conn.execute("SELECT user_id, post_id, comment_id FROM likes ORDER BY user_id, post_id, comment_id"):
+            db["likes"].append({"userId": row["user_id"], "postId": row["post_id"], "commentId": row["comment_id"]})
 
         for row in conn.execute("SELECT user_id, post_id FROM favorites ORDER BY user_id, post_id"):
             db["favorites"].append({"userId": row["user_id"], "postId": row["post_id"]})
@@ -1346,10 +1347,11 @@ class SqliteTreeholeRepository:
                     continue
                 user_id = _to_str(row.get("userId")).strip()
                 post_id = _to_str(row.get("postId")).strip()
-                if user_id and post_id:
+                comment_id = _to_str(row.get("commentId")).strip()
+                if user_id and (post_id or comment_id):
                     conn.execute(
-                        "INSERT OR IGNORE INTO likes (user_id, post_id, created_at) VALUES (?, ?, ?)",
-                        (user_id, post_id, created_now),
+                        "INSERT OR IGNORE INTO likes (user_id, post_id, comment_id, created_at) VALUES (?, ?, ?, ?)",
+                        (user_id, post_id if post_id else None, comment_id if comment_id else None, created_now),
                     )
 
             for row in db.get("favorites", []):

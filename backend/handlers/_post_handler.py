@@ -777,7 +777,7 @@ def handle_toggle_like(
         return
 
     existing = next(
-        (x for x in db["likes"] if x.get("userId") == user["id"] and x.get("postId") == post_id),
+        (x for x in db["likes"] if x.get("userId") == user["id"] and x.get("postId") == post_id and not x.get("commentId")),
         None,
     )
     liked = False
@@ -800,8 +800,64 @@ def handle_toggle_like(
             )
         add_audit_log(db, user["id"], "like_post", f"点赞帖子 {post_id}")
     else:
-        db["likes"] = [x for x in db["likes"] if not (x.get("userId") == user["id"] and x.get("postId") == post_id)]
+        db["likes"] = [x for x in db["likes"] if not (
+            x.get("userId") == user["id"]
+            and x.get("postId") == post_id
+            and not x.get("commentId")
+        )]
         add_audit_log(db, user["id"], "unlike_post", f"取消点赞帖子 {post_id}")
+
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": {"liked": liked}})
+
+
+def handle_toggle_comment_like(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    comment_id: str,
+) -> None:
+    """POST /api/comments/<id>/like"""
+    user = _require_auth(handler, db)
+    if user is None:
+        return
+
+    comment = next(
+        (c for c in db["comments"] if c.get("id") == comment_id and not c.get("deleted")),
+        None,
+    )
+    if comment is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "评论不存在或已被删除")
+        return
+
+    existing = next(
+        (x for x in db["likes"]
+         if x.get("userId") == user["id"]
+         and x.get("commentId") == comment_id),
+        None,
+    )
+    liked = False
+    if existing is None:
+        db["likes"].append({"userId": user["id"], "commentId": comment_id, "createdAt": now_iso()})
+        liked = True
+        comment_author_id = str(comment.get("userId", "")).strip()
+        if comment_author_id and comment_author_id != user["id"]:
+            post_id = str(comment.get("postId", "")).strip()
+            create_notification(
+                db,
+                user_id=comment_author_id,
+                notification_type="like",
+                title="收到点赞",
+                content=str(comment.get("content", "")).strip()[:50],
+                related_type="comment",
+                related_id=comment_id,
+                post_id=post_id,
+                actor_id=user["id"],
+                actor_alias=_globals.sanitize_alias(user_nickname(user), fallback="匿名同学"),
+            )
+        add_audit_log(db, user["id"], "like_comment", f"点赞评论 {comment_id}")
+    else:
+        db["likes"] = [x for x in db["likes"] if x is not existing]
+        add_audit_log(db, user["id"], "unlike_comment", f"取消点赞评论 {comment_id}")
 
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"liked": liked}})

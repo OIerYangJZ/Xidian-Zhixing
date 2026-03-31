@@ -99,7 +99,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
       vsync: this,
       duration: const Duration(milliseconds: 280),
     );
-    _navSlideAnim = Tween<double>(begin: 0, end: 80).animate(
+    _navSlideAnim = Tween<double>(begin: 0, end: 72).animate(
       CurvedAnimation(parent: _navAnimController, curve: Curves.easeInOut),
     );
 
@@ -286,7 +286,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
               animation: _navSlideAnim,
               builder: (context, child) {
                 final bottomInset = MediaQuery.paddingOf(context).bottom;
-                final navBarHeight = 68.0 + bottomInset;
+                final navBarHeight = 60.0 + bottomInset;
                 final padding = (navBarHeight - _navSlideAnim.value).clamp(0.0, navBarHeight);
                 return Padding(
                   padding: EdgeInsets.only(bottom: padding),
@@ -451,6 +451,11 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final navBackground = isDark ? Colors.black : Colors.white;
+    final selectedIconColor = isDark ? Colors.white : MobileTheme.primary;
+
     return AnimatedBuilder(
       animation: slideAnim,
       builder: (context, child) {
@@ -461,11 +466,11 @@ class _BottomNavBar extends StatelessWidget {
       },
       child: Container(
         height: 60,
-        decoration: const BoxDecoration(
-          color: Colors.white,
+        decoration: BoxDecoration(
+          color: navBackground,
           border: Border(
             top: BorderSide(
-              color: Color(0xFFE8E8E8),
+              color: colors.divider,
               width: 0.5,
             ),
           ),
@@ -483,6 +488,7 @@ class _BottomNavBar extends StatelessWidget {
                   isSelected: currentIndex == 0,
                   iconSize: 28,
                   onTap: () => onTap(0),
+                  selectedColor: selectedIconColor,
                 ),
               _NavItem(
                 icon: Icons.chat_bubble_outline,
@@ -492,6 +498,7 @@ class _BottomNavBar extends StatelessWidget {
                 iconSize: 28,
                 badgeCount: messageUnreadCount,
                 onTap: () => onTap(loggedIn ? 1 : 0),
+                selectedColor: selectedIconColor,
               ),
               if (loggedIn)
                 _NavItem(
@@ -501,6 +508,7 @@ class _BottomNavBar extends StatelessWidget {
                   isSelected: currentIndex == 2,
                   iconSize: 28,
                   onTap: () => onTap(2),
+                  selectedColor: selectedIconColor,
                 ),
               _NavItem(
                 icon: Icons.person_outline,
@@ -511,6 +519,7 @@ class _BottomNavBar extends StatelessWidget {
                 badgeCount: notificationUnreadCount,
                 badgeIsNotification: true,
                 onTap: () => onTap(loggedIn ? 3 : 2),
+                selectedColor: selectedIconColor,
               ),
             ],
           ),
@@ -530,6 +539,7 @@ class _NavItem extends StatelessWidget {
   final int badgeCount;
   final bool badgeIsNotification;
   final VoidCallback onTap;
+  final Color selectedColor;
 
   const _NavItem({
     required this.icon,
@@ -540,12 +550,13 @@ class _NavItem extends StatelessWidget {
     this.badgeCount = 0,
     this.badgeIsNotification = false,
     required this.onTap,
+    required this.selectedColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final color = isSelected ? MobileTheme.primary : colors.textSecondary;
+    final color = isSelected ? selectedColor : colors.textSecondary;
 
     Widget iconWidget = Icon(
       isSelected ? selectedIcon : icon,

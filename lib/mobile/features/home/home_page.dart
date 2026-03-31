@@ -14,15 +14,23 @@ import '../shell/mobile_shell.dart';
 
 /// 每个频道对应的图标和颜色
 final _channelMeta = {
-  '全部': const _ChannelMeta(Icons.grid_view_rounded, Color(0xFF8E8E93)),
-  '综合': const _ChannelMeta(Icons.dashboard_rounded, Color(0xFF6B7FD7)),
-  '学习': const _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
-  '二手': const _ChannelMeta(Icons.sell_rounded, Color(0xFF5EAF7C)),
-  '找搭子': const _ChannelMeta(Icons.people_rounded, Color(0xFFE09C5E)),
-  '失物': const _ChannelMeta(Icons.search_rounded, Color(0xFFD45E8A)),
-  '吐槽': const _ChannelMeta(Icons.chat_bubble_rounded, Color(0xFF9B6ED4)),
-  '租房': const _ChannelMeta(Icons.home_rounded, Color(0xFF5EC4AF)),
-  '问答': const _ChannelMeta(Icons.help_outline_rounded, Color(0xFF5EAAD4)),
+  '全部':  const _ChannelMeta(Icons.apps_rounded,               Color(0xFF8E8E93)),
+  '综合':  const _ChannelMeta(Icons.wb_sunny_rounded,           Color(0xFF6B7FD7)),
+  '学习':  const _ChannelMeta(Icons.menu_book_rounded,          Color(0xFF5E8FD4)),
+  '二手':  const _ChannelMeta(Icons.storefront_rounded,         Color(0xFF5EAF7C)),
+  '找搭子': const _ChannelMeta(Icons.group_rounded,             Color(0xFFE09C5E)),
+  '失物':  const _ChannelMeta(Icons.manage_search_rounded,      Color(0xFFD45E8A)),
+  '吐槽':  const _ChannelMeta(Icons.mode_comment_rounded,       Color(0xFF9B6ED4)),
+  '租房':  const _ChannelMeta(Icons.apartment_rounded,          Color(0xFF5EC4AF)),
+  '问答':  const _ChannelMeta(Icons.live_help_rounded,          Color(0xFF5EAAD4)),
+  '情感':  const _ChannelMeta(Icons.favorite_rounded,           Color(0xFFE05E7A)),
+  '娱乐':  const _ChannelMeta(Icons.local_movies_rounded,       Color(0xFFD4A05E)),
+  '校园':  const _ChannelMeta(Icons.account_balance_rounded,    Color(0xFF5EAF7C)),
+  '生活':  const _ChannelMeta(Icons.local_cafe_rounded,         Color(0xFFAA8B6E)),
+  '运动':  const _ChannelMeta(Icons.directions_run_rounded,     Color(0xFFD45E5E)),
+  '表白':  const _ChannelMeta(Icons.local_florist_rounded,      Color(0xFFE05E9B)),
+  '公告':  const _ChannelMeta(Icons.campaign_rounded,           Color(0xFF5E8FD4)),
+  '其他':  const _ChannelMeta(Icons.more_horiz_rounded,         Color(0xFF8E8E93)),
 };
 
 class _ChannelMeta {
@@ -180,6 +188,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final feedState = ref.watch(feedControllerProvider);
     final notificationsState = ref.watch(notificationsControllerProvider);
     // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
@@ -202,13 +211,15 @@ class _HomePageState extends ConsumerState<HomePage> {
             SliverAppBar(
               pinned: true,
               expandedHeight: 50,
-              backgroundColor: colors.surface,
+              backgroundColor: isDarkMode ? Colors.black : colors.surface,
               elevation: 0,
-              scrolledUnderElevation: 0.5,
+              scrolledUnderElevation: isDarkMode ? 0 : 0.5,
               surfaceTintColor: Colors.transparent,
               toolbarHeight: 50,
               titleSpacing: 0,
-              systemOverlayStyle: SystemUiOverlayStyle.dark,
+              systemOverlayStyle: isDarkMode
+                  ? SystemUiOverlayStyle.light
+                  : SystemUiOverlayStyle.dark,
               title: Row(
                 children: [
                   // 频道下拉选择器（仅三横线图标）

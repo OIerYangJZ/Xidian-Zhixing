@@ -42,8 +42,8 @@ class MobileColors extends ThemeExtension<MobileColors> {
   /// 暗色主题颜色
   static const dark = MobileColors(
     background: Color(0xFF000000),
-    surface: Color(0xFF1C1C1E),
-    cardBackground: Color(0xFF1C1C1E),
+    surface: Color(0xFF000000),
+    cardBackground: Color(0xFF000000),
     textPrimary: Color(0xFFFFFFFF),
     textSecondary: Color(0xFF8E8E93),
     textTertiary: Color(0xFF48484A),

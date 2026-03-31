@@ -13,6 +13,7 @@ class CommentItem {
     this.parentId = '',
     this.replies = const [],
     this.authorUserId = '',
+    this.replyCount = 0,
   });
 
   final String id;
@@ -26,9 +27,44 @@ class CommentItem {
   final String parentId;
   final List<CommentItem> replies;
   final String authorUserId;
+  /// 总回复数（含所有层级）
+  final int replyCount;
 
   /// 兼容旧字段：authorNickname = authorAlias
   String get authorNickname => authorAlias;
+
+  /// 计算实际显示用的回复数（优先用后端字段，否则用 replies.length）
+  int get effectiveReplyCount => replyCount > 0 ? replyCount : replies.length;
+
+  CommentItem copyWith({
+    String? id,
+    String? authorAlias,
+    String? content,
+    DateTime? createdAt,
+    int? likeCount,
+    String? authorAvatar,
+    bool? isLiked,
+    bool? isPinned,
+    String? parentId,
+    List<CommentItem>? replies,
+    String? authorUserId,
+    int? replyCount,
+  }) {
+    return CommentItem(
+      id: id ?? this.id,
+      authorAlias: authorAlias ?? this.authorAlias,
+      content: content ?? this.content,
+      createdAt: createdAt ?? this.createdAt,
+      likeCount: likeCount ?? this.likeCount,
+      authorAvatar: authorAvatar ?? this.authorAvatar,
+      isLiked: isLiked ?? this.isLiked,
+      isPinned: isPinned ?? this.isPinned,
+      parentId: parentId ?? this.parentId,
+      replies: replies ?? this.replies,
+      authorUserId: authorUserId ?? this.authorUserId,
+      replyCount: replyCount ?? this.replyCount,
+    );
+  }
 
   factory CommentItem.fromJson(Map<String, dynamic> json) {
     final dynamic created = json['createdAt'] ?? json['createTime'];
@@ -79,6 +115,7 @@ class CommentItem {
       parentId: (json['parentId'] ?? '').toString(),
       replies: parsedReplies,
       authorUserId: (json['authorUserId'] ?? json['authorId'] ?? '').toString(),
+      replyCount: _toInt(json['replyCount'] ?? json['repliesCount']) ?? parsedReplies.length,
     );
   }
 

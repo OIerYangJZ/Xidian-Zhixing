@@ -39,14 +39,28 @@ class UserRepository {
   Future<void> updateProfile({
     required String nickname,
     String? avatarUrl,
+    String? bio,
+    String? backgroundImageUrl,
+    String? gender,
   }) {
-    return _apiClient.patch(
-      ApiEndpoints.me,
-      body: <String, dynamic>{
-        'nickname': nickname,
-        if (avatarUrl != null) 'avatarUrl': avatarUrl,
-      },
-    );
+    final body = <String, dynamic>{
+      'nickname': nickname,
+    };
+
+    if (avatarUrl != null && avatarUrl.isNotEmpty) {
+      body['avatarUrl'] = avatarUrl;
+    }
+    if (bio != null && bio.isNotEmpty) {
+      body['bio'] = bio;
+    }
+    if (backgroundImageUrl != null && backgroundImageUrl.isNotEmpty) {
+      body['backgroundImageUrl'] = backgroundImageUrl;
+    }
+    if (gender != null && gender.isNotEmpty) {
+      body['gender'] = gender;
+    }
+
+    return _apiClient.patch(ApiEndpoints.me, body: body);
   }
 
   Future<String> uploadAvatar({
@@ -64,6 +78,23 @@ class UserRepository {
     );
     final Map<String, dynamic> map = extractMap(response);
     return (map['avatarUrl'] ?? '').toString();
+  }
+
+  Future<String> uploadBackgroundImage({
+    required String fileName,
+    required String contentType,
+    required String dataBase64,
+  }) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.uploadImages,
+      body: <String, dynamic>{
+        'fileName': fileName,
+        'contentType': contentType,
+        'dataBase64': dataBase64,
+      },
+    );
+    final Map<String, dynamic> map = extractMap(response);
+    return (map['url'] ?? '').toString();
   }
 
   Future<List<MyCommentItem>> fetchMyComments() async {

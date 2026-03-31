@@ -68,7 +68,7 @@ class FeedController extends StateNotifier<FeedState> {
                 sort: state.sort,
               );
       state = state.copyWith(
-        channels: <String>['全部', ...channels.toSet()],
+        channels: <String>['全部', ...channels.toSet().where((c) => c != '其他')],
         posts: sortPostsForView(posts, sort: state.sort),
         loading: false,
         clearError: true,

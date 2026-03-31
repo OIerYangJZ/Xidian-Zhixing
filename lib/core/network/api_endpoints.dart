@@ -68,6 +68,7 @@ class ApiEndpoints {
   static String postUnfavorite(String postId) => '/posts/$postId/favorite';
   static String postPinRequest(String postId) => '/posts/$postId/pin-request';
   static String postView(String postId) => '/posts/$postId/view';
+  static String commentLike(String commentId) => '/comments/$commentId/like';
 
   static String dmRequestAction(String requestId, String action) =>
       '/messages/requests/$requestId/$action';

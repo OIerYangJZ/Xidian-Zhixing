@@ -10,6 +10,8 @@ class PublicUserProfile {
     required this.isFollowing,
     required this.canFollow,
     required this.canDirectMessage,
+    this.bio = '',
+    this.gender = '',
   });
 
   final String id;
@@ -22,10 +24,15 @@ class PublicUserProfile {
   final bool isFollowing;
   final bool canFollow;
   final bool canDirectMessage;
+  final String bio;
+  final String gender;
+
+  /// 兼容旧代码，userId 映射到 id
+  String get userId => id;
 
   factory PublicUserProfile.fromJson(Map<String, dynamic> json) {
     return PublicUserProfile(
-      id: (json['id'] ?? '').toString(),
+      id: (json['id'] ?? json['userId'] ?? '').toString(),
       nickname: (json['nickname'] ?? json['alias'] ?? '匿名同学').toString(),
       avatarUrl: (json['avatarUrl'] ?? json['avatar'] ?? '').toString(),
       userLevelLabel: (json['userLevelLabel'] ?? 'Lv.1').toString(),
@@ -35,6 +42,8 @@ class PublicUserProfile {
       isFollowing: _toBool(json['isFollowing']) ?? false,
       canFollow: _toBool(json['canFollow']) ?? false,
       canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
+      bio: (json['bio'] ?? json['signature'] ?? '').toString(),
+      gender: (json['gender'] ?? '').toString(),
     );
   }
 
@@ -49,6 +58,8 @@ class PublicUserProfile {
     bool? isFollowing,
     bool? canFollow,
     bool? canDirectMessage,
+    String? bio,
+    String? gender,
   }) {
     return PublicUserProfile(
       id: id ?? this.id,
@@ -61,6 +72,8 @@ class PublicUserProfile {
       isFollowing: isFollowing ?? this.isFollowing,
       canFollow: canFollow ?? this.canFollow,
       canDirectMessage: canDirectMessage ?? this.canDirectMessage,
+      bio: bio ?? this.bio,
+      gender: gender ?? this.gender,
     );
   }
 

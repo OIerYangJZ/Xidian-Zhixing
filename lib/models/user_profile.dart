@@ -24,6 +24,9 @@ class UserProfile {
     this.isOwnProfile = false,
     this.canFollow = false,
     this.canDirectMessage = false,
+    this.bio = '',
+    this.backgroundImageUrl = '',
+    this.gender = '',
   });
 
   final String nickname;
@@ -50,6 +53,9 @@ class UserProfile {
   final bool isOwnProfile;
   final bool canFollow;
   final bool canDirectMessage;
+  final String bio;
+  final String backgroundImageUrl;
+  final String gender;
 
   bool get isMutual => isFollowing && isFollower;
 
@@ -94,6 +100,9 @@ class UserProfile {
       isOwnProfile: _toBool(json['isOwnProfile']) ?? false,
       canFollow: _toBool(json['canFollow']) ?? false,
       canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
+      bio: (json['bio'] ?? json['signature'] ?? '').toString(),
+      backgroundImageUrl: (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '').toString(),
+      gender: (json['gender'] ?? '').toString(),
     );
   }
 
@@ -120,6 +129,9 @@ class UserProfile {
     bool? isOwnProfile,
     bool? canFollow,
     bool? canDirectMessage,
+    String? bio,
+    String? backgroundImageUrl,
+    String? gender,
   }) {
     return UserProfile(
       nickname: nickname ?? this.nickname,
@@ -147,6 +159,9 @@ class UserProfile {
       isOwnProfile: isOwnProfile ?? this.isOwnProfile,
       canFollow: canFollow ?? this.canFollow,
       canDirectMessage: canDirectMessage ?? this.canDirectMessage,
+      bio: bio ?? this.bio,
+      backgroundImageUrl: backgroundImageUrl ?? this.backgroundImageUrl,
+      gender: gender ?? this.gender,
     );
   }
 
