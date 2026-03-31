@@ -117,6 +117,7 @@ from handlers._user_handler import (
     handle_get_user,
     handle_unfollow,
     handle_update_me,
+    handle_update_notification_preferences,
     handle_update_privacy,
 )
 
@@ -223,5 +224,6 @@ __all__ = [
     "handle_get_user",
     "handle_unfollow",
     "handle_update_me",
+    "handle_update_notification_preferences",
     "handle_update_privacy",
 ]

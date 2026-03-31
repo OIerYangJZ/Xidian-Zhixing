@@ -9,6 +9,7 @@ class NotificationItem {
     required this.postId,
     required this.actorId,
     required this.actorAlias,
+    required this.actorAvatarUrl,
     required this.createdAt,
     required this.timeText,
     required this.isRead,
@@ -24,6 +25,7 @@ class NotificationItem {
   final String postId;
   final String actorId;
   final String actorAlias;
+  final String actorAvatarUrl;
   final String createdAt;
   final String timeText;
   final bool isRead;
@@ -41,6 +43,11 @@ class NotificationItem {
       postId: (json['postId'] ?? '').toString(),
       actorId: (json['actorId'] ?? '').toString(),
       actorAlias: (json['actorAlias'] ?? '').toString(),
+      actorAvatarUrl: (json['actorAvatarUrl'] ??
+              json['actorAvatar'] ??
+              json['avatarUrl'] ??
+              '')
+          .toString(),
       createdAt: (json['createdAt'] ?? '').toString(),
       timeText: (json['timeText'] ?? json['createdAt'] ?? '').toString(),
       isRead: _toBool(json['isRead']) ?? readAt.trim().isNotEmpty,
@@ -62,6 +69,7 @@ class NotificationItem {
       postId: postId,
       actorId: actorId,
       actorAlias: actorAlias,
+      actorAvatarUrl: actorAvatarUrl,
       createdAt: createdAt,
       timeText: timeText,
       isRead: isRead ?? this.isRead,

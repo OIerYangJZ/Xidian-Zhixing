@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
+import '../widgets/avatar_widget.dart';
 import 'package:xdu_treehole_web/models/notification_item.dart';
 
 /// 通知中心页
@@ -126,10 +127,10 @@ class _NotificationCenterPageState
   Widget _buildNotificationList(List<NotificationItem> items) {
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           return _NotificationTile(
             notification: items[index],
@@ -197,92 +198,111 @@ class _NotificationTile extends StatelessWidget {
     }
   }
 
+  bool get _isActorDrivenNotification {
+    switch (notification.type) {
+      case 'comment':
+      case 'reply':
+      case 'like':
+      case 'favorite':
+        return true;
+      default:
+        return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: notification.isRead
-              ? colors.surface
-              : MobileTheme.primary.withValues(alpha: 0.04),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: notification.isRead
-                ? colors.divider.withValues(alpha: 0.5)
-                : MobileTheme.primary.withValues(alpha: 0.3),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                _icon,
-                color: _iconColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          notification.title,
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: notification.isRead
-                                ? FontWeight.w500
-                                : FontWeight.w600,
-                            color: colors.textPrimary,
-                          ),
-                        ),
+    final String actorNickname = notification.actorAlias.trim().isNotEmpty
+        ? notification.actorAlias.trim()
+        : '树洞';
+    return Material(
+      color: colors.surface,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _isActorDrivenNotification
+                  ? AvatarWidget(
+                      avatarUrl: notification.actorAvatarUrl,
+                      nickname: actorNickname,
+                      radius: 20,
+                    )
+                  : Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _iconColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      if (!notification.isRead)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: MobileTheme.primary,
-                            shape: BoxShape.circle,
+                      child: Icon(
+                        _icon,
+                        color: _iconColor,
+                        size: 20,
+                      ),
+                    ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            notification.title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: notification.isRead
+                                  ? FontWeight.w500
+                                  : FontWeight.w600,
+                              color: colors.textPrimary,
+                              height: 1.25,
+                            ),
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    notification.content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.textSecondary,
+                        if (!notification.isRead) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 7,
+                            height: 7,
+                            margin: const EdgeInsets.only(top: 6),
+                            decoration: const BoxDecoration(
+                              color: MobileTheme.primary,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    notification.timeText,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colors.textTertiary,
+                    const SizedBox(height: 4),
+                    Text(
+                      notification.content,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colors.textSecondary,
+                        height: 1.35,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      notification.timeText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

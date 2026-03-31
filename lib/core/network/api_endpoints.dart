@@ -11,6 +11,8 @@ class ApiEndpoints {
   static const String me = '/users/me';
   static const String userSearch = '/users/search';
   static const String privacy = '/users/privacy';
+  static const String notificationPreferences =
+      '/users/notification-preferences';
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
   static const String meLevelUpgradeRequest = '/users/me/level-upgrade-request';

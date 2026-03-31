@@ -880,6 +880,8 @@ def create_notification(
     target_user = find_user_by_id(db, user_id, include_deleted=True)
     if target_user is None or target_user.get("deleted"):
         return None
+    if not user_accepts_notification(target_user, notification_type):
+        return None
     row = {
         "id": next_id(db, "notification", "n"),
         "userId": user_id.strip(),
@@ -897,6 +899,30 @@ def create_notification(
     }
     db.setdefault("notifications", []).append(row)
     return row
+
+
+def user_accepts_notification(user: dict[str, Any], notification_type: str) -> bool:
+    key = _notification_preference_key(notification_type)
+    if key is None:
+        return True
+    return bool(user.get(key, True))
+
+
+def _notification_preference_key(notification_type: str) -> str | None:
+    normalized = notification_type.strip().lower()
+    if normalized == "comment":
+        return "notifyComment"
+    if normalized == "reply":
+        return "notifyReply"
+    if normalized == "like":
+        return "notifyLike"
+    if normalized == "favorite":
+        return "notifyFavorite"
+    if normalized == "report_result":
+        return "notifyReportResult"
+    if normalized in {"system", "system_announcement"}:
+        return "notifySystem"
+    return None
 
 
 def serialize_notification(row: dict[str, Any]) -> dict[str, Any]:

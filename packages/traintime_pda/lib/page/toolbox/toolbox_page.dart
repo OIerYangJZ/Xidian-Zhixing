@@ -19,7 +19,10 @@ class _ToolBoxPageState extends State<ToolBoxPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: I18nText("toolbox.title")),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: I18nText("toolbox.title"),
+      ),
       body: ListView(
         children: [
           WebViewAddresses(

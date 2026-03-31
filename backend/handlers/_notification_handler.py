@@ -15,7 +15,25 @@ from http.server import BaseHTTPRequestHandler
 
 import _globals
 from helpers import json_error, send_json
-from services import auth_user as auth_user_helper, load_db, save_db, serialize_notification
+from services import (
+    auth_user as auth_user_helper,
+    find_user_by_id,
+    load_db,
+    save_db,
+    serialize_notification,
+    user_avatar_url,
+)
+
+
+def _serialize_notification_with_actor_avatar(
+    db: dict[str, Any],
+    row: dict[str, Any],
+) -> dict[str, Any]:
+    payload = serialize_notification(row)
+    actor_id = str(row.get("actorId", "")).strip()
+    actor = find_user_by_id(db, actor_id, include_deleted=True) if actor_id else None
+    payload["actorAvatarUrl"] = user_avatar_url(actor)
+    return payload
 
 
 def handle_get_notifications(
@@ -29,7 +47,7 @@ def handle_get_notifications(
         return
 
     rows = [
-        serialize_notification(row)
+        _serialize_notification_with_actor_avatar(db, row)
         for row in db.get("notifications", [])
         if str(row.get("userId", "")).strip() == str(user.get("id", "")).strip()
         and not row.get("deleted")
@@ -100,4 +118,8 @@ def handle_mark_notification_read(
         target["readAt"] = now
         save_db(db)
 
-    send_json(handler, HTTPStatus.OK, {"data": serialize_notification(target)})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": _serialize_notification_with_actor_avatar(db, target)},
+    )

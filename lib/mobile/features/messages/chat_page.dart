@@ -631,13 +631,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _hideOverlay();
     HapticFeedback.mediumImpact();
     final media = MediaQuery.of(context);
-    final double maxWidth = media.size.width - 24;
+    const double horizontalPadding = 8.0;
+    final double maxWidth = media.size.width - horizontalPadding * 2;
     final int actionCount = message.canRecall ? 5 : 4;
     final double estimatedWidth = (actionCount * 62.0)
         .clamp(228.0, maxWidth)
         .toDouble();
-    final double left = (globalPosition.dx - estimatedWidth / 2)
-        .clamp(12.0, media.size.width - estimatedWidth - 12.0)
+    final double leftForPeer = (globalPosition.dx - estimatedWidth / 2)
+        .clamp(
+          horizontalPadding,
+          media.size.width - estimatedWidth - horizontalPadding,
+        )
         .toDouble();
     final double top = (globalPosition.dy - 76.0)
         .clamp(media.padding.top + 8.0, media.size.height - 76.0)
@@ -652,7 +656,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: Container(color: Colors.transparent),
           ),
           Positioned(
-            left: left,
+            left: message.fromMe ? null : leftForPeer,
+            right: message.fromMe ? horizontalPadding : null,
             top: top,
             child: _MessageActionBar(
               message: message,

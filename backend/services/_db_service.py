@@ -1252,6 +1252,12 @@ def default_db() -> dict[str, Any]:
                 "verifiedAt": created,
                 "allowStrangerDm": True,
                 "showContactable": True,
+                "notifyComment": True,
+                "notifyReply": True,
+                "notifyLike": True,
+                "notifyFavorite": True,
+                "notifyReportResult": True,
+                "notifySystem": True,
                 "createdAt": created,
                 "deleted": False,
                 "isAdmin": False,
@@ -1271,6 +1277,12 @@ def default_db() -> dict[str, Any]:
                 "verifiedAt": created,
                 "allowStrangerDm": False,
                 "showContactable": False,
+                "notifyComment": True,
+                "notifyReply": True,
+                "notifyLike": True,
+                "notifyFavorite": True,
+                "notifyReportResult": True,
+                "notifySystem": True,
                 "createdAt": created,
                 "deleted": False,
                 "isAdmin": False,
@@ -1290,6 +1302,12 @@ def default_db() -> dict[str, Any]:
                 "verifiedAt": created,
                 "allowStrangerDm": False,
                 "showContactable": False,
+                "notifyComment": True,
+                "notifyReply": True,
+                "notifyLike": True,
+                "notifyFavorite": True,
+                "notifyReportResult": True,
+                "notifySystem": True,
                 "createdAt": created,
                 "deleted": False,
                 "isAdmin": False,
@@ -1595,6 +1613,17 @@ def migrate_db(db: dict[str, Any]) -> bool:
             normalized_avatar = normalize_avatar_url(str(user.get("avatarUrl", "")))
             if normalized_avatar != str(user.get("avatarUrl", "")):
                 user["avatarUrl"] = normalized_avatar
+                changed = True
+        for key in (
+            "notifyComment",
+            "notifyReply",
+            "notifyLike",
+            "notifyFavorite",
+            "notifyReportResult",
+            "notifySystem",
+        ):
+            if key not in user:
+                user[key] = True
                 changed = True
 
     for post in db.get("posts", []):

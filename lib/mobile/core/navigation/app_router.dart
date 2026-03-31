@@ -19,6 +19,7 @@ import '../../features/notifications/notification_center_page.dart';
 import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/settings_page.dart';
 import '../../features/profile/settings_main_page.dart';
+import '../../features/profile/notification_settings_page.dart';
 import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
@@ -39,7 +40,8 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   final isAuthRoute = state.matchedLocation.startsWith('/auth');
   final isAdminRoute = state.matchedLocation.startsWith('/admin');
   final isAdminLoginRoute = state.matchedLocation == '/admin/login';
-  final isPublicRoute = state.matchedLocation == '/profile/help-feedback' ||
+  final isPublicRoute =
+      state.matchedLocation == '/profile/help-feedback' ||
       state.matchedLocation.startsWith('/legal/');
 
   // 如果是管理员路由
@@ -98,10 +100,7 @@ final appRouter = GoRouter(
         // 首页
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: '/',
-              builder: (context, state) => const HomePage(),
-            ),
+            GoRoute(path: '/', builder: (context, state) => const HomePage()),
           ],
         ),
         // 消息
@@ -135,10 +134,7 @@ final appRouter = GoRouter(
     ),
 
     // 搜索（全屏，不在 Tab 内）
-    GoRoute(
-      path: '/search',
-      builder: (context, state) => const SearchPage(),
-    ),
+    GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
     // 收藏（全屏，不在 Tab 内）
     GoRoute(
       path: '/favorites',
@@ -163,7 +159,11 @@ final appRouter = GoRouter(
       path: '/post/:id',
       builder: (context, state) {
         final postId = state.pathParameters['id']!;
-        return PostDetailPage(postId: postId);
+        final String? initialCommentId = state.uri.queryParameters['commentId'];
+        return PostDetailPage(
+          postId: postId,
+          initialCommentId: initialCommentId,
+        );
       },
     ),
     GoRoute(
@@ -205,6 +205,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/settings/main',
       builder: (context, state) => const SettingsMainPage(),
+    ),
+    GoRoute(
+      path: '/profile/settings/notifications',
+      builder: (context, state) => const NotificationSettingsPage(),
     ),
     GoRoute(
       path: '/profile/posts',

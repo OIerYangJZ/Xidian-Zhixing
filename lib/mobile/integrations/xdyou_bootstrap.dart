@@ -144,3 +144,20 @@ Widget buildXdyouApp() {
   final treeHoleLoggedIn = AuthStore.instance.isAuthenticated;
   return MyApp(isFirst: !treeHoleLoggedIn && xdyouIsFirstLogin());
 }
+
+/// 优先处理 XDYou 内部返回栈。
+/// 返回 true 表示已由 XDYou 消费返回事件；false 表示已在首页，交由宿主 App 处理。
+Future<bool> maybeHandleXdyouBackPress() async {
+  final splitNavigator = wm_pref.splitViewKey.currentState;
+  if (splitNavigator != null) {
+    final handled = await splitNavigator.maybePop();
+    if (handled) return true;
+  }
+
+  final rootNavigator = wm_pref.debuggerKey.currentState;
+  if (rootNavigator != null) {
+    final handled = await rootNavigator.maybePop();
+    if (handled) return true;
+  }
+  return false;
+}

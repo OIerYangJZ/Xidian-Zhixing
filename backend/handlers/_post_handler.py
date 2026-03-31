@@ -316,6 +316,8 @@ def handle_get_comments_mine(
         result.append(
             {
                 "id": comment.get("id"),
+                "commentId": comment.get("id"),
+                "postId": comment.get("postId", ""),
                 "postTitle": post.get("title") if post else "原帖",
                 "content": comment.get("content", ""),
                 "timeText": iso_to_time_text(comment.get("createdAt")),

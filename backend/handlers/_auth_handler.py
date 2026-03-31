@@ -135,6 +135,12 @@ def _login_user(
             "verifiedAt": created_at,
             "allowStrangerDm": True,
             "showContactable": True,
+            "notifyComment": True,
+            "notifyReply": True,
+            "notifyLike": True,
+            "notifyFavorite": True,
+            "notifyReportResult": True,
+            "notifySystem": True,
             "createdAt": created_at,
             "deleted": False,
             "isAdmin": False,
@@ -158,6 +164,16 @@ def _login_user(
         user["nickname"] = nickname
         user["alias"] = nickname
         user["avatarUrl"] = normalize_avatar_url(str(user.get("avatarUrl", "")))
+        for key in (
+            "notifyComment",
+            "notifyReply",
+            "notifyLike",
+            "notifyFavorite",
+            "notifyReportResult",
+            "notifySystem",
+        ):
+            if key not in user:
+                user[key] = True
 
     if user.get("banned"):
         json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")

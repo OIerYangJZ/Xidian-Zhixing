@@ -10,8 +10,8 @@ import '../../core/theme/mobile_colors.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import '../post/image_gallery.dart';
 import '../widgets/avatar_widget.dart';
-import 'full_screen_image_page.dart';
 
 /// Instagram 风格帖子卡片
 /// 无边距、无圆角、无阴影、全宽紧贴屏幕
@@ -79,13 +79,10 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   void _openFullScreenImage(int initialIndex) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => FullScreenImagePage(
-          imageUrls: widget.post.imageUrls,
-          initialIndex: initialIndex,
-        ),
-      ),
+    ImageGallery.show(
+      context,
+      imageUrls: widget.post.imageUrls,
+      initialIndex: initialIndex,
     );
   }
 
@@ -184,10 +181,11 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildContent() {
-    final isShortTextPost = !widget.post.hasImage &&
-                            widget.post.imageUrls.isEmpty &&
-                            widget.post.content.length < 50 &&
-                            widget.post.title.isEmpty;
+    final isShortTextPost =
+        !widget.post.hasImage &&
+        widget.post.imageUrls.isEmpty &&
+        widget.post.content.length < 50 &&
+        widget.post.title.isEmpty;
 
     if (isShortTextPost) {
       return _buildShortTextContent();
@@ -251,16 +249,16 @@ class _PostCardState extends ConsumerState<PostCard> {
             PageView.builder(
               controller: _pageController,
               itemCount: widget.post.imageUrls.length,
-            onPageChanged: (index) {
-              _dotsHideTimer?.cancel();
-              setState(() {
-                _currentImageIndex = index;
-                _showDots = true;
-              });
-              _dotsHideTimer = Timer(const Duration(seconds: 1), () {
-                if (mounted) setState(() => _showDots = false);
-              });
-            },
+              onPageChanged: (index) {
+                _dotsHideTimer?.cancel();
+                setState(() {
+                  _currentImageIndex = index;
+                  _showDots = true;
+                });
+                _dotsHideTimer = Timer(const Duration(seconds: 1), () {
+                  if (mounted) setState(() => _showDots = false);
+                });
+              },
               itemBuilder: (context, index) {
                 final fullUrl = _resolveImageUrl(widget.post.imageUrls[index]);
                 return GestureDetector(
@@ -294,30 +292,30 @@ class _PostCardState extends ConsumerState<PostCard> {
                 );
               },
             ),
-          // 圆点指示器 - 仅滑动时显示，停止1秒后自动隐藏
-          if (widget.post.imageUrls.length > 1 && _showDots)
-            Positioned(
-              bottom: 12,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(widget.post.imageUrls.length, (i) {
-                  final isActive = _currentImageIndex == i;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: isActive ? 8 : 6,
-                    height: isActive ? 8 : 6,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isActive
-                          ? Colors.white
-                          : Colors.white.withValues(alpha: 0.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 2,
+            // 圆点指示器 - 仅滑动时显示，停止1秒后自动隐藏
+            if (widget.post.imageUrls.length > 1 && _showDots)
+              Positioned(
+                bottom: 12,
+                left: 0,
+                right: 0,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(widget.post.imageUrls.length, (i) {
+                    final isActive = _currentImageIndex == i;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: isActive ? 8 : 6,
+                      height: isActive ? 8 : 6,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isActive
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 2,
                           ),
                         ],
                       ),
@@ -439,13 +437,14 @@ class _PostCardState extends ConsumerState<PostCard> {
         ),
         const SizedBox(width: 6),
         _ChannelDot(channel: widget.post.channel),
+        if (widget.post.isPinned) ...[
+          const SizedBox(width: 6),
+          const Icon(Icons.push_pin, size: 14, color: MobileTheme.primary),
+        ],
         const Spacer(),
         Text(
           _formatTime(widget.post.createdAt),
-          style: TextStyle(
-            fontSize: 14,
-            color: colors.textTertiary,
-          ),
+          style: TextStyle(fontSize: 14, color: colors.textTertiary),
         ),
       ],
     );
@@ -528,7 +527,9 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   String _resolveImageUrl(String imageUrl) {
-    return imageUrl.startsWith('http') ? imageUrl : AppConfig.resolveUrl(imageUrl);
+    return imageUrl.startsWith('http')
+        ? imageUrl
+        : AppConfig.resolveUrl(imageUrl);
   }
 }
 
@@ -560,10 +561,7 @@ class _ChannelDot extends StatelessWidget {
         Container(
           width: 7,
           height: 7,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 4),
         Text(
@@ -609,11 +607,7 @@ class _ActionButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isActive ? activeIcon : icon,
-              size: 22,
-              color: effectiveColor,
-            ),
+            Icon(isActive ? activeIcon : icon, size: 22, color: effectiveColor),
             if (count > 0) ...[
               const SizedBox(width: 4),
               Text(

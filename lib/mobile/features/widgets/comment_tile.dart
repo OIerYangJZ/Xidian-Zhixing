@@ -81,8 +81,9 @@ class CommentTile extends StatelessWidget {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color:
-                                    MobileTheme.accent.withValues(alpha: 0.12),
+                                color: MobileTheme.accent.withValues(
+                                  alpha: 0.12,
+                                ),
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
@@ -150,7 +151,7 @@ class CommentTile extends StatelessWidget {
                             GestureDetector(
                               onTap: onTap,
                               child: Text(
-                                '展开 ${comment.replies.length} 条回复',
+                                '展开 ${comment.effectiveReplyCount} 条回复',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: MobileTheme.primary,
@@ -243,13 +244,7 @@ class _ActionItem extends StatelessWidget {
             Icon(icon, size: 16, color: color),
             if (label != null) ...[
               const SizedBox(width: 3),
-              Text(
-                label!,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: color,
-                ),
-              ),
+              Text(label!, style: TextStyle(fontSize: 12, color: color)),
             ],
           ],
         ),

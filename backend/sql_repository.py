@@ -127,6 +127,12 @@ class SqliteTreeholeRepository:
               verified_at TEXT NULL,
               allow_stranger_dm INTEGER NOT NULL DEFAULT 1,
               show_contactable INTEGER NOT NULL DEFAULT 1,
+              notify_comment INTEGER NOT NULL DEFAULT 1,
+              notify_reply INTEGER NOT NULL DEFAULT 1,
+              notify_like INTEGER NOT NULL DEFAULT 1,
+              notify_favorite INTEGER NOT NULL DEFAULT 1,
+              notify_report_result INTEGER NOT NULL DEFAULT 1,
+              notify_system INTEGER NOT NULL DEFAULT 1,
               created_at TEXT NOT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
               is_admin INTEGER NOT NULL DEFAULT 0,
@@ -529,6 +535,12 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "bio", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "gender", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "background_image_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "notify_comment", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_reply", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_like", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_favorite", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_report_result", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "users", "notify_system", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "posts", "is_anonymous", "INTEGER NULL")
         self._ensure_column(conn, "posts", "visibility", "TEXT NOT NULL DEFAULT 'public'")
         self._ensure_column(conn, "posts", "content_format", "TEXT NOT NULL DEFAULT 'plain'")
@@ -598,7 +610,9 @@ class SqliteTreeholeRepository:
             """
             SELECT id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
                    user_level, verified, verified_at,
-                   allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
+                   allow_stranger_dm, show_contactable,
+                   notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
+                   created_at, deleted, is_admin, banned, muted
             FROM users
             ORDER BY created_at, id
             """
@@ -621,6 +635,12 @@ class SqliteTreeholeRepository:
                     "verifiedAt": _to_str(row["verified_at"]),
                     "allowStrangerDm": _to_bool(row["allow_stranger_dm"]),
                     "showContactable": _to_bool(row["show_contactable"]),
+                    "notifyComment": _to_bool(row["notify_comment"]),
+                    "notifyReply": _to_bool(row["notify_reply"]),
+                    "notifyLike": _to_bool(row["notify_like"]),
+                    "notifyFavorite": _to_bool(row["notify_favorite"]),
+                    "notifyReportResult": _to_bool(row["notify_report_result"]),
+                    "notifySystem": _to_bool(row["notify_system"]),
                     "createdAt": row["created_at"],
                     "deleted": _to_bool(row["deleted"]),
                     "isAdmin": _to_bool(row["is_admin"]),
@@ -1115,8 +1135,10 @@ class SqliteTreeholeRepository:
                     INSERT INTO users (
                       id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
                       user_level, verified, verified_at,
-                      allow_stranger_dm, show_contactable, created_at, deleted, is_admin, banned, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      allow_stranger_dm, show_contactable,
+                      notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
+                      created_at, deleted, is_admin, banned, muted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1134,6 +1156,12 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("verifiedAt")) or None,
                         _to_bool_int(row.get("allowStrangerDm", True)),
                         _to_bool_int(row.get("showContactable", True)),
+                        _to_bool_int(row.get("notifyComment", True)),
+                        _to_bool_int(row.get("notifyReply", True)),
+                        _to_bool_int(row.get("notifyLike", True)),
+                        _to_bool_int(row.get("notifyFavorite", True)),
+                        _to_bool_int(row.get("notifyReportResult", True)),
+                        _to_bool_int(row.get("notifySystem", True)),
                         _to_str(row.get("createdAt")) or created_now,
                         _to_bool_int(row.get("deleted")),
                         _to_bool_int(row.get("isAdmin")),

@@ -20,8 +20,13 @@ import 'comment_input_bar.dart';
 /// 包含帖子正文、图片画廊、评论列表、点赞/收藏/举报交互
 class PostDetailPage extends ConsumerStatefulWidget {
   final String postId;
+  final String? initialCommentId;
 
-  const PostDetailPage({super.key, required this.postId});
+  const PostDetailPage({
+    super.key,
+    required this.postId,
+    this.initialCommentId,
+  });
 
   @override
   ConsumerState<PostDetailPage> createState() => _PostDetailPageState();
@@ -50,6 +55,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   // 用于操作评论输入框
   final GlobalKey<dynamic> _commentInputKey = GlobalKey();
+  final Map<String, GlobalKey> _commentItemKeys = <String, GlobalKey>{};
+  String _initialCommentId = '';
+  bool _didHandleInitialCommentScroll = false;
 
   @override
   void dispose() {
@@ -60,6 +68,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   @override
   void initState() {
     super.initState();
+    _initialCommentId = (widget.initialCommentId ?? '').trim();
     _loadData(recordView: true);
   }
 
@@ -81,9 +90,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         setState(() {
           _post = post;
           _postIsLiked = post.isLiked;
+          _commentItemKeys.clear();
           _comments = _buildCommentTree(comments);
           _isLoading = false;
         });
+        _scrollToInitialCommentIfNeeded();
       }
     } catch (e) {
       if (mounted) {
@@ -295,6 +306,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final post = _post;
     if (post == null ||
         _isFollowing ||
+        post.isFollowingAuthor ||
         !post.canFollowAuthor ||
         post.authorUserId.isEmpty) {
       return;
@@ -305,21 +317,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     });
     try {
       final userRepo = ref.read(userRepositoryProvider);
-      if (post.isFollowingAuthor) {
-        await userRepo.unfollowUser(post.authorUserId);
-      } else {
-        await userRepo.followUser(post.authorUserId);
-      }
+      await userRepo.followUser(post.authorUserId);
       if (!mounted) {
         return;
       }
-      final bool nextFollowing = !post.isFollowingAuthor;
       setState(() {
-        _post = post.copyWith(isFollowingAuthor: nextFollowing);
+        _post = post.copyWith(isFollowingAuthor: true);
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(nextFollowing ? '关注成功' : '已取消关注')));
+      ).showSnackBar(const SnackBar(content: Text('关注成功')));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -345,6 +352,34 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
       );
     }
+  }
+
+  GlobalKey _commentKeyFor(String commentId) {
+    return _commentItemKeys.putIfAbsent(commentId, () => GlobalKey());
+  }
+
+  void _scrollToInitialCommentIfNeeded() {
+    if (_didHandleInitialCommentScroll || _initialCommentId.isEmpty) {
+      return;
+    }
+    _didHandleInitialCommentScroll = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
+      final GlobalKey? key = _commentItemKeys[_initialCommentId];
+      final BuildContext? targetContext = key?.currentContext;
+      if (targetContext == null) {
+        _scrollToComments();
+        return;
+      }
+      Scrollable.ensureVisible(
+        targetContext,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+        alignment: 0.2,
+      );
+    });
   }
 
   void _toggleEmoji() {
@@ -614,16 +649,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                     ],
                   ),
                 ),
-                if (post.canFollowAuthor && post.authorUserId.isNotEmpty)
+                if (post.canFollowAuthor &&
+                    post.authorUserId.isNotEmpty &&
+                    !post.isFollowingAuthor)
                   TextButton.icon(
                     onPressed: _isFollowing ? null : _handleFollowAuthor,
-                    icon: Icon(
-                      post.isFollowingAuthor
-                          ? Icons.person_remove_alt_1_outlined
-                          : Icons.person_add_alt_1_outlined,
-                      size: 16,
-                    ),
-                    label: Text(post.isFollowingAuthor ? '取消关注' : '关注'),
+                    icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
+                    label: const Text('关注'),
                     style: TextButton.styleFrom(
                       foregroundColor: MobileTheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -913,6 +945,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           comment: comment,
           indentLevel: isNested ? 1 : 0,
           onReply: (c) => setState(() => _replyingTo = c),
+          commentKeyBuilder: _commentKeyFor,
         );
       },
     );
@@ -928,11 +961,13 @@ class _CommentTile extends StatefulWidget {
   final CommentItem comment;
   final void Function(CommentItem)? onReply;
   final int indentLevel;
+  final GlobalKey Function(String commentId)? commentKeyBuilder;
 
   const _CommentTile({
     required this.comment,
     this.onReply,
     this.indentLevel = 0,
+    this.commentKeyBuilder,
   });
 
   @override
@@ -1002,9 +1037,11 @@ class _CommentTileState extends State<_CommentTile> {
     // 但评论内容本身继续递归渲染，不截断楼中楼。
     final int effectiveIndent = widget.indentLevel.clamp(0, 3);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+    return Container(
+      key: widget.commentKeyBuilder?.call(comment.id),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
         IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1169,9 +1206,11 @@ class _CommentTileState extends State<_CommentTile> {
               comment: reply,
               indentLevel: widget.indentLevel + 1,
               onReply: widget.onReply,
+              commentKeyBuilder: widget.commentKeyBuilder,
             ),
           ),
-      ],
+        ],
+      ),
     );
   }
 

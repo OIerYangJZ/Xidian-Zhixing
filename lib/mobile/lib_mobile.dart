@@ -25,6 +25,7 @@ export 'features/profile/my_comments_page.dart';
 export 'features/profile/my_reports_page.dart';
 export 'features/profile/settings_page.dart';
 export 'features/profile/settings_main_page.dart';
+export 'features/profile/notification_settings_page.dart';
 export 'features/notifications/notification_center_page.dart';
 export 'features/admin/admin_login_page.dart';
 export 'features/admin/admin_console_page.dart';

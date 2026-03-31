@@ -15,6 +15,12 @@ class UserProfile {
     required this.isAdmin,
     required this.levelUpgradeRequest,
     required this.accountCancellationRequest,
+    this.notifyComment = true,
+    this.notifyReply = true,
+    this.notifyLike = true,
+    this.notifyFavorite = true,
+    this.notifyReportResult = true,
+    this.notifySystem = true,
     this.userId = '',
     this.postCount = 0,
     this.followingCount = 0,
@@ -37,6 +43,12 @@ class UserProfile {
   final String verifiedAt;
   final bool allowStrangerDm;
   final bool showContactable;
+  final bool notifyComment;
+  final bool notifyReply;
+  final bool notifyLike;
+  final bool notifyFavorite;
+  final bool notifyReportResult;
+  final bool notifySystem;
   final int favoriteCount;
   final int userLevel;
   final String userLevelLabel;
@@ -72,6 +84,12 @@ class UserProfile {
       verifiedAt: (json['verifiedAt'] ?? json['verifyTime'] ?? '-').toString(),
       allowStrangerDm: _toBool(json['allowStrangerDm']) ?? true,
       showContactable: _toBool(json['showContactable']) ?? true,
+      notifyComment: _toBool(json['notifyComment']) ?? true,
+      notifyReply: _toBool(json['notifyReply']) ?? true,
+      notifyLike: _toBool(json['notifyLike']) ?? true,
+      notifyFavorite: _toBool(json['notifyFavorite']) ?? true,
+      notifyReportResult: _toBool(json['notifyReportResult']) ?? true,
+      notifySystem: _toBool(json['notifySystem']) ?? true,
       favoriteCount: _toInt(json['favoriteCount']) ?? 0,
       userLevel: _toInt(json['userLevel']) ?? 2,
       userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),
@@ -101,7 +119,9 @@ class UserProfile {
       canFollow: _toBool(json['canFollow']) ?? false,
       canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
       bio: (json['bio'] ?? json['signature'] ?? '').toString(),
-      backgroundImageUrl: (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '').toString(),
+      backgroundImageUrl:
+          (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '')
+              .toString(),
       gender: (json['gender'] ?? '').toString(),
     );
   }
@@ -113,6 +133,12 @@ class UserProfile {
     String? email,
     bool? allowStrangerDm,
     bool? showContactable,
+    bool? notifyComment,
+    bool? notifyReply,
+    bool? notifyLike,
+    bool? notifyFavorite,
+    bool? notifyReportResult,
+    bool? notifySystem,
     int? favoriteCount,
     int? userLevel,
     String? userLevelLabel,
@@ -142,6 +168,12 @@ class UserProfile {
       verifiedAt: verifiedAt,
       allowStrangerDm: allowStrangerDm ?? this.allowStrangerDm,
       showContactable: showContactable ?? this.showContactable,
+      notifyComment: notifyComment ?? this.notifyComment,
+      notifyReply: notifyReply ?? this.notifyReply,
+      notifyLike: notifyLike ?? this.notifyLike,
+      notifyFavorite: notifyFavorite ?? this.notifyFavorite,
+      notifyReportResult: notifyReportResult ?? this.notifyReportResult,
+      notifySystem: notifySystem ?? this.notifySystem,
       favoriteCount: favoriteCount ?? this.favoriteCount,
       userLevel: userLevel ?? this.userLevel,
       userLevelLabel: userLevelLabel ?? this.userLevelLabel,

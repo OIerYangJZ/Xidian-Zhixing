@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
-import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/core/state/app_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/models/public_user_profile.dart';
@@ -22,15 +21,17 @@ class SearchPage extends ConsumerStatefulWidget {
 
 enum SearchTab { posts, users }
 
-class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProviderStateMixin {
-  final _searchController = TextEditingController();
-  final _focusNode = FocusNode();
+class _SearchPageState extends ConsumerState<SearchPage>
+    with SingleTickerProviderStateMixin {
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   late TabController _tabController;
 
   SearchTab _currentTab = SearchTab.posts;
   bool _isSearching = false;
-  List<PostItem> _postResults = [];
-  PublicUserProfile? _userResult;
+  bool _hasSearched = false;
+  List<PostItem> _postResults = <PostItem>[];
+  List<PublicUserProfile> _userResults = <PublicUserProfile>[];
 
   @override
   void initState() {
@@ -39,9 +40,12 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() {
-          _currentTab = _tabController.index == 0 ? SearchTab.posts : SearchTab.users;
-          _postResults = [];
-          _userResult = null;
+          _currentTab = _tabController.index == 0
+              ? SearchTab.posts
+              : SearchTab.users;
+          _hasSearched = false;
+          _postResults = <PostItem>[];
+          _userResults = <PublicUserProfile>[];
           _searchController.clear();
         });
       }
@@ -57,27 +61,48 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
   }
 
   Future<void> _handleSearch() async {
-    final keyword = _searchController.text.trim();
-    if (keyword.isEmpty) return;
+    final String keyword = _searchController.text.trim();
+    if (keyword.isEmpty) {
+      return;
+    }
 
-    setState(() => _isSearching = true);
+    setState(() {
+      _isSearching = true;
+      _hasSearched = true;
+    });
 
     try {
       if (_currentTab == SearchTab.posts) {
-        final results = await ref.read(postRepositoryProvider).fetchPosts(keyword: keyword);
-        if (mounted) setState(() => _postResults = results);
+        final List<PostItem> results = await ref
+            .read(postRepositoryProvider)
+            .fetchPosts(keyword: keyword);
+        if (mounted) {
+          setState(() {
+            _postResults = results;
+          });
+        }
       } else {
-        final user = await ref.read(userRepositoryProvider).fetchUserProfile(keyword);
-        if (mounted) setState(() => _userResult = user);
+        final List<PublicUserProfile> users = await ref
+            .read(userRepositoryProvider)
+            .searchUsers(keyword);
+        if (mounted) {
+          setState(() {
+            _userResults = users;
+          });
+        }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_currentTab == SearchTab.posts ? '搜索失败' : '用户不存在')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('搜索失败，请稍后重试')));
       }
     } finally {
-      if (mounted) setState(() => _isSearching = false);
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+        });
+      }
     }
   }
 
@@ -104,8 +129,8 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
               child: _isSearching
                   ? const Center(child: CircularProgressIndicator())
                   : _currentTab == SearchTab.posts
-                      ? _buildPostResults()
-                      : _buildUserResult(),
+                  ? _buildPostResults()
+                  : _buildUserResult(),
             ),
           ],
         ),
@@ -125,9 +150,12 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
               controller: _searchController,
               focusNode: _focusNode,
               textInputAction: TextInputAction.search,
+              onChanged: (_) => setState(() {}),
               onSubmitted: (_) => _handleSearch(),
               decoration: InputDecoration(
-                hintText: _currentTab == SearchTab.posts ? '搜索帖子...' : '输入用户ID...',
+                hintText: _currentTab == SearchTab.posts
+                    ? '搜索帖子...'
+                    : '输入昵称关键词...',
                 prefixIcon: const Icon(Icons.search, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
@@ -135,8 +163,9 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
                         onPressed: () {
                           _searchController.clear();
                           setState(() {
-                            _postResults = [];
-                            _userResult = null;
+                            _hasSearched = false;
+                            _postResults = <PostItem>[];
+                            _userResults = <PublicUserProfile>[];
                           });
                         },
                       )
@@ -147,8 +176,26 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
               ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          SizedBox(
+            height: 40,
+            child: ElevatedButton(
+              onPressed: _isSearching ? null : _handleSearch,
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('搜索'),
             ),
           ),
         ],
@@ -157,10 +204,18 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
   }
 
   Widget _buildPostResults() {
-    if (_postResults.isEmpty) {
+    if (!_hasSearched && _searchController.text.trim().isEmpty) {
       return Center(
         child: Text(
           '输入关键词搜索帖子',
+          style: TextStyle(color: MobileColors.of(context).textSecondary),
+        ),
+      );
+    }
+    if (_postResults.isEmpty) {
+      return Center(
+        child: Text(
+          '没有找到匹配帖子',
           style: TextStyle(color: MobileColors.of(context).textSecondary),
         ),
       );
@@ -179,20 +234,30 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
   }
 
   Widget _buildUserResult() {
-    if (_userResult == null) {
+    if (!_hasSearched && _searchController.text.trim().isEmpty) {
       return Center(
         child: Text(
-          '输入用户ID搜索',
+          '输入昵称后可模糊搜索用户',
+          style: TextStyle(color: MobileColors.of(context).textSecondary),
+        ),
+      );
+    }
+    if (_userResults.isEmpty) {
+      return Center(
+        child: Text(
+          '没有找到匹配用户',
           style: TextStyle(color: MobileColors.of(context).textSecondary),
         ),
       );
     }
     final colors = MobileColors.of(context);
-    final user = _userResult!;
-    return ListView(
+    return ListView.separated(
       padding: const EdgeInsets.all(16),
-      children: [
-        GestureDetector(
+      itemCount: _userResults.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      itemBuilder: (context, index) {
+        final user = _userResults[index];
+        return GestureDetector(
           onTap: () => context.push('/user/${user.userId}'),
           child: Container(
             padding: const EdgeInsets.all(16),
@@ -237,8 +302,8 @@ class _SearchPageState extends ConsumerState<SearchPage> with SingleTickerProvid
               ],
             ),
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

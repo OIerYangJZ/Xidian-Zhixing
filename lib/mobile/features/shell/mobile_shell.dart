@@ -10,13 +10,14 @@ import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
+import '../../integrations/xdyou_bootstrap.dart';
 import '../home/home_page.dart';
 import '../messages/messages_page.dart';
 import '../xdyou/xdyou_host_page.dart';
 import '../profile/profile_page.dart';
 
-/// 底部导航栏显示/隐藏状态全局 ChangeNotifier
-/// 首页向上滚动时隐藏，向下滚动时显示
+/// 搴曢儴瀵艰埅鏍忔樉绀?闅愯棌鐘舵€佸叏灞€ ChangeNotifier
+/// 棣栭〉鍚戜笂婊氬姩鏃堕殣钘忥紝鍚戜笅婊氬姩鏃舵樉绀?
 class BottomNavVisibilityNotifier extends ChangeNotifier {
   bool _visible = true;
   bool get visible => _visible;
@@ -40,18 +41,15 @@ class BottomNavVisibilityNotifier extends ChangeNotifier {
   BottomNavVisibilityNotifier._();
 }
 
-/// 移动端主 Shell
-/// 包含底部 Tab 导航栏（Twitter 风格：纯白背景 + 顶部 0.5px 细线，无阴影）
-/// 支持：左右滑动切换 Tab、首页滑动时自动收起底部栏、通知红点 Badge
+/// 绉诲姩绔富 Shell
+/// 鍖呭惈搴曢儴 Tab 瀵艰埅鏍忥紙Twitter 椋庢牸锛氱函鐧借儗鏅?+ 椤堕儴 0.5px 缁嗙嚎锛屾棤闃村奖锛?
+/// 鏀寔锛氬乏鍙虫粦鍔ㄥ垏鎹?Tab銆侀椤垫粦鍔ㄦ椂鑷姩鏀惰捣搴曢儴鏍忋€侀€氱煡绾㈢偣 Badge
 class MobileShell extends ConsumerStatefulWidget {
-  const MobileShell({
-    super.key,
-    required this.navigationShell,
-  });
+  const MobileShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
-  /// 未登录时底部栏只有 3 项（首页/消息/我的），对应 branch 0、1、3；「校园」仅对已登录用户展示。
+  /// 鏈櫥褰曟椂搴曢儴鏍忓彧鏈?3 椤癸紙棣栭〉/娑堟伅/鎴戠殑锛夛紝瀵瑰簲 branch 0銆?銆?锛涖€屾牎鍥€嶄粎瀵瑰凡鐧诲綍鐢ㄦ埛灞曠ず銆?
   static int _displayIndexForBranch(bool loggedIn, int branchIndex) {
     if (loggedIn) return branchIndex;
     if (branchIndex <= 1) return branchIndex;
@@ -70,22 +68,23 @@ class MobileShell extends ConsumerStatefulWidget {
 
 class _MobileShellState extends ConsumerState<MobileShell>
     with TickerProviderStateMixin, WidgetsBindingObserver {
-  /// 记录是否已提示"再按一次退出"
+  /// 璁板綍鏄惁宸叉彁绀?鍐嶆寜涓€娆￠€€鍑?
   bool _backHintShown = false;
 
-  /// PageView 控制器（用于左右滑动切换 Tab）
+  /// PageView 鎺у埗鍣紙鐢ㄤ簬宸﹀彸婊戝姩鍒囨崲 Tab锛?
   late final PageController _pageController;
 
-  /// 底部栏动画
+  /// 搴曢儴鏍忓姩鐢?
   late final AnimationController _navAnimController;
   late final Animation<double> _navSlideAnim;
 
-  /// 当前活跃 display index（用于同步 PageView）
+  /// 褰撳墠娲昏穬 display index锛堢敤浜庡悓姝?PageView锛?
   int _currentDisplayIndex = 0;
 
-  /// 缓存当前登录态和 branch（用于在回调中访问最新值）
+  /// 缂撳瓨褰撳墠鐧诲綍鎬佸拰 branch锛堢敤浜庡湪鍥炶皟涓闂渶鏂板€硷級
   bool _loggedIn = false;
   int _currentBranch = 0;
+  bool _didPrefetchUnread = false;
 
   @override
   void initState() {
@@ -104,14 +103,32 @@ class _MobileShellState extends ConsumerState<MobileShell>
     );
 
     BottomNavVisibilityNotifier.instance.addListener(_onNavVisibilityChanged);
+    Future<void>.microtask(() => _prefetchUnreadStateIfNeeded());
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // App 切回前台时重置退出提示状态
+    // App 鍒囧洖鍓嶅彴鏃堕噸缃€€鍑烘彁绀虹姸鎬?
     if (state == AppLifecycleState.resumed) {
       _backHintShown = false;
+      Future<void>.microtask(
+        () => _prefetchUnreadStateIfNeeded(forceRefresh: true),
+      );
     }
+  }
+
+  Future<void> _prefetchUnreadStateIfNeeded({bool forceRefresh = false}) async {
+    if (!AuthStore.instance.isAuthenticated) {
+      _didPrefetchUnread = false;
+      return;
+    }
+    if (_didPrefetchUnread && !forceRefresh) {
+      return;
+    }
+    _didPrefetchUnread = true;
+    try {
+      await ref.read(messagesControllerProvider.notifier).loadInitial();
+    } catch (_) {}
   }
 
   void _onNavVisibilityChanged() {
@@ -126,13 +143,15 @@ class _MobileShellState extends ConsumerState<MobileShell>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    BottomNavVisibilityNotifier.instance.removeListener(_onNavVisibilityChanged);
+    BottomNavVisibilityNotifier.instance.removeListener(
+      _onNavVisibilityChanged,
+    );
     _pageController.dispose();
     _navAnimController.dispose();
     super.dispose();
   }
 
-  /// 切换到指定 Tab
+  /// 鍒囨崲鍒版寚瀹?Tab
   void _switchToTab(int displayIndex) {
     if (displayIndex == _currentDisplayIndex) return;
 
@@ -146,23 +165,22 @@ class _MobileShellState extends ConsumerState<MobileShell>
     );
   }
 
-  /// PageView 滑动结束后，同步 GoRouter 路由状态
+  /// PageView 婊戝姩缁撴潫鍚庯紝鍚屾 GoRouter 璺敱鐘舵€?
   void _onPageViewIdle(int index) {
     _currentDisplayIndex = index;
 
     final target = MobileShell._branchIndexForDisplay(_loggedIn, index);
     if (target == widget.navigationShell.currentIndex) return;
 
-    widget.navigationShell.goBranch(
-      target,
-      initialLocation: false,
-    );
+    widget.navigationShell.goBranch(target, initialLocation: false);
 
-    // GoRouter 更新 navigationShell.currentIndex 后，同步 PageView
+    // GoRouter 鏇存柊 navigationShell.currentIndex 鍚庯紝鍚屾 PageView
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final expectedDisplay =
-          MobileShell._displayIndexForBranch(_loggedIn, target);
+      final expectedDisplay = MobileShell._displayIndexForBranch(
+        _loggedIn,
+        target,
+      );
       if (_pageController.hasClients &&
           _pageController.page?.round() != expectedDisplay) {
         _pageController.jumpToPage(expectedDisplay);
@@ -170,7 +188,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
     });
   }
 
-  /// 退出应用
+  /// 閫€鍑哄簲鐢?
   void _exitApp() {
     if (Platform.isAndroid) {
       SystemNavigator.pop();
@@ -179,18 +197,18 @@ class _MobileShellState extends ConsumerState<MobileShell>
     }
   }
 
-  /// 滚动首页到顶部
+  /// 婊氬姩棣栭〉鍒伴《閮?
   void _scrollHomeToTop() {
     ref.read(scrollToTopTriggerProvider.notifier).state =
         DateTime.now().millisecondsSinceEpoch;
   }
 
-  /// 处理返回键（使用传入的 branch 值，而非闭包捕获）
+  /// 澶勭悊杩斿洖閿紙浣跨敤浼犲叆鐨?branch 鍊硷紝鑰岄潪闂寘鎹曡幏锛?
   void _handleBackPress(int branch) {
     if (!mounted) return;
 
     if (branch == 0) {
-      // 首页：检查 Navigator 是否可 pop（是否有子页面）
+      // 棣栭〉锛氭鏌?Navigator 鏄惁鍙?pop锛堟槸鍚︽湁瀛愰〉闈級
       final navigator = Navigator.of(context);
       if (navigator.canPop()) {
         navigator.pop();
@@ -208,7 +226,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
         });
       }
     } else {
-      // 消息/校园/我的：第一次切回首页，第二次退出
+      // 娑堟伅/鏍″洯/鎴戠殑锛氱涓€娆″垏鍥為椤碉紝绗簩娆￠€€鍑?
       if (_backHintShown) {
         _exitApp();
       } else {
@@ -230,7 +248,9 @@ class _MobileShellState extends ConsumerState<MobileShell>
         duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
       ),
     );
   }
@@ -241,14 +261,21 @@ class _MobileShellState extends ConsumerState<MobileShell>
     final notificationsState = ref.watch(notificationsControllerProvider);
     final notificationUnreadCount = notificationsState.unreadCount;
 
-    // 在 build 最开始同步最新值，确保 BackButtonListener 回调拿到正确的 branch
+    // 鍦?build 鏈€寮€濮嬪悓姝ユ渶鏂板€硷紝纭繚 BackButtonListener 鍥炶皟鎷垮埌姝ｇ‘鐨?branch
     _loggedIn = AuthStore.instance.isAuthenticated;
     _currentBranch = widget.navigationShell.currentIndex;
+    if (_loggedIn && !_didPrefetchUnread) {
+      Future<void>.microtask(() => _prefetchUnreadStateIfNeeded());
+    } else if (!_loggedIn && _didPrefetchUnread) {
+      _didPrefetchUnread = false;
+    }
 
-    final displayIndex =
-        MobileShell._displayIndexForBranch(_loggedIn, _currentBranch);
+    final displayIndex = MobileShell._displayIndexForBranch(
+      _loggedIn,
+      _currentBranch,
+    );
 
-    // 保持 PageView 同步
+    // 淇濇寔 PageView 鍚屾
     final currentPage = _pageController.hasClients
         ? (_pageController.page?.round() ?? 0)
         : 0;
@@ -266,16 +293,39 @@ class _MobileShellState extends ConsumerState<MobileShell>
       });
     }
 
-    // BackButtonListener 优先于 go_router 路由器接收 Android 返回键。
-    // go_router 14 的 RouterDelegate.popRoute() 不经过 Navigator.maybePop()，
-    // 因此 PopScope 无法拦截 Shell 层级的返回键，必须使用 BackButtonListener。
+    // BackButtonListener 浼樺厛浜?go_router 璺敱鍣ㄦ帴鏀?Android 杩斿洖閿€?
+    // go_router 14 鐨?RouterDelegate.popRoute() 涓嶇粡杩?Navigator.maybePop()锛?
+    // 鍥犳 PopScope 鏃犳硶鎷︽埅 Shell 灞傜骇鐨勮繑鍥為敭锛屽繀椤讳娇鐢?BackButtonListener銆?
     final branchForCallback = _currentBranch;
 
     return BackButtonListener(
       onBackButtonPressed: () async {
-        // 若 go_router 还有可弹出的页面（如帖子详情），交由路由器自行处理
+        // 先处理通过 Navigator.push 打开的页面（如首页图片预览）。
+        final NavigatorState rootNavigator = Navigator.of(
+          context,
+          rootNavigator: true,
+        );
+        if (rootNavigator.canPop()) {
+          rootNavigator.pop();
+          return true;
+        }
+        final NavigatorState navigator = Navigator.of(context);
+        if (navigator.canPop()) {
+          navigator.pop();
+          return true;
+        }
+
+        // go_router 仍有可弹出的页面时，交给路由器处理。
         if (context.canPop()) return false;
-        // 否则由 Shell 接管，执行自定义返回逻辑
+
+        if (_loggedIn && branchForCallback == 2) {
+          final handledByXdyou = await maybeHandleXdyouBackPress();
+          if (handledByXdyou) {
+            return true;
+          }
+        }
+
+        // 鍚﹀垯鐢?Shell 鎺ョ锛屾墽琛岃嚜瀹氫箟杩斿洖閫昏緫
         _handleBackPress(branchForCallback);
         return true;
       },
@@ -287,7 +337,10 @@ class _MobileShellState extends ConsumerState<MobileShell>
               builder: (context, child) {
                 final bottomInset = MediaQuery.paddingOf(context).bottom;
                 final navBarHeight = 60.0 + bottomInset;
-                final padding = (navBarHeight - _navSlideAnim.value).clamp(0.0, navBarHeight);
+                final padding = (navBarHeight - _navSlideAnim.value).clamp(
+                  0.0,
+                  navBarHeight,
+                );
                 return Padding(
                   padding: EdgeInsets.only(bottom: padding),
                   child: child!,
@@ -319,7 +372,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
   }
 }
 
-/// PageView Tab 内容区
+/// PageView Tab 鍐呭鍖?
 class _TabBody extends StatefulWidget {
   const _TabBody({
     required this.pageController,
@@ -391,15 +444,12 @@ class _TabBodyState extends State<_TabBody> {
   }
 }
 
-/// 首页 Tab：监听滚动方向以控制底部栏显隐 + overscroll 切换 Tab
+/// 棣栭〉 Tab锛氱洃鍚粴鍔ㄦ柟鍚戜互鎺у埗搴曢儴鏍忔樉闅?+ overscroll 鍒囨崲 Tab
 class _HomeTabWrapper extends StatefulWidget {
   final int tabCount;
   final PageController pageController;
 
-  const _HomeTabWrapper({
-    required this.tabCount,
-    required this.pageController,
-  });
+  const _HomeTabWrapper({required this.tabCount, required this.pageController});
 
   @override
   State<_HomeTabWrapper> createState() => _HomeTabWrapperState();
@@ -410,7 +460,7 @@ class _HomeTabWrapperState extends State<_HomeTabWrapper> {
   Widget build(BuildContext context) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
-        // overscroll 向右滑动时切换到上一个 Tab
+        // overscroll 鍚戝彸婊戝姩鏃跺垏鎹㈠埌涓婁竴涓?Tab
         if (notification is OverscrollNotification) {
           if (notification.velocity < -200) {
             final currentPage = widget.pageController.page?.round() ?? 0;
@@ -431,7 +481,7 @@ class _HomeTabWrapperState extends State<_HomeTabWrapper> {
   }
 }
 
-/// 底部导航栏（支持动画显隐）
+/// 搴曢儴瀵艰埅鏍忥紙鏀寔鍔ㄧ敾鏄鹃殣锛?
 class _BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final int messageUnreadCount;
@@ -468,12 +518,7 @@ class _BottomNavBar extends StatelessWidget {
         height: 60,
         decoration: BoxDecoration(
           color: navBackground,
-          border: Border(
-            top: BorderSide(
-              color: colors.divider,
-              width: 0.5,
-            ),
-          ),
+          border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
         ),
         child: SafeArea(
           top: false,
@@ -484,7 +529,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavItem(
                   icon: Icons.home_outlined,
                   selectedIcon: Icons.home_rounded,
-                  label: '首页',
+                  label: '棣栭〉',
                   isSelected: currentIndex == 0,
                   iconSize: 28,
                   onTap: () => onTap(0),
@@ -493,7 +538,7 @@ class _BottomNavBar extends StatelessWidget {
               _NavItem(
                 icon: Icons.chat_bubble_outline,
                 selectedIcon: Icons.chat_bubble_rounded,
-                label: '消息',
+                label: '娑堟伅',
                 isSelected: currentIndex == (loggedIn ? 1 : 0),
                 iconSize: 28,
                 badgeCount: messageUnreadCount,
@@ -504,7 +549,7 @@ class _BottomNavBar extends StatelessWidget {
                 _NavItem(
                   icon: Icons.school_outlined,
                   selectedIcon: Icons.school_rounded,
-                  label: '校园',
+                  label: '鏍″洯',
                   isSelected: currentIndex == 2,
                   iconSize: 28,
                   onTap: () => onTap(2),
@@ -513,7 +558,7 @@ class _BottomNavBar extends StatelessWidget {
               _NavItem(
                 icon: Icons.person_outline,
                 selectedIcon: Icons.person_rounded,
-                label: '我的',
+                label: '鎴戠殑',
                 isSelected: currentIndex == (loggedIn ? 3 : 2),
                 iconSize: 28,
                 badgeCount: notificationUnreadCount,
@@ -529,7 +574,7 @@ class _BottomNavBar extends StatelessWidget {
   }
 }
 
-/// 单个导航项（图标 + 标签，28px 大图标，字重加粗）
+/// 鍗曚釜瀵艰埅椤癸紙鍥炬爣 + 鏍囩锛?8px 澶у浘鏍囷紝瀛楅噸鍔犵矖锛?
 class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData selectedIcon;

@@ -95,6 +95,12 @@ def handle_get_me(
                 "verifiedAt": str(user.get("verifiedAt", "")).strip(),
                 "allowStrangerDm": bool(user.get("allowStrangerDm", True)),
                 "showContactable": bool(user.get("showContactable", True)),
+                "notifyComment": bool(user.get("notifyComment", True)),
+                "notifyReply": bool(user.get("notifyReply", True)),
+                "notifyLike": bool(user.get("notifyLike", True)),
+                "notifyFavorite": bool(user.get("notifyFavorite", True)),
+                "notifyReportResult": bool(user.get("notifyReportResult", True)),
+                "notifySystem": bool(user.get("notifySystem", True)),
                 "favoriteCount": favorite_count,
                 "isAdmin": bool(user.get("isAdmin", False)),
                 "userLevel": current_user_level(user),
@@ -247,6 +253,45 @@ def handle_update_privacy(
     )
     user["showContactable"] = normalize_optional_bool(
         body.get("showContactable"),
+        default=True,
+    )
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+
+
+def handle_update_notification_preferences(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """PATCH /api/users/notification-preferences"""
+    user, _ = auth_user_helper(handler, db)
+    if user is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
+        return
+
+    body = read_json_body(handler)
+    user["notifyComment"] = normalize_optional_bool(
+        body.get("notifyComment"),
+        default=True,
+    )
+    user["notifyReply"] = normalize_optional_bool(
+        body.get("notifyReply"),
+        default=True,
+    )
+    user["notifyLike"] = normalize_optional_bool(
+        body.get("notifyLike"),
+        default=True,
+    )
+    user["notifyFavorite"] = normalize_optional_bool(
+        body.get("notifyFavorite"),
+        default=True,
+    )
+    user["notifyReportResult"] = normalize_optional_bool(
+        body.get("notifyReportResult"),
+        default=True,
+    )
+    user["notifySystem"] = normalize_optional_bool(
+        body.get("notifySystem"),
         default=True,
     )
     save_db(db)

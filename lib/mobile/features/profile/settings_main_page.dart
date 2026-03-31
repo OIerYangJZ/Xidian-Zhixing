@@ -300,7 +300,8 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       icon: Icons.notifications_outlined,
                       iconColor: MobileTheme.primary,
                       title: '通知设置',
-                      onTap: () => _showComingSoonDialog('通知设置'),
+                      onTap: () =>
+                          context.push('/profile/settings/notifications'),
                     ),
                     Divider(height: 0.5, indent: 56, color: colors.divider),
                     _ListTile(

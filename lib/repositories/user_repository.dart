@@ -36,6 +36,27 @@ class UserRepository {
     );
   }
 
+  Future<void> updateNotificationPreferences({
+    required bool notifyComment,
+    required bool notifyReply,
+    required bool notifyLike,
+    required bool notifyFavorite,
+    required bool notifyReportResult,
+    required bool notifySystem,
+  }) {
+    return _apiClient.patch(
+      ApiEndpoints.notificationPreferences,
+      body: <String, dynamic>{
+        'notifyComment': notifyComment,
+        'notifyReply': notifyReply,
+        'notifyLike': notifyLike,
+        'notifyFavorite': notifyFavorite,
+        'notifyReportResult': notifyReportResult,
+        'notifySystem': notifySystem,
+      },
+    );
+  }
+
   Future<void> updateProfile({
     required String nickname,
     String? avatarUrl,
@@ -116,6 +137,7 @@ class UserRepository {
         .map(
           (MapEntry<int, Map<String, String>> entry) => MyCommentItem(
             id: 'mock-comment-${entry.key + 1}',
+            postId: '',
             postTitle: entry.value['post'] ?? '原帖',
             content: entry.value['content'] ?? '-',
             timeText: entry.value['time'] ?? '-',

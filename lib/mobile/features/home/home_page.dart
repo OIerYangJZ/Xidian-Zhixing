@@ -13,25 +13,134 @@ import 'post_card.dart';
 import '../shell/mobile_shell.dart';
 
 /// 每个频道对应的图标和颜色
-final _channelMeta = {
-  '全部':  const _ChannelMeta(Icons.apps_rounded,               Color(0xFF8E8E93)),
-  '综合':  const _ChannelMeta(Icons.wb_sunny_rounded,           Color(0xFF6B7FD7)),
-  '学习':  const _ChannelMeta(Icons.menu_book_rounded,          Color(0xFF5E8FD4)),
-  '二手':  const _ChannelMeta(Icons.storefront_rounded,         Color(0xFF5EAF7C)),
-  '找搭子': const _ChannelMeta(Icons.group_rounded,             Color(0xFFE09C5E)),
-  '失物':  const _ChannelMeta(Icons.manage_search_rounded,      Color(0xFFD45E8A)),
-  '吐槽':  const _ChannelMeta(Icons.mode_comment_rounded,       Color(0xFF9B6ED4)),
-  '租房':  const _ChannelMeta(Icons.apartment_rounded,          Color(0xFF5EC4AF)),
-  '问答':  const _ChannelMeta(Icons.live_help_rounded,          Color(0xFF5EAAD4)),
-  '情感':  const _ChannelMeta(Icons.favorite_rounded,           Color(0xFFE05E7A)),
-  '娱乐':  const _ChannelMeta(Icons.local_movies_rounded,       Color(0xFFD4A05E)),
-  '校园':  const _ChannelMeta(Icons.account_balance_rounded,    Color(0xFF5EAF7C)),
-  '生活':  const _ChannelMeta(Icons.local_cafe_rounded,         Color(0xFFAA8B6E)),
-  '运动':  const _ChannelMeta(Icons.directions_run_rounded,     Color(0xFFD45E5E)),
-  '表白':  const _ChannelMeta(Icons.local_florist_rounded,      Color(0xFFE05E9B)),
-  '公告':  const _ChannelMeta(Icons.campaign_rounded,           Color(0xFF5E8FD4)),
-  '其他':  const _ChannelMeta(Icons.more_horiz_rounded,         Color(0xFF8E8E93)),
+const Map<String, _ChannelMeta> _channelMeta = <String, _ChannelMeta>{
+  '全部': _ChannelMeta(Icons.apps_rounded, Color(0xFF8E8E93)),
+  '综合': _ChannelMeta(Icons.wb_sunny_rounded, Color(0xFF6B7FD7)),
+  '找对象': _ChannelMeta(Icons.favorite_rounded, Color(0xFFE05E7A)),
+  '找搭子': _ChannelMeta(Icons.group_rounded, Color(0xFFE09C5E)),
+  '交友扩列': _ChannelMeta(Icons.people_alt_rounded, Color(0xFF5EC4AF)),
+  '吐槽日常': _ChannelMeta(Icons.mode_comment_rounded, Color(0xFF9B6ED4)),
+  '八卦吃瓜': _ChannelMeta(Icons.local_fire_department_rounded, Color(0xFFD4A05E)),
+  '求助问答': _ChannelMeta(Icons.live_help_rounded, Color(0xFF5EAAD4)),
+  '失物招领': _ChannelMeta(Icons.manage_search_rounded, Color(0xFFD45E8A)),
+  '二手交易': _ChannelMeta(Icons.storefront_rounded, Color(0xFF5EAF7C)),
+  '学习交流': _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
+  '活动拼车': _ChannelMeta(Icons.directions_car_filled_rounded, Color(0xFF5E8FD4)),
+  '其他': _ChannelMeta(Icons.more_horiz_rounded, Color(0xFF8E8E93)),
+  // 兼容历史命名
+  '学习': _ChannelMeta(Icons.menu_book_rounded, Color(0xFF5E8FD4)),
+  '二手': _ChannelMeta(Icons.storefront_rounded, Color(0xFF5EAF7C)),
+  '失物': _ChannelMeta(Icons.manage_search_rounded, Color(0xFFD45E8A)),
+  '吐槽': _ChannelMeta(Icons.mode_comment_rounded, Color(0xFF9B6ED4)),
+  '问答': _ChannelMeta(Icons.live_help_rounded, Color(0xFF5EAAD4)),
+  '租房': _ChannelMeta(Icons.apartment_rounded, Color(0xFF5EC4AF)),
+  '情感': _ChannelMeta(Icons.favorite_rounded, Color(0xFFE05E7A)),
+  '娱乐': _ChannelMeta(Icons.local_movies_rounded, Color(0xFFD4A05E)),
+  '校园': _ChannelMeta(Icons.account_balance_rounded, Color(0xFF5EAF7C)),
+  '生活': _ChannelMeta(Icons.local_cafe_rounded, Color(0xFFAA8B6E)),
+  '运动': _ChannelMeta(Icons.directions_run_rounded, Color(0xFFD45E5E)),
+  '表白': _ChannelMeta(Icons.local_florist_rounded, Color(0xFFE05E9B)),
+  '公告': _ChannelMeta(Icons.campaign_rounded, Color(0xFF5E8FD4)),
 };
+
+const List<IconData> _fallbackIcons = <IconData>[
+  Icons.topic_rounded,
+  Icons.explore_rounded,
+  Icons.coffee_rounded,
+  Icons.palette_rounded,
+  Icons.science_rounded,
+  Icons.sports_basketball_rounded,
+  Icons.music_note_rounded,
+  Icons.pets_rounded,
+  Icons.travel_explore_rounded,
+  Icons.emoji_objects_rounded,
+  Icons.auto_stories_rounded,
+  Icons.flight_takeoff_rounded,
+];
+
+const List<Color> _fallbackColors = <Color>[
+  Color(0xFF6B7FD7),
+  Color(0xFF5EAAD4),
+  Color(0xFF5EAF7C),
+  Color(0xFFE09C5E),
+  Color(0xFFD45E8A),
+  Color(0xFF9B6ED4),
+  Color(0xFFAA8B6E),
+  Color(0xFFD45E5E),
+  Color(0xFF5EC4AF),
+];
+
+Map<String, _ChannelMeta> _resolveChannelMetaMap(List<String> channels) {
+  final resolved = <String, _ChannelMeta>{};
+  final usedIcons = <IconData>{};
+  final usedColors = <Color>{};
+
+  for (final channel in channels) {
+    final matched = _channelMeta[channel] ?? _metaFromKeyword(channel);
+    if (matched != null) {
+      final seed = channel.hashCode & 0x7fffffff;
+      final icon = usedIcons.contains(matched.icon)
+          ? _pickUnusedIcon(seed, usedIcons)
+          : matched.icon;
+      final color = usedColors.contains(matched.color)
+          ? _pickUnusedColor(seed, usedColors)
+          : matched.color;
+      resolved[channel] = _ChannelMeta(icon, color);
+      usedIcons.add(icon);
+      usedColors.add(color);
+    }
+  }
+
+  for (final channel in channels) {
+    if (resolved.containsKey(channel)) continue;
+    final seed = channel.hashCode & 0x7fffffff;
+    final icon = _pickUnusedIcon(seed, usedIcons);
+    final color = _pickUnusedColor(seed, usedColors);
+    usedIcons.add(icon);
+    usedColors.add(color);
+    resolved[channel] = _ChannelMeta(icon, color);
+  }
+
+  return resolved;
+}
+
+_ChannelMeta? _metaFromKeyword(String channel) {
+  if (channel.contains('二手')) return _channelMeta['二手交易'];
+  if (channel.contains('失物')) return _channelMeta['失物招领'];
+  if (channel.contains('吐槽')) return _channelMeta['吐槽日常'];
+  if (channel.contains('问答') || channel.contains('求助')) {
+    return _channelMeta['求助问答'];
+  }
+  if (channel.contains('学习')) return _channelMeta['学习交流'];
+  if (channel.contains('找搭子')) return _channelMeta['找搭子'];
+  if (channel.contains('找对象')) return _channelMeta['找对象'];
+  if (channel.contains('交友')) return _channelMeta['交友扩列'];
+  if (channel.contains('吃瓜') || channel.contains('八卦')) return _channelMeta['八卦吃瓜'];
+  if (channel.contains('拼车') || channel.contains('活动')) return _channelMeta['活动拼车'];
+  return null;
+}
+
+IconData _pickUnusedIcon(int seed, Set<IconData> usedIcons) {
+  if (usedIcons.length >= _fallbackIcons.length) {
+    return _fallbackIcons[seed % _fallbackIcons.length];
+  }
+  for (var i = 0; i < _fallbackIcons.length; i++) {
+    final icon = _fallbackIcons[(seed + i) % _fallbackIcons.length];
+    if (!usedIcons.contains(icon)) return icon;
+  }
+  return Icons.grid_view_rounded;
+}
+
+Color _pickUnusedColor(int seed, Set<Color> usedColors) {
+  if (usedColors.length >= _fallbackColors.length) {
+    return _fallbackColors[seed % _fallbackColors.length];
+  }
+  for (var i = 0; i < _fallbackColors.length; i++) {
+    final color = _fallbackColors[(seed + i) % _fallbackColors.length];
+    if (!usedColors.contains(color)) return color;
+  }
+  return const Color(0xFF8E8E93);
+}
 
 class _ChannelMeta {
   final IconData icon;
@@ -191,6 +300,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final feedState = ref.watch(feedControllerProvider);
     final notificationsState = ref.watch(notificationsControllerProvider);
+    final resolvedChannelMeta = _resolveChannelMetaMap(feedState.channels);
     // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
     ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
       _scrollToTop();
@@ -232,7 +342,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     itemBuilder: (context) {
                       return feedState.channels.map((channel) {
                         final isSelected = channel == feedState.selectedChannel;
-                        final meta = _channelMeta[channel];
+                        final meta = resolvedChannelMeta[channel];
                         return PopupMenuItem<String>(
                           value: channel,
                           height: 48,
@@ -431,6 +541,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     final colors = MobileColors.of(context);
     final selectedIndex = channels.indexOf(selectedChannel);
+    final resolvedChannelMeta = _resolveChannelMetaMap(channels);
 
     return Container(
       height: 44,
@@ -460,7 +571,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                         itemBuilder: (context, index) {
                           final channel = channels[index];
                           final isSelected = channel == selectedChannel;
-                          final meta = _channelMeta[channel];
+                          final meta = resolvedChannelMeta[channel];
                           return Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
                             child: _ChannelChip(
@@ -628,12 +739,16 @@ class _CompactSortToggle extends StatelessWidget {
           _CompactSortOption(
             icon: Icons.access_time,
             isSelected: sort == PostSort.latest,
-            onTap: () => onSortChanged(PostSort.latest),
+            onTap: sort == PostSort.latest
+                ? null
+                : () => onSortChanged(PostSort.latest),
           ),
           _CompactSortOption(
             icon: Icons.local_fire_department,
             isSelected: sort == PostSort.hot,
-            onTap: () => onSortChanged(PostSort.hot),
+            onTap: sort == PostSort.hot
+                ? null
+                : () => onSortChanged(PostSort.hot),
           ),
         ],
       ),
@@ -644,7 +759,7 @@ class _CompactSortToggle extends StatelessWidget {
 class _CompactSortOption extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   const _CompactSortOption({
     required this.icon,
@@ -657,11 +772,12 @@ class _CompactSortOption extends StatelessWidget {
     final colors = MobileColors.of(context);
     return GestureDetector(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.all(6),
         decoration: BoxDecoration(
-          color: isSelected ? colors.surface : Colors.transparent,
+          color: isSelected
+              ? colors.divider.withValues(alpha: 0.9)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Icon(

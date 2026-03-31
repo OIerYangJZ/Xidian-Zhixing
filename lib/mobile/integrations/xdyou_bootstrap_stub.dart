@@ -19,6 +19,8 @@ Future<void> syncAllToXdyou(String username, String password) async {}
 
 Widget buildXdyouApp() => const SizedBox.shrink();
 
+Future<bool> maybeHandleXdyouBackPress() async => false;
+
 abstract class TreeholeSharedKeys {
   static const String brightness   = 'treehole_brightness';
   static const String colorSeed    = 'treehole_color_seed';

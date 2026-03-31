@@ -104,108 +104,116 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxScrolled) => [
-        SliverAppBar(
-          centerTitle: false,
-          expandedHeight: 160,
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
+    return ColoredBox(
+      color: Colors.white,
+      child: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxScrolled) => [
+          SliverAppBar(
+            backgroundColor: Colors.white,
             centerTitle: false,
-            titlePadding: const EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 12,
-            ),
-            title: GetBuilder<ClassTableController>(
-              builder: (c) => Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    FlutterI18n.translate(context, _now),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? null
-                          : Theme.of(context).colorScheme.primary,
+            expandedHeight: 126,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              centerTitle: false,
+              titlePadding: const EdgeInsets.only(
+                left: 20,
+                right: 20,
+                bottom: 8,
+              ),
+              title: GetBuilder<ClassTableController>(
+                builder: (c) => Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      FlutterI18n.translate(context, _now),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? null
+                            : Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                  Text(
-                    c.state == ClassTableState.fetched
-                        ? c.getCurrentWeek(updateTime) >= 0 &&
-                                  c.getCurrentWeek(updateTime) <
-                                      c.classTableData.semesterLength
-                              ? FlutterI18n.translate(
-                                  context,
-                                  "homepage.on_weekday",
-                                  translationParams: {
-                                    "current":
-                                        "${c.getCurrentWeek(updateTime) + 1}",
-                                  },
-                                )
-                              : FlutterI18n.translate(
-                                  context,
-                                  "homepage.on_holiday",
-                                )
-                        : c.state == ClassTableState.error
-                        ? FlutterI18n.translate(context, "homepage.load_error")
-                        : FlutterI18n.translate(context, "homepage.loading"),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? null
-                          : Theme.of(context).colorScheme.primary,
+                    Text(
+                      c.state == ClassTableState.fetched
+                          ? c.getCurrentWeek(updateTime) >= 0 &&
+                                    c.getCurrentWeek(updateTime) <
+                                        c.classTableData.semesterLength
+                                ? FlutterI18n.translate(
+                                    context,
+                                    "homepage.on_weekday",
+                                    translationParams: {
+                                      "current":
+                                          "${c.getCurrentWeek(updateTime) + 1}",
+                                    },
+                                  )
+                                : FlutterI18n.translate(
+                                    context,
+                                    "homepage.on_holiday",
+                                  )
+                          : c.state == ClassTableState.error
+                          ? FlutterI18n.translate(
+                              context,
+                              "homepage.load_error",
+                            )
+                          : FlutterI18n.translate(context, "homepage.loading"),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? null
+                            : Theme.of(context).colorScheme.primary,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
-      body: RefreshIndicator(
-        onRefresh: () async {
-          showToast(
-            context: context,
-            msg: FlutterI18n.translate(context, "homepage.loading_message"),
-          );
-          await update(
-            context: context,
-            sliderCaptcha: (String cookieStr) {
-              return SliderCaptchaClientProvider(
-                cookie: cookieStr,
-              ).solve(context);
-            },
-          );
-          if (context.mounted) {
+        ],
+        body: RefreshIndicator(
+          onRefresh: () async {
             showToast(
               context: context,
-              msg: FlutterI18n.translate(context, "homepage.loaded"),
+              msg: FlutterI18n.translate(context, "homepage.loading_message"),
             );
-          }
-        },
-        child: ListView(
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          children: [
-            const ClassTableCard().padding(bottom: 8),
-            ElectricityCard().padding(bottom: 8),
-            SchoolnetCard().padding(bottom: 8),
-            LibraryCard().padding(bottom: 8),
-            SchoolCardInfoCard().padding(bottom: 8),
-            MediaQuery.removePadding(
+            await update(
               context: context,
-              removeTop: true,
-              child: GridView.extent(
-                maxCrossAxisExtent: 96,
-                shrinkWrap: true,
-                mainAxisSpacing: 8.0,
-                crossAxisSpacing: 8.0,
-                physics: const NeverScrollableScrollPhysics(),
-                children: smallFunction,
+              sliderCaptcha: (String cookieStr) {
+                return SliderCaptchaClientProvider(
+                  cookie: cookieStr,
+                ).solve(context);
+              },
+            );
+            if (context.mounted) {
+              showToast(
+                context: context,
+                msg: FlutterI18n.translate(context, "homepage.loaded"),
+              );
+            }
+          },
+          child: ListView(
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            children: [
+              const ClassTableCard().padding(bottom: 8),
+              ElectricityCard().padding(bottom: 8),
+              SchoolnetCard().padding(bottom: 8),
+              LibraryCard().padding(bottom: 8),
+              SchoolCardInfoCard().padding(bottom: 8),
+              MediaQuery.removePadding(
+                context: context,
+                removeTop: true,
+                child: GridView.extent(
+                  maxCrossAxisExtent: 96,
+                  shrinkWrap: true,
+                  mainAxisSpacing: 8.0,
+                  crossAxisSpacing: 8.0,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: smallFunction,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

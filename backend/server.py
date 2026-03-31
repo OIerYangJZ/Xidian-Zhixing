@@ -662,6 +662,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _user_handler.handle_update_privacy(self, db)
                 return
 
+            if path == "/api/users/notification-preferences":
+                _user_handler.handle_update_notification_preferences(self, db)
+                return
+
             if path == "/api/users/me":
                 _user_handler.handle_update_me(self, db)
                 return

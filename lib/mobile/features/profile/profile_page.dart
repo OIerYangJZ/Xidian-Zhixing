@@ -113,73 +113,46 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
     final backgroundImageUrl = AppConfig.resolveUrl(
       user?.backgroundImageUrl ?? '',
     );
+    final bool hasBackgroundImage = backgroundImageUrl.isNotEmpty;
+    final bool isLightMode = Theme.of(context).brightness == Brightness.light;
+    final Color profilePrimaryTextColor =
+        isLightMode ? Colors.black : colors.textPrimary;
+    final Color profileSecondaryTextColor =
+        isLightMode ? Colors.black : colors.textSecondary;
+    final double profileTopSpacing = hasBackgroundImage ? 120 : 60;
 
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.surface,
-        scrolledUnderElevation: 0.5,
-        toolbarHeight: 48,
-        title: Text(
-          user?.nickname ?? '我的',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: colors.textPrimary,
-              size: 22,
-            ),
-            onPressed: () async {
-              await context.push('/profile/settings/main');
-              if (mounted) {
-                await _loadProfile();
-              }
-            },
-          ),
-        ],
-      ),
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) {
           return [
-            // 个人信息区
             SliverToBoxAdapter(
               child: Container(
-                color: colors.surface,
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  image: hasBackgroundImage
+                      ? DecorationImage(
+                          image: NetworkImage(backgroundImageUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 背景图
-                    if (backgroundImageUrl.isNotEmpty)
-                      Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(backgroundImageUrl),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        height: 60,
-                        color: MobileTheme.primary.withValues(alpha: 0.08),
-                      ),
+                    Container(
+                      height: profileTopSpacing,
+                      color: hasBackgroundImage
+                          ? Colors.transparent
+                          : MobileTheme.primary.withValues(alpha: 0.08),
+                    ),
 
-                    // 头像 + 编辑按钮
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          // 头像（负 margin 向上重叠）
                           Transform.translate(
                             offset: const Offset(0, -24),
                             child: GestureDetector(
@@ -206,156 +179,210 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                             ),
                           ),
                           const Spacer(),
-                          // 编辑资料按钮
                           Transform.translate(
                             offset: const Offset(0, -16),
-                            child: GestureDetector(
-                              onTap: () async {
-                                await context.push('/profile/edit');
-                                if (mounted) {
-                                  await _loadProfile();
-                                }
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: colors.surface,
-                                  border: Border.all(
-                                    color: colors.divider,
-                                    width: 1,
+                            child: Row(
+                              children: [
+                                GestureDetector(
+                                  onTap: () async {
+                                    await context.push('/profile/edit');
+                                    if (mounted) {
+                                      await _loadProfile();
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: colors.surface,
+                                      border: Border.all(
+                                        color: colors.divider,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Text(
+                                      '编辑资料',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: colors.textPrimary,
+                                      ),
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Text(
-                                  '编辑资料',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: colors.textPrimary,
+                                const SizedBox(width: 8),
+                                GestureDetector(
+                                  onTap: () async {
+                                    await context.push('/profile/settings/main');
+                                    if (mounted) {
+                                      await _loadProfile();
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: colors.surface,
+                                      border: Border.all(
+                                        color: colors.divider,
+                                        width: 1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Icon(
+                                      Icons.settings_outlined,
+                                      size: 16,
+                                      color: colors.textPrimary,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    // 昵称
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                      child: Text(
-                        user?.nickname ?? '匿名同学',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                    ),
-
-                    // 个性签名
-                    if (user?.bio != null && user!.bio.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: Text(
-                          user.bio,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colors.textSecondary,
-                          ),
-                        ),
-                      ),
-
-                    // 性别标识
-                    if (user?.gender != null && user!.gender.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: Row(
-                          children: [
-                            Icon(
-                              user.gender == '男' ? Icons.male : Icons.female,
-                              size: 16,
-                              color: colors.textSecondary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              user.gender,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    // 数据统计行（无卡片，紧凑横排）
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: Row(
+                    Container(
+                      color: hasBackgroundImage
+                          ? colors.surface.withValues(alpha: 0.72)
+                          : Colors.transparent,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _StatChip(
-                            label: '粉丝',
-                            value: '${_followers.length}',
-                            onTap: () => _showFollowSheet('粉丝', _followers),
-                          ),
-                          const SizedBox(width: 20),
-                          _StatChip(
-                            label: '关注',
-                            value: '${_following.length}',
-                            onTap: () => _showFollowSheet('关注', _following),
-                          ),
-                          const SizedBox(width: 20),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MobileTheme.accent.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                             child: Text(
-                              user?.userLevelLabel ?? 'Lv.1',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: MobileTheme.accent,
+                              user?.nickname ?? '匿名同学',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: profilePrimaryTextColor,
                               ),
+                            ),
+                          ),
+                          if (user?.bio != null && user!.bio.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                              child: Text(
+                                user.bio,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: profileSecondaryTextColor,
+                                ),
+                              ),
+                            ),
+                          if (user?.gender != null && user!.gender.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    user.gender == '男'
+                                        ? Icons.male
+                                        : Icons.female,
+                                    size: 16,
+                                    color: profileSecondaryTextColor,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    user.gender,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: profileSecondaryTextColor,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                            child: Row(
+                              children: [
+                                _StatChip(
+                                  label: '粉丝',
+                                  value: '${_followers.length}',
+                                  onTap: () => _showFollowSheet('粉丝', _followers),
+                                  primaryColor: profilePrimaryTextColor,
+                                  secondaryColor: profileSecondaryTextColor,
+                                ),
+                                const SizedBox(width: 20),
+                                _StatChip(
+                                  label: '关注',
+                                  value: '${_following.length}',
+                                  onTap: () => _showFollowSheet('关注', _following),
+                                  primaryColor: profilePrimaryTextColor,
+                                  secondaryColor: profileSecondaryTextColor,
+                                ),
+                                const SizedBox(width: 20),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: MobileTheme.accent.withValues(
+                                      alpha: hasBackgroundImage ? 0.18 : 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: hasBackgroundImage
+                                        ? Border.all(
+                                            color: MobileTheme.accent.withValues(
+                                              alpha: 0.3,
+                                            ),
+                                            width: 0.6,
+                                          )
+                                        : null,
+                                  ),
+                                  child: Text(
+                                    user?.userLevelLabel ?? 'Lv.1',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: MobileTheme.accent,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
 
-                    Divider(height: 0.5, color: colors.divider),
-
-                    // TabBar
-                    TabBar(
-                      controller: _tabController,
-                      labelColor: colors.textPrimary,
-                      unselectedLabelColor: colors.textSecondary,
-                      indicatorColor: MobileTheme.primary,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      dividerColor: Colors.transparent,
-                      labelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                    Container(
+                      color: colors.surface,
+                      child: Divider(height: 0.5, color: colors.divider),
+                    ),
+                    Material(
+                      color: colors.surface,
+                      child: TabBar(
+                        controller: _tabController,
+                        labelColor: colors.textPrimary,
+                        unselectedLabelColor: colors.textSecondary,
+                        indicatorColor: MobileTheme.primary,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        dividerColor: Colors.transparent,
+                        labelStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        unselectedLabelStyle: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        isScrollable: false,
+                        tabs: const [
+                          Tab(text: '帖子'),
+                          Tab(text: '收藏'),
+                          Tab(text: '动态'),
+                        ],
                       ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      isScrollable: false,
-                      tabs: const [
-                        Tab(text: '帖子'),
-                        Tab(text: '收藏'),
-                        Tab(text: '动态'),
-                      ],
                     ),
                   ],
                 ),
@@ -376,8 +403,16 @@ class _StatChip extends StatelessWidget {
   final String label;
   final String value;
   final VoidCallback? onTap;
+  final Color? primaryColor;
+  final Color? secondaryColor;
 
-  const _StatChip({required this.label, required this.value, this.onTap});
+  const _StatChip({
+    required this.label,
+    required this.value,
+    this.onTap,
+    this.primaryColor,
+    this.secondaryColor,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -389,13 +424,16 @@ class _StatChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
-            color: colors.textPrimary,
+            color: primaryColor ?? colors.textPrimary,
           ),
         ),
         const SizedBox(width: 3),
         Text(
           label,
-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
+          style: TextStyle(
+            fontSize: 13,
+            color: secondaryColor ?? colors.textSecondary,
+          ),
         ),
       ],
     );
@@ -595,6 +633,7 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
       return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
     }
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: _posts.length,
       itemBuilder: (context, i) {
         final post = _posts[i];
@@ -670,6 +709,7 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
       return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
     }
     return ListView.builder(
+      padding: EdgeInsets.zero,
       itemCount: _posts.length,
       itemBuilder: (context, i) {
         final post = _posts[i];
@@ -746,34 +786,43 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
       return _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
     }
     return ListView.separated(
+      padding: EdgeInsets.zero,
       itemCount: _comments.length,
       separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.divider),
       itemBuilder: (context, i) {
         final c = _comments[i];
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                c.postTitle,
-                style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                c.content,
-                style: TextStyle(fontSize: 14, color: colors.textPrimary),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                c.timeText,
-                style: TextStyle(fontSize: 12, color: colors.textTertiary),
-              ),
-            ],
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: c.postId.trim().isEmpty
+              ? null
+              : () => context.push(
+                    '/post/${Uri.encodeComponent(c.postId)}?commentId=${Uri.encodeComponent(c.id)}',
+                  ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  c.postTitle,
+                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  c.content,
+                  style: TextStyle(fontSize: 14, color: colors.textPrimary),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  c.timeText,
+                  style: TextStyle(fontSize: 12, color: colors.textTertiary),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -792,7 +841,7 @@ class _EmptyHint extends StatelessWidget {
     final colors = MobileColors.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.only(top: 60),
+        padding: EdgeInsets.zero,
         child: Column(
           children: [
             Icon(icon, size: 48, color: colors.divider),

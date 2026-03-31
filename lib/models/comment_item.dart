@@ -27,14 +27,34 @@ class CommentItem {
   final String parentId;
   final List<CommentItem> replies;
   final String authorUserId;
+
   /// 总回复数（含所有层级）
   final int replyCount;
 
   /// 兼容旧字段：authorNickname = authorAlias
   String get authorNickname => authorAlias;
 
-  /// 计算实际显示用的回复数（优先用后端字段，否则用 replies.length）
-  int get effectiveReplyCount => replyCount > 0 ? replyCount : replies.length;
+  /// 计算实际显示用的回复数（统计所有层级，兼容后端预计算值）
+  int get effectiveReplyCount {
+    final int nestedCount = _countNestedReplies(<String>{id});
+    return replyCount > nestedCount ? replyCount : nestedCount;
+  }
+
+  int _countNestedReplies(Set<String> visitedIds) {
+    int total = 0;
+    for (final CommentItem reply in replies) {
+      final String replyId = reply.id.trim();
+      if (replyId.isNotEmpty) {
+        if (visitedIds.contains(replyId)) {
+          continue;
+        }
+        visitedIds.add(replyId);
+      }
+      total += 1;
+      total += reply._countNestedReplies(visitedIds);
+    }
+    return total;
+  }
 
   CommentItem copyWith({
     String? id,
@@ -96,10 +116,16 @@ class CommentItem {
       }
     }
 
+    final String resolvedAuthorUserId = _firstNonEmptyString(<dynamic>[
+      json['authorUserId'],
+      json['authorId'],
+      json['userId'],
+    ]);
+
     return CommentItem(
       id: (json['id'] ?? json['commentId'] ?? '').toString(),
-      authorAlias:
-          (json['authorAlias'] ?? json['anonymousName'] ?? '匿名同学').toString(),
+      authorAlias: (json['authorAlias'] ?? json['anonymousName'] ?? '匿名同学')
+          .toString(),
       content: (json['content'] ?? '').toString(),
       createdAt: createdAt,
       likeCount: _toInt(json['likeCount']) ?? 0,
@@ -114,9 +140,27 @@ class CommentItem {
       isPinned: _toBool(json['isPinned'] ?? json['pinned']) ?? false,
       parentId: (json['parentId'] ?? '').toString(),
       replies: parsedReplies,
-      authorUserId: (json['authorUserId'] ?? json['authorId'] ?? '').toString(),
-      replyCount: _toInt(json['replyCount'] ?? json['repliesCount']) ?? parsedReplies.length,
+      authorUserId: resolvedAuthorUserId,
+      replyCount:
+          _toInt(json['replyCount'] ?? json['repliesCount']) ??
+          parsedReplies.length,
     );
+  }
+
+  static String _firstNonEmptyString(List<dynamic> values) {
+    for (final dynamic value in values) {
+      if (value == null) continue;
+      final String text = value.toString().trim();
+      if (text.isEmpty) continue;
+      final String normalized = text.toLowerCase();
+      if (normalized == 'null' ||
+          normalized == 'none' ||
+          normalized == 'undefined') {
+        continue;
+      }
+      return text;
+    }
+    return '';
   }
 
   static int? _toInt(dynamic value) {
