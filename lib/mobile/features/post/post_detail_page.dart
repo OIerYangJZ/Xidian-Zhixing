@@ -184,7 +184,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -226,7 +226,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -254,7 +254,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     if (result != null && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('涓炬姤鎴愬姛锛屾垜浠細灏藉揩澶勭悊')));
+      ).showSnackBar(const SnackBar(content: Text('举报成功，我们会尽快处理')));
     }
   }
 
@@ -285,13 +285,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('璇勮鎴愬姛')));
+        ).showSnackBar(const SnackBar(content: Text('评论成功')));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('璇勮澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('评论失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -318,7 +318,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('鏃犳硶鍙戣捣绉佷俊: $e')));
+      ).showSnackBar(SnackBar(content: Text('无法发起私信: $e')));
     }
   }
 
@@ -346,12 +346,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('鍏虫敞鎴愬姛')));
+      ).showSnackBar(const SnackBar(content: Text('关注成功')));
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('鎿嶄綔澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -369,17 +369,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     final bool confirmed = await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
-            title: const Text('Delete Comment'),
-            content: const Text('Delete this comment permanently?'),
+            title: const Text('删除评论'),
+            content: const Text('确认删除这条评论吗？删除后不可恢复。'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('鍙栨秷'),
+                child: const Text('取消'),
               ),
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(true),
                 child: const Text(
-                  '鍒犻櫎',
+                  '删除',
                   style: TextStyle(color: MobileTheme.error),
                 ),
               ),
@@ -400,13 +400,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Comment deleted')));
+      ).showSnackBar(const SnackBar(content: Text('评论已删除')));
       await _loadData(recordView: false);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('鍒犻櫎澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -486,7 +486,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('甯栧瓙璇︽儏'),
+        title: const Text('帖子详情'),
         actions: [
           if (_post != null)
             IconButton(
@@ -562,7 +562,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           const SizedBox(width: 6),
           Expanded(
             child: Text(
-              '鍥炲 @${_replyingTo!.authorAlias}',
+              '回复 @${_replyingTo!.authorAlias}',
               style: const TextStyle(fontSize: 13, color: MobileTheme.primary),
               overflow: TextOverflow.ellipsis,
             ),
@@ -596,7 +596,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(onPressed: _loadData, child: const Text('閲嶈瘯')),
+            ElevatedButton(onPressed: _loadData, child: const Text('重试')),
           ],
         ),
       ),
@@ -606,7 +606,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildEmptyView() {
     final colors = MobileColors.of(context);
     return Center(
-      child: Text('甯栧瓙涓嶅瓨鍦ㄦ垨宸茶鍒犻櫎', style: TextStyle(color: colors.textSecondary)),
+      child: Text('帖子不存在或已被删除', style: TextStyle(color: colors.textSecondary)),
     );
   }
 
@@ -710,7 +710,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                                 borderRadius: BorderRadius.circular(3),
                               ),
                               child: const Text(
-                                'Resolved',
+                                '已解决',
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: MobileTheme.success,
@@ -730,7 +730,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   TextButton.icon(
                     onPressed: _isFollowing ? null : _handleFollowAuthor,
                     icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
-                    label: const Text('鍏虫敞'),
+                    label: const Text('关注'),
                     style: TextButton.styleFrom(
                       foregroundColor: MobileTheme.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -824,7 +824,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             child: Row(
               children: [
                 Text(
-                  '璇勮',
+                  '评论',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -842,7 +842,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               padding: const EdgeInsets.symmetric(vertical: 32),
               child: Center(
                 child: Text(
-                  '鏆傛棤璇勮锛屽揩鏉ユ姠娌欏彂~',
+                  '暂无评论，快来抢沙发~',
                   style: TextStyle(color: colors.textTertiary, fontSize: 14),
                 ),
               ),
@@ -909,12 +909,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             constraints: const BoxConstraints(),
             onPressed: () {
               Clipboard.setData(
-                ClipboardData(text: '鏌ョ湅瑗跨數鏍戞礊甯栧瓙: ${widget.postId}'),
+                ClipboardData(text: '查看西电树洞帖子: ${widget.postId}'),
               );
               ScaffoldMessenger.of(
                 context,
               ).showSnackBar(
-                const SnackBar(content: Text('Link copied to clipboard')),
+                const SnackBar(content: Text('链接已复制到剪贴板')),
               );
             },
           ),
@@ -940,7 +940,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 Icons.flag_outlined,
                 color: MobileTheme.error,
               ),
-              title: const Text('涓炬姤'),
+              title: const Text('举报'),
               onTap: () {
                 Navigator.pop(context);
                 _handleReport();
@@ -952,7 +952,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   Icons.delete_outline,
                   color: MobileTheme.error,
                 ),
-                title: const Text('鍒犻櫎'),
+                title: const Text('删除'),
                 onTap: () {
                   Navigator.pop(context);
                   _confirmDelete();
@@ -969,12 +969,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('纭鍒犻櫎'),
-        content: const Text('Delete this post permanently?'),
+        title: const Text('确认删除'),
+        content: const Text('确认删除这篇帖子吗？此操作不可恢复。'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('鍙栨秷'),
+            child: const Text('取消'),
           ),
           TextButton(
             onPressed: () async {
@@ -986,18 +986,18 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   context.pop();
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(const SnackBar(content: Text('鍒犻櫎鎴愬姛')));
+                  ).showSnackBar(const SnackBar(content: Text('删除成功')));
                 }
               } catch (e) {
                 if (mounted) {
                   ScaffoldMessenger.of(
                     context,
-                  ).showSnackBar(SnackBar(content: Text('鍒犻櫎澶辫触: $e')));
+                  ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            child: const Text('鍒犻櫎'),
+            child: const Text('删除'),
           ),
         ],
       ),
@@ -1125,12 +1125,12 @@ class _CommentTileState extends State<_CommentTile> {
       items: <PopupMenuEntry<_CommentAction>>[
         const PopupMenuItem<_CommentAction>(
           value: _CommentAction.copy,
-          child: Text('澶嶅埗'),
+          child: Text('复制'),
         ),
         if (_canDelete && widget.onDelete != null)
           const PopupMenuItem<_CommentAction>(
             value: _CommentAction.delete,
-            child: Text('鍒犻櫎', style: TextStyle(color: MobileTheme.error)),
+            child: Text('删除', style: TextStyle(color: MobileTheme.error)),
           ),
       ],
     );
@@ -1144,7 +1144,7 @@ class _CommentTileState extends State<_CommentTile> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Comment copied')));
+      ).showSnackBar(const SnackBar(content: Text('已复制评论内容')));
       return;
     }
     if (action == _CommentAction.delete && _canDelete) {
@@ -1438,7 +1438,7 @@ class _ReportSheetState extends State<_ReportSheet> {
   final _descriptionController = TextEditingController();
   bool _isSubmitting = false;
 
-  final _reasons = ['鍨冨溇骞垮憡', '浜鸿韩鏀诲嚮', '鑹叉儏浣庝織', '杩濇硶杩濊', '铏氬亣淇℃伅', '渚电姱闅愮', '鍏朵粬'];
+  final _reasons = ['垃圾广告', '人身攻击', '色情低俗', '违法违规', '虚假信息', '侵犯隐私', '其他'];
 
   @override
   void dispose() {
@@ -1450,7 +1450,7 @@ class _ReportSheetState extends State<_ReportSheet> {
     if (_selectedReason == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('璇烽€夋嫨涓炬姤鍘熷洜')));
+      ).showSnackBar(const SnackBar(content: Text('请选择举报原因')));
       return;
     }
 
@@ -1473,7 +1473,7 @@ class _ReportSheetState extends State<_ReportSheet> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('涓炬姤澶辫触: $e')));
+        ).showSnackBar(SnackBar(content: Text('举报失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -1499,7 +1499,7 @@ class _ReportSheetState extends State<_ReportSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '涓炬姤鍘熷洜',
+            '举报原因',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -1553,7 +1553,7 @@ class _ReportSheetState extends State<_ReportSheet> {
             controller: _descriptionController,
             maxLines: 3,
             decoration: const InputDecoration(
-              hintText: '琛ュ厖璇存槑锛堝彲閫夛級',
+              hintText: '补充说明（可选）',
               border: OutlineInputBorder(),
             ),
           ),
@@ -1574,7 +1574,7 @@ class _ReportSheetState extends State<_ReportSheet> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('鎻愪氦涓炬姤'),
+                  : const Text('提交举报'),
             ),
           ),
         ],
