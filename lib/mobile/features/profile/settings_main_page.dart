@@ -397,35 +397,6 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                   ],
                 ),
 
-                const SizedBox(height: 24),
-
-                // 退出登录（全宽红色文字）
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: GestureDetector(
-                    onTap: _logout,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '退出登录',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: MobileTheme.error,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 16),
 
                 _SectionHeader(title: '账号安全'),
                 _ListCard(
@@ -455,6 +426,35 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                   ],
                 ),
 
+                const SizedBox(height: 24),
+
+                // 退出登录（全宽红色文字）
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: GestureDetector(
+                    onTap: _logout,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '退出登录',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: MobileTheme.error,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
                 const SizedBox(height: 40),
               ],
             ),
