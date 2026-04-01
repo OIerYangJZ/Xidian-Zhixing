@@ -223,12 +223,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           TextButton(
             onPressed: _saving ? null : _saveProfile,
             child: _saving
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: MobileTheme.primary,
+                      color: MobileTheme.primaryOf(context),
                     ),
                   )
                 : const Text(
@@ -239,8 +239,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         ],
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: MobileTheme.primaryOf(context),
+              ),
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -374,7 +376,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                     width: 28,
                     height: 28,
                     decoration: BoxDecoration(
-                      color: MobileTheme.primary,
+                      color: MobileTheme.primaryOf(context),
                       shape: BoxShape.circle,
                       border: Border.all(color: colors.surface, width: 3),
                     ),
@@ -396,7 +398,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: MobileTheme.primary,
+                color: MobileTheme.primaryOf(context),
               ),
             ),
           ),
@@ -421,7 +423,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final bytes = base64Decode(_selectedAvatarBase64!);
       return CircleAvatar(
         radius: 48,
-        backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+        backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
         backgroundImage: MemoryImage(Uint8List.fromList(bytes)),
       );
     }
@@ -461,11 +463,13 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
-                ? MobileTheme.primary.withValues(alpha: 0.1)
+                ? MobileTheme.primaryWithAlpha(context, 0.1)
                 : colors.surface,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? MobileTheme.primary : colors.divider,
+              color: isSelected
+                  ? MobileTheme.primaryOf(context)
+                  : colors.divider,
               width: isSelected ? 1.5 : 0.5,
             ),
           ),
@@ -475,7 +479,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? MobileTheme.primary : colors.textSecondary,
+                color: isSelected
+                    ? MobileTheme.primaryOf(context)
+                    : colors.textSecondary,
               ),
               const SizedBox(width: 4),
               Text(
@@ -483,7 +489,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected ? MobileTheme.primary : colors.textPrimary,
+                  color: isSelected
+                      ? MobileTheme.primaryOf(context)
+                      : colors.textPrimary,
                 ),
               ),
             ],

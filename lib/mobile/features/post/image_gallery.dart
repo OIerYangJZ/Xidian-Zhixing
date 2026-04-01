@@ -26,7 +26,7 @@ class ImageGallery extends StatefulWidget {
     required List<String> imageUrls,
     int initialIndex = 0,
   }) {
-      Navigator.of(context).push(
+    Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
         barrierColor: Colors.black,
@@ -163,8 +163,10 @@ class _ImageGalleryState extends State<ImageGallery> {
             right: 0,
             child: SafeArea(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -242,7 +244,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
                               color: isSelected
-                                  ? MobileTheme.primary
+                                  ? MobileTheme.primaryOf(context)
                                   : Colors.transparent,
                               width: 2,
                             ),
@@ -254,9 +256,8 @@ class _ImageGalleryState extends State<ImageGallery> {
                               child: CachedNetworkImage(
                                 imageUrl: _fullUrls[index],
                                 fit: BoxFit.cover,
-                                placeholder: (context, url) => Container(
-                                  color: Colors.grey[800],
-                                ),
+                                placeholder: (context, url) =>
+                                    Container(color: Colors.grey[800]),
                                 errorWidget: (context, url, error) => Container(
                                   color: Colors.grey[800],
                                   child: const Icon(
@@ -307,16 +308,10 @@ class _ImagePage extends StatelessWidget {
             imageUrl: url,
             fit: BoxFit.contain,
             placeholder: (context, url) => const Center(
-              child: CircularProgressIndicator(
-                color: Colors.white,
-              ),
+              child: CircularProgressIndicator(color: Colors.white),
             ),
             errorWidget: (context, url, error) => const Center(
-              child: Icon(
-                Icons.broken_image,
-                color: Colors.white54,
-                size: 64,
-              ),
+              child: Icon(Icons.broken_image, color: Colors.white54, size: 64),
             ),
           ),
         ),
@@ -358,7 +353,11 @@ class PostImageGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildSingleImage(BuildContext context, String url, MobileColors colors) {
+  Widget _buildSingleImage(
+    BuildContext context,
+    String url,
+    MobileColors colors,
+  ) {
     final fullUrl = url.startsWith('http') ? url : AppConfig.resolveUrl(url);
     return GestureDetector(
       onTap: () {
@@ -377,9 +376,7 @@ class PostImageGrid extends StatelessWidget {
             placeholder: (context, url) => Container(
               height: 200,
               color: colors.background,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
             errorWidget: (context, url, error) => Container(
               height: 200,
@@ -468,9 +465,7 @@ class PostImageGrid extends StatelessWidget {
           child: SizedBox(
             width: 20,
             height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
       ),

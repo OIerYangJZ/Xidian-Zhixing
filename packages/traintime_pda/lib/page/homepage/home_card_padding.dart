@@ -26,16 +26,11 @@ extension HomeCardPadding on Widget {
         ),
         iconSize: WidgetStateProperty.all(20),
         backgroundColor: WidgetStateProperty.resolveWith((states) {
-          final colorScheme = Theme.of(context).colorScheme;
           final brightness = Theme.of(context).brightness;
           if (type == HomeCardType.filled) {
-            return brightness == Brightness.light
-                ? Colors.white
-                : colorScheme.surfaceContainerHigh;
+            return brightness == Brightness.light ? Colors.white : Colors.black;
           }
-          return brightness == Brightness.light
-              ? Colors.white
-              : colorScheme.surfaceContainerLow;
+          return brightness == Brightness.light ? Colors.white : Colors.black;
         }),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           final colorScheme = Theme.of(context).colorScheme;
@@ -46,6 +41,10 @@ extension HomeCardPadding on Widget {
         }),
         side: WidgetStateProperty.resolveWith((states) {
           final colorScheme = Theme.of(context).colorScheme;
+          final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+          if (isDarkMode) {
+            return BorderSide.none;
+          }
           if (type == HomeCardType.filled) {
             return BorderSide.none;
           }

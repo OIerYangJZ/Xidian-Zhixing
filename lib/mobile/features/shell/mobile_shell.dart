@@ -505,7 +505,7 @@ class _BottomNavBar extends StatelessWidget {
     final colors = MobileColors.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBackground = isDark ? Colors.black : Colors.white;
-    final selectedIconColor = isDark ? Colors.white : MobileTheme.primary;
+    final selectedIconColor = MobileTheme.primaryOf(context);
 
     return AnimatedBuilder(
       animation: slideAnim,

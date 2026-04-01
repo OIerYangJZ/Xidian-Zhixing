@@ -37,7 +37,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   int? _selectedPinDurationMinutes;
   bool _showPinSelector = false;
-  bool _isLevelOneUser = AuthStore.instance.currentUser?.isLevelOneUser ?? false;
+  bool _isLevelOneUser =
+      AuthStore.instance.currentUser?.isLevelOneUser ?? false;
 
   final List<XFile> _selectedImages = [];
   final List<String> _uploadedImageIds = [];
@@ -131,9 +132,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('选择图片失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
       }
     }
   }
@@ -167,9 +168,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('图片上传失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('图片上传失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -200,8 +201,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   String _generateAnonymousAlias() {
     final adjectives = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
     final nouns = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
-    final adj = adjectives[
-        (DateTime.now().millisecondsSinceEpoch ~/ 13) % adjectives.length];
+    final adj =
+        adjectives[(DateTime.now().millisecondsSinceEpoch ~/ 13) %
+            adjectives.length];
     final noun =
         nouns[(DateTime.now().millisecondsSinceEpoch ~/ 17) % nouns.length];
     return '$adj$noun';
@@ -219,9 +221,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   Future<void> _handlePublish() async {
     final content = _contentController.text.trim();
     if (content.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入帖子内容')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请输入帖子内容')));
       return;
     }
 
@@ -250,16 +252,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       await postRepo.createPost(input);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('发布成功！')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('发布成功！')));
         context.pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发布失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('发布失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -304,8 +306,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   bool get _canPublish =>
       _contentController.text.trim().isNotEmpty && !_isPublishing;
 
-  bool get _canPin =>
-      _isLevelOneUser;
+  bool get _canPin => _isLevelOneUser;
 
   @override
   Widget build(BuildContext context) {
@@ -327,9 +328,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           '$contentLen / 2000',
           style: TextStyle(
             fontSize: 13,
-            color: contentLen > 2000
-                ? MobileTheme.error
-                : colors.textSecondary,
+            color: contentLen > 2000 ? MobileTheme.error : colors.textSecondary,
           ),
         ),
         centerTitle: true,
@@ -341,7 +340,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 disabledBackgroundColor: colors.divider,
-                backgroundColor: MobileTheme.primary,
+                backgroundColor: MobileTheme.primaryOf(context),
               ),
               child: _isPublishing
                   ? const SizedBox(
@@ -379,7 +378,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     children: _isLoadingChannels
                         ? [const SizedBox(width: 16)]
                         : _channels
-                            .map((c) => _PillChip(
+                              .map(
+                                (c) => _PillChip(
                                   label: c,
                                   isSelected: c == _selectedChannel,
                                   onTap: () {
@@ -388,8 +388,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                       _showChannelSelector = false;
                                     });
                                   },
-                                ))
-                            .toList(),
+                                ),
+                              )
+                              .toList(),
                   ),
 
                   Divider(height: 0.5, color: colors.divider),
@@ -445,14 +446,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         spacing: 6,
                         runSpacing: 6,
                         children: _selectedTags
-                            .map((tag) => _SelectedTagChip(
-                                  label: tag,
-                                  onRemove: () {
-                                    setState(() {
-                                      _selectedTags.remove(tag);
-                                    });
-                                  },
-                                ))
+                            .map(
+                              (tag) => _SelectedTagChip(
+                                label: tag,
+                                onRemove: () {
+                                  setState(() {
+                                    _selectedTags.remove(tag);
+                                  });
+                                },
+                              ),
+                            )
                             .toList(),
                       ),
                     ),
@@ -463,8 +466,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: Row(
                         children: [
-                          Icon(Icons.visibility_off_outlined,
-                              size: 16, color: colors.textSecondary),
+                          Icon(
+                            Icons.visibility_off_outlined,
+                            size: 16,
+                            color: colors.textSecondary,
+                          ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: TextField(
@@ -494,11 +500,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   // 已选状态（内联紧凑展示）
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Row(
-                      children: [
-                        _StatusBadge(status: _postStatus),
-                      ],
-                    ),
+                    child: Row(children: [_StatusBadge(status: _postStatus)]),
                   ),
 
                   // 图片预览横排
@@ -524,10 +526,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   const SizedBox(width: 8),
                   Text(
                     '图片上传中...',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: colors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
                   ),
                 ],
               ),
@@ -579,8 +578,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           icon: _postStatus == PostStatus.resolved
                               ? Icons.check_circle
                               : _postStatus == PostStatus.closed
-                                  ? Icons.lock
-                                  : Icons.help_outline,
+                              ? Icons.lock
+                              : Icons.help_outline,
                           onTap: () {
                             setState(() {
                               _showStatusSelector = !_showStatusSelector;
@@ -600,7 +599,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               _isAnonymous = !_isAnonymous;
                               if (_isAnonymous) {
                                 _anonymousAlias = _generateAnonymousAlias();
-                                _anonymousAliasController.text = _anonymousAlias;
+                                _anonymousAliasController.text =
+                                    _anonymousAlias;
                               } else {
                                 _anonymousAlias = '';
                                 _anonymousAliasController.clear();
@@ -609,20 +609,21 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           },
                         ),
                         // 置顶按钮
-                        if (_canPin) _ToolbarIconButton(
-                          icon: _selectedPinDurationMinutes != null
-                              ? Icons.push_pin
-                              : Icons.push_pin_outlined,
-                          isActive: _selectedPinDurationMinutes != null,
-                          onTap: () {
-                            setState(() {
-                              _showPinSelector = !_showPinSelector;
-                              _showChannelSelector = false;
-                              _showTagSelector = false;
-                              _showStatusSelector = false;
-                            });
-                          },
-                        ),
+                        if (_canPin)
+                          _ToolbarIconButton(
+                            icon: _selectedPinDurationMinutes != null
+                                ? Icons.push_pin
+                                : Icons.push_pin_outlined,
+                            isActive: _selectedPinDurationMinutes != null,
+                            onTap: () {
+                              setState(() {
+                                _showPinSelector = !_showPinSelector;
+                                _showChannelSelector = false;
+                                _showTagSelector = false;
+                                _showStatusSelector = false;
+                              });
+                            },
+                          ),
                         const Spacer(),
                         // 可见性选项
                         _VisibilitySelector(
@@ -664,17 +665,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: colors.textSecondary,
-                  ),
+                  style: TextStyle(fontSize: 14, color: colors.textSecondary),
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
-                    color: MobileTheme.primary.withValues(alpha: 0.1),
+                    color: MobileTheme.primaryWithAlpha(context, 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -682,7 +682,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
-                      color: MobileTheme.primary,
+                      color: MobileTheme.primaryOf(context),
                     ),
                   ),
                 ),
@@ -701,11 +701,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         if (isExpanded)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: children,
-            ),
+            child: Wrap(spacing: 6, runSpacing: 6, children: children),
           ),
       ],
     );
@@ -729,16 +725,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   });
                 },
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? MobileTheme.primary.withValues(alpha: 0.12)
+                        ? MobileTheme.primaryWithAlpha(context, 0.12)
                         : colors.background,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
-                          ? MobileTheme.primary
+                          ? MobileTheme.primaryOf(context)
                           : colors.divider,
                     ),
                   ),
@@ -749,11 +747,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         s == PostStatus.resolved
                             ? Icons.check_circle
                             : s == PostStatus.closed
-                                ? Icons.lock
-                                : Icons.help_outline,
+                            ? Icons.lock
+                            : Icons.help_outline,
                         size: 13,
                         color: isSelected
-                            ? MobileTheme.primary
+                            ? MobileTheme.primaryOf(context)
                             : colors.textSecondary,
                       ),
                       const SizedBox(width: 4),
@@ -761,10 +759,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         s.label,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           color: isSelected
-                              ? MobileTheme.primary
+                              ? MobileTheme.primaryOf(context)
                               : colors.textSecondary,
                         ),
                       ),
@@ -812,11 +811,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.push_pin, size: 16, color: MobileTheme.primary),
+                Icon(
+                  Icons.push_pin,
+                  size: 16,
+                  color: MobileTheme.primaryOf(context),
+                ),
                 const SizedBox(width: 6),
                 Text(
                   '发帖后立即置顶',
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: MobileTheme.primary),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: MobileTheme.primaryOf(context),
+                  ),
                 ),
               ],
             ),
@@ -834,22 +841,31 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     });
                   },
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? MobileTheme.primary.withValues(alpha: 0.12)
+                          ? MobileTheme.primaryWithAlpha(context, 0.12)
                           : colors.background,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isSelected ? MobileTheme.primary : colors.divider,
+                        color: isSelected
+                            ? MobileTheme.primaryOf(context)
+                            : colors.divider,
                       ),
                     ),
                     child: Text(
                       opt.label,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                        color: isSelected ? MobileTheme.primary : colors.textSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? MobileTheme.primaryOf(context)
+                            : colors.textSecondary,
                       ),
                     ),
                   ),
@@ -905,10 +921,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.file(
-                    File(image.path),
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.file(File(image.path), fit: BoxFit.cover),
                 ),
               ),
               Positioned(
@@ -958,11 +971,11 @@ class _PillChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected
-              ? MobileTheme.primary.withValues(alpha: 0.12)
+              ? MobileTheme.primaryWithAlpha(context, 0.12)
               : colors.background,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? MobileTheme.primary : colors.divider,
+            color: isSelected ? MobileTheme.primaryOf(context) : colors.divider,
           ),
         ),
         child: Text(
@@ -970,7 +983,9 @@ class _PillChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected ? MobileTheme.primary : colors.textSecondary,
+            color: isSelected
+                ? MobileTheme.primaryOf(context)
+                : colors.textSecondary,
           ),
         ),
       ),
@@ -989,28 +1004,28 @@ class _SelectedTagChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: MobileTheme.primary.withValues(alpha: 0.1),
+        color: MobileTheme.primaryWithAlpha(context, 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MobileTheme.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: MobileTheme.primaryWithAlpha(context, 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             '#$label',
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: MobileTheme.primary,
+              color: MobileTheme.primaryOf(context),
             ),
           ),
           const SizedBox(width: 2),
           GestureDetector(
             onTap: onRemove,
-            child: const Icon(
+            child: Icon(
               Icons.close,
               size: 12,
-              color: MobileTheme.primary,
+              color: MobileTheme.primaryOf(context),
             ),
           ),
         ],
@@ -1030,8 +1045,8 @@ class _StatusBadge extends StatelessWidget {
     final displayColor = status == PostStatus.resolved
         ? MobileTheme.success
         : status == PostStatus.closed
-            ? MobileTheme.textSecondary
-            : MobileTheme.primary;
+        ? MobileTheme.textSecondary
+        : MobileTheme.primaryOf(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1073,14 +1088,16 @@ class _ToolbarIconButton extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 2),
         decoration: BoxDecoration(
           color: isActive
-              ? MobileTheme.primary.withValues(alpha: 0.1)
+              ? MobileTheme.primaryWithAlpha(context, 0.1)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           icon,
           size: 22,
-          color: isActive ? MobileTheme.primary : colors.textSecondary,
+          color: isActive
+              ? MobileTheme.primaryOf(context)
+              : colors.textSecondary,
         ),
       ),
     );
@@ -1112,11 +1129,7 @@ class _VisibilitySelector extends StatelessWidget {
             color: colors.textSecondary,
           ),
           const SizedBox(width: 2),
-          Icon(
-            Icons.arrow_drop_up,
-            size: 18,
-            color: colors.textTertiary,
-          ),
+          Icon(Icons.arrow_drop_up, size: 18, color: colors.textTertiary),
         ],
       ),
       onSelected: (value) {
@@ -1163,7 +1176,9 @@ class _VisibilitySelector extends StatelessWidget {
           Icon(
             icon,
             size: 18,
-            color: isSelected ? MobileTheme.primary : colors.textSecondary,
+            color: isSelected
+                ? MobileTheme.primaryOf(context)
+                : colors.textSecondary,
           ),
           const SizedBox(width: 10),
           Text(
@@ -1171,12 +1186,14 @@ class _VisibilitySelector extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              color: isSelected ? MobileTheme.primary : colors.textPrimary,
+              color: isSelected
+                  ? MobileTheme.primaryOf(context)
+                  : colors.textPrimary,
             ),
           ),
           const Spacer(),
           if (isSelected)
-            Icon(Icons.check, size: 16, color: MobileTheme.primary),
+            Icon(Icons.check, size: 16, color: MobileTheme.primaryOf(context)),
         ],
       ),
     );
@@ -1269,9 +1286,7 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(bottom: BorderSide(color: colors.divider, width: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1299,15 +1314,18 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: MobileTheme.primary,
+                        color: MobileTheme.primaryOf(context),
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   GestureDetector(
                     onTap: widget.onClose,
-                    child: Icon(Icons.close,
-                        size: 16, color: colors.textTertiary),
+                    child: Icon(
+                      Icons.close,
+                      size: 16,
+                      color: colors.textTertiary,
+                    ),
                   ),
                 ],
               ),
@@ -1323,16 +1341,18 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
               return GestureDetector(
                 onTap: () => _toggleTag(tag),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? MobileTheme.primary.withValues(alpha: 0.12)
+                        ? MobileTheme.primaryWithAlpha(context, 0.12)
                         : colors.background,
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isSelected
-                          ? MobileTheme.primary
+                          ? MobileTheme.primaryOf(context)
                           : colors.divider,
                     ),
                   ),
@@ -1340,10 +1360,11 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                     tag,
                     style: TextStyle(
                       fontSize: 13,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                       color: isSelected
-                          ? MobileTheme.primary
+                          ? MobileTheme.primaryOf(context)
                           : colors.textSecondary,
                     ),
                   ),
@@ -1362,9 +1383,13 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                   decoration: InputDecoration(
                     hintText: '自定义标签',
                     hintStyle: TextStyle(
-                        fontSize: 13, color: colors.textTertiary),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      fontSize: 13,
+                      color: colors.textTertiary,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: colors.divider),
@@ -1375,7 +1400,9 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: MobileTheme.primary),
+                      borderSide: BorderSide(
+                        color: MobileTheme.primaryOf(context),
+                      ),
                     ),
                     isDense: true,
                   ),

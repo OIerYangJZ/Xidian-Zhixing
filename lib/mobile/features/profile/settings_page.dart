@@ -136,8 +136,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         backgroundColor: colors.surface,
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: MobileTheme.primaryOf(context),
+              ),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
@@ -185,7 +187,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     children: [
                       _buildSwitchTile(
                         icon: Icons.chat_bubble_outline,
-                        iconColor: MobileTheme.primary,
+                        iconColor: MobileTheme.primaryOf(context),
                         title: '允许陌生人私信',
                         subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
                         value: _profile?.allowStrangerDm ?? false,
@@ -284,7 +286,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: MobileTheme.primary,
+            activeThumbColor: MobileTheme.primaryOf(context),
           ),
         ],
       ),

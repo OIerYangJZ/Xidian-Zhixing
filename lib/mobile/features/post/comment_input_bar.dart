@@ -166,7 +166,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: _hasText
-                    ? MobileTheme.primary
+                    ? MobileTheme.primaryOf(context)
                     : colors.textTertiary.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(18),
               ),

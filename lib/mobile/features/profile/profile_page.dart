@@ -116,10 +116,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
     );
     final bool hasBackgroundImage = backgroundImageUrl.isNotEmpty;
     final bool isLightMode = Theme.of(context).brightness == Brightness.light;
-    final Color profilePrimaryTextColor =
-        isLightMode ? Colors.black : colors.textPrimary;
-    final Color profileSecondaryTextColor =
-        isLightMode ? Colors.black : colors.textSecondary;
+    final Color profilePrimaryTextColor = isLightMode
+        ? Colors.black
+        : colors.textPrimary;
+    final Color profileSecondaryTextColor = isLightMode
+        ? Colors.black
+        : colors.textSecondary;
     final double profileTopSpacing = hasBackgroundImage ? 120 : 60;
 
     return Scaffold(
@@ -146,7 +148,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                       height: profileTopSpacing,
                       color: hasBackgroundImage
                           ? Colors.transparent
-                          : MobileTheme.primary.withValues(alpha: 0.08),
+                          : MobileTheme.primaryWithAlpha(context, 0.08),
                     ),
 
                     Padding(
@@ -217,7 +219,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 const SizedBox(width: 8),
                                 GestureDetector(
                                   onTap: () async {
-                                    await context.push('/profile/settings/main');
+                                    await context.push(
+                                      '/profile/settings/main',
+                                    );
                                     if (mounted) {
                                       await _loadProfile();
                                     }
@@ -308,7 +312,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 _StatChip(
                                   label: '粉丝',
                                   value: '${_followers.length}',
-                                  onTap: () => _showFollowSheet('粉丝', _followers),
+                                  onTap: () =>
+                                      _showFollowSheet('粉丝', _followers),
                                   primaryColor: profilePrimaryTextColor,
                                   secondaryColor: profileSecondaryTextColor,
                                 ),
@@ -316,7 +321,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 _StatChip(
                                   label: '关注',
                                   value: '${_following.length}',
-                                  onTap: () => _showFollowSheet('关注', _following),
+                                  onTap: () =>
+                                      _showFollowSheet('关注', _following),
                                   primaryColor: profilePrimaryTextColor,
                                   secondaryColor: profileSecondaryTextColor,
                                 ),
@@ -333,9 +339,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                     borderRadius: BorderRadius.circular(4),
                                     border: hasBackgroundImage
                                         ? Border.all(
-                                            color: MobileTheme.accent.withValues(
-                                              alpha: 0.3,
-                                            ),
+                                            color: MobileTheme.accent
+                                                .withValues(alpha: 0.3),
                                             width: 0.6,
                                           )
                                         : null,
@@ -366,7 +371,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                         controller: _tabController,
                         labelColor: colors.textPrimary,
                         unselectedLabelColor: colors.textSecondary,
-                        indicatorColor: MobileTheme.primary,
+                        indicatorColor: MobileTheme.primaryOf(context),
                         indicatorSize: TabBarIndicatorSize.tab,
                         dividerColor: Colors.transparent,
                         labelStyle: const TextStyle(
@@ -579,14 +584,14 @@ class _FollowUserTile extends StatelessWidget {
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: MobileTheme.primary.withValues(alpha: 0.1),
+                color: MobileTheme.primaryWithAlpha(context, 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 '好友',
                 style: TextStyle(
                   fontSize: 12,
-                  color: MobileTheme.primary,
+                  color: MobileTheme.primaryOf(context),
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -629,8 +634,8 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: MobileTheme.primary),
+      return Center(
+        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
     }
     if (_posts.isEmpty) {
@@ -694,8 +699,8 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: MobileTheme.primary),
+      return Center(
+        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
     }
     if (_posts.isEmpty) {
@@ -772,9 +777,9 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
 
     if (!mounted) return;
     if (postId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('无法定位到原帖，帖子可能已删除或无访问权限')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('无法定位到原帖，帖子可能已删除或无访问权限')));
       return;
     }
     context.push(
@@ -829,7 +834,7 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
     final colors = MobileColors.of(context);
     if (_loading) {
       return Center(
-        child: CircularProgressIndicator(color: MobileTheme.primary),
+        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
     }
     if (_comments.isEmpty) {

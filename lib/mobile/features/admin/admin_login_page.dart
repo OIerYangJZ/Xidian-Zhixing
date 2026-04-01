@@ -29,9 +29,9 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
 
   Future<void> _handleLogin() async {
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请输入用户名和密码')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请输入用户名和密码')));
       return;
     }
 
@@ -50,9 +50,9 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('登录失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('登录失败: $e')));
       }
     } finally {
       if (mounted) {
@@ -87,10 +87,10 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
             Center(
               child: Column(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.admin_panel_settings,
                     size: 64,
-                    color: MobileTheme.primary,
+                    color: MobileTheme.primaryOf(context),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -104,10 +104,7 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
                   const SizedBox(height: 8),
                   Text(
                     '请输入管理员账号登录',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 14, color: colors.textSecondary),
                   ),
                 ],
               ),

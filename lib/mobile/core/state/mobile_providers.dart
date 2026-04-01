@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/update/app_update_controller.dart';
 import 'app_settings_store.dart';
 import 'package:xdu_treehole_web/features/messages/messages_controller.dart'
     show messagesControllerProvider;
@@ -23,6 +24,12 @@ final appSettingsProvider = ChangeNotifierProvider<AppSettingsStore>((ref) {
   // AppSettingsStore 是单例，直接返回已有实例
   ref.onDispose(() {});
   return AppSettingsStore.instance;
+});
+
+/// App 更新状态
+final appUpdateProvider = ChangeNotifierProvider<AppUpdateController>((ref) {
+  ref.onDispose(() {});
+  return AppUpdateController.instance;
 });
 
 /// 当前 Tab 索引
@@ -50,9 +57,10 @@ final messageUnreadCountProvider = Provider<int>((ref) {
 });
 
 /// 搜索历史
-final searchHistoryProvider = StateNotifierProvider<SearchHistoryNotifier, List<String>>((ref) {
-  return SearchHistoryNotifier();
-});
+final searchHistoryProvider =
+    StateNotifierProvider<SearchHistoryNotifier, List<String>>((ref) {
+      return SearchHistoryNotifier();
+    });
 
 class SearchHistoryNotifier extends StateNotifier<List<String>> {
   SearchHistoryNotifier() : super([]);
@@ -60,7 +68,10 @@ class SearchHistoryNotifier extends StateNotifier<List<String>> {
   void add(String keyword) {
     if (keyword.trim().isEmpty) return;
     final trimmed = keyword.trim();
-    state = [trimmed, ...state.where((item) => item != trimmed).take(9)].toList();
+    state = [
+      trimmed,
+      ...state.where((item) => item != trimmed).take(9),
+    ].toList();
   }
 
   void remove(String keyword) {
@@ -74,9 +85,12 @@ class SearchHistoryNotifier extends StateNotifier<List<String>> {
 
 /// 返回键处理器注册器（供 RootBackButtonDispatcher 使用）
 /// Shell 在 initState 时注册，路由器在收到系统返回键时调用
-final mobileBackHandlerProvider = StateNotifierProvider<MobileBackHandlerNotifier, MobileBackHandlerState>((ref) {
-  return MobileBackHandlerNotifier();
-});
+final mobileBackHandlerProvider =
+    StateNotifierProvider<MobileBackHandlerNotifier, MobileBackHandlerState>((
+      ref,
+    ) {
+      return MobileBackHandlerNotifier();
+    });
 
 class MobileBackHandlerState {
   final int currentBranch;
@@ -103,7 +117,8 @@ class MobileBackHandlerState {
 }
 
 class MobileBackHandlerNotifier extends StateNotifier<MobileBackHandlerState> {
-  MobileBackHandlerNotifier() : super(const MobileBackHandlerState(handler: _noopHandler));
+  MobileBackHandlerNotifier()
+    : super(const MobileBackHandlerState(handler: _noopHandler));
 
   static void _noopHandler(int branch) {}
 
@@ -112,6 +127,9 @@ class MobileBackHandlerNotifier extends StateNotifier<MobileBackHandlerState> {
   }
 
   void updateState({required int currentBranch, required bool isLoggedIn}) {
-    state = state.copyWith(currentBranch: currentBranch, isLoggedIn: isLoggedIn);
+    state = state.copyWith(
+      currentBranch: currentBranch,
+      isLoggedIn: isLoggedIn,
+    );
   }
 }

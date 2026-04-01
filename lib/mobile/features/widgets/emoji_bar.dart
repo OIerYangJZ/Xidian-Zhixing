@@ -584,10 +584,7 @@ class _EmojiBarState extends State<EmojiBar>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: _categories.length,
-      vsync: this,
-    );
+    _tabController = TabController(length: _categories.length, vsync: this);
   }
 
   @override
@@ -603,9 +600,7 @@ class _EmojiBarState extends State<EmojiBar>
       height: 260,
       decoration: BoxDecoration(
         color: colors.surface,
-        border: Border(
-          top: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
         borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Column(
@@ -621,12 +616,14 @@ class _EmojiBarState extends State<EmojiBar>
             child: TabBar(
               controller: _tabController,
               isScrollable: true,
-              labelColor: MobileTheme.primary,
+              labelColor: MobileTheme.primaryOf(context),
               unselectedLabelColor: colors.textSecondary,
-              labelStyle:
-                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+              labelStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
               unselectedLabelStyle: const TextStyle(fontSize: 13),
-              indicatorColor: MobileTheme.primary,
+              indicatorColor: MobileTheme.primaryOf(context),
               indicatorWeight: 2,
               tabAlignment: TabAlignment.start,
               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -667,10 +664,7 @@ class _EmojiBarState extends State<EmojiBar>
         return GestureDetector(
           onTap: () => widget.onEmojiSelected(emojis[index]),
           child: Center(
-            child: Text(
-              emojis[index],
-              style: const TextStyle(fontSize: 24),
-            ),
+            child: Text(emojis[index], style: const TextStyle(fontSize: 24)),
           ),
         );
       },

@@ -17,7 +17,8 @@ class NotificationCenterPage extends ConsumerStatefulWidget {
       _NotificationCenterPageState();
 }
 
-class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage> {
+class _NotificationCenterPageState
+    extends ConsumerState<NotificationCenterPage> {
   final Map<String, String> _actorAvatarCache = <String, String>{};
   final Set<String> _actorAvatarLoading = <String>{};
 
@@ -72,10 +73,10 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
       body: state.loading
           ? const Center(child: CircularProgressIndicator())
           : state.error != null
-              ? _buildErrorState(state.error!)
-              : state.items.isEmpty
-                  ? _buildEmptyState()
-                  : _buildNotificationList(state.items),
+          ? _buildErrorState(state.error!)
+          : state.items.isEmpty
+          ? _buildEmptyState()
+          : _buildNotificationList(state.items),
     );
   }
 
@@ -151,27 +152,29 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
         continue;
       }
       _actorAvatarLoading.add(actorId);
-      ref.read(userRepositoryProvider).fetchUserProfile(actorId).then((
-        profile,
-      ) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          final String avatarUrl = profile.avatarUrl.trim();
-          if (avatarUrl.isNotEmpty) {
-            _actorAvatarCache[actorId] = avatarUrl;
-          }
-          _actorAvatarLoading.remove(actorId);
-        });
-      }).catchError((_) {
-        if (!mounted) {
-          return;
-        }
-        setState(() {
-          _actorAvatarLoading.remove(actorId);
-        });
-      });
+      ref
+          .read(userRepositoryProvider)
+          .fetchUserProfile(actorId)
+          .then((profile) {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              final String avatarUrl = profile.avatarUrl.trim();
+              if (avatarUrl.isNotEmpty) {
+                _actorAvatarCache[actorId] = avatarUrl;
+              }
+              _actorAvatarLoading.remove(actorId);
+            });
+          })
+          .catchError((_) {
+            if (!mounted) {
+              return;
+            }
+            setState(() {
+              _actorAvatarLoading.remove(actorId);
+            });
+          });
     }
   }
 
@@ -200,7 +203,9 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
   }
 
   void _handleNotificationTap(NotificationItem notification) {
-    ref.read(notificationsControllerProvider.notifier).markRead(notification.id);
+    ref
+        .read(notificationsControllerProvider.notifier)
+        .markRead(notification.id);
     if (notification.postId.isNotEmpty) {
       context.push('/post/${notification.postId}');
     }
@@ -237,7 +242,7 @@ class _NotificationTile extends StatelessWidget {
     }
   }
 
-  Color get _iconColor {
+  Color _iconColor(BuildContext context) {
     switch (notification.type) {
       case 'comment':
       case 'reply':
@@ -251,7 +256,7 @@ class _NotificationTile extends StatelessWidget {
       case 'system':
         return Colors.purple;
       default:
-        return MobileTheme.primary;
+        return MobileTheme.primaryOf(context);
     }
   }
 
@@ -297,10 +302,10 @@ class _NotificationTile extends StatelessWidget {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: _iconColor.withValues(alpha: 0.1),
+                        color: _iconColor(context).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Icon(_icon, color: _iconColor, size: 20),
+                      child: Icon(_icon, color: _iconColor(context), size: 20),
                     ),
               const SizedBox(width: 10),
               Expanded(
@@ -329,8 +334,8 @@ class _NotificationTile extends StatelessWidget {
                             width: 7,
                             height: 7,
                             margin: const EdgeInsets.only(top: 6),
-                            decoration: const BoxDecoration(
-                              color: MobileTheme.primary,
+                            decoration: BoxDecoration(
+                              color: MobileTheme.primaryOf(context),
                               shape: BoxShape.circle,
                             ),
                           ),

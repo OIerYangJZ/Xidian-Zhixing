@@ -98,9 +98,7 @@ class InputBarState extends State<InputBar> {
     );
     _controller.value = TextEditingValue(
       text: newText,
-      selection: TextSelection.collapsed(
-        offset: selection.start + text.length,
-      ),
+      selection: TextSelection.collapsed(offset: selection.start + text.length),
     );
   }
 
@@ -120,12 +118,11 @@ class InputBarState extends State<InputBar> {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Container(
       decoration: BoxDecoration(
         color: colors.surface,
-        border: Border(
-          top: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -190,10 +187,7 @@ class InputBarState extends State<InputBar> {
                     autofocus: widget.autofocus,
                     maxLines: null,
                     textInputAction: TextInputAction.newline,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: colors.textPrimary,
-                    ),
+                    style: TextStyle(fontSize: 15, color: colors.textPrimary),
                     decoration: InputDecoration(
                       hintText: widget.placeholder ?? '说点什么...',
                       hintStyle: TextStyle(
@@ -222,7 +216,7 @@ class InputBarState extends State<InputBar> {
                   ),
                   decoration: BoxDecoration(
                     color: _hasText
-                        ? MobileTheme.primary
+                        ? primaryColor
                         : colors.textTertiary.withValues(alpha: 0.3),
                     borderRadius: BorderRadius.circular(18),
                   ),

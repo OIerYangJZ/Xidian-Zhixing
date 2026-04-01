@@ -201,6 +201,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildImagePageView() {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
       child: SizedBox(
@@ -230,13 +231,13 @@ class _PostCardState extends ConsumerState<PostCard> {
                     width: double.infinity,
                     placeholder: (context, url) => Container(
                       color: colors.divider,
-                      child: const Center(
+                      child: Center(
                         child: SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: MobileTheme.primary,
+                            color: primaryColor,
                           ),
                         ),
                       ),
@@ -341,6 +342,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildHeaderRow() {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Row(
       children: [
         Text(
@@ -355,7 +357,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         _ChannelDot(channel: widget.post.channel),
         if (widget.post.isPinned) ...[
           const SizedBox(width: 6),
-          const Icon(Icons.push_pin, size: 14, color: MobileTheme.primary),
+          Icon(Icons.push_pin, size: 14, color: primaryColor),
         ],
         const Spacer(),
         Text(
@@ -367,16 +369,17 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Widget _buildTags() {
+    final primaryColor = MobileTheme.primaryOf(context);
     return Wrap(
       spacing: 8,
       runSpacing: 4,
       children: widget.post.tags.take(3).map((tag) {
         return Text(
           '#$tag',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w500,
-            color: MobileTheme.primary,
+            color: primaryColor,
           ),
         );
       }).toList(),
@@ -385,6 +388,7 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildActionBar() {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return SizedBox(
       height: 36,
       child: Row(
@@ -403,7 +407,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.chat_bubble,
             count: widget.post.commentCount,
             isActive: false,
-            activeColor: MobileTheme.primary,
+            activeColor: primaryColor,
             onTap: widget.onTap,
           ),
           const Spacer(),
@@ -461,7 +465,8 @@ class _ChannelDot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayChannel = channel == '其他' ? '综合' : channel;
-    final color = _channelColors[displayChannel] ?? MobileTheme.primary;
+    final color =
+        _channelColors[displayChannel] ?? MobileTheme.primaryOf(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

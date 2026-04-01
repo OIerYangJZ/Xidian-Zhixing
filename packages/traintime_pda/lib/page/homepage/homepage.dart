@@ -567,12 +567,14 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final pageBackgroundColor = isDarkMode ? Colors.black : Colors.white;
     return ColoredBox(
-      color: Colors.white,
+      color: pageBackgroundColor,
       child: NestedScrollView(
         headerSliverBuilder: (context, innerBoxScrolled) => [
           SliverAppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: pageBackgroundColor,
             centerTitle: false,
             expandedHeight: 126,
             pinned: true,

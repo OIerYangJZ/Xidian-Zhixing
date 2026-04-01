@@ -45,7 +45,8 @@ class HelpAndFeedbackPage extends StatelessWidget {
             context,
             icon: Icons.flag_outlined,
             title: '举报后多久处理？',
-            description: '管理员将在 24 小时内审核处理。工作日 9:00-18:00 平均处理时长 2-6 小时，处理结果可在"我的举报"中查看。',
+            description:
+                '管理员将在 24 小时内审核处理。工作日 9:00-18:00 平均处理时长 2-6 小时，处理结果可在"我的举报"中查看。',
           ),
           _buildFAQItem(
             context,
@@ -91,10 +92,14 @@ class HelpAndFeedbackPage extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: MobileTheme.primary.withValues(alpha: 0.1),
+                    color: MobileTheme.primaryWithAlpha(context, 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.headset_mic_outlined, color: MobileTheme.primary, size: 22),
+                  child: Icon(
+                    Icons.headset_mic_outlined,
+                    color: MobileTheme.primaryOf(context),
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -159,7 +164,7 @@ class HelpAndFeedbackPage extends StatelessWidget {
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          leading: Icon(icon, color: MobileTheme.primary, size: 20),
+          leading: Icon(icon, color: MobileTheme.primaryOf(context), size: 20),
           title: Text(
             title,
             style: TextStyle(
@@ -211,10 +216,14 @@ class HelpAndFeedbackPage extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: MobileTheme.primary.withValues(alpha: 0.1),
+                  color: MobileTheme.primaryWithAlpha(context, 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: MobileTheme.primary, size: 22),
+                child: Icon(
+                  icon,
+                  color: MobileTheme.primaryOf(context),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(

@@ -282,7 +282,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
               CircleAvatar(
                 radius: 18,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
                 backgroundImage: CachedNetworkImageProvider(
                   widget.peerAvatar!.startsWith('http')
                       ? widget.peerAvatar!
@@ -292,11 +292,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             else
               CircleAvatar(
                 radius: 18,
-                backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
                 child: Text(
                   (widget.peerName ?? '用户').substring(0, 1),
-                  style: const TextStyle(
-                    color: MobileTheme.primary,
+                  style: TextStyle(
+                    color: MobileTheme.primaryOf(context),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -525,14 +525,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     )
                   : CircleAvatar(
                       radius: 16,
-                      backgroundColor: MobileTheme.primary.withValues(
-                        alpha: 0.1,
+                      backgroundColor: MobileTheme.primaryWithAlpha(
+                        context,
+                        0.1,
                       ),
                       child: Text(
                         (widget.peerName ?? '用户').substring(0, 1),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: MobileTheme.primary,
+                          color: MobileTheme.primaryOf(context),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -557,7 +558,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       maxWidth: MediaQuery.of(context).size.width * 0.7,
                     ),
                     decoration: BoxDecoration(
-                      color: isMe ? MobileTheme.primary : colors.surface,
+                      color: isMe
+                          ? MobileTheme.primaryOf(context)
+                          : colors.surface,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(isMe ? 18 : 4),
                         topRight: Radius.circular(isMe ? 4 : 18),
@@ -637,13 +640,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     )
                   : CircleAvatar(
                       radius: 16,
-                      backgroundColor: MobileTheme.primary.withValues(
-                        alpha: 0.1,
+                      backgroundColor: MobileTheme.primaryWithAlpha(
+                        context,
+                        0.1,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.person,
                         size: 16,
-                        color: MobileTheme.primary,
+                        color: MobileTheme.primaryOf(context),
                       ),
                     ),
             ),
@@ -657,10 +661,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 margin: const EdgeInsets.only(left: 6),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isSelected ? MobileTheme.primary : Colors.transparent,
+                  color: isSelected
+                      ? MobileTheme.primaryOf(context)
+                      : Colors.transparent,
                   border: Border.all(
                     color: isSelected
-                        ? MobileTheme.primary
+                        ? MobileTheme.primaryOf(context)
                         : colors.textTertiary,
                     width: 1.5,
                   ),
@@ -679,24 +685,30 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _hideOverlay(rebuild: false);
     HapticFeedback.mediumImpact();
     final media = MediaQuery.of(context);
-    const double horizontalPadding = 8.0;
-    final double maxWidth = media.size.width - horizontalPadding * 2;
+    const double leftPadding = 8.0;
+    const double rightPadding = 4.0;
+    final double maxWidth = media.size.width - leftPadding - rightPadding;
     final int actionCount = message.canRecall ? 5 : 4;
     final double estimatedWidth = (actionCount * 62.0)
         .clamp(228.0, maxWidth)
         .toDouble();
-    const double selfMessageHorizontalOffset = 14.0;
+    const double selfMessageHorizontalOffset = 6.0;
+    const double actionBarHeightEstimate = 48.0;
+    const double verticalGap = 8.0;
     final double left =
         (globalPosition.dx -
                 estimatedWidth / 2 +
                 (message.fromMe ? selfMessageHorizontalOffset : 0))
             .clamp(
-              horizontalPadding,
-              media.size.width - estimatedWidth - horizontalPadding,
+              leftPadding,
+              media.size.width - estimatedWidth - rightPadding,
             )
             .toDouble();
-    final double top = (globalPosition.dy - 76.0)
-        .clamp(media.padding.top + 8.0, media.size.height - 76.0)
+    final double top = (globalPosition.dy - actionBarHeightEstimate - verticalGap)
+        .clamp(
+          media.padding.top + 8.0,
+          media.size.height - actionBarHeightEstimate - verticalGap,
+        )
         .toDouble();
 
     _overlayEntry = OverlayEntry(
@@ -980,7 +992,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               (c) => ListTile(
                 leading: CircleAvatar(
                   radius: 18,
-                  backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+                  backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
                   backgroundImage: c.avatarUrl.isNotEmpty
                       ? CachedNetworkImageProvider(
                           c.avatarUrl.startsWith('http')
@@ -989,9 +1001,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         )
                       : null,
                   child: c.avatarUrl.isEmpty
-                      ? const Icon(
+                      ? Icon(
                           Icons.person,
-                          color: MobileTheme.primary,
+                          color: MobileTheme.primaryOf(context),
                           size: 18,
                         )
                       : null,
@@ -1049,10 +1061,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   ) {
     final quoteColor = isMe
         ? Colors.white.withValues(alpha: 0.25)
-        : MobileTheme.primary.withValues(alpha: 0.08);
+        : MobileTheme.primaryWithAlpha(context, 0.08);
     final accentColor = isMe
         ? Colors.white.withValues(alpha: 0.85)
-        : MobileTheme.primary;
+        : MobileTheme.primaryOf(context);
     final textColor = isMe
         ? Colors.white.withValues(alpha: 0.9)
         : colors.textSecondary;
@@ -1186,7 +1198,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       height: 36,
                       decoration: BoxDecoration(
                         color: _canSend()
-                            ? MobileTheme.primary
+                            ? MobileTheme.primaryOf(context)
                             : colors.textTertiary.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(18),
                       ),
@@ -1234,7 +1246,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             width: 3,
             height: 36,
             decoration: BoxDecoration(
-              color: MobileTheme.primary,
+              color: MobileTheme.primaryOf(context),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1246,10 +1258,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               children: [
                 Text(
                   isMe ? '我' : msg.senderAlias,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: MobileTheme.primary,
+                    color: MobileTheme.primaryOf(context),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1343,9 +1355,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               },
             ),
             ListTile(
-              leading: const Icon(
+              leading: Icon(
                 Icons.person_add_outlined,
-                color: MobileTheme.primary,
+                color: MobileTheme.primaryOf(context),
               ),
               title: const Text('查看对方主页'),
               onTap: () {
@@ -1448,7 +1460,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             style: TextButton.styleFrom(
               foregroundColor: isBlocking
                   ? MobileTheme.error
-                  : MobileTheme.primary,
+                  : MobileTheme.primaryOf(context),
             ),
             child: Text(isBlocking ? '屏蔽' : '解除屏蔽'),
           ),

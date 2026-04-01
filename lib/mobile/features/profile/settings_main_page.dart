@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:watermeter/page/homepage/info_widget/classtable_card.dart';
+import 'package:watermeter/repository/preference.dart' as wm_preference;
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
+import '../../core/theme/mobile_colors.dart';
+import '../../core/theme/mobile_theme.dart';
+import '../../features/update/app_update_controller.dart';
+import '../../features/update/app_update_dialog.dart';
 
-/// 设置主页 — Instagram 风格
-/// 账号安全 / 隐私设置 / 通知 / 关于 / 退出登录
 class SettingsMainPage extends ConsumerStatefulWidget {
   const SettingsMainPage({super.key});
 
@@ -21,6 +23,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
   UserProfile? _profile;
   bool _loading = true;
   bool _saving = false;
+  bool _simplifiedTimeline = wm_preference.getBool(
+    wm_preference.Preference.simplifiedClassTimeline,
+  );
 
   @override
   void initState() {
@@ -62,18 +67,29 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
         );
       });
       _showToast('隐私设置已更新');
-    } catch (e) {
+    } catch (_) {
       _showToast('设置失败');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
+  Future<void> _toggleSimplifiedTimeline(bool value) async {
+    await wm_preference.setBool(
+      wm_preference.Preference.simplifiedClassTimeline,
+      value,
+    );
+    ClassTableCard.reloadSettingsFromPref();
+    if (!mounted) return;
+    setState(() => _simplifiedTimeline = value);
+    _showToast(value ? '已启用简化日程时间轴' : '已关闭简化日程时间轴');
+  }
+
   Future<void> _promptLevelUpgradeRequest() async {
     final profile = _profile;
     if (profile == null || profile.isLevelOneUser) return;
-    final currentRequest = profile.levelUpgradeRequest;
-    if (currentRequest?.status == 'pending') {
+    final request = profile.levelUpgradeRequest;
+    if (request?.status == 'pending') {
       _showToast('你已经提交过申请了，请等待管理员审核');
       return;
     }
@@ -105,16 +121,12 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     } catch (e) {
       _showToast('提交失败：$e');
     } finally {
-      if (mounted) {
-        setState(() => _saving = false);
-      }
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   String _levelUpgradeSubtitle(UserLevelRequestSummary? request) {
-    if (request == null) {
-      return '当前为二级用户，可申请升级为一级用户';
-    }
+    if (request == null) return '当前为二级用户，可申请升级为一级用户';
     final buffer = StringBuffer(
       '${request.statusLabel} · ${request.createdAt}',
     );
@@ -147,10 +159,144 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     try {
       await ref.read(authRepositoryProvider).logout();
     } catch (_) {}
-
     AuthStore.instance.clear();
     if (!mounted) return;
     context.go('/auth/login');
+  }
+
+  Future<void> _handleCheckUpdate() async {
+    final controller = ref.read(appUpdateProvider);
+    final hasUpdate = await controller.checkForUpdates(clearError: true);
+    if (!mounted) return;
+    if (hasUpdate && controller.latestRelease != null) {
+      await showAppUpdateDialog(
+        context,
+        release: controller.latestRelease!,
+        currentVersionLabel: controller.currentVersionLabel,
+      );
+      return;
+    }
+    if (controller.error != null && controller.error!.trim().isNotEmpty) {
+      _showToast('检查更新失败：${controller.error}');
+      return;
+    }
+    _showToast('当前已是最新版本');
+  }
+
+  String _updateSubtitle(AppUpdateController controller) {
+    final current = '当前版本 ${controller.currentVersionLabel}';
+    if (controller.hasUpdate && controller.latestRelease != null) {
+      return '$current · 最新版本 ${controller.latestVersionLabel}';
+    }
+    return current;
+  }
+
+  void _showThemeDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('外观'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _ThemeOption(
+              title: '跟随系统',
+              value: ThemeMode.system,
+              current: ref.read(appSettingsProvider).themeMode,
+              onTap: () => _setBrightness(ThemeMode.system, ctx),
+            ),
+            _ThemeOption(
+              title: '浅色',
+              value: ThemeMode.light,
+              current: ref.read(appSettingsProvider).themeMode,
+              onTap: () => _setBrightness(ThemeMode.light, ctx),
+            ),
+            _ThemeOption(
+              title: '深色',
+              value: ThemeMode.dark,
+              current: ref.read(appSettingsProvider).themeMode,
+              onTap: () => _setBrightness(ThemeMode.dark, ctx),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setBrightness(
+    ThemeMode mode,
+    BuildContext dialogContext,
+  ) async {
+    await ref.read(appSettingsProvider.notifier).setBrightness(mode);
+    if (!mounted) return;
+    Navigator.pop(dialogContext);
+    _showToast('已切换到 ${_themeModeLabel(mode)}');
+  }
+
+  String _themeModeLabel(ThemeMode mode) {
+    if (mode == ThemeMode.system) return '跟随系统';
+    if (mode == ThemeMode.light) return '浅色';
+    if (mode == ThemeMode.dark) return '深色';
+    return '未知';
+  }
+
+  void _showLanguageDialog() {
+    final currentLocale = ref.read(appSettingsProvider).locale;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('语言'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _LocaleOption(
+              title: '简体中文',
+              locale: const Locale('zh', 'CN'),
+              current: currentLocale,
+              onTap: () => _setLocale(const Locale('zh', 'CN'), ctx),
+            ),
+            _LocaleOption(
+              title: '繁體中文',
+              locale: const Locale.fromSubtags(
+                languageCode: 'zh',
+                scriptCode: 'Hant',
+              ),
+              current: currentLocale,
+              onTap: () => _setLocale(
+                const Locale.fromSubtags(
+                  languageCode: 'zh',
+                  scriptCode: 'Hant',
+                ),
+                ctx,
+              ),
+            ),
+            _LocaleOption(
+              title: 'English',
+              locale: const Locale('en', 'US'),
+              current: currentLocale,
+              onTap: () => _setLocale(const Locale('en', 'US'), ctx),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _setLocale(Locale loc, BuildContext dialogContext) async {
+    await ref.read(appSettingsProvider.notifier).setLocale(loc);
+    if (!mounted) return;
+    Navigator.pop(dialogContext);
+    _showToast('已切换到 ${_localeLabel(loc)}');
+  }
+
+  String _localeLabel(Locale loc) {
+    final code = loc.scriptCode != null && loc.scriptCode!.isNotEmpty
+        ? '${loc.languageCode}_${loc.scriptCode}'
+        : '${loc.languageCode}_${loc.countryCode ?? ''}';
+    if (code == 'zh_CN') return '简体中文';
+    if (code == 'zh_Hant' || code == 'zh_TW') return '繁體中文';
+    if (code == 'en_US' || code == 'en_') return 'English';
+    return '${loc.languageCode}_${loc.countryCode ?? ''}';
   }
 
   void _showToast(String message) {
@@ -160,311 +306,245 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _showComingSoonDialog(String feature) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(feature),
-        content: const Text('该功能正在开发中，敬请期待。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('知道了'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final updateController = ref.watch(appUpdateProvider);
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.surface,
-        scrolledUnderElevation: 0.5,
-        title: Text(
-          '设置',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: colors.textPrimary,
-          ),
-        ),
+        backgroundColor: colors.background,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('设置'),
         centerTitle: true,
       ),
       body: _loading
-          ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary),
+          ? Center(
+              child: CircularProgressIndicator(
+                color: MobileTheme.primaryOf(context),
+              ),
             )
           : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
               children: [
-                const SizedBox(height: 8),
-
-                // 账号安全区
-                if (!(_profile?.isLevelOneUser ?? false)) ...[
-                  _SectionHeader(title: '账号安全'),
-                  _ListCard(
-                    children: [
-                      _ListTile(
-                        icon: Icons.workspace_premium_outlined,
-                        iconColor: MobileTheme.accent,
-                        title: '申请成为一级用户',
-                        subtitle: _levelUpgradeSubtitle(
-                          _profile?.levelUpgradeRequest,
-                        ),
-                        onTap:
-                            _saving ||
-                                _profile?.levelUpgradeRequest?.status ==
-                                    'pending'
-                            ? null
-                            : _promptLevelUpgradeRequest,
-                      ),
-                    ],
+                _SectionTitle(title: '账号设置'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.manage_accounts_outlined,
+                    title: '一站式设置',
+                    subtitle: '统一管理体育、实验、电费与校园网配置',
+                    onTap: () => context.push('/profile/settings/one-stop'),
                   ),
-                  const SizedBox(height: 16),
-                ],
-
-                // 隐私设置区
-                _SectionHeader(title: '隐私设置'),
-                _ListCard(
-                  children: [
-                    _SwitchTileRow(
-                      icon: Icons.chat_bubble_outline,
-                      iconColor: MobileTheme.primary,
-                      title: '允许陌生人私信',
-                      subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
-                      value: _profile?.allowStrangerDm ?? false,
-                      onChanged: _saving
+                  if (!(_profile?.isLevelOneUser ?? false))
+                    _ListTile(
+                      icon: Icons.workspace_premium_outlined,
+                      title: '申请成为一级用户',
+                      subtitle: _levelUpgradeSubtitle(
+                        _profile?.levelUpgradeRequest,
+                      ),
+                      onTap:
+                          _saving ||
+                              _profile?.levelUpgradeRequest?.status == 'pending'
                           ? null
-                          : (value) => _updatePrivacy(
-                              allowStrangerDm: value,
-                              showContactable:
-                                  _profile?.showContactable ?? false,
-                            ),
+                          : _promptLevelUpgradeRequest,
                     ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _SwitchTileRow(
-                      icon: Icons.visibility_outlined,
-                      iconColor: MobileTheme.accent,
-                      title: '显示"可联系"状态',
-                      subtitle: '开启后其他人可见联系方式',
-                      value: _profile?.showContactable ?? false,
-                      onChanged: _saving
-                          ? null
-                          : (value) => _updatePrivacy(
-                              allowStrangerDm:
-                                  _profile?.allowStrangerDm ?? false,
-                              showContactable: value,
-                            ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 通知区
-                _SectionHeader(title: '通知'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.notifications_outlined,
-                      iconColor: MobileTheme.primary,
-                      title: '通知设置',
-                      onTap: () =>
-                          context.push('/profile/settings/notifications'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.vibration_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '声音与振动',
-                      onTap: () => _showComingSoonDialog('声音与振动'),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 外观区
-                _SectionHeader(title: '外观'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.brightness_6_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '主题',
-                      subtitle: _themeModeLabel(
-                        ref.watch(appSettingsProvider).themeMode,
-                      ),
-                      onTap: _showThemeDialog,
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.language_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '语言',
-                      subtitle: _localeLabel(
-                        ref.watch(appSettingsProvider).locale ??
-                            const Locale('zh', 'CN'),
-                      ),
-                      onTap: _showLanguageDialog,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 关于区
-                _SectionHeader(title: '关于'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.description_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '用户协议',
-                      onTap: () => context.push('/legal/terms'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.privacy_tip_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '隐私政策',
-                      onTap: () => context.push('/legal/privacy'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.gavel_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '社区规范',
-                      onTap: () => context.push('/legal/guidelines'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.flag_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '举报说明',
-                      onTap: () => context.push('/legal/report'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.help_outline,
-                      iconColor: colors.textSecondary,
-                      title: '帮助与反馈',
-                      onTap: () => context.push('/profile/help-feedback'),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // 应用信息区
-                _SectionHeader(title: '应用信息'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.download_outlined,
-                      iconColor: MobileTheme.primary,
-                      title: '下载 Android 客户端',
-                      subtitle: '获取当前最新安装包',
-                      onTap: () => context.push('/download'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 14,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            size: 22,
-                            color: colors.textSecondary,
+                ]),
+                _SectionTitle(title: '隐私设置'),
+                _tileCard([
+                  _SwitchTile(
+                    icon: Icons.chat_bubble_outline,
+                    title: '允许陌生人私信',
+                    subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
+                    value: _profile?.allowStrangerDm ?? false,
+                    onChanged: _saving
+                        ? null
+                        : (value) => _updatePrivacy(
+                            allowStrangerDm: value,
+                            showContactable: _profile?.showContactable ?? false,
                           ),
-                          const SizedBox(width: 14),
-                          Text(
-                            '版本号',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: colors.textPrimary,
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            '1.0.0',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                _SectionHeader(title: '账号安全'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.no_accounts_outlined,
-                      iconColor: MobileTheme.error,
-                      title: '注销账号',
-                      titleColor: MobileTheme.error,
-                      onTap: () => _showCancelAccountHint(),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                _SectionHeader(title: '致谢'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.favorite_outline,
-                      iconColor: MobileTheme.primary,
-                      title: '致谢页',
-                      subtitle: '感谢每一位参与建设与反馈的同学',
-                      onTap: () => context.push('/profile/acknowledgements'),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // 退出登录（全宽红色文字）
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: GestureDetector(
-                    onTap: _logout,
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          '退出登录',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: MobileTheme.error,
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
+                  _SwitchTile(
+                    icon: Icons.visibility_outlined,
+                    title: '显示"可联系"状态',
+                    subtitle: '开启后其他用户可看到你的联系方式',
+                    value: _profile?.showContactable ?? false,
+                    onChanged: _saving
+                        ? null
+                        : (value) => _updatePrivacy(
+                            allowStrangerDm: _profile?.allowStrangerDm ?? false,
+                            showContactable: value,
+                          ),
+                  ),
+                ]),
+                _SectionTitle(title: '通知设置'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.notifications_outlined,
+                    title: '通知设置',
+                    subtitle: '管理树洞通知与校园课前提醒',
+                    onTap: () =>
+                        context.push('/profile/settings/notifications'),
+                  ),
+                ]),
+                _SectionTitle(title: '界面设置'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.brightness_6_outlined,
+                    title: '主题',
+                    subtitle: _themeModeLabel(
+                      ref.watch(appSettingsProvider).themeMode,
+                    ),
+                    onTap: _showThemeDialog,
+                  ),
+                  _ListTile(
+                    icon: Icons.language_outlined,
+                    title: '语言',
+                    subtitle: _localeLabel(
+                      ref.watch(appSettingsProvider).locale ??
+                          const Locale('zh', 'CN'),
+                    ),
+                    onTap: _showLanguageDialog,
+                  ),
+                  _SwitchTile(
+                    icon: Icons.timeline_outlined,
+                    title: '简化日程时间轴',
+                    subtitle: '校园首页课程卡片采用更紧凑的展示模式',
+                    value: _simplifiedTimeline,
+                    onChanged: _toggleSimplifiedTimeline,
+                  ),
+                ]),
+                _SectionTitle(title: '课表设置'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.table_view_outlined,
+                    title: '课表设置',
+                    subtitle: '背景、刷新、周次偏移、学期切换等',
+                    onTap: () => context.push('/profile/settings/classtable'),
+                  ),
+                ]),
+                _SectionTitle(title: '关于与支持'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.download_outlined,
+                    title: '下载 Android 客户端',
+                    subtitle: '检查并下载最新安装包',
+                    onTap: _handleCheckUpdate,
+                  ),
+                  _ListTile(
+                    icon: updateController.hasUpdate
+                        ? Icons.system_update_alt_rounded
+                        : Icons.system_update_alt_outlined,
+                    title: '检查更新',
+                    subtitle: _updateSubtitle(updateController),
+                    trailing: updateController.checking
+                        ? SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: MobileTheme.primaryOf(context),
+                            ),
+                          )
+                        : updateController.hasUpdate
+                        ? const _UpdateBadge(label: '有新版本')
+                        : null,
+                    onTap: updateController.checking
+                        ? null
+                        : _handleCheckUpdate,
+                  ),
+                  _ListTile(
+                    icon: Icons.info_outline,
+                    title: '当前版本',
+                    subtitle: '版本信息',
+                    trailing: Text(
+                      updateController.currentVersionLabel,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                    onTap: null,
+                  ),
+                  _ListTile(
+                    icon: Icons.description_outlined,
+                    title: '用户协议',
+                    subtitle: '查看平台服务条款',
+                    onTap: () => context.push('/legal/terms'),
+                  ),
+                  _ListTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: '隐私政策',
+                    subtitle: '查看个人信息与数据处理说明',
+                    onTap: () => context.push('/legal/privacy'),
+                  ),
+                  _ListTile(
+                    icon: Icons.gavel_outlined,
+                    title: '社区规范',
+                    subtitle: '了解发帖与互动规则',
+                    onTap: () => context.push('/legal/guidelines'),
+                  ),
+                  _ListTile(
+                    icon: Icons.flag_outlined,
+                    title: '举报说明',
+                    subtitle: '了解举报受理与处理流程',
+                    onTap: () => context.push('/legal/report'),
+                  ),
+                  _ListTile(
+                    icon: Icons.help_outline,
+                    title: '帮助与反馈',
+                    subtitle: '问题反馈、联系方式与常见问题',
+                    onTap: () => context.push('/profile/help-feedback'),
+                  ),
+                  _ListTile(
+                    icon: Icons.favorite_outline,
+                    title: '致谢页',
+                    subtitle: '感谢每一位参与建设与反馈的同学',
+                    onTap: () => context.push('/profile/acknowledgements'),
+                  ),
+                ]),
+                _SectionTitle(title: '账号安全'),
+                _tileCard([
+                  _ListTile(
+                    icon: Icons.no_accounts_outlined,
+                    title: '注销账号',
+                    subtitle: '提交注销申请并进入管理员审核流程',
+                    titleColor: MobileTheme.error,
+                    onTap: _showCancelAccountHint,
+                  ),
+                ]),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: _logout,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MobileTheme.error,
+                    side: BorderSide(color: colors.divider, width: 0.5),
+                    minimumSize: const Size.fromHeight(48),
+                  ),
+                  child: const Text('退出登录'),
                 ),
-
-                const SizedBox(height: 16),
-                const SizedBox(height: 40),
               ],
             ),
+    );
+  }
+
+  Widget _tileCard(List<Widget> children) {
+    final colors = MobileColors.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: colors.cardBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colors.divider, width: 0.5),
+      ),
+      child: Column(
+        children: List<Widget>.generate(children.length * 2 - 1, (index) {
+          if (index.isOdd) {
+            return Divider(height: 0.5, indent: 56, color: colors.divider);
+          }
+          return children[index ~/ 2];
+        }),
+      ),
     );
   }
 
@@ -492,135 +572,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
     );
   }
 
-  void _showThemeDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('外观'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _ThemeOption(
-                title: '跟随系统',
-                value: ThemeMode.system,
-                current: ref.read(appSettingsProvider).themeMode,
-                onTap: () => _setBrightness(ThemeMode.system, ctx),
-              ),
-              _ThemeOption(
-                title: '浅色',
-                value: ThemeMode.light,
-                current: ref.read(appSettingsProvider).themeMode,
-                onTap: () => _setBrightness(ThemeMode.light, ctx),
-              ),
-              _ThemeOption(
-                title: '深色',
-                value: ThemeMode.dark,
-                current: ref.read(appSettingsProvider).themeMode,
-                onTap: () => _setBrightness(ThemeMode.dark, ctx),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('取消'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _setBrightness(
-    ThemeMode mode,
-    BuildContext dialogContext,
-  ) async {
-    await ref.read(appSettingsProvider.notifier).setBrightness(mode);
-    Navigator.pop(dialogContext);
-    _showToast('已切换到 ${_themeModeLabel(mode)}');
-  }
-
-  String _themeModeLabel(ThemeMode mode) {
-    if (mode == ThemeMode.system) return '跟随系统';
-    if (mode == ThemeMode.light) return '浅色';
-    if (mode == ThemeMode.dark) return '深色';
-    return '未知';
-  }
-
-  void _showLanguageDialog() {
-    final currentLocale = ref.read(appSettingsProvider).locale;
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('语言'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _LocaleOption(
-                title: '简体中文',
-                locale: const Locale('zh', 'CN'),
-                current: currentLocale,
-                onTap: () => _setLocale(const Locale('zh', 'CN'), ctx),
-              ),
-              _LocaleOption(
-                title: '繁體中文',
-                locale: const Locale.fromSubtags(
-                  languageCode: 'zh',
-                  scriptCode: 'Hant',
-                ),
-                current: currentLocale,
-                onTap: () => _setLocale(
-                  const Locale.fromSubtags(
-                    languageCode: 'zh',
-                    scriptCode: 'Hant',
-                  ),
-                  ctx,
-                ),
-              ),
-              _LocaleOption(
-                title: 'English',
-                locale: const Locale('en', 'US'),
-                current: currentLocale,
-                onTap: () => _setLocale(const Locale('en', 'US'), ctx),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('取消'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _setLocale(Locale loc, BuildContext dialogContext) async {
-    await ref.read(appSettingsProvider.notifier).setLocale(loc);
-    Navigator.pop(dialogContext);
-    _showToast('已切换到 ${_localeLabel(loc)}');
-  }
-
-  String _localeLabel(Locale loc) {
-    final code = loc.scriptCode != null && loc.scriptCode!.isNotEmpty
-        ? '${loc.languageCode}_${loc.scriptCode}'
-        : '${loc.languageCode}_${loc.countryCode ?? ''}';
-    if (code == 'zh_CN') return '简体中文';
-    if (code == 'zh_Hant') return '繁體中文';
-    if (code == 'zh_TW') return '繁體中文';
-    if (code == 'en_US') return 'English';
-    if (code == 'en_') return 'English';
-    return '${loc.languageCode}_${loc.countryCode ?? ''}';
-  }
-
   void _showCancelAccountPassword() {
     final passwordController = TextEditingController();
     bool obscure = true;
     bool submitting = false;
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -661,9 +616,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
               onPressed: submitting
                   ? null
                   : () async {
-                      if (passwordController.text.isEmpty) {
-                        return;
-                      }
+                      if (passwordController.text.isEmpty) return;
                       setDialogState(() => submitting = true);
                       try {
                         final studentId =
@@ -724,76 +677,22 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
           ],
         ),
       );
-    } catch (e) {
+    } catch (_) {
       _showToast('申请提交失败，请稍后重试');
     }
   }
 }
 
-class _ThemeOption extends StatelessWidget {
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title});
+
   final String title;
-  final ThemeMode value;
-  final ThemeMode current;
-  final VoidCallback onTap;
-
-  const _ThemeOption({
-    required this.title,
-    required this.value,
-    required this.current,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = value == current;
-    return ListTile(
-      title: Text(title),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: MobileTheme.primary)
-          : null,
-      onTap: onTap,
-    );
-  }
-}
-
-class _LocaleOption extends StatelessWidget {
-  final String title;
-  final Locale locale;
-  final Locale? current;
-  final VoidCallback onTap;
-
-  const _LocaleOption({
-    required this.title,
-    required this.locale,
-    required this.current,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected =
-        locale.languageCode == current?.languageCode &&
-        locale.countryCode == current?.countryCode;
-    return ListTile(
-      title: Text(title),
-      trailing: isSelected
-          ? const Icon(Icons.check, color: MobileTheme.primary)
-          : null,
-      onTap: onTap,
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.fromLTRB(2, 0, 2, 8),
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
@@ -807,54 +706,34 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-class _ListCard extends StatelessWidget {
-  final List<Widget> children;
-
-  const _ListCard({required this.children});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(children: children),
-    );
-  }
-}
-
 class _ListTile extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String? subtitle;
-  final Color? titleColor;
-  final VoidCallback? onTap;
-
   const _ListTile({
     required this.icon,
-    required this.iconColor,
     required this.title,
-    this.subtitle,
-    this.titleColor,
+    required this.subtitle,
     required this.onTap,
+    this.titleColor,
+    this.trailing,
   });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color? titleColor;
+  final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
-            Icon(icon, size: 22, color: iconColor),
-            const SizedBox(width: 14),
+            Icon(icon, size: 20, color: colors.textSecondary),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -862,31 +741,27 @@ class _ListTile extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                       color: titleColor ?? colors.textPrimary,
                     ),
                   ),
-                  if (subtitle != null) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                  ],
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(fontSize: 12, color: colors.textTertiary),
+                  ),
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: onTap == null
-                  ? colors.textTertiary.withValues(alpha: 0.5)
-                  : colors.textTertiary,
-            ),
+            trailing ??
+                Icon(
+                  Icons.chevron_right,
+                  size: 18,
+                  color: onTap == null
+                      ? colors.textTertiary.withValues(alpha: 0.5)
+                      : colors.textTertiary,
+                ),
           ],
         ),
       ),
@@ -894,32 +769,30 @@ class _ListTile extends StatelessWidget {
   }
 }
 
-class _SwitchTileRow extends StatelessWidget {
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String subtitle;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  const _SwitchTileRow({
+class _SwitchTile extends StatelessWidget {
+  const _SwitchTile({
     required this.icon,
-    required this.iconColor,
     required this.title,
     required this.subtitle,
     required this.value,
     required this.onChanged,
   });
 
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, size: 22, color: iconColor),
-          const SizedBox(width: 14),
+          Icon(icon, size: 20, color: colors.textSecondary),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -927,8 +800,8 @@ class _SwitchTileRow extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                     color: colors.textPrimary,
                   ),
                 ),
@@ -943,9 +816,88 @@ class _SwitchTileRow extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: MobileTheme.primary,
+            activeThumbColor: MobileTheme.primaryOf(context),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  const _ThemeOption({
+    required this.title,
+    required this.value,
+    required this.current,
+    required this.onTap,
+  });
+
+  final String title;
+  final ThemeMode value;
+  final ThemeMode current;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = value == current;
+    return ListTile(
+      title: Text(title),
+      trailing: selected
+          ? Icon(Icons.check, color: MobileTheme.primaryOf(context))
+          : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _LocaleOption extends StatelessWidget {
+  const _LocaleOption({
+    required this.title,
+    required this.locale,
+    required this.current,
+    required this.onTap,
+  });
+
+  final String title;
+  final Locale locale;
+  final Locale? current;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected =
+        locale.languageCode == current?.languageCode &&
+        locale.countryCode == current?.countryCode;
+    return ListTile(
+      title: Text(title),
+      trailing: selected
+          ? Icon(Icons.check, color: MobileTheme.primaryOf(context))
+          : null,
+      onTap: onTap,
+    );
+  }
+}
+
+class _UpdateBadge extends StatelessWidget {
+  const _UpdateBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: MobileTheme.warning.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: MobileTheme.warning,
+        ),
       ),
     );
   }

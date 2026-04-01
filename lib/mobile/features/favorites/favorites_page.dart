@@ -64,10 +64,10 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildErrorView()
-              : _posts.isEmpty
-                  ? _buildEmptyView()
-                  : _buildList(),
+          ? _buildErrorView()
+          : _posts.isEmpty
+          ? _buildEmptyView()
+          : _buildList(),
     );
   }
 
@@ -79,25 +79,15 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadFavorites,
-              child: const Text('重试'),
-            ),
+            ElevatedButton(onPressed: _loadFavorites, child: const Text('重试')),
           ],
         ),
       ),
@@ -112,11 +102,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.star_border,
-              size: 64,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.star_border, size: 64, color: colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               '暂无收藏',
@@ -129,10 +115,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             const SizedBox(height: 8),
             Text(
               '收藏你喜欢的帖子，方便以后查看',
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textTertiary,
-              ),
+              style: TextStyle(fontSize: 14, color: colors.textTertiary),
             ),
           ],
         ),
@@ -143,10 +126,11 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
   Widget _buildList() {
     return RefreshIndicator(
       onRefresh: _loadFavorites,
-      color: MobileTheme.primary,
+      color: MobileTheme.primaryOf(context),
       child: ListView.separated(
         itemCount: _posts.length,
-        separatorBuilder: (context, index) => const Divider(height: 1, indent: 16),
+        separatorBuilder: (context, index) =>
+            const Divider(height: 1, indent: 16),
         itemBuilder: (context, index) {
           final post = _posts[index];
           return Dismissible(
@@ -172,7 +156,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
                       style: TextButton.styleFrom(
-                          foregroundColor: MobileTheme.error),
+                        foregroundColor: MobileTheme.error,
+                      ),
                       child: const Text('取消收藏'),
                     ),
                   ],
@@ -187,15 +172,15 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                   _posts.removeAt(index);
                 });
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('已取消收藏')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(const SnackBar(content: Text('已取消收藏')));
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('操作失败: $e')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
                 }
               }
             },

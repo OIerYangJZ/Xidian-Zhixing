@@ -17,15 +17,15 @@ import '../../features/post/create_post_page.dart';
 import '../../features/messages/chat_page.dart';
 import '../../features/notifications/notification_center_page.dart';
 import '../../features/profile/edit_profile_page.dart';
-import '../../features/profile/settings_page.dart';
 import '../../features/profile/settings_main_page.dart';
 import '../../features/profile/notification_settings_page.dart';
+import '../../features/profile/one_stop_settings_page.dart';
+import '../../features/profile/classtable_settings_page.dart';
 import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/profile/acknowledgements_page.dart';
-import 'package:xdu_treehole_web/features/download/android_release_page.dart';
 import '../../features/xdyou/xdyou_host_page_stub.dart'
     if (dart.library.io) '../../features/xdyou/xdyou_host_page.dart';
 import '../../features/admin/admin_login_page.dart';
@@ -142,10 +142,6 @@ final appRouter = GoRouter(
       path: '/favorites',
       builder: (context, state) => const FavoritesPage(),
     ),
-    GoRoute(
-      path: '/download',
-      builder: (context, state) => const AndroidReleasePage(),
-    ),
 
     // 他人主页
     GoRoute(
@@ -206,11 +202,19 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/profile/settings',
-      builder: (context, state) => const SettingsPage(),
+      builder: (context, state) => const SettingsMainPage(),
     ),
     GoRoute(
       path: '/profile/settings/main',
       builder: (context, state) => const SettingsMainPage(),
+    ),
+    GoRoute(
+      path: '/profile/settings/one-stop',
+      builder: (context, state) => const OneStopSettingsPage(),
+    ),
+    GoRoute(
+      path: '/profile/settings/classtable',
+      builder: (context, state) => const ClasstableSettingsPage(),
     ),
     GoRoute(
       path: '/profile/settings/notifications',

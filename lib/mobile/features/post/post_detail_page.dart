@@ -1,3 +1,5 @@
+import 'dart:ui' show FlutterView;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +35,8 @@ class PostDetailPage extends ConsumerStatefulWidget {
   ConsumerState<PostDetailPage> createState() => _PostDetailPageState();
 }
 
-class _PostDetailPageState extends ConsumerState<PostDetailPage> {
+class _PostDetailPageState extends ConsumerState<PostDetailPage>
+    with WidgetsBindingObserver {
   PostItem? _post;
   bool _postIsLiked = false;
   List<CommentItem> _comments = [];
@@ -66,6 +69,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
   }
@@ -73,12 +77,45 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initialCommentId = (widget.initialCommentId ?? '').trim();
     _ensureCurrentUserLoaded();
     _loadData(recordView: true);
   }
 
+  @override
+  void didChangeMetrics() {
+    super.didChangeMetrics();
+    if (!mounted || !_pendingShowEmojiPanel) {
+      return;
+    }
+    if (_keyboardInset > 0) {
+      return;
+    }
+    _pendingShowEmojiPanel = false;
+    if (_showEmoji) {
+      return;
+    }
+    setState(() {
+      _showEmoji = true;
+    });
+  }
+
   String get _currentUserId => AuthStore.instance.currentUser?.userId ?? '';
+
+  double get _keyboardInset {
+    final FlutterView? view = View.maybeOf(context);
+    if (view != null) {
+      return view.viewInsets.bottom / view.devicePixelRatio;
+    }
+    final Iterable<FlutterView> views =
+        WidgetsBinding.instance.platformDispatcher.views;
+    if (views.isEmpty) {
+      return 0;
+    }
+    final FlutterView fallbackView = views.first;
+    return fallbackView.viewInsets.bottom / fallbackView.devicePixelRatio;
+  }
 
   Future<void> _ensureCurrentUserLoaded() async {
     if (_currentUserId.isNotEmpty) {
@@ -525,7 +562,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _toggleEmoji() {
-    final bool keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+    final bool keyboardVisible = _keyboardInset > 0;
     if (_showEmoji) {
       _pendingShowEmojiPanel = false;
       setState(() {
@@ -554,22 +591,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       }
       return;
     }
-    if (!_pendingShowEmojiPanel) {
-      return;
-    }
-    Future<void>.delayed(const Duration(milliseconds: 120), () {
-      if (!mounted || !_pendingShowEmojiPanel) {
-        return;
-      }
-      final bool keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
-      if (keyboardVisible) {
-        return;
-      }
-      _pendingShowEmojiPanel = false;
-      setState(() {
-        _showEmoji = true;
-      });
-    });
   }
 
   void _handleCommentInputTap() {
@@ -676,24 +697,27 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   Widget _buildReplyBanner() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: MobileTheme.primary.withValues(alpha: 0.08),
+      color: MobileTheme.primaryWithAlpha(context, 0.08),
       child: Row(
         children: [
-          const Icon(Icons.reply, size: 16, color: MobileTheme.primary),
+          Icon(Icons.reply, size: 16, color: MobileTheme.primaryOf(context)),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               '回复 @${_replyingTo!.authorAlias}',
-              style: const TextStyle(fontSize: 13, color: MobileTheme.primary),
+              style: TextStyle(
+                fontSize: 13,
+                color: MobileTheme.primaryOf(context),
+              ),
               overflow: TextOverflow.ellipsis,
             ),
           ),
           GestureDetector(
             onTap: () => setState(() => _replyingTo = null),
-            child: const Icon(
+            child: Icon(
               Icons.close,
               size: 16,
-              color: MobileTheme.primary,
+              color: MobileTheme.primaryOf(context),
             ),
           ),
         ],
@@ -737,7 +761,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: _loadData,
-            color: MobileTheme.primary,
+            color: MobileTheme.primaryOf(context),
             child: SingleChildScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -853,7 +877,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                     icon: const Icon(Icons.person_add_alt_1_outlined, size: 16),
                     label: const Text('关注'),
                     style: TextButton.styleFrom(
-                      foregroundColor: MobileTheme.primary,
+                      foregroundColor: MobileTheme.primaryOf(context),
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                     ),
                   ),
@@ -908,9 +932,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                 children: post.tags.map((tag) {
                   return Text(
                     '#$tag',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: MobileTheme.primary,
+                      color: MobileTheme.primaryOf(context),
                       fontWeight: FontWeight.w500,
                     ),
                   );
@@ -1027,10 +1051,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         SizedBox(
           width: 18,
           child: selected
-              ? const Icon(
+              ? Icon(
                   Icons.check_rounded,
                   size: 16,
-                  color: MobileTheme.primary,
+                  color: MobileTheme.primaryOf(context),
                 )
               : null,
         ),
@@ -1154,7 +1178,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             activeIcon: Icons.chat_bubble,
             label: post.commentCount > 0 ? '${post.commentCount}' : '',
             isActive: false,
-            activeColor: MobileTheme.primary,
+            activeColor: MobileTheme.primaryOf(context),
             onTap: () {
               _scrollToComments();
             },
@@ -1500,7 +1524,7 @@ class _CommentTileState extends State<_CommentTile> {
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                     color: comment.authorUserId.isNotEmpty
-                                        ? MobileTheme.primary
+                                        ? MobileTheme.primaryOf(context)
                                         : colors.textPrimary,
                                   ),
                                   overflow: TextOverflow.ellipsis,

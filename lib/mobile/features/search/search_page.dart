@@ -117,9 +117,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
             _buildSearchBar(),
             TabBar(
               controller: _tabController,
-              labelColor: MobileTheme.primary,
+              labelColor: MobileTheme.primaryOf(context),
               unselectedLabelColor: colors.textSecondary,
-              indicatorColor: MobileTheme.primary,
+              indicatorColor: MobileTheme.primaryOf(context),
               tabs: const [
                 Tab(text: '搜索帖子'),
                 Tab(text: '搜索用户'),

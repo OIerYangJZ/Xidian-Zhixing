@@ -58,10 +58,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         backgroundColor: colors.surface,
         title: const Text(
           '消息',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         scrolledUnderElevation: 0.5,
@@ -90,8 +87,8 @@ class _ConversationsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = MobileColors.of(context);
     if (loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: MobileTheme.primary),
+      return Center(
+        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
     }
     if (conversations.isEmpty) {
@@ -99,8 +96,11 @@ class _ConversationsTab extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline,
-                size: 64, color: colors.textTertiary),
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 64,
+              color: colors.textTertiary,
+            ),
             const SizedBox(height: 16),
             Text(
               '暂无会话',
@@ -132,8 +132,7 @@ class _ConversationsTab extends ConsumerWidget {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('删除会话'),
-                  content:
-                      Text('确定删除与 "${conversation.name}" 的会话吗？'),
+                  content: Text('确定删除与 "${conversation.name}" 的会话吗？'),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
@@ -141,8 +140,10 @@ class _ConversationsTab extends ConsumerWidget {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('删除',
-                          style: TextStyle(color: Colors.red)),
+                      child: const Text(
+                        '删除',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                   ],
                 ),
@@ -181,7 +182,7 @@ class _ConversationTile extends StatelessWidget {
         onTap: () => context.push('/user/${conversation.peerUserId}'),
         child: CircleAvatar(
           radius: 22,
-          backgroundColor: MobileTheme.primary.withValues(alpha: 0.1),
+          backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
           backgroundImage: conversation.avatarUrl.isNotEmpty
               ? CachedNetworkImageProvider(
                   conversation.avatarUrl.startsWith('http')
@@ -190,7 +191,11 @@ class _ConversationTile extends StatelessWidget {
                 )
               : null,
           child: conversation.avatarUrl.isEmpty
-              ? Icon(Icons.person, color: MobileTheme.primary, size: 22)
+              ? Icon(
+                  Icons.person,
+                  color: MobileTheme.primaryOf(context),
+                  size: 22,
+                )
               : null,
         ),
       ),
@@ -200,8 +205,9 @@ class _ConversationTile extends StatelessWidget {
             child: Text(
               conversation.name,
               style: TextStyle(
-                fontWeight:
-                    conversation.hasUnread ? FontWeight.w700 : FontWeight.w600,
+                fontWeight: conversation.hasUnread
+                    ? FontWeight.w700
+                    : FontWeight.w600,
                 fontSize: 15,
               ),
               overflow: TextOverflow.ellipsis,
@@ -217,10 +223,7 @@ class _ConversationTile extends StatelessWidget {
               ),
               child: Text(
                 '已屏蔽',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: colors.textTertiary,
-                ),
+                style: TextStyle(fontSize: 10, color: colors.textTertiary),
               ),
             ),
           ],
@@ -243,10 +246,7 @@ class _ConversationTile extends StatelessWidget {
         children: [
           Text(
             conversation.timeText,
-            style: TextStyle(
-              color: colors.textTertiary,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: colors.textTertiary, fontSize: 12),
           ),
           if (conversation.hasUnread) ...[
             const SizedBox(height: 4),

@@ -27,6 +27,7 @@ class CommentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     final isNested = indentLevel > 0;
     final leftPadding = isNested ? (indentLevel * 48.0).clamp(0.0, 160.0) : 0.0;
 
@@ -154,7 +155,7 @@ class CommentTile extends StatelessWidget {
                                 '展开 ${comment.effectiveReplyCount} 条回复',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: MobileTheme.primary,
+                                  color: primaryColor,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -217,21 +218,23 @@ class _ActionItem extends StatelessWidget {
   final IconData icon;
   final String? label;
   final bool isActive;
-  final Color activeColor;
+  final Color? activeColor;
   final VoidCallback? onTap;
 
   const _ActionItem({
     required this.icon,
     this.label,
     this.isActive = false,
-    this.activeColor = MobileTheme.primary,
+    this.activeColor,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final color = isActive ? activeColor : colors.textTertiary;
+    final color = isActive
+        ? (activeColor ?? MobileTheme.primaryOf(context))
+        : colors.textTertiary;
 
     return GestureDetector(
       onTap: onTap,

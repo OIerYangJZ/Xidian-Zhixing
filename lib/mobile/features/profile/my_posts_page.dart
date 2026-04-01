@@ -63,10 +63,10 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? _buildErrorView()
-              : _posts.isEmpty
-                  ? _buildEmptyView()
-                  : _buildList(),
+          ? _buildErrorView()
+          : _posts.isEmpty
+          ? _buildEmptyView()
+          : _buildList(),
     );
   }
 
@@ -94,8 +94,10 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
         children: [
           Icon(Icons.article_outlined, size: 64, color: colors.textTertiary),
           const SizedBox(height: 16),
-          Text('暂无帖子',
-              style: TextStyle(fontSize: 16, color: colors.textSecondary)),
+          Text(
+            '暂无帖子',
+            style: TextStyle(fontSize: 16, color: colors.textSecondary),
+          ),
         ],
       ),
     );
@@ -105,7 +107,7 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
     final colors = MobileColors.of(context);
     return RefreshIndicator(
       onRefresh: _loadPosts,
-      color: MobileTheme.primary,
+      color: MobileTheme.primaryOf(context),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: _posts.length,
@@ -117,8 +119,7 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
             decoration: BoxDecoration(
               color: colors.surface,
               borderRadius: BorderRadius.circular(12),
-              border:
-                  Border.all(color: colors.divider.withValues(alpha: 0.5)),
+              border: Border.all(color: colors.divider.withValues(alpha: 0.5)),
             ),
             child: InkWell(
               onTap: () => context.push('/post/${post.id}'),
@@ -129,57 +130,86 @@ class _MyPostsPageState extends ConsumerState<MyPostsPage> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: MobileTheme.primary.withValues(alpha: 0.1),
+                          color: MobileTheme.primaryWithAlpha(context, 0.1),
                           borderRadius: BorderRadius.circular(4),
                         ),
-                        child: Text(post.channel,
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: MobileTheme.primary,
-                                fontWeight: FontWeight.w600)),
+                        child: Text(
+                          post.channel,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: MobileTheme.primaryOf(context),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                       if (post.status == PostStatus.resolved) ...[
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: MobileTheme.success.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: Text('已解决',
-                              style: TextStyle(
-                                  fontSize: 10,
-                                  color: MobileTheme.success,
-                                  fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '已解决',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: MobileTheme.success,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ],
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(post.title.isNotEmpty ? post.title : post.content,
-                      style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    post.title.isNotEmpty ? post.title : post.content,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: colors.textPrimary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.favorite_border,
-                          size: 14, color: colors.textTertiary),
+                      Icon(
+                        Icons.favorite_border,
+                        size: 14,
+                        color: colors.textTertiary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${post.likeCount}',
-                          style: TextStyle(fontSize: 12, color: colors.textTertiary)),
+                      Text(
+                        '${post.likeCount}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.textTertiary,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Icon(Icons.chat_bubble_outline,
-                          size: 14, color: colors.textTertiary),
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 14,
+                        color: colors.textTertiary,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${post.commentCount}',
-                          style: TextStyle(fontSize: 12, color: colors.textTertiary)),
+                      Text(
+                        '${post.commentCount}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colors.textTertiary,
+                        ),
+                      ),
                     ],
                   ),
                 ],

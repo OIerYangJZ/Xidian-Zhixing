@@ -320,6 +320,11 @@ lib/mobile/main.dart
 
 | 版本号 | 更新日期 | 更新内容 |
 |--------|----------|----------|
+| 0.1.0+35 | 2026-04-01 | **Android Release 发布与下载链路**：管理员后台新增 Android Release 管理能力，支持上传 APK、维护 `versionName/versionCode`、文件大小、更新说明、下载链接与强制更新标记；后端补充 release 数据模型与 API；Web 端新增 Android 下载页与浏览器下载/选包辅助；登录页与个人页补充 Android 下载入口；补充 `android/key.properties.example`，统一团队发布签名配置 |
+| 0.1.0+34 | 2026-04-01 | **设置页与致谢页整理**：移动端设置主页分组与入口信息优化，恢复完整开发者致谢名单与独立致谢页，便于对 XDYou 原作者与贡献者进行完整署名 |
+| 0.1.0+33 | 2026-04-01 | **帖子详情与校园工具体验升级**：移动端帖子详情支持图片保存/复制、评论区间距与交互细节优化；通知页、个人页、设置页信息密度调整；XDYou 首页/工具箱补充常用地址配置并继续适配主 App 主题与导航结构 |
+| 0.1.0+32 | 2026-03-31 ~ 2026-04-01 | **图片浏览与评论交互修复**：集中修复移动端帖子详情的图集滑动、评论操作气泡、图片导航与返回栈问题；恢复发帖页一级用户帖子置顶控制，提升帖子交互稳定性 |
+| 0.1.0+31 | 2026-03-31 | **移动端通知设置正式打通**：后端补全 `notifyComment / notifyReply / notifyLike / notifyFavorite / notifyReportResult / notifySystem` 持久化字段与接口；移动端新增独立通知设置页，支持评论、回复、点赞、收藏、举报结果、系统通知逐项开关，并同步到 XDYou 子应用 |
 | 0.1.0+30 | 2026-03-31 | **移动端深色模式支持**：新增 `MobileColors` (`lib/mobile/core/theme/mobile_colors.dart`) 作为 `ThemeExtension`，支持浅色/深色主题颜色动态切换；在 31 个移动端文件中将硬编码的 `MobileTheme.background/surface/textPrimary/textSecondary/textTertiary/divider` 替换为 `MobileColors.of(context).xxx` 动态引用；`MobileTheme.primary/accent/error/success/warning` 品牌色保持不变；所有嵌套私有 widget 的 `build()` 方法均添加了 `final colors = MobileColors.of(context);`；`flutter analyze` 零 error |
 | 0.1.0+28 | 2026-03-30 | **移动端底部导航栏与 Tab 交互全面升级**：① 底部导航栏图标从默认尺寸增大到 **28px**，选中/未选中文案字重分别加粗到 `FontWeight.w700/w600`，高度从 60 增大到 68；② 消息 Tab 图标增加红色 Badge 点，未读数 > 0 时显示红色小圆点；③ 首页"我的"Tab 增加通知红点 Badge，显示未读通知数；④ 首页向上滑动帖子时自动隐藏底部导航栏，向下滑动时自动展开（`BottomNavVisibilityNotifier` 全局单例 ChangeNotifier + `AnimatedBuilder`）；⑤ 首页顶部导航栏添加 `titleSpacing: 0` 和 `systemOverlayStyle: SystemUiOverlayStyle.dark`，使标题更贴合左侧，状态栏更清晰；⑥ **左右滑动切换 Tab**：重构 `MobileShell` 为 PageView + 直接页面 Widget 结构（非 StatefulNavigationShell），支持首页 → 消息 → 校园 → 我的四个页面之间左右滑动切换；首页 overscroll（向上快速拖过顶部）自动切换到上一个 Tab；`flutter analyze` 零 error |
 | 0.1.0+25 | 2026-03-30 | **登录页 UI 与交互修复**：① 密码输入框 `hintText` 改为"统一认证密码"（与学号框样式一致，均为浅灰 placeholder）；② 登录按钮下方提示文案改为"您的密码信息不会上传至任何服务器，仅存储在手机本地。"；③ 修复「帮助与反馈」按钮被父级 `CrossAxisAlignment.stretch` 撑满宽度导致点击区域异常的问题，包裹 `Align(alignment: Alignment.center)` 恢复自然宽度；`flutter analyze` 零 error；**删除注册功能**：移除移动端 `register_page.dart` 文件、`lib_mobile.dart` 中的 export 及 `app_router.dart` 中 `/auth/register` 路由；`flutter analyze` 零 error |
@@ -335,6 +340,13 @@ lib/mobile/main.dart
 | 0.1.0+8~9 | 2026-03-26 | **私信微信模式 + 匿名/非匿名头像**：后端新增 `POST /api/messages/conversations/direct` 端点（无需申请直接创建会话）；移动端私信按钮直接进入或创建会话；新建他人公开主页 `PublicUserProfilePage`（关注/私信按钮）；`PostCard` 非匿名帖显示真实头像并支持点击跳转他人主页；`PostItem` 新增 `isAnonymous`、`authorAvatarUrl`、`authorUserId` 字段 |
 | 0.1.0+4~6 | 2026-03-25 | **移动端早期建设**：清理重复移动端目录，确认 `lib/mobile/` 为唯一源码目录；重构底部导航（3 Tab：首页/消息/我的）；实现关注/粉丝系统（API 端点 + Repository + 好友标记）；管理员控制台恢复完整功能；修复消息页加载、头像点击、首页点赞乐观更新、下拉刷新、收藏 Tab 真实数据等多个 bug |
 | 0.1.0+1~5 | 2026-03-25 | **首个 Android APK 发布**：创建 `lib/mobile/` Junction 指向 `lib_mobile/`，在 `lib/main.dart` 用 `kIsWeb` 平台分流，`flutter build apk` 直接可用；首个 Android ARM64 Release APK 构建成功 |
+
+## 3.1 当前开发进度（未推送）
+
+- **应用内更新提示**：已新增移动端 `app_update_controller.dart` 与更新弹窗，准备把“检查更新 / 启动时提示新版本”接到设置页与启动流程
+- **设置页拆分迁移**：正在将移动端设置页细分为「一站式设置」「课表设置」等子页，把 XDYou 原设置能力逐步迁移到树洞主 App
+- **XDYou 设置收口**：正在清理子应用内已废弃的颜色种子与旧主题入口，统一跟随树洞主题与语言同步策略
+- **Android 分发兼容性排查**：已确认当前 Release APK 最低支持 Android 7.0（API 24），后续会继续收敛分发流程并优先引导用户下载通用 `app-release.apk`
 
 ## 4. 未跨端兼容的功能
 
@@ -362,4 +374,4 @@ lib/mobile/main.dart
 
 ---
 
-*最后更新：2026-03-30（v0.1.0+27，移动端首页 UI 全面优化：频道选择器改为三横线 dropdown、返回键逻辑重构、主页和详情页按钮放大为黑色）*
+*最后更新：2026-04-01（补录 v0.1.0+31 ~ v0.1.0+35 发布记录，并同步当前移动端更新与设置页重构进度）*

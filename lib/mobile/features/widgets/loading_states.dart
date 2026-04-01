@@ -23,6 +23,7 @@ class LoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Stack(
       children: [
         child,
@@ -49,12 +50,12 @@ class LoadingOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(
+                    SizedBox(
                       width: 28,
                       height: 28,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
-                        color: MobileTheme.primary,
+                        color: primaryColor,
                       ),
                     ),
                     if (message != null) ...[
@@ -112,7 +113,7 @@ class _LoadingButtonState extends State<LoadingButton> {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final bgColor = widget.backgroundColor ?? MobileTheme.primary;
+    final bgColor = widget.backgroundColor ?? MobileTheme.primaryOf(context);
     final fgColor = widget.foregroundColor ?? Colors.white;
 
     if (widget.isOutlined) {
@@ -156,18 +157,12 @@ class _LoadingButtonState extends State<LoadingButton> {
       return SizedBox(
         width: 20,
         height: 20,
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: color,
-        ),
+        child: CircularProgressIndicator(strokeWidth: 2, color: color),
       );
     }
     return Text(
       widget.label,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w600,
-      ),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
     );
   }
 }
@@ -192,6 +187,7 @@ class ErrorRetryWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -206,19 +202,19 @@ class ErrorRetryWidget extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               message ?? '加载失败，请稍后重试',
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: MobileTheme.primary,
+                backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -237,12 +233,7 @@ class ErrorRetryWidget extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 /// 异步数据加载状态枚举
-enum AsyncState {
-  idle,
-  loading,
-  success,
-  error,
-}
+enum AsyncState { idle, loading, success, error }
 
 /// 异步操作状态包装组件
 /// 简化页面中常见的 loading / error / empty / content 分支渲染
@@ -281,12 +272,12 @@ class AsyncPageState extends StatelessWidget {
 
   /// 快捷构造：loading 状态
   const AsyncPageState.loading({super.key, this.loadingWidget})
-      : state = AsyncState.loading,
-        errorWidget = null,
-        emptyWidget = null,
-        child = const SizedBox.shrink(),
-        errorMessage = null,
-        onRetry = null;
+    : state = AsyncState.loading,
+      errorWidget = null,
+      emptyWidget = null,
+      child = const SizedBox.shrink(),
+      errorMessage = null,
+      onRetry = null;
 
   /// 快捷构造：错误状态
   const AsyncPageState.error({
@@ -294,31 +285,28 @@ class AsyncPageState extends StatelessWidget {
     required this.errorMessage,
     required this.onRetry,
     this.errorWidget,
-  })  : state = AsyncState.error,
-        emptyWidget = null,
-        loadingWidget = null,
-        child = const SizedBox.shrink();
+  }) : state = AsyncState.error,
+       emptyWidget = null,
+       loadingWidget = null,
+       child = const SizedBox.shrink();
 
   /// 快捷构造：空状态
-  const AsyncPageState.empty({
-    super.key,
-    required this.emptyWidget,
-  })  : state = AsyncState.idle,
-        errorWidget = null,
-        loadingWidget = null,
-        child = const SizedBox.shrink(),
-        errorMessage = null,
-        onRetry = null;
+  const AsyncPageState.empty({super.key, required this.emptyWidget})
+    : state = AsyncState.idle,
+      errorWidget = null,
+      loadingWidget = null,
+      child = const SizedBox.shrink(),
+      errorMessage = null,
+      onRetry = null;
 
   @override
   Widget build(BuildContext context) {
+    final primaryColor = MobileTheme.primaryOf(context);
     switch (state) {
       case AsyncState.loading:
       case AsyncState.idle:
         return loadingWidget ??
-            const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary),
-            );
+            Center(child: CircularProgressIndicator(color: primaryColor));
       case AsyncState.error:
         return errorWidget ??
             ErrorRetryWidget(

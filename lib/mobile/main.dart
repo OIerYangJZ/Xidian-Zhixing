@@ -10,6 +10,7 @@ import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
 import 'package:xdu_treehole_web/core/emoji/emoji_settings_store.dart';
 import 'core/state/app_settings_store.dart';
 import 'core/state/mobile_providers.dart' show appSettingsProvider;
+import 'features/update/app_update_bootstrap.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,11 +40,7 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(
-    const ProviderScope(
-      child: XduTreeholeMobileApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: XduTreeholeMobileApp()));
 }
 
 class XduTreeholeMobileApp extends ConsumerWidget {
@@ -59,6 +56,8 @@ class XduTreeholeMobileApp extends ConsumerWidget {
       darkTheme: MobileTheme.darkTheme,
       themeMode: settings.themeMode,
       routerConfig: appRouter,
+      builder: (context, child) =>
+          AppUpdateBootstrap(child: child ?? const SizedBox.shrink()),
     );
   }
 }

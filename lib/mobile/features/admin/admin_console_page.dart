@@ -44,10 +44,7 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
           onPressed: () => context.go('/'),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),
       body: _isLoading
@@ -170,14 +167,14 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
   }
 
   Widget _buildOverviewCards() {
-    return const Row(
+    return Row(
       children: [
         Expanded(
           child: _StatCard(
             title: '用户总数',
             value: '1,234',
             icon: Icons.people,
-            color: MobileTheme.primary,
+            color: MobileTheme.primaryOf(context),
           ),
         ),
         SizedBox(width: 12),
@@ -262,10 +259,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             title,
-            style: TextStyle(
-              fontSize: 12,
-              color: colors.textSecondary,
-            ),
+            style: TextStyle(fontSize: 12, color: colors.textSecondary),
           ),
         ],
       ),
@@ -301,10 +295,14 @@ class _AdminMenuItem extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: MobileTheme.primary.withValues(alpha: 0.1),
+                color: MobileTheme.primaryWithAlpha(context, 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: MobileTheme.primary, size: 22),
+              child: Icon(
+                icon,
+                color: MobileTheme.primaryOf(context),
+                size: 22,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -322,10 +320,7 @@ class _AdminMenuItem extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: colors.textSecondary,
-                    ),
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
                   ),
                 ],
               ),
@@ -347,10 +342,7 @@ class _AdminMenuItem extends StatelessWidget {
                 ),
               ),
             const SizedBox(width: 8),
-            Icon(
-              Icons.chevron_right,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.chevron_right, color: colors.textTertiary),
           ],
         ),
       ),

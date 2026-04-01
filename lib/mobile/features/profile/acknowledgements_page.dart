@@ -244,26 +244,39 @@ class _AcknowledgementsPageState extends State<AcknowledgementsPage> {
   ];
 
   Widget _titleBlock() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Image.asset(
-          'packages/watermeter/assets/icon.png',
-          width: 120,
-          height: 120,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return const Icon(Icons.apps, size: 120);
-          },
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(
+          alpha: theme.brightness == Brightness.dark ? 0.72 : 0.48,
         ),
-        const SizedBox(height: 12),
-        Text(
-          '感谢 XDYou 开发者与贡献者',
-          style: TextStyle(fontSize: 16, color: Colors.black54),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ).padding(all: 24);
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset(
+            'packages/watermeter/assets/icon.png',
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(Icons.apps, size: 120, color: scheme.primary);
+            },
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '感谢 XDYou 开发者与贡献者',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 16,
+              color: scheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ).padding(all: 24),
+    );
   }
 
   Widget _developerCard() {

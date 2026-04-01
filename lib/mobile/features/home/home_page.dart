@@ -367,6 +367,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = MobileTheme.primaryOf(context);
     final feedState = ref.watch(feedControllerProvider);
     final visiblePosts = _postsForDisplay(feedState.posts);
     final notificationsState = ref.watch(notificationsControllerProvider);
@@ -400,7 +401,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         children: [
           RefreshIndicator(
             onRefresh: _refreshHomeFeed,
-            color: MobileTheme.primary,
+            color: primaryColor,
             child: CustomScrollView(
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
@@ -441,7 +442,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     meta?.icon ?? Icons.grid_view_rounded,
                                     size: 20,
                                     color: isSelected
-                                        ? MobileTheme.primary
+                                        ? primaryColor
                                         : (meta?.color ?? colors.textSecondary),
                                   ),
                                   const SizedBox(width: 12),
@@ -454,16 +455,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                                             ? FontWeight.w600
                                             : FontWeight.normal,
                                         color: isSelected
-                                            ? MobileTheme.primary
+                                            ? primaryColor
                                             : colors.textPrimary,
                                       ),
                                     ),
                                   ),
                                   if (isSelected)
-                                    const Icon(
+                                    Icon(
                                       Icons.check,
                                       size: 18,
-                                      color: MobileTheme.primary,
+                                      color: primaryColor,
                                     ),
                                 ],
                               ),
@@ -549,7 +550,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         (context, index) {
                           if (index == visiblePosts.length) {
                             if (feedState.hasMore) {
-                              return const Padding(
+                              return Padding(
                                 padding: EdgeInsets.all(16),
                                 child: Center(
                                   child: SizedBox(
@@ -557,7 +558,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     height: 24,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: MobileTheme.primary,
+                                      color: primaryColor,
                                     ),
                                   ),
                                 ),
@@ -607,7 +608,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           duration: const Duration(milliseconds: 220),
           child: FloatingActionButton(
             onPressed: () => context.push('/post/create'),
-            backgroundColor: MobileTheme.primary,
+            backgroundColor: primaryColor,
             elevation: 4,
             child: const Icon(Icons.edit, color: Colors.white, size: 22),
           ),
@@ -650,6 +651,7 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
     bool overlapsContent,
   ) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     final selectedIndex = channels.indexOf(selectedChannel);
     final resolvedChannelMeta = _resolveChannelMetaMap(channels);
 
@@ -660,13 +662,13 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
         children: [
           Expanded(
             child: channels.isEmpty
-                ? const Center(
+                ? Center(
                     child: SizedBox(
                       width: 16,
                       height: 16,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: MobileTheme.primary,
+                        color: primaryColor,
                       ),
                     ),
                   )
@@ -776,9 +778,8 @@ class _ChannelChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final effectiveColor = isSelected
-        ? MobileTheme.primary
-        : colors.textSecondary;
+    final primaryColor = MobileTheme.primaryOf(context);
+    final effectiveColor = isSelected ? primaryColor : colors.textSecondary;
     final effectiveIconColor = iconColor ?? effectiveColor;
 
     return GestureDetector(
@@ -789,11 +790,11 @@ class _ChannelChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: BoxDecoration(
           color: isSelected
-              ? MobileTheme.primary.withValues(alpha: 0.12)
+              ? primaryColor.withValues(alpha: 0.12)
               : colors.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? MobileTheme.primary : colors.divider,
+            color: isSelected ? primaryColor : colors.divider,
             width: isSelected ? 1.2 : 0.8,
           ),
         ),
@@ -881,6 +882,7 @@ class _CompactSortOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -893,7 +895,7 @@ class _CompactSortOption extends StatelessWidget {
           child: Icon(
             icon,
             size: 20,
-            color: isSelected ? MobileTheme.primary : colors.textTertiary,
+            color: isSelected ? primaryColor : colors.textTertiary,
           ),
         ),
       ),
@@ -971,6 +973,7 @@ class _SortOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -998,7 +1001,7 @@ class _SortOption extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected ? MobileTheme.primary : colors.textTertiary,
+                color: isSelected ? primaryColor : colors.textTertiary,
               ),
             ),
           ],
@@ -1020,6 +1023,7 @@ class _ErrorView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1037,7 +1041,7 @@ class _ErrorView extends StatelessWidget {
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: MobileTheme.primary,
+                backgroundColor: primaryColor,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32,
@@ -1065,6 +1069,7 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final primaryColor = MobileTheme.primaryOf(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -1075,14 +1080,10 @@ class _EmptyView extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: MobileTheme.primary.withValues(alpha: 0.08),
+                color: primaryColor.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.forum_outlined,
-                size: 40,
-                color: MobileTheme.primary,
-              ),
+              child: Icon(Icons.forum_outlined, size: 40, color: primaryColor),
             ),
             const SizedBox(height: 20),
             Text(
@@ -1104,8 +1105,8 @@ class _EmptyView extends StatelessWidget {
               icon: const Icon(Icons.edit, size: 16),
               label: const Text('发布帖子'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: MobileTheme.primary,
-                side: const BorderSide(color: MobileTheme.primary),
+                foregroundColor: primaryColor,
+                side: BorderSide(color: primaryColor),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
                   vertical: 12,

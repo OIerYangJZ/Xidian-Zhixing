@@ -101,7 +101,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: MobileTheme.primary,
+                    color: MobileTheme.primaryOf(context),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Icon(
@@ -124,19 +124,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 8),
               Text(
                 '欢迎回来',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: colors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 15, color: colors.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 '使用西电统一身份认证登录',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: colors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 48),
@@ -226,7 +220,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text('登录'),
@@ -239,10 +234,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
               Text(
                 '密码仅用于登录验证，不会上传至云端。密码和一站式数据仅存储在本地，用于访问一站式功能，这部分数据不能同步到云端。',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: colors.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),

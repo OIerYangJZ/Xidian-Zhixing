@@ -20,8 +20,7 @@ class PublicUserProfilePage extends ConsumerStatefulWidget {
       _PublicUserProfilePageState();
 }
 
-class _PublicUserProfilePageState
-    extends ConsumerState<PublicUserProfilePage> {
+class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   PublicUserProfile? _profile;
   List<PostItem> _posts = [];
   bool _loadingProfile = true;
@@ -93,9 +92,9 @@ class _PublicUserProfilePageState
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('操作失败，请重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('操作失败，请重试')));
       }
     }
     if (mounted) setState(() => _followLoading = false);
@@ -105,16 +104,18 @@ class _PublicUserProfilePageState
     if (_profile == null) return;
     final messageRepo = ref.read(messageRepositoryProvider);
     try {
-      final conversation = await messageRepo.createDirectConversation(widget.userId);
+      final conversation = await messageRepo.createDirectConversation(
+        widget.userId,
+      );
       if (!mounted) return;
       context.push(
         '/chat/${conversation.id}?name=${Uri.encodeComponent(conversation.name)}&avatar=${Uri.encodeComponent(conversation.avatarUrl)}&userId=${Uri.encodeComponent(conversation.peerUserId)}',
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('无法发起私信: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('无法发起私信: $e')));
     }
   }
 
@@ -124,8 +125,10 @@ class _PublicUserProfilePageState
     if (_loadingProfile) {
       return Scaffold(
         backgroundColor: colors.background,
-        body: const Center(
-          child: CircularProgressIndicator(color: MobileTheme.primary),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: MobileTheme.primaryOf(context),
+          ),
         ),
       );
     }
@@ -141,10 +144,7 @@ class _PublicUserProfilePageState
           ),
         ),
         body: Center(
-          child: Text(
-            '用户不存在',
-            style: TextStyle(color: colors.textSecondary),
-          ),
+          child: Text('用户不存在', style: TextStyle(color: colors.textSecondary)),
         ),
       );
     }
@@ -183,7 +183,7 @@ class _PublicUserProfilePageState
                   children: [
                     Container(
                       height: 60,
-                      color: MobileTheme.primary.withValues(alpha: 0.08),
+                      color: MobileTheme.primaryWithAlpha(context, 0.08),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
@@ -196,7 +196,9 @@ class _PublicUserProfilePageState
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                    color: colors.surface, width: 4),
+                                  color: colors.surface,
+                                  width: 4,
+                                ),
                               ),
                               child: AvatarWidget(
                                 avatarUrl: profile.avatarUrl,
@@ -242,18 +244,23 @@ class _PublicUserProfilePageState
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: Row(
                         children: [
+                          _StatChip(label: '帖子', value: '${profile.postCount}'),
+                          const SizedBox(width: 20),
                           _StatChip(
-                            label: '帖子',
-                            value: '${profile.postCount}',
+                            label: '粉丝',
+                            value: '${profile.followerCount}',
                           ),
                           const SizedBox(width: 20),
-                          _StatChip(label: '粉丝', value: '${profile.followerCount}'),
-                          const SizedBox(width: 20),
-                          _StatChip(label: '关注', value: '${profile.followingCount}'),
+                          _StatChip(
+                            label: '关注',
+                            value: '${profile.followingCount}',
+                          ),
                           const SizedBox(width: 20),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: MobileTheme.accent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
@@ -278,45 +285,54 @@ class _PublicUserProfilePageState
           ];
         },
         body: _loadingPosts
-            ? const Center(
-                child: CircularProgressIndicator(color: MobileTheme.primary),
+            ? Center(
+                child: CircularProgressIndicator(
+                  color: MobileTheme.primaryOf(context),
+                ),
               )
             : _posts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.article_outlined,
-                            size: 48, color: colors.textTertiary),
-                        const SizedBox(height: 12),
-                        Text('暂无帖子',
-                            style: TextStyle(
-                                color: colors.textSecondary, fontSize: 14)),
-                      ],
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.article_outlined,
+                      size: 48,
+                      color: colors.textTertiary,
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(top: 0),
-                    itemCount: _posts.length,
-                    itemBuilder: (context, i) {
-                      final post = _posts[i];
-                      return PostCard(
-                        post: post,
-                        onTap: () => context.push('/post/${post.id}'),
-                        onLike: () async {
-                          try {
-                            final repo = ref.read(postRepositoryProvider);
-                            if (post.isLiked) {
-                              await repo.unlikePost(post.id);
-                            } else {
-                              await repo.likePost(post.id);
-                            }
-                            _load();
-                          } catch (_) {}
-                        },
-                      );
+                    const SizedBox(height: 12),
+                    Text(
+                      '暂无帖子',
+                      style: TextStyle(
+                        color: colors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.only(top: 0),
+                itemCount: _posts.length,
+                itemBuilder: (context, i) {
+                  final post = _posts[i];
+                  return PostCard(
+                    post: post,
+                    onTap: () => context.push('/post/${post.id}'),
+                    onLike: () async {
+                      try {
+                        final repo = ref.read(postRepositoryProvider);
+                        if (post.isLiked) {
+                          await repo.unlikePost(post.id);
+                        } else {
+                          await repo.likePost(post.id);
+                        }
+                        _load();
+                      } catch (_) {}
                     },
-                  ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -344,10 +360,7 @@ class _StatChip extends StatelessWidget {
         const SizedBox(width: 3),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            color: colors.textSecondary,
-          ),
+          style: TextStyle(fontSize: 13, color: colors.textSecondary),
         ),
       ],
     );
@@ -377,13 +390,13 @@ class _FollowButton extends StatelessWidget {
           border: Border.all(color: colors.divider, width: 1),
           borderRadius: BorderRadius.circular(20),
         ),
-        child: const Center(
+        child: Center(
           child: SizedBox(
             width: 16,
             height: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: MobileTheme.primary,
+              color: MobileTheme.primaryOf(context),
             ),
           ),
         ),
@@ -394,9 +407,11 @@ class _FollowButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: isFollowing ? colors.surface : MobileTheme.primary,
+          color: isFollowing ? colors.surface : MobileTheme.primaryOf(context),
           border: Border.all(
-            color: isFollowing ? colors.divider : MobileTheme.primary,
+            color: isFollowing
+                ? colors.divider
+                : MobileTheme.primaryOf(context),
             width: 1,
           ),
           borderRadius: BorderRadius.circular(20),
@@ -434,8 +449,7 @@ class _DmButton extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.mail_outline,
-                size: 14, color: colors.textPrimary),
+            Icon(Icons.mail_outline, size: 14, color: colors.textPrimary),
             const SizedBox(width: 4),
             Text(
               '私信',

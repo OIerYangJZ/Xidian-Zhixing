@@ -30,6 +30,12 @@ class MobileTheme {
   static const Color warning = Color(0xFFFF9500);
   static const Color error = Color(0xFFFF3B30);
 
+  static Color primaryOf(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+
+  static Color primaryWithAlpha(BuildContext context, double alpha) =>
+      primaryOf(context).withValues(alpha: alpha);
+
   /// iOS 风格浅色主题
   static ThemeData get lightTheme {
     return ThemeData(
@@ -54,13 +60,14 @@ class MobileTheme {
         scrolledUnderElevation: 0.5,
         backgroundColor: surface,
         foregroundColor: textPrimary,
+        surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         titleTextStyle: TextStyle(
           color: textPrimary,
           fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
-        iconTheme: IconThemeData(color: primary),
+        iconTheme: IconThemeData(color: primaryDark),
       ),
 
       // 底部导航栏 - CupertinoTabBar 风格
@@ -71,28 +78,33 @@ class MobileTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         showUnselectedLabels: true,
-        selectedLabelStyle:
-            TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        selectedLabelStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       // 卡片样式 - Twitter 风格：无圆角、无阴影、无边框
       cardTheme: CardThemeData(
         color: cardBackground,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
 
       // 输入框样式
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: divider),
@@ -122,10 +134,7 @@ class MobileTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -133,10 +142,7 @@ class MobileTheme {
         style: TextButton.styleFrom(
           foregroundColor: primary,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -148,10 +154,7 @@ class MobileTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -161,8 +164,10 @@ class MobileTheme {
         unselectedLabelColor: textSecondary,
         indicatorColor: primary,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       // Chip 样式 - 无圆角、无边框
@@ -171,9 +176,7 @@ class MobileTheme {
         selectedColor: primary.withValues(alpha: 0.15),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         side: BorderSide.none,
       ),
 
@@ -195,21 +198,20 @@ class MobileTheme {
       // Dialog
       dialogTheme: DialogThemeData(
         backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         titleTextStyle: const TextStyle(
           color: textPrimary,
           fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
-        contentTextStyle: const TextStyle(
-          color: textSecondary,
-          fontSize: 14,
-        ),
+        contentTextStyle: const TextStyle(color: textSecondary, fontSize: 14),
       ),
 
       // BottomSheet
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: surface,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
         ),
@@ -305,6 +307,7 @@ class MobileTheme {
         scrolledUnderElevation: 0,
         backgroundColor: _bg,
         foregroundColor: _textPrimary,
+        surfaceTintColor: Colors.transparent,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: TextStyle(
           color: _textPrimary,
@@ -321,26 +324,31 @@ class MobileTheme {
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         showUnselectedLabels: true,
-        selectedLabelStyle:
-            TextStyle(fontSize: 10, fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+        selectedLabelStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       cardTheme: CardThemeData(
         color: _bg,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         margin: EdgeInsets.zero,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: _bg,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: const BorderSide(color: _divider),
@@ -369,10 +377,7 @@ class MobileTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -380,25 +385,19 @@ class MobileTheme {
         style: TextButton.styleFrom(
           foregroundColor: primaryDark,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          textStyle: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
       ),
 
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: primaryDark,
-          side: const BorderSide(color: primary),
+          side: const BorderSide(color: primaryDark),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          textStyle: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
 
@@ -407,8 +406,10 @@ class MobileTheme {
         unselectedLabelColor: _textSecondary,
         indicatorColor: primaryDark,
         labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle:
-            TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
       ),
 
       chipTheme: ChipThemeData(
@@ -416,9 +417,7 @@ class MobileTheme {
         selectedColor: primaryDark.withValues(alpha: 0.15),
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.zero,
-        ),
+        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
         side: BorderSide.none,
       ),
 
@@ -431,28 +430,25 @@ class MobileTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: const Color(0xFF3C3C43).withValues(alpha: 0.9),
         contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         behavior: SnackBarBehavior.floating,
       ),
 
       dialogTheme: DialogThemeData(
         backgroundColor: _bg,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         titleTextStyle: const TextStyle(
           color: _textPrimary,
           fontSize: 17,
           fontWeight: FontWeight.w600,
         ),
-        contentTextStyle: const TextStyle(
-          color: _textSecondary,
-          fontSize: 14,
-        ),
+        contentTextStyle: const TextStyle(color: _textSecondary, fontSize: 14),
       ),
 
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: _bg,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
         ),
@@ -460,35 +456,55 @@ class MobileTheme {
 
       textTheme: const TextTheme(
         displayLarge: TextStyle(
-            fontSize: 34, fontWeight: FontWeight.bold, color: _textPrimary),
+          fontSize: 34,
+          fontWeight: FontWeight.bold,
+          color: _textPrimary,
+        ),
         titleLarge: TextStyle(
-            fontSize: 22, fontWeight: FontWeight.w600, color: _textPrimary),
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: _textPrimary,
+        ),
         titleMedium: TextStyle(
-            fontSize: 17, fontWeight: FontWeight.w600, color: _textPrimary),
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          color: _textPrimary,
+        ),
         titleSmall: TextStyle(
-            fontSize: 15, fontWeight: FontWeight.w600, color: _textPrimary),
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: _textPrimary,
+        ),
         bodyLarge: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.normal,
-            color: _textPrimary),
+          fontSize: 17,
+          fontWeight: FontWeight.normal,
+          color: _textPrimary,
+        ),
         bodyMedium: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.normal,
-            color: _textPrimary),
+          fontSize: 15,
+          fontWeight: FontWeight.normal,
+          color: _textPrimary,
+        ),
         bodySmall: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.normal,
-            color: _textSecondary),
+          fontSize: 13,
+          fontWeight: FontWeight.normal,
+          color: _textSecondary,
+        ),
         labelLarge: TextStyle(
-            fontSize: 14, fontWeight: FontWeight.w600, color: _textPrimary),
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: _textPrimary,
+        ),
         labelMedium: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: _textSecondary),
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: _textSecondary,
+        ),
         labelSmall: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-            color: _textTertiary),
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: _textTertiary,
+        ),
       ),
 
       // MobileColors 扩展 - 用于 MobileColors.of(context)
