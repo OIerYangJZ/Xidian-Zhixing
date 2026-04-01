@@ -363,6 +363,14 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                 _SectionHeader(title: '应用信息'),
                 _ListCard(
                   children: [
+                    _ListTile(
+                      icon: Icons.download_outlined,
+                      iconColor: MobileTheme.primary,
+                      title: '下载 Android 客户端',
+                      subtitle: '获取当前最新安装包',
+                      onTap: () => context.push('/download'),
+                    ),
+                    Divider(height: 0.5, indent: 56, color: colors.divider),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -396,7 +404,6 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                     ),
                   ],
                 ),
-
 
                 _SectionHeader(title: '账号安全'),
                 _ListCard(

@@ -1,18 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/utils/file_download.dart';
+import '../../core/utils/release_file_picker.dart';
 import '../../models/admin_models.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/admin_repository.dart';
 
 class AdminConsolePage extends StatefulWidget {
-  const AdminConsolePage({
-    super.key,
-    this.repository,
-    this.onLogout,
-  });
+  const AdminConsolePage({super.key, this.repository, this.onLogout});
 
   final AdminRepository? repository;
   final Future<void> Function()? onLogout;
@@ -36,10 +34,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   List<AdminAccountCancellationRequest> _accountCancellationRequests =
       const <AdminAccountCancellationRequest>[];
   List<AdminAppealEntry> _appeals = const <AdminAppealEntry>[];
-  AdminChannelTagData _channelTagData =
-      AdminChannelTagData(channels: const <String>[], tags: const <String>[]);
+  AdminChannelTagData _channelTagData = AdminChannelTagData(
+    channels: const <String>[],
+    tags: const <String>[],
+  );
   List<AdminSystemAnnouncement> _announcements =
       const <AdminSystemAnnouncement>[];
+  AdminAndroidRelease? _androidRelease;
   AdminSystemConfig _config = AdminSystemConfig(
     sensitiveWords: const <String>[],
     postRateLimit: 10,
@@ -62,6 +63,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   final TextEditingController _adminUsernameController =
       TextEditingController();
   final TextEditingController _adminPasswordController =
+      TextEditingController();
+  final TextEditingController _androidVersionNameController =
+      TextEditingController();
+  final TextEditingController _androidVersionCodeController =
+      TextEditingController();
+  final TextEditingController _androidReleaseNotesController =
       TextEditingController();
   final TextEditingController _reportReasonController = TextEditingController();
   final TextEditingController _reportKeywordController =
@@ -88,6 +95,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   String _appealStatus = 'all';
   String _exportScope = 'users';
   String _exportFormat = 'csv';
+  bool _androidForceUpdate = false;
+  PickedReleaseFile? _selectedAndroidApk;
   final Set<String> _selectedReviewIds = <String>{};
 
   bool _loading = true;
@@ -116,6 +125,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     _announcementContentController.dispose();
     _adminUsernameController.dispose();
     _adminPasswordController.dispose();
+    _androidVersionNameController.dispose();
+    _androidVersionCodeController.dispose();
+    _androidReleaseNotesController.dispose();
     _reportReasonController.dispose();
     _reportKeywordController.dispose();
     _userKeywordController.dispose();
@@ -161,24 +173,21 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : (_isPrimaryAdmin
-                ? _buildPrimaryConsole()
-                : _buildSecondaryConsole()),
+                  ? _buildPrimaryConsole()
+                  : _buildSecondaryConsole()),
       ),
     );
   }
 
   Widget _buildPrimaryConsole() {
     return DefaultTabController(
-      length: 11,
+      length: 12,
       child: Column(
         children: <Widget>[
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
@@ -203,6 +212,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   Tab(text: '申诉处理'),
                   Tab(text: '用户管理'),
                   Tab(text: '分类标签'),
+                  Tab(text: '版本发布'),
                   Tab(text: '系统配置'),
                 ],
               ),
@@ -222,6 +232,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                 _buildAppealTab(),
                 _buildUserTab(),
                 _buildChannelTagTab(),
+                _buildAndroidReleaseTab(),
                 _buildConfigTab(),
               ],
             ),
@@ -239,10 +250,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
-              ),
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
@@ -265,10 +273,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           const SizedBox(height: 6),
           Expanded(
             child: TabBarView(
-              children: <Widget>[
-                _buildPostPinRequestTab(),
-                _buildUserTab(),
-              ],
+              children: <Widget>[_buildPostPinRequestTab(), _buildUserTab()],
             ),
           ),
         ],
@@ -278,7 +283,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Widget _buildDashboardHeader() {
     final AdminCurrentUser? currentAdmin = _currentAdmin;
-    final AdminOverview overview = _overview ??
+    final AdminOverview overview =
+        _overview ??
         AdminOverview(
           todayNewUsers: 0,
           todayPosts: 0,
@@ -314,32 +320,41 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
           if (_isPrimaryAdmin) ...<Widget>[
             _compactStatusChip(
-                icon: Icons.person_add_alt_1,
-                label: '今日新用户 ${overview.todayNewUsers}'),
+              icon: Icons.person_add_alt_1,
+              label: '今日新用户 ${overview.todayNewUsers}',
+            ),
             _compactStatusChip(
-                icon: Icons.article_outlined,
-                label: '今日发帖 ${overview.todayPosts}'),
+              icon: Icons.article_outlined,
+              label: '今日发帖 ${overview.todayPosts}',
+            ),
             _compactStatusChip(
-                icon: Icons.comment_outlined,
-                label: '今日评论 ${overview.todayComments}'),
+              icon: Icons.comment_outlined,
+              label: '今日评论 ${overview.todayComments}',
+            ),
             _compactStatusChip(
-                icon: Icons.flag_outlined,
-                label: '今日举报 ${overview.todayReports}'),
+              icon: Icons.flag_outlined,
+              label: '今日举报 ${overview.todayReports}',
+            ),
             _compactStatusChip(
-                icon: Icons.pending_actions_outlined,
-                label: '待审核 ${overview.pendingReviews}'),
+              icon: Icons.pending_actions_outlined,
+              label: '待审核 ${overview.pendingReviews}',
+            ),
             _compactStatusChip(
-                icon: Icons.person_off_outlined,
-                label: '待注销 ${overview.pendingCancellationRequests}'),
+              icon: Icons.person_off_outlined,
+              label: '待注销 ${overview.pendingCancellationRequests}',
+            ),
             _compactStatusChip(
-                icon: Icons.groups_2_outlined,
-                label: '活跃账号 ${overview.activeUsers}'),
+              icon: Icons.groups_2_outlined,
+              label: '活跃账号 ${overview.activeUsers}',
+            ),
             _compactStatusChip(
-                icon: Icons.gpp_bad_outlined,
-                label: '封禁用户 ${overview.bannedUsers}'),
+              icon: Icons.gpp_bad_outlined,
+              label: '封禁用户 ${overview.bannedUsers}',
+            ),
             _compactStatusChip(
-                icon: Icons.volume_off_outlined,
-                label: '禁言用户 ${overview.mutedUsers}'),
+              icon: Icons.volume_off_outlined,
+              label: '禁言用户 ${overview.mutedUsers}',
+            ),
           ] else
             _compactStatusChip(
               icon: Icons.lock_outline,
@@ -350,10 +365,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Widget _compactStatusChip({
-    required IconData icon,
-    required String label,
-  }) {
+  Widget _compactStatusChip({required IconData icon, required String label}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
@@ -372,7 +384,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildOverviewTab() {
-    final AdminOverview overview = _overview ??
+    final AdminOverview overview =
+        _overview ??
         AdminOverview(
           todayNewUsers: 0,
           todayPosts: 0,
@@ -471,8 +484,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   label: const Text('刷新举报列表'),
                 ),
                 FilledButton.tonalIcon(
-                  onPressed:
-                      _actionBusy ? null : _loadAccountCancellationRequests,
+                  onPressed: _actionBusy
+                      ? null
+                      : _loadAccountCancellationRequests,
                   icon: const Icon(Icons.person_remove_alt_1_outlined),
                   label: const Text('刷新注销申请'),
                 ),
@@ -722,8 +736,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(item.content,
-                      maxLines: 3, overflow: TextOverflow.ellipsis),
+                  Text(
+                    item.content,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 8),
                   Text('前台展示：${item.authorAlias} · 时间：${item.createdAt}'),
                   const SizedBox(height: 4),
@@ -741,7 +758,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       OutlinedButton.icon(
                         onPressed: () => _showSimpleDetail(
                           title: item.title,
-                          subtitle: '前台展示：${item.authorAlias}\n'
+                          subtitle:
+                              '前台展示：${item.authorAlias}\n'
                               '实际账号：${item.authorNickname}'
                               '${item.authorEmail.isNotEmpty ? ' · ${item.authorEmail}' : ''}'
                               '${item.authorStudentId.isNotEmpty ? ' · 学号 ${item.authorStudentId}' : ''}'
@@ -755,28 +773,40 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         onPressed: _actionBusy
                             ? null
                             : () => _handleReview(
-                                item.targetType, item.id, 'approve'),
+                                item.targetType,
+                                item.id,
+                                'approve',
+                              ),
                         child: const Text('通过'),
                       ),
                       OutlinedButton(
                         onPressed: _actionBusy
                             ? null
                             : () => _handleReview(
-                                item.targetType, item.id, 'reject'),
+                                item.targetType,
+                                item.id,
+                                'reject',
+                              ),
                         child: const Text('驳回'),
                       ),
                       OutlinedButton(
                         onPressed: _actionBusy
                             ? null
-                            : () =>
-                                _handleReview(item.targetType, item.id, 'risk'),
+                            : () => _handleReview(
+                                item.targetType,
+                                item.id,
+                                'risk',
+                              ),
                         child: const Text('标风险'),
                       ),
                       FilledButton.tonal(
                         onPressed: _actionBusy
                             ? null
                             : () => _handleReview(
-                                item.targetType, item.id, 'delete'),
+                                item.targetType,
+                                item.id,
+                                'delete',
+                              ),
                         child: const Text('删除'),
                       ),
                     ],
@@ -796,13 +826,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildReportTab() {
-    final String reasonKeyword =
-        _reportReasonController.text.trim().toLowerCase();
-    final String textKeyword =
-        _reportKeywordController.text.trim().toLowerCase();
+    final String reasonKeyword = _reportReasonController.text
+        .trim()
+        .toLowerCase();
+    final String textKeyword = _reportKeywordController.text
+        .trim()
+        .toLowerCase();
 
     final List<AdminReportEntry> rows = _reports.where((AdminReportEntry item) {
-      final bool matchReason = reasonKeyword.isEmpty ||
+      final bool matchReason =
+          reasonKeyword.isEmpty ||
           item.reason.toLowerCase().contains(reasonKeyword);
       final String merged =
           '${item.id} ${item.targetType} ${item.targetId} ${item.reporterAlias} ${item.description} ${item.result}'
@@ -919,44 +952,44 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         onPressed: _actionBusy
                             ? null
                             : () => _promptAndHandleReport(
-                                  reportId: report.id,
-                                  action: 'delete_content',
-                                  actionLabel: '删除内容',
-                                  defaultResult: '内容已删除',
-                                ),
+                                reportId: report.id,
+                                action: 'delete_content',
+                                actionLabel: '删除内容',
+                                defaultResult: '内容已删除',
+                              ),
                         child: const Text('删除内容'),
                       ),
                       OutlinedButton(
                         onPressed: _actionBusy
                             ? null
                             : () => _promptAndHandleReport(
-                                  reportId: report.id,
-                                  action: 'warn_user',
-                                  actionLabel: '警告用户',
-                                  defaultResult: '已警告用户',
-                                ),
+                                reportId: report.id,
+                                action: 'warn_user',
+                                actionLabel: '警告用户',
+                                defaultResult: '已警告用户',
+                              ),
                         child: const Text('警告用户'),
                       ),
                       OutlinedButton(
                         onPressed: _actionBusy
                             ? null
                             : () => _promptAndHandleReport(
-                                  reportId: report.id,
-                                  action: 'ban_user',
-                                  actionLabel: '封禁用户',
-                                  defaultResult: '已封禁用户',
-                                ),
+                                reportId: report.id,
+                                action: 'ban_user',
+                                actionLabel: '封禁用户',
+                                defaultResult: '已封禁用户',
+                              ),
                         child: const Text('封禁用户'),
                       ),
                       FilledButton.tonal(
                         onPressed: _actionBusy
                             ? null
                             : () => _promptAndHandleReport(
-                                  reportId: report.id,
-                                  action: 'mark_misreport',
-                                  actionLabel: '标记误报',
-                                  defaultResult: '标记为误报',
-                                ),
+                                reportId: report.id,
+                                action: 'mark_misreport',
+                                actionLabel: '标记误报',
+                                defaultResult: '标记为误报',
+                              ),
                         child: const Text('标记误报'),
                       ),
                     ],
@@ -1048,16 +1081,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               child: Text(
                                 item.fileName,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700),
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                             _statusChip(item.status),
                           ],
                         ),
                         const SizedBox(height: 6),
-                        Text(
-                          '上传者：${item.uploaderAlias} (${item.uploaderId})',
-                        ),
+                        Text('上传者：${item.uploaderAlias} (${item.uploaderId})'),
                         Text('上传时间：${item.createdAt}'),
                         Text(
                           '类型：${item.contentType} · 大小：${_formatFileSize(item.sizeBytes)}',
@@ -1082,44 +1114,44 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               onPressed: _actionBusy
                                   ? null
                                   : () => _promptAndHandleImageReview(
-                                        uploadId: item.id,
-                                        action: 'approve',
-                                        actionLabel: '通过图片',
-                                        defaultNote: '已通过',
-                                      ),
+                                      uploadId: item.id,
+                                      action: 'approve',
+                                      actionLabel: '通过图片',
+                                      defaultNote: '已通过',
+                                    ),
                               child: const Text('通过'),
                             ),
                             OutlinedButton(
                               onPressed: _actionBusy
                                   ? null
                                   : () => _promptAndHandleImageReview(
-                                        uploadId: item.id,
-                                        action: 'risk',
-                                        actionLabel: '标记风险',
-                                        defaultNote: '已标记风险',
-                                      ),
+                                      uploadId: item.id,
+                                      action: 'risk',
+                                      actionLabel: '标记风险',
+                                      defaultNote: '已标记风险',
+                                    ),
                               child: const Text('风险'),
                             ),
                             OutlinedButton(
                               onPressed: _actionBusy
                                   ? null
                                   : () => _promptAndHandleImageReview(
-                                        uploadId: item.id,
-                                        action: 'reject',
-                                        actionLabel: '拒绝图片',
-                                        defaultNote: '已拒绝',
-                                      ),
+                                      uploadId: item.id,
+                                      action: 'reject',
+                                      actionLabel: '拒绝图片',
+                                      defaultNote: '已拒绝',
+                                    ),
                               child: const Text('拒绝'),
                             ),
                             FilledButton.tonal(
                               onPressed: _actionBusy
                                   ? null
                                   : () => _promptAndHandleImageReview(
-                                        uploadId: item.id,
-                                        action: 'delete',
-                                        actionLabel: '删除图片',
-                                        defaultNote: '已删除图片',
-                                      ),
+                                      uploadId: item.id,
+                                      action: 'delete',
+                                      actionLabel: '删除图片',
+                                      defaultNote: '已删除图片',
+                                    ),
                               child: const Text('删除'),
                             ),
                           ],
@@ -1172,8 +1204,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Widget _buildPostPinRequestTab() {
     final String keyword = _postPinKeywordController.text.trim().toLowerCase();
-    final List<AdminPostPinRequestEntry> rows =
-        _postPinRequests.where((AdminPostPinRequestEntry item) {
+    final List<AdminPostPinRequestEntry> rows = _postPinRequests.where((
+      AdminPostPinRequestEntry item,
+    ) {
       final String merged = [
         item.postId,
         item.postTitle,
@@ -1244,10 +1277,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配置顶申请 ${rows.length} / 总计 ${_postPinRequests.length}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ),
         ...rows.map(
@@ -1276,7 +1308,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   ),
                   Text('帖子ID：${item.postId}'),
                   Text(
-                      '申请时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}'),
+                    '申请时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
+                  ),
                   Text('提交时间：${item.createdAt}'),
                   if (item.reason.trim().isNotEmpty) ...<Widget>[
                     const SizedBox(height: 8),
@@ -1303,7 +1336,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           title: item.postTitle.isEmpty
                               ? '帖子 ${item.postId}'
                               : item.postTitle,
-                          subtitle: '${item.userNickname} · ${item.userEmail}\n'
+                          subtitle:
+                              '${item.userNickname} · ${item.userEmail}\n'
                               '帖子ID：${item.postId}\n'
                               '置顶时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
                           content: item.reason.trim().isEmpty
@@ -1318,11 +1352,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandlePostPinRequest(
-                                    requestId: item.id,
-                                    action: 'approve',
-                                    actionLabel: '通过置顶申请',
-                                    defaultNote: '申请通过，帖子已置顶展示',
-                                  ),
+                                  requestId: item.id,
+                                  action: 'approve',
+                                  actionLabel: '通过置顶申请',
+                                  defaultNote: '申请通过，帖子已置顶展示',
+                                ),
                           child: const Text('通过'),
                         ),
                       if (item.status == 'pending')
@@ -1330,11 +1364,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandlePostPinRequest(
-                                    requestId: item.id,
-                                    action: 'reject',
-                                    actionLabel: '驳回置顶申请',
-                                    defaultNote: '当前不满足置顶条件',
-                                  ),
+                                  requestId: item.id,
+                                  action: 'reject',
+                                  actionLabel: '驳回置顶申请',
+                                  defaultNote: '当前不满足置顶条件',
+                                ),
                           child: const Text('驳回'),
                         ),
                     ],
@@ -1354,10 +1388,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildUserLevelRequestTab() {
-    final String keyword =
-        _userLevelKeywordController.text.trim().toLowerCase();
-    final List<AdminUserLevelRequestEntry> rows =
-        _userLevelRequests.where((AdminUserLevelRequestEntry item) {
+    final String keyword = _userLevelKeywordController.text
+        .trim()
+        .toLowerCase();
+    final List<AdminUserLevelRequestEntry> rows = _userLevelRequests.where((
+      AdminUserLevelRequestEntry item,
+    ) {
       final String merged = [
         item.userId,
         item.userEmail,
@@ -1427,10 +1463,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申请 ${rows.length} / 总计 ${_userLevelRequests.length}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ),
         ...rows.map(
@@ -1484,7 +1519,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       OutlinedButton.icon(
                         onPressed: () => _showSimpleDetail(
                           title: '${item.userNickname} · 一级用户申请',
-                          subtitle: '${item.userEmail}\n用户ID：${item.userId}\n'
+                          subtitle:
+                              '${item.userEmail}\n用户ID：${item.userId}\n'
                               '当前等级：${item.currentLevelLabel} -> ${item.targetLevelLabel}',
                           content: item.reason.trim().isEmpty
                               ? '无额外申请说明'
@@ -1498,11 +1534,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleUserLevelRequest(
-                                    requestId: item.id,
-                                    action: 'approve',
-                                    actionLabel: '通过一级用户申请',
-                                    defaultNote: '申请通过，已升级为一级用户',
-                                  ),
+                                  requestId: item.id,
+                                  action: 'approve',
+                                  actionLabel: '通过一级用户申请',
+                                  defaultNote: '申请通过，已升级为一级用户',
+                                ),
                           child: const Text('通过'),
                         ),
                       if (item.status == 'pending')
@@ -1510,11 +1546,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleUserLevelRequest(
-                                    requestId: item.id,
-                                    action: 'reject',
-                                    actionLabel: '驳回一级用户申请',
-                                    defaultNote: '当前未通过升级申请',
-                                  ),
+                                  requestId: item.id,
+                                  action: 'reject',
+                                  actionLabel: '驳回一级用户申请',
+                                  defaultNote: '当前未通过升级申请',
+                                ),
                           child: const Text('驳回'),
                         ),
                     ],
@@ -1534,24 +1570,27 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildAccountCancellationTab() {
-    final String keyword =
-        _cancellationKeywordController.text.trim().toLowerCase();
+    final String keyword = _cancellationKeywordController.text
+        .trim()
+        .toLowerCase();
     final List<AdminAccountCancellationRequest> rows =
-        _accountCancellationRequests
-            .where((AdminAccountCancellationRequest request) {
-      final String merged = [
-        request.userNickname,
-        request.userEmail,
-        request.studentId,
-        request.userId,
-        request.reason,
-        request.createdAt,
-      ].join(' ').toLowerCase();
-      final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
-      final bool matchStatus =
-          _cancellationStatus == 'all' || request.status == _cancellationStatus;
-      return matchKeyword && matchStatus;
-    }).toList();
+        _accountCancellationRequests.where((
+          AdminAccountCancellationRequest request,
+        ) {
+          final String merged = [
+            request.userNickname,
+            request.userEmail,
+            request.studentId,
+            request.userId,
+            request.reason,
+            request.createdAt,
+          ].join(' ').toLowerCase();
+          final bool matchKeyword = keyword.isEmpty || merged.contains(keyword);
+          final bool matchStatus =
+              _cancellationStatus == 'all' ||
+              request.status == _cancellationStatus;
+          return matchKeyword && matchStatus;
+        }).toList();
 
     return ListView(
       padding: const EdgeInsets.all(12),
@@ -1597,8 +1636,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   ),
                 ),
                 FilledButton.tonalIcon(
-                  onPressed:
-                      _actionBusy ? null : _loadAccountCancellationRequests,
+                  onPressed: _actionBusy
+                      ? null
+                      : _loadAccountCancellationRequests,
                   icon: const Icon(Icons.refresh),
                   label: const Text('刷新申请列表'),
                 ),
@@ -1610,10 +1650,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申请 ${rows.length} / 总计 ${_accountCancellationRequests.length}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ),
         ...rows.map(
@@ -1708,11 +1747,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAccountCancellation(
-                                    requestId: request.id,
-                                    action: 'approve',
-                                    actionLabel: '通过注销申请',
-                                    defaultNote: '申请核实通过，账号已注销',
-                                  ),
+                                  requestId: request.id,
+                                  action: 'approve',
+                                  actionLabel: '通过注销申请',
+                                  defaultNote: '申请核实通过，账号已注销',
+                                ),
                           icon: const Icon(Icons.check_circle_outline),
                           label: const Text('通过并注销'),
                         ),
@@ -1721,11 +1760,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAccountCancellation(
-                                    requestId: request.id,
-                                    action: 'reject',
-                                    actionLabel: '驳回注销申请',
-                                    defaultNote: '申请信息不足，请补充说明后重新提交',
-                                  ),
+                                  requestId: request.id,
+                                  action: 'reject',
+                                  actionLabel: '驳回注销申请',
+                                  defaultNote: '申请信息不足，请补充说明后重新提交',
+                                ),
                           icon: const Icon(Icons.close_outlined),
                           label: const Text('驳回申请'),
                         ),
@@ -1820,10 +1859,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申诉 ${rows.length} / 总计 ${_appeals.length}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ),
         ...rows.map(
@@ -1894,11 +1932,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAppeal(
-                                    appealId: appeal.id,
-                                    action: 'approve',
-                                    actionLabel: '通过申诉',
-                                    defaultNote: '申诉核实通过',
-                                  ),
+                                  appealId: appeal.id,
+                                  action: 'approve',
+                                  actionLabel: '通过申诉',
+                                  defaultNote: '申诉核实通过',
+                                ),
                           child: const Text('通过'),
                         ),
                       if (appeal.status == 'pending' && appeal.userDeleted)
@@ -1906,11 +1944,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAppeal(
-                                    appealId: appeal.id,
-                                    action: 'approve_restore',
-                                    actionLabel: '通过并恢复账号',
-                                    defaultNote: '申诉核实通过，账号已恢复',
-                                  ),
+                                  appealId: appeal.id,
+                                  action: 'approve_restore',
+                                  actionLabel: '通过并恢复账号',
+                                  defaultNote: '申诉核实通过，账号已恢复',
+                                ),
                           child: const Text('通过并恢复'),
                         ),
                       if (appeal.status == 'pending')
@@ -1918,11 +1956,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAppeal(
-                                    appealId: appeal.id,
-                                    action: 'reject',
-                                    actionLabel: '驳回申诉',
-                                    defaultNote: '申诉材料不足，暂不通过',
-                                  ),
+                                  appealId: appeal.id,
+                                  action: 'reject',
+                                  actionLabel: '驳回申诉',
+                                  defaultNote: '申诉材料不足，暂不通过',
+                                ),
                           child: const Text('驳回'),
                         ),
                       if (appeal.status == 'pending')
@@ -1930,11 +1968,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndHandleAppeal(
-                                    appealId: appeal.id,
-                                    action: 'close',
-                                    actionLabel: '关闭申诉',
-                                    defaultNote: '申诉已关闭',
-                                  ),
+                                  appealId: appeal.id,
+                                  action: 'close',
+                                  actionLabel: '关闭申诉',
+                                  defaultNote: '申诉已关闭',
+                                ),
                           child: const Text('关闭'),
                         ),
                     ],
@@ -1981,7 +2019,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           matchFilter = user.hasPendingCancellationRequest;
           break;
         case 'normal':
-          matchFilter = !user.deleted &&
+          matchFilter =
+              !user.deleted &&
               !user.banned &&
               !user.muted &&
               !user.hasPendingCancellationRequest;
@@ -2053,10 +2092,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配用户 ${rows.length} / 总计 ${_users.length}',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.black54),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
           ),
         ),
         ...rows.map(
@@ -2077,8 +2115,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           children: <Widget>[
                             Text(
                               '${user.alias} (${user.email})',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -2178,11 +2217,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndUpdateUserAction(
-                                    userId: user.id,
-                                    action: 'cancel',
-                                    actionLabel: '注销违规账号',
-                                    defaultNote: '因违规处理，管理员已注销该账号',
-                                  ),
+                                  userId: user.id,
+                                  action: 'cancel',
+                                  actionLabel: '注销违规账号',
+                                  defaultNote: '因违规处理，管理员已注销该账号',
+                                ),
                           child: const Text('注销账号'),
                         ),
                       if (user.deleted)
@@ -2190,11 +2229,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           onPressed: _actionBusy
                               ? null
                               : () => _promptAndUpdateUserAction(
-                                    userId: user.id,
-                                    action: 'restore',
-                                    actionLabel: '恢复已注销账号',
-                                    defaultNote: '管理员已恢复该账号的登录资格',
-                                  ),
+                                  userId: user.id,
+                                  action: 'restore',
+                                  actionLabel: '恢复已注销账号',
+                                  defaultNote: '管理员已恢复该账号的登录资格',
+                                ),
                           child: const Text('恢复账号'),
                         ),
                     ],
@@ -2213,10 +2252,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Widget _buildUserAvatar(
-    String avatarUrl, {
-    required String label,
-  }) {
+  Widget _buildUserAvatar(String avatarUrl, {required String label}) {
     final String resolvedUrl = _resolveMediaUrl(avatarUrl);
     final Widget fallback = Container(
       width: 52,
@@ -2262,10 +2298,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '频道管理',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -2323,10 +2358,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '标签管理',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Wrap(
@@ -2381,10 +2415,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '系统公告发布',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 TextField(
@@ -2441,9 +2474,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         children: <Widget>[
                           Text(
                             announcement.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 6),
                           Text(announcement.content),
@@ -2467,6 +2498,215 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Widget _buildAndroidReleaseTab() {
+    final AdminAndroidRelease? release = _androidRelease;
+    final String resolvedDownloadUrl = release == null
+        ? ''
+        : AppConfig.resolveUrl(release.downloadUrl);
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: <Widget>[
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '当前已发布版本',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                if (release == null)
+                  const Text('当前还没有已上传的 Android 安装包。')
+                else ...<Widget>[
+                  Text(
+                    '版本 ${release.versionName}（${release.versionCode}）',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '文件：${release.fileName} · ${_formatFileSize(release.sizeBytes)}',
+                  ),
+                  Text(
+                    '发布时间：${release.uploadedAt} · 发布人：${release.uploadedByUsername.isEmpty ? release.uploadedBy : release.uploadedByUsername}',
+                  ),
+                  Text('强制更新：${release.forceUpdate ? '是' : '否'}'),
+                  if (release.releaseNotes.trim().isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text(release.releaseNotes),
+                  ],
+                  const SizedBox(height: 8),
+                  SelectableText(
+                    '下载地址：$resolvedDownloadUrl',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  SelectableText(
+                    'SHA256：${release.sha256}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: <Widget>[
+                      FilledButton.tonalIcon(
+                        onPressed: () => Clipboard.setData(
+                          ClipboardData(text: resolvedDownloadUrl),
+                        ),
+                        icon: const Icon(Icons.link),
+                        label: const Text('复制下载链接'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: () => Clipboard.setData(
+                          ClipboardData(text: release.sha256),
+                        ),
+                        icon: const Icon(Icons.fingerprint),
+                        label: const Text('复制 SHA256'),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: _actionBusy ? null : _loadAndroidRelease,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('刷新发布信息'),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '上传新版本 APK',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text('上传成功后，会覆盖当前“最新 Android 安装包”元数据，并生成新的下载链接。'),
+                if (!kIsWeb) ...<Widget>[
+                  const SizedBox(height: 8),
+                  const Text(
+                    '当前环境不支持直接上传 APK，请在 Web 管理后台中操作。',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ],
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 260,
+                      child: TextField(
+                        controller: _androidVersionNameController,
+                        decoration: const InputDecoration(
+                          labelText: '版本名称',
+                          hintText: '例如：1.0.3',
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 180,
+                      child: TextField(
+                        controller: _androidVersionCodeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: '版本号',
+                          hintText: '例如：19',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: _androidReleaseNotesController,
+                  minLines: 4,
+                  maxLines: 8,
+                  decoration: const InputDecoration(
+                    labelText: '更新说明',
+                    hintText: '可填写本次版本的主要变更。',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  value: _androidForceUpdate,
+                  onChanged: _actionBusy
+                      ? null
+                      : (bool value) {
+                          setState(() {
+                            _androidForceUpdate = value;
+                          });
+                        },
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('标记为强制更新'),
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FBFD),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFD7E4EC)),
+                  ),
+                  child: Text(
+                    _selectedAndroidApk == null
+                        ? '当前未选择 APK 文件'
+                        : '已选择：${_selectedAndroidApk!.fileName} · ${_formatFileSize(_selectedAndroidApk!.sizeBytes)}',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: <Widget>[
+                    FilledButton.tonalIcon(
+                      onPressed: (_actionBusy || !kIsWeb)
+                          ? null
+                          : _pickAndroidApk,
+                      icon: const Icon(Icons.upload_file_outlined),
+                      label: const Text('选择 APK'),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: (_actionBusy || _selectedAndroidApk == null)
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedAndroidApk = null;
+                              });
+                            },
+                      icon: const Icon(Icons.clear),
+                      label: const Text('清除文件'),
+                    ),
+                    FilledButton.icon(
+                      onPressed: (_actionBusy || !kIsWeb)
+                          ? null
+                          : _uploadAndroidRelease,
+                      icon: const Icon(Icons.cloud_upload_outlined),
+                      label: const Text('上传并发布'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildConfigTab() {
     return ListView(
       padding: const EdgeInsets.all(12),
@@ -2481,10 +2721,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '系统风控配置',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 const Text('敏感词（英文逗号分隔）'),
@@ -2493,9 +2732,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   controller: _sensitiveController,
                   minLines: 2,
                   maxLines: 5,
-                  decoration: const InputDecoration(
-                    hintText: '例如：广告,引流,辱骂,诈骗',
-                  ),
+                  decoration: const InputDecoration(hintText: '例如：广告,引流,辱骂,诈骗'),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -2531,8 +2768,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       child: TextField(
                         controller: _imageMaxController,
                         keyboardType: TextInputType.number,
-                        decoration:
-                            const InputDecoration(labelText: '图片上限(MB)'),
+                        decoration: const InputDecoration(
+                          labelText: '图片上限(MB)',
+                        ),
                       ),
                     ),
                   ],
@@ -2571,10 +2809,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           children: <Widget>[
             Text(
               '二级管理员管理',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w700),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             const Text('一级管理员可以创建、注销和恢复二级管理员账号。'),
@@ -2632,8 +2869,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           Expanded(
                             child: Text(
                               account.username,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w700),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                           Chip(
@@ -2658,9 +2896,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               onPressed: _actionBusy
                                   ? null
                                   : () => _updateSecondaryAdmin(
-                                        account.id,
-                                        'deactivate',
-                                      ),
+                                      account.id,
+                                      'deactivate',
+                                    ),
                               child: const Text('注销账号'),
                             ),
                           if (!account.active)
@@ -2668,9 +2906,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               onPressed: _actionBusy
                                   ? null
                                   : () => _updateSecondaryAdmin(
-                                        account.id,
-                                        'activate',
-                                      ),
+                                      account.id,
+                                      'activate',
+                                    ),
                               child: const Text('恢复账号'),
                             ),
                         ],
@@ -2704,8 +2942,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   Icon(icon, color: color, size: 18),
                   const SizedBox(width: 6),
                   Expanded(
-                    child: Text(title,
-                        style: const TextStyle(color: Colors.black54)),
+                    child: Text(
+                      title,
+                      style: const TextStyle(color: Colors.black54),
+                    ),
                   ),
                 ],
               ),
@@ -2752,8 +2992,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       ),
       child: Text(
         labels[normalized] ?? status,
-        style:
-            TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 12),
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -2783,11 +3026,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     try {
       final AdminCurrentUser currentAdmin = await _repo.fetchCurrentAdmin();
       final List<AdminUserEntry> users = await _repo.fetchUsers();
-      final List<AdminPostPinRequestEntry> postPinRequests =
-          await _repo.fetchPostPinRequests(
-        status: _postPinStatus,
-        keyword: _postPinKeywordController.text.trim(),
-      );
+      final List<AdminPostPinRequestEntry> postPinRequests = await _repo
+          .fetchPostPinRequests(
+            status: _postPinStatus,
+            keyword: _postPinKeywordController.text.trim(),
+          );
 
       if (!mounted) {
         return;
@@ -2812,6 +3055,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           );
           _announcements = const <AdminSystemAnnouncement>[];
           _adminAccounts = const <AdminAccountEntry>[];
+          _androidRelease = null;
         });
         return;
       }
@@ -2821,34 +3065,37 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         type: _reviewType,
         status: _reviewStatus,
       );
-      final List<AdminReportEntry> reports =
-          await _repo.fetchReports(status: _reportStatus);
-      final List<AdminImageReviewItem> imageReviews =
-          await _repo.fetchImageReviews(
-        status: _imageStatus,
-        keyword: _imageKeywordController.text.trim(),
+      final List<AdminReportEntry> reports = await _repo.fetchReports(
+        status: _reportStatus,
       );
-      final List<AdminUserLevelRequestEntry> userLevelRequests =
-          await _repo.fetchUserLevelRequests(
-        status: _userLevelStatus,
-        keyword: _userLevelKeywordController.text.trim(),
-      );
+      final List<AdminImageReviewItem> imageReviews = await _repo
+          .fetchImageReviews(
+            status: _imageStatus,
+            keyword: _imageKeywordController.text.trim(),
+          );
+      final List<AdminUserLevelRequestEntry> userLevelRequests = await _repo
+          .fetchUserLevelRequests(
+            status: _userLevelStatus,
+            keyword: _userLevelKeywordController.text.trim(),
+          );
       final List<AdminAccountCancellationRequest> accountCancellationRequests =
           await _repo.fetchAccountCancellationRequests(
-        status: _cancellationStatus,
-        keyword: _cancellationKeywordController.text.trim(),
-      );
+            status: _cancellationStatus,
+            keyword: _cancellationKeywordController.text.trim(),
+          );
       final List<AdminAppealEntry> appeals = await _repo.fetchAppeals(
         status: _appealStatus,
         keyword: _appealKeywordController.text.trim(),
       );
-      final AdminChannelTagData channelTagData =
-          await _repo.fetchChannelTagData();
+      final AdminChannelTagData channelTagData = await _repo
+          .fetchChannelTagData();
       final AdminSystemConfig config = await _repo.fetchConfig();
-      final List<AdminSystemAnnouncement> announcements =
-          await _repo.fetchAnnouncements();
-      final List<AdminAccountEntry> adminAccounts =
-          await _repo.fetchAdminAccounts();
+      final List<AdminSystemAnnouncement> announcements = await _repo
+          .fetchAnnouncements();
+      final List<AdminAccountEntry> adminAccounts = await _repo
+          .fetchAdminAccounts();
+      final AdminAndroidRelease? androidRelease = await _repo
+          .fetchAndroidRelease();
 
       if (!mounted) {
         return;
@@ -2869,10 +3116,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _config = config;
         _announcements = announcements;
         _adminAccounts = adminAccounts;
+        _androidRelease = androidRelease;
       });
       _syncSelectedReviews();
 
       _syncConfigControllers();
+      _syncReleaseControllers();
     } catch (error) {
       if (!mounted) {
         return;
@@ -2909,8 +3158,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Future<void> _loadReports() async {
     try {
-      final List<AdminReportEntry> reports =
-          await _repo.fetchReports(status: _reportStatus);
+      final List<AdminReportEntry> reports = await _repo.fetchReports(
+        status: _reportStatus,
+      );
       if (!mounted) {
         return;
       }
@@ -2941,11 +3191,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Future<void> _loadPostPinRequests() async {
     try {
-      final List<AdminPostPinRequestEntry> rows =
-          await _repo.fetchPostPinRequests(
-        status: _postPinStatus,
-        keyword: _postPinKeywordController.text.trim(),
-      );
+      final List<AdminPostPinRequestEntry> rows = await _repo
+          .fetchPostPinRequests(
+            status: _postPinStatus,
+            keyword: _postPinKeywordController.text.trim(),
+          );
       if (!mounted) {
         return;
       }
@@ -2959,11 +3209,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Future<void> _loadAccountCancellationRequests() async {
     try {
-      final List<AdminAccountCancellationRequest> rows =
-          await _repo.fetchAccountCancellationRequests(
-        status: _cancellationStatus,
-        keyword: _cancellationKeywordController.text.trim(),
-      );
+      final List<AdminAccountCancellationRequest> rows = await _repo
+          .fetchAccountCancellationRequests(
+            status: _cancellationStatus,
+            keyword: _cancellationKeywordController.text.trim(),
+          );
       if (!mounted) {
         return;
       }
@@ -3011,11 +3261,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       return;
     }
     try {
-      final List<AdminUserLevelRequestEntry> rows =
-          await _repo.fetchUserLevelRequests(
-        status: _userLevelStatus,
-        keyword: _userLevelKeywordController.text.trim(),
-      );
+      final List<AdminUserLevelRequestEntry> rows = await _repo
+          .fetchUserLevelRequests(
+            status: _userLevelStatus,
+            keyword: _userLevelKeywordController.text.trim(),
+          );
       if (!mounted) {
         return;
       }
@@ -3047,10 +3297,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
     try {
       final AdminSystemConfig config = await _repo.fetchConfig();
-      final List<AdminSystemAnnouncement> announcements =
-          await _repo.fetchAnnouncements();
-      final List<AdminAccountEntry> adminAccounts =
-          await _repo.fetchAdminAccounts();
+      final List<AdminSystemAnnouncement> announcements = await _repo
+          .fetchAnnouncements();
+      final List<AdminAccountEntry> adminAccounts = await _repo
+          .fetchAdminAccounts();
+      final AdminAndroidRelease? androidRelease = await _repo
+          .fetchAndroidRelease();
       if (!mounted) {
         return;
       }
@@ -3058,10 +3310,30 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _config = config;
         _announcements = announcements;
         _adminAccounts = adminAccounts;
+        _androidRelease = androidRelease;
       });
       _syncConfigControllers();
+      _syncReleaseControllers();
     } catch (error) {
       _toast('加载配置失败：$error');
+    }
+  }
+
+  Future<void> _loadAndroidRelease() async {
+    if (!_isPrimaryAdmin) {
+      return;
+    }
+    try {
+      final AdminAndroidRelease? release = await _repo.fetchAndroidRelease();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _androidRelease = release;
+      });
+      _syncReleaseControllers();
+    } catch (error) {
+      _toast('加载版本发布信息失败：$error');
     }
   }
 
@@ -3082,8 +3354,78 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
+  Future<void> _pickAndroidApk() async {
+    try {
+      final PickedReleaseFile? file = await pickReleaseFile();
+      if (!mounted || file == null) {
+        return;
+      }
+      setState(() {
+        _selectedAndroidApk = file;
+      });
+    } catch (error) {
+      _toast('选择 APK 失败：$error');
+    }
+  }
+
+  Future<void> _uploadAndroidRelease() async {
+    final PickedReleaseFile? file = _selectedAndroidApk;
+    if (file == null) {
+      _toast('请先选择 APK 文件');
+      return;
+    }
+    final String versionName = _androidVersionNameController.text.trim();
+    final int? versionCode = int.tryParse(
+      _androidVersionCodeController.text.trim(),
+    );
+    final String releaseNotes = _androidReleaseNotesController.text.trim();
+
+    if (versionName.isEmpty) {
+      _toast('请输入版本名称');
+      return;
+    }
+    if (versionCode == null || versionCode <= 0) {
+      _toast('请输入合法的版本号');
+      return;
+    }
+
+    setState(() {
+      _actionBusy = true;
+    });
+    try {
+      final AdminAndroidRelease release = await _repo.uploadAndroidRelease(
+        versionName: versionName,
+        versionCode: versionCode,
+        releaseNotes: releaseNotes,
+        forceUpdate: _androidForceUpdate,
+        fileBytes: file.bytes,
+        fileName: file.fileName,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _androidRelease = release;
+        _selectedAndroidApk = null;
+      });
+      _syncReleaseControllers();
+      _toast('Android 安装包已上传发布');
+    } catch (error) {
+      _toast('上传 APK 失败：$error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _actionBusy = false;
+        });
+      }
+    }
+  }
+
   Future<void> _handleReview(
-      String targetType, String targetId, String action) async {
+    String targetType,
+    String targetId,
+    String action,
+  ) async {
     await _runAction(
       () => _repo.handleReview(
         targetType: targetType,
@@ -3233,11 +3575,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     String? note,
   }) async {
     await _runAction(
-      () => _repo.handleAppeal(
-        appealId: appealId,
-        action: action,
-        note: note,
-      ),
+      () => _repo.handleAppeal(appealId: appealId, action: action, note: note),
       successText: action == 'approve_restore' ? '申诉已处理并恢复账号' : '申诉处理成功',
       onSuccess: () async {
         await _loadAppeals();
@@ -3247,18 +3585,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Future<void> _updateUser(
-    String userId,
-    String action, {
-    String? note,
-  }) async {
+  Future<void> _updateUser(String userId, String action, {String? note}) async {
     await _runAction(
       () => _repo.updateUserState(userId: userId, action: action, note: note),
       successText: action == 'cancel'
           ? '账号已注销'
           : action == 'restore'
-              ? '账号已恢复'
-              : '用户状态已更新',
+          ? '账号已恢复'
+          : '用户状态已更新',
       onSuccess: () async {
         await _loadUsers();
         await _loadPostPinRequests();
@@ -3280,10 +3614,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       return;
     }
     await _runAction(
-      () => _repo.createAdminAccount(
-        username: username,
-        password: password,
-      ),
+      () => _repo.createAdminAccount(username: username, password: password),
       successText: '二级管理员已创建',
       onSuccess: () async {
         _adminUsernameController.clear();
@@ -3293,10 +3624,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Future<void> _updateSecondaryAdmin(
-    String adminId,
-    String action,
-  ) async {
+  Future<void> _updateSecondaryAdmin(String adminId, String action) async {
     await _runAction(
       () => _repo.updateAdminAccount(adminId: adminId, action: action),
       successText: action == 'deactivate' ? '二级管理员已注销' : '二级管理员已恢复',
@@ -3378,10 +3706,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
   Future<void> _saveConfig() async {
     final int? postRateLimit = int.tryParse(_postLimitController.text.trim());
-    final int? commentRateLimit =
-        int.tryParse(_commentLimitController.text.trim());
-    final int? messageRateLimit =
-        int.tryParse(_messageLimitController.text.trim());
+    final int? commentRateLimit = int.tryParse(
+      _commentLimitController.text.trim(),
+    );
+    final int? messageRateLimit = int.tryParse(
+      _messageLimitController.text.trim(),
+    );
     final int? imageMaxMb = int.tryParse(_imageMaxController.text.trim());
 
     if (postRateLimit == null ||
@@ -3502,8 +3832,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultResult = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultResult);
+    final TextEditingController controller = TextEditingController(
+      text: defaultResult,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3545,8 +3876,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3588,8 +3920,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3631,8 +3964,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3674,8 +4008,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3717,8 +4052,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3760,8 +4096,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: defaultNote);
+    final TextEditingController controller = TextEditingController(
+      text: defaultNote,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3835,9 +4172,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     child: Image.network(
                       url,
                       fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Center(
-                        child: Text('图片加载失败'),
-                      ),
+                      errorBuilder: (_, __, ___) =>
+                          const Center(child: Text('图片加载失败')),
                     ),
                   ),
                 ),
@@ -3861,9 +4197,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           title: Text(title),
           content: SizedBox(
             width: 520,
-            child: SingleChildScrollView(
-              child: Text('$subtitle\n\n$content'),
-            ),
+            child: SingleChildScrollView(child: Text('$subtitle\n\n$content')),
           ),
           actions: <Widget>[
             TextButton(
@@ -3924,9 +4258,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         );
       } else {
-        _selectedReviewIds.addAll(
-          _reviews.map(_reviewSelectionKey),
-        );
+        _selectedReviewIds.addAll(_reviews.map(_reviewSelectionKey));
       }
     });
   }
@@ -3949,12 +4281,24 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     _imageMaxController.text = _config.imageMaxMb.toString();
   }
 
+  void _syncReleaseControllers() {
+    final AdminAndroidRelease? release = _androidRelease;
+    if (release == null) {
+      return;
+    }
+    _androidVersionNameController.text = release.versionName;
+    _androidVersionCodeController.text = release.versionCode.toString();
+    _androidReleaseNotesController.text = release.releaseNotes;
+    _androidForceUpdate = release.forceUpdate;
+  }
+
   Future<String?> _askNewName({
     required String title,
     required String initial,
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: initial);
+    final TextEditingController controller = TextEditingController(
+      text: initial,
+    );
     final String? value = await showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -3986,7 +4330,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

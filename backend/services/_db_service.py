@@ -36,6 +36,35 @@ def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -
     )
 
 
+def _safe_int(value: Any, default: int = 0) -> int:
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        try:
+            return int(value.strip())
+        except ValueError:
+            return default
+    return default
+
+
+def _safe_bool(value: Any, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        normalized = value.strip().lower()
+        if normalized in {"true", "1", "yes", "on"}:
+            return True
+        if normalized in {"false", "0", "no", "off"}:
+            return False
+    return default
+
+
 # ---------------------------------------------------------------------------
 # Admin account helpers
 # ---------------------------------------------------------------------------
@@ -814,6 +843,52 @@ def public_system_settings(db: dict[str, Any]) -> dict[str, Any]:
         "tags": list(db.get("tags", [])),
         "settings": dict(db.get("settings", {})),
     }
+
+
+def serialize_android_release(raw: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "platform": "android",
+        "versionName": str(raw.get("versionName", "")).strip(),
+        "versionCode": _safe_int(raw.get("versionCode"), 0),
+        "releaseNotes": str(raw.get("releaseNotes", "")).strip(),
+        "forceUpdate": _safe_bool(raw.get("forceUpdate"), False),
+        "fileName": str(raw.get("fileName", "")).strip(),
+        "contentType": str(
+            raw.get("contentType", "application/vnd.android.package-archive"),
+        ).strip()
+        or "application/vnd.android.package-archive",
+        "sizeBytes": max(0, _safe_int(raw.get("sizeBytes"), 0)),
+        "sha256": str(raw.get("sha256", "")).strip().lower(),
+        "downloadUrl": normalize_media_url(
+            str(raw.get("downloadUrl", raw.get("url", ""))).strip(),
+        ),
+        "objectKey": str(raw.get("objectKey", "")).strip(),
+        "uploadedAt": str(raw.get("uploadedAt", raw.get("createdAt", ""))).strip(),
+        "uploadedBy": str(raw.get("uploadedBy", "")).strip(),
+        "uploadedByUsername": str(raw.get("uploadedByUsername", "")).strip(),
+    }
+
+
+def get_android_release(db: dict[str, Any]) -> dict[str, Any] | None:
+    settings = db.get("settings", {})
+    if not isinstance(settings, dict):
+        return None
+    raw = settings.get("androidRelease")
+    if not isinstance(raw, dict):
+        return None
+    release = serialize_android_release(raw)
+    if not release.get("versionName") or not release.get("downloadUrl"):
+        return None
+    return release
+
+
+def set_android_release(db: dict[str, Any], release: dict[str, Any]) -> dict[str, Any]:
+    db.setdefault("settings", {})
+    if not isinstance(db["settings"], dict):
+        db["settings"] = {}
+    serialized = serialize_android_release(release)
+    db["settings"]["androidRelease"] = serialized
+    return serialized
 
 
 # Pagination metadata builder

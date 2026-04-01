@@ -65,6 +65,8 @@ class ApiEndpoints {
   static const String adminTags = '/admin/tags';
   static const String adminConfig = '/admin/config';
   static const String adminAnnouncements = '/admin/announcements';
+  static const String adminAndroidRelease = '/admin/releases/android';
+  static const String androidReleaseLatest = '/releases/android/latest';
 
   static String postById(String postId) => '/posts/$postId';
   static String postComments(String postId) => '/posts/$postId/comments';

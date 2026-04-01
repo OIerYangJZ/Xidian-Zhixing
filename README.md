@@ -257,6 +257,26 @@ flutter build apk --release
 
 **移动端 API 地址：** 移动端默认连接 `http://81.69.16.134/api`（腾讯云公网 IP），可通过 `--dart-define=MOBILE_API_BASE_URL=...` 覆盖。
 
+### Android 发布签名
+
+团队统一使用同一份 Android 上传签名，不要各自生成新的 keystore。
+
+1. 将统一分发的 `upload-keystore.jks` 放到 `android/keystore/upload-keystore.jks`
+2. 复制 `android/key.properties.example` 为 `android/key.properties`
+3. 在 `android/key.properties` 中填写真实密码
+4. 执行 `keytool -list -v -keystore android/keystore/upload-keystore.jks -alias xdu_whisper_box`，确认指纹一致
+
+当前统一核对指纹：
+
+- `SHA1: D0:1C:86:62:29:A0:7A:66:CF:3C:DE:C1:25:EF:DC:8B:E0:C5:6A:81`
+- `SHA256: 48:D6:B0:E3:F1:19:DF:91:3D:ED:AD:8E:8F:2D:C8:24:B0:36:99:5D:F0:50:94:A6:3C:1E:23:A1:45:9D:3E:1B`
+
+说明：
+
+- 仓库不会提交真实 `android/key.properties`
+- 仓库不会提交真实 `android/keystore/upload-keystore.jks`
+- 如果缺少这两个本地文件，`flutter build apk --release` 会直接失败，避免误用 debug 签名发布
+
 ### 4. Docker 方式启动后端
 
 ```bash

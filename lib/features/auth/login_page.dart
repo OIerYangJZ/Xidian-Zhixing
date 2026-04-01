@@ -7,6 +7,7 @@ import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../admin/admin_login_page.dart';
+import '../download/android_release_page.dart';
 import '../../widgets/home_shell.dart';
 
 class LoginPage extends StatefulWidget {
@@ -53,10 +54,8 @@ class _LoginPageState extends State<LoginPage> {
                   children: <Widget>[
                     Text(
                       '西电树洞',
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w800,
-                              ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
                     const Text('仅限西电学生，使用西电统一身份认证登录。'),
@@ -117,6 +116,19 @@ class _LoginPageState extends State<LoginPage> {
                       icon: const Icon(Icons.admin_panel_settings_outlined),
                       label: const Text('管理员后台登录'),
                     ),
+                    TextButton.icon(
+                      onPressed: _isBusy
+                          ? null
+                          : () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => const AndroidReleasePage(),
+                                ),
+                              );
+                            },
+                      icon: const Icon(Icons.download_outlined),
+                      label: const Text('下载 Android 客户端'),
+                    ),
                     const SizedBox(height: 4),
                     TextButton(
                       onPressed: () {
@@ -126,8 +138,10 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         );
                       },
-                      child: const Text('用户协议 · 隐私政策 · 社区规范',
-                          style: TextStyle(fontSize: 11)),
+                      child: const Text(
+                        '用户协议 · 隐私政策 · 社区规范',
+                        style: TextStyle(fontSize: 11),
+                      ),
                     ),
                   ],
                 ),
@@ -221,7 +235,9 @@ class _LoginTermsRoute extends StatelessWidget {
             title: '用户协议',
             subtitle: '了解平台服务条款与用户行为规范',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const TermsOfServicePage()),
+              MaterialPageRoute<void>(
+                builder: (_) => const TermsOfServicePage(),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -231,7 +247,9 @@ class _LoginTermsRoute extends StatelessWidget {
             title: '隐私政策',
             subtitle: '了解我们如何收集、使用和保护您的信息',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const PrivacyPolicyPage()),
+              MaterialPageRoute<void>(
+                builder: (_) => const PrivacyPolicyPage(),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -241,7 +259,9 @@ class _LoginTermsRoute extends StatelessWidget {
             title: '社区规范',
             subtitle: '了解社区规则与内容管理政策',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const CommunityGuidelinesPage()),
+              MaterialPageRoute<void>(
+                builder: (_) => const CommunityGuidelinesPage(),
+              ),
             ),
           ),
         ],

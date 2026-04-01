@@ -10,6 +10,7 @@ import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/report_guidelines_page.dart';
+import '../download/android_release_page.dart';
 import '../auth/login_page.dart';
 import 'emoji_settings_page.dart';
 import '../me/my_comments_page.dart';
@@ -304,6 +305,19 @@ class ProfilePageState extends State<ProfilePage> {
                 subtitle: const Text('普通用户密码请前往西电统一身份认证修改'),
                 trailing: const Icon(Icons.info_outline),
                 onTap: () => _toast('请前往西电统一身份认证修改密码'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: const Text('下载 Android 客户端'),
+                subtitle: const Text('查看当前最新 APK 版本并下载安装'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AndroidReleasePage(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.delete_outline),

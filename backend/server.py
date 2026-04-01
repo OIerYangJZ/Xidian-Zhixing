@@ -408,8 +408,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/config":
                 _admin_handler.handle_admin_config(self, db)
                 return
+            if path == "/api/admin/releases/android":
+                _admin_handler.handle_admin_android_release(self, db)
+                return
             if path == "/api/admin/announcements":
                 _admin_handler.handle_admin_announcements(self, db)
+                return
+            if path == "/api/releases/android/latest":
+                _admin_handler.handle_public_android_release(self, db)
                 return
 
             # Fallback: 404
@@ -515,6 +521,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/admin/announcements":
                 _admin_handler.handle_admin_announcement(self, db)
+                return
+
+            if path == "/api/admin/releases/android":
+                _admin_handler.handle_admin_upload_android_release(self, db)
                 return
 
             match_conversation_send = re.fullmatch(

@@ -5,6 +5,7 @@ import 'core/auth/auth_store.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
+import 'features/download/android_release_page.dart';
 import 'features/legal/privacy_policy_page.dart';
 import 'features/legal/community_guidelines_page.dart';
 import 'features/legal/report_guidelines_page.dart';
@@ -55,6 +56,12 @@ class XduTreeholeApp extends StatelessWidget {
     if (routeName == '/report-guidelines') {
       return MaterialPageRoute<void>(
         builder: (_) => const ReportGuidelinesPage(),
+        settings: settings,
+      );
+    }
+    if (routeName == '/download') {
+      return MaterialPageRoute<void>(
+        builder: (_) => const AndroidReleasePage(),
         settings: settings,
       );
     }

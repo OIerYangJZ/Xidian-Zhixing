@@ -42,6 +42,7 @@ Admin & moderation endpoints:
 """
 from __future__ import annotations
 
+import os
 import re
 import secrets
 from typing import Any
@@ -51,6 +52,7 @@ from http.server import BaseHTTPRequestHandler
 
 import _globals
 from helpers import (
+    calc_sha256_hex,
     hash_password,
     is_password_hashed,
     json_error,
@@ -80,6 +82,7 @@ from services import (
     find_admin_account_by_id,
     find_admin_account_by_username,
     find_user_by_id,
+    get_android_release,
     normalize_admin_role,
     next_id,
     normalize_user_level,
@@ -88,6 +91,7 @@ from services import (
     recalc_post_has_image,
     restore_user_account,
     save_db,
+    set_android_release,
     serialize_admin_account,
     serialize_admin_auth_payload,
     serialize_system_announcement,
@@ -113,6 +117,74 @@ def _require_primary_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
         json_error(handler, HTTPStatus.FORBIDDEN, "需要一级管理员权限")
         return None
     return admin
+
+
+def _read_multipart_form(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+    content_type = handler.headers.get("Content-Type", "")
+    match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type)
+    if match is None:
+        raise ValueError("missing multipart boundary")
+    boundary = (match.group(1) or match.group(2) or "").encode("utf-8")
+    if not boundary:
+        raise ValueError("invalid multipart boundary")
+
+    try:
+        content_length = max(0, int(handler.headers.get("Content-Length", "0")))
+    except ValueError as exc:
+        raise ValueError("invalid content length") from exc
+
+    raw_body = handler.rfile.read(content_length) if content_length > 0 else b""
+    delimiter = b"--" + boundary
+    result: dict[str, Any] = {}
+    for chunk in raw_body.split(delimiter):
+        if not chunk:
+            continue
+        if chunk.startswith(b"\r\n"):
+            chunk = chunk[2:]
+        if chunk == b"--" or chunk == b"--\r\n":
+            continue
+        if chunk.endswith(b"--\r\n"):
+            chunk = chunk[:-4]
+        elif chunk.endswith(b"--"):
+            chunk = chunk[:-2]
+        if chunk.endswith(b"\r\n"):
+            chunk = chunk[:-2]
+        if not chunk:
+            continue
+
+        header_blob, separator, body = chunk.partition(b"\r\n\r\n")
+        if not separator:
+            continue
+
+        headers: dict[str, str] = {}
+        for header_line in header_blob.decode("utf-8", errors="ignore").split("\r\n"):
+            if ":" not in header_line:
+                continue
+            key, value = header_line.split(":", 1)
+            headers[key.strip().lower()] = value.strip()
+
+        disposition = headers.get("content-disposition", "")
+        name_match = re.search(r'name="([^"]+)"', disposition)
+        if name_match is None:
+            continue
+        field_name = name_match.group(1).strip()
+        filename_match = re.search(r'filename="([^"]*)"', disposition)
+        if filename_match is not None:
+            result[field_name] = {
+                "filename": filename_match.group(1),
+                "contentType": headers.get("content-type", "application/octet-stream"),
+                "data": body,
+            }
+        else:
+            result[field_name] = body.decode("utf-8", errors="ignore").strip()
+    return result
+
+
+def _multipart_value(form: dict[str, Any], key: str) -> str:
+    value = form.get(key)
+    if isinstance(value, str):
+        return value.strip()
+    return ""
 
 
 # ===========================================================================
@@ -419,6 +491,29 @@ def handle_admin_config(
     )
 
 
+def handle_admin_android_release(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """GET /api/admin/releases/android"""
+    admin = _require_primary_admin(handler, db)
+    if admin is None:
+        return
+    send_json(handler, HTTPStatus.OK, {"data": get_android_release(db)})
+
+
+def handle_public_android_release(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """GET /api/releases/android/latest"""
+    release = get_android_release(db)
+    if release is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "当前暂无已发布的 Android 安装包")
+        return
+    send_json(handler, HTTPStatus.OK, {"data": release})
+
+
 def handle_admin_announcements(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -492,6 +587,99 @@ def handle_admin_announcement(
     add_audit_log(db, admin.get("adminId", "-"), "publish_announcement", f"发布系统公告: {title}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": serialize_system_announcement(announcement)})
+
+
+def handle_admin_upload_android_release(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """POST /api/admin/releases/android"""
+    admin = _require_primary_admin(handler, db)
+    if admin is None:
+        return
+
+    content_type = handler.headers.get("Content-Type", "").lower()
+    if "multipart/form-data" not in content_type:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请使用表单上传 APK 文件")
+        return
+
+    try:
+        form = _read_multipart_form(handler)
+    except Exception:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "安装包表单解析失败")
+        return
+
+    version_name = _multipart_value(form, "versionName")
+    version_code_raw = _multipart_value(form, "versionCode")
+    release_notes = _multipart_value(form, "releaseNotes")
+    force_update_raw = _multipart_value(form, "forceUpdate")
+
+    if not version_name:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请输入版本名称")
+        return
+    try:
+        version_code = int(version_code_raw)
+    except ValueError:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请输入合法的版本号")
+        return
+    if version_code <= 0:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "版本号必须大于 0")
+        return
+
+    file_field = form.get("file")
+    if not isinstance(file_field, dict) or not str(file_field.get("filename", "")).strip():
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请选择要上传的 APK 文件")
+        return
+
+    file_name = os.path.basename(str(file_field.get("filename", "")).strip()) or "app-release.apk"
+    if not file_name.lower().endswith(".apk"):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "仅支持上传 .apk 安装包")
+        return
+
+    file_bytes = file_field.get("data", b"")
+    if not isinstance(file_bytes, (bytes, bytearray)) or not file_bytes:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "安装包内容不能为空")
+        return
+    if len(file_bytes) > 300 * 1024 * 1024:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "安装包大小不能超过 300MB")
+        return
+
+    try:
+        stored = _globals.OBJECT_STORAGE.put_bytes(
+            data=bytes(file_bytes),
+            file_name=file_name,
+            content_type="application/vnd.android.package-archive",
+        )
+    except Exception:
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "安装包上传失败，请稍后重试")
+        return
+
+    release = set_android_release(
+        db,
+        {
+            "versionName": version_name,
+            "versionCode": version_code,
+            "releaseNotes": release_notes,
+            "forceUpdate": parse_bool(force_update_raw) is True,
+            "fileName": file_name,
+            "contentType": "application/vnd.android.package-archive",
+            "sizeBytes": len(file_bytes),
+            "sha256": calc_sha256_hex(bytes(file_bytes)),
+            "downloadUrl": stored.url,
+            "objectKey": stored.key,
+            "uploadedAt": now_iso(),
+            "uploadedBy": str(admin.get("adminId", "")).strip(),
+            "uploadedByUsername": str(admin.get("username", "")).strip(),
+        },
+    )
+    add_audit_log(
+        db,
+        "",
+        "publish_android_release",
+        f"发布 Android 安装包 {release['versionName']} ({release['versionCode']})",
+    )
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": release})
 
 
 def handle_admin_review_batch(

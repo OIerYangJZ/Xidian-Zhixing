@@ -17,9 +17,30 @@ if (hasTeamDebugSigning) {
 
 val releaseSigningProperties = Properties()
 val releaseSigningFile = rootProject.file("key.properties")
-val hasReleaseSigning = releaseSigningFile.exists()
-if (hasReleaseSigning) {
+if (releaseSigningFile.exists()) {
     releaseSigningProperties.load(FileInputStream(releaseSigningFile))
+}
+
+val releaseStoreFilePath = releaseSigningProperties.getProperty("storeFile")
+    ?.trim()
+    ?.takeIf(String::isNotEmpty)
+val releaseStoreFile = releaseStoreFilePath?.let(rootProject::file)
+val hasReleaseSigning =
+    releaseStoreFile != null &&
+        releaseStoreFile.exists() &&
+        !releaseSigningProperties.getProperty("storePassword").isNullOrBlank() &&
+        !releaseSigningProperties.getProperty("keyPassword").isNullOrBlank() &&
+        !releaseSigningProperties.getProperty("keyAlias").isNullOrBlank()
+val buildingRelease = gradle.startParameter.taskNames.any {
+    it.contains("release", ignoreCase = true)
+}
+
+if (buildingRelease && !hasReleaseSigning) {
+    throw GradleException(
+            "Missing Android release signing config. " +
+            "Copy android/key.properties.example to android/key.properties " +
+            "and place android/keystore/upload-keystore.jks locally.",
+    )
 }
 
 android {
@@ -53,12 +74,12 @@ android {
                 storePassword = debugSigningProperties["storePassword"] as String
             }
         }
-        if (hasReleaseSigning) {
-            create("release") {
-                keyAlias = releaseSigningProperties["keyAlias"] as String
-                keyPassword = releaseSigningProperties["keyPassword"] as String
-                storeFile = rootProject.file(releaseSigningProperties["storeFile"] as String)
-                storePassword = releaseSigningProperties["storePassword"] as String
+        create("release") {
+            if (hasReleaseSigning) {
+                storeFile = releaseStoreFile
+                storePassword = releaseSigningProperties.getProperty("storePassword")
+                keyAlias = releaseSigningProperties.getProperty("keyAlias")
+                keyPassword = releaseSigningProperties.getProperty("keyPassword")
             }
         }
     }
@@ -70,13 +91,7 @@ android {
             }
         }
         release {
-            signingConfig = if (hasReleaseSigning) {
-                signingConfigs.getByName("release")
-            } else if (hasTeamDebugSigning) {
-                signingConfigs.getByName("teamDebug")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

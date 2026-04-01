@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
@@ -26,10 +28,7 @@ class AdminRepository {
   }) async {
     final dynamic response = await _apiClient.get(
       ApiEndpoints.adminReviews,
-      queryParameters: <String, dynamic>{
-        'type': type,
-        'status': status,
-      },
+      queryParameters: <String, dynamic>{'type': type, 'status': status},
     );
     final List<dynamic> list = extractList(response);
     return list
@@ -207,10 +206,7 @@ class AdminRepository {
   }) {
     return _apiClient.post(
       ApiEndpoints.adminAccounts,
-      body: <String, dynamic>{
-        'username': username,
-        'password': password,
-      },
+      body: <String, dynamic>{'username': username, 'password': password},
     );
   }
 
@@ -225,7 +221,7 @@ class AdminRepository {
   }
 
   Future<List<AdminAccountCancellationRequest>>
-      fetchAccountCancellationRequests({
+  fetchAccountCancellationRequests({
     String status = 'all',
     String? keyword,
   }) async {
@@ -323,8 +319,9 @@ class AdminRepository {
   }
 
   Future<AdminChannelTagData> fetchChannelTagData() async {
-    final dynamic response =
-        await _apiClient.get(ApiEndpoints.adminChannelsTags);
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminChannelsTags,
+    );
     final Map<String, dynamic> data = extractMap(response);
     return AdminChannelTagData.fromJson(data);
   }
@@ -347,8 +344,9 @@ class AdminRepository {
   }
 
   Future<void> deleteChannel(String name) {
-    return _apiClient
-        .delete(ApiEndpoints.adminChannelByName(_encodePath(name)));
+    return _apiClient.delete(
+      ApiEndpoints.adminChannelByName(_encodePath(name)),
+    );
   }
 
   Future<void> addTag(String name) {
@@ -358,10 +356,7 @@ class AdminRepository {
     );
   }
 
-  Future<void> renameTag({
-    required String oldName,
-    required String newName,
-  }) {
+  Future<void> renameTag({required String oldName, required String newName}) {
     return _apiClient.patch(
       ApiEndpoints.adminTagByName(_encodePath(oldName)),
       body: <String, dynamic>{'newName': newName},
@@ -378,6 +373,46 @@ class AdminRepository {
     return AdminSystemConfig.fromJson(data);
   }
 
+  Future<AdminAndroidRelease?> fetchAndroidRelease() async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminAndroidRelease,
+    );
+    final Map<String, dynamic> map = asMap(response);
+    if (!map.containsKey('data') || map['data'] == null) {
+      return null;
+    }
+    final Map<String, dynamic> data = extractMap(response);
+    if (data.isEmpty) {
+      return null;
+    }
+    return AdminAndroidRelease.fromJson(data);
+  }
+
+  Future<AdminAndroidRelease> uploadAndroidRelease({
+    required String versionName,
+    required int versionCode,
+    required String releaseNotes,
+    required bool forceUpdate,
+    required Uint8List fileBytes,
+    required String fileName,
+  }) async {
+    final dynamic response = await _apiClient.postMultipart(
+      ApiEndpoints.adminAndroidRelease,
+      fields: <String, String>{
+        'versionName': versionName,
+        'versionCode': versionCode.toString(),
+        'releaseNotes': releaseNotes,
+        'forceUpdate': forceUpdate ? 'true' : 'false',
+      },
+      fileFieldName: 'file',
+      fileBytes: fileBytes,
+      fileName: fileName,
+      timeout: const Duration(minutes: 8),
+    );
+    final Map<String, dynamic> data = extractMap(response);
+    return AdminAndroidRelease.fromJson(data);
+  }
+
   Future<void> updateConfig(AdminSystemConfig config) {
     return _apiClient.patch(
       ApiEndpoints.adminConfig,
@@ -386,13 +421,12 @@ class AdminRepository {
   }
 
   Future<List<AdminSystemAnnouncement>> fetchAnnouncements() async {
-    final dynamic response =
-        await _apiClient.get(ApiEndpoints.adminAnnouncements);
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminAnnouncements,
+    );
     final List<dynamic> list = extractList(response);
     return list
-        .map(
-          (dynamic item) => AdminSystemAnnouncement.fromJson(asMap(item)),
-        )
+        .map((dynamic item) => AdminSystemAnnouncement.fromJson(asMap(item)))
         .where((AdminSystemAnnouncement item) => item.id.isNotEmpty)
         .toList();
   }
@@ -403,10 +437,7 @@ class AdminRepository {
   }) {
     return _apiClient.post(
       ApiEndpoints.adminAnnouncements,
-      body: <String, dynamic>{
-        'title': title,
-        'content': content,
-      },
+      body: <String, dynamic>{'title': title, 'content': content},
     );
   }
 

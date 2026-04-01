@@ -10,5 +10,6 @@ part 'admin/admin_export_models.dart';
 part 'admin/admin_overview_models.dart';
 part 'admin/admin_report_models.dart';
 part 'admin/admin_review_models.dart';
+part 'admin/admin_release_models.dart';
 part 'admin/admin_system_models.dart';
 part 'admin/admin_user_models.dart';

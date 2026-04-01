@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -8,11 +9,9 @@ import '../config/app_config.dart';
 import 'api_exception.dart';
 
 class ApiClient {
-  ApiClient({
-    http.Client? httpClient,
-    String? Function()? tokenResolver,
-  })  : _http = httpClient ?? http.Client(),
-        _tokenResolver = tokenResolver ?? (() => AuthStore.instance.token);
+  ApiClient({http.Client? httpClient, String? Function()? tokenResolver})
+    : _http = httpClient ?? http.Client(),
+      _tokenResolver = tokenResolver ?? (() => AuthStore.instance.token);
 
   final http.Client _http;
   final String? Function() _tokenResolver;
@@ -72,6 +71,64 @@ class ApiClient {
       queryParameters: queryParameters,
       body: body,
       auth: auth,
+    );
+  }
+
+  Future<dynamic> postMultipart(
+    String path, {
+    required Map<String, String> fields,
+    required String fileFieldName,
+    required Uint8List fileBytes,
+    required String fileName,
+    Map<String, dynamic>? queryParameters,
+    bool auth = true,
+    Duration? timeout,
+  }) async {
+    final Uri uri = _buildUri(path, queryParameters: queryParameters);
+    final http.MultipartRequest request = http.MultipartRequest('POST', uri)
+      ..headers['Accept'] = 'application/json';
+
+    if (auth) {
+      final String? token = _tokenResolver();
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
+    }
+
+    request.fields.addAll(fields);
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        fileFieldName,
+        fileBytes,
+        filename: fileName,
+      ),
+    );
+
+    late http.Response response;
+    try {
+      final http.StreamedResponse streamed = await request.send().timeout(
+        timeout ?? AppConfig.requestTimeout,
+      );
+      response = await http.Response.fromStream(streamed);
+    } on TimeoutException {
+      throw ApiException(message: '请求超时，请稍后重试');
+    } on ApiException {
+      rethrow;
+    } catch (error) {
+      throw ApiException(message: '网络错误：$error');
+    }
+
+    final dynamic decoded = _tryDecode(response.body);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return decoded;
+    }
+
+    final String message =
+        _extractMessage(decoded) ?? '请求失败（${response.statusCode}）';
+    throw ApiException(
+      message: message,
+      statusCode: response.statusCode,
+      data: decoded,
     );
   }
 
@@ -137,16 +194,16 @@ class ApiClient {
     final String message =
         _extractMessage(decoded) ?? '请求失败（${response.statusCode}）';
     throw ApiException(
-        message: message, statusCode: response.statusCode, data: decoded);
+      message: message,
+      statusCode: response.statusCode,
+      data: decoded,
+    );
   }
 
-  Uri _buildUri(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-  }) {
+  Uri _buildUri(String path, {Map<String, dynamic>? queryParameters}) {
     final String base = AppConfig.apiBaseUrl;
-    final String normalized = path.startsWith('http://') ||
-            path.startsWith('https://')
+    final String normalized =
+        path.startsWith('http://') || path.startsWith('https://')
         ? path
         : '${base.endsWith('/') ? base.substring(0, base.length - 1) : base}${path.startsWith('/') ? path : '/$path'}';
 
