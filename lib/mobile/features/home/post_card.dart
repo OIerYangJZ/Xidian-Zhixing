@@ -19,7 +19,6 @@ class PostCard extends ConsumerStatefulWidget {
   final PostItem post;
   final VoidCallback onTap;
   final VoidCallback? onLike;
-  final VoidCallback? onFavorite;
   final bool showTopDivider;
 
   const PostCard({
@@ -27,7 +26,6 @@ class PostCard extends ConsumerStatefulWidget {
     required this.post,
     required this.onTap,
     this.onLike,
-    this.onFavorite,
     this.showTopDivider = true,
   });
 
@@ -37,9 +35,7 @@ class PostCard extends ConsumerStatefulWidget {
 
 class _PostCardState extends ConsumerState<PostCard> {
   bool _isLiked = false;
-  bool _isFavorited = false;
   int _likeCount = 0;
-  int _favoriteCount = 0;
   bool _busy = false;
   int _currentImageIndex = 0;
   late PageController _pageController;
@@ -50,9 +46,7 @@ class _PostCardState extends ConsumerState<PostCard> {
   void initState() {
     super.initState();
     _isLiked = widget.post.isLiked;
-    _isFavorited = widget.post.isFavorited;
     _likeCount = widget.post.likeCount;
-    _favoriteCount = widget.post.favoriteCount;
     _pageController = PageController();
   }
 
@@ -61,9 +55,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.post.id != widget.post.id) {
       _isLiked = widget.post.isLiked;
-      _isFavorited = widget.post.isFavorited;
       _likeCount = widget.post.likeCount;
-      _favoriteCount = widget.post.favoriteCount;
       _currentImageIndex = 0;
       _showDots = false;
       _dotsHideTimer?.cancel();
@@ -100,27 +92,6 @@ class _PostCardState extends ConsumerState<PostCard> {
         setState(() {
           _isLiked = !_isLiked;
           _likeCount += _isLiked ? 1 : -1;
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _handleFavorite() async {
-    if (_busy) return;
-    setState(() {
-      _busy = true;
-      _isFavorited = !_isFavorited;
-      _favoriteCount += _isFavorited ? 1 : -1;
-    });
-    try {
-      widget.onFavorite?.call();
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isFavorited = !_isFavorited;
-          _favoriteCount += _isFavorited ? 1 : -1;
         });
       }
     } finally {
@@ -174,23 +145,13 @@ class _PostCardState extends ConsumerState<PostCard> {
       },
       child: AvatarWidget(
         avatarUrl: isAnon ? null : widget.post.authorAvatarUrl,
-        nickname: widget.post.authorAlias,
+        nickname: isAnon ? '匿' : widget.post.authorAlias,
         radius: 20,
       ),
     );
   }
 
   Widget _buildContent() {
-    final isShortTextPost =
-        !widget.post.hasImage &&
-        widget.post.imageUrls.isEmpty &&
-        widget.post.content.length < 50 &&
-        widget.post.title.isEmpty;
-
-    if (isShortTextPost) {
-      return _buildShortTextContent();
-    }
-
     if (widget.post.hasImage && widget.post.imageUrls.isNotEmpty) {
       return _buildImagePostContent();
     }
@@ -378,51 +339,6 @@ class _PostCardState extends ConsumerState<PostCard> {
     );
   }
 
-  /// 短文本大字报效果（无图 + 字数<50 + 无标题）
-  Widget _buildShortTextContent() {
-    final colors = MobileColors.of(context);
-    final bgColors = [
-      const Color(0xFFFFE5E5),
-      const Color(0xFFE5F5FF),
-      const Color(0xFFFFF5E5),
-      const Color(0xFFE5FFE5),
-      const Color(0xFFF5E5FF),
-    ];
-    final bgColor = bgColors[widget.post.id.hashCode % bgColors.length];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildHeaderRow(),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            widget.post.content,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-        if (widget.post.tags.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _buildTags(),
-        ],
-        const SizedBox(height: 8),
-        _buildActionBar(),
-      ],
-    );
-  }
-
   Widget _buildHeaderRow() {
     final colors = MobileColors.of(context);
     return Row(
@@ -480,15 +396,6 @@ class _PostCardState extends ConsumerState<PostCard> {
             isActive: _isLiked,
             activeColor: const Color(0xFFFF2D55),
             onTap: _busy ? null : _handleLike,
-          ),
-          const SizedBox(width: 24),
-          _ActionButton(
-            icon: Icons.star_border,
-            activeIcon: Icons.star,
-            count: _favoriteCount,
-            isActive: _isFavorited,
-            activeColor: const Color(0xFFFF9500),
-            onTap: _busy ? null : _handleFavorite,
           ),
           const SizedBox(width: 24),
           _ActionButton(

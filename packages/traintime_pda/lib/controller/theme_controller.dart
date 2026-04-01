@@ -24,7 +24,10 @@ class _PackageAwareTranslationLoader extends FileTranslationLoader {
   static const _packageBasePath = 'packages/watermeter/assets/flutter_i18n';
 
   @override
-  Future<String> loadString(final String fileName, final String extension) async {
+  Future<String> loadString(
+    final String fileName,
+    final String extension,
+  ) async {
     try {
       return await super.loadString(fileName, extension);
     } catch (_) {
@@ -75,26 +78,18 @@ class ThemeController extends GetxController {
   /// Treehole host app override keys (treehole_*).
   /// When set, these take precedence over watermeter's native preferences.
   static const String _treeholeBrightnessKey = 'treehole_brightness';
-  static const String _treeholeColorSeedKey  = 'treehole_color_seed';
-  static const String _treeholeLocalizeKey  = 'treehole_localization';
+  static const String _treeholeLocalizeKey = 'treehole_localization';
 
   void updateTheme() {
     // 优先读取树洞主 App 的覆写值（单向覆写）
-    final int? treeholeBrightness =
-        preference.prefs.getInt(_treeholeBrightnessKey);
-    final int? treeholeColor =
-        preference.prefs.getInt(_treeholeColorSeedKey);
+    final int? treeholeBrightness = preference.prefs.getInt(
+      _treeholeBrightnessKey,
+    );
     final String treeholeLoc =
         preference.prefs.getString(_treeholeLocalizeKey) ?? '';
 
     log.info("[ThemeController] Changing color...");
-    int index;
-    if (treeholeColor != null) {
-      index = treeholeColor;
-    } else {
-      index = preference.getInt(preference.Preference.color);
-    }
-    color = pdaColorScheme.sublist(index * 2, index * 2 + 1);
+    color = pdaColorScheme;
 
     log.info("[ThemeController] Changing brightness...");
     int brightnessIndex;
@@ -110,9 +105,7 @@ class ThemeController extends GetxController {
     if (treeholeLoc.isNotEmpty) {
       localization = treeholeLoc;
     } else {
-      localization = preference.getString(
-        preference.Preference.localization,
-      );
+      localization = preference.getString(preference.Preference.localization);
       if (localization.isEmpty) {
         String systemLocale = Platform.localeName;
         log.info("[ThemeController] System lang $systemLocale");

@@ -179,6 +179,13 @@ def _serialize_upload(db: dict[str, Any], upload: dict[str, Any]) -> dict[str, A
     }
 
 
+def _normalize_comment_sort(value: Any) -> str:
+    text = str(value or "").strip().lower()
+    if text in {"hot", "top"}:
+        return "hot"
+    return "latest"
+
+
 # ===========================================================================
 # GET handlers
 # ===========================================================================
@@ -457,10 +464,14 @@ def handle_get_post_comments(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
     post_id: str,
+    query: dict[str, list[str]] | None = None,
 ) -> None:
     """GET /api/posts/<id>/comments"""
     viewer, _ = auth_user_helper(handler, db)
     viewer_user_id = str(viewer.get("id", "")) if viewer else ""
+    sort_by = _normalize_comment_sort(
+        ((query or {}).get("sort", ["latest"])[0] if query is not None else "latest")
+    )
 
     post = next(
         (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
@@ -481,7 +492,44 @@ def handle_get_post_comments(
             viewer_user_id=viewer_user_id,
         )
     ]
-    rows.sort(key=lambda x: str(x.get("createdAt", "") or ""), reverse=True)
+
+    like_count_by_comment: dict[str, int] = {}
+    for like in db.get("likes", []):
+        comment_id = str(like.get("commentId", "")).strip()
+        if not comment_id:
+            continue
+        like_count_by_comment[comment_id] = like_count_by_comment.get(comment_id, 0) + 1
+
+    def _to_int(value: Any) -> int:
+        try:
+            return int(value or 0)
+        except (TypeError, ValueError):
+            return 0
+
+    for row in rows:
+        row_comment_id = str(row.get("id", "")).strip()
+        computed = like_count_by_comment.get(row_comment_id)
+        if computed is None:
+            computed = max(0, _to_int(row.get("likeCount", 0)))
+        row["likeCount"] = computed
+
+    if sort_by == "hot":
+        rows.sort(
+            key=lambda row: (
+                max(0, _to_int(row.get("likeCount", 0))),
+                str(row.get("createdAt", "") or ""),
+                str(row.get("id", "") or ""),
+            ),
+            reverse=True,
+        )
+    else:
+        rows.sort(
+            key=lambda row: (
+                str(row.get("createdAt", "") or ""),
+                str(row.get("id", "") or ""),
+            ),
+            reverse=True,
+        )
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
 

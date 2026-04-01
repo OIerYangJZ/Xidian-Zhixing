@@ -17,9 +17,31 @@ enum DigitCaptchaType { payment, zfw }
 
 class DigitCaptchaClientProvider {
   // Ref: https://github.com/stalomeow/captcha-solver
+  static const _packageAssetBasePath = 'packages/watermeter/assets';
 
-  static String _getInterpreterAssetName(DigitCaptchaType type) {
-    return 'assets/captcha-solver-${type.name.toLowerCase()}.tflite';
+  static List<String> _getInterpreterAssetNames(DigitCaptchaType type) {
+    final modelName = 'captcha-solver-${type.name.toLowerCase()}.tflite';
+    return ['assets/$modelName', '$_packageAssetBasePath/$modelName'];
+  }
+
+  static Future<Interpreter> _loadInterpreter(DigitCaptchaType type) async {
+    Object? lastError;
+    StackTrace? lastStackTrace;
+
+    for (final assetName in _getInterpreterAssetNames(type)) {
+      try {
+        return await Interpreter.fromAsset(assetName);
+      } catch (error, stackTrace) {
+        lastError = error;
+        lastStackTrace = stackTrace;
+      }
+    }
+
+    if (lastError != null && lastStackTrace != null) {
+      Error.throwWithStackTrace(lastError, lastStackTrace);
+    }
+
+    throw StateError('Unable to load captcha solver model for $type');
   }
 
   static double _lerp(double a, double b, double t) {
@@ -160,21 +182,23 @@ class DigitCaptchaClientProvider {
         List.filled(classCount, 0.0).reshape<double>([1, classCount])
             as List<List<double>>;
 
-    final interpreter = await Interpreter.fromAsset(
-      _getInterpreterAssetName(type),
-    );
+    final interpreter = await _loadInterpreter(type);
     List<int> nums = [];
 
-    // Four numbers
-    for (int i = 0; i < 4; i++) {
-      for (int y = 0; y < dim2; y++) {
-        for (int x = 0; x < dim3; x++) {
-          input[0][y][x][0] = image.getPixel(x + dim3 * i, y).r.toDouble();
+    try {
+      // Four numbers
+      for (int i = 0; i < 4; i++) {
+        for (int y = 0; y < dim2; y++) {
+          for (int x = 0; x < dim3; x++) {
+            input[0][y][x][0] = image.getPixel(x + dim3 * i, y).r.toDouble();
+          }
         }
-      }
 
-      interpreter.run(input, output);
-      nums.add(_getClassLabel(type, _argmax(output[0])));
+        interpreter.run(input, output);
+        nums.add(_getClassLabel(type, _argmax(output[0])));
+      }
+    } finally {
+      interpreter.close();
     }
 
     return nums.join('');

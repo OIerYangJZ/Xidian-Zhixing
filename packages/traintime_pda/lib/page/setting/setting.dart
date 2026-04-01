@@ -13,7 +13,6 @@ import 'package:watermeter/controller/experiment_controller.dart';
 import 'package:watermeter/page/homepage/info_widget/classtable_card.dart';
 import 'package:watermeter/page/homepage/refresh.dart';
 import 'package:watermeter/page/public_widget/context_extension.dart';
-import 'package:watermeter/page/setting/dialogs/change_color_dialog.dart';
 import 'package:watermeter/page/setting/dialogs/electricity_account_dialog.dart';
 import 'package:watermeter/page/setting/dialogs/schoolnet_password_dialog.dart';
 import 'package:watermeter/page/setting/dialogs/semester_switch_dialog.dart';
@@ -33,7 +32,6 @@ import 'package:watermeter/repository/xidian_ids/classtable_session.dart';
 import 'package:watermeter/repository/xidian_ids/electricity_session.dart'
     as electricity_session;
 import 'package:watermeter/repository/xidian_ids/personal_info_session.dart';
-import 'package:watermeter/themes/color_seed.dart';
 
 class SettingWindow extends StatefulWidget {
   const SettingWindow({super.key});
@@ -106,29 +104,6 @@ class _SettingWindowState extends State<SettingWindow> {
                   title: FlutterI18n.translate(context, "setting.ui_setting"),
                   child: Column(
                     children: [
-                      ListTile(
-                        leading: const Icon(Icons.palette_outlined),
-                        title: Text(
-                          FlutterI18n.translate(
-                            context,
-                            "setting.color_setting",
-                          ),
-                        ),
-                        subtitle: Text(
-                          FlutterI18n.translate(
-                            context,
-                            "setting.change_color_dialog.${ColorSeed.values[preference.getInt(preference.Preference.color)].label}",
-                          ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => const ChangeColorDialog(),
-                          );
-                        },
-                      ),
-                      const Divider(height: 0.5, indent: 56),
                       ListTile(
                         leading: const Icon(Icons.timeline_outlined),
                         title: Text(

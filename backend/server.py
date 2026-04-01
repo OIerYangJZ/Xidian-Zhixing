@@ -298,7 +298,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             # Post detail / comments
             _post_m_comments_match = re.fullmatch(r"/api/posts/([^/]+)/comments", path)
             if _post_m_comments_match:
-                _post_handler.handle_get_post_comments(self, db, _post_m_comments_match.group(1))
+                _post_handler.handle_get_post_comments(
+                    self,
+                    db,
+                    _post_m_comments_match.group(1),
+                    query=query,
+                )
                 return
 
             _post_match = re.fullmatch(r"/api/posts/([^/]+)", path)

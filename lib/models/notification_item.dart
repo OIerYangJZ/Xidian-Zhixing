@@ -31,6 +31,46 @@ class NotificationItem {
   final bool isRead;
   final String readAt;
 
+  String get displayTitle {
+    final String normalizedType = type.trim().toLowerCase();
+    final String normalizedRelatedType = relatedType.trim().toLowerCase();
+    switch (normalizedType) {
+      case 'like':
+        if (normalizedRelatedType == 'comment') {
+          return '喜欢了你的评论';
+        }
+        if (normalizedRelatedType == 'post') {
+          return '喜欢了你的帖子';
+        }
+        return '喜欢了你的内容';
+      case 'favorite':
+        if (normalizedRelatedType == 'post' || normalizedRelatedType.isEmpty) {
+          return '收藏了你的帖子';
+        }
+        return '收藏了你的内容';
+      case 'reply':
+        if (normalizedRelatedType == 'comment' || normalizedRelatedType.isEmpty) {
+          return '回复了你的评论';
+        }
+        return '回复了你的内容';
+      case 'comment':
+        if (normalizedRelatedType == 'comment') {
+          return '评论了你的评论';
+        }
+        if (normalizedRelatedType == 'post' || normalizedRelatedType.isEmpty) {
+          return '评论了你的帖子';
+        }
+        return '评论了你的内容';
+      case 'report_result':
+        return title.trim().isNotEmpty ? title : '举报结果';
+      case 'system':
+      case 'system_announcement':
+        return title.trim().isNotEmpty ? title : '系统公告';
+      default:
+        return title.trim().isNotEmpty ? title : '通知';
+    }
+  }
+
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
     String _readString(List<String> keys, {String fallback = ''}) {
       for (final key in keys) {

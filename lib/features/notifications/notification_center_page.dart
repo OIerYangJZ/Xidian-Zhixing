@@ -113,7 +113,7 @@ class _NotificationCenterPageState
                                     children: <Widget>[
                                       Expanded(
                                         child: Text(
-                                          item.title,
+                                          item.displayTitle,
                                           style: const TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -195,7 +195,7 @@ class _NotificationCenterPageState
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(item.title),
+          title: Text(item.displayTitle),
           content: SingleChildScrollView(child: Text(item.content)),
           actions: <Widget>[
             TextButton(

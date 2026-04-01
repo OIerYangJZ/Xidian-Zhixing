@@ -18,6 +18,9 @@ class NotificationCenterPage extends ConsumerStatefulWidget {
 }
 
 class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage> {
+  final Map<String, String> _actorAvatarCache = <String, String>{};
+  final Set<String> _actorAvatarLoading = <String>{};
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +41,14 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
   Widget build(BuildContext context) {
     final state = ref.watch(notificationsControllerProvider);
     final colors = MobileColors.of(context);
+    if (state.items.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        _prefetchActorAvatars(state.items);
+      });
+    }
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -116,11 +127,76 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
           final item = items[index];
           return _NotificationTile(
             notification: item,
+            resolvedActorAvatarUrl: _resolveActorAvatarUrl(item),
             onTap: () => _handleNotificationTap(item),
           );
         },
       ),
     );
+  }
+
+  void _prefetchActorAvatars(List<NotificationItem> items) {
+    for (final NotificationItem item in items) {
+      if (!_isActorDrivenType(item.type)) {
+        continue;
+      }
+      final String actorId = item.actorId.trim();
+      final String payloadAvatar = item.actorAvatarUrl.trim();
+      if (payloadAvatar.isNotEmpty && actorId.isNotEmpty) {
+        _actorAvatarCache[actorId] = payloadAvatar;
+      }
+      if (actorId.isEmpty ||
+          _actorAvatarCache.containsKey(actorId) ||
+          _actorAvatarLoading.contains(actorId)) {
+        continue;
+      }
+      _actorAvatarLoading.add(actorId);
+      ref.read(userRepositoryProvider).fetchUserProfile(actorId).then((
+        profile,
+      ) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          final String avatarUrl = profile.avatarUrl.trim();
+          if (avatarUrl.isNotEmpty) {
+            _actorAvatarCache[actorId] = avatarUrl;
+          }
+          _actorAvatarLoading.remove(actorId);
+        });
+      }).catchError((_) {
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _actorAvatarLoading.remove(actorId);
+        });
+      });
+    }
+  }
+
+  bool _isActorDrivenType(String type) {
+    switch (type) {
+      case 'comment':
+      case 'reply':
+      case 'like':
+      case 'favorite':
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  String _resolveActorAvatarUrl(NotificationItem item) {
+    final String payloadAvatar = item.actorAvatarUrl.trim();
+    if (payloadAvatar.isNotEmpty) {
+      return payloadAvatar;
+    }
+    final String actorId = item.actorId.trim();
+    if (actorId.isEmpty) {
+      return '';
+    }
+    return _actorAvatarCache[actorId] ?? '';
   }
 
   void _handleNotificationTap(NotificationItem notification) {
@@ -134,10 +210,12 @@ class _NotificationCenterPageState extends ConsumerState<NotificationCenterPage>
 class _NotificationTile extends StatelessWidget {
   const _NotificationTile({
     required this.notification,
+    required this.resolvedActorAvatarUrl,
     required this.onTap,
   });
 
   final NotificationItem notification;
+  final String resolvedActorAvatarUrl;
   final VoidCallback onTap;
 
   IconData get _icon {
@@ -211,7 +289,7 @@ class _NotificationTile extends StatelessWidget {
             children: [
               _preferActorAvatar
                   ? AvatarWidget(
-                      avatarUrl: notification.actorAvatarUrl,
+                      avatarUrl: resolvedActorAvatarUrl,
                       nickname: actorNickname,
                       radius: 20,
                     )
@@ -234,7 +312,7 @@ class _NotificationTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            notification.title,
+                            notification.displayTitle,
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: notification.isRead

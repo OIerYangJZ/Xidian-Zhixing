@@ -307,13 +307,13 @@ class _MobileShellState extends ConsumerState<MobileShell>
           rootNavigator: true,
         );
         if (rootNavigator.canPop()) {
-          rootNavigator.pop();
-          return true;
+          final handled = await rootNavigator.maybePop();
+          if (handled) return true;
         }
         final NavigatorState navigator = Navigator.of(context);
         if (navigator.canPop()) {
-          navigator.pop();
-          return true;
+          final handled = await navigator.maybePop();
+          if (handled) return true;
         }
 
         // go_router 仍有可弹出的页面时，交给路由器处理。

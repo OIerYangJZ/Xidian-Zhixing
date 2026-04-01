@@ -14,7 +14,7 @@ import '../shell/mobile_shell.dart';
 
 /// 每个频道对应的图标和颜色
 const Map<String, _ChannelMeta> _channelMeta = <String, _ChannelMeta>{
-  '全部': _ChannelMeta(Icons.apps_rounded, Color(0xFF8E8E93)),
+  '全部': _ChannelMeta(Icons.menu_rounded, Color(0xFF8E8E93)),
   '综合': _ChannelMeta(Icons.wb_sunny_rounded, Color(0xFF6B7FD7)),
   '找对象': _ChannelMeta(Icons.favorite_rounded, Color(0xFFE05E7A)),
   '找搭子': _ChannelMeta(Icons.group_rounded, Color(0xFFE09C5E)),
@@ -115,8 +115,10 @@ _ChannelMeta? _metaFromKeyword(String channel) {
   if (channel.contains('找搭子')) return _channelMeta['找搭子'];
   if (channel.contains('找对象')) return _channelMeta['找对象'];
   if (channel.contains('交友')) return _channelMeta['交友扩列'];
-  if (channel.contains('吃瓜') || channel.contains('八卦')) return _channelMeta['八卦吃瓜'];
-  if (channel.contains('拼车') || channel.contains('活动')) return _channelMeta['活动拼车'];
+  if (channel.contains('吃瓜') || channel.contains('八卦'))
+    return _channelMeta['八卦吃瓜'];
+  if (channel.contains('拼车') || channel.contains('活动'))
+    return _channelMeta['活动拼车'];
   return null;
 }
 
@@ -162,6 +164,9 @@ class _HomePageState extends ConsumerState<HomePage> {
   /// FAB 是否已隐藏（与底部导航栏同步）
   bool _fabVisible = true;
   double _lastScrollOffset = 0;
+  bool _isRefreshing = false;
+  bool _showRefreshSuccessFlash = false;
+  List<String> _lockedOrderPostIds = const <String>[];
 
   @override
   void initState() {
@@ -191,6 +196,67 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
   }
 
+  List<PostItem> _postsForDisplay(List<PostItem> posts) {
+    if (_lockedOrderPostIds.isEmpty || posts.length <= 1) {
+      return posts;
+    }
+
+    final Map<String, PostItem> byId = <String, PostItem>{
+      for (final post in posts) post.id: post,
+    };
+    final List<PostItem> ordered = <PostItem>[];
+
+    for (final postId in _lockedOrderPostIds) {
+      final post = byId.remove(postId);
+      if (post != null) {
+        ordered.add(post);
+      }
+    }
+
+    if (byId.isNotEmpty) {
+      for (final post in posts) {
+        if (byId.containsKey(post.id)) {
+          ordered.add(post);
+        }
+      }
+    }
+
+    return ordered;
+  }
+
+  Future<void> _refreshHomeFeed() async {
+    if (_isRefreshing) {
+      return;
+    }
+
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    bool refreshSucceeded = false;
+    try {
+      await ref.read(feedControllerProvider.notifier).refreshPosts();
+      refreshSucceeded = ref.read(feedControllerProvider).error == null;
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isRefreshing = false;
+        _showRefreshSuccessFlash = refreshSucceeded;
+      });
+      if (refreshSucceeded) {
+        await Future<void>.delayed(const Duration(milliseconds: 140));
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _showRefreshSuccessFlash = false;
+        });
+      }
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -200,7 +266,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   void dispose() {
-    BottomNavVisibilityNotifier.instance.removeListener(_onNavVisibilityChanged);
+    BottomNavVisibilityNotifier.instance.removeListener(
+      _onNavVisibilityChanged,
+    );
     _scrollController.dispose();
     _channelScrollController.dispose();
     super.dispose();
@@ -245,9 +313,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     } catch (_) {
       ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('操作失败，请稍后重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('操作失败，请稍后重试')));
       }
     }
   }
@@ -269,9 +337,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     } catch (_) {
       ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('操作失败，请稍后重试')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('操作失败，请稍后重试')));
       }
     }
   }
@@ -283,7 +351,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (scrollWidth <= 0) return;
 
     const estimatedChipWidth = 90.0;
-    final targetOffset = (index * estimatedChipWidth) -
+    final targetOffset =
+        (index * estimatedChipWidth) -
         (MediaQuery.of(context).size.width / 2) +
         (estimatedChipWidth / 2);
     final clamped = targetOffset.clamp(0.0, scrollWidth);
@@ -299,195 +368,233 @@ class _HomePageState extends ConsumerState<HomePage> {
     final colors = MobileColors.of(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final feedState = ref.watch(feedControllerProvider);
+    final visiblePosts = _postsForDisplay(feedState.posts);
     final notificationsState = ref.watch(notificationsControllerProvider);
     final resolvedChannelMeta = _resolveChannelMetaMap(feedState.channels);
+    final selectedChannelMeta = resolvedChannelMeta[feedState.selectedChannel];
+    final selectedChannelIcon = selectedChannelMeta?.icon ?? Icons.menu_rounded;
+    final selectedChannelIconColor =
+        selectedChannelMeta?.color ?? colors.textPrimary;
     // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
     ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
       _scrollToTop();
     });
+    ref.listen<int>(
+      feedControllerProvider.select((state) => state.orderVersion),
+      (_, __) {
+        final posts = ref.read(feedControllerProvider).posts;
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _lockedOrderPostIds = posts
+              .map((post) => post.id)
+              .toList(growable: false);
+        });
+      },
+    );
 
     return Scaffold(
       backgroundColor: colors.background,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.read(feedControllerProvider.notifier).refreshPosts();
-        },
-        color: MobileTheme.primary,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            // 小红书风格 AppBar：频道选择器 + 排序 + 操作按钮全部在顶部
-            SliverAppBar(
-              pinned: true,
-              expandedHeight: 50,
-              backgroundColor: isDarkMode ? Colors.black : colors.surface,
-              elevation: 0,
-              scrolledUnderElevation: isDarkMode ? 0 : 0.5,
-              surfaceTintColor: Colors.transparent,
-              toolbarHeight: 50,
-              titleSpacing: 0,
-              systemOverlayStyle: isDarkMode
-                  ? SystemUiOverlayStyle.light
-                  : SystemUiOverlayStyle.dark,
-              title: Row(
-                children: [
-                  // 频道下拉选择器（仅三横线图标）
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 48),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    color: colors.surface,
-                    itemBuilder: (context) {
-                      return feedState.channels.map((channel) {
-                        final isSelected = channel == feedState.selectedChannel;
-                        final meta = resolvedChannelMeta[channel];
-                        return PopupMenuItem<String>(
-                          value: channel,
-                          height: 48,
-                          child: Row(
-                            children: [
-                              Icon(
-                                meta?.icon ?? Icons.grid_view_rounded,
-                                size: 20,
-                                color: isSelected
-                                    ? MobileTheme.primary
-                                    : (meta?.color ?? colors.textSecondary),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  channel,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: isSelected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _refreshHomeFeed,
+            color: MobileTheme.primary,
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                // 小红书风格 AppBar：频道选择器 + 排序 + 操作按钮全部在顶部
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 50,
+                  backgroundColor: isDarkMode ? Colors.black : colors.surface,
+                  elevation: 0,
+                  scrolledUnderElevation: isDarkMode ? 0 : 0.5,
+                  surfaceTintColor: Colors.transparent,
+                  toolbarHeight: 50,
+                  titleSpacing: 0,
+                  systemOverlayStyle: isDarkMode
+                      ? SystemUiOverlayStyle.light
+                      : SystemUiOverlayStyle.dark,
+                  title: Row(
+                    children: [
+                      // 频道下拉选择器（仅三横线图标）
+                      PopupMenuButton<String>(
+                        offset: const Offset(0, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        color: colors.surface,
+                        itemBuilder: (context) {
+                          return feedState.channels.map((channel) {
+                            final isSelected =
+                                channel == feedState.selectedChannel;
+                            final meta = resolvedChannelMeta[channel];
+                            return PopupMenuItem<String>(
+                              value: channel,
+                              height: 48,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    meta?.icon ?? Icons.grid_view_rounded,
+                                    size: 20,
                                     color: isSelected
                                         ? MobileTheme.primary
-                                        : colors.textPrimary,
+                                        : (meta?.color ?? colors.textSecondary),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      channel,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? MobileTheme.primary
+                                            : colors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    const Icon(
+                                      Icons.check,
+                                      size: 18,
+                                      color: MobileTheme.primary,
+                                    ),
+                                ],
+                              ),
+                            );
+                          }).toList();
+                        },
+                        onSelected: (channel) {
+                          ref
+                              .read(feedControllerProvider.notifier)
+                              .switchChannel(channel);
+                        },
+                        child: Container(
+                          width: 60,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: colors.background,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            selectedChannelIcon,
+                            size: 22,
+                            color: selectedChannelIconColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 排序切换
+                      _CompactSortToggle(
+                        sort: feedState.sort,
+                        onSortChanged: (sort) => ref
+                            .read(feedControllerProvider.notifier)
+                            .switchSort(sort),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.search, size: 24),
+                      onPressed: () => context.push('/search'),
+                    ),
+                    IconButton(
+                      icon: Badge(
+                        isLabelVisible: notificationsState.unreadCount > 0,
+                        label: Text(
+                          notificationsState.unreadCount > 99
+                              ? '99+'
+                              : notificationsState.unreadCount.toString(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.notifications_outlined,
+                          size: 24,
+                        ),
+                      ),
+                      onPressed: () => context.push('/notifications'),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
+                ),
+
+                // 帖子列表（全宽，无外层 margin）
+                if (feedState.loading && visiblePosts.isEmpty)
+                  const SliverFillRemaining(child: HomePageShimmer())
+                else if (feedState.error != null && visiblePosts.isEmpty)
+                  SliverFillRemaining(
+                    child: _ErrorView(
+                      message: feedState.error!,
+                      onRetry: () {
+                        ref.read(feedControllerProvider.notifier).loadInitial();
+                      },
+                    ),
+                  )
+                else if (visiblePosts.isEmpty)
+                  const SliverFillRemaining(child: _EmptyView())
+                else ...[
+                  SliverPadding(
+                    padding: const EdgeInsets.only(bottom: 100),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (index == visiblePosts.length) {
+                            if (feedState.hasMore) {
+                              return const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: MobileTheme.primary,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              if (isSelected)
-                                const Icon(
-                                  Icons.check,
-                                  size: 18,
-                                  color: MobileTheme.primary,
-                                ),
-                            ],
-                          ),
-                        );
-                      }).toList();
-                    },
-                    onSelected: (channel) {
-                      ref
-                          .read(feedControllerProvider.notifier)
-                          .switchChannel(channel);
-                    },
-                    child: Container(
-                      width: 60,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: colors.background,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.menu,
-                        size: 22,
-                        color: colors.textPrimary,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }
+                          final post = visiblePosts[index];
+                          return PostCard(
+                            key: ValueKey(post.id),
+                            post: post,
+                            onTap: () => context.push('/post/${post.id}'),
+                            onLike: () => _handleLike(post),
+                            showTopDivider: index != 0,
+                          );
+                        },
+                        childCount:
+                            visiblePosts.length + (feedState.hasMore ? 1 : 0),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 排序切换
-                  _CompactSortToggle(
-                    sort: feedState.sort,
-                    onSortChanged: (sort) => ref.read(feedControllerProvider.notifier).switchSort(sort),
                   ),
                 ],
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.search, size: 24),
-                  onPressed: () => context.push('/search'),
-                ),
-                IconButton(
-                  icon: Badge(
-                    isLabelVisible: notificationsState.unreadCount > 0,
-                    label: Text(
-                      notificationsState.unreadCount > 99 ? '99+' : notificationsState.unreadCount.toString(),
-                      style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
-                    ),
-                    child: const Icon(Icons.notifications_outlined, size: 24),
-                  ),
-                  onPressed: () => context.push('/notifications'),
-                ),
-                const SizedBox(width: 4),
               ],
             ),
-
-            // 帖子列表（全宽，无外层 margin）
-            if (feedState.loading && feedState.posts.isEmpty)
-              const SliverFillRemaining(
-                child: HomePageShimmer(),
-              )
-            else if (feedState.error != null && feedState.posts.isEmpty)
-              SliverFillRemaining(
-                child: _ErrorView(
-                  message: feedState.error!,
-                  onRetry: () {
-                    ref.read(feedControllerProvider.notifier).loadInitial();
-                  },
-                ),
-              )
-            else if (feedState.posts.isEmpty)
-              const SliverFillRemaining(
-                child: _EmptyView(),
-              )
-            else ...[
-              SliverPadding(
-                padding: const EdgeInsets.only(bottom: 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == feedState.posts.length) {
-                        if (feedState.hasMore) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: MobileTheme.primary,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      }
-                      final post = feedState.posts[index];
-                      return PostCard(
-                        key: ValueKey(post.id),
-                        post: post,
-                        onTap: () => context.push('/post/${post.id}'),
-                        onLike: () => _handleLike(post),
-                        onFavorite: () => _handleFavorite(post),
-                        showTopDivider: index != 0,
-                      );
-                    },
-                    childCount:
-                        feedState.posts.length + (feedState.hasMore ? 1 : 0),
-                  ),
-                ),
+          ),
+          IgnorePointer(
+            ignoring: !_showRefreshSuccessFlash,
+            child: AnimatedOpacity(
+              opacity: _showRefreshSuccessFlash ? 1 : 0,
+              duration: const Duration(milliseconds: 90),
+              child: const ColoredBox(
+                color: Colors.white,
+                child: SizedBox.expand(),
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
 
       // FAB：右下角圆形 + 图标，无文字
@@ -538,7 +645,10 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     final colors = MobileColors.of(context);
     final selectedIndex = channels.indexOf(selectedChannel);
     final resolvedChannelMeta = _resolveChannelMetaMap(channels);
@@ -566,7 +676,9 @@ class _ChannelBarDelegate extends SliverPersistentHeaderDelegate {
                         controller: scrollController,
                         scrollDirection: Axis.horizontal,
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
                         itemCount: channels.length,
                         itemBuilder: (context, index) {
                           final channel = channels[index];
@@ -664,8 +776,9 @@ class _ChannelChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final effectiveColor =
-        isSelected ? MobileTheme.primary : colors.textSecondary;
+    final effectiveColor = isSelected
+        ? MobileTheme.primary
+        : colors.textSecondary;
     final effectiveIconColor = iconColor ?? effectiveColor;
 
     return GestureDetector(
@@ -691,8 +804,9 @@ class _ChannelChip extends StatelessWidget {
               Icon(
                 icon,
                 size: 14,
-                color: effectiveIconColor
-                    .withValues(alpha: isSelected ? 1.0 : 0.75),
+                color: effectiveIconColor.withValues(
+                  alpha: isSelected ? 1.0 : 0.75,
+                ),
               ),
               const SizedBox(width: 5),
             ],
@@ -718,10 +832,7 @@ class _CompactSortToggle extends StatelessWidget {
   final PostSort sort;
   final void Function(PostSort) onSortChanged;
 
-  const _CompactSortToggle({
-    required this.sort,
-    required this.onSortChanged,
-  });
+  const _CompactSortToggle({required this.sort, required this.onSortChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -797,10 +908,7 @@ class _SortBar extends StatelessWidget {
   final PostSort sort;
   final void Function(PostSort) onSortChanged;
 
-  const _SortBar({
-    required this.sort,
-    required this.onSortChanged,
-  });
+  const _SortBar({required this.sort, required this.onSortChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -818,10 +926,7 @@ class _SortToggle extends StatelessWidget {
   final PostSort sort;
   final void Function(PostSort) onSortChanged;
 
-  const _SortToggle({
-    required this.sort,
-    required this.onSortChanged,
-  });
+  const _SortToggle({required this.sort, required this.onSortChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -885,9 +990,7 @@ class _SortOption extends StatelessWidget {
                 child: Icon(
                   Icons.local_fire_department,
                   size: 13,
-                  color: isSelected
-                      ? MobileTheme.accent
-                      : colors.textTertiary,
+                  color: isSelected ? MobileTheme.accent : colors.textTertiary,
                 ),
               ),
             Text(
@@ -895,8 +998,7 @@ class _SortOption extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color:
-                    isSelected ? MobileTheme.primary : colors.textTertiary,
+                color: isSelected ? MobileTheme.primary : colors.textTertiary,
               ),
             ),
           ],
@@ -924,18 +1026,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.wifi_off_rounded,
-              size: 64,
-              color: colors.textTertiary,
-            ),
+            Icon(Icons.wifi_off_rounded, size: 64, color: colors.textTertiary),
             const SizedBox(height: 16),
             Text(
               message,
-              style: TextStyle(
-                color: colors.textSecondary,
-                fontSize: 15,
-              ),
+              style: TextStyle(color: colors.textSecondary, fontSize: 15),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -944,8 +1039,10 @@ class _ErrorView extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: MobileTheme.primary,
                 foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -999,10 +1096,7 @@ class _EmptyView extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               '成为第一个发布内容的人吧',
-              style: TextStyle(
-                color: colors.textTertiary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: colors.textTertiary, fontSize: 14),
             ),
             const SizedBox(height: 28),
             OutlinedButton.icon(
@@ -1012,8 +1106,10 @@ class _EmptyView extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: MobileTheme.primary,
                 side: const BorderSide(color: MobileTheme.primary),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),

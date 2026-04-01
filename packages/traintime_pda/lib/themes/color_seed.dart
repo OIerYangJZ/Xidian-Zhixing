@@ -1,8 +1,5 @@
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
-import 'package:watermeter/themes/default.dart';
-import 'package:watermeter/themes/green.dart';
-import 'package:watermeter/themes/orange.dart';
 
 /// Colors for the class information card.
 const colorList = [
@@ -65,33 +62,10 @@ sealed class TreeholeTealColor {
   );
 }
 
-List<FlexSchemeColor> pdaColorScheme = [
-  TreeholeTealColor.light,   // 与主App品牌色对齐 (#155E75)
+const List<FlexSchemeColor> pdaColorScheme = [
+  TreeholeTealColor.light,
   TreeholeTealColor.dark,
-  FlexScheme.blue.colors(Brightness.light),
-  FlexScheme.blue.colors(Brightness.dark),
-  FlexScheme.deepPurple.colors(Brightness.light),
-  FlexScheme.deepPurple.colors(Brightness.dark),
-  GreenColor.light,
-  GreenColor.dark,
-  OrangeColor.light,
-  OrangeColor.dark,
-  FlexScheme.pinkM3.colors(Brightness.light),
-  FlexScheme.pinkM3.colors(Brightness.dark),
 ];
-
-enum ColorSeed {
-  teal('teal', 0),         // 新增，与主App对齐，默认选中
-  blue('blue', 1),
-  deepPurple('deepPurple', 2),
-  green('green', 3),
-  orange('orange', 4),
-  pink('pink', 5);
-
-  const ColorSeed(this.label, this.colorOffset);
-  final String label;
-  final int colorOffset;
-}
 
 /// Colors for class information card which not in this week.
 const uselessColor = Colors.grey;

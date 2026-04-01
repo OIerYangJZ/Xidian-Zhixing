@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,14 +37,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   PostItem? _post;
   bool _postIsLiked = false;
   List<CommentItem> _comments = [];
+  CommentSort _commentSort = CommentSort.hot;
   bool _isLoading = true;
   String? _error;
   bool _isLiking = false;
   bool _isFavoriting = false;
   bool _isPostingComment = false;
+  bool _isSortingComments = false;
   bool _isFollowing = false;
   bool _isDeletingComment = false;
   bool _showEmoji = false;
+  bool _pendingShowEmojiPanel = false;
 
   // 鍥炲鐘舵€?
   CommentItem? _replyingTo;
@@ -104,7 +107,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         await postRepo.incrementView(widget.postId);
       }
       final post = await postRepo.fetchPostDetail(widget.postId);
-      final comments = await postRepo.fetchComments(widget.postId);
+      final comments = await postRepo.fetchComments(
+        widget.postId,
+        sort: _commentSort,
+      );
 
       if (mounted) {
         setState(() {
@@ -141,6 +147,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         isPinned: c.isPinned,
         parentId: c.parentId,
         authorUserId: c.authorUserId,
+        replyCount: c.replyCount,
         replies: [],
       );
     }
@@ -153,7 +160,63 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         map[c.parentId]!.replies.add(node);
       }
     }
-    return roots;
+    return _sortCommentTree(roots, _commentSort);
+  }
+
+  List<CommentItem> _sortCommentTree(
+    List<CommentItem> comments,
+    CommentSort sort,
+  ) {
+    final List<CommentItem> sorted = comments.map((CommentItem comment) {
+      if (comment.replies.isEmpty) {
+        return comment;
+      }
+      return comment.copyWith(replies: _sortCommentTree(comment.replies, sort));
+    }).toList();
+
+    sorted.sort(
+      (CommentItem a, CommentItem b) => _compareCommentsForDisplay(a, b, sort),
+    );
+    return sorted;
+  }
+
+  int _compareCommentsForDisplay(
+    CommentItem a,
+    CommentItem b,
+    CommentSort sort,
+  ) {
+    switch (sort) {
+      case CommentSort.hot:
+        final int byHot = _commentHotScore(b).compareTo(_commentHotScore(a));
+        if (byHot != 0) {
+          return byHot;
+        }
+        final int byLikes = b.likeCount.compareTo(a.likeCount);
+        if (byLikes != 0) {
+          return byLikes;
+        }
+        final int byReplies = b.effectiveReplyCount.compareTo(
+          a.effectiveReplyCount,
+        );
+        if (byReplies != 0) {
+          return byReplies;
+        }
+        final int byCreated = b.createdAt.compareTo(a.createdAt);
+        if (byCreated != 0) {
+          return byCreated;
+        }
+        return b.id.compareTo(a.id);
+      case CommentSort.latest:
+        final int byCreated = b.createdAt.compareTo(a.createdAt);
+        if (byCreated != 0) {
+          return byCreated;
+        }
+        return b.id.compareTo(a.id);
+    }
+  }
+
+  int _commentHotScore(CommentItem comment) {
+    return (comment.likeCount * 3) + (comment.effectiveReplyCount * 2);
   }
 
   Future<void> _handleLike() async {
@@ -274,7 +337,10 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
       );
 
       // 閲嶆柊鍔犺浇璇勮
-      final comments = await postRepo.fetchComments(widget.postId);
+      final comments = await postRepo.fetchComments(
+        widget.postId,
+        sort: _commentSort,
+      );
 
       // 涔愯鏇存柊甯栧瓙璇勮鏁?
       if (mounted && _post != null) {
@@ -366,7 +432,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
     if (_isDeletingComment) {
       return;
     }
-    final bool confirmed = await showDialog<bool>(
+    final bool confirmed =
+        await showDialog<bool>(
           context: context,
           builder: (BuildContext dialogContext) => AlertDialog(
             title: const Text('删除评论'),
@@ -458,11 +525,60 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   void _toggleEmoji() {
-    // 鏀惰捣閿洏锛岄槻姝㈤敭鐩樺拰琛ㄦ儏鏍忓悓鏃跺嚭鐜板鑷村竷灞€绌虹櫧
-    FocusScope.of(context).unfocus();
+    final bool keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+    if (_showEmoji) {
+      _pendingShowEmojiPanel = false;
+      setState(() {
+        _showEmoji = false;
+      });
+      return;
+    }
+    if (keyboardVisible) {
+      _pendingShowEmojiPanel = true;
+      FocusManager.instance.primaryFocus?.unfocus();
+      return;
+    }
+    _pendingShowEmojiPanel = false;
     setState(() {
-      _showEmoji = !_showEmoji;
+      _showEmoji = true;
     });
+  }
+
+  void _handleCommentInputFocusChanged(bool hasFocus) {
+    if (hasFocus) {
+      _pendingShowEmojiPanel = false;
+      if (_showEmoji) {
+        setState(() {
+          _showEmoji = false;
+        });
+      }
+      return;
+    }
+    if (!_pendingShowEmojiPanel) {
+      return;
+    }
+    Future<void>.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted || !_pendingShowEmojiPanel) {
+        return;
+      }
+      final bool keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+      if (keyboardVisible) {
+        return;
+      }
+      _pendingShowEmojiPanel = false;
+      setState(() {
+        _showEmoji = true;
+      });
+    });
+  }
+
+  void _handleCommentInputTap() {
+    _pendingShowEmojiPanel = false;
+    if (_showEmoji) {
+      setState(() {
+        _showEmoji = false;
+      });
+    }
   }
 
   void _onEmojiTap(String emoji) {
@@ -526,29 +642,34 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
   }
 
   Widget _buildBottomBarWithEmoji() {
-    return Stack(
-      children: [
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CommentInputBar(
-              key: _commentInputKey,
-              onSubmit: _handleSubmitComment,
-              autofocus: false,
-              scrollController: _scrollController,
-              onEmojiToggle: _toggleEmoji,
-            ),
-            SizedBox(height: _showEmoji ? 200 : 0),
-          ],
-        ),
-        if (_showEmoji)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: EmojiPickerBar(onEmojiTap: _onEmojiTap),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      alignment: Alignment.bottomCenter,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CommentInputBar(
+            key: _commentInputKey,
+            onSubmit: _handleSubmitComment,
+            autofocus: false,
+            scrollController: _scrollController,
+            onEmojiToggle: _toggleEmoji,
+            onFocusChanged: _handleCommentInputFocusChanged,
+            onTextFieldTap: _handleCommentInputTap,
           ),
-      ],
+          ClipRect(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              height: _showEmoji ? 200 : 0,
+              child: _showEmoji
+                  ? EmojiPickerBar(onEmojiTap: _onEmojiTap)
+                  : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -669,7 +790,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
                   },
                   child: AvatarWidget(
                     avatarUrl: post.isAnonymous ? null : post.authorAvatarUrl,
-                    nickname: post.authorAlias,
+                    nickname: post.isAnonymous ? '匿' : post.authorAlias,
                     radius: 24,
                   ),
                 ),
@@ -810,6 +931,123 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
         .toList();
   }
 
+  Future<void> _changeCommentSort(CommentSort nextSort) async {
+    if (_isSortingComments || _commentSort == nextSort) {
+      return;
+    }
+    final previousSort = _commentSort;
+    setState(() {
+      _commentSort = nextSort;
+      _isSortingComments = true;
+    });
+    try {
+      final comments = await ref
+          .read(postRepositoryProvider)
+          .fetchComments(widget.postId, sort: nextSort);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _comments = _buildCommentTree(comments);
+      });
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _commentSort = previousSort;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('切换排序失败: $e')));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSortingComments = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _showCommentSortMenu(TapDownDetails details) async {
+    if (_isSortingComments) {
+      return;
+    }
+    _pendingShowEmojiPanel = false;
+    FocusManager.instance.primaryFocus?.unfocus();
+    if (_showEmoji) {
+      setState(() {
+        _showEmoji = false;
+      });
+    }
+    final colors = MobileColors.of(context);
+    final size = MediaQuery.sizeOf(context);
+    final double left = (details.globalPosition.dx - 44).clamp(
+      12,
+      size.width - 140,
+    );
+    final double top = details.globalPosition.dy + 8;
+    final RelativeRect position = RelativeRect.fromLTRB(
+      left,
+      top,
+      size.width - (left + 128),
+      0,
+    );
+    final CommentSort? selected = await showMenu<CommentSort>(
+      context: context,
+      position: position,
+      color: colors.surface,
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      items: <PopupMenuEntry<CommentSort>>[
+        PopupMenuItem<CommentSort>(
+          value: CommentSort.hot,
+          child: _buildSortMenuItem(
+            label: '热度',
+            selected: _commentSort == CommentSort.hot,
+          ),
+        ),
+        PopupMenuItem<CommentSort>(
+          value: CommentSort.latest,
+          child: _buildSortMenuItem(
+            label: '时间',
+            selected: _commentSort == CommentSort.latest,
+          ),
+        ),
+      ],
+    );
+    if (selected != null) {
+      await _changeCommentSort(selected);
+    }
+  }
+
+  Widget _buildSortMenuItem({required String label, required bool selected}) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 18,
+          child: selected
+              ? const Icon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: MobileTheme.primary,
+                )
+              : null,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String get _commentSortLabel => _commentSort == CommentSort.hot ? '热度' : '时间';
+
   Widget _buildCommentsSection() {
     final colors = MobileColors.of(context);
     return Container(
@@ -823,15 +1061,38 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             child: Row(
               children: [
-                Text(
-                  '评论',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: _showCommentSortMenu,
+                  child: Row(
+                    children: [
+                      Text(
+                        _commentSortLabel,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: colors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: colors.textTertiary,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 6),
+                const Spacer(),
+                if (_isSortingComments)
+                  SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: colors.textTertiary,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -876,14 +1137,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
 
           // 鏀惰棌
           _ActionItem(
-            icon: Icons.star_border,
-            activeIcon: Icons.star,
+            icon: Icons.bookmark_border,
+            activeIcon: Icons.bookmark,
             label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '',
             isActive: post.isFavorited,
             isLoading: _isFavoriting,
             activeColor: const Color(0xFFFF9500),
             onTap: _handleFavorite,
-            iconSize: 25,
+            iconSize: 22,
           ),
           const SizedBox(width: 22),
 
@@ -913,9 +1174,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
               );
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(
-                const SnackBar(content: Text('链接已复制到剪贴板')),
-              );
+              ).showSnackBar(const SnackBar(content: Text('链接已复制到剪贴板')));
             },
           ),
         ],
@@ -1185,159 +1444,160 @@ class _CommentTileState extends State<_CommentTile> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                // 宸︿晶缂╄繘 + 绔栫嚎
-                SizedBox(
-                  width: leftPadding + (effectiveIndent > 0 ? guideWidth : 16),
-                  child: effectiveIndent > 0
-                      ? Row(
-                          children: [
-                            SizedBox(width: leftPadding),
-                            ...List.generate(effectiveIndent, (i) {
-                              return Container(
-                                width: 2,
-                                margin: const EdgeInsets.only(right: 10),
-                                color: colors.divider,
-                              );
-                            }),
-                          ],
-                        )
-                      : SizedBox(width: leftPadding),
-                ),
-                // 澶村儚
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: comment.authorUserId.isNotEmpty
-                        ? () => context.push('/user/${comment.authorUserId}')
-                        : null,
-                    child: AvatarWidget(
-                      avatarUrl: comment.authorAvatar,
-                      nickname: comment.authorAlias,
-                      radius: avatarRadius,
+                  // 宸︿晶缂╄繘 + 绔栫嚎
+                  SizedBox(
+                    width:
+                        leftPadding + (effectiveIndent > 0 ? guideWidth : 16),
+                    child: effectiveIndent > 0
+                        ? Row(
+                            children: [
+                              SizedBox(width: leftPadding),
+                              ...List.generate(effectiveIndent, (i) {
+                                return Container(
+                                  width: 2,
+                                  margin: const EdgeInsets.only(right: 10),
+                                  color: colors.divider,
+                                );
+                              }),
+                            ],
+                          )
+                        : SizedBox(width: leftPadding),
+                  ),
+                  // 澶村儚
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: comment.authorUserId.isNotEmpty
+                          ? () => context.push('/user/${comment.authorUserId}')
+                          : null,
+                      child: AvatarWidget(
+                        avatarUrl: comment.authorAvatar,
+                        nickname: comment.authorAlias,
+                        radius: avatarRadius,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                // 鍐呭
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 鏄电О + 鏃堕棿
-                      Row(
-                        children: [
-                          Flexible(
-                            child: GestureDetector(
-                              onTap: comment.authorUserId.isNotEmpty
-                                  ? () => context.push(
-                                      '/user/${comment.authorUserId}',
-                                    )
-                                  : null,
-                              child: Text(
-                                comment.authorAlias,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: comment.authorUserId.isNotEmpty
-                                      ? MobileTheme.primary
-                                      : colors.textPrimary,
+                  const SizedBox(width: 10),
+                  // 鍐呭
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 鏄电О + 鏃堕棿
+                        Row(
+                          children: [
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: comment.authorUserId.isNotEmpty
+                                    ? () => context.push(
+                                        '/user/${comment.authorUserId}',
+                                      )
+                                    : null,
+                                child: Text(
+                                  comment.authorAlias,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: comment.authorUserId.isNotEmpty
+                                        ? MobileTheme.primary
+                                        : colors.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _formatTime(comment.createdAt),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.textTertiary,
+                            const SizedBox(width: 6),
+                            Text(
+                              _formatTime(comment.createdAt),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colors.textTertiary,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      // 姝ｆ枃锛氱偣鍑昏Е鍙戝洖澶?
-                      GestureDetector(
-                        onTap: () => widget.onReply?.call(comment),
-                        behavior: HitTestBehavior.opaque,
-                        child: Text(
-                          comment.content,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: colors.textPrimary,
-                            height: 1.4,
+                          ],
+                        ),
+                        const SizedBox(height: 5),
+                        // 姝ｆ枃锛氱偣鍑昏Е鍙戝洖澶?
+                        GestureDetector(
+                          onTap: () => widget.onReply?.call(comment),
+                          behavior: HitTestBehavior.opaque,
+                          child: Text(
+                            comment.content,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colors.textPrimary,
+                              height: 1.4,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      // 搴曢儴鎿嶄綔鏍忥細鐐硅禐 + 鍥炲鏁?
-                      Row(
-                        children: [
-                          // 鐐硅禐
-                          GestureDetector(
-                            onTap: () => _toggleLike(context),
-                            behavior: HitTestBehavior.opaque,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  _isLiked
-                                      ? Icons.favorite_rounded
-                                      : Icons.favorite_border_rounded,
-                                  size: 18,
-                                  color: _isLiked
-                                      ? MobileTheme.accent
-                                      : colors.textPrimary,
-                                ),
-                                if (_likeCount > 0) ...[
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '$_likeCount',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: _isLiked
-                                          ? MobileTheme.accent
-                                          : colors.textPrimary,
-                                    ),
+                        const SizedBox(height: 8),
+                        // 搴曢儴鎿嶄綔鏍忥細鐐硅禐 + 鍥炲鏁?
+                        Row(
+                          children: [
+                            // 鐐硅禐
+                            GestureDetector(
+                              onTap: () => _toggleLike(context),
+                              behavior: HitTestBehavior.opaque,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isLiked
+                                        ? Icons.favorite_rounded
+                                        : Icons.favorite_border_rounded,
+                                    size: 18,
+                                    color: _isLiked
+                                        ? MobileTheme.accent
+                                        : colors.textPrimary,
                                   ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          // 鍥炲鏁?
-                          GestureDetector(
-                            onTap: () => widget.onReply?.call(comment),
-                            behavior: HitTestBehavior.opaque,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.chat_bubble_outline_rounded,
-                                  size: 18,
-                                  color: colors.textPrimary,
-                                ),
-                                if (comment.effectiveReplyCount > 0) ...[
-                                  const SizedBox(width: 3),
-                                  Text(
-                                    '${comment.effectiveReplyCount}',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: colors.textPrimary,
+                                  if (_likeCount > 0) ...[
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '$_likeCount',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _isLiked
+                                            ? MobileTheme.accent
+                                            : colors.textPrimary,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                    ],
+                            const SizedBox(width: 20),
+                            // 鍥炲鏁?
+                            GestureDetector(
+                              onTap: () => widget.onReply?.call(comment),
+                              behavior: HitTestBehavior.opaque,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.chat_bubble_outline_rounded,
+                                    size: 18,
+                                    color: colors.textPrimary,
+                                  ),
+                                  if (comment.effectiveReplyCount > 0) ...[
+                                    const SizedBox(width: 3),
+                                    Text(
+                                      '${comment.effectiveReplyCount}',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: colors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
                   ),
-                ),
                 ],
               ),
             ),
@@ -1586,4 +1846,3 @@ class _ReportSheetState extends State<_ReportSheet> {
     );
   }
 }
-

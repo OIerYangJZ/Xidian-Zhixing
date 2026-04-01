@@ -62,6 +62,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   @override
   void dispose() {
+    _hideOverlay(rebuild: false);
     _messageController.dispose();
     _scrollController.dispose();
     _focusNode.dispose();
@@ -228,29 +229,37 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: _selectMode ? _buildSelectModeAppBar() : _buildNormalAppBar(),
-      body: Column(
-        children: [
-          // 首条消息提示横幅
-          if (!_isLoading &&
-              _messages.isEmpty &&
-              !_firstMessageWarningDismissed)
-            _buildFirstMessageBanner(),
+    return PopScope(
+      canPop: _overlayEntry == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _overlayEntry != null) {
+          _hideOverlay();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colors.background,
+        appBar: _selectMode ? _buildSelectModeAppBar() : _buildNormalAppBar(),
+        body: Column(
+          children: [
+            // 首条消息提示横幅
+            if (!_isLoading &&
+                _messages.isEmpty &&
+                !_firstMessageWarningDismissed)
+              _buildFirstMessageBanner(),
 
-          // 消息列表
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _error != null
-                ? _buildErrorView()
-                : _buildMessageList(),
-          ),
+            // 消息列表
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                  ? _buildErrorView()
+                  : _buildMessageList(),
+            ),
 
-          // 输入区域
-          if (!_selectMode) _buildInputArea(),
-        ],
+            // 输入区域
+            if (!_selectMode) _buildInputArea(),
+          ],
+        ),
       ),
     );
   }
@@ -667,7 +676,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   void _showMessageOverlay(DirectMessageItem message, Offset globalPosition) {
-    _hideOverlay();
+    _hideOverlay(rebuild: false);
     HapticFeedback.mediumImpact();
     final media = MediaQuery.of(context);
     const double horizontalPadding = 8.0;
@@ -676,12 +685,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final double estimatedWidth = (actionCount * 62.0)
         .clamp(228.0, maxWidth)
         .toDouble();
-    final double leftForPeer = (globalPosition.dx - estimatedWidth / 2)
-        .clamp(
-          horizontalPadding,
-          media.size.width - estimatedWidth - horizontalPadding,
-        )
-        .toDouble();
+    const double selfMessageHorizontalOffset = 14.0;
+    final double left =
+        (globalPosition.dx -
+                estimatedWidth / 2 +
+                (message.fromMe ? selfMessageHorizontalOffset : 0))
+            .clamp(
+              horizontalPadding,
+              media.size.width - estimatedWidth - horizontalPadding,
+            )
+            .toDouble();
     final double top = (globalPosition.dy - 76.0)
         .clamp(media.padding.top + 8.0, media.size.height - 76.0)
         .toDouble();
@@ -695,8 +708,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             child: Container(color: Colors.transparent),
           ),
           Positioned(
-            left: message.fromMe ? null : leftForPeer,
-            right: message.fromMe ? horizontalPadding : null,
+            left: left,
             top: top,
             child: _MessageActionBar(
               message: message,
@@ -718,11 +730,18 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ),
     );
     Overlay.of(context).insert(_overlayEntry!);
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  void _hideOverlay() {
+  void _hideOverlay({bool rebuild = true}) {
+    if (_overlayEntry == null) return;
     _overlayEntry?.remove();
     _overlayEntry = null;
+    if (rebuild && mounted) {
+      setState(() {});
+    }
   }
 
   void _toggleSelect(DirectMessageItem message) {

@@ -15,6 +15,7 @@ class FeedState {
     this.error,
     this.page = 1,
     this.hasMore = false,
+    this.orderVersion = 0,
   });
 
   final String selectedChannel;
@@ -26,6 +27,7 @@ class FeedState {
   final String? error;
   final int page;
   final bool hasMore;
+  final int orderVersion;
 
   FeedState copyWith({
     String? selectedChannel,
@@ -38,6 +40,7 @@ class FeedState {
     bool clearError = false,
     int? page,
     bool? hasMore,
+    int? orderVersion,
   }) {
     return FeedState(
       selectedChannel: selectedChannel ?? this.selectedChannel,
@@ -49,6 +52,7 @@ class FeedState {
       error: clearError ? null : (error ?? this.error),
       page: page ?? this.page,
       hasMore: hasMore ?? this.hasMore,
+      orderVersion: orderVersion ?? this.orderVersion,
     );
   }
 }
@@ -61,12 +65,12 @@ class FeedController extends StateNotifier<FeedState> {
   Future<void> loadInitial() async {
     state = state.copyWith(loading: true, clearError: true);
     try {
-      final List<String> channels =
-          await _ref.read(postRepositoryProvider).fetchChannels();
-      final List<PostItem> posts =
-          await _ref.read(postRepositoryProvider).fetchPosts(
-                sort: state.sort,
-              );
+      final List<String> channels = await _ref
+          .read(postRepositoryProvider)
+          .fetchChannels();
+      final List<PostItem> posts = await _ref
+          .read(postRepositoryProvider)
+          .fetchPosts(sort: state.sort);
       state = state.copyWith(
         channels: <String>['全部', ...channels.toSet().where((c) => c != '其他')],
         posts: sortPostsForView(posts, sort: state.sort),
@@ -74,29 +78,29 @@ class FeedController extends StateNotifier<FeedState> {
         clearError: true,
         page: 1,
         hasMore: posts.length >= 20,
+        orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(
-        loading: false,
-        error: '加载失败：$error',
-      );
+      state = state.copyWith(loading: false, error: '加载失败：$error');
     }
   }
 
   Future<void> refreshPosts() async {
     try {
-      final List<PostItem> posts =
-          await _ref.read(postRepositoryProvider).fetchPosts(
-                channel: state.selectedChannel == '全部'
-                    ? null
-                    : state.selectedChannel,
-                sort: state.sort,
-              );
+      final List<PostItem> posts = await _ref
+          .read(postRepositoryProvider)
+          .fetchPosts(
+            channel: state.selectedChannel == '全部'
+                ? null
+                : state.selectedChannel,
+            sort: state.sort,
+          );
       state = state.copyWith(
         posts: sortPostsForView(posts, sort: state.sort),
         clearError: true,
         page: 1,
         hasMore: posts.length >= 20,
+        orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
       state = state.copyWith(error: '刷新失败：$error');
@@ -110,17 +114,19 @@ class FeedController extends StateNotifier<FeedState> {
       clearError: true,
     );
     try {
-      final List<PostItem> posts =
-          await _ref.read(postRepositoryProvider).fetchPosts(
-                channel: channel == '全部' ? null : channel,
-                sort: state.sort,
-              );
+      final List<PostItem> posts = await _ref
+          .read(postRepositoryProvider)
+          .fetchPosts(
+            channel: channel == '全部' ? null : channel,
+            sort: state.sort,
+          );
       state = state.copyWith(
         posts: sortPostsForView(posts, sort: state.sort),
         loading: false,
         clearError: true,
         page: 1,
         hasMore: posts.length >= 20,
+        orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
       state = state.copyWith(loading: false, error: '加载失败：$error');
@@ -128,31 +134,26 @@ class FeedController extends StateNotifier<FeedState> {
   }
 
   Future<void> switchSort(PostSort sort) async {
-    state = state.copyWith(
-      sort: sort,
-      loading: true,
-      clearError: true,
-    );
+    state = state.copyWith(sort: sort, loading: true, clearError: true);
     try {
-      final List<PostItem> posts =
-          await _ref.read(postRepositoryProvider).fetchPosts(
-                channel: state.selectedChannel == '全部'
-                    ? null
-                    : state.selectedChannel,
-                sort: sort,
-              );
+      final List<PostItem> posts = await _ref
+          .read(postRepositoryProvider)
+          .fetchPosts(
+            channel: state.selectedChannel == '全部'
+                ? null
+                : state.selectedChannel,
+            sort: sort,
+          );
       state = state.copyWith(
         posts: sortPostsForView(posts, sort: sort),
         loading: false,
         clearError: true,
         page: 1,
         hasMore: posts.length >= 20,
+        orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(
-        loading: false,
-        error: '排序切换失败：$error',
-      );
+      state = state.copyWith(loading: false, error: '排序切换失败：$error');
     }
   }
 
@@ -161,23 +162,25 @@ class FeedController extends StateNotifier<FeedState> {
     state = state.copyWith(loadingMore: true);
     try {
       final nextPage = state.page + 1;
-      final List<PostItem> morePosts =
-          await _ref.read(postRepositoryProvider).fetchPosts(
-                channel: state.selectedChannel == '全部'
-                    ? null
-                    : state.selectedChannel,
-                sort: state.sort,
-              );
-      final Set<String> existingIds =
-          state.posts.map((PostItem item) => item.id).toSet();
+      final List<PostItem> morePosts = await _ref
+          .read(postRepositoryProvider)
+          .fetchPosts(
+            channel: state.selectedChannel == '全部'
+                ? null
+                : state.selectedChannel,
+            sort: state.sort,
+          );
+      final Set<String> existingIds = state.posts
+          .map((PostItem item) => item.id)
+          .toSet();
       final List<PostItem> uniqueMorePosts = morePosts
           .where((PostItem item) => existingIds.add(item.id))
           .toList(growable: false);
       state = state.copyWith(
-        posts: sortPostsForView(
-          <PostItem>[...state.posts, ...uniqueMorePosts],
-          sort: state.sort,
-        ),
+        posts: sortPostsForView(<PostItem>[
+          ...state.posts,
+          ...uniqueMorePosts,
+        ], sort: state.sort),
         loadingMore: false,
         page: nextPage,
         hasMore: morePosts.length >= 20 && uniqueMorePosts.isNotEmpty,
@@ -197,7 +200,9 @@ class FeedController extends StateNotifier<FeedState> {
     final List<PostItem> posts = List<PostItem>.from(state.posts);
     posts[index] = updated;
     state = state.copyWith(
-      posts: sortPostsForView(posts, sort: state.sort),
+      // Keep the current visual order stable for optimistic updates such as
+      // like/favorite toggles. We only recompute sort order on explicit loads.
+      posts: posts,
       clearError: true,
     );
   }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:watermeter/page/public_widget/app_icon.dart';
 import 'package:watermeter/page/public_widget/re_x_card.dart';
 import 'package:watermeter/page/setting/about_page/developer_widget.dart';
 
@@ -247,9 +246,17 @@ class _AcknowledgementsPageState extends State<AcknowledgementsPage> {
   Widget _titleBlock() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: const [
-        AppIconWidget(),
-        SizedBox(height: 12),
+      children: [
+        Image.asset(
+          'packages/watermeter/assets/icon.png',
+          width: 120,
+          height: 120,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(Icons.apps, size: 120);
+          },
+        ),
+        const SizedBox(height: 12),
         Text(
           '感谢 XDYou 开发者与贡献者',
           style: TextStyle(fontSize: 16, color: Colors.black54),

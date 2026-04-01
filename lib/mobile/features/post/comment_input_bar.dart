@@ -11,6 +11,8 @@ class CommentInputBar extends StatefulWidget {
   final bool autofocus;
   final ScrollController? scrollController;
   final VoidCallback? onEmojiToggle;
+  final ValueChanged<bool>? onFocusChanged;
+  final VoidCallback? onTextFieldTap;
 
   const CommentInputBar({
     super.key,
@@ -19,6 +21,8 @@ class CommentInputBar extends StatefulWidget {
     this.autofocus = false,
     this.scrollController,
     this.onEmojiToggle,
+    this.onFocusChanged,
+    this.onTextFieldTap,
   });
 
   @override
@@ -53,6 +57,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
   }
 
   void _onFocusChange() {
+    widget.onFocusChanged?.call(_focusNode.hasFocus);
     if (_focusNode.hasFocus && widget.scrollController != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (widget.scrollController!.hasClients) {
@@ -81,17 +86,21 @@ class _CommentInputBarState extends State<CommentInputBar> {
   void insertEmoji(String emoji) {
     final text = _controller.text;
     final selection = _controller.selection;
-    final newText = text.replaceRange(
-      selection.start,
-      selection.end,
-      emoji,
-    );
+    final newText = text.replaceRange(selection.start, selection.end, emoji);
     _controller.value = TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(
         offset: selection.start + emoji.length,
       ),
     );
+  }
+
+  void requestFocus() {
+    _focusNode.requestFocus();
+  }
+
+  void unfocus() {
+    _focusNode.unfocus();
   }
 
   @override
@@ -119,10 +128,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
           // 输入框
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(
-                maxHeight: 120,
-                minHeight: 36,
-              ),
+              constraints: const BoxConstraints(maxHeight: 120, minHeight: 36),
               decoration: BoxDecoration(
                 color: colors.background,
                 borderRadius: BorderRadius.circular(18),
@@ -131,12 +137,10 @@ class _CommentInputBarState extends State<CommentInputBar> {
                 controller: _controller,
                 focusNode: _focusNode,
                 autofocus: widget.autofocus,
+                onTap: widget.onTextFieldTap,
                 maxLines: null,
                 textInputAction: TextInputAction.newline,
-                style: TextStyle(
-                  fontSize: 15,
-                  color: colors.textPrimary,
-                ),
+                style: TextStyle(fontSize: 15, color: colors.textPrimary),
                 decoration: InputDecoration(
                   hintText: widget.placeholder,
                   hintStyle: TextStyle(
@@ -159,10 +163,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
           GestureDetector(
             onTap: _hasText ? _submit : null,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: _hasText
                     ? MobileTheme.primary
@@ -172,9 +173,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
               child: Text(
                 '发送',
                 style: TextStyle(
-                  color: _hasText
-                      ? Colors.white
-                      : colors.textTertiary,
+                  color: _hasText ? Colors.white : colors.textTertiary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -197,25 +196,93 @@ class EmojiPickerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final emojis = [
-      '😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂',
-      '🙂', '😉', '😊', '😇', '🥰', '😍', '🤩', '😘',
-      '😋', '😛', '😜', '🤪', '😝', '🤗', '🤭', '🤫',
-      '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒',
-      '🙄', '😬', '😮‍💨', '🤥', '😌', '😔', '😪', '🤤',
-      '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵',
-      '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '😎', '🤓',
-      '😕', '😟', '🙁', '😮', '😯', '😲', '😳', '🥺',
-      '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱',
-      '👍', '👎', '👏', '🙌', '🤝', '🙏', '💪', '🤘',
+      '😀',
+      '😃',
+      '😄',
+      '😁',
+      '😆',
+      '😅',
+      '🤣',
+      '😂',
+      '🙂',
+      '😉',
+      '😊',
+      '😇',
+      '🥰',
+      '😍',
+      '🤩',
+      '😘',
+      '😋',
+      '😛',
+      '😜',
+      '🤪',
+      '😝',
+      '🤗',
+      '🤭',
+      '🤫',
+      '🤔',
+      '🤐',
+      '🤨',
+      '😐',
+      '😑',
+      '😶',
+      '😏',
+      '😒',
+      '🙄',
+      '😬',
+      '😮‍💨',
+      '🤥',
+      '😌',
+      '😔',
+      '😪',
+      '🤤',
+      '😴',
+      '😷',
+      '🤒',
+      '🤕',
+      '🤢',
+      '🤮',
+      '🤧',
+      '🥵',
+      '🥶',
+      '🥴',
+      '😵',
+      '🤯',
+      '🤠',
+      '🥳',
+      '😎',
+      '🤓',
+      '😕',
+      '😟',
+      '🙁',
+      '😮',
+      '😯',
+      '😲',
+      '😳',
+      '🥺',
+      '😦',
+      '😧',
+      '😨',
+      '😰',
+      '😥',
+      '😢',
+      '😭',
+      '😱',
+      '👍',
+      '👎',
+      '👏',
+      '🙌',
+      '🤝',
+      '🙏',
+      '💪',
+      '🤘',
     ];
 
     return Container(
       height: 200,
       decoration: BoxDecoration(
         color: colors.surface,
-        border: Border(
-          top: BorderSide(color: colors.divider, width: 0.5),
-        ),
+        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
       ),
       child: GridView.builder(
         padding: const EdgeInsets.all(8),
@@ -228,10 +295,7 @@ class EmojiPickerBar extends StatelessWidget {
           return GestureDetector(
             onTap: () => onEmojiTap(emojis[index]),
             child: Center(
-              child: Text(
-                emojis[index],
-                style: const TextStyle(fontSize: 24),
-              ),
+              child: Text(emojis[index], style: const TextStyle(fontSize: 24)),
             ),
           );
         },

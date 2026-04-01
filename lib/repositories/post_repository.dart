@@ -16,6 +16,11 @@ enum PostSort {
   likes,
 }
 
+enum CommentSort {
+  latest,
+  hot,
+}
+
 extension PostSortCodec on PostSort {
   String get apiValue {
     switch (this) {
@@ -36,6 +41,17 @@ extension PostSortCodec on PostSort {
         return '热度排序';
       case PostSort.likes:
         return '按点赞量';
+    }
+  }
+}
+
+extension CommentSortCodec on CommentSort {
+  String get apiValue {
+    switch (this) {
+      case CommentSort.latest:
+        return 'latest';
+      case CommentSort.hot:
+        return 'hot';
     }
   }
 }
@@ -140,6 +156,38 @@ double _hotScore(PostItem post, DateTime now) {
 }
 
 DateTime _safeDate(DateTime value) => value.toUtc();
+
+List<CommentItem> sortCommentsForView(
+  Iterable<CommentItem> comments, {
+  CommentSort sort = CommentSort.latest,
+}) {
+  final List<CommentItem> rows = comments.toList();
+  switch (sort) {
+    case CommentSort.hot:
+      rows.sort((CommentItem a, CommentItem b) {
+        final int byLikes = b.likeCount.compareTo(a.likeCount);
+        if (byLikes != 0) {
+          return byLikes;
+        }
+        final int byCreated = b.createdAt.compareTo(a.createdAt);
+        if (byCreated != 0) {
+          return byCreated;
+        }
+        return b.id.compareTo(a.id);
+      });
+      break;
+    case CommentSort.latest:
+      rows.sort((CommentItem a, CommentItem b) {
+        final int byCreated = b.createdAt.compareTo(a.createdAt);
+        if (byCreated != 0) {
+          return byCreated;
+        }
+        return b.id.compareTo(a.id);
+      });
+      break;
+  }
+  return rows;
+}
 
 class CreatePostInput {
   CreatePostInput({
@@ -385,10 +433,15 @@ class PostRepository {
         .toList();
   }
 
-  Future<List<CommentItem>> fetchComments(String postId) async {
+  Future<List<CommentItem>> fetchComments(
+    String postId, {
+    CommentSort sort = CommentSort.latest,
+  }) async {
     try {
-      final dynamic response =
-          await _apiClient.get(ApiEndpoints.postComments(postId));
+      final dynamic response = await _apiClient.get(
+        ApiEndpoints.postComments(postId),
+        queryParameters: <String, dynamic>{'sort': sort.apiValue},
+      );
       final List<dynamic> list = extractList(response);
       final List<CommentItem> comments = <CommentItem>[];
       for (final dynamic item in list) {
@@ -407,13 +460,13 @@ class PostRepository {
         }
       }
       if (comments.isNotEmpty || !AppConfig.enableMockFallback) {
-        return comments;
+        return sortCommentsForView(comments, sort: sort);
       }
     } catch (_) {
       final List<String> fallback =
           mockCommentsByPostId[postId] ?? const <String>[];
       if (fallback.isNotEmpty) {
-        return fallback
+        final List<CommentItem> fallbackRows = fallback
             .asMap()
             .entries
             .map(
@@ -427,13 +480,14 @@ class PostRepository {
               ),
             )
             .toList();
+        return sortCommentsForView(fallbackRows, sort: sort);
       }
       rethrow;
     }
 
     final List<String> fallback =
         mockCommentsByPostId[postId] ?? const <String>[];
-    return fallback
+    final List<CommentItem> fallbackRows = fallback
         .asMap()
         .entries
         .map(
@@ -447,6 +501,7 @@ class PostRepository {
           ),
         )
         .toList();
+    return sortCommentsForView(fallbackRows, sort: sort);
   }
 
   Future<void> createComment({

@@ -314,17 +314,6 @@ class _PublicUserProfilePageState
                             _load();
                           } catch (_) {}
                         },
-                        onFavorite: () async {
-                          try {
-                            final repo = ref.read(postRepositoryProvider);
-                            if (post.isFavorited) {
-                              await repo.unfavoritePost(post.id);
-                            } else {
-                              await repo.favoritePost(post.id);
-                            }
-                            _load();
-                          } catch (_) {}
-                        },
                       );
                     },
                   ),
