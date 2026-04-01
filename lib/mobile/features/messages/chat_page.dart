@@ -447,10 +447,49 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
+  bool _isRecalled(DirectMessageItem message) {
+    return message.deliveryStatus == 'recalled';
+  }
+
+  DirectMessageItem _toRecalledMessage(DirectMessageItem message) {
+    return message.copyWith(
+      content: message.fromMe ? '你撤回了一条消息' : '对方撤回了一条消息',
+      deliveryStatus: 'recalled',
+      serverCanRecall: false,
+    );
+  }
+
+  String _conversationPreviewText(List<DirectMessageItem> messages) {
+    if (messages.isEmpty) return '开始聊天吧';
+    final String content = messages.last.content.trim();
+    return content.isEmpty ? '开始聊天吧' : content;
+  }
+
+  Widget _buildRecalledPlaceholder(DirectMessageItem message) {
+    final colors = MobileColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Center(
+        child: Text(
+          message.content,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 12,
+            color: colors.textTertiary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildMessageBubble(DirectMessageItem message) {
     final colors = MobileColors.of(context);
     final isMe = message.fromMe;
     final isSelected = _selectedMessages.contains(message.id);
+    if (_isRecalled(message)) {
+      return _buildRecalledPlaceholder(message);
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -458,7 +497,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         mainAxisAlignment: isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isMe) ...[
             // 对方头像（可点击进入对方主页）
@@ -511,10 +550,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     decoration: BoxDecoration(
                       color: isMe ? MobileTheme.primary : colors.surface,
                       borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(18),
-                        topRight: const Radius.circular(18),
-                        bottomLeft: Radius.circular(isMe ? 18 : 4),
-                        bottomRight: Radius.circular(isMe ? 4 : 18),
+                        topLeft: Radius.circular(isMe ? 18 : 4),
+                        topRight: Radius.circular(isMe ? 4 : 18),
+                        bottomLeft: const Radius.circular(18),
+                        bottomRight: const Radius.circular(18),
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -724,7 +763,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('批量删除'),
+        title: const Text('批量撤回'),
         content: Text('确定撤回选中的 ${recallableIds.length} 条消息吗？'),
         actions: [
           TextButton(
@@ -733,7 +772,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('删除', style: TextStyle(color: MobileTheme.error)),
+            child: const Text('撤回', style: TextStyle(color: MobileTheme.error)),
           ),
         ],
       ),
@@ -748,10 +787,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       );
     }
     setState(() {
-      _messages.removeWhere((m) => recallableIds.contains(m.id));
+      _messages = _messages
+          .map((m) => recallableIds.contains(m.id) ? _toRecalledMessage(m) : m)
+          .toList();
       _selectedMessages.clear();
       _selectMode = false;
+      if (_replyingTo != null && recallableIds.contains(_replyingTo!.id)) {
+        _replyingTo = null;
+      }
     });
+    ref
+        .read(messagesControllerProvider.notifier)
+        .updateConversationPreview(
+          conversationId: widget.conversationId,
+          message: _conversationPreviewText(_messages),
+        );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('已撤回 ${recallableIds.length} 条消息')),
+      );
+    }
   }
 
   Future<void> _handleRecall(DirectMessageItem message) async {
@@ -772,19 +827,21 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             messageId: message.id,
           );
       setState(() {
-        _messages.removeWhere((m) => m.id == message.id);
+        final int index = _messages.indexWhere((m) => m.id == message.id);
+        if (index != -1) {
+          _messages[index] = _toRecalledMessage(_messages[index]);
+        }
         _selectedMessages.remove(message.id);
         if (_replyingTo?.id == message.id) {
           _replyingTo = null;
         }
       });
       if (recalledLastMessage) {
-        final remaining = _messages;
         ref
             .read(messagesControllerProvider.notifier)
             .updateConversationPreview(
               conversationId: widget.conversationId,
-              message: remaining.isEmpty ? '开始聊天吧' : remaining.last.content,
+              message: _conversationPreviewText(_messages),
             );
       }
       if (mounted) {

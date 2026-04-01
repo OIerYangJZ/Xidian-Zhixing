@@ -744,7 +744,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           if (post.title.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 0, 25, 4),
-              child: Text(
+              child: SelectableText(
                 post.title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -1018,13 +1018,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage> {
           : const Divider(height: 1, indent: 60),
       itemBuilder: (context, index) {
         final comment = comments[index];
-        return _CommentTile(
-          comment: comment,
-          indentLevel: isNested ? 1 : 0,
-          onReply: (c) => setState(() => _replyingTo = c),
-          commentKeyBuilder: _commentKeyFor,
-          currentUserId: _currentUserId,
-          onDelete: _handleDeleteComment,
+        final bool needsTopSpacing = !isNested && index > 0;
+        return Padding(
+          padding: EdgeInsets.only(top: needsTopSpacing ? 10 : 0),
+          child: _CommentTile(
+            comment: comment,
+            indentLevel: isNested ? 1 : 0,
+            onReply: (c) => setState(() => _replyingTo = c),
+            commentKeyBuilder: _commentKeyFor,
+            currentUserId: _currentUserId,
+            onDelete: _handleDeleteComment,
+          ),
         );
       },
     );

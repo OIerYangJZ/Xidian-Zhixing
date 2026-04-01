@@ -25,9 +25,15 @@ class PostContentBody extends StatelessWidget {
     final String markdownData =
         markdownSource.isNotEmpty ? markdownSource : content;
     if (normalizedFormat != 'markdown' || markdownData.trim().isEmpty) {
+      final TextStyle? style = Theme.of(
+        context,
+      ).textTheme.bodyLarge?.copyWith(height: 1.6);
+      if (selectable) {
+        return SelectableText(content, style: style);
+      }
       return Text(
         content,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.6),
+        style: style,
       );
     }
 

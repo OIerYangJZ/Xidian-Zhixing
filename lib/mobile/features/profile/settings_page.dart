@@ -64,7 +64,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     });
 
     try {
-      await ref.read(userRepositoryProvider).updatePrivacy(
+      await ref
+          .read(userRepositoryProvider)
+          .updatePrivacy(
             allowStrangerDm: allowStrangerDm,
             showContactable: showContactable,
           );
@@ -119,9 +121,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -135,7 +137,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: MobileTheme.primary))
+              child: CircularProgressIndicator(color: MobileTheme.primary),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -149,14 +152,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline,
-                            size: 18, color: MobileTheme.error),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 18,
+                          color: MobileTheme.error,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             _error!,
                             style: const TextStyle(
-                                fontSize: 13, color: MobileTheme.error),
+                              fontSize: 13,
+                              color: MobileTheme.error,
+                            ),
                           ),
                         ),
                       ],
@@ -169,8 +177,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     color: colors.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: colors.divider.withValues(alpha: 0.5),
-                        width: 0.5),
+                      color: colors.divider.withValues(alpha: 0.5),
+                      width: 0.5,
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -183,17 +192,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         onChanged: _saving
                             ? null
                             : (value) => _updatePrivacy(
-                                  allowStrangerDm: value,
-                                  showContactable:
-                                      _profile?.showContactable ?? false,
-                                ),
+                                allowStrangerDm: value,
+                                showContactable:
+                                    _profile?.showContactable ?? false,
+                              ),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(left: 56),
                         child: Divider(
-                            height: 1,
-                            thickness: 0.5,
-                            color: colors.divider),
+                          height: 1,
+                          thickness: 0.5,
+                          color: colors.divider,
+                        ),
                       ),
                       _buildSwitchTile(
                         icon: Icons.visibility_outlined,
@@ -204,33 +214,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         onChanged: _saving
                             ? null
                             : (value) => _updatePrivacy(
-                                  allowStrangerDm:
-                                      _profile?.allowStrangerDm ?? false,
-                                  showContactable: value,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 24),
-
-                // 账号安全
-                Container(
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: colors.divider.withValues(alpha: 0.5),
-                        width: 0.5),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildActionTile(
-                        icon: Icons.lock_reset_outlined,
-                        iconColor: colors.textSecondary,
-                        title: '统一认证密码',
-                        onTap: () => _showToast('请前往西电统一身份认证修改密码'),
+                                allowStrangerDm:
+                                    _profile?.allowStrangerDm ?? false,
+                                showContactable: value,
+                              ),
                       ),
                     ],
                   ),
@@ -289,10 +276,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colors.textTertiary,
-                  ),
+                  style: TextStyle(fontSize: 12, color: colors.textTertiary),
                 ),
               ],
             ),
@@ -303,46 +287,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             activeThumbColor: MobileTheme.primary,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionTile({
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    final colors = MobileColors.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Icon(icon, size: 22, color: iconColor),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                    color: colors.textPrimary,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: colors.textTertiary,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

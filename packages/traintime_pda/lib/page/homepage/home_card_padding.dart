@@ -11,6 +11,7 @@ extension HomeCardPadding on Widget {
     BuildContext context, {
     HomeCardType type = HomeCardType.plain,
     void Function()? onPressed,
+    void Function()? onLongPress,
   }) {
     return OutlinedButton(
       //elevation: 0,
@@ -58,6 +59,7 @@ extension HomeCardPadding on Widget {
         }),
       ),
       onPressed: onPressed,
+      onLongPress: onLongPress,
       child: DefaultTextStyle(
         style: TextStyle(
           color: Theme.of(context).brightness == Brightness.dark

@@ -10,7 +10,6 @@ import 'package:based_split_view/based_split_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:watermeter/page/public_widget/split_page_placeholder.dart';
-import 'package:watermeter/page/toolbox/toolbox_page.dart';
 import 'package:watermeter/repository/logger.dart';
 import 'package:watermeter/page/public_widget/toast.dart';
 import 'package:restart_app/restart_app.dart';
@@ -19,7 +18,6 @@ import 'package:watermeter/page/homepage/refresh.dart';
 import 'package:watermeter/page/setting/setting.dart';
 import 'package:watermeter/repository/preference.dart';
 import 'package:watermeter/repository/xidian_ids/ids_session.dart';
-import 'package:ming_cute_icons/ming_cute_icons.dart';
 import 'package:watermeter/page/login/jc_captcha.dart';
 import 'package:watermeter/repository/preference.dart' as preference;
 
@@ -235,18 +233,7 @@ class _HomePageMasterState extends State<HomePageMaster>
       extendBodyBehindAppBar: true,
       body: PageView(
         controller: _controller,
-        children: [
-          MainPage(
-            changePage: () {
-              setState(() {
-                _selectedIndex = 1;
-              });
-              _controller.jumpToPage(_selectedIndex);
-            },
-          ),
-          const ToolBoxPage(),
-          const SettingWindow(),
-        ],
+        children: [const MainPage(), const SettingWindow()],
         onPageChanged: (int index) {
           if (_selectedIndex != index) {
             setState(() {

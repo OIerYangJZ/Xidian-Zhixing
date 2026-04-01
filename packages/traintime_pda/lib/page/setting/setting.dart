@@ -22,7 +22,6 @@ import 'package:watermeter/page/public_widget/toast.dart';
 import 'package:get/get.dart';
 import 'package:watermeter/controller/classtable_controller.dart';
 import 'package:watermeter/controller/exam_controller.dart';
-import 'package:watermeter/page/setting/about_page/about_page.dart';
 import 'package:watermeter/page/setting/dialogs/experiment_password_dialog.dart';
 import 'package:watermeter/repository/pick_file.dart';
 import 'package:watermeter/repository/preference.dart' as preference;
@@ -659,36 +658,6 @@ class _SettingWindowState extends State<SettingWindow> {
                             }
                           });
                         },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildSectionCard(
-                  title: FlutterI18n.translate(context, "setting.about"),
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.info_outline),
-                        title: Text(
-                          FlutterI18n.translate(
-                            context,
-                            "setting.about_this_program",
-                          ),
-                        ),
-                        subtitle: Text(
-                          FlutterI18n.translate(
-                            context,
-                            "setting.version",
-                            translationParams: {
-                              "version":
-                                  "${preference.packageInfo.version}+"
-                                  "${preference.packageInfo.buildNumber}",
-                            },
-                          ),
-                        ),
-                        onTap: () => context.pushReplacement(const AboutPage()),
-                        trailing: const Icon(Icons.chevron_right),
                       ),
                     ],
                   ),

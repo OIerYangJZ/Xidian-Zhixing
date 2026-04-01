@@ -203,29 +203,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                 const SizedBox(height: 8),
 
                 // 账号安全区
-                _SectionHeader(title: '账号安全'),
-                _ListCard(
-                  children: [
-                    _ListTile(
-                      icon: Icons.lock_reset_outlined,
-                      iconColor: MobileTheme.primary,
-                      title: '统一认证密码',
-                      onTap: () => _showToast('请前往西电统一身份认证修改密码'),
-                    ),
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.edit_outlined,
-                      iconColor: colors.textSecondary,
-                      title: '编辑资料',
-                      onTap: () async {
-                        await context.push('/profile/edit');
-                        if (mounted) {
-                          await _loadProfile();
-                        }
-                      },
-                    ),
-                    if (!(_profile?.isLevelOneUser ?? false)) ...[
-                      Divider(height: 0.5, indent: 56, color: colors.divider),
+                if (!(_profile?.isLevelOneUser ?? false)) ...[
+                  _SectionHeader(title: '账号安全'),
+                  _ListCard(
+                    children: [
                       _ListTile(
                         icon: Icons.workspace_premium_outlined,
                         iconColor: MobileTheme.accent,
@@ -241,18 +222,9 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                             : _promptLevelUpgradeRequest,
                       ),
                     ],
-                    Divider(height: 0.5, indent: 56, color: colors.divider),
-                    _ListTile(
-                      icon: Icons.no_accounts_outlined,
-                      iconColor: MobileTheme.error,
-                      title: '注销账号',
-                      titleColor: MobileTheme.error,
-                      onTap: () => _showCancelAccountHint(),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
+                  ),
+                  const SizedBox(height: 16),
+                ],
 
                 // 隐私设置区
                 _SectionHeader(title: '隐私设置'),
@@ -451,6 +423,36 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
                       ),
                     ),
                   ),
+                ),
+
+                const SizedBox(height: 16),
+
+                _SectionHeader(title: '账号安全'),
+                _ListCard(
+                  children: [
+                    _ListTile(
+                      icon: Icons.no_accounts_outlined,
+                      iconColor: MobileTheme.error,
+                      title: '注销账号',
+                      titleColor: MobileTheme.error,
+                      onTap: () => _showCancelAccountHint(),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                _SectionHeader(title: '致谢'),
+                _ListCard(
+                  children: [
+                    _ListTile(
+                      icon: Icons.favorite_outline,
+                      iconColor: MobileTheme.primary,
+                      title: '致谢页',
+                      subtitle: '感谢每一位参与建设与反馈的同学',
+                      onTap: () => context.push('/profile/acknowledgements'),
+                    ),
+                  ],
                 ),
 
                 const SizedBox(height: 40),

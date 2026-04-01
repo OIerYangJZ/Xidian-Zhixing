@@ -1,6 +1,7 @@
 import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
+import '../core/network/api_exception.dart';
 import '../core/network/json_utils.dart';
 import '../data/mock_data.dart';
 import '../models/follow_user_item.dart';
@@ -43,18 +44,63 @@ class UserRepository {
     required bool notifyFavorite,
     required bool notifyReportResult,
     required bool notifySystem,
-  }) {
-    return _apiClient.patch(
-      ApiEndpoints.notificationPreferences,
-      body: <String, dynamic>{
-        'notifyComment': notifyComment,
-        'notifyReply': notifyReply,
-        'notifyLike': notifyLike,
-        'notifyFavorite': notifyFavorite,
-        'notifyReportResult': notifyReportResult,
-        'notifySystem': notifySystem,
-      },
-    );
+  }) async {
+    final Map<String, dynamic> body = <String, dynamic>{
+      'notifyComment': notifyComment,
+      'notifyReply': notifyReply,
+      'notifyLike': notifyLike,
+      'notifyFavorite': notifyFavorite,
+      'notifyReportResult': notifyReportResult,
+      'notifySystem': notifySystem,
+    };
+
+    try {
+      await _apiClient.patch(ApiEndpoints.notificationPreferences, body: body);
+      return;
+    } on ApiException catch (error) {
+      final int? statusCode = error.statusCode;
+      if (statusCode != 404 && statusCode != 405) {
+        rethrow;
+      }
+    }
+
+    await _updateNotificationPreferencesFallback(body);
+  }
+
+  Future<void> _updateNotificationPreferencesFallback(
+    Map<String, dynamic> body,
+  ) async {
+    final List<Future<dynamic> Function()> attempts =
+        <Future<dynamic> Function()>[
+          () =>
+              _apiClient.post(ApiEndpoints.notificationPreferences, body: body),
+          () => _apiClient.patch(
+            ApiEndpoints.notificationPreferencesLegacy,
+            body: body,
+          ),
+          () => _apiClient.post(
+            ApiEndpoints.notificationPreferencesLegacy,
+            body: body,
+          ),
+        ];
+
+    ApiException? lastApiError;
+    for (final attempt in attempts) {
+      try {
+        await attempt();
+        return;
+      } on ApiException catch (error) {
+        lastApiError = error;
+        final int? statusCode = error.statusCode;
+        if (statusCode != 404 && statusCode != 405) {
+          rethrow;
+        }
+      }
+    }
+
+    if (lastApiError != null) {
+      throw lastApiError;
+    }
   }
 
   Future<void> updateProfile({

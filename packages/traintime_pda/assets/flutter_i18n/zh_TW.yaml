@@ -386,6 +386,12 @@ homepage:
     score_cannot_reach: 脫機狀態且無緩存成績數據，無法訪問
     exam_fetching: 請稍候，正在獲取考試信息
     exam_error: 遇到錯誤，請聯繫開發者
+  customize:
+    title: 自定義功能佈局
+    done: 完成
+    add: 添加隱藏功能
+    hidden_empty: 暫無隱藏功能可添加
+    keep_one: 至少保留一個功能入口
   school_net:
     title: 已用 {usage}
     no_password: 無校園網密碼，點擊設置

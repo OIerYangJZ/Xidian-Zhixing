@@ -1,5 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:gal/gal.dart';
+import 'package:http/http.dart' as http;
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
@@ -51,6 +54,7 @@ class _ImageGalleryState extends State<ImageGallery> {
   late PageController _pageController;
   late int _currentIndex;
   late List<String> _fullUrls;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -72,6 +76,62 @@ class _ImageGalleryState extends State<ImageGallery> {
     Navigator.of(context).pop();
   }
 
+  Future<void> _saveCurrentImage() async {
+    if (_isSaving || _fullUrls.isEmpty) {
+      return;
+    }
+    if (kIsWeb) {
+      _showMessage('请在浏览器中长按图片保存');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+    try {
+      final bool hasAccess = await Gal.hasAccess();
+      if (!hasAccess) {
+        final bool granted = await Gal.requestAccess();
+        if (!granted) {
+          _showMessage('未获得相册权限，无法保存图片');
+          return;
+        }
+      }
+
+      final Uri uri = Uri.parse(_fullUrls[_currentIndex]);
+      final http.Response response = await http.get(uri);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('download failed: ${response.statusCode}');
+      }
+
+      final String fileName =
+          'xdu_treehole_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      await Gal.putImageBytes(
+        response.bodyBytes,
+        name: fileName,
+        album: '西电树洞',
+      );
+      _showMessage('图片已保存到相册');
+    } catch (_) {
+      _showMessage('保存失败，请稍后重试');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
+    }
+  }
+
+  void _showMessage(String text) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 1)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -91,6 +151,7 @@ class _ImageGalleryState extends State<ImageGallery> {
               return _ImagePage(
                 url: _fullUrls[index],
                 onTap: _close,
+                onLongPress: _saveCurrentImage,
               );
             },
           ),
@@ -222,16 +283,19 @@ class _ImageGalleryState extends State<ImageGallery> {
 class _ImagePage extends StatelessWidget {
   final String url;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   const _ImagePage({
     required this.url,
     required this.onTap,
+    required this.onLongPress,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       onDoubleTap: () {
         // 双击放大
       },

@@ -24,6 +24,7 @@ import '../../features/profile/my_posts_page.dart';
 import '../../features/profile/my_comments_page.dart';
 import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
+import '../../features/profile/acknowledgements_page.dart';
 import '../../features/xdyou/xdyou_host_page_stub.dart'
     if (dart.library.io) '../../features/xdyou/xdyou_host_page.dart';
 import '../../features/admin/admin_login_page.dart';
@@ -225,6 +226,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/help-feedback',
       builder: (context, state) => const HelpAndFeedbackPage(),
+    ),
+    GoRoute(
+      path: '/profile/acknowledgements',
+      builder: (context, state) => const AcknowledgementsPage(),
     ),
     GoRoute(
       path: '/legal/terms',

@@ -87,6 +87,8 @@ enum Preference {
     key: "notification_last_locale",
     type: "String",
   ), // 上次通知使用的语言
+  homeFunctionOrder(key: "home_function_order", type: "String"), // 主页功能顺序
+  homeHiddenFunctions(key: "home_hidden_functions", type: "String"), // 主页隐藏功能
   dormWaterToken(key: "dorm_water_token", type: "String"), // 宿舍水机登录 token
   dormWaterUid(key: "dorm_water_uid", type: "String"), // 宿舍水机用户 uid
   dormWaterEid(key: "dorm_water_eid", type: "String"); // 宿舍水机用户 eid

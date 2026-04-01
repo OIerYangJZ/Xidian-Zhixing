@@ -479,6 +479,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _upload_handler.handle_upload_avatar(self, db)
                 return
 
+            if path in {
+                "/api/users/notification-preferences",
+                "/api/users/me/notification-preferences",
+            }:
+                _user_handler.handle_update_notification_preferences(self, db)
+                return
+
             if path == "/api/users/me/cancellation-request":
                 _comment_handler.handle_cancel_account_request(self, db)
                 return
@@ -662,7 +669,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _user_handler.handle_update_privacy(self, db)
                 return
 
-            if path == "/api/users/notification-preferences":
+            if path in {
+                "/api/users/notification-preferences",
+                "/api/users/me/notification-preferences",
+            }:
                 _user_handler.handle_update_notification_preferences(self, db)
                 return
 

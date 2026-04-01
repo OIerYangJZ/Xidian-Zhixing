@@ -423,6 +423,12 @@ homepage:
       score_cannot_reach: "Offline mode with no cached score data, unable to access"
       exam_fetching: "Fetching exam information, please wait"
       exam_error: "An error occurred, please contact the developer"
+   customize:
+      title: "Customize function layout"
+      done: "Done"
+      add: "Add hidden function"
+      hidden_empty: "No hidden functions to add"
+      keep_one: "Keep at least one function entry"
    school_net:
       title: "Used {usage}"
       no_password: "The query password is not set, click to set up"

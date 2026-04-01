@@ -32,24 +32,47 @@ class NotificationItem {
   final String readAt;
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
-    final String readAt = (json['readAt'] ?? '').toString();
+    String _readString(List<String> keys, {String fallback = ''}) {
+      for (final key in keys) {
+        final value = json[key];
+        if (value == null) continue;
+        final text = value.toString();
+        if (text.isNotEmpty) return text;
+      }
+      return fallback;
+    }
+
+    final String readAt =
+        _readString(<String>['readAt', 'read_at', 'readTime']);
+    final String createdAt = _readString(
+      <String>['createdAt', 'created_at', 'time', 'timestamp'],
+    );
+
     return NotificationItem(
-      id: (json['id'] ?? '').toString(),
-      type: (json['type'] ?? 'system').toString(),
-      title: (json['title'] ?? '').toString(),
-      content: (json['content'] ?? '').toString(),
-      relatedType: (json['relatedType'] ?? '').toString(),
-      relatedId: (json['relatedId'] ?? '').toString(),
-      postId: (json['postId'] ?? '').toString(),
-      actorId: (json['actorId'] ?? '').toString(),
-      actorAlias: (json['actorAlias'] ?? '').toString(),
-      actorAvatarUrl: (json['actorAvatarUrl'] ??
-              json['actorAvatar'] ??
-              json['avatarUrl'] ??
-              '')
-          .toString(),
-      createdAt: (json['createdAt'] ?? '').toString(),
-      timeText: (json['timeText'] ?? json['createdAt'] ?? '').toString(),
+      id: _readString(<String>['id', 'notificationId', 'notification_id']),
+      type: _readString(<String>['type', 'notificationType', 'notification_type'], fallback: 'system'),
+      title: _readString(<String>['title']),
+      content: _readString(<String>['content', 'message']),
+      relatedType: _readString(<String>['relatedType', 'related_type']),
+      relatedId: _readString(<String>['relatedId', 'related_id']),
+      postId: _readString(<String>['postId', 'post_id']),
+      actorId: _readString(<String>['actorId', 'actor_id']),
+      actorAlias: _readString(<String>['actorAlias', 'actor_alias', 'nickname', 'fromAlias']),
+      actorAvatarUrl: _readString(<String>[
+        'actorAvatarUrl',
+        'actor_avatar_url',
+        'actorAvatar',
+        'actor_avatar',
+        'fromAvatarUrl',
+        'from_avatar_url',
+        'avatarUrl',
+        'avatar_url',
+        'avatar',
+      ]),
+      createdAt: createdAt,
+      timeText: _readString(
+        <String>['timeText', 'time_text', 'createdAt', 'created_at'],
+      ),
       isRead: _toBool(json['isRead']) ?? readAt.trim().isNotEmpty,
       readAt: readAt,
     );

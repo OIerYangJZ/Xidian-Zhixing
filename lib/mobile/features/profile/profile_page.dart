@@ -9,6 +9,7 @@ import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/models/my_comment_item.dart';
 import 'package:xdu_treehole_web/models/follow_user_item.dart';
 import '../../core/state/mobile_providers.dart';
@@ -777,6 +778,74 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
     }
   }
 
+  Future<void> _openCommentDetail(MyCommentItem comment) async {
+    String postId = comment.postId.trim();
+    if (postId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('正在定位原帖...'),
+            duration: Duration(milliseconds: 900),
+          ),
+        );
+      }
+      postId = await _resolvePostIdByCommentId(comment.id);
+    }
+
+    if (!mounted) return;
+    if (postId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('无法定位到原帖，帖子可能已删除或无访问权限')),
+      );
+      return;
+    }
+    context.push(
+      '/post/${Uri.encodeComponent(postId)}?commentId=${Uri.encodeComponent(comment.id)}',
+    );
+  }
+
+  Future<String> _resolvePostIdByCommentId(String commentId) async {
+    final String targetCommentId = commentId.trim();
+    if (targetCommentId.isEmpty) {
+      return '';
+    }
+
+    final postRepo = ref.read(postRepositoryProvider);
+    final List<PostItem> candidates = <PostItem>[];
+    try {
+      candidates.addAll(await postRepo.fetchMyPosts());
+    } catch (_) {}
+    try {
+      candidates.addAll(await postRepo.fetchFavoritePosts());
+    } catch (_) {}
+    try {
+      candidates.addAll(await postRepo.fetchPosts());
+    } catch (_) {}
+
+    final Set<String> seenPostIds = <String>{};
+    final List<String> orderedPostIds = <String>[];
+    for (final PostItem post in candidates) {
+      final String postId = post.id.trim();
+      if (postId.isEmpty || !seenPostIds.add(postId)) {
+        continue;
+      }
+      orderedPostIds.add(postId);
+      if (orderedPostIds.length >= 200) {
+        break;
+      }
+    }
+
+    for (final String postId in orderedPostIds) {
+      try {
+        final List<CommentItem> comments = await postRepo.fetchComments(postId);
+        if (comments.any((CommentItem c) => c.id.trim() == targetCommentId)) {
+          return postId;
+        }
+      } catch (_) {}
+    }
+    return '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
@@ -796,18 +865,7 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
         final c = _comments[i];
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {
-            final String postId = c.postId.trim();
-            if (postId.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('暂时无法定位到原帖，请刷新后重试')),
-              );
-              return;
-            }
-            context.push(
-              '/post/${Uri.encodeComponent(postId)}?commentId=${Uri.encodeComponent(c.id)}',
-            );
-          },
+          onTap: () => _openCommentDetail(c),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
