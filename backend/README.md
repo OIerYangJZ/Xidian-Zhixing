@@ -37,7 +37,7 @@ python3 backend/server.py
 - `BACKEND_SMTP_USERNAME`（SMTP 登录账号）
 - `BACKEND_SMTP_PASSWORD`（SMTP 登录密码/授权码）
 - `BACKEND_SMTP_FROM_EMAIL`（发件邮箱，默认同 `BACKEND_SMTP_USERNAME`）
-- `BACKEND_SMTP_FROM_NAME`（默认 `西电树洞`）
+- `BACKEND_SMTP_FROM_NAME`（默认 `电台`）
 - `BACKEND_SMTP_USE_SSL`（默认 `true`，QQ 推荐 `true`）
 - `BACKEND_SMTP_USE_STARTTLS`（默认 `false`，QQ 推荐 `false`）
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE`（默认 `false`，设置为 `true` 后允许 `123456` 调试码）
@@ -174,7 +174,7 @@ BACKEND_SMTP_PORT=465 \
 BACKEND_SMTP_USERNAME=your@qq.com \
 BACKEND_SMTP_PASSWORD='替换为你的 QQ 邮箱 SMTP 授权码（不是QQ登录密码）' \
 BACKEND_SMTP_FROM_EMAIL=your@qq.com \
-BACKEND_SMTP_FROM_NAME=西电树洞 \
+BACKEND_SMTP_FROM_NAME=电台 \
 BACKEND_SMTP_USE_SSL=true \
 BACKEND_SMTP_USE_STARTTLS=false \
 python3 backend/server.py

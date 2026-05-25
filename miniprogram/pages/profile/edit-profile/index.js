@@ -142,7 +142,7 @@ Page({
       wx.showToast({ title: '资料已保存', icon: 'success' });
       await this.loadProfile();
       setTimeout(() => {
-        wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/profile/index' }) });
+        wx.navigateBack({ fail: () => wx.navigateTo({ url: '/pages/profile/index' }) });
       }, 400);
     } catch (error) {
       wx.hideLoading();

@@ -1,4 +1,12 @@
-<view class="page ai-page {{themeClass}}">
+<view class="page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
+  <view class="ai-topbar">
+    <view class="nav-menu" bindtap="openDrawer"><view></view><view></view><view></view></view>
+    <view>
+      <view class="ai-title">AI</view>
+      <view class="ai-subtitle">{{subtitleText}}</view>
+    </view>
+  </view>
   <view class="ai-action-bar">
     <button class="new-chat-btn" bindtap="startNewChat">
       <text class="icon">+</text>

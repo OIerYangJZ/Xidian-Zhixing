@@ -648,7 +648,7 @@ def handle_xidian_auth_callback(
             handler,
             status=HTTPStatus.GONE,
             title="登录已过期",
-            message="这次统一认证登录已失效，请返回西电树洞重新发起登录。",
+            message="这次统一认证登录已失效，请返回电台重新发起登录。",
             cookies=[_clear_attempt_cookie(handler)],
         )
         return
@@ -721,7 +721,7 @@ def handle_xidian_auth_callback(
             handler,
             status=HTTPStatus.GONE,
             title="登录已过期",
-            message="登录结果已过期，请返回西电树洞重新发起登录。",
+            message="登录结果已过期，请返回电台重新发起登录。",
             cookies=[_clear_attempt_cookie(handler)],
         )
         return
@@ -739,7 +739,7 @@ def handle_xidian_auth_callback(
         handler,
         status=HTTPStatus.OK,
         title="登录成功",
-        message="统一认证已经完成，请返回西电树洞 App，登录状态会自动同步。",
+        message="统一认证已经完成，请返回电台，登录状态会自动同步。",
     )
 
 

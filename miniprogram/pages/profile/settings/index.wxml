@@ -63,6 +63,6 @@
     </view>
 
     <button class="logout-button" loading="{{loggingOut}}" bindtap="handleLogout">退出登录</button>
-    <view class="settings-brand">西电树洞 See电</view>
+    <view class="settings-brand">电台</view>
   </view>
 </view>

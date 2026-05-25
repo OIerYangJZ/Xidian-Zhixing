@@ -48,3 +48,7 @@ export const sendAiMessage = (content, options = {}) => {
     messages: options.messages || []
   }, { timeout: 60000 });
 };
+
+export const askAiWithPostSelection = (payload) => {
+  return request.post('/api/ai/post-selection', payload, { timeout: 60000 });
+};

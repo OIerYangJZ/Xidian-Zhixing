@@ -1,0 +1,11 @@
+.hot-page { padding: 32rpx 0; background: var(--app-background); }
+.hot-header { display: flex; align-items: center; justify-content: space-between; padding: 0 32rpx 22rpx; }
+.hot-title { color: var(--app-text-primary); font-size: 42rpx; font-weight: 750; }
+.summary-btn { width: 154rpx; height: 64rpx; border-radius: 18rpx; background: var(--app-primary); color: #fff; font-size: 25rpx; line-height: 64rpx; }
+.summary-card { margin: 0 32rpx 24rpx; padding: 24rpx; border-radius: 24rpx; background: var(--app-primary-soft); color: var(--app-primary); font-size: 26rpx; line-height: 1.5; }
+.hot-row { display: flex; gap: 20rpx; padding: 24rpx 32rpx; border-top: 1rpx solid var(--app-divider); background: var(--app-surface); }
+.hot-rank { width: 52rpx; height: 52rpx; border-radius: 16rpx; background: var(--app-control); color: var(--app-primary); font-size: 26rpx; font-weight: 750; line-height: 52rpx; text-align: center; }
+.hot-body { flex: 1; min-width: 0; }
+.hot-name { color: var(--app-text-primary); font-size: 30rpx; font-weight: 700; line-height: 1.35; }
+.hot-summary { margin-top: 6rpx; color: var(--app-text-secondary); font-size: 25rpx; line-height: 1.45; }
+.hot-meta { margin-top: 10rpx; color: var(--app-text-tertiary); font-size: 23rpx; }

@@ -219,6 +219,8 @@ def handle_get_posts(
     status = (query.get("status", [""])[0] or "").strip().lower()
     sort_by = (query.get("sort", ["latest"])[0] or "latest").strip().lower()
     author_id = (query.get("authorId", [""])[0] or "").strip()
+    section_id = (query.get("sectionId", [""])[0] or "").strip()
+    section_type = (query.get("sectionType", [""])[0] or "").strip()
 
     filtered_posts = []
     for post in list_posts(db, sort_by=sort_by):
@@ -233,6 +235,10 @@ def handle_get_posts(
         if allow_dm is not None and _globals.effective_post_allow_dm(db, post) != allow_dm:
             continue
         if author_id and str(post.get("authorId", "")).strip() != author_id:
+            continue
+        if section_id and str(post.get("sectionId", "")).strip() != section_id:
+            continue
+        if section_type and str(post.get("sectionType", "")).strip() != section_type:
             continue
 
         if keyword:
@@ -598,6 +604,11 @@ def handle_create_post(
     channel = str(body.get("channel", "")).strip()
     if not channel:
         channel = available_channels[0] if available_channels else "综合"
+    section_type = str(body.get("sectionType", "school")).strip().lower() or "school"
+    section_id = str(body.get("sectionId", "xdu")).strip() or "xdu"
+    section_name = str(body.get("sectionName", "学校总分区")).strip() or "学校总分区"
+    publisher_type = str(body.get("publisherType", "user")).strip().lower() or "user"
+    publisher_club_id = str(body.get("publisherClubId", body.get("clubId", ""))).strip()
     raw_tags = body.get("tags", [])
     tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()] if isinstance(raw_tags, list) else []
     raw_image_ids = body.get("imageUploadIds") or body.get("imageIds") or []
@@ -616,6 +627,25 @@ def handle_create_post(
     if channel not in available_channels:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的频道")
         return
+    if section_type not in {"school", "college", "channel", "club"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的分区类型")
+        return
+    if publisher_type not in {"user", "club"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的发布身份")
+        return
+    if publisher_type == "club":
+        member = next(
+            (
+                row for row in db.get("clubMembers", [])
+                if str(row.get("clubId", "")) == publisher_club_id
+                and str(row.get("userId", "")) == str(user.get("id", ""))
+                and str(row.get("role", "")) in {"owner", "manager"}
+            ),
+            None,
+        )
+        if member is None:
+            json_error(handler, HTTPStatus.FORBIDDEN, "仅社团负责人可使用社团名义发布")
+            return
     if pin_duration_minutes is not None and not is_level_one_user(user):
         json_error(handler, HTTPStatus.FORBIDDEN, "仅一级用户可在发帖时直接置顶")
         return
@@ -699,10 +729,27 @@ def handle_create_post(
         "createdAt": now_iso(),
         "updatedAt": now_iso(),
         "deleted": False,
-        "reviewStatus": "approved",
+        "reviewStatus": "pending" if risk_marked else "approved",
         "riskMarked": risk_marked,
         "isAnonymous": use_anonymous_alias,
+        "sectionType": section_type,
+        "sectionId": section_id,
+        "sectionName": section_name,
+        "publisherType": publisher_type,
+        "publisherClubId": publisher_club_id if publisher_type == "club" else "",
+        "shareCount": 0,
     }
+    if risk_marked:
+        from handlers._radio_handler import add_moderation_task
+
+        add_moderation_task(
+            db,
+            target_type="post",
+            target_id=post["id"],
+            title=title or content[:40],
+            content=content,
+            risk_reasons=risk_reasons,
+        )
     if pin_duration_minutes is not None:
         apply_post_pin(
             post,
@@ -813,11 +860,22 @@ def handle_create_comment(
         "likeCount": 0,
         "createdAt": now_iso(),
         "deleted": False,
-        "reviewStatus": "approved",
+        "reviewStatus": "pending" if risk_marked else "approved",
         "riskMarked": risk_marked,
         "isAnonymous": False,
         "parentId": str(body.get("parentId", body.get("replyToId", ""))).strip(),
     }
+    if risk_marked:
+        from handlers._radio_handler import add_moderation_task
+
+        add_moderation_task(
+            db,
+            target_type="comment",
+            target_id=comment["id"],
+            title="疑似敏感评论",
+            content=comment_content,
+            risk_reasons=risk_reasons,
+        )
     db["comments"].append(comment)
 
     post_author_id = str(post.get("authorId", "")).strip()

@@ -90,7 +90,7 @@ SMTP_PORT: int = 465
 SMTP_USERNAME: str = ""
 SMTP_PASSWORD: str = ""
 SMTP_FROM_EMAIL: str = ""
-SMTP_FROM_NAME: str = "西电树洞"
+SMTP_FROM_NAME: str = "电台"
 SMTP_USE_SSL: bool = True
 SMTP_USE_STARTTLS: bool = False
 BACKEND_XIDIAN_PUBLIC_ORIGIN: str = ""
@@ -207,7 +207,7 @@ def configure() -> None:
     SMTP_USERNAME = os.environ.get("BACKEND_SMTP_USERNAME", "").strip()
     SMTP_PASSWORD = os.environ.get("BACKEND_SMTP_PASSWORD", "").strip()
     SMTP_FROM_EMAIL = os.environ.get("BACKEND_SMTP_FROM_EMAIL", SMTP_USERNAME).strip()
-    SMTP_FROM_NAME = os.environ.get("BACKEND_SMTP_FROM_NAME", "西电树洞").strip() or "西电树洞"
+    SMTP_FROM_NAME = os.environ.get("BACKEND_SMTP_FROM_NAME", "电台").strip() or "电台"
     SMTP_USE_SSL = os.environ.get("BACKEND_SMTP_USE_SSL", "true").strip().lower() in {"1", "true", "yes", "on"}
     SMTP_USE_STARTTLS = os.environ.get("BACKEND_SMTP_USE_STARTTLS", "false").strip().lower() in {"1", "true", "yes", "on"}
     BACKEND_XIDIAN_PUBLIC_ORIGIN = os.environ.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip().rstrip("/")

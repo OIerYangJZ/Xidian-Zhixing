@@ -1,0 +1,7 @@
+.apply-page { padding: 28rpx 32rpx 80rpx; background: var(--app-background); }
+.field-label { margin: 24rpx 0 10rpx; color: var(--app-text-primary); font-size: 26rpx; font-weight: 650; }
+.submit-btn { margin-top: 30rpx; height: 82rpx; border-radius: 20rpx; background: var(--app-primary); color: #fff; font-size: 29rpx; line-height: 82rpx; }
+.history-title { margin-top: 46rpx; color: var(--app-text-secondary); font-size: 25rpx; font-weight: 650; }
+.history-row { display: flex; justify-content: space-between; padding: 22rpx 0; border-bottom: 1rpx solid var(--app-divider); }
+.history-name { color: var(--app-text-primary); font-size: 28rpx; font-weight: 650; }
+.history-status { color: var(--app-primary); font-size: 25rpx; }

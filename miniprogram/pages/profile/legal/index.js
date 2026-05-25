@@ -65,7 +65,7 @@ const CONTENT = {
     sections: [
       {
         heading: '项目说明',
-        body: 'XDU WhisperBox 由校园社区需求驱动，感谢参与测试、反馈问题和维护内容秩序的同学。'
+        body: '电台由校园社区需求驱动，感谢参与测试、反馈问题和维护内容秩序的同学。'
       },
       {
         heading: '技术生态',

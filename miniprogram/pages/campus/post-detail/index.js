@@ -12,6 +12,7 @@ import {
   unfavoritePost
 } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
+import { askAiWithPostSelection } from '../../../api/ai';
 import { followUser, unfollowUser } from '../../../api/user';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { markdownToNodes } from '../../../utils/markdown';
@@ -115,7 +116,7 @@ Page({
   },
 
   onShareAppMessage() {
-    const title = this.data.post ? this.data.post.displayTitle : '西电树洞';
+    const title = this.data.post ? this.data.post.displayTitle : '电台';
     return {
       title,
       path: `/pages/campus/post-detail/index?id=${this.data.postId}`
@@ -131,7 +132,7 @@ Page({
   },
 
   goBack() {
-    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/campus/index' }) });
+    wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/treehole/index' }) });
   },
 
   async loadDetail() {
@@ -233,7 +234,7 @@ Page({
         try {
           await deletePost(this.data.postId);
           wx.showToast({ title: '已删除', icon: 'success' });
-          setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/campus/index' }) }), 500);
+          setTimeout(() => wx.navigateBack({ fail: () => wx.switchTab({ url: '/pages/treehole/index' }) }), 500);
         } catch (error) {}
       }
     });
@@ -242,7 +243,7 @@ Page({
   openAuthorProfile() {
     const userId = this.data.post && this.data.post.authorUserId;
     if (this.data.post && this.data.post.isOwnPost) {
-      wx.switchTab({ url: '/pages/profile/index' });
+      wx.navigateTo({ url: '/pages/profile/index' });
       return;
     }
     if (!userId || this.data.post.isAnonymous) return;
@@ -327,14 +328,38 @@ Page({
 
   showPostOptions() {
     if (!this.data.post) return;
-    const itemList = ['举报'];
+    const itemList = ['问 AI', '举报'];
     if (this.data.post.isOwnPost) itemList.push('删除');
     wx.showActionSheet({
       itemList,
       success: (res) => {
         const action = itemList[res.tapIndex];
+        if (action === '问 AI') this.askAiAboutSelection();
         if (action === '举报') this.reportPost();
         if (action === '删除') this.deleteOwnPost();
+      }
+    });
+  },
+
+  askAiAboutSelection() {
+    if (!this.data.post) return;
+    wx.showModal({
+      title: '问 AI',
+      editable: true,
+      placeholderText: '粘贴选中的帖子文字，或直接确认让 AI 分析全文',
+      confirmText: '提问',
+      success: async (modal) => {
+        if (!modal.confirm) return;
+        const selectedText = String(modal.content || '').trim() || `${this.data.post.title || ''}\n${this.data.post.content || ''}`;
+        const response = await askAiWithPostSelection({
+          postId: this.data.post.id,
+          selectedText,
+          question: '请解释这段内容并给出相关校园信息线索'
+        });
+        const data = response.data || response || {};
+        wx.navigateTo({
+          url: `/pages/ai/chat/index?answer=${encodeURIComponent(data.answer || selectedText)}`
+        });
       }
     });
   },

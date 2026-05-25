@@ -213,6 +213,12 @@ class SqliteTreeholeRepository:
               pin_expires_at TEXT NULL,
               pin_duration_minutes INTEGER NOT NULL DEFAULT 0,
               view_count INTEGER NOT NULL DEFAULT 0,
+              section_type TEXT NOT NULL DEFAULT '',
+              section_id TEXT NOT NULL DEFAULT '',
+              section_name TEXT NOT NULL DEFAULT '',
+              publisher_type TEXT NOT NULL DEFAULT 'user',
+              publisher_club_id TEXT NOT NULL DEFAULT '',
+              share_count INTEGER NOT NULL DEFAULT 0,
               created_at TEXT NOT NULL,
               updated_at TEXT NOT NULL,
               deleted INTEGER NOT NULL DEFAULT 0,
@@ -358,7 +364,9 @@ class SqliteTreeholeRepository:
               user_nickname TEXT NOT NULL DEFAULT '',
               content TEXT NOT NULL,
               contact TEXT NOT NULL DEFAULT '',
+              category TEXT NOT NULL DEFAULT '其他反馈',
               status TEXT NOT NULL DEFAULT 'pending',
+              school_reply TEXT NOT NULL DEFAULT '',
               created_at TEXT NOT NULL,
               handled_at TEXT NULL,
               handled_by TEXT NULL,
@@ -564,6 +572,12 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "posts", "pin_expires_at", "TEXT NULL")
         self._ensure_column(conn, "posts", "pin_duration_minutes", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "posts", "view_count", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "posts", "section_type", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "section_id", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "section_name", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "publisher_type", "TEXT NOT NULL DEFAULT 'user'")
+        self._ensure_column(conn, "posts", "publisher_club_id", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "posts", "share_count", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "dm_requests", "from_user_id", "TEXT NULL")
         self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")
@@ -571,6 +585,8 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "conversations", "unread_count", "INTEGER NOT NULL DEFAULT 0")
         self._ensure_column(conn, "conversations", "last_read_at", "TEXT NULL")
         self._ensure_column(conn, "conversations", "deleted", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "feedbacks", "category", "TEXT NOT NULL DEFAULT '其他反馈'")
+        self._ensure_column(conn, "feedbacks", "school_reply", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "direct_messages", "reply_to_id", "TEXT NULL")
         self._ensure_column(conn, "direct_messages", "reply_to_sender", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "direct_messages", "reply_to_content", "TEXT NOT NULL DEFAULT ''")
@@ -687,6 +703,32 @@ class SqliteTreeholeRepository:
                 except json.JSONDecodeError:
                     db["settings"][row["setting_key"]] = text_val
 
+        radio_state = db["settings"].get("radioState")
+        if isinstance(radio_state, dict):
+            for key in (
+                "sections",
+                "clubs",
+                "clubApplications",
+                "clubMembers",
+                "announcements",
+                "announcementSources",
+                "announcementPreferences",
+                "campusServices",
+                "campusMaps",
+                "hotTopics",
+                "hotTopicSummaries",
+                "knowledgeSources",
+                "knowledgeDocuments",
+                "knowledgeChunks",
+                "aiConversations",
+                "aiMessages",
+                "aiCitations",
+                "dailySummaries",
+                "moderationTasks",
+            ):
+                value = radio_state.get(key)
+                db[key] = value if isinstance(value, list) else []
+
         for row in conn.execute(
             """
             SELECT id, username, password_hash, role, active, created_at, updated_at, created_by
@@ -722,7 +764,7 @@ class SqliteTreeholeRepository:
             SELECT id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
                    visibility, is_anonymous,
                    author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
-                   view_count,
+                   view_count, section_type, section_id, section_name, publisher_type, publisher_club_id, share_count,
                    created_at, updated_at, deleted, review_status, risk_marked
             FROM posts
             ORDER BY created_at DESC, id DESC
@@ -755,6 +797,12 @@ class SqliteTreeholeRepository:
                     "pinExpiresAt": _to_str(row["pin_expires_at"]),
                     "pinDurationMinutes": _to_int(row["pin_duration_minutes"], 0),
                     "viewCount": _to_int(row["view_count"], 0),
+                    "sectionType": _to_str(row["section_type"]),
+                    "sectionId": _to_str(row["section_id"]),
+                    "sectionName": _to_str(row["section_name"]),
+                    "publisherType": _to_str(row["publisher_type"]) or "user",
+                    "publisherClubId": _to_str(row["publisher_club_id"]),
+                    "shareCount": _to_int(row["share_count"], 0),
                     "createdAt": row["created_at"],
                     "updatedAt": row["updated_at"],
                     "deleted": _to_bool(row["deleted"]),
@@ -934,8 +982,8 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, user_id, user_email, user_nickname, content, contact, status,
-                   created_at, handled_at, handled_by
+            SELECT id, user_id, user_email, user_nickname, content, contact, category, status,
+                   school_reply, created_at, handled_at, handled_by
             FROM feedbacks
             ORDER BY created_at DESC, id DESC
             """
@@ -948,7 +996,9 @@ class SqliteTreeholeRepository:
                     "userNickname": _to_str(row["user_nickname"]),
                     "content": _to_str(row["content"]),
                     "contact": _to_str(row["contact"]),
+                    "category": _to_str(row["category"], "其他反馈"),
                     "status": _to_str(row["status"], "pending"),
+                    "schoolReply": _to_str(row["school_reply"]),
                     "createdAt": _to_str(row["created_at"]),
                     "handledAt": _to_str(row["handled_at"]),
                     "handledBy": _to_str(row["handled_by"]),
@@ -1261,7 +1311,28 @@ class SqliteTreeholeRepository:
                         (w, created_now),
                     )
 
-            settings = db.get("settings", {})
+            settings = dict(db.get("settings", {}) if isinstance(db.get("settings", {}), dict) else {})
+            settings["radioState"] = {
+                "sections": db.get("sections", []),
+                "clubs": db.get("clubs", []),
+                "clubApplications": db.get("clubApplications", []),
+                "clubMembers": db.get("clubMembers", []),
+                "announcements": db.get("announcements", []),
+                "announcementSources": db.get("announcementSources", []),
+                "announcementPreferences": db.get("announcementPreferences", []),
+                "campusServices": db.get("campusServices", []),
+                "campusMaps": db.get("campusMaps", []),
+                "hotTopics": db.get("hotTopics", []),
+                "hotTopicSummaries": db.get("hotTopicSummaries", []),
+                "knowledgeSources": db.get("knowledgeSources", []),
+                "knowledgeDocuments": db.get("knowledgeDocuments", []),
+                "knowledgeChunks": db.get("knowledgeChunks", []),
+                "aiConversations": db.get("aiConversations", []),
+                "aiMessages": db.get("aiMessages", []),
+                "aiCitations": db.get("aiCitations", []),
+                "dailySummaries": db.get("dailySummaries", []),
+                "moderationTasks": db.get("moderationTasks", []),
+            }
             if isinstance(settings, dict):
                 for key, value in settings.items():
                     setting_key = _to_str(key).strip()
@@ -1334,9 +1405,9 @@ class SqliteTreeholeRepository:
                       id, title, content, content_format, markdown_source, channel, has_image, status, allow_comment, allow_dm,
                       visibility, is_anonymous,
                       author_alias, author_id, pin_started_at, pin_expires_at, pin_duration_minutes,
-                      view_count,
+                      view_count, section_type, section_id, section_name, publisher_type, publisher_club_id, share_count,
                       created_at, updated_at, deleted, review_status, risk_marked
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         post_id,
@@ -1359,6 +1430,12 @@ class SqliteTreeholeRepository:
                         _to_str(post.get("pinExpiresAt")) or None,
                         _to_int(post.get("pinDurationMinutes"), 0),
                         _to_int(post.get("viewCount"), 0),
+                        _to_str(post.get("sectionType")),
+                        _to_str(post.get("sectionId")),
+                        _to_str(post.get("sectionName")),
+                        _to_str(post.get("publisherType"), "user") or "user",
+                        _to_str(post.get("publisherClubId")),
+                        _to_int(post.get("shareCount"), 0),
                         _to_str(post.get("createdAt")) or created_now,
                         _to_str(post.get("updatedAt")) or created_now,
                         _to_bool_int(post.get("deleted")),
@@ -1624,9 +1701,9 @@ class SqliteTreeholeRepository:
                 conn.execute(
                     """
                     INSERT INTO feedbacks (
-                      id, user_id, user_email, user_nickname, content, contact,
-                      status, created_at, handled_at, handled_by
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      id, user_id, user_email, user_nickname, content, contact, category,
+                      status, school_reply, created_at, handled_at, handled_by
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         feedback_id,
@@ -1635,7 +1712,9 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("userNickname"), "匿名同学"),
                         content,
                         _to_str(row.get("contact")),
+                        _to_str(row.get("category"), "其他反馈"),
                         _to_str(row.get("status"), "pending"),
+                        _to_str(row.get("schoolReply")),
                         _to_str(row.get("createdAt")) or created_now,
                         _to_str(row.get("handledAt")) or None,
                         _to_str(row.get("handledBy")) or None,

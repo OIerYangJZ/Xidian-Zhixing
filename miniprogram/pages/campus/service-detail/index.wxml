@@ -1,0 +1,7 @@
+<view class="page service-detail">
+  <view class="detail-title">{{name}}</view>
+  <view class="detail-card">
+    <view class="detail-status">待接入</view>
+    <view class="detail-text">第一阶段提供前端入口和可扩展数据结构，后续接入学校真实接口后展示实时数据。</view>
+  </view>
+</view>

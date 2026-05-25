@@ -1,4 +1,6 @@
 import { getUserInfo } from '../../../api/auth';
+import { getSectionsTree } from '../../../api/campus';
+import { getClubs } from '../../../api/clubs';
 import { createPost, getChannels } from '../../../api/posts';
 import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
@@ -67,6 +69,12 @@ Page({
     channels: ['综合'],
     channelIndex: 0,
     channelSelectorOpen: false,
+    sections: [],
+    sectionIndex: 0,
+    sectionSelectorOpen: false,
+    clubs: [],
+    clubIdentityIndex: -1,
+    clubIdentityOpen: false,
 
     title: '',
     content: '',
@@ -105,6 +113,8 @@ Page({
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
     this.loadChannels();
+    this.loadSections();
+    this.loadClubs();
     this.loadUserLevel();
   },
 
@@ -137,6 +147,23 @@ Page({
     }
   },
 
+  async loadSections() {
+    const response = await getSectionsTree();
+    const tree = response.data || response || {};
+    const sections = [
+      tree.school,
+      ...(tree.colleges || []),
+      ...(tree.channels || []),
+      ...(tree.clubs || [])
+    ].filter(Boolean);
+    this.setData({ sections });
+  },
+
+  async loadClubs() {
+    const clubs = await getClubs();
+    this.setData({ clubs });
+  },
+
   async loadUserLevel() {
     try {
       const response = await getUserInfo();
@@ -156,6 +183,8 @@ Page({
   closeInlineSelectors() {
     this.setData({
       channelSelectorOpen: false,
+      sectionSelectorOpen: false,
+      clubIdentityOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
       pinSelectorOpen: false,
@@ -179,10 +208,48 @@ Page({
   toggleChannelSelector() {
     this.setData({
       channelSelectorOpen: !this.data.channelSelectorOpen,
+      sectionSelectorOpen: false,
+      clubIdentityOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
       pinSelectorOpen: false,
       visibilitySelectorOpen: false
+    });
+  },
+
+  toggleSectionSelector() {
+    this.setData({
+      sectionSelectorOpen: !this.data.sectionSelectorOpen,
+      channelSelectorOpen: false,
+      clubIdentityOpen: false,
+      tagSelectorOpen: false,
+      statusSelectorOpen: false,
+      pinSelectorOpen: false,
+      visibilitySelectorOpen: false
+    });
+  },
+
+  onSectionTap(event) {
+    const index = Number(event.currentTarget.dataset.index || 0);
+    this.setData({ sectionIndex: index, sectionSelectorOpen: false });
+  },
+
+  toggleClubIdentity() {
+    this.setData({
+      clubIdentityOpen: !this.data.clubIdentityOpen,
+      sectionSelectorOpen: false,
+      channelSelectorOpen: false,
+      tagSelectorOpen: false,
+      statusSelectorOpen: false,
+      pinSelectorOpen: false,
+      visibilitySelectorOpen: false
+    });
+  },
+
+  onClubIdentityTap(event) {
+    this.setData({
+      clubIdentityIndex: Number(event.currentTarget.dataset.index),
+      clubIdentityOpen: false
     });
   },
 
@@ -451,6 +518,11 @@ Page({
         content,
         contentFormat: 'plain',
         channel: this.data.channels[this.data.channelIndex] || '综合',
+        sectionType: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionType) || 'school',
+        sectionId: (this.data.sections[this.data.sectionIndex] && (this.data.sections[this.data.sectionIndex].sectionId || this.data.sections[this.data.sectionIndex].id)) || 'xdu',
+        sectionName: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionName) || '学校总分区',
+        publisherType: this.data.clubIdentityIndex >= 0 ? 'club' : 'user',
+        publisherClubId: this.data.clubIdentityIndex >= 0 && this.data.clubs[this.data.clubIdentityIndex] ? this.data.clubs[this.data.clubIdentityIndex].id : '',
         tags: this.data.tags.slice(0, 5),
         allowComment: true,
         allowDm: !this.data.useAnonymousAlias,

@@ -1,0 +1,32 @@
+.service-detail {
+  padding: 32rpx;
+  background: var(--app-background);
+}
+
+.detail-title {
+  color: var(--app-text-primary);
+  font-size: 42rpx;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.detail-card {
+  margin-top: 28rpx;
+  padding: 28rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: var(--app-surface);
+}
+
+.detail-status {
+  color: var(--app-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.detail-text {
+  margin-top: 12rpx;
+  color: var(--app-text-secondary);
+  font-size: 27rpx;
+  line-height: 1.5;
+}

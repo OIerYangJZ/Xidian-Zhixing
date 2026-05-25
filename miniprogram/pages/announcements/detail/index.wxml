@@ -1,0 +1,11 @@
+<view class="page announcement-detail" wx:if="{{item}}">
+  <view class="detail-type">{{item.type || item.sourceName}}</view>
+  <view class="detail-title">{{item.title}}</view>
+  <view class="detail-meta">{{item.publisher}} · {{item.publishedAt}}</view>
+  <view class="summary-card">
+    <view class="summary-head">AI 摘要</view>
+    <view class="summary-text">{{aiSummary || '尚未生成摘要'}}</view>
+    <button class="summary-button" bindtap="summarize">生成摘要</button>
+  </view>
+  <view class="detail-content">{{item.content}}</view>
+</view>

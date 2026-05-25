@@ -1,0 +1,61 @@
+<view class="drawer-root {{open ? 'open' : ''}}" wx:if="{{open}}">
+  <view class="drawer-mask" bindtap="close"></view>
+  <view class="drawer-panel" catchtap="stop">
+    <view class="drawer-safe"></view>
+    <view class="drawer-profile" bindtap="goProfile" aria-label="进入个人主页">
+      <image wx:if="{{profile && profile.avatarUrl}}" class="drawer-avatar" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="drawer-avatar text-avatar">{{avatarInitial}}</view>
+      <view class="drawer-user">
+        <view class="drawer-name">{{(profile && (profile.nickname || profile.alias)) || '电台用户'}}</view>
+        <view class="drawer-meta">{{(profile && (profile.college || profile.major || profile.email)) || '学院 / 专业待完善'}}</view>
+      </view>
+      <view class="drawer-chevron"></view>
+    </view>
+
+    <view class="drawer-list">
+      <view class="drawer-row" bindtap="goConversations">
+        <view class="drawer-symbol message-symbol"></view>
+        <view class="drawer-row-body">
+          <view class="drawer-row-title">私信</view>
+          <view class="drawer-row-subtitle">完整会话列表</view>
+        </view>
+        <view class="drawer-chevron"></view>
+      </view>
+
+      <view class="drawer-conversations" wx:if="{{conversations.length}}">
+        <view
+          class="drawer-conversation"
+          wx:for="{{conversations}}"
+          wx:key="id"
+          data-index="{{index}}"
+          bindtap="goConversation"
+        >
+          <view class="mini-avatar">{{item.avatarInitial}}</view>
+          <view class="mini-body">
+            <view class="mini-name">{{item.name}}</view>
+            <view class="mini-message">{{item.lastMessage || '暂无新消息'}}</view>
+          </view>
+          <view wx:if="{{item.unreadCount}}" class="mini-badge">{{item.unreadCount}}</view>
+        </view>
+      </view>
+
+      <view class="drawer-row" bindtap="goMailbox">
+        <view class="drawer-symbol mail-symbol"></view>
+        <view class="drawer-row-body">
+          <view class="drawer-row-title">信箱</view>
+          <view class="drawer-row-subtitle">反馈校园服务与平台建议</view>
+        </view>
+        <view class="drawer-chevron"></view>
+      </view>
+
+      <view class="drawer-row" bindtap="goSettings">
+        <view class="drawer-symbol settings-symbol"></view>
+        <view class="drawer-row-body">
+          <view class="drawer-row-title">设置</view>
+          <view class="drawer-row-subtitle">账号、隐私、AI 与显示</view>
+        </view>
+        <view class="drawer-chevron"></view>
+      </view>
+    </view>
+  </view>
+</view>

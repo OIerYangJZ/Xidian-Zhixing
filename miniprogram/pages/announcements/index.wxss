@@ -1,0 +1,59 @@
+.announcements-page { background: var(--app-background); }
+.ios-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  padding-left: 24rpx;
+  padding-right: 260rpx;
+  padding-bottom: 8px;
+  background: var(--app-surface);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+.nav-menu { display: flex; flex-direction: column; justify-content: center; gap: 6rpx; width: 88rpx; height: 88rpx; }
+.nav-menu view { width: 36rpx; height: 4rpx; border-radius: 2rpx; background: var(--app-text-primary); }
+.nav-title { flex: 1; min-width: 0; }
+.nav-name { color: var(--app-text-primary); font-size: 31rpx; font-weight: 700; }
+.nav-subtitle { color: var(--app-text-secondary); font-size: 22rpx; }
+.ann-scroll { height: calc(100vh - env(safe-area-inset-bottom)); }
+.daily-card {
+  margin: 24rpx;
+  padding: 28rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: var(--app-surface);
+}
+.daily-title { color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; }
+.daily-text { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.5; }
+.filter-strip {
+  white-space: nowrap;
+  padding: 0 24rpx 18rpx;
+}
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 58rpx;
+  margin-right: 12rpx;
+  padding: 0 22rpx;
+  border-radius: 18rpx;
+  background: var(--app-control);
+  color: var(--app-text-secondary);
+  font-size: 25rpx;
+  font-weight: 650;
+}
+.filter-chip.active { background: var(--app-primary-soft); color: var(--app-primary); }
+.announcement-card {
+  padding: 28rpx 32rpx;
+  border-top: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+.announcement-head { display: flex; align-items: center; gap: 12rpx; }
+.announcement-type { color: var(--app-primary); font-size: 24rpx; font-weight: 700; }
+.important-badge { height: 32rpx; padding: 0 10rpx; border-radius: 9rpx; background: var(--app-accent-soft); color: var(--app-accent); font-size: 21rpx; line-height: 32rpx; }
+.announcement-title { margin-top: 10rpx; color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; line-height: 1.35; }
+.announcement-summary { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.45; }
+.announcement-footer { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 18rpx; color: var(--app-text-tertiary); font-size: 23rpx; }

@@ -44,12 +44,12 @@ def send_verification_email(
     if not _globals.smtp_configured():
         raise RuntimeError("邮件服务未配置，请设置 BACKEND_SMTP_* 环境变量")
     msg = EmailMessage()
-    msg["Subject"] = "西电树洞邮箱验证码"
+    msg["Subject"] = "电台邮箱验证码"
     msg["From"] = email.utils.formataddr((_globals.SMTP_FROM_NAME, _globals.SMTP_FROM_EMAIL))
     msg["To"] = to_email
     msg.set_content(
         "你好，\n\n"
-        "你的西电树洞验证码为："
+        "你的电台验证码为："
         f"{code}\n"
         f"该验证码将在 {expires_in_minutes} 分钟后过期。\n\n"
         "如果这不是你的操作，请忽略本邮件。"
@@ -81,12 +81,12 @@ def send_password_reset_email(
     if not _globals.smtp_configured():
         raise RuntimeError("邮件服务未配置，请设置 BACKEND_SMTP_* 环境变量")
     msg = EmailMessage()
-    msg["Subject"] = "西电树洞密码重置验证码"
+    msg["Subject"] = "电台密码重置验证码"
     msg["From"] = email.utils.formataddr((_globals.SMTP_FROM_NAME, _globals.SMTP_FROM_EMAIL))
     msg["To"] = to_email
     msg.set_content(
         "你好，\n\n"
-        "你正在进行西电树洞密码重置，验证码为："
+        "你正在进行电台密码重置，验证码为："
         f"{code}\n"
         f"该验证码将在 {expires_in_minutes} 分钟后过期。\n\n"
         "如果这不是你的操作，请忽略本邮件。"

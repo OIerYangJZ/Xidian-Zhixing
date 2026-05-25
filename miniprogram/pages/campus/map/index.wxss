@@ -1,0 +1,68 @@
+.map-page {
+  padding: 32rpx;
+  background: var(--app-background);
+}
+
+.map-title {
+  color: var(--app-text-primary);
+  font-size: 42rpx;
+  font-weight: 750;
+}
+
+.map-stage {
+  position: relative;
+  height: 420rpx;
+  margin: 28rpx 0;
+  overflow: hidden;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: var(--app-surface);
+}
+
+.map-grid {
+  position: absolute;
+  inset: 0;
+  background-size: 64rpx 64rpx;
+  background-image: linear-gradient(to right, var(--app-divider) 1rpx, transparent 1rpx), linear-gradient(to bottom, var(--app-divider) 1rpx, transparent 1rpx);
+}
+
+.map-marker {
+  position: absolute;
+  width: 28rpx;
+  height: 28rpx;
+  border: 6rpx solid var(--app-primary);
+  border-radius: 50%;
+  background: var(--app-surface);
+}
+
+.map-marker.one { left: 18%; top: 28%; }
+.map-marker.two { left: 56%; top: 44%; }
+.map-marker.three { left: 74%; top: 22%; }
+
+.map-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 24rpx 0;
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.map-row-title {
+  color: var(--app-text-primary);
+  font-size: 29rpx;
+  font-weight: 650;
+}
+
+.map-row-desc {
+  margin-top: 6rpx;
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
+.map-row-status {
+  flex: 0 0 auto;
+  color: var(--app-primary);
+  font-size: 24rpx;
+  font-weight: 650;
+}

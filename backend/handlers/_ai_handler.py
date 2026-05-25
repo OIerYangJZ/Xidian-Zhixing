@@ -249,7 +249,7 @@ def _call_chat_completion(
     context_items: list[dict[str, str]],
 ) -> str:
     system_prompt = (
-        "你是西电树洞的校园 AI 助手。请优先依据给定资料回答西安电子科技大学相关问题。"
+        "你是「电台」的校园 AI 助手。请优先依据给定资料回答西安电子科技大学相关问题。"
         "资料不足时要明确说明不确定，并给出下一步查询建议。"
         "可以引用帖子中的公开讨论作为线索，但不要编造政策、时间、地点或联系人。"
         "回答使用简洁中文。"
@@ -369,11 +369,27 @@ def handle_ai_chat(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
         json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
         return
 
+    citations = [
+        {
+            "sourceType": "帖子" if item.get("type") == "post" else "校园知识",
+            "targetType": item.get("type", ""),
+            "targetId": item.get("id", ""),
+            "title": item.get("title", ""),
+            "summary": _clean_text(item.get("content", ""), 120),
+            "publishedAt": item.get("createdAt", ""),
+            "publisher": item.get("channel", ""),
+            "jumpUrl": f"/pages/campus/post-detail/index?id={item.get('id', '')}" if item.get("type") == "post" else "",
+        }
+        for item in context_items
+    ]
+
     send_json(handler, HTTPStatus.OK, {
         "data": {
+            "answer": reply,
             "reply": reply,
             "role": "assistant",
             "model": model,
+            "citations": citations,
             "references": [
                 {
                     "type": item.get("type", ""),
@@ -384,5 +400,8 @@ def handle_ai_chat(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
                 }
                 for item in context_items
             ],
+            "relatedActions": [],
+            "usage": {"sourceCount": len(context_items)},
+            "reviewStatus": "approved",
         }
     })

@@ -1,0 +1,16 @@
+<view class="page hot-page">
+  <view class="hot-header">
+    <view class="hot-title">热榜</view>
+    <button class="summary-btn" bindtap="summarize">AI 总结</button>
+  </view>
+  <view class="summary-card" wx:if="{{summary}}">{{summary}}</view>
+  <view class="hot-row" wx:for="{{topics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="openPost">
+    <view class="hot-rank">{{item.rank}}</view>
+    <view class="hot-body">
+      <view class="hot-name">{{item.title}}</view>
+      <view class="hot-summary">{{item.summary}}</view>
+      <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
+    </view>
+  </view>
+  <view class="empty-state" wx:if="{{topics.length === 0}}">暂无热榜内容</view>
+</view>

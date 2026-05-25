@@ -1,0 +1,33 @@
+<view class="page announcements-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
+  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
+    <view class="nav-menu" bindtap="openDrawer"><view></view><view></view><view></view></view>
+    <view class="nav-title">
+      <view class="nav-name">公告</view>
+      <view class="nav-subtitle">聚合、筛选、摘要</view>
+    </view>
+  </view>
+  <scroll-view scroll-y class="ann-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view class="daily-card" wx:if="{{dailySummary}}">
+      <view class="daily-title">{{dailySummary.title || '每日公告摘要'}}</view>
+      <view class="daily-text">{{dailySummary.summary}}</view>
+    </view>
+    <scroll-view scroll-x class="filter-strip">
+      <view class="filter-chip {{activeType === '' ? 'active' : ''}}" data-type="" bindtap="selectType">全部</view>
+      <view class="filter-chip {{activeType === item ? 'active' : ''}}" wx:for="{{filters.types}}" wx:key="*this" data-type="{{item}}" bindtap="selectType">{{item}}</view>
+    </scroll-view>
+    <view class="announcement-card" wx:for="{{announcements}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
+      <view class="announcement-head">
+        <view class="announcement-type">{{item.type || item.sourceName}}</view>
+        <view wx:if="{{item.isImportant}}" class="important-badge">重要</view>
+      </view>
+      <view class="announcement-title">{{item.title}}</view>
+      <view class="announcement-summary">{{item.aiSummary || item.summary}}</view>
+      <view class="announcement-footer">
+        <text>{{item.publisher}}</text>
+        <text>{{item.publishedAt}}</text>
+      </view>
+    </view>
+    <view class="empty-state" wx:if="{{announcements.length === 0}}">暂无公告</view>
+  </scroll-view>
+</view>

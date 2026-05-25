@@ -35,7 +35,7 @@ Page({
         setTimeout(() => {
           wx.navigateBack({
             delta: 1,
-            fail: () => wx.switchTab({ url: '/pages/profile/index' })
+            fail: () => wx.switchTab({ url: '/pages/treehole/index' })
           });
         }, 1500);
       } else if (res && res.data && res.data.needVerify) {

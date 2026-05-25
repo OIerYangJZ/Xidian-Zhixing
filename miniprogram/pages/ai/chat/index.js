@@ -9,11 +9,11 @@ const normalizeAiReply = (response) => {
 
 const normalizeReferences = (response) => {
   const data = response && response.data ? response.data : response || {};
-  const rows = Array.isArray(data.references) ? data.references : [];
+  const rows = Array.isArray(data.citations) ? data.citations : (Array.isArray(data.references) ? data.references : []);
   return rows.map((item, index) => ({
     ...item,
     key: `${item.type || 'ref'}-${item.id || index}`,
-    title: item.title || (item.type === 'post' ? '相关帖子' : '基础资料')
+    title: item.title || (item.type === 'post' || item.targetType === 'post' ? '相关帖子' : '基础资料')
   }));
 };
 
@@ -34,7 +34,7 @@ Page({
   data: {
     chatId: '',
     messages: [
-      { id: '1', role: 'assistant', content: '你好！我是西电 AI 助手。你可以问我校园信息，也可以让我检索树洞里的公开讨论。' }
+      { id: '1', role: 'assistant', content: '你好，我是电台 AI 助手。你可以问校园信息，也可以让我检索树洞里的公开讨论。' }
     ],
     inputVal: '',
     isSending: false,
@@ -48,8 +48,16 @@ Page({
     if (options.id) {
       this.setData({ chatId: options.id });
     }
-    if (options.q) {
-      this.setData({ inputVal: decodeURIComponent(options.q) });
+    if (options.q || options.prefill) {
+      this.setData({ inputVal: decodeURIComponent(options.q || options.prefill) });
+    }
+    if (options.answer) {
+      this.setData({
+        messages: [
+          ...this.data.messages,
+          { id: `answer-${Date.now()}`, role: 'assistant', content: decodeURIComponent(options.answer) }
+        ]
+      });
     }
     if (!requireLoginPage()) return;
     this.refreshConfigState();

@@ -1293,6 +1293,12 @@ def serialize_post(
         "likeCount": like_count,
         "favoriteCount": favorite_count,
         "viewCount": max(0, int(post.get("viewCount", 0) or 0)),
+        "shareCount": max(0, int(post.get("shareCount", 0) or 0)),
+        "sectionType": str(post.get("sectionType", "")),
+        "sectionId": str(post.get("sectionId", "")),
+        "sectionName": str(post.get("sectionName", "")),
+        "publisherType": str(post.get("publisherType", "user") or "user"),
+        "publisherClubId": str(post.get("publisherClubId", "")),
         "liked": liked,
         "favorited": favorited,
         "status": post.get("status", "ongoing"),
@@ -1464,6 +1470,206 @@ def ensure_admin_accounts(db: dict[str, Any]) -> bool:
 # Database service — schema migration, seeding, persistence
 # ---------------------------------------------------------------------------
 
+RADIO_STATE_KEYS = [
+    "sections",
+    "clubs",
+    "clubApplications",
+    "clubMembers",
+    "announcements",
+    "announcementSources",
+    "announcementPreferences",
+    "campusServices",
+    "campusMaps",
+    "hotTopics",
+    "hotTopicSummaries",
+    "knowledgeSources",
+    "knowledgeDocuments",
+    "knowledgeChunks",
+    "aiConversations",
+    "aiMessages",
+    "aiCitations",
+    "dailySummaries",
+    "moderationTasks",
+]
+
+
+def _default_sections(created: str) -> list[dict[str, Any]]:
+    colleges = [
+        ("college-cs", "计算机科学与技术学院", "cs"),
+        ("college-ee", "电子工程学院", "ee"),
+        ("college-is", "网络与信息安全学院", "is"),
+        ("college-me", "机电工程学院", "me"),
+        ("college-math", "数学与统计学院", "math"),
+        ("college-phys", "物理学院", "phys"),
+        ("college-human", "人文学院", "human"),
+        ("college-econ", "经济与管理学院", "econ"),
+    ]
+    channels = [
+        ("channel-general", "综合", "general"),
+        ("channel-study", "学习交流", "study"),
+        ("channel-help", "求助问答", "help"),
+        ("channel-secondhand", "二手交易", "secondhand"),
+        ("channel-life", "吐槽日常", "life"),
+    ]
+    rows = [{
+        "id": "school-xdu",
+        "sectionType": "school",
+        "sectionId": "xdu",
+        "sectionName": "学校总分区",
+        "name": "学校总分区",
+        "description": "面向全校同学的公共讨论区",
+        "ruleText": "可浏览、发帖、评论、点赞、收藏、举报。",
+        "createdAt": created,
+        "updatedAt": created,
+        "enabled": True,
+        "sortOrder": 0,
+    }]
+    rows.extend({
+        "id": section_id,
+        "sectionType": "college",
+        "sectionId": key,
+        "sectionName": name,
+        "name": name,
+        "description": "学院分区第一阶段展示规则，后续接入身份接口后做发帖权限校验。",
+        "ruleText": "本学院可发帖，其他学院只读；当前阶段仅展示规则。",
+        "createdAt": created,
+        "updatedAt": created,
+        "enabled": True,
+        "sortOrder": index,
+    } for index, (section_id, name, key) in enumerate(colleges, start=10))
+    rows.extend({
+        "id": section_id,
+        "sectionType": "channel",
+        "sectionId": key,
+        "sectionName": name,
+        "name": name,
+        "description": "按话题聚合树洞内容。",
+        "ruleText": "选择该频道后发帖会保存频道和分区字段。",
+        "createdAt": created,
+        "updatedAt": created,
+        "enabled": True,
+        "sortOrder": index,
+    } for index, (section_id, name, key) in enumerate(channels, start=100))
+    return rows
+
+
+def _default_announcements(created: str) -> list[dict[str, Any]]:
+    seeds = [
+        ("ann-school-1", "学校官方通知", "关于夏季作息与服务窗口调整的通知", "5 月 27 日起部分服务窗口开放时间调整，请同学们提前规划。", "党政办公室", "school", "", "", ["校级", "重要"], True),
+        ("ann-college-1", "学院通知", "计算机学院本科生科研训练报名提醒", "报名截止至 5 月 30 日，学院将按年级和方向组织导师匹配。", "计算机科学与技术学院", "college", "计算机科学与技术学院", "", ["科研", "学院"], True),
+        ("ann-major-1", "专业通知", "软件工程专业课程设计分组安排", "请相关同学在本周内完成小组确认并提交题目偏好。", "软件工程系", "major", "计算机科学与技术学院", "软件工程", ["课程", "专业"], False),
+        ("ann-competition-1", "比赛通知", "校赛创新创业训练营开放报名", "训练营包含选题、路演、商业计划书三场工作坊。", "创新创业学院", "competition", "", "", ["比赛", "训练营"], False),
+        ("ann-club-1", "社团活动", "无线电协会开放日活动预告", "欢迎对硬件、通信和校园技术服务感兴趣的同学参加。", "无线电协会", "club", "", "", ["社团", "活动"], False),
+        ("ann-service-1", "一站式平台消息", "学生事务服务大厅端午值班安排", "端午期间保留应急事项窗口，普通事项节后办理。", "一站式学生社区", "service", "", "", ["一站式", "服务"], False),
+        ("ann-other-1", "其他校内通知", "图书馆研讨间预约系统维护", "维护期间暂不支持新增预约，已预约记录不受影响。", "图书馆", "other", "", "", ["图书馆"], False),
+    ]
+    rows = []
+    for offset, (ann_id, type_name, title, content, publisher, source_type, college, major, tags, important) in enumerate(seeds):
+        rows.append({
+            "id": ann_id,
+            "title": title,
+            "content": content,
+            "summary": content[:80],
+            "aiSummary": "",
+            "publishedAt": created,
+            "createdAt": created,
+            "publisher": publisher,
+            "sourceType": source_type,
+            "sourceName": type_name,
+            "type": type_name,
+            "college": college,
+            "major": major,
+            "tags": tags,
+            "isImportant": important,
+            "originalUrl": "",
+            "jumpUrl": f"/pages/announcements/detail/index?id={ann_id}",
+            "sortOrder": offset,
+            "reviewStatus": "approved",
+        })
+    return rows
+
+
+def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    groups = [
+        ("study", "学习事务", ["课表", "成绩单", "考试安排", "实验安排", "空闲教室", "考勤", "体育成绩"]),
+        ("life", "校园生活", ["宿舍水电", "校园地图", "建筑位置", "楼宇结构图", "教室定位", "办公室定位", "校园功能空间定位"]),
+        ("quick", "快速跳转", ["移动门户跳转", "请销假系统", "体育场馆预约", "学校企业微信", "学校小程序", "其他校内服务入口"]),
+    ]
+    services: list[dict[str, Any]] = []
+    order = 1
+    for group_id, group_name, names in groups:
+        for name in names:
+            services.append({
+                "id": f"svc-{order}",
+                "name": name,
+                "groupId": group_id,
+                "groupName": group_name,
+                "status": "待接入",
+                "description": "第一阶段提供入口和测试模拟页面，后续接入学校真实接口。",
+                "path": "/pages/campus/service-detail/index",
+                "enabled": True,
+                "sortOrder": order,
+                "createdAt": created,
+                "updatedAt": created,
+            })
+            order += 1
+    maps = [
+        {"id": "map-main", "name": "校园地图", "type": "map", "status": "待导入", "description": "预留真实地图数据结构。", "createdAt": created},
+        {"id": "map-building", "name": "楼宇结构图", "type": "building", "status": "待导入", "description": "预留 B 楼等楼宇结构图。", "createdAt": created},
+        {"id": "map-classroom", "name": "教室与办公室定位", "type": "locator", "status": "待接入", "description": "预留教室、办公室和功能空间定位。", "createdAt": created},
+    ]
+    return services, maps
+
+
+def ensure_radio_schema(db: dict[str, Any]) -> bool:
+    changed = False
+    created = now_iso()
+    for key in RADIO_STATE_KEYS:
+        if key not in db or not isinstance(db.get(key), list):
+            db[key] = []
+            changed = True
+    for key in [
+        "section", "club", "clubApplication", "clubMember", "announcement",
+        "announcementSource", "announcementPreference", "campusService",
+        "campusMap", "hotTopic", "hotTopicSummary", "knowledgeSource",
+        "knowledgeDocument", "knowledgeChunk", "aiConversation", "aiMessage",
+        "aiCitation", "dailySummary", "moderationTask",
+    ]:
+        if key not in db.setdefault("seq", {}):
+            db["seq"][key] = 0
+            changed = True
+    if not db.get("sections"):
+        db["sections"] = _default_sections(created)
+        changed = True
+    if not db.get("announcementSources"):
+        db["announcementSources"] = [
+            {"id": "src-school", "name": "学校官方通知", "sourceType": "school", "createdAt": created},
+            {"id": "src-college", "name": "学院通知", "sourceType": "college", "createdAt": created},
+            {"id": "src-major", "name": "专业通知", "sourceType": "major", "createdAt": created},
+            {"id": "src-competition", "name": "比赛通知", "sourceType": "competition", "createdAt": created},
+            {"id": "src-club", "name": "社团活动", "sourceType": "club", "createdAt": created},
+            {"id": "src-service", "name": "一站式平台消息", "sourceType": "service", "createdAt": created},
+            {"id": "src-other", "name": "其他校内通知", "sourceType": "other", "createdAt": created},
+        ]
+        changed = True
+    if not db.get("announcements"):
+        db["announcements"] = _default_announcements(created)
+        changed = True
+    if not db.get("campusServices"):
+        services, maps = _default_campus_services(created)
+        db["campusServices"] = services
+        if not db.get("campusMaps"):
+            db["campusMaps"] = maps
+        changed = True
+    if not db.get("knowledgeSources"):
+        db["knowledgeSources"] = [
+            {"id": "ks-campus", "name": "校园基础知识", "sourceType": "campus", "createdAt": created},
+            {"id": "ks-announcements", "name": "公告聚合", "sourceType": "announcement", "createdAt": created},
+            {"id": "ks-posts", "name": "树洞公开帖子", "sourceType": "post", "createdAt": created},
+        ]
+        changed = True
+    return changed
+
 
 def default_db() -> dict[str, Any]:
     created = now_iso()
@@ -1605,6 +1811,7 @@ def default_db() -> dict[str, Any]:
         "mediaUploads": [],
         "postViews": [],
     }
+    ensure_radio_schema(db)
 
     for row in _globals.SEED_POSTS:
         db["seq"]["post"] += 1
@@ -1633,6 +1840,12 @@ def default_db() -> dict[str, Any]:
                 "deleted": False,
                 "reviewStatus": "approved",
                 "riskMarked": False,
+                "sectionType": "school",
+                "sectionId": "xdu",
+                "sectionName": "学校总分区",
+                "publisherType": "user",
+                "publisherClubId": "",
+                "shareCount": 0,
             }
         )
 
@@ -1746,6 +1959,8 @@ def save_db(db: dict[str, Any]) -> None:
 
 def migrate_db(db: dict[str, Any]) -> bool:
     changed = False
+    if ensure_radio_schema(db):
+        changed = True
 
     if "channels" not in db:
         db["channels"] = list(_globals.DEFAULT_CHANNELS)
@@ -1842,6 +2057,14 @@ def migrate_db(db: dict[str, Any]) -> bool:
         db["emailCodes"] = {}
         changed = True
 
+    for feedback in db.get("feedbacks", []):
+        if "category" not in feedback:
+            feedback["category"] = "其他反馈"
+            changed = True
+        if "schoolReply" not in feedback:
+            feedback["schoolReply"] = ""
+            changed = True
+
     if "seq" not in db:
         db["seq"] = {}
         changed = True
@@ -1922,6 +2145,17 @@ def migrate_db(db: dict[str, Any]) -> bool:
             else:
                 post["isAnonymous"] = True
             changed = True
+        for k, v in {
+            "sectionType": "school",
+            "sectionId": "xdu",
+            "sectionName": "学校总分区",
+            "publisherType": "user",
+            "publisherClubId": "",
+            "shareCount": 0,
+        }.items():
+            if k not in post:
+                post[k] = v
+                changed = True
 
     for comment in db.get("comments", []):
         for k, v in {

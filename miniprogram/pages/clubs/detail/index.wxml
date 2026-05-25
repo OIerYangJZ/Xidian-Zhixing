@@ -1,0 +1,10 @@
+<view class="page club-detail" wx:if="{{club}}">
+  <view class="club-title">{{club.name}}</view>
+  <view class="club-owner">负责人：{{club.ownerName}}</view>
+  <view class="club-text">{{club.description}}</view>
+  <view class="section-title">社团发布</view>
+  <view class="post-row" wx:for="{{club.posts}}" wx:key="id">
+    <view class="post-title">{{item.displayTitle || item.title}}</view>
+    <view class="post-summary">{{item.summary}}</view>
+  </view>
+</view>

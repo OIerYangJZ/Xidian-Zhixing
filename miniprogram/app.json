@@ -1,7 +1,16 @@
 {
   "pages": [
+    "pages/treehole/index",
     "pages/campus/index",
     "pages/ai/index",
+    "pages/announcements/index",
+    "pages/announcements/detail/index",
+    "pages/campus/service-detail/index",
+    "pages/campus/map/index",
+    "pages/treehole/hot/index",
+    "pages/clubs/index",
+    "pages/clubs/detail/index",
+    "pages/clubs/apply/index",
     "pages/profile/index",
     "pages/campus/announcement-detail/index",
     "pages/campus/college/index",
@@ -38,8 +47,11 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "XDU WhisperBox",
+    "navigationBarTitleText": "电台",
     "navigationBarTextStyle": "black"
+  },
+  "usingComponents": {
+    "radio-drawer": "/components/radio-drawer/index"
   },
   "tabBar": {
     "color": "#8E8E93",
@@ -47,10 +59,16 @@
     "backgroundColor": "#ffffff",
     "list": [
       {
-        "pagePath": "pages/campus/index",
-        "text": "首页",
+        "pagePath": "pages/treehole/index",
+        "text": "树洞",
         "iconPath": "assets/tabbar/home.png",
         "selectedIconPath": "assets/tabbar/home_selected.png"
+      },
+      {
+        "pagePath": "pages/campus/index",
+        "text": "校园",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile_selected.png"
       },
       {
         "pagePath": "pages/ai/index",
@@ -59,16 +77,10 @@
         "selectedIconPath": "assets/tabbar/ai_selected.png"
       },
       {
-        "pagePath": "pages/profile/conversations/index",
-        "text": "消息",
+        "pagePath": "pages/announcements/index",
+        "text": "公告",
         "iconPath": "assets/tabbar/messages.png",
         "selectedIconPath": "assets/tabbar/messages_selected.png"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "assets/tabbar/profile.png",
-        "selectedIconPath": "assets/tabbar/profile_selected.png"
       }
     ]
   },

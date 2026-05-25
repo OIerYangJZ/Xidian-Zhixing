@@ -80,7 +80,7 @@ Page({
       if (res && res.data && res.data.token) {
         wx.setStorageSync('token', res.data.token);
         wx.showToast({ title: '已登录', icon: 'success' });
-        setTimeout(() => wx.switchTab({ url: '/pages/profile/index' }), 700);
+        setTimeout(() => wx.switchTab({ url: '/pages/treehole/index' }), 700);
       }
     } catch (error) {
       wx.hideLoading();

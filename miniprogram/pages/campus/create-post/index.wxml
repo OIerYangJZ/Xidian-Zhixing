@@ -30,6 +30,41 @@
       </view>
     </view>
 
+    <view class="compact-selector">
+      <view class="compact-selector-row" bindtap="toggleSectionSelector">
+        <text class="compact-selector-label">分区</text>
+        <text class="compact-selector-pill">{{sections[sectionIndex].sectionName || '学校总分区'}}</text>
+        <text class="selector-arrow">{{sectionSelectorOpen ? '⌃' : '⌄'}}</text>
+      </view>
+      <view class="selector-chip-wrap" wx:if="{{sectionSelectorOpen}}">
+        <view
+          wx:for="{{sections}}"
+          wx:key="id"
+          data-index="{{index}}"
+          class="pill-chip {{sectionIndex === index ? 'active' : ''}}"
+          bindtap="onSectionTap"
+        >{{item.sectionName}}</view>
+      </view>
+    </view>
+
+    <view class="compact-selector" wx:if="{{clubs.length}}">
+      <view class="compact-selector-row" bindtap="toggleClubIdentity">
+        <text class="compact-selector-label">身份</text>
+        <text class="compact-selector-pill">{{clubIdentityIndex >= 0 ? clubs[clubIdentityIndex].name : '个人发布'}}</text>
+        <text class="selector-arrow">{{clubIdentityOpen ? '⌃' : '⌄'}}</text>
+      </view>
+      <view class="selector-chip-wrap" wx:if="{{clubIdentityOpen}}">
+        <view data-index="-1" class="pill-chip {{clubIdentityIndex < 0 ? 'active' : ''}}" bindtap="onClubIdentityTap">个人发布</view>
+        <view
+          wx:for="{{clubs}}"
+          wx:key="id"
+          data-index="{{index}}"
+          class="pill-chip {{clubIdentityIndex === index ? 'active' : ''}}"
+          bindtap="onClubIdentityTap"
+        >{{item.name}}</view>
+      </view>
+    </view>
+
     <view class="create-divider"></view>
 
     <input
@@ -102,7 +137,7 @@
     </scroll-view>
   </view>
 
-  <view class="bottom-editor-bar">
+    <view class="bottom-editor-bar">
     <view class="inline-selector-area" wx:if="{{tagSelectorOpen || statusSelectorOpen || pinSelectorOpen || visibilitySelectorOpen}}">
       <view class="status-selector" wx:if="{{statusSelectorOpen}}">
         <view

@@ -1,6 +1,6 @@
 App({
   globalData: {
-    appName: '西电树洞',
+    appName: '电台',
     clientType: 'wechat-miniprogram'
   },
 

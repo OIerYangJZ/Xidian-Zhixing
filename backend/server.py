@@ -27,6 +27,7 @@ import handlers._comment_handler as _comment_handler
 import handlers._message_handler as _message_handler
 import handlers._notification_handler as _notification_handler
 import handlers._post_handler as _post_handler
+import handlers._radio_handler as _radio_handler
 import handlers._static_handler as _static_handler
 import handlers._upload_handler as _upload_handler
 import handlers._user_handler as _user_handler
@@ -324,10 +325,64 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         with DB_LOCK:
             db = load_db()
 
+            if path == "/api/sections":
+                _radio_handler.handle_get_sections(self, db)
+                return
+            if path == "/api/sections/tree":
+                _radio_handler.handle_get_sections_tree(self, db)
+                return
+            _section_posts_match = re.fullmatch(r"/api/sections/([^/]+)/posts", path)
+            if _section_posts_match:
+                _radio_handler.handle_get_section_posts(self, db, _section_posts_match.group(1), query)
+                return
+
+            if path == "/api/clubs":
+                _radio_handler.handle_get_clubs(self, db)
+                return
+            if path == "/api/clubs/applications/mine":
+                _radio_handler.handle_my_club_applications(self, db)
+                return
+            _club_match = re.fullmatch(r"/api/clubs/([^/]+)", path)
+            if _club_match:
+                _radio_handler.handle_get_club(self, db, _club_match.group(1))
+                return
+
             if path == "/api/announcements":
-                rows = [serialize_system_announcement(row) for row in db.get("systemAnnouncements", [])]
-                rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-                send_json(self, HTTPStatus.OK, {"data": rows})
+                _radio_handler.handle_get_announcements(self, db, query)
+                return
+            if path == "/api/announcements/filters":
+                _radio_handler.handle_announcement_filters(self, db)
+                return
+            if path == "/api/announcements/daily-summary":
+                _radio_handler.handle_daily_summary(self, db)
+                return
+            _announcement_match = re.fullmatch(r"/api/announcements/([^/]+)", path)
+            if _announcement_match:
+                _radio_handler.handle_get_announcement(self, db, _announcement_match.group(1))
+                return
+
+            if path == "/api/campus/services":
+                _radio_handler.handle_campus_services(self, db)
+                return
+            if path == "/api/campus/maps":
+                _radio_handler.handle_campus_maps(self, db)
+                return
+            if path == "/api/campus/quick-links":
+                _radio_handler.handle_campus_quick_links(self, db)
+                return
+
+            if path == "/api/hot-topics":
+                _radio_handler.handle_get_hot_topics(self, db)
+                return
+            if path == "/api/ai/announcements/daily-summary":
+                _radio_handler.handle_ai_daily_summary(self, db)
+                return
+            if path == "/api/ai/hot-topics/summary":
+                _radio_handler.handle_ai_hot_summary(self, db)
+                return
+
+            if path == "/api/admin/clubs/applications":
+                _radio_handler.handle_admin_club_applications(self, db, query)
                 return
 
             # Channels
@@ -508,7 +563,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _admin_handler.handle_admin_android_release(self, db)
                 return
             if path == "/api/admin/announcements":
-                _admin_handler.handle_admin_announcements(self, db)
+                _radio_handler.handle_admin_get_announcements(self, db, query)
                 return
             if path == "/api/releases/android/latest":
                 _admin_handler.handle_public_android_release(self, db)
@@ -543,6 +598,44 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/admin/admin-accounts":
                 _admin_handler.handle_admin_create_account(self, db)
+                return
+
+            if path == "/api/sections":
+                _radio_handler.handle_create_section(self, db)
+                return
+
+            if path == "/api/clubs/applications":
+                _radio_handler.handle_apply_club(self, db)
+                return
+
+            match_club_application = re.fullmatch(r"/api/admin/clubs/applications/([^/]+)/handle", path)
+            if match_club_application:
+                _radio_handler.handle_admin_club_application_action(self, db, match_club_application.group(1))
+                return
+
+            if path == "/api/hot-topics/rebuild":
+                _radio_handler.handle_rebuild_hot_topics(self, db)
+                return
+
+            if path == "/api/ai/search":
+                _radio_handler.handle_ai_search(self, db)
+                return
+
+            if path == "/api/ai/post-selection":
+                _radio_handler.handle_ai_post_selection(self, db)
+                return
+
+            match_ai_announcement_summary = re.fullmatch(r"/api/ai/announcements/([^/]+)/summary", path)
+            if match_ai_announcement_summary:
+                _radio_handler.handle_ai_announcement_summary(self, db, match_ai_announcement_summary.group(1))
+                return
+
+            if path == "/api/admin/ai/knowledge-sources":
+                _radio_handler.handle_admin_knowledge_source(self, db)
+                return
+
+            if path == "/api/admin/ai/reindex":
+                _radio_handler.handle_admin_reindex(self, db)
                 return
 
             if path in {"/api/auth/send-code", "/api/auth/resend-code"}:
@@ -636,7 +729,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             if path == "/api/admin/announcements":
-                _admin_handler.handle_admin_announcement(self, db)
+                _radio_handler.handle_admin_create_announcement(self, db)
+                return
+
+            if path == "/api/admin/announcements/seed-demo":
+                _radio_handler.handle_seed_demo_announcements(self, db)
                 return
 
             if path == "/api/admin/releases/android":
@@ -685,8 +782,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 body = read_json_body(self)
                 content = str(body.get("content", "")).strip()
                 contact = str(body.get("contact", "")).strip()
+                category = str(body.get("category", "其他反馈")).strip() or "其他反馈"
                 if not content:
-                    json_error(self, HTTPStatus.BAD_REQUEST, "反馈内容不能为空")
+                    json_error(self, HTTPStatus.BAD_REQUEST, "信箱内容不能为空")
                     return
                 if len(content) > 1000:
                     json_error(self, HTTPStatus.BAD_REQUEST, "反馈内容不能超过 1000 字")
@@ -698,7 +796,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     "userNickname": user_nickname(user),
                     "content": content,
                     "contact": contact,
+                    "category": category,
                     "status": "pending",
+                    "schoolReply": "",
                     "createdAt": now_iso(),
                     "handledAt": "",
                     "handledBy": "",
@@ -860,6 +960,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/admin/config":
                 _admin_handler.handle_admin_update_config(self, db)
+                return
+
+            match_section = re.fullmatch(r"/api/sections/([^/]+)", path)
+            if match_section:
+                _radio_handler.handle_update_section(self, db, match_section.group(1))
                 return
 
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")

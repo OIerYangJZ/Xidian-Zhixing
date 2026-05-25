@@ -2,6 +2,44 @@
   background: var(--app-background);
 }
 
+.ai-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-height: 112rpx;
+  padding: 12rpx 24rpx;
+  background: var(--app-surface);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.nav-menu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6rpx;
+  width: 88rpx;
+  height: 88rpx;
+}
+
+.nav-menu view {
+  width: 36rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background: var(--app-text-primary);
+}
+
+.ai-title {
+  color: var(--app-text-primary);
+  font-size: 34rpx;
+  font-weight: 750;
+}
+
+.ai-subtitle {
+  color: var(--app-text-secondary);
+  font-size: 23rpx;
+  line-height: 1.35;
+}
+
 .ai-action-bar {
   display: flex;
   align-items: center;

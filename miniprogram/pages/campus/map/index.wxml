@@ -1,0 +1,16 @@
+<view class="page map-page">
+  <view class="map-title">校园地图</view>
+  <view class="map-stage">
+    <view class="map-grid"></view>
+    <view class="map-marker one"></view>
+    <view class="map-marker two"></view>
+    <view class="map-marker three"></view>
+  </view>
+  <view class="map-row" wx:for="{{maps}}" wx:key="id">
+    <view>
+      <view class="map-row-title">{{item.name}}</view>
+      <view class="map-row-desc">{{item.description}}</view>
+    </view>
+    <view class="map-row-status">{{item.status}}</view>
+  </view>
+</view>

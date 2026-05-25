@@ -1,5 +1,5 @@
 <view class="container {{themeClass}}">
-  <view class="title">登录 XDU WhisperBox</view>
+  <view class="title">登录电台</view>
   <view class="subtitle">默认使用学号和密码登录</view>
 
   <view class="form-group">

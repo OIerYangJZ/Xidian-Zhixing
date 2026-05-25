@@ -8,7 +8,10 @@ Page({
     history: [],
     configured: false,
     currentModel: '',
-    subtitleText: '请先配置 OpenAI 兼容接口'
+    subtitleText: '请先配置 OpenAI 兼容接口',
+    drawerOpen: false,
+    touchStartX: 0,
+    touchStartY: 0
   },
 
   onLoad() {
@@ -73,5 +76,27 @@ Page({
     wx.navigateTo({
       url: '/pages/profile/ai-settings/index'
     });
+  },
+
+  openDrawer() {
+    this.setData({ drawerOpen: true });
+  },
+
+  closeDrawer() {
+    this.setData({ drawerOpen: false });
+  },
+
+  onTouchStart(event) {
+    const touch = event.touches && event.touches[0];
+    if (!touch) return;
+    this.setData({ touchStartX: touch.clientX, touchStartY: touch.clientY });
+  },
+
+  onTouchEnd(event) {
+    const touch = event.changedTouches && event.changedTouches[0];
+    if (!touch) return;
+    const deltaX = touch.clientX - this.data.touchStartX;
+    const deltaY = Math.abs(touch.clientY - this.data.touchStartY);
+    if (this.data.touchStartX < 24 && deltaX > 70 && deltaY < 50) this.openDrawer();
   }
 });
