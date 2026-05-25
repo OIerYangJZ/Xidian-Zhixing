@@ -1,0 +1,92 @@
+<view class="page search-page {{themeClass}}">
+  <view class="search-row">
+    <input value="{{keyword}}" placeholder="输入关键词" confirm-type="search" bindinput="onInput" bindconfirm="search" focus />
+    <view class="search-button" bindtap="search">搜索</view>
+  </view>
+
+  <view class="type-row">
+    <view class="type-chip {{activeType === 'posts' ? 'active' : ''}}" data-type="posts" bindtap="onTypeTap">帖子</view>
+    <view class="type-chip {{activeType === 'users' ? 'active' : ''}}" data-type="users" bindtap="onTypeTap">用户</view>
+  </view>
+
+  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{activeType === 'posts'}}">
+    <view class="filter-row">
+      <view
+        wx:for="{{channels}}"
+        wx:key="*this"
+        data-channel="{{item}}"
+        class="filter-chip {{activeChannel === item ? 'active' : ''}}"
+        bindtap="onChannelTap"
+      >{{item}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="sort-row" wx:if="{{activeType === 'posts'}}">
+    <view
+      wx:for="{{sortOptions}}"
+      wx:key="value"
+      data-sort="{{item.value}}"
+      class="sort-chip {{activeSort === item.value ? 'active' : ''}}"
+      bindtap="onSortTap"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="history" wx:if="{{history.length && !searched}}">
+    <view class="section-head">
+      <view class="section-title">最近搜索</view>
+      <view class="clear" bindtap="clearHistory">清空</view>
+    </view>
+    <view class="history-tags">
+      <view class="history-tag" wx:for="{{history}}" wx:key="*this" data-keyword="{{item}}" bindtap="onHistoryTap">{{item}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="empty">搜索中...</view>
+  <view wx:elif="{{searched && activeType === 'posts' && !posts.length}}" class="empty">没有找到相关帖子</view>
+  <view wx:elif="{{searched && activeType === 'users' && !users.length}}" class="empty">没有找到相关用户</view>
+
+  <view wx:if="{{activeType === 'posts' && !loading}}">
+    <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
+      <view class="feed-avatar">{{item.authorInitial}}</view>
+      <view class="feed-body">
+        <view class="feed-head">
+          <text class="feed-author">{{item.authorAlias}}</text>
+          <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
+          <text class="feed-dot" style="background: {{item.channelColor}}"></text>
+          <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
+          <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
+          <text class="feed-time">{{item.timeText}}</text>
+        </view>
+        <view class="feed-title">{{item.displayTitle}}</view>
+        <view class="feed-summary">{{item.summary}}</view>
+        <view class="feed-actions">
+          <view class="feed-action {{item.liked ? 'active' : ''}}">
+            <view class="feed-action-icon like-icon"></view>
+            <text>{{item.likeCount}}</text>
+          </view>
+          <view class="feed-action">
+            <view class="feed-action-icon comment-icon"></view>
+            <text>{{item.commentCount}}</text>
+          </view>
+          <view class="feed-action share">
+            <view class="feed-action-icon share-icon"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{activeType === 'users' && !loading}}">
+    <view class="user-card" wx:for="{{users}}" wx:key="id" data-id="{{item.id}}" bindtap="goUserDetail">
+      <view class="user-avatar {{item.avatarUrl ? 'has-image' : 'fallback'}}">
+        <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{item.avatarInitial}}</text>
+      </view>
+      <view class="user-main">
+        <view class="user-name">{{item.nickname || item.alias || item.name || '匿名同学'}}</view>
+        <view class="user-bio">{{item.bio || '这个同学还没有写简介'}}</view>
+      </view>
+      <view class="user-action">主页</view>
+    </view>
+  </view>
+</view>

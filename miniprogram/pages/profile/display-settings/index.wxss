@@ -1,0 +1,14 @@
+.display-page {
+  background: var(--app-background);
+}
+
+.option-row.active .mobile-tile-title,
+.check-mark {
+  color: var(--app-primary);
+  font-weight: 600;
+}
+
+.check-mark {
+  margin-left: 16rpx;
+  font-size: 30rpx;
+}

@@ -1,0 +1,78 @@
+{
+  "pages": [
+    "pages/campus/index",
+    "pages/ai/index",
+    "pages/profile/index",
+    "pages/campus/announcement-detail/index",
+    "pages/campus/college/index",
+    "pages/campus/post-detail/index",
+    "pages/campus/create-post/index",
+    "pages/campus/search/index",
+    "pages/ai/chat/index",
+    "pages/ai/history/index",
+    "pages/profile/auth/index",
+    "pages/profile/register/index",
+    "pages/profile/reset-password/index",
+    "pages/profile/favorites/index",
+    "pages/profile/my-posts/index",
+    "pages/profile/my-comments/index",
+    "pages/profile/my-reports/index",
+    "pages/profile/report-detail/index",
+    "pages/profile/conversations/index",
+    "pages/profile/chat/index",
+    "pages/profile/social-list/index",
+    "pages/profile/public-user/index",
+    "pages/profile/notifications/index",
+    "pages/profile/settings/index",
+    "pages/profile/ai-settings/index",
+    "pages/profile/edit-profile/index",
+    "pages/profile/privacy/index",
+    "pages/profile/privacy/blocklist/index",
+    "pages/profile/notification-settings/index",
+    "pages/profile/account-security/index",
+    "pages/profile/display-settings/index",
+    "pages/profile/about/index",
+    "pages/profile/feedback/index",
+    "pages/profile/legal/index"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "XDU WhisperBox",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#8E8E93",
+    "selectedColor": "#155E75",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/campus/index",
+        "text": "首页",
+        "iconPath": "assets/tabbar/home.png",
+        "selectedIconPath": "assets/tabbar/home_selected.png"
+      },
+      {
+        "pagePath": "pages/ai/index",
+        "text": "AI",
+        "iconPath": "assets/tabbar/ai.png",
+        "selectedIconPath": "assets/tabbar/ai_selected.png"
+      },
+      {
+        "pagePath": "pages/profile/conversations/index",
+        "text": "消息",
+        "iconPath": "assets/tabbar/messages.png",
+        "selectedIconPath": "assets/tabbar/messages_selected.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile_selected.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

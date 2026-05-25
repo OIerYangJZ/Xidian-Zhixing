@@ -1,0 +1,53 @@
+<view class="page edit-profile-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:else>
+    <view class="section">
+      <view class="section-title">头像与背景</view>
+      <view class="avatar-panel">
+        <view class="avatar-preview" bindtap="chooseAvatar">
+          <image wx:if="{{avatarPreview}}" src="{{avatarPreview}}" mode="aspectFill"></image>
+          <text wx:else>{{avatarInitial}}</text>
+        </view>
+        <view class="panel-actions">
+          <button class="avatar-button" loading="{{uploadingAvatar}}" bindtap="chooseAvatar">更换头像</button>
+          <button class="avatar-button ghost" loading="{{uploadingBackground}}" bindtap="chooseBackground">更换背景</button>
+          <button class="avatar-button ghost" wx:if="{{backgroundPreview}}" bindtap="clearBackground">移除背景</button>
+        </view>
+      </view>
+      <view class="background-preview-wrap">
+        <view class="background-preview {{backgroundPreview ? 'has-image' : 'empty'}}" bindtap="chooseBackground">
+          <image wx:if="{{backgroundPreview}}" src="{{backgroundPreview}}" mode="aspectFill"></image>
+          <text wx:else>个人主页背景图</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-title">基础信息</view>
+      <view class="info-row">
+        <text>昵称</text>
+        <input class="row-input" value="{{form.nickname}}" data-key="nickname" bindinput="onFieldInput" placeholder="昵称" />
+      </view>
+      <view class="info-row">
+        <text>学号</text>
+        <text>{{form.studentId || '-'}}</text>
+      </view>
+      <view class="info-row">
+        <text>邮箱</text>
+        <text>{{form.email || '-'}}</text>
+      </view>
+      <view class="info-row">
+        <text>性别</text>
+        <picker mode="selector" range="{{['未设置', '男', '女']}}" bindchange="onGenderChange">
+          <view class="picker-value">{{form.gender || '未设置'}}</view>
+        </picker>
+      </view>
+      <view class="bio-field">
+        <view class="bio-label">个性签名</view>
+        <textarea class="bio-input" value="{{form.bio}}" data-key="bio" bindinput="onFieldInput" maxlength="100" placeholder="介绍一下自己" />
+      </view>
+    </view>
+
+    <button class="save-button" loading="{{saving}}" bindtap="saveProfile">保存资料</button>
+  </view>
+</view>

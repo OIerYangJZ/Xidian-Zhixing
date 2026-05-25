@@ -1,0 +1,48 @@
+.container {
+  padding: 60rpx 40rpx;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: var(--app-text-primary);
+  margin-bottom: 20rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: var(--app-text-secondary);
+  margin-bottom: 60rpx;
+}
+
+.form-group {
+  margin-bottom: 40rpx;
+}
+
+.input {
+  height: 90rpx;
+  background-color: var(--app-control);
+  border-radius: 20rpx;
+  padding: 0 30rpx;
+  font-size: 30rpx;
+}
+
+.btn-primary {
+  background-color: var(--app-primary);
+  color: #ffffff;
+  border-radius: 20rpx;
+  margin-top: 60rpx;
+  font-size: 32rpx;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 36rpx;
+  margin-top: 40rpx;
+}
+
+.link {
+  font-size: 28rpx;
+  color: var(--app-primary);
+}

@@ -1,0 +1,31 @@
+<view class="page privacy-page mobile-list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:else>
+    <view class="mobile-tile-card">
+      <view class="switch-row">
+        <text class="mobile-tile-icon">◌</text>
+        <view class="mobile-tile-body">
+          <view class="mobile-tile-title">允许陌生人私信</view>
+          <view class="mobile-tile-subtitle">关闭后，其他人无法通过你的公开主页或帖子给你发起私信</view>
+        </view>
+        <switch checked="{{form.allowStrangerDm}}" data-key="allowStrangerDm" bindchange="onPrivacySwitchChange" color="#155E75" />
+      </view>
+      <view class="switch-row">
+        <text class="mobile-tile-icon">◇</text>
+        <view class="mobile-tile-body">
+          <view class="mobile-tile-title">显示“可联系”状态</view>
+          <view class="mobile-tile-subtitle">开启后，其他用户可以看到你的联系方式</view>
+        </view>
+        <switch checked="{{form.showContactable}}" data-key="showContactable" bindchange="onPrivacySwitchChange" color="#155E75" />
+      </view>
+      <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/privacy/blocklist/index" style="border-top: 1rpx solid var(--app-divider);">
+        <text class="mobile-tile-icon">🚫</text>
+        <view class="mobile-tile-body">
+          <view class="mobile-tile-title">黑名单管理</view>
+          <view class="mobile-tile-subtitle">查看或解除已被屏蔽的账户</view>
+        </view>
+        <text class="mobile-tile-arrow">›</text>
+      </view>
+    </view>
+  </view>
+</view>

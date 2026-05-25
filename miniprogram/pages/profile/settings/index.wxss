@@ -1,0 +1,29 @@
+.settings-list-page {
+  background: var(--app-background);
+}
+
+.empty {
+  padding: 40rpx;
+  text-align: center;
+  color: var(--app-text-secondary);
+  font-size: 28rpx;
+}
+
+.logout-button {
+  height: 100rpx;
+  margin: 16rpx 8rpx 0;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: transparent;
+  color: var(--app-error);
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 100rpx;
+}
+
+.settings-brand {
+  padding: 40rpx 0 0;
+  color: rgba(199, 199, 204, .6);
+  font-size: 24rpx;
+  text-align: center;
+}

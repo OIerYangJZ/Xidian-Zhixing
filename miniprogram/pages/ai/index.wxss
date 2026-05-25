@@ -1,0 +1,122 @@
+.ai-page {
+  background: var(--app-background);
+}
+
+.ai-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  min-height: 112rpx;
+  padding: 12rpx 24rpx;
+  background: var(--app-surface);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.new-chat-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 80rpx;
+  padding: 0 28rpx;
+  border-radius: 40rpx;
+  background: var(--app-primary);
+  color: #ffffff;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 80rpx;
+}
+
+.new-chat-btn .icon {
+  margin-right: 12rpx;
+  font-size: 40rpx;
+  font-weight: 400;
+}
+
+.settings-btn {
+  flex: 0 0 auto;
+  height: 80rpx;
+  padding: 0 28rpx;
+  border-radius: 40rpx;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 28rpx;
+  font-weight: 600;
+  line-height: 80rpx;
+}
+
+.history-section {
+  padding: 0;
+  background: var(--app-surface);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 88rpx;
+  padding: 0 32rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.section-title {
+  color: var(--app-text-primary);
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.more-link {
+  color: var(--app-primary);
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.history-list {
+  background: var(--app-surface);
+}
+
+.history-item {
+  display: flex;
+  align-items: center;
+  min-height: 96rpx;
+  padding: 0 32rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.item-icon {
+  width: 56rpx;
+  margin-right: 20rpx;
+  color: var(--app-primary);
+  font-size: 34rpx;
+  text-align: center;
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  max-width: 500rpx;
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-date {
+  margin-top: 8rpx;
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+}
+
+.item-arrow {
+  color: var(--app-text-tertiary);
+  font-size: 30rpx;
+}

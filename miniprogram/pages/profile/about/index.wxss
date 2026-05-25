@@ -1,0 +1,49 @@
+.about-page {
+  background: var(--app-background);
+}
+
+.brand-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 0 80rpx;
+}
+
+.brand-logo {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 40rpx;
+  background: var(--app-primary);
+  color: #ffffff;
+  font-size: 96rpx;
+  line-height: 160rpx;
+  text-align: center;
+}
+
+.brand-title {
+  margin-top: 32rpx;
+  color: var(--app-text-primary);
+  font-size: 40rpx;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.brand-subtitle {
+  margin-top: 4rpx;
+  color: var(--app-text-secondary);
+  font-size: 28rpx;
+  line-height: 1.4;
+}
+
+.version {
+  margin-top: 16rpx;
+  color: var(--app-text-tertiary);
+  font-size: 24rpx;
+}
+
+.copyright {
+  padding-top: 40rpx;
+  color: var(--app-text-tertiary);
+  font-size: 22rpx;
+  text-align: center;
+}

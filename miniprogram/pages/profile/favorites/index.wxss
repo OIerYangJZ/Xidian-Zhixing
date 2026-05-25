@@ -1,0 +1,4 @@
+.remove {
+  color: var(--app-error);
+  font-size: 26rpx;
+}

@@ -1,0 +1,27 @@
+<view class="page ai-page {{themeClass}}">
+  <view class="ai-action-bar">
+    <button class="new-chat-btn" bindtap="startNewChat">
+      <text class="icon">+</text>
+      <text>发起新对话</text>
+    </button>
+    <button class="settings-btn" bindtap="goToSettings">AI 设置</button>
+  </view>
+
+  <view class="history-section">
+      <view class="section-header">
+        <view class="section-title" style="margin-bottom: 0;">历史对话</view>
+      <view class="more-link" bindtap="goToHistory" wx:if="{{history.length}}">查看全部</view>
+    </view>
+    <view class="history-list">
+      <view class="history-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat">
+        <view class="item-icon">对话</view>
+        <view class="item-content">
+          <view class="item-title">{{item.title}}</view>
+          <view class="item-date">{{item.date}}</view>
+        </view>
+        <view class="item-arrow">></view>
+      </view>
+      <view wx:if="{{!history.length}}" class="empty">暂无历史对话</view>
+    </view>
+  </view>
+</view>

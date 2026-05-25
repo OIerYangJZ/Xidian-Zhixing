@@ -1,0 +1,22 @@
+.privacy-page {
+  background: var(--app-background);
+}
+
+.empty {
+  padding: 40rpx;
+  text-align: center;
+  color: var(--app-text-secondary);
+  font-size: 28rpx;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  min-height: 136rpx;
+  padding: 8rpx 32rpx;
+  background: var(--app-card);
+}
+
+.switch-row + .switch-row {
+  border-top: 1rpx solid var(--app-divider);
+}

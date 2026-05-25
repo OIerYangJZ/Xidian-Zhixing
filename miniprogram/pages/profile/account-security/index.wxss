@@ -1,0 +1,18 @@
+.security-page {
+  background: var(--app-background);
+}
+
+.empty {
+  padding: 40rpx;
+  text-align: center;
+  color: var(--app-text-secondary);
+  font-size: 28rpx;
+}
+
+.danger-card {
+  margin-top: 48rpx;
+}
+
+.danger-title {
+  color: var(--app-error);
+}

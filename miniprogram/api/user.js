@@ -1,0 +1,140 @@
+import request from '../utils/request';
+import { avatarInitial, getData, normalizePost, resolveUrl, toArray } from '../utils/format';
+
+export const updateNotificationPreferences = async (payload) => {
+  const response = await request.patch('/api/users/notification-preferences', payload);
+  return getData(response, {});
+};
+
+export const updateProfile = async (payload) => {
+  const response = await request.patch('/api/users/me', payload);
+  return getData(response, {});
+};
+
+export const updatePrivacy = async (payload) => {
+  const response = await request.patch('/api/users/privacy', payload);
+  return getData(response, {});
+};
+
+export const submitCancellationRequest = async (payload) => {
+  const response = await request.post('/api/users/me/cancellation-request', payload);
+  return getData(response, {});
+};
+
+export const submitLevelUpgradeRequest = async (payload) => {
+  const response = await request.post('/api/users/me/level-upgrade-request', payload);
+  return getData(response, {});
+};
+
+export const getMyPosts = async () => {
+  const response = await request.get('/api/posts/mine');
+  return toArray(getData(response, [])).map(normalizePost);
+};
+
+export const getMyComments = async () => {
+  const response = await request.get('/api/comments/mine');
+  return toArray(getData(response, []));
+};
+
+export const getMyReports = async () => {
+  const response = await request.get('/api/reports/mine');
+  return toArray(getData(response, []));
+};
+
+export const getReportDetail = async (reportId) => {
+  const response = await request.get(`/api/reports/${reportId}`);
+  return getData(response, {});
+};
+
+export const getPublicUser = async (userId) => {
+  const response = await request.get(`/api/users/${userId}`);
+  const data = getData(response, {});
+  const nickname = String(data.nickname || data.alias || data.name || '西电同学');
+  return {
+    ...data,
+    avatarInitial: avatarInitial(nickname),
+    avatarUrl: resolveUrl(data.avatarUrl || ''),
+    backgroundImageUrl: resolveUrl(data.backgroundImageUrl || '')
+  };
+};
+
+export const searchUsers = async (keyword) => {
+  const response = await request.get('/api/users/search', { keyword });
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || item.userId || ''),
+    nickname: String(item.nickname || item.alias || item.name || '西电同学'),
+    avatarInitial: avatarInitial(item.nickname || item.alias || item.name || '西电同学'),
+    avatarUrl: resolveUrl(item.avatarUrl || ''),
+    backgroundImageUrl: resolveUrl(item.backgroundImageUrl || '')
+  }));
+};
+
+export const followUser = async (userId) => {
+  const response = await request.post(`/api/users/${userId}/follow`, {});
+  return getData(response, {});
+};
+
+export const unfollowUser = async (userId) => {
+  const response = await request.post(`/api/users/${userId}/unfollow`, {});
+  return getData(response, {});
+};
+
+export const getFollowing = async () => {
+  const response = await request.get('/api/users/me/following');
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || item.userId || ''),
+    nickname: String(item.nickname || item.alias || item.name || '西电同学'),
+    avatarInitial: avatarInitial(item.nickname || item.alias || item.name || '西电同学'),
+    avatarUrl: resolveUrl(item.avatarUrl || '')
+  }));
+};
+
+export const getFollowers = async () => {
+  const response = await request.get('/api/users/me/followers');
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || item.userId || ''),
+    nickname: String(item.nickname || item.alias || item.name || '西电同学'),
+    avatarInitial: avatarInitial(item.nickname || item.alias || item.name || '西电同学'),
+    avatarUrl: resolveUrl(item.avatarUrl || '')
+  }));
+};
+
+export const getFriends = async () => {
+  const response = await request.get('/api/users/me/friends');
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || item.userId || ''),
+    nickname: String(item.nickname || item.alias || item.name || '西电同学'),
+    avatarInitial: avatarInitial(item.nickname || item.alias || item.name || '西电同学'),
+    avatarUrl: resolveUrl(item.avatarUrl || '')
+  }));
+};
+
+export const submitFeedback = async (payload) => {
+  const response = await request.post('/api/feedback', payload);
+  return getData(response, {});
+};
+
+export const getBlocks = async () => {
+  const response = await request.get('/api/users/me/blocks');
+  return toArray(getData(response, [])).map((item) => ({
+    ...item,
+    id: String(item.id || item.userId || ''),
+    nickname: String(item.nickname || item.alias || item.name || '西电同学'),
+    avatarInitial: avatarInitial(item.nickname || item.alias || item.name || '西电同学'),
+    avatarUrl: resolveUrl(item.avatarUrl || '')
+  }));
+};
+
+export const blockUserGlobally = async (targetUserId) => {
+  const response = await request.post('/api/users/me/blocks', { targetUserId });
+  return getData(response, {});
+};
+
+export const unblockUserGlobally = async (targetUserId) => {
+  const response = await request.delete(`/api/users/me/blocks/${targetUserId}`);
+  return getData(response, {});
+};
