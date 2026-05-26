@@ -11,10 +11,13 @@ Page({
     subtitleText: '请先配置 OpenAI 兼容接口',
     drawerOpen: false,
     touchStartX: 0,
-    touchStartY: 0
+    touchStartY: 0,
+    navTop: 0,
+    navHeight: 48
   },
 
   onLoad() {
+    this.initCustomNav();
     setTimeout(() => {
       if (!requireLoginPage()) return;
       this.loadHistory();
@@ -23,11 +26,17 @@ Page({
 
   onShow() {
     applyThemeAndLanguage(this);
+    this.initCustomNav();
     setTimeout(() => {
       applyThemeAndLanguage(this);
       if (!requireLoginPage()) return;
       this.loadHistory();
     }, 0);
+  },
+
+  initCustomNav() {
+    const menuButton = wx.getMenuButtonBoundingClientRect();
+    this.setData({ navTop: menuButton.top, navHeight: menuButton.height });
   },
 
   loadHistory() {

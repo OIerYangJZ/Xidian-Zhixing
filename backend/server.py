@@ -202,7 +202,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         self._handle("DELETE")
 
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
-        return
+        _logger.info(format, *args)
 
     def _handle(self, method: str) -> None:
         try:

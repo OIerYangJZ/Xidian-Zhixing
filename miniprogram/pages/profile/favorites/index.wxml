@@ -25,7 +25,7 @@
             <text>{{item.commentCount}}</text>
           </view>
           <view class="feed-action share">
-            <view class="feed-action-icon share-icon"></view>
+            <view class="feed-action-icon bookmark-icon"></view>
           </view>
         </view>
         <view class="post-tools">

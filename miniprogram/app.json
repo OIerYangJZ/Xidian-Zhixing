@@ -67,8 +67,8 @@
       {
         "pagePath": "pages/campus/index",
         "text": "校园",
-        "iconPath": "assets/tabbar/profile.png",
-        "selectedIconPath": "assets/tabbar/profile_selected.png"
+        "iconPath": "assets/tabbar/campus.png",
+        "selectedIconPath": "assets/tabbar/campus_selected.png"
       },
       {
         "pagePath": "pages/ai/index",
@@ -79,8 +79,14 @@
       {
         "pagePath": "pages/announcements/index",
         "text": "公告",
-        "iconPath": "assets/tabbar/messages.png",
-        "selectedIconPath": "assets/tabbar/messages_selected.png"
+        "iconPath": "assets/tabbar/announcements.png",
+        "selectedIconPath": "assets/tabbar/announcements_selected.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/profile.png",
+        "selectedIconPath": "assets/tabbar/profile_selected.png"
       }
     ]
   },

@@ -74,25 +74,34 @@ Page({
     followSheetTitle: '',
     followSheetUsers: [],
     followSheetMutualUsers: [],
-    followSheetOtherUsers: []
+    followSheetOtherUsers: [],
+    navTop: 0,
+    navHeight: 48
   },
 
   onLoad() {
     this._tabScrollTops = { posts: 0, favorites: 0, activities: 0 };
     this._didInitialShow = false;
     applyThemeAndLanguage(this);
+    this.initCustomNav();
     if (!requireLoginPage()) return;
     this.loadInitialData();
   },
 
   onShow() {
     applyThemeAndLanguage(this);
+    this.initCustomNav();
     if (!requireLoginPage()) return;
     if (!this._didInitialShow) {
       this._didInitialShow = true;
       return;
     }
     this.refreshProfile();
+  },
+
+  initCustomNav() {
+    const menuButton = wx.getMenuButtonBoundingClientRect();
+    this.setData({ navTop: menuButton.top, navHeight: menuButton.height });
   },
 
   onPullDownRefresh() {

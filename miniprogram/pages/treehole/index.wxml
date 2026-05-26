@@ -63,7 +63,7 @@
         <view class="feed-actions">
           <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
           <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-          <view class="feed-action"><view class="feed-action-icon share-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+          <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
         </view>
       </view>
     </view>

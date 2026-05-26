@@ -3,11 +3,16 @@
 }
 
 .ai-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
   display: flex;
   align-items: center;
   gap: 16rpx;
-  min-height: 112rpx;
-  padding: 12rpx 24rpx;
+  padding-left: 24rpx;
+  padding-right: 260rpx;
   background: var(--app-surface);
   border-bottom: 1rpx solid var(--app-divider);
 }

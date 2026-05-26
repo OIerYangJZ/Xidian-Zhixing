@@ -1,6 +1,6 @@
 <view class="page profile-page {{themeClass}}">
   <view class="profile-header">
-    <view class="profile-background {{userInfo && userInfo.backgroundImageUrl ? 'has-image' : ''}}">
+    <view class="profile-background {{userInfo && userInfo.backgroundImageUrl ? 'has-image' : ''}}" style="height: {{userInfo && userInfo.backgroundImageUrl ? (navTop + navHeight + 60) : (navTop + navHeight + 16)}}px;">
       <image wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-image" src="{{userInfo.backgroundImageUrl}}" mode="aspectFill"></image>
       <view wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-overlay"></view>
     </view>

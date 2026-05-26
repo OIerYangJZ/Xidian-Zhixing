@@ -1,13 +1,13 @@
 <view class="page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ai-topbar">
+  <view class="ai-topbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; box-sizing: border-box;">
     <view class="nav-menu" bindtap="openDrawer"><view></view><view></view><view></view></view>
     <view>
       <view class="ai-title">AI</view>
       <view class="ai-subtitle">{{subtitleText}}</view>
     </view>
   </view>
-  <view class="ai-action-bar">
+  <view class="ai-action-bar" style="margin-top: {{navTop + navHeight + 8}}px;">
     <button class="new-chat-btn" bindtap="startNewChat">
       <text class="icon">+</text>
       <text>发起新对话</text>
