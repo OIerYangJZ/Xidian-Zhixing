@@ -432,8 +432,3 @@
   padding: 28rpx 0;
 }
 
-.theme-dark .warning-banner {
-  background: rgba(255, 149, 0, .12) !important;
-  border-bottom-color: rgba(255, 149, 0, .28) !important;
-  color: var(--app-warning) !important;
-}

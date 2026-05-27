@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// 移动端主题颜色扩展（ThemeExtension）
-/// 支持亮色/暗色主题动态切换，通过 MobileColors.of(context) 在 build() 中获取当前主题颜色。
+/// 支持 10 款自定义配色主题，通过 MobileColors.of(context) 在 build() 中获取当前主题颜色。
 ///
 /// 用法：
 /// ```dart
@@ -18,6 +18,16 @@ class MobileColors extends ThemeExtension<MobileColors> {
   final Color textTertiary;
   final Color divider;
 
+  // Custom theme colors
+  final Color primary;
+  final Color primaryDark;
+  final Color accent;
+  final Color seal;
+  final Color softBackground;
+  final Color success;
+  final Color warning;
+  final Color error;
+
   const MobileColors({
     required this.background,
     required this.surface,
@@ -26,33 +36,224 @@ class MobileColors extends ThemeExtension<MobileColors> {
     required this.textSecondary,
     required this.textTertiary,
     required this.divider,
+    required this.primary,
+    required this.primaryDark,
+    required this.accent,
+    required this.seal,
+    required this.softBackground,
+    required this.success,
+    required this.warning,
+    required this.error,
   });
 
-  /// 亮色主题颜色
+  // Shared state colors
+  static const Color _success = Color(0xFF4E7D66);
+  static const Color _warning = Color(0xFFB7791F);
+  static const Color _error = Color(0xFF9F1D1D);
+
+  /// 朱砂赤配色（默认）
   static const light = MobileColors(
-    background: Color(0xFFFFFFFF),
+    background: Color(0xFFFAF4EA),
     surface: Color(0xFFFFFFFF),
     cardBackground: Color(0xFFFFFFFF),
-    textPrimary: Color(0xFF1D1D1F),
-    textSecondary: Color(0xFF8E8E93),
-    textTertiary: Color(0xFFC7C7CC),
-    divider: Color(0xFFE8E8E8),
+    textPrimary: Color(0xFF2D2522),
+    textSecondary: Color(0xFF7B6F6A),
+    textTertiary: Color(0xFFA2948E),
+    divider: Color(0xFFE8DAD2),
+    primary: Color(0xFFB23A2E),
+    primaryDark: Color(0xFF7A1E1A),
+    accent: Color(0xFFD94A38),
+    seal: Color(0xFFC7352A),
+    softBackground: Color(0xFFF8E7E1),
+    success: _success,
+    warning: _warning,
+    error: _error,
   );
 
-  /// 暗色主题颜色
-  static const dark = MobileColors(
-    background: Color(0xFF000000),
-    surface: Color(0xFF000000),
-    cardBackground: Color(0xFF000000),
-    textPrimary: Color(0xFFFFFFFF),
-    textSecondary: Color(0xFF8E8E93),
-    textTertiary: Color(0xFF48484A),
-    divider: Color(0xFF2C2C2E),
+  static const _zhushachi = light;
+
+  static const _yanzhihong = MobileColors(
+    background: Color(0xFFFBF1F3),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF2E2427),
+    textSecondary: Color(0xFF7A686D),
+    textTertiary: Color(0xFFB2A2A7),
+    divider: Color(0xFFE8D4DA),
+    primary: Color(0xFFB8324A),
+    primaryDark: Color(0xFF741B2D),
+    accent: Color(0xFFD94F68),
+    seal: Color(0xFFC4213B),
+    softBackground: Color(0xFFF8DDE3),
+    success: _success,
+    warning: _warning,
+    error: _error,
   );
 
-  /// 从当前 BuildContext 读取主题颜色，找不到时回退到 light。
+  static const _chitaonuan = MobileColors(
+    background: Color(0xFFFBF3EA),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF2F2823),
+    textSecondary: Color(0xFF7C6D64),
+    textTertiary: Color(0xFFB4A69E),
+    divider: Color(0xFFE7D7CA),
+    primary: Color(0xFFB85B3E),
+    primaryDark: Color(0xFF74301F),
+    accent: Color(0xFFD97855),
+    seal: Color(0xFFC94A2F),
+    softBackground: Color(0xFFF5DFD1),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _zaonihong = MobileColors(
+    background: Color(0xFFF9F1EA),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF2B2422),
+    textSecondary: Color(0xFF756B67),
+    textTertiary: Color(0xFFA89C97),
+    divider: Color(0xFFE1D2CB),
+    primary: Color(0xFF8F2F2C),
+    primaryDark: Color(0xFF5C1A18),
+    accent: Color(0xFFB54A43),
+    seal: Color(0xFFA92724),
+    softBackground: Color(0xFFEFD8D2),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _xuanzhizhu = MobileColors(
+    background: Color(0xFFFFF8EE),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF2F2520),
+    textSecondary: Color(0xFF7E7068),
+    textTertiary: Color(0xFFB8A9A0),
+    divider: Color(0xFFEAD9CF),
+    primary: Color(0xFFC43A2F),
+    primaryDark: Color(0xFF7D211B),
+    accent: Color(0xFFE15A48),
+    seal: Color(0xFFD12B22),
+    softBackground: Color(0xFFFBE4DC),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _zhuqing = MobileColors(
+    background: Color(0xFFF3F8F1),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF242F26),
+    textSecondary: Color(0xFF68766A),
+    textTertiary: Color(0xFF9AA89D),
+    divider: Color(0xFFD5E4D0),
+    primary: Color(0xFF4F8A5F),
+    primaryDark: Color(0xFF2F5C3D),
+    accent: Color(0xFF78B985),
+    seal: Color(0xFF3E744D),
+    softBackground: Color(0xFFE0EFD8),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _ouhezi = MobileColors(
+    background: Color(0xFFF8F4FA),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF2D2632),
+    textSecondary: Color(0xFF746A7A),
+    textTertiary: Color(0xFFA69BAE),
+    divider: Color(0xFFDED2E4),
+    primary: Color(0xFF8B6F9E),
+    primaryDark: Color(0xFF5B456D),
+    accent: Color(0xFFAD93BF),
+    seal: Color(0xFF765A8A),
+    softBackground: Color(0xFFEBDFF1),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _xingrenhuang = MobileColors(
+    background: Color(0xFFFCF7EC),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF31281E),
+    textSecondary: Color(0xFF7D6F5F),
+    textTertiary: Color(0xFFB6A897),
+    divider: Color(0xFFE8D8BA),
+    primary: Color(0xFFC28A3A),
+    primaryDark: Color(0xFF7A5422),
+    accent: Color(0xFFDDAA5C),
+    seal: Color(0xFFA9712B),
+    softBackground: Color(0xFFF4E3C1),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _haiyanqing = MobileColors(
+    background: Color(0xFFF1F8F8),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF223032),
+    textSecondary: Color(0xFF647678),
+    textTertiary: Color(0xFF9AAFB2),
+    divider: Color(0xFFD0E2E4),
+    primary: Color(0xFF5B9EA6),
+    primaryDark: Color(0xFF346B72),
+    accent: Color(0xFF84C2C8),
+    seal: Color(0xFF478C94),
+    softBackground: Color(0xFFDDEFF1),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  static const _mohui = MobileColors(
+    background: Color(0xFFF5F4F0),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF242523),
+    textSecondary: Color(0xFF6E706B),
+    textTertiary: Color(0xFFA2A5A0),
+    divider: Color(0xFFDAD8D1),
+    primary: Color(0xFF4F5552),
+    primaryDark: Color(0xFF2B302E),
+    accent: Color(0xFF747D78),
+    seal: Color(0xFF3E4542),
+    softBackground: Color(0xFFE7E5DF),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
+  /// 根据主题 key 返回对应的 MobileColors 配色
+  static MobileColors fromThemeKey(String key) {
+    return switch (key) {
+      'zhushachi' => _zhushachi,
+      'yanzhihong' => _yanzhihong,
+      'chitaonuan' => _chitaonuan,
+      'zaonihong' => _zaonihong,
+      'xuanzhizhu' => _xuanzhizhu,
+      'zhuqing' => _zhuqing,
+      'ouhezi' => _ouhezi,
+      'xingrenhuang' => _xingrenhuang,
+      'haiyanqing' => _haiyanqing,
+      'mohui' => _mohui,
+      _ => _zhushachi,
+    };
+  }
+
+  /// 从当前 BuildContext 读取主题颜色
   static MobileColors of(BuildContext context) =>
-      Theme.of(context).extension<MobileColors>() ?? light;
+      Theme.of(context).extension<MobileColors>()!;
 
   @override
   MobileColors copyWith({
@@ -63,6 +264,14 @@ class MobileColors extends ThemeExtension<MobileColors> {
     Color? textSecondary,
     Color? textTertiary,
     Color? divider,
+    Color? primary,
+    Color? primaryDark,
+    Color? accent,
+    Color? seal,
+    Color? softBackground,
+    Color? success,
+    Color? warning,
+    Color? error,
   }) {
     return MobileColors(
       background: background ?? this.background,
@@ -72,6 +281,14 @@ class MobileColors extends ThemeExtension<MobileColors> {
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
       divider: divider ?? this.divider,
+      primary: primary ?? this.primary,
+      primaryDark: primaryDark ?? this.primaryDark,
+      accent: accent ?? this.accent,
+      seal: seal ?? this.seal,
+      softBackground: softBackground ?? this.softBackground,
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      error: error ?? this.error,
     );
   }
 
@@ -86,6 +303,14 @@ class MobileColors extends ThemeExtension<MobileColors> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
+      primary: Color.lerp(primary, other.primary, t)!,
+      primaryDark: Color.lerp(primaryDark, other.primaryDark, t)!,
+      accent: Color.lerp(accent, other.accent, t)!,
+      seal: Color.lerp(seal, other.seal, t)!,
+      softBackground: Color.lerp(softBackground, other.softBackground, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      error: Color.lerp(error, other.error, t)!,
     );
   }
 }

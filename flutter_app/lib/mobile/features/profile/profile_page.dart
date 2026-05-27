@@ -368,24 +368,24 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                       vertical: 2,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: MobileTheme.accent.withValues(
+                                      color: colors.accent.withValues(
                                         alpha: hasBackgroundImage ? 0.18 : 0.1,
                                       ),
                                       borderRadius: BorderRadius.circular(4),
                                       border: hasBackgroundImage
                                           ? Border.all(
-                                              color: MobileTheme.accent
+                                              color: colors.accent
                                                   .withValues(alpha: 0.3),
                                               width: 0.6,
                                             )
                                           : null,
-                                    ),
+                                      ),
                                     child: Text(
                                       user?.userLevelLabel ?? 'Lv.1',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
-                                        color: MobileTheme.accent,
+                                        color: colors.accent,
                                       ),
                                     ),
                                   ),

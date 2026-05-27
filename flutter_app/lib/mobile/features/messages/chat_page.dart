@@ -980,11 +980,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
           ),
           if (available.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(32),
+            Padding(
+              padding: const EdgeInsets.all(32),
               child: Text(
                 '暂无其他会话',
-                style: TextStyle(color: MobileTheme.textTertiary),
+                style: TextStyle(color: MobileColors.of(context).textTertiary),
               ),
             )
           else

@@ -17,7 +17,7 @@ class CommentInputBar extends StatefulWidget {
   const CommentInputBar({
     super.key,
     required this.onSubmit,
-    this.placeholder = '写下你的评论...',
+    this.placeholder = '温柔地回应一下',
     this.autofocus = false,
     this.scrollController,
     this.onEmojiToggle,
@@ -146,8 +146,12 @@ class _CommentInputBarState extends State<CommentInputBar> {
                   hintStyle: TextStyle(
                     color: colors.textTertiary,
                     fontSize: 15,
+                    fontFamily: MobileTheme.quoteFontFamily,
+                    fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
                   ),
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,

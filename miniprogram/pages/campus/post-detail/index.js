@@ -124,10 +124,10 @@ Page({
   },
 
   initCustomNav() {
-    const menuButton = wx.getMenuButtonBoundingClientRect();
+    const app = getApp();
     this.setData({
-      navTop: menuButton.top,
-      navHeight: menuButton.height
+      navTop: app.globalData.navTop || 44,
+      navHeight: app.globalData.navHeight || 32
     });
   },
 

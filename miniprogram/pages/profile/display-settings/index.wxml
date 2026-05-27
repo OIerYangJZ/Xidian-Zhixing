@@ -10,7 +10,7 @@
       <text class="mobile-tile-icon">◐</text>
       <view class="mobile-tile-body">
         <view class="mobile-tile-title">{{item.label}}</view>
-        <view class="mobile-tile-subtitle">外观主题</view>
+        <view class="mobile-tile-subtitle">配色主题</view>
       </view>
       <text wx:if="{{currentThemeOption === item.value}}" class="check-mark">✓</text>
     </view>

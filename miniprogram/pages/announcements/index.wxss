@@ -10,24 +10,25 @@
   padding-left: 24rpx;
   padding-right: 260rpx;
   padding-bottom: 8px;
-  background: var(--app-surface);
+  background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
 }
-.nav-menu { display: flex; flex-direction: column; justify-content: center; gap: 6rpx; width: 88rpx; height: 88rpx; }
-.nav-menu view { width: 36rpx; height: 4rpx; border-radius: 2rpx; background: var(--app-text-primary); }
+.nav-menu { display: flex; flex-direction: column; justify-content: center; gap: 6rpx; width: 88rpx; height: 88rpx; color: var(--brand-deep); }
+.nav-menu view { width: 36rpx; height: 4rpx; border-radius: 2rpx; background: currentColor; }
 .nav-title { flex: 1; min-width: 0; }
-.nav-name { color: var(--app-text-primary); font-size: 31rpx; font-weight: 700; }
-.nav-subtitle { color: var(--app-text-secondary); font-size: 22rpx; }
+.nav-name { color: var(--brand-deep); font-size: 31rpx; font-weight: 700; }
+.nav-subtitle { color: var(--text-secondary); font-size: 22rpx; }
 .ann-scroll { height: calc(100vh - env(safe-area-inset-bottom)); }
 .daily-card {
-  margin: 24rpx;
-  padding: 28rpx;
+  margin: 24rpx 32rpx;
+  padding: 32rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx;
-  background: var(--app-surface);
+  border-radius: 36rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
 }
-.daily-title { color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; }
-.daily-text { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.5; }
+.daily-title { color: var(--brand-deep); font-size: 32rpx; font-weight: 700; }
+.daily-text { margin-top: 10rpx; color: var(--text-secondary); font-size: 26rpx; line-height: 1.5; }
 .filter-strip {
   white-space: nowrap;
   padding: 0 24rpx 18rpx;
@@ -40,20 +41,67 @@
   margin-right: 12rpx;
   padding: 0 22rpx;
   border-radius: 18rpx;
-  background: var(--app-control);
-  color: var(--app-text-secondary);
+  background: var(--background-softRed);
+  color: var(--brand-deep);
   font-size: 25rpx;
   font-weight: 650;
 }
-.filter-chip.active { background: var(--app-primary-soft); color: var(--app-primary); }
+.filter-chip.active { background: var(--brand-primary); color: #ffffff; }
 .announcement-card {
-  padding: 28rpx 32rpx;
-  border-top: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
+  padding: 32rpx;
+  margin: 24rpx 32rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 36rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
 }
 .announcement-head { display: flex; align-items: center; gap: 12rpx; }
-.announcement-type { color: var(--app-primary); font-size: 24rpx; font-weight: 700; }
-.important-badge { height: 32rpx; padding: 0 10rpx; border-radius: 9rpx; background: var(--app-accent-soft); color: var(--app-accent); font-size: 21rpx; line-height: 32rpx; }
-.announcement-title { margin-top: 10rpx; color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; line-height: 1.35; }
-.announcement-summary { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.45; }
+.announcement-type { color: var(--brand-seal); font-size: 24rpx; font-weight: 700; }
+.announcement-title { margin-top: 10rpx; color: var(--brand-deep); font-size: 32rpx; font-weight: 700; line-height: 1.35; }
+.announcement-summary { margin-top: 10rpx; color: var(--text-secondary); font-size: 26rpx; line-height: 1.45; }
 .announcement-footer { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 18rpx; color: var(--app-text-tertiary); font-size: 23rpx; }
+
+/* Empty state styling */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.empty-image-placeholder {
+  width: 180rpx;
+  height: 180rpx;
+  margin-bottom: 32rpx;
+  background: var(--app-primary-soft);
+  border-radius: 40rpx;
+  border: 4rpx solid var(--app-primary);
+  position: relative;
+}
+
+.empty-image-placeholder::after {
+  content: '印';
+  font-size: 80rpx;
+  color: var(--app-primary);
+  font-weight: 800;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: serif;
+}
+
+.empty-state-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--app-text-primary);
+  margin-bottom: 12rpx;
+}
+
+.empty-state-desc {
+  font-size: 26rpx;
+  color: var(--app-text-secondary);
+  margin-bottom: 48rpx;
+}

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../features/widgets/shimmer_loading.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -329,8 +330,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final resolvedChannelMeta = _resolveChannelMetaMap(feedState.channels);
     final selectedChannelMeta = resolvedChannelMeta[feedState.selectedChannel];
     final selectedChannelIcon = selectedChannelMeta?.icon ?? Icons.menu_rounded;
-    final selectedChannelIconColor =
-        selectedChannelMeta?.color ?? colors.textPrimary;
     // 监听「滚动到顶部」触发器（必须在 build 中调用，initState 中调用不可靠）
     ref.listen<int>(scrollToTopTriggerProvider, (_, __) {
       _scrollToTop();
@@ -361,98 +360,153 @@ class _HomePageState extends ConsumerState<HomePage> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // 小红书风格 AppBar：频道选择器 + 排序 + 操作按钮全部在顶部
+                // 朱砂印章风格 AppBar：包含页面大标题、副标题、以及精美频道选择印章
                 SliverAppBar(
                   pinned: true,
-                  expandedHeight: 50,
-                  backgroundColor: isDarkMode ? Colors.black : colors.surface,
+                  expandedHeight: 60,
+                  backgroundColor: isDarkMode ? Colors.black : colors.background,
                   elevation: 0,
                   scrolledUnderElevation: isDarkMode ? 0 : 0.5,
                   surfaceTintColor: Colors.transparent,
-                  toolbarHeight: 50,
+                  toolbarHeight: 60,
                   titleSpacing: 0,
                   systemOverlayStyle: isDarkMode
                       ? SystemUiOverlayStyle.light
                       : SystemUiOverlayStyle.dark,
                   title: Row(
                     children: [
-                      // 频道下拉选择器（仅三横线图标）
-                      PopupMenuButton<String>(
-                        offset: const Offset(0, 48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        color: colors.surface,
-                        itemBuilder: (context) {
-                          return feedState.channels.map((channel) {
-                            final isSelected =
-                                channel == feedState.selectedChannel;
-                            final meta = resolvedChannelMeta[channel];
-                            return PopupMenuItem<String>(
-                              value: channel,
-                              height: 48,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    meta?.icon ?? Icons.grid_view_rounded,
-                                    size: 20,
-                                    color: isSelected
-                                        ? primaryColor
-                                        : (meta?.color ?? colors.textSecondary),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  '树洞',
+                                  style: TextStyle(
+                                    color: SharedColors.deep,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      channel,
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: isSelected
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                        color: isSelected
-                                            ? primaryColor
-                                            : colors.textPrimary,
+                                ),
+                                const SizedBox(width: 8),
+                                // 频道下拉选择器（精美印泥底色）
+                                PopupMenuButton<String>(
+                                  offset: const Offset(0, 36),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  color: colors.surface,
+                                  itemBuilder: (context) {
+                                    return feedState.channels.map((channel) {
+                                      final isSelected =
+                                          channel == feedState.selectedChannel;
+                                      final meta = resolvedChannelMeta[channel];
+                                      return PopupMenuItem<String>(
+                                        value: channel,
+                                        height: 48,
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              meta?.icon ?? Icons.grid_view_rounded,
+                                              size: 20,
+                                              color: isSelected
+                                                  ? primaryColor
+                                                  : (meta?.color ?? colors.textSecondary),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                channel,
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w600
+                                                      : FontWeight.normal,
+                                                  color: isSelected
+                                                      ? primaryColor
+                                                      : colors.textPrimary,
+                                                ),
+                                              ),
+                                            ),
+                                            if (isSelected)
+                                              Icon(
+                                                Icons.check,
+                                                size: 18,
+                                                color: primaryColor,
+                                              ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList();
+                                  },
+                                  onSelected: (channel) {
+                                    ref
+                                        .read(feedControllerProvider.notifier)
+                                        .switchChannel(channel);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: SharedColors.softRed,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: SharedColors.primary.withValues(alpha: 0.2),
+                                        width: 0.5,
                                       ),
                                     ),
-                                  ),
-                                  if (isSelected)
-                                    Icon(
-                                      Icons.check,
-                                      size: 18,
-                                      color: primaryColor,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          selectedChannelIcon,
+                                          size: 12,
+                                          color: SharedColors.primary,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          feedState.selectedChannel,
+                                          style: const TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: SharedColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 2),
+                                        const Icon(
+                                          Icons.arrow_drop_down,
+                                          size: 12,
+                                          color: SharedColors.primary,
+                                        ),
+                                      ],
                                     ),
-                                ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Text(
+                              '把今天藏进一枚印章里',
+                              style: TextStyle(
+                                color: SharedColors.textSecondary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.normal,
+                                fontFamily: MobileTheme.quoteFontFamily,
+                                fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
                               ),
-                            );
-                          }).toList();
-                        },
-                        onSelected: (channel) {
-                          ref
-                              .read(feedControllerProvider.notifier)
-                              .switchChannel(channel);
-                        },
-                        child: Container(
-                          width: 60,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: colors.background,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            selectedChannelIcon,
-                            size: 22,
-                            color: selectedChannelIconColor,
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // 排序切换
                       _CompactSortToggle(
                         sort: feedState.sort,
                         onSortChanged: (sort) => ref
                             .read(feedControllerProvider.notifier)
                             .switchSort(sort),
                       ),
+                      const SizedBox(width: 8),
                     ],
                   ),
                   actions: [
@@ -483,7 +537,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   ],
                 ),
 
-                // 帖子列表（全宽，无外层 margin）
+                // 帖子列表
                 if (feedState.loading && visiblePosts.isEmpty)
                   const SliverFillRemaining(child: HomePageShimmer())
                 else if (feedState.error != null && visiblePosts.isEmpty)
@@ -506,7 +560,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           if (index == visiblePosts.length) {
                             if (feedState.hasMore) {
                               return Padding(
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
                                 child: Center(
                                   child: SizedBox(
                                     width: 24,
@@ -553,7 +607,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ],
       ),
 
-      // FAB：右下角圆形 + 图标，无文字
+      // FAB：右下角印章风圆形写字按钮
       floatingActionButton: AnimatedSlide(
         offset: _fabVisible ? Offset.zero : const Offset(0, 2),
         duration: const Duration(milliseconds: 220),
@@ -565,7 +619,15 @@ class _HomePageState extends ConsumerState<HomePage> {
             onPressed: () => context.push('/post/create'),
             backgroundColor: primaryColor,
             elevation: 4,
-            child: const Icon(Icons.edit, color: Colors.white, size: 22),
+            shape: const CircleBorder(),
+            child: const Text(
+              '写',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ),
       ),
@@ -735,8 +797,13 @@ class _EmptyView extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '成为第一个发布内容的人吧',
-              style: TextStyle(color: colors.textTertiary, fontSize: 14),
+              '第一枚印章，等你盖下。',
+              style: TextStyle(
+                color: colors.textTertiary,
+                fontSize: 14,
+                fontFamily: MobileTheme.quoteFontFamily,
+                fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
+              ),
             ),
             const SizedBox(height: 28),
             OutlinedButton.icon(

@@ -5,7 +5,7 @@ Page({
   data: {
     themeOptions: [],
     langOptions: [],
-    currentThemeOption: 'system'
+    currentThemeOption: 'zhushachi'
   },
 
   onShow() {
@@ -16,14 +16,21 @@ Page({
   updateOptionsAndApply() {
     applyThemeAndLanguage(this);
     const t = this.data.t;
-    const themeConfig = wx.getStorageSync('displayTheme') || 'system';
+    const currentThemeOption = wx.getStorageSync('colorTheme') || 'zhushachi';
 
     this.setData({
-      currentThemeOption: themeConfig,
+      currentThemeOption,
       themeOptions: [
-        { label: t.theme_system || '跟随系统', value: 'system' },
-        { label: t.theme_light || '浅色', value: 'light' },
-        { label: t.theme_dark || '深色', value: 'dark' }
+        { label: '朱砂赤', value: 'zhushachi' },
+        { label: '胭脂红', value: 'yanzhihong' },
+        { label: '赤陶暖', value: 'chitaonuan' },
+        { label: '枣泥红', value: 'zaonihong' },
+        { label: '宣纸朱', value: 'xuanzhizhu' },
+        { label: '竹青', value: 'zhuqing' },
+        { label: '藕荷紫', value: 'ouhezi' },
+        { label: '杏仁黄', value: 'xingrenhuang' },
+        { label: '海盐青', value: 'haiyanqing' },
+        { label: '墨灰', value: 'mohui' }
       ],
       langOptions: [
         { label: t.lang_cn || '简体中文', value: 'zh-CN' },
@@ -36,7 +43,7 @@ Page({
   onThemeTap(event) {
     const theme = event.currentTarget.dataset.theme;
     if (!theme) return;
-    wx.setStorageSync('displayTheme', theme);
+    wx.setStorageSync('colorTheme', theme);
     this.updateOptionsAndApply();
     wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   },

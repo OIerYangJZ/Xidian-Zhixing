@@ -13,7 +13,7 @@
   gap: 16rpx;
   padding-left: 24rpx;
   padding-right: 260rpx;
-  background: var(--app-surface);
+  background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
 }
 
@@ -24,23 +24,24 @@
   gap: 6rpx;
   width: 88rpx;
   height: 88rpx;
+  color: var(--brand-deep);
 }
 
 .nav-menu view {
   width: 36rpx;
   height: 4rpx;
   border-radius: 2rpx;
-  background: var(--app-text-primary);
+  background: currentColor;
 }
 
 .ai-title {
-  color: var(--app-text-primary);
+  color: var(--brand-deep);
   font-size: 34rpx;
   font-weight: 750;
 }
 
 .ai-subtitle {
-  color: var(--app-text-secondary);
+  color: var(--text-secondary);
   font-size: 23rpx;
   line-height: 1.35;
 }
@@ -50,9 +51,8 @@
   align-items: center;
   gap: 20rpx;
   min-height: 112rpx;
-  padding: 12rpx 24rpx;
-  background: var(--app-surface);
-  border-bottom: 1rpx solid var(--app-divider);
+  padding: 24rpx 32rpx;
+  background: transparent;
 }
 
 .new-chat-btn {
@@ -60,14 +60,14 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  height: 80rpx;
+  height: 88rpx;
   padding: 0 28rpx;
-  border-radius: 40rpx;
+  border-radius: 28rpx; /* button.radius.primary = 14px = 28rpx */
   background: var(--app-primary);
   color: #ffffff;
   font-size: 30rpx;
   font-weight: 600;
-  line-height: 80rpx;
+  line-height: 88rpx;
 }
 
 .new-chat-btn .icon {
@@ -78,19 +78,19 @@
 
 .settings-btn {
   flex: 0 0 auto;
-  height: 80rpx;
+  height: 88rpx;
   padding: 0 28rpx;
-  border-radius: 40rpx;
+  border-radius: 28rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 28rpx;
   font-weight: 600;
-  line-height: 80rpx;
+  line-height: 88rpx;
 }
 
 .history-section {
   padding: 0;
-  background: var(--app-surface);
+  background: transparent;
 }
 
 .section-header {
@@ -99,11 +99,10 @@
   justify-content: space-between;
   min-height: 88rpx;
   padding: 0 32rpx;
-  border-bottom: 1rpx solid var(--app-divider);
 }
 
 .section-title {
-  color: var(--app-text-primary);
+  color: var(--brand-deep);
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -115,19 +114,19 @@
 }
 
 .history-list {
-  background: var(--app-surface);
+  background: transparent;
 }
 
 .history-item {
   display: flex;
   align-items: center;
   min-height: 96rpx;
-  padding: 0 32rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.history-item:last-child {
-  border-bottom: none;
+  padding: 28rpx 32rpx;
+  margin: 16rpx 24rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
 }
 
 .item-icon {
@@ -162,4 +161,57 @@
 .item-arrow {
   color: var(--app-text-tertiary);
   font-size: 30rpx;
+}
+
+/* Empty state styling */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.empty-image-placeholder {
+  width: 180rpx;
+  height: 180rpx;
+  margin-bottom: 32rpx;
+  background: var(--app-primary-soft);
+  border-radius: 40rpx;
+  border: 4rpx solid var(--app-primary);
+  position: relative;
+}
+
+.empty-image-placeholder::after {
+  content: '印';
+  font-size: 80rpx;
+  color: var(--app-primary);
+  font-weight: 800;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: serif;
+}
+
+.empty-state-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--app-text-primary);
+  margin-bottom: 12rpx;
+}
+
+.empty-state-desc {
+  font-size: 26rpx;
+  color: var(--app-text-secondary);
+  margin-bottom: 48rpx;
+}
+
+.empty-state-btn {
+  width: 280rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  border-radius: 40rpx;
 }

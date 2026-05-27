@@ -1,10 +1,10 @@
 <view class="page post-detail-page {{themeClass}}">
-  <view class="detail-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="detail-nav-button" bindtap="goBack" aria-label="返回">
+  <view class="detail-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+    <view class="detail-nav-button" bindtap="goBack" aria-label="返回" style="color: var(--brand-deep);">
       <view class="back-icon"></view>
     </view>
-    <view class="detail-nav-title">帖子详情</view>
-    <view class="detail-nav-more" bindtap="showPostOptions" aria-label="更多">
+    <view class="detail-nav-title" style="color: var(--brand-deep);">帖子详情</view>
+    <view class="detail-nav-more" bindtap="showPostOptions" aria-label="更多" style="color: var(--brand-deep);">
       <view class="more-dots"><view></view><view></view><view></view></view>
     </view>
   </view>
@@ -12,16 +12,20 @@
   <scroll-view wx:if="{{!loading && post}}" scroll-y class="main-scroll" scroll-into-view="{{targetAnchor}}" scroll-with-animation style="padding-top: {{navTop + navHeight + 8}}px;">
     <view class="post-card">
       <view class="post-header">
-        <image wx:if="{{!post.isAnonymous && post.authorAvatarUrl}}" class="post-avatar" src="{{post.authorAvatarUrl}}" mode="aspectFill" bindtap="openAuthorProfile"></image>
-        <view wx:else class="post-avatar post-avatar-text" bindtap="openAuthorProfile">{{post.isAnonymous ? '匿' : post.authorInitial}}</view>
+        <view wx:if="{{post.isAnonymous}}" class="seal-avatar">{{post.authorInitial || '匿'}}</view>
+        <block wx:else>
+          <image wx:if="{{post.authorAvatarUrl}}" class="post-avatar" src="{{post.authorAvatarUrl}}" mode="aspectFill" bindtap="openAuthorProfile"></image>
+          <view wx:else class="post-avatar post-avatar-text" bindtap="openAuthorProfile">{{post.authorInitial}}</view>
+        </block>
+        
         <view class="post-meta" bindtap="openAuthorProfile">
           <view class="post-author-row">
             <view class="post-author">{{post.authorAlias || post.authorName || '匿名用户'}}</view>
-            <view wx:if="{{post.isAnonymous}}" class="anonymous-badge">匿名</view>
+            <view wx:if="{{post.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</view>
           </view>
           <view class="post-subline">
-            <text class="post-time">{{post.timeText || post.createdAt}}</text>
-            <text wx:if="{{post.status === 'resolved'}}" class="resolved-badge">已解决</text>
+            <text class="post-time" style="color: var(--text-secondary);">{{post.timeText || post.createdAt}}</text>
+            <text wx:if="{{post.status === 'resolved'}}" class="seal-badge-solid" style="margin-left: 8rpx;">已解决</text>
           </view>
         </view>
         <view class="header-actions" wx:if="{{(post.canMessageAuthor && post.authorUserId && !post.isAnonymous) || (post.canFollowAuthor && post.authorUserId && !(post.followingAuthor || post.isFollowingAuthor || post.isFollowing))}}">
@@ -35,7 +39,7 @@
           </view>
         </view>
       </view>
-      <view class="post-title" wx:if="{{post.title}}">{{post.title}}</view>
+      <view class="post-title" wx:if="{{post.title}}" style="color: var(--brand-deep);">{{post.title}}</view>
       <view class="post-content">
         <rich-text nodes="{{contentNodes}}"></rich-text>
       </view>
@@ -74,11 +78,15 @@
       <view class="empty-state" wx:if="{{comments.length === 0}}">暂无评论，快来抢沙发~</view>
 
       <view id="{{item.anchorId}}" class="comment-item {{item.isTarget ? 'target' : ''}}" wx:for="{{comments}}" wx:key="id" style="{{item.indentStyle}}" data-index="{{index}}" bindlongpress="showCommentMenu">
-        <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor"></image>
-        <view wx:else class="comment-avatar comment-avatar-text" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorInitial}}</view>
+        <view wx:if="{{item.isAnonymous}}" class="seal-avatar" style="width: 64rpx; height: 64rpx; line-height: 56rpx; font-size: 26rpx; border-radius: 18rpx; margin-right: 20rpx;">{{item.authorInitial || '匿'}}</view>
+        <block wx:else>
+          <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;"></image>
+          <view wx:else class="comment-avatar comment-avatar-text" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;">{{item.authorInitial}}</view>
+        </block>
         <view class="comment-content-box">
           <view class="comment-header">
             <text class="comment-author" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorAlias || item.authorName || '匿名用户'}}</text>
+            <text wx:if="{{post.authorUserId && item.authorUserId === post.authorUserId}}" class="seal-badge-hollow" style="margin-left: 8rpx; height: 32rpx; line-height: 28rpx; font-size: 18rpx; padding: 0 8rpx;">洞主</text>
             <text class="comment-time">{{item.timeText || item.createdAt}}</text>
           </view>
           <view class="comment-text"><text>{{item.content}}</text></view>
@@ -96,7 +104,7 @@
     </view>
   </scroll-view>
 
-  <view class="loading-state detail-loading" wx:if="{{loading}}" style="padding-top: {{navTop + navHeight + 8}}px;">加载中...</view>
+  <view class="loading-state detail-loading" wx:if="{{loading}}" style="padding-top: {{navTop + navHeight + 8}}px;">正在寻找声音...</view>
   <view class="empty-state detail-empty" wx:if="{{!loading && !post}}" style="padding-top: {{navTop + navHeight + 8}}px;">帖子不存在或已被删除</view>
 
   <view class="emoji-panel" wx:if="{{!loading && post && showEmojiPanel}}">
@@ -112,7 +120,7 @@
     </view>
     <view class="comment-compose">
       <view class="emoji-toggle" bindtap="toggleEmojiPanel">☺</view>
-      <input class="comment-input" placeholder="写下你的评论..." value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
+      <input class="comment-input" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
       <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">发送</button>
     </view>
   </view>

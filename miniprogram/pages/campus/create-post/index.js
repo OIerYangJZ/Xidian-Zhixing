@@ -124,10 +124,10 @@ Page({
   },
 
   initCustomNav() {
-    const menuButton = wx.getMenuButtonBoundingClientRect();
+    const app = getApp();
     this.setData({
-      navTop: menuButton.top,
-      navHeight: menuButton.height
+      navTop: app.globalData.navTop || 44,
+      navHeight: app.globalData.navHeight || 32
     });
   },
 
@@ -542,7 +542,8 @@ Page({
 
       await createPost(payload);
       wx.hideLoading();
-      wx.showToast({ title: '发布成功！', icon: 'success' });
+      const isCampus = payload.sectionType === 'college';
+      wx.showToast({ title: isCampus ? '已发布到校园' : '已悄悄放进树洞', icon: 'success' });
       setTimeout(() => {
         wx.navigateBack();
       }, 250);

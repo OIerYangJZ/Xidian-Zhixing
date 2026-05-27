@@ -13,7 +13,7 @@
   padding-left: 24rpx;
   padding-right: 260rpx;
   padding-bottom: 8px;
-  background: var(--app-surface);
+  background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
 }
 
@@ -24,13 +24,14 @@
   gap: 6rpx;
   width: 88rpx;
   height: 88rpx;
+  color: var(--brand-deep);
 }
 
 .nav-menu view {
   width: 36rpx;
   height: 4rpx;
   border-radius: 2rpx;
-  background: var(--app-text-primary);
+  background: currentColor;
 }
 
 .nav-title {
@@ -39,13 +40,13 @@
 }
 
 .nav-name {
-  color: var(--app-text-primary);
+  color: var(--brand-deep);
   font-size: 31rpx;
   font-weight: 700;
 }
 
 .nav-subtitle {
-  color: var(--app-text-secondary);
+  color: var(--text-secondary);
   font-size: 22rpx;
 }
 
@@ -55,19 +56,18 @@
 
 .campus-hero {
   padding: 34rpx 32rpx 24rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
+  background: var(--app-background);
 }
 
 .hero-title {
-  color: var(--app-text-primary);
+  color: var(--brand-deep);
   font-size: 42rpx;
   font-weight: 750;
 }
 
 .hero-desc {
   margin-top: 10rpx;
-  color: var(--app-text-secondary);
+  color: var(--text-secondary);
   font-size: 26rpx;
   line-height: 1.45;
 }
@@ -76,22 +76,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 24rpx;
-  padding: 28rpx;
+  margin: 24rpx 32rpx;
+  padding: 32rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx;
-  background: var(--app-surface);
+  border-radius: 36rpx; /* card.radius = 18px = 36rpx */
+  background: #ffffff;
+  box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
 }
 
 .map-title {
-  color: var(--app-text-primary);
+  color: var(--brand-deep);
   font-size: 34rpx;
   font-weight: 700;
 }
 
 .map-desc {
   margin-top: 8rpx;
-  color: var(--app-text-secondary);
+  color: var(--text-secondary);
   font-size: 25rpx;
   line-height: 1.4;
 }
@@ -101,38 +102,40 @@
 }
 
 .group-title {
-  padding: 0 32rpx 14rpx;
-  color: var(--app-text-secondary);
-  font-size: 25rpx;
-  font-weight: 650;
+  padding: 24rpx 32rpx 14rpx;
+  color: var(--brand-deep);
+  font-size: 28rpx;
+  font-weight: 700;
 }
 
 .service-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rpx;
-  background: var(--app-divider);
-  border-top: 1rpx solid var(--app-divider);
-  border-bottom: 1rpx solid var(--app-divider);
+  gap: 16rpx;
+  padding: 0 32rpx 24rpx;
+  background: transparent;
 }
 
 .service-item {
   min-height: 172rpx;
-  padding: 24rpx 12rpx;
-  background: var(--app-surface);
+  padding: 28rpx 16rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx; /* radius.sm = 12px = 24rpx */
   text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
 }
 
 .service-icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 48rpx;
+  height: 48rpx;
   margin: 0 auto 14rpx;
   border: 4rpx solid var(--app-primary);
-  border-radius: 14rpx;
+  border-radius: 16rpx;
 }
 
 .service-name {
-  color: var(--app-text-primary);
+  color: var(--text-primary);
   font-size: 26rpx;
   font-weight: 650;
   line-height: 1.25;
@@ -143,4 +146,9 @@
   color: var(--app-primary);
   font-size: 22rpx;
   line-height: 1.2;
+}
+
+.menu-arrow {
+  color: var(--app-text-tertiary);
+  font-size: 30rpx;
 }

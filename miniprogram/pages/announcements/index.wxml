@@ -1,15 +1,15 @@
 <view class="page announcements-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="nav-menu" bindtap="openDrawer"><view></view><view></view><view></view></view>
+  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+    <view class="nav-menu" bindtap="openDrawer" style="color: var(--brand-deep);"><view></view><view></view><view></view></view>
     <view class="nav-title">
-      <view class="nav-name">公告</view>
-      <view class="nav-subtitle">聚合、筛选、摘要</view>
+      <view class="nav-name" style="color: var(--brand-deep);">公告</view>
+      <view class="nav-subtitle" style="color: var(--text-secondary);">重要消息，不错过</view>
     </view>
   </view>
   <scroll-view scroll-y class="ann-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
     <view class="daily-card" wx:if="{{dailySummary}}">
-      <view class="daily-title">{{dailySummary.title || '每日公告摘要'}}</view>
+      <view class="daily-title" style="color: var(--brand-deep);">{{dailySummary.title || '每日公告摘要'}}</view>
       <view class="daily-text">{{dailySummary.summary}}</view>
     </view>
     <scroll-view scroll-x class="filter-strip">
@@ -18,16 +18,23 @@
     </scroll-view>
     <view class="announcement-card" wx:for="{{announcements}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
       <view class="announcement-head">
-        <view class="announcement-type">{{item.type || item.sourceName}}</view>
-        <view wx:if="{{item.isImportant}}" class="important-badge">重要</view>
+        <view class="announcement-type" style="color: var(--brand-seal);">{{item.type || item.sourceName}}</view>
+        <view wx:if="{{item.isImportant}}" class="seal-badge-solid" style="margin-left: 8rpx;">重要</view>
+        <view wx:if="{{item.isOfficial || item.publisher === '官方' || item.publisher === '管理员'}}" class="seal-badge-solid" style="margin-left: 8rpx;">官方</view>
       </view>
-      <view class="announcement-title">{{item.title}}</view>
+      <view class="announcement-title" style="color: var(--brand-deep);">{{item.title}}</view>
       <view class="announcement-summary">{{item.aiSummary || item.summary}}</view>
       <view class="announcement-footer">
         <text>{{item.publisher}}</text>
         <text>{{item.publishedAt}}</text>
       </view>
     </view>
-    <view class="empty-state" wx:if="{{announcements.length === 0}}">暂无公告</view>
+    
+    <view class="empty-state-container" wx:if="{{announcements.length === 0}}" style="padding: 120rpx 40rpx;">
+      <!-- 标注：此处如果需要图片，可使用 empty_state_announcement.png -->
+      <view class="empty-image-placeholder"></view>
+      <view class="empty-state-title">暂无公告</view>
+      <view class="empty-state-desc">新的通知会第一时间出现在这里。</view>
+    </view>
   </scroll-view>
 </view>

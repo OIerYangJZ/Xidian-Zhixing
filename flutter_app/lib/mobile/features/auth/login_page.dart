@@ -5,8 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/repositories/auth_repository.dart';
-import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../core/theme/mobile_theme.dart';
+import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -111,16 +112,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 80),
               Center(
                 child: Container(
-                  width: 80,
-                  height: 80,
+                  width: 90,
+                  height: 90,
                   decoration: BoxDecoration(
-                    color: MobileTheme.primaryOf(context),
-                    borderRadius: BorderRadius.circular(20),
+                    color: SharedColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: SharedColors.deep, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: SharedColors.deep.withValues(alpha: 0.15),
+                        blurRadius: 6,
+                        offset: const Offset(1, 2),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.forum_outlined,
-                    size: 40,
-                    color: Colors.white,
+                  padding: const EdgeInsets.all(4),
+                  alignment: Alignment.center,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      '西电\n电台',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                        letterSpacing: 2,
+                        fontFamily: MobileTheme.brandFontFamily,
+                        fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -131,13 +157,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: colors.textPrimary,
+                  fontFamily: MobileTheme.brandFontFamily,
+                  fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
                 ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 '欢迎回来',
-                style: TextStyle(fontSize: 15, color: colors.textSecondary),
+                style: TextStyle(
+                  fontSize: 15,
+                  color: colors.textSecondary,
+                  fontFamily: MobileTheme.brandFontFamily,
+                  fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),

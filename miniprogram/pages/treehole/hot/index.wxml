@@ -1,13 +1,22 @@
 <view class="page hot-page">
-  <view class="hot-header">
-    <view class="hot-title">热榜</view>
-    <button class="summary-btn" bindtap="summarize">AI 总结</button>
+  <view class="hot-header-container">
+    <view class="hot-header">
+      <view class="hot-title-group">
+        <view class="hot-title" style="color: var(--brand-deep);">热榜</view>
+        <view class="hot-subtitle" style="color: var(--text-secondary); font-size: 24rpx; margin-top: 4rpx;">正在被大家悄悄讨论</view>
+      </view>
+      <button class="summary-btn" bindtap="summarize">AI 总结</button>
+    </view>
   </view>
   <view class="summary-card" wx:if="{{summary}}">{{summary}}</view>
+  
   <view class="hot-row" wx:for="{{topics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="openPost">
-    <view class="hot-rank">{{item.rank}}</view>
+    <view class="hot-rank {{item.rank <= 3 ? 'rank-seal-solid' : 'rank-seal-empty'}}">{{item.rank}}</view>
     <view class="hot-body">
-      <view class="hot-name">{{item.title}}</view>
+      <view class="hot-name">
+        <text wx:if="{{item.rank <= 3}}" class="seal-badge-solid" style="margin-right: 8rpx; display: inline-block; vertical-align: middle; height: 32rpx; line-height: 32rpx; padding: 0 8rpx; font-size: 18rpx;">热</text>
+        <text style="vertical-align: middle;">{{item.title}}</text>
+      </view>
       <view class="hot-summary">{{item.summary}}</view>
       <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
     </view>

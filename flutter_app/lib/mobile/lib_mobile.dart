@@ -35,6 +35,7 @@ export 'features/widgets/emoji_bar.dart';
 export 'features/widgets/avatar_widget.dart';
 export 'features/widgets/loading_states.dart';
 export 'features/widgets/shimmer_loading.dart';
+export 'features/widgets/seal_widgets.dart';
 export 'features/widgets/empty_state_widget.dart';
 export 'features/post/image_gallery.dart';
 export 'features/post/comment_input_bar.dart';

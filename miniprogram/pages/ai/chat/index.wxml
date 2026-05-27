@@ -5,12 +5,15 @@
     <view class="chat-list">
       <view wx:for="{{messages}}" wx:key="id" class="message-item {{item.role === 'user' ? 'message-user' : 'message-assistant'}}">
         <view class="avatar {{item.role === 'user' ? 'avatar-user' : 'avatar-assistant'}}">
-          {{item.role === 'user' ? '我' : 'AI'}}
+          {{item.role === 'user' ? '我' : '印'}}
         </view>
         <view class="message-bubble">
           <text class="message-text">{{item.content}}</text>
           <view class="references" wx:if="{{item.references && item.references.length}}">
-            <view class="reference-title">参考资料</view>
+            <view class="reference-title">
+              <text class="seal-badge-hollow" style="font-size: 16rpx; height: 32rpx; line-height: 28rpx; padding: 0 6rpx; margin-right: 8rpx; display: inline-block; vertical-align: middle;">来源</text>
+              <text style="vertical-align: middle;">参考资料</text>
+            </view>
             <view class="reference-item" wx:for="{{item.references}}" wx:for-item="ref" wx:key="key">
               {{ref.type === 'post' ? '帖子' : '资料'}} · {{ref.title}}
             </view>
@@ -20,7 +23,7 @@
       
       <!-- Loading indicator for assistant -->
       <view class="message-item message-assistant" wx:if="{{isSending}}">
-        <view class="avatar avatar-assistant">AI</view>
+        <view class="avatar avatar-assistant">印</view>
         <view class="message-bubble">
           <view class="typing-indicator">
             <view class="dot"></view>

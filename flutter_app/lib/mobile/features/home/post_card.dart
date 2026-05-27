@@ -7,11 +7,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../../core/theme/shared_colors.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../post/image_gallery.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/seal_widgets.dart';
 
 /// Instagram 风格帖子卡片
 /// 无边距、无圆角、无阴影、全宽紧贴屏幕
@@ -101,31 +103,44 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (widget.showTopDivider)
-          Container(height: 0.5, color: colors.divider),
-        GestureDetector(
-          onTap: widget.onTap,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 左列：头像
-                _buildAvatar(),
-                const SizedBox(width: 10),
-                // 右列：内容
-                Expanded(child: _buildContent()),
-              ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: SharedColors.divider, width: 0.5),
+          boxShadow: [
+            BoxShadow(
+              color: SharedColors.deep.withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: widget.onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 左列：印章/普通头像
+                    _buildAvatar(),
+                    const SizedBox(width: 12),
+                    // 右列：内容
+                    Expanded(child: _buildContent()),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
-        Container(height: 0.5, color: colors.divider),
-      ],
+      ),
     );
   }
 
@@ -143,11 +158,13 @@ class _PostCardState extends ConsumerState<PostCard> {
           }
         }
       },
-      child: AvatarWidget(
-        avatarUrl: isAnon ? null : widget.post.authorAvatarUrl,
-        nickname: isAnon ? '匿' : widget.post.authorAlias,
-        radius: 20,
-      ),
+      child: isAnon
+          ? SealAvatar(text: widget.post.authorAlias, size: 40)
+          : AvatarWidget(
+              avatarUrl: widget.post.authorAvatarUrl,
+              nickname: widget.post.authorAlias,
+              radius: 20,
+            ),
     );
   }
 
@@ -342,7 +359,6 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Widget _buildHeaderRow() {
     final colors = MobileColors.of(context);
-    final primaryColor = MobileTheme.primaryOf(context);
     return Row(
       children: [
         Text(
@@ -353,42 +369,33 @@ class _PostCardState extends ConsumerState<PostCard> {
             color: colors.textPrimary,
           ),
         ),
-        const SizedBox(width: 6),
-        _ChannelDot(channel: widget.post.channel),
+        const SizedBox(width: 8),
+        SealBadge(text: widget.post.channel, type: SealBadgeType.light),
         if (widget.post.isPinned) ...[
           const SizedBox(width: 6),
-          Icon(Icons.push_pin, size: 14, color: primaryColor),
+          const SealBadge(text: '置顶', type: SealBadgeType.solid),
         ],
         const Spacer(),
         Text(
           _formatTime(widget.post.createdAt),
-          style: TextStyle(fontSize: 14, color: colors.textTertiary),
+          style: TextStyle(fontSize: 12, color: colors.textSecondary),
         ),
       ],
     );
   }
 
   Widget _buildTags() {
-    final primaryColor = MobileTheme.primaryOf(context);
     return Wrap(
-      spacing: 8,
+      spacing: 6,
       runSpacing: 4,
       children: widget.post.tags.take(3).map((tag) {
-        return Text(
-          '#$tag',
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: primaryColor,
-          ),
-        );
+        return SealBadge(text: '#$tag', type: SealBadgeType.light);
       }).toList(),
     );
   }
 
   Widget _buildActionBar() {
     final colors = MobileColors.of(context);
-    final primaryColor = MobileTheme.primaryOf(context);
     return SizedBox(
       height: 36,
       child: Row(
@@ -398,7 +405,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.favorite,
             count: _likeCount,
             isActive: _isLiked,
-            activeColor: const Color(0xFFFF2D55),
+            activeColor: SharedColors.primary,
             onTap: _busy ? null : _handleLike,
           ),
           const SizedBox(width: 24),
@@ -407,7 +414,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.chat_bubble,
             count: widget.post.commentCount,
             isActive: false,
-            activeColor: primaryColor,
+            activeColor: SharedColors.primary,
             onTap: widget.onTap,
           ),
           const Spacer(),
@@ -444,50 +451,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 }
 
-/// 频道彩色圆点 + 频道名文本
-class _ChannelDot extends StatelessWidget {
-  final String channel;
-
-  const _ChannelDot({required this.channel});
-
-  static const _channelColors = {
-    '全部': Color(0xFF8E8E93),
-    '综合': Color(0xFF6B7FD7),
-    '学习': Color(0xFF5E8FD4),
-    '二手': Color(0xFF5EAF7C),
-    '找搭子': Color(0xFFE09C5E),
-    '失物': Color(0xFFD45E8A),
-    '吐槽': Color(0xFF9B6ED4),
-    '租房': Color(0xFF5EC4AF),
-    '问答': Color(0xFF5EAAD4),
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final displayChannel = channel == '其他' ? '综合' : channel;
-    final color =
-        _channelColors[displayChannel] ?? MobileTheme.primaryOf(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          displayChannel,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 class _ActionButton extends StatelessWidget {
   final IconData icon;
@@ -537,3 +500,5 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
+
+

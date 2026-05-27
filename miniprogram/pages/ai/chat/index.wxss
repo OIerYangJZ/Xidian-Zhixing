@@ -61,7 +61,9 @@
 }
 
 .avatar-assistant {
-  background: rgba(142, 142, 147, .14);
+  background: var(--brand-seal);
+  color: #ffffff;
+  border-radius: 20rpx; /* square seal avatar */
 }
 
 .message-user .avatar {
@@ -105,23 +107,23 @@
 }
 
 .message-user .references {
-  border-top-color: rgba(255, 255, 255, .24);
+  border-top-color: var(--app-divider);
 }
 
 .message-user .reference-title,
 .message-user .reference-item {
-  color: rgba(255, 255, 255, .78);
+  color: var(--app-text-secondary);
 }
 
 .message-user .message-bubble {
-  background: var(--app-primary);
-  color: #ffffff;
-  border-color: var(--app-primary);
+  background: var(--background-softRed);
+  color: var(--brand-deep);
+  border-color: var(--app-divider);
   border-top-right-radius: 4rpx;
 }
 
 .message-assistant .message-bubble {
-  background: var(--app-surface);
+  background: #ffffff;
   color: var(--app-text-primary);
   border-top-left-radius: 4rpx;
 }
@@ -179,9 +181,10 @@
   margin-right: 20rpx;
   padding: 0 30rpx;
   border-radius: 38rpx;
-  background: var(--app-control);
+  background: var(--app-background);
   color: var(--app-text-primary);
   font-size: 30rpx;
+  border: 1rpx solid var(--app-divider);
 }
 
 .send-btn {

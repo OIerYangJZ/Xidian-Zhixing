@@ -63,5 +63,13 @@ Page({
 
   handleResetPassword() {
     wx.navigateTo({ url: '/pages/profile/reset-password/index' });
+  },
+
+  goTerms() {
+    wx.navigateTo({ url: '/pages/profile/legal/index?type=terms' });
+  },
+
+  goPrivacy() {
+    wx.navigateTo({ url: '/pages/profile/legal/index?type=privacy' });
   }
 });

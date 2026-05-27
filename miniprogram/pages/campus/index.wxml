@@ -1,34 +1,34 @@
 <view class="page campus-service-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="nav-menu" bindtap="openDrawer"><view></view><view></view><view></view></view>
+  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+    <view class="nav-menu" bindtap="openDrawer" style="color: var(--brand-deep);"><view></view><view></view><view></view></view>
     <view class="nav-title">
-      <view class="nav-name">校园</view>
-      <view class="nav-subtitle">服务入口与地图</view>
+      <view class="nav-name" style="color: var(--brand-deep);">校园</view>
+      <view class="nav-subtitle" style="color: var(--text-secondary);">在学校里，需要的都在这里</view>
     </view>
   </view>
 
   <scroll-view scroll-y class="service-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
     <view class="campus-hero">
-      <view class="hero-title">校园服务</view>
-      <view class="hero-desc">课表、水电、成绩、考试、地图和快速跳转已预留入口。</view>
+      <view class="hero-title" style="color: var(--brand-deep);">校园服务</view>
+      <view class="hero-desc" style="color: var(--text-secondary);">课表、水电、成绩、考试、地图和快速跳转已预留入口。</view>
     </view>
 
     <view class="map-entry" bindtap="openMap">
       <view>
-        <view class="map-title">校园地图</view>
-        <view class="map-desc">建筑位置、楼宇结构图、教室和办公室定位</view>
+        <view class="map-title" style="color: var(--brand-deep);">校园地图</view>
+        <view class="map-desc" style="color: var(--text-secondary);">建筑位置、楼宇结构图、教室和办公室定位</view>
       </view>
       <view class="menu-arrow">></view>
     </view>
 
     <view class="service-group" wx:for="{{groupedServices}}" wx:key="id">
-      <view class="group-title">{{item.name}}</view>
+      <view class="group-title" style="color: var(--brand-deep);">{{item.name}}</view>
       <view class="service-grid">
         <view class="service-item" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
-          <view class="service-icon"></view>
-          <view class="service-name">{{service.name}}</view>
-          <view class="service-status">{{service.status}}</view>
+          <view class="service-icon" style="border-color: var(--app-primary);"></view>
+          <view class="service-name" style="color: var(--text-primary);">{{service.name}}</view>
+          <view class="service-status" style="color: var(--app-primary);">{{service.status}}</view>
         </view>
       </view>
     </view>

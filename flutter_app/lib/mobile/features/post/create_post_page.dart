@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
@@ -252,9 +253,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       await postRepo.createPost(input);
 
       if (mounted) {
+        final successMsg = _isAnonymous ? '已悄悄放进树洞' : '发布成功！';
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('发布成功！')));
+        ).showSnackBar(SnackBar(content: Text(successMsg)));
         context.pop();
       }
     } catch (e) {
@@ -315,9 +317,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final canPublish = _canPublish;
 
     return Scaffold(
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       appBar: AppBar(
-        backgroundColor: colors.surface,
+        backgroundColor: colors.background,
         scrolledUnderElevation: 0.5,
         toolbarHeight: 48,
         leading: IconButton(
@@ -351,7 +353,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text('发布'),
+                  : Text(_isAnonymous ? '盖章发布' : '发布到校园'),
             ),
           ),
         ],
@@ -395,46 +397,76 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
                   Divider(height: 0.5, color: colors.divider),
 
-                  // 标题输入（无边框极简）
-                  TextField(
-                    controller: _titleController,
-                    maxLength: 50,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: '标题（选填）',
-                      hintStyle: TextStyle(
-                        color: colors.textTertiary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
+                  // 优雅的白底便签卡片编辑区
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: colors.divider, width: 0.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: SharedColors.deep.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      border: InputBorder.none,
-                      counterText: '',
-                      contentPadding: EdgeInsets.fromLTRB(16, 12, 16, 4),
-                    ),
-                  ),
-
-                  // 正文输入（minLines: 8，多行动态扩展）
-                  TextField(
-                    controller: _contentController,
-                    maxLines: null,
-                    minLines: 8,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: colors.textPrimary,
-                      height: 1.6,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: '分享你的想法...',
-                      hintStyle: TextStyle(
-                        color: colors.textTertiary,
-                        fontSize: 15,
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 标题输入
+                          TextField(
+                            controller: _titleController,
+                            maxLength: 50,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: colors.textPrimary,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '标题（选填）',
+                              hintStyle: TextStyle(
+                                color: colors.textTertiary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.normal,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              counterText: '',
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          const Divider(height: 16),
+                          // 正文输入
+                          TextField(
+                            controller: _contentController,
+                            maxLines: null,
+                            minLines: 8,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: colors.textPrimary,
+                              height: 1.6,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: '今天想悄悄说些什么？',
+                              hintStyle: TextStyle(
+                                color: colors.textTertiary,
+                                fontSize: 15,
+                                fontFamily: MobileTheme.quoteFontFamily,
+                                fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
                       ),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.fromLTRB(16, 0, 16, 12),
                     ),
                   ),
 
@@ -1045,7 +1077,7 @@ class _StatusBadge extends StatelessWidget {
     final displayColor = status == PostStatus.resolved
         ? MobileTheme.success
         : status == PostStatus.closed
-        ? MobileTheme.textSecondary
+        ? MobileColors.of(context).textSecondary
         : MobileTheme.primaryOf(context);
 
     return Container(

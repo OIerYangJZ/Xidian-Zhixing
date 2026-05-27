@@ -1,25 +1,42 @@
 page {
-  --app-primary: #155e75;
-  --app-primary-dark: #4dd0e1;
-  --app-accent: #e06c4e;
-  --app-background: #ffffff;
+  --brand-primary: #B23A2E;
+  --brand-deep: #7A1E1A;
+  --brand-bright: #D94A38;
+  --brand-seal: #C7352A;
+  --background-paper: #FAF4EA;
+  --background-softRed: #F8E7E1;
+  --text-primary: #2D2522;
+  --text-secondary: #7B6F6A;
+  --border-default: #E8DAD2;
+  --state-success: #4E7D66;
+  --state-warning: #B7791F;
+  --state-danger: #9F1D1D;
+
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
   --app-surface: #ffffff;
   --app-card: #ffffff;
-  --app-text-primary: #1d1d1f;
-  --app-text-secondary: #8e8e93;
-  --app-text-tertiary: #c7c7cc;
-  --app-divider: #e8e8e8;
-  --app-success: #34c759;
-  --app-warning: #ff9500;
-  --app-error: #ff3b30;
-  --app-control: rgba(142, 142, 147, .12);
-  --app-primary-soft: rgba(21, 94, 117, .1);
-  --app-accent-soft: rgba(224, 108, 78, .12);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A2948E;
+  --app-divider: var(--border-default);
+  --app-success: var(--state-success);
+  --app-warning: var(--state-warning);
+  --app-error: var(--state-danger);
+  --app-control: rgba(178, 58, 46, .06);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+
+  --font-serif: "Source Han Serif SC", "Source Han Serif CN", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
+  --font-sans: var(--font-serif);
+  --font-quote: var(--font-serif);
 
   min-height: 100vh;
   background: var(--app-background);
   color: var(--app-text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans);
 }
 
 view,
@@ -50,43 +67,6 @@ button::after {
   color: var(--app-text-primary);
 }
 
-.theme-light {
-  --app-primary: #155e75;
-  --app-primary-dark: #4dd0e1;
-  --app-accent: #e06c4e;
-  --app-background: #ffffff;
-  --app-surface: #ffffff;
-  --app-card: #ffffff;
-  --app-text-primary: #1d1d1f;
-  --app-text-secondary: #8e8e93;
-  --app-text-tertiary: #c7c7cc;
-  --app-divider: #e8e8e8;
-  --app-success: #34c759;
-  --app-warning: #ff9500;
-  --app-error: #ff3b30;
-  --app-control: rgba(142, 142, 147, .12);
-  --app-primary-soft: rgba(21, 94, 117, .1);
-  --app-accent-soft: rgba(224, 108, 78, .12);
-}
-
-.theme-dark {
-  --app-primary: #4dd0e1;
-  --app-primary-dark: #4dd0e1;
-  --app-accent: #e06c4e;
-  --app-background: #121212;
-  --app-surface: #1c1c1e;
-  --app-card: #1c1c1e;
-  --app-text-primary: #f2f2f7;
-  --app-text-secondary: #aeaeb2;
-  --app-text-tertiary: #48484a;
-  --app-divider: #2c2c2e;
-  --app-success: #30d158;
-  --app-warning: #ff9f0a;
-  --app-error: #ff453a;
-  --app-control: rgba(255, 255, 255, .08);
-  --app-primary-soft: rgba(77, 208, 225, .16);
-  --app-accent-soft: rgba(224, 108, 78, .16);
-}
 
 .safe-bottom {
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
@@ -140,7 +120,7 @@ button::after {
   align-items: center;
   justify-content: center;
   height: 88rpx;
-  border-radius: 20rpx;
+  border-radius: 28rpx; /* button.radius.primary = 14px = 28rpx */
   background: var(--app-primary);
   color: #ffffff;
   font-size: 30rpx;
@@ -187,7 +167,7 @@ button::after {
   width: 100%;
   padding: 0 24rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 20rpx;
+  border-radius: 24rpx; /* input.radius = 12px = 24rpx */
   background: var(--app-surface);
   color: var(--app-text-primary);
   font-size: 29rpx;
@@ -218,12 +198,31 @@ button::after {
   text-align: center;
 }
 
+/* 篆刻印章头像 */
+.seal-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  flex: 0 0 auto;
+  border-radius: 24rpx; /* 12px roundness */
+  border: 4rpx solid var(--app-primary);
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 32rpx;
+  font-weight: 700;
+  line-height: 72rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
 .feed-card {
   display: flex;
   gap: 20rpx;
-  padding: 14rpx 24rpx;
-  background: transparent;
-  border-bottom: 1rpx solid var(--app-divider);
+  padding: 32rpx;
+  margin: 24rpx 32rpx;
+  background: #ffffff;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 36rpx; /* card.radius = 18px = 36rpx */
+  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.04);
 }
 
 .feed-avatar {
@@ -264,14 +263,55 @@ button::after {
 
 .anonymous-badge {
   flex: 0 0 auto;
-  height: 28rpx;
-  padding: 0 8rpx;
-  border-radius: 6rpx;
-  background: rgba(21, 94, 117, .1);
-  color: var(--app-primary);
+  height: 34rpx;
+  padding: 0 10rpx;
+  border: 2rpx solid var(--brand-seal);
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: var(--brand-seal);
   font-size: 20rpx;
   font-weight: 700;
-  line-height: 28rpx;
+  line-height: 30rpx;
+}
+
+/* 实章标签: 红底白字 */
+.seal-badge-solid {
+  flex: 0 0 auto;
+  height: 34rpx;
+  padding: 0 10rpx;
+  border-radius: 8rpx;
+  background: var(--brand-seal);
+  color: #ffffff;
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 34rpx;
+}
+
+/* 空章标签: 白底红字红边 */
+.seal-badge-hollow {
+  flex: 0 0 auto;
+  height: 34rpx;
+  padding: 0 10rpx;
+  border: 2rpx solid var(--brand-seal);
+  border-radius: 8rpx;
+  background: #ffffff;
+  color: var(--brand-seal);
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 30rpx;
+}
+
+/* 淡章标签: 浅红底深红字 */
+.seal-badge-light {
+  flex: 0 0 auto;
+  height: 34rpx;
+  padding: 0 10rpx;
+  border-radius: 8rpx;
+  background: var(--background-softRed);
+  color: var(--brand-deep);
+  font-size: 20rpx;
+  font-weight: 700;
+  line-height: 34rpx;
 }
 
 .feed-channel {
@@ -556,9 +596,6 @@ button::after {
   background: var(--app-card);
 }
 
-.theme-dark .mobile-tile-card {
-  border-color: rgba(44, 44, 46, .8);
-}
 
 .mobile-section-title {
   padding: 0 8rpx 16rpx;
@@ -627,9 +664,6 @@ button::after {
   background: var(--app-card);
 }
 
-.theme-dark .mobile-user-card {
-  border-color: rgba(44, 44, 46, .8);
-}
 
 .mobile-user-avatar {
   width: 120rpx;
@@ -698,3 +732,270 @@ button::after {
 .feed-action:active {
   opacity: 0.6;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * 字体样式规范应用
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+/* 1. 品牌大标题 (思源宋体 SC SemiBold) */
+.appbar-name,
+.nav-name,
+.ai-title,
+.product-name,
+.auth-body .title,
+.detail-title,
+.brand-card .brand-title {
+  font-family: var(--font-serif) !important;
+  font-weight: 600 !important;
+  color: var(--brand-deep) !important;
+}
+
+/* 2. 情绪化辅助字体 (霞鹜文楷) */
+.appbar-subtitle,
+.reply-banner-text,
+.empty-state-desc,
+.comment-placeholder,
+.textarea-placeholder {
+  font-family: var(--font-quote) !important;
+}
+
+/* 3. 公告正文规范 (思源宋体 SC Regular) */
+.detail-content {
+  font-family: var(--font-serif) !important;
+  line-height: 1.75 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * 多主题配色
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+.theme-zhushachi {
+  --brand-primary: #B23A2E;
+  --brand-deep: #7A1E1A;
+  --brand-bright: #D94A38;
+  --brand-seal: #C7352A;
+  --background-paper: #FAF4EA;
+  --background-softRed: #F8E7E1;
+  --text-primary: #2D2522;
+  --text-secondary: #7B6F6A;
+  --border-default: #E8DAD2;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A2948E;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(178, 58, 46, .06);
+}
+
+.theme-yanzhihong {
+  --brand-primary: #B8324A;
+  --brand-deep: #741B2D;
+  --brand-bright: #D94F68;
+  --brand-seal: #C4213B;
+  --background-paper: #FBF1F3;
+  --background-softRed: #F8DDE3;
+  --text-primary: #2E2427;
+  --text-secondary: #7A686D;
+  --border-default: #E8D4DA;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #B2A2A7;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(184, 50, 74, .06);
+}
+
+.theme-chitaonuan {
+  --brand-primary: #B85B3E;
+  --brand-deep: #74301F;
+  --brand-bright: #D97855;
+  --brand-seal: #C94A2F;
+  --background-paper: #FBF3EA;
+  --background-softRed: #F5DFD1;
+  --text-primary: #2F2823;
+  --text-secondary: #7C6D64;
+  --border-default: #E7D7CA;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #B4A69E;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(184, 91, 62, .06);
+}
+
+.theme-zaonihong {
+  --brand-primary: #8F2F2C;
+  --brand-deep: #5C1A18;
+  --brand-bright: #B54A43;
+  --brand-seal: #A92724;
+  --background-paper: #F9F1EA;
+  --background-softRed: #EFD8D2;
+  --text-primary: #2B2422;
+  --text-secondary: #756B67;
+  --border-default: #E1D2CB;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A89C97;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(143, 47, 44, .06);
+}
+
+.theme-xuanzhizhu {
+  --brand-primary: #C43A2F;
+  --brand-deep: #7D211B;
+  --brand-bright: #E15A48;
+  --brand-seal: #D12B22;
+  --background-paper: #FFF8EE;
+  --background-softRed: #FBE4DC;
+  --text-primary: #2F2520;
+  --text-secondary: #7E7068;
+  --border-default: #EAD9CF;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #B8A9A0;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(196, 58, 47, .06);
+}
+
+.theme-zhuqing {
+  --brand-primary: #4F8A5F;
+  --brand-deep: #2F5C3D;
+  --brand-bright: #78B985;
+  --brand-seal: #3E744D;
+  --background-paper: #F3F8F1;
+  --background-softRed: #E0EFD8;
+  --text-primary: #242F26;
+  --text-secondary: #68766A;
+  --border-default: #D5E4D0;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #9AA89D;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(79, 138, 95, .06);
+}
+
+.theme-ouhezi {
+  --brand-primary: #8B6F9E;
+  --brand-deep: #5B456D;
+  --brand-bright: #AD93BF;
+  --brand-seal: #765A8A;
+  --background-paper: #F8F4FA;
+  --background-softRed: #EBDFF1;
+  --text-primary: #2D2632;
+  --text-secondary: #746A7A;
+  --border-default: #DED2E4;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A69BAE;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(139, 111, 158, .06);
+}
+
+.theme-xingrenhuang {
+  --brand-primary: #C28A3A;
+  --brand-deep: #7A5422;
+  --brand-bright: #DDAA5C;
+  --brand-seal: #A9712B;
+  --background-paper: #FCF7EC;
+  --background-softRed: #F4E3C1;
+  --text-primary: #31281E;
+  --text-secondary: #7D6F5F;
+  --border-default: #E8D8BA;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #B6A897;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(194, 138, 58, .06);
+}
+
+.theme-haiyanqing {
+  --brand-primary: #5B9EA6;
+  --brand-deep: #346B72;
+  --brand-bright: #84C2C8;
+  --brand-seal: #478C94;
+  --background-paper: #F1F8F8;
+  --background-softRed: #DDEFF1;
+  --text-primary: #223032;
+  --text-secondary: #647678;
+  --border-default: #D0E2E4;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #9AAFB2;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(91, 158, 166, .06);
+}
+
+.theme-mohui {
+  --brand-primary: #4F5552;
+  --brand-deep: #2B302E;
+  --brand-bright: #747D78;
+  --brand-seal: #3E4542;
+  --background-paper: #F5F4F0;
+  --background-softRed: #E7E5DF;
+  --text-primary: #242523;
+  --text-secondary: #6E706B;
+  --border-default: #DAD8D1;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A2A5A0;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: var(--background-softRed);
+  --app-control: rgba(79, 85, 82, .06);
+}
+

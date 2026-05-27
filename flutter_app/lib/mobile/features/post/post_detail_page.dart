@@ -10,6 +10,7 @@ import '../widgets/avatar_widget.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -18,6 +19,7 @@ import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/post_content_body.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
+import '../widgets/seal_widgets.dart';
 
 /// 甯栧瓙璇︽儏椤?
 /// 鍖呭惈甯栧瓙姝ｆ枃銆佸浘鐗囩敾寤娿€佽瘎璁哄垪琛ㄣ€佺偣璧?鏀惰棌/涓炬姤浜や簰
@@ -768,15 +770,34 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 甯栧瓙鍐呭
-                  _buildPostContent(),
+                  // 帖子详情卡片（包含内容与操作栏）
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: SharedColors.divider, width: 0.5),
+                        boxShadow: [
+                          BoxShadow(
+                            color: SharedColors.deep.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildPostContent(),
+                          _buildActionBar(),
+                          const SizedBox(height: 12),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                  // 鎿嶄綔鏍忥細鐐硅禐/鏀惰棌/璇勮/鍒嗕韩
-                  _buildActionBar(),
-
-                  const Divider(height: 1),
-
-                  // 璇勮鍖?
+                  // 评论区标题与评论列表
                   _buildCommentsSection(),
                 ],
               ),
@@ -792,179 +813,170 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     final post = _post!;
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(post);
 
-    return Container(
-      color: colors.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 浣滆€呬俊鎭?
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
-            child: Row(
-              children: [
-                // 澶村儚
-                GestureDetector(
-                  onTap: () {
-                    // 鍖垮悕甯栨垨鑷繁鐨勫笘瀛愪笉璺宠浆锛堣嚜宸辩殑甯栧瓙鏃犳硶浠庡叏灞忛〉 push Shell 鍒嗘敮璺敱锛?
-                    if (!post.isAnonymous &&
-                        post.authorUserId.isNotEmpty &&
-                        !post.isOwnPost) {
-                      context.push('/user/${post.authorUserId}');
-                    }
-                  },
-                  child: AvatarWidget(
-                    avatarUrl: post.isAnonymous ? null : post.authorAvatarUrl,
-                    nickname: post.isAnonymous ? '匿' : post.authorAlias,
-                    radius: 24,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        post.authorAlias,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                        ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 作者信息
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+          child: Row(
+            children: [
+              // 头像
+              GestureDetector(
+                onTap: () {
+                  // 匿名帖或自己的帖子不跳转
+                  if (!post.isAnonymous &&
+                      post.authorUserId.isNotEmpty &&
+                      !post.isOwnPost) {
+                    context.push('/user/${post.authorUserId}');
+                  }
+                },
+                child: post.isAnonymous
+                    ? SealAvatar(text: post.authorAlias, size: 44)
+                    : AvatarWidget(
+                        avatarUrl: post.authorAvatarUrl,
+                        nickname: post.authorAlias,
+                        radius: 22,
                       ),
-                      const SizedBox(height: 1),
-                      Row(
-                        children: [
-                          Text(
-                            _formatTime(post.createdAt),
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colors.textTertiary,
-                            ),
-                          ),
-                          if (post.status == PostStatus.resolved) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: MobileTheme.success.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              child: const Text(
-                                '已解决',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: MobileTheme.success,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      post.authorAlias,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: colors.textPrimary,
                       ),
-                    ],
-                  ),
-                ),
-                if ((post.canMessageAuthor && post.authorUserId.isNotEmpty) ||
-                    (post.canFollowAuthor &&
-                        post.authorUserId.isNotEmpty &&
-                        !post.isFollowingAuthor))
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (post.canMessageAuthor && post.authorUserId.isNotEmpty)
-                        TextButton.icon(
-                          onPressed: _handleDm,
-                          icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                          label: const Text('私信'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: MobileTheme.primaryOf(context),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                          ),
-                        ),
-                      if (post.canFollowAuthor &&
-                          post.authorUserId.isNotEmpty &&
-                          !post.isFollowingAuthor)
-                        TextButton.icon(
-                          onPressed: _isFollowing ? null : _handleFollowAuthor,
-                          icon: const Icon(
-                            Icons.person_add_alt_1_outlined,
-                            size: 16,
-                          ),
-                          label: const Text('关注'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: MobileTheme.primaryOf(context),
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                          ),
-                        ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-
-          // 鏍囬
-          if (post.title.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(25, 0, 25, 4),
-              child: SelectableText(
-                post.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
-                  height: 1.3,
-                ),
-              ),
-            ),
-
-          // 姝ｆ枃
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-            child: DefaultTextStyle.merge(
-              style: TextStyle(fontSize: 12, color: colors.textPrimary),
-              child: PostContentBody(
-                content: post.content,
-                contentFormat: post.contentFormat,
-                markdownSource: post.markdownSource,
-                selectable: true,
-              ),
-            ),
-          ),
-
-          // 鍥剧墖
-          if (post.hasImage && supplementaryImageUrls.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: PostImageGrid(imageUrls: supplementaryImageUrls),
-            ),
-
-          // 鏍囩
-          if (post.tags.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: post.tags.map((tag) {
-                  return Text(
-                    '#$tag',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: MobileTheme.primaryOf(context),
-                      fontWeight: FontWeight.w500,
                     ),
-                  );
-                }).toList(),
+                    const SizedBox(height: 1),
+                    Row(
+                      children: [
+                        Text(
+                          _formatTime(post.createdAt),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colors.textSecondary,
+                          ),
+                        ),
+                        if (post.status == PostStatus.resolved) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 1,
+                            ),
+                            decoration: BoxDecoration(
+                              color: MobileTheme.success.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: const Text(
+                              '已解决',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: MobileTheme.success,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if ((post.canMessageAuthor && post.authorUserId.isNotEmpty) ||
+                  (post.canFollowAuthor &&
+                      post.authorUserId.isNotEmpty &&
+                      !post.isFollowingAuthor))
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (post.canMessageAuthor && post.authorUserId.isNotEmpty)
+                      TextButton.icon(
+                        onPressed: _handleDm,
+                        icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                        label: const Text('私信'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: MobileTheme.primaryOf(context),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                    if (post.canFollowAuthor &&
+                        post.authorUserId.isNotEmpty &&
+                        !post.isFollowingAuthor)
+                      TextButton.icon(
+                        onPressed: _isFollowing ? null : _handleFollowAuthor,
+                        icon: const Icon(
+                          Icons.person_add_alt_1_outlined,
+                          size: 16,
+                        ),
+                        label: const Text('关注'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: MobileTheme.primaryOf(context),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                      ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+
+        // 标题
+        if (post.title.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SelectableText(
+              post.title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colors.textPrimary,
+                height: 1.3,
               ),
             ),
-        ],
-      ),
+          ),
+
+        // 正文
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: DefaultTextStyle.merge(
+            style: TextStyle(fontSize: 15, color: colors.textPrimary, height: 1.4),
+            child: PostContentBody(
+              content: post.content,
+              contentFormat: post.contentFormat,
+              markdownSource: post.markdownSource,
+              selectable: true,
+            ),
+          ),
+        ),
+
+        // 图片
+        if (post.hasImage && supplementaryImageUrls.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: PostImageGrid(imageUrls: supplementaryImageUrls),
+          ),
+
+        // 标签
+        if (post.tags.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: post.tags.map((tag) {
+                return SealBadge(text: '#$tag', type: SealBadgeType.light);
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 
@@ -976,6 +988,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         .where((String url) => !post.markdownSource.contains(url))
         .toList();
   }
+
 
   Future<void> _changeCommentSort(CommentSort nextSort) async {
     if (_isSortingComments || _commentSort == nextSort) {
@@ -1309,7 +1322,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     );
   }
 
-  /// 閫掑綊娓叉煋宓屽璇勮鍒楄〃
+  /// 递归渲染嵌套评论列表
   Widget _buildCommentList(
     List<CommentItem> comments, {
     bool isNested = false,
@@ -1320,12 +1333,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
       itemCount: comments.length,
       separatorBuilder: (_, __) => isNested
           ? const SizedBox.shrink()
-          : const Divider(height: 1, indent: 60),
+          : const SizedBox(height: 8), // 卡片式评论之间使用间距
       itemBuilder: (context, index) {
         final comment = comments[index];
         final bool needsTopSpacing = !isNested && index > 0;
         return Padding(
-          padding: EdgeInsets.only(top: needsTopSpacing ? 10 : 0),
+          padding: EdgeInsets.only(top: needsTopSpacing ? 6 : 0),
           child: _CommentTile(
             comment: comment,
             indentLevel: isNested ? 1 : 0,
@@ -1333,6 +1346,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             commentKeyBuilder: _commentKeyFor,
             currentUserId: _currentUserId,
             onDelete: _handleDeleteComment,
+            postAuthorId: _post?.authorUserId ?? '',
           ),
         );
       },
@@ -1344,7 +1358,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   }
 }
 
-/// 璇勮鍒楄〃椤?
+/// 评论列表项
 class _CommentTile extends StatefulWidget {
   final CommentItem comment;
   final void Function(CommentItem)? onReply;
@@ -1352,6 +1366,7 @@ class _CommentTile extends StatefulWidget {
   final GlobalKey Function(String commentId)? commentKeyBuilder;
   final String currentUserId;
   final Future<void> Function(CommentItem comment)? onDelete;
+  final String postAuthorId;
 
   const _CommentTile({
     required this.comment,
@@ -1360,6 +1375,7 @@ class _CommentTile extends StatefulWidget {
     this.commentKeyBuilder,
     this.currentUserId = '',
     this.onDelete,
+    this.postAuthorId = '',
   });
 
   @override
@@ -1465,20 +1481,18 @@ class _CommentTileState extends State<_CommentTile> {
   Widget build(BuildContext context) {
     final comment = widget.comment;
     final colors = MobileColors.of(context);
-    // 澶村儚灏哄锛氭瘡缂╄繘涓€灞傜缉灏?dp锛屾渶澶氱缉鍒?4dp锛堝熀纭€浠?2寮€濮嬶級
     final double avatarRadius = (22 - widget.indentLevel * 2)
         .clamp(14, 22)
         .toDouble();
-    // 宸︿晶缂╄繘锛氭瘡灞?0dp锛屾渶澶х缉杩?0dp
     final double leftPadding = (widget.indentLevel * 20)
         .clamp(0, 60)
         .toDouble();
-    // 瑙嗚缂╄繘鏈€澶氬睍绀哄埌 3 灞傦紝閬垮厤杩囨繁宓屽鎶婃鏂囨尋娌★紱
-    // 浣嗚瘎璁哄唴瀹规湰韬户缁€掑綊娓叉煋锛屼笉鎴柇妤间腑妤笺€?
     final int effectiveIndent = widget.indentLevel.clamp(0, 3);
     final double guideWidth = effectiveIndent * 12.0;
 
-    return Container(
+    final isPostAuthor = widget.postAuthorId.isNotEmpty && comment.authorUserId == widget.postAuthorId;
+
+    final Widget commentContent = Container(
       key: widget.commentKeyBuilder?.call(comment.id),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1490,7 +1504,7 @@ class _CommentTileState extends State<_CommentTile> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 宸︿晶缂╄繘 + 绔栫嚎
+                  // 左侧缩进 + 竖线
                   SizedBox(
                     width:
                         leftPadding + (effectiveIndent > 0 ? guideWidth : 16),
@@ -1509,7 +1523,7 @@ class _CommentTileState extends State<_CommentTile> {
                           )
                         : SizedBox(width: leftPadding),
                   ),
-                  // 澶村儚
+                  // 头像
                   Align(
                     alignment: Alignment.topCenter,
                     child: GestureDetector(
@@ -1517,20 +1531,22 @@ class _CommentTileState extends State<_CommentTile> {
                       onTap: comment.authorUserId.isNotEmpty
                           ? () => context.push('/user/${comment.authorUserId}')
                           : null,
-                      child: AvatarWidget(
-                        avatarUrl: comment.authorAvatar,
-                        nickname: comment.authorAlias,
-                        radius: avatarRadius,
-                      ),
+                      child: (comment.authorAvatar == null || comment.authorAvatar!.isEmpty)
+                          ? SealAvatar(text: comment.authorAlias, size: avatarRadius * 2)
+                          : AvatarWidget(
+                              avatarUrl: comment.authorAvatar,
+                              nickname: comment.authorAlias,
+                              radius: avatarRadius,
+                            ),
                     ),
                   ),
                   const SizedBox(width: 10),
-                  // 鍐呭
+                  // 内容
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 鏄电О + 鏃堕棿
+                        // 昵称 + 洞主徽章 + 时间
                         Row(
                           children: [
                             Flexible(
@@ -1553,18 +1569,22 @@ class _CommentTileState extends State<_CommentTile> {
                                 ),
                               ),
                             ),
+                            if (isPostAuthor) ...[
+                              const SizedBox(width: 6),
+                              const SealBadge(text: '洞主', type: SealBadgeType.hollow),
+                            ],
                             const SizedBox(width: 6),
                             Text(
                               _formatTime(comment.createdAt),
                               style: TextStyle(
-                                fontSize: 13,
-                                color: colors.textTertiary,
+                                fontSize: 12,
+                                color: colors.textSecondary,
                               ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 5),
-                        // 姝ｆ枃锛氱偣鍑昏Е鍙戝洖澶?
+                        // 正文：点击触发回复
                         GestureDetector(
                           onTap: () => widget.onReply?.call(comment),
                           behavior: HitTestBehavior.opaque,
@@ -1578,10 +1598,10 @@ class _CommentTileState extends State<_CommentTile> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // 搴曢儴鎿嶄綔鏍忥細鐐硅禐 + 鍥炲鏁?
+                        // 底部操作栏：点赞 + 回复数
                         Row(
                           children: [
-                            // 鐐硅禐
+                            // 点赞
                             GestureDetector(
                               onTap: () => _toggleLike(context),
                               behavior: HitTestBehavior.opaque,
@@ -1594,7 +1614,7 @@ class _CommentTileState extends State<_CommentTile> {
                                         : Icons.favorite_border_rounded,
                                     size: 18,
                                     color: _isLiked
-                                        ? MobileTheme.accent
+                                        ? colors.accent
                                         : colors.textPrimary,
                                   ),
                                   if (_likeCount > 0) ...[
@@ -1604,7 +1624,7 @@ class _CommentTileState extends State<_CommentTile> {
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: _isLiked
-                                            ? MobileTheme.accent
+                                            ? colors.accent
                                             : colors.textPrimary,
                                       ),
                                     ),
@@ -1613,7 +1633,7 @@ class _CommentTileState extends State<_CommentTile> {
                               ),
                             ),
                             const SizedBox(width: 20),
-                            // 鍥炲鏁?
+                            // 回复数
                             GestureDetector(
                               onTap: () => widget.onReply?.call(comment),
                               behavior: HitTestBehavior.opaque,
@@ -1648,7 +1668,7 @@ class _CommentTileState extends State<_CommentTile> {
               ),
             ),
           ),
-          // 閫掑綊娓叉煋瀛愬洖澶嶏紱瓒呰繃 3 灞傚悗涓嶅啀澧炲姞瑙嗚缂╄繘锛屼絾缁х画鏄剧ず鍐呭
+          // 递归渲染子回复；超过 3 层后不再增加视觉缩进，但继续显示内容
           if (comment.replies.isNotEmpty)
             ...comment.replies.map(
               (reply) => _CommentTile(
@@ -1658,11 +1678,35 @@ class _CommentTileState extends State<_CommentTile> {
                 commentKeyBuilder: widget.commentKeyBuilder,
                 currentUserId: widget.currentUserId,
                 onDelete: widget.onDelete,
+                postAuthorId: widget.postAuthorId,
               ),
             ),
         ],
       ),
     );
+
+    if (widget.indentLevel == 0) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: SharedColors.divider, width: 0.5),
+            boxShadow: [
+              BoxShadow(
+                color: SharedColors.deep.withValues(alpha: 0.02),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: commentContent,
+        ),
+      );
+    }
+    return commentContent;
   }
 
   String _formatTime(DateTime dateTime) {
@@ -1892,3 +1936,5 @@ class _ReportSheetState extends State<_ReportSheet> {
     );
   }
 }
+
+

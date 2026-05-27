@@ -262,15 +262,15 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: MobileTheme.accent.withValues(alpha: 0.1),
+                              color: colors.accent.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               profile.userLevelLabel,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
-                                color: MobileTheme.accent,
+                                color: colors.accent,
                               ),
                             ),
                           ),

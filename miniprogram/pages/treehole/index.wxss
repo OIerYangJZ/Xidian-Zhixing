@@ -14,7 +14,7 @@
   padding-left: 24rpx;
   padding-right: 260rpx;
   padding-bottom: 8px;
-  background: var(--app-surface);
+  background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
 }
 
@@ -472,4 +472,57 @@
   color: var(--app-text-primary);
   font-size: 30rpx;
   font-weight: 500;
+}
+
+/* Empty state styles */
+.empty-state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120rpx 40rpx;
+  text-align: center;
+}
+
+.empty-image-placeholder {
+  width: 180rpx;
+  height: 180rpx;
+  margin-bottom: 32rpx;
+  background: var(--app-primary-soft);
+  border-radius: 40rpx;
+  border: 4rpx solid var(--app-primary);
+  position: relative;
+}
+
+.empty-image-placeholder::after {
+  content: '印';
+  font-size: 80rpx;
+  color: var(--app-primary);
+  font-weight: 800;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: serif;
+}
+
+.empty-state-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--app-text-primary);
+  margin-bottom: 12rpx;
+}
+
+.empty-state-desc {
+  font-size: 26rpx;
+  color: var(--app-text-secondary);
+  margin-bottom: 48rpx;
+}
+
+.empty-state-btn {
+  width: 280rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  font-size: 28rpx;
+  border-radius: 40rpx;
 }

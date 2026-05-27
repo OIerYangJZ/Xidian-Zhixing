@@ -16,7 +16,8 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'Noto Sans SC',
+      fontFamily: 'Noto Serif CJK SC',
+      fontFamilyFallback: const ['Songti SC', 'SimSun', 'serif'],
       colorScheme: scheme,
       scaffoldBackgroundColor: const Color(0xFFF2F7FA),
       appBarTheme: const AppBarTheme(

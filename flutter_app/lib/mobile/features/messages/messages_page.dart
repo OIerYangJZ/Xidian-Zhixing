@@ -253,7 +253,7 @@ class _ConversationTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
               decoration: BoxDecoration(
-                color: MobileTheme.accent,
+                color: colors.accent,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(

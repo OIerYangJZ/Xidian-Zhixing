@@ -8,9 +8,40 @@ page {
   background: var(--app-background);
 }
 
+.ios-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  padding-left: 32rpx;
+  padding-right: 260rpx;
+  padding-bottom: 8px;
+  background: var(--app-background);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.nav-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.nav-name {
+  color: var(--brand-deep);
+  font-size: 31rpx;
+  font-weight: 700;
+}
+
+.nav-subtitle {
+  color: var(--text-secondary);
+  font-size: 22rpx;
+}
+
 .profile-header {
   position: relative;
-  background: var(--app-surface);
+  background: linear-gradient(to bottom, var(--background-softRed), #ffffff);
 }
 
 .profile-background {
@@ -37,9 +68,6 @@ page {
   background: rgba(255, 255, 255, .08);
 }
 
-.theme-dark .profile-background-overlay {
-  background: rgba(0, 0, 0, .08);
-}
 
 .profile-avatar-row {
   display: flex;
@@ -117,9 +145,6 @@ page {
   background: rgba(255, 255, 255, .72);
 }
 
-.theme-dark .profile-info.with-background {
-  background: rgba(0, 0, 0, .72);
-}
 
 .profile-name {
   color: var(--app-text-primary);
@@ -233,13 +258,8 @@ page {
   background: var(--app-background);
 }
 
-.profile-feed .feed-card:first-child {
-  border-top: 1rpx solid var(--app-divider);
-}
-
 .profile-post-card {
-  padding: 20rpx 24rpx;
-  background: var(--app-surface);
+  /* Inherit standard feed-card style */
 }
 
 .profile-card-images {

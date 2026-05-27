@@ -1,6 +1,13 @@
 <view class="page profile-page {{themeClass}}">
-  <view class="profile-header">
-    <view class="profile-background {{userInfo && userInfo.backgroundImageUrl ? 'has-image' : ''}}" style="height: {{userInfo && userInfo.backgroundImageUrl ? (navTop + navHeight + 60) : (navTop + navHeight + 16)}}px;">
+  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+    <view class="nav-title">
+      <view class="nav-name" style="color: var(--brand-deep);">我的</view>
+      <view class="nav-subtitle" style="color: var(--text-secondary);">管理你的身份、内容与设置</view>
+    </view>
+  </view>
+
+  <view class="profile-header" style="margin-top: {{navTop + navHeight + 8}}px;">
+    <view class="profile-background {{userInfo && userInfo.backgroundImageUrl ? 'has-image' : ''}}" style="height: {{userInfo && userInfo.backgroundImageUrl ? 180 : 80}}rpx;">
       <image wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-image" src="{{userInfo.backgroundImageUrl}}" mode="aspectFill"></image>
       <view wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-overlay"></view>
     </view>
@@ -8,7 +15,7 @@
     <view class="profile-avatar-row">
       <view class="profile-avatar-wrap" bindtap="goToEditProfile">
         <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="profile-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="profile-avatar profile-avatar-text">{{userInfo ? userInfo.avatarInitial : ''}}</view>
+        <view wx:else class="profile-avatar profile-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
       </view>
       <view class="profile-actions">
         <view class="profile-pill-button" bindtap="goToEditProfile">编辑资料</view>
@@ -17,7 +24,10 @@
     </view>
 
     <view class="profile-info {{userInfo && userInfo.backgroundImageUrl ? 'with-background' : ''}}">
-      <view class="profile-name">{{userInfo ? (userInfo.nickname || userInfo.alias || '匿名同学') : ''}}</view>
+      <view class="profile-name-row" style="display: flex; align-items: center; gap: 12rpx;">
+        <view class="profile-name" style="color: var(--brand-deep);">{{userInfo ? (userInfo.nickname || userInfo.alias || '匿名同学') : ''}}</view>
+        <view class="seal-badge-hollow" wx:if="{{userInfo && (userInfo.isVerified || userInfo.verified)}}" style="font-size: 18rpx; height: 32rpx; line-height: 28rpx; padding: 0 8rpx;">校内认证</view>
+      </view>
       <view wx:if="{{userInfo && userInfo.bio}}" class="profile-bio">{{userInfo.bio}}</view>
       <view wx:if="{{userInfo && userInfo.gender}}" class="profile-gender">
         <text class="profile-gender-icon">{{userInfo.gender === '男' ? '♂' : '♀'}}</text>
@@ -32,7 +42,7 @@
           <text class="profile-stat-value">{{following.length}}</text>
           <text class="profile-stat-label">关注</text>
         </view>
-        <view class="profile-level">{{(userInfo && userInfo.userLevelLabel) || 'Lv.1'}}</view>
+        <view class="profile-level" style="background: var(--background-softRed); color: var(--brand-primary);">{{(userInfo && userInfo.userLevelLabel) || 'Lv.1'}}</view>
       </view>
     </view>
 
@@ -53,19 +63,23 @@
 
   <view class="profile-tab-body">
     <block wx:if="{{activeTab === 'posts'}}">
-      <view wx:if="{{loadingPosts}}" class="profile-loading">加载中...</view>
-      <view wx:elif="{{!posts.length}}" class="profile-empty">
-        <view class="profile-empty-icon article-icon"></view>
-        <view>还没有发过帖子</view>
+      <view wx:if="{{loadingPosts}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:elif="{{!posts.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
+        <view class="empty-image-placeholder"></view>
+        <view class="empty-state-title">还没有发过帖子</view>
+        <view class="empty-state-desc">第一枚印章，等你盖下。</view>
       </view>
       <view wx:else class="profile-feed">
         <view class="feed-card profile-post-card" wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-          <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
+          <view wx:if="{{item.isAnonymous}}" class="seal-avatar">{{item.authorInitial || '匿'}}</view>
+          <block wx:else>
+            <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
+            <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
+          </block>
           <view class="feed-body">
             <view class="feed-head">
               <text class="feed-author">{{item.authorAlias}}</text>
-              <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
+              <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
               <text class="feed-dot" style="background: {{item.channelColor}}"></text>
               <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
               <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
@@ -82,17 +96,9 @@
               <text class="feed-tag" wx:for="{{item.tags}}" wx:key="*this">#{{item}}</text>
             </view>
             <view class="feed-actions">
-              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}" data-source="posts" data-index="{{postIndex}}" catchtap="toggleLike">
-                <view class="feed-action-icon like-icon"></view>
-                <text wx:if="{{item.likeCount}}">{{item.likeCount}}</text>
-              </view>
-              <view class="feed-action" data-id="{{item.id}}" catchtap="goPostDetail">
-                <view class="feed-action-icon comment-icon"></view>
-                <text wx:if="{{item.commentCount}}">{{item.commentCount}}</text>
-              </view>
-              <view class="feed-action share" catchtap="showShareToast">
-                <view class="feed-action-icon share-icon"></view>
-              </view>
+              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
+              <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
+              <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
             </view>
           </view>
         </view>
@@ -100,19 +106,23 @@
     </block>
 
     <block wx:elif="{{activeTab === 'favorites'}}">
-      <view wx:if="{{loadingFavorites}}" class="profile-loading">加载中...</view>
-      <view wx:elif="{{!favoritePosts.length}}" class="profile-empty">
-        <view class="profile-empty-icon star-icon"></view>
-        <view>还没有收藏</view>
+      <view wx:if="{{loadingFavorites}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:elif="{{!favoritePosts.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
+        <view class="empty-image-placeholder"></view>
+        <view class="empty-state-title">还没有收藏</view>
+        <view class="empty-state-desc">遇到有共鸣的内容，可以悄悄收起来。</view>
       </view>
       <view wx:else class="profile-feed">
         <view class="feed-card profile-post-card" wx:for="{{favoritePosts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-          <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
+          <view wx:if="{{item.isAnonymous}}" class="seal-avatar">{{item.authorInitial || '匿'}}</view>
+          <block wx:else>
+            <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
+            <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
+          </block>
           <view class="feed-body">
             <view class="feed-head">
               <text class="feed-author">{{item.authorAlias}}</text>
-              <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
+              <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
               <text class="feed-dot" style="background: {{item.channelColor}}"></text>
               <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
               <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
@@ -129,17 +139,9 @@
               <text class="feed-tag" wx:for="{{item.tags}}" wx:key="*this">#{{item}}</text>
             </view>
             <view class="feed-actions">
-              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}" data-source="favorites" data-index="{{postIndex}}" catchtap="toggleLike">
-                <view class="feed-action-icon like-icon"></view>
-                <text wx:if="{{item.likeCount}}">{{item.likeCount}}</text>
-              </view>
-              <view class="feed-action" data-id="{{item.id}}" catchtap="goPostDetail">
-                <view class="feed-action-icon comment-icon"></view>
-                <text wx:if="{{item.commentCount}}">{{item.commentCount}}</text>
-              </view>
-              <view class="feed-action share" catchtap="showShareToast">
-                <view class="feed-action-icon share-icon"></view>
-              </view>
+              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
+              <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
+              <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
             </view>
           </view>
         </view>
@@ -147,10 +149,11 @@
     </block>
 
     <block wx:else>
-      <view wx:if="{{loadingComments}}" class="profile-loading">加载中...</view>
-      <view wx:elif="{{!comments.length}}" class="profile-empty">
-        <view class="profile-empty-icon comment-empty-icon"></view>
-        <view>还没有评论过</view>
+      <view wx:if="{{loadingComments}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:elif="{{!comments.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
+        <view class="empty-image-placeholder"></view>
+        <view class="empty-state-title">还没有评论过</view>
+        <view class="empty-state-desc">温柔地去回应一下吧。</view>
       </view>
       <view wx:else class="activity-list">
         <view

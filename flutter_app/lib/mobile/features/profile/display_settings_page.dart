@@ -12,50 +12,65 @@ class DisplaySettingsPage extends ConsumerStatefulWidget {
 }
 
 class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
+  static const _themeOptions = [
+    ('zhushachi', '朱砂赤', Color(0xFFB23A2E)),
+    ('yanzhihong', '胭脂红', Color(0xFFB8324A)),
+    ('chitaonuan', '赤陶暖', Color(0xFFB85B3E)),
+    ('zaonihong', '枣泥红', Color(0xFF8F2F2C)),
+    ('xuanzhizhu', '宣纸朱', Color(0xFFC43A2F)),
+    ('zhuqing', '竹青', Color(0xFF4F8A5F)),
+    ('ouhezi', '藕荷紫', Color(0xFF8B6F9E)),
+    ('xingrenhuang', '杏仁黄', Color(0xFFC28A3A)),
+    ('haiyanqing', '海盐青', Color(0xFF5B9EA6)),
+    ('mohui', '墨灰', Color(0xFF4F5552)),
+  ];
+
   void _showThemeDialog() {
+    final currentKey = ref.read(appSettingsProvider).themeKey;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('外观'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _ThemeOption(
-              title: '跟随系统',
-              value: ThemeMode.system,
-              current: ref.read(appSettingsProvider).themeMode,
-              onTap: () => _setBrightness(ThemeMode.system, ctx),
-            ),
-            _ThemeOption(
-              title: '浅色',
-              value: ThemeMode.light,
-              current: ref.read(appSettingsProvider).themeMode,
-              onTap: () => _setBrightness(ThemeMode.light, ctx),
-            ),
-            _ThemeOption(
-              title: '深色',
-              value: ThemeMode.dark,
-              current: ref.read(appSettingsProvider).themeMode,
-              onTap: () => _setBrightness(ThemeMode.dark, ctx),
-            ),
-          ],
+        title: const Text('外观主题'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: _themeOptions.map((option) {
+              final (key, name, color) = option;
+              final selected = key == currentKey;
+              return ListTile(
+                leading: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+                title: Text(name),
+                trailing: selected
+                    ? Icon(Icons.check, color: MobileTheme.primaryOf(context))
+                    : null,
+                onTap: () => _setThemeKey(key, ctx),
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
   }
 
-  Future<void> _setBrightness(ThemeMode mode, BuildContext dialogContext) async {
-    await ref.read(appSettingsProvider.notifier).setBrightness(mode);
+  Future<void> _setThemeKey(String key, BuildContext dialogContext) async {
+    await ref.read(appSettingsProvider.notifier).setThemeKey(key);
     if (!mounted) return;
     Navigator.pop(dialogContext);
-    _showToast('已切换到 ${_themeModeLabel(mode)}');
+    _showToast('已切换到 ${_themeLabel(key)}');
   }
 
-  String _themeModeLabel(ThemeMode mode) {
-    if (mode == ThemeMode.system) return '跟随系统';
-    if (mode == ThemeMode.light) return '浅色';
-    if (mode == ThemeMode.dark) return '深色';
-    return '未知';
+  String _themeLabel(String key) {
+    for (final option in _themeOptions) {
+      if (option.$1 == key) return option.$2;
+    }
+    return key;
   }
 
   void _showLanguageDialog() {
@@ -142,7 +157,7 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
             _buildListTile(
               icon: Icons.brightness_6_outlined,
               title: '外观主题',
-              subtitle: _themeModeLabel(settings.themeMode),
+              subtitle: _themeLabel(settings.themeKey),
               onTap: _showThemeDialog,
             ),
             _buildListTile(
@@ -198,32 +213,6 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
         style: TextStyle(fontSize: 12, color: colors.textTertiary),
       ),
       trailing: const Icon(Icons.chevron_right, size: 18),
-      onTap: onTap,
-    );
-  }
-}
-
-class _ThemeOption extends StatelessWidget {
-  const _ThemeOption({
-    required this.title,
-    required this.value,
-    required this.current,
-    required this.onTap,
-  });
-
-  final String title;
-  final ThemeMode value;
-  final ThemeMode current;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final selected = value == current;
-    return ListTile(
-      title: Text(title),
-      trailing: selected
-          ? Icon(Icons.check, color: MobileTheme.primaryOf(context))
-          : null,
       onTap: onTap,
     );
   }

@@ -82,17 +82,17 @@ class CommentTile extends StatelessWidget {
                                 vertical: 1,
                               ),
                               decoration: BoxDecoration(
-                                color: MobileTheme.accent.withValues(
+                                color: colors.accent.withValues(
                                   alpha: 0.12,
                                 ),
                                 borderRadius: BorderRadius.circular(3),
                               ),
-                              child: const Text(
+                              child: Text(
                                 '置顶',
                                 style: TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w600,
-                                  color: MobileTheme.accent,
+                                  color: colors.accent,
                                 ),
                               ),
                             ),
@@ -134,7 +134,7 @@ class CommentTile extends StatelessWidget {
                                 ? '${comment.likeCount}'
                                 : null,
                             isActive: comment.isLiked,
-                            activeColor: MobileTheme.accent,
+                            activeColor: colors.accent,
                             onTap: onLike,
                           ),
 

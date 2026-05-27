@@ -1,11 +1,18 @@
-<view class="page announcement-detail" wx:if="{{item}}">
-  <view class="detail-type">{{item.type || item.sourceName}}</view>
-  <view class="detail-title">{{item.title}}</view>
-  <view class="detail-meta">{{item.publisher}} · {{item.publishedAt}}</view>
-  <view class="summary-card">
-    <view class="summary-head">AI 摘要</view>
-    <view class="summary-text">{{aiSummary || '尚未生成摘要'}}</view>
-    <button class="summary-button" bindtap="summarize">生成摘要</button>
+<view class="page announcement-detail-page {{themeClass}}" wx:if="{{item}}" style="background: var(--app-background); padding: 32rpx; min-height: 100vh; box-sizing: border-box;">
+  <view class="detail-paper-card">
+    <view class="detail-header-row">
+      <view class="detail-type" style="color: var(--brand-seal);">{{item.type || item.sourceName}}</view>
+      <view wx:if="{{item.isImportant || item.isOfficial || item.publisher === '官方' || item.publisher === '管理员'}}" class="seal-badge-solid" style="margin-left: auto;">官方</view>
+    </view>
+    <view class="detail-title" style="color: var(--brand-deep); font-size: 38rpx; font-weight: 700; margin-top: 16rpx; line-height: 1.35;">{{item.title}}</view>
+    <view class="detail-meta" style="color: var(--text-secondary); font-size: 24rpx; margin-top: 12rpx; border-bottom: 1rpx solid var(--app-divider); padding-bottom: 16rpx;">{{item.publisher}} · {{item.publishedAt}}</view>
+    
+    <view class="summary-card" style="margin: 24rpx 0; border: 1rpx solid var(--app-divider); background: var(--background-softRed); border-radius: 24rpx; padding: 24rpx; box-sizing: border-box;">
+      <view class="summary-head" style="color: var(--brand-deep); font-weight: 700; font-size: 28rpx;">AI 摘要</view>
+      <view class="summary-text" style="color: var(--text-primary); font-size: 26rpx; margin-top: 10rpx; line-height: 1.5;">{{aiSummary || '尚未生成摘要'}}</view>
+      <button class="summary-button" bindtap="summarize" style="margin-top: 20rpx; height: 68rpx; border-radius: 18rpx; background: var(--app-primary); color: #fff; font-size: 27rpx; line-height: 68rpx; width: 100%;">生成摘要</button>
+    </view>
+    
+    <view class="detail-content" style="color: var(--text-primary); font-size: 30rpx; line-height: 1.7; margin-top: 32rpx; white-space: pre-wrap;">{{item.content}}</view>
   </view>
-  <view class="detail-content">{{item.content}}</view>
 </view>
