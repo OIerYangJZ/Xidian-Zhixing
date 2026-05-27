@@ -26,7 +26,7 @@
       <view class="announcement-summary">{{item.aiSummary || item.summary}}</view>
       <view class="announcement-footer">
         <text>{{item.publisher}}</text>
-        <text>{{item.publishedAt}}</text>
+        <text>{{item.timeText}}</text>
       </view>
     </view>
     

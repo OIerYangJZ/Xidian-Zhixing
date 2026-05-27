@@ -1,4 +1,4 @@
-import { getCampusMaps, getCampusQuickLinks, getCampusServices } from '../../api/campus';
+import { getCampusQuickLinks, getCampusServices, getTodaySchedules } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 
@@ -8,9 +8,10 @@ Page({
     navHeight: 48,
     drawerOpen: false,
     services: [],
-    maps: [],
     quickLinks: [],
     groupedServices: [],
+    todaySchedules: [],
+    todayScheduleDate: '',
     touchStartX: 0,
     touchStartY: 0
   },
@@ -35,14 +36,15 @@ Page({
   },
 
   async loadData() {
-    const [servicesResponse, mapsResponse, quickLinksResponse] = await Promise.all([
+    const [servicesResponse, quickLinksResponse, todaySchedulesResponse] = await Promise.all([
       getCampusServices(),
-      getCampusMaps(),
-      getCampusQuickLinks()
+      getCampusQuickLinks(),
+      getTodaySchedules()
     ]);
     const services = servicesResponse.data || servicesResponse || [];
-    const maps = mapsResponse.data || mapsResponse || [];
     const quickLinks = quickLinksResponse.data || quickLinksResponse || [];
+    const scheduleData = todaySchedulesResponse.data || todaySchedulesResponse;
+    const todaySchedules = scheduleData.items;
     const groups = [];
     services.forEach((service) => {
       let group = groups.find((item) => item.id === service.groupId);
@@ -52,7 +54,13 @@ Page({
       }
       group.items.push(service);
     });
-    this.setData({ services, maps, quickLinks, groupedServices: groups });
+    this.setData({
+      services,
+      quickLinks,
+      groupedServices: groups,
+      todaySchedules,
+      todayScheduleDate: scheduleData.date
+    });
   },
 
   openDrawer() {
@@ -66,11 +74,12 @@ Page({
   openService(event) {
     const service = this.data.services.find((item) => item.id === event.currentTarget.dataset.id);
     if (!service) return;
+    if (service.name === '移动门户跳转') {
+      const url = encodeURIComponent('https://xxcapp.xidian.edu.cn/site/xidianPage/home');
+      wx.navigateTo({ url: `/pages/campus/webview/index?url=${url}` });
+      return;
+    }
     wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
-  },
-
-  openMap() {
-    wx.navigateTo({ url: '/pages/campus/map/index' });
   },
 
   onTouchStart(event) {

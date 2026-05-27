@@ -1,9 +1,11 @@
+import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
 import { getChannels } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { getClubs } from '../../api/clubs';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
+import { avatarInitial } from '../../utils/format';
 
 const SORT_OPTIONS = [
   { label: '最新', value: 'latest' },
@@ -31,7 +33,8 @@ Page({
     touchStartX: 0,
     touchStartY: 0,
     navTop: 0,
-    navHeight: 48
+    navHeight: 48,
+    userInfo: null
   },
 
   onLoad() {
@@ -41,6 +44,7 @@ Page({
       this.loadChannels();
       this.loadSections();
       this.loadClubs();
+      this.loadUserInfo();
       this.fetchPosts();
     }, 0);
   },
@@ -78,6 +82,17 @@ Page({
   async loadClubs() {
     const clubs = await getClubs();
     this.setData({ clubs });
+  },
+
+  async loadUserInfo() {
+    const response = await getUserInfo();
+    const user = response.data;
+    this.setData({
+      userInfo: {
+        ...user,
+        avatarInitial: avatarInitial(user.nickname || user.alias)
+      }
+    });
   },
 
   switchTab(event) {

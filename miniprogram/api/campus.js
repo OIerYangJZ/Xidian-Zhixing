@@ -33,3 +33,7 @@ export const getCampusMaps = () => {
 export const getCampusQuickLinks = () => {
   return request.get('/api/campus/quick-links');
 };
+
+export const getTodaySchedules = () => {
+  return request.get('/api/campus/schedules/today');
+};

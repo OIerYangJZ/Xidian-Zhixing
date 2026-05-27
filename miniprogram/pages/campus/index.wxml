@@ -9,17 +9,24 @@
   </view>
 
   <scroll-view scroll-y class="service-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view class="campus-hero">
-      <view class="hero-title" style="color: var(--brand-deep);">校园服务</view>
-      <view class="hero-desc" style="color: var(--text-secondary);">课表、水电、成绩、考试、地图和快速跳转已预留入口。</view>
-    </view>
-
-    <view class="map-entry" bindtap="openMap">
-      <view>
-        <view class="map-title" style="color: var(--brand-deep);">校园地图</view>
-        <view class="map-desc" style="color: var(--text-secondary);">建筑位置、楼宇结构图、教室和办公室定位</view>
+    <view class="schedule-panel">
+      <view class="schedule-header">
+        <view>
+          <view class="schedule-title" style="color: var(--brand-deep);">今日日程</view>
+          <view class="schedule-date" style="color: var(--text-secondary);">{{todayScheduleDate}}</view>
+        </view>
       </view>
-      <view class="menu-arrow">></view>
+      <view wx:if="{{todaySchedules.length}}" class="schedule-list">
+        <view class="schedule-item {{item.isEmphasized ? 'emphasized' : ''}}" wx:for="{{todaySchedules}}" wx:key="id">
+          <view class="schedule-time">{{item.timeRange}}</view>
+          <view class="schedule-body">
+            <view class="schedule-name">{{item.title}}</view>
+            <view class="schedule-meta">{{item.sourceLabel}} · {{item.location}}</view>
+          </view>
+          <view wx:if="{{item.isActive}}" class="schedule-state">进行中</view>
+        </view>
+      </view>
+      <view wx:else class="schedule-empty">今天没有课表、考试或实验安排</view>
     </view>
 
     <view class="service-group" wx:for="{{groupedServices}}" wx:key="id">

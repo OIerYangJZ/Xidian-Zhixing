@@ -13,6 +13,7 @@
   gap: 16rpx;
   padding-left: 24rpx;
   padding-right: 260rpx;
+  padding-bottom: 8px;
   background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
 }

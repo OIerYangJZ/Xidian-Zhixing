@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from typing import Any
@@ -31,6 +31,7 @@ ANNOUNCEMENT_TYPES = {
     "service",
     "other",
 }
+SCHOOL_TZ = timezone(timedelta(hours=8))
 
 
 def _require_user(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> dict[str, Any] | None:
@@ -611,6 +612,52 @@ def handle_campus_quick_links(handler: BaseHTTPRequestHandler, db: dict[str, Any
     rows = [row for row in db.get("campusServices", []) if row.get("groupId") == "quick" and bool(row.get("enabled", True))]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
     send_json(handler, HTTPStatus.OK, {"data": rows})
+
+
+def _time_minutes(value: str) -> int:
+    hour, minute = str(value).split(":")
+    return int(hour) * 60 + int(minute)
+
+
+def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
+    ensure_radio_schema(db)
+    now = datetime.now(SCHOOL_TZ)
+    today = now.date().isoformat()
+    now_minutes = now.hour * 60 + now.minute
+    sources = [
+        ("courseSchedules", "课表"),
+        ("examSchedules", "考试安排"),
+        ("experimentSchedules", "实验安排"),
+    ]
+    rows: list[dict[str, Any]] = []
+    for source_key, source_label in sources:
+        for row in db.get(source_key, []):
+            if str(row["date"]) != today:
+                continue
+            item = {
+                "id": str(row["id"]),
+                "source": source_key,
+                "sourceLabel": source_label,
+                "title": str(row["title"]),
+                "startTime": str(row["startTime"]),
+                "endTime": str(row["endTime"]),
+                "location": str(row["location"]),
+                "date": str(row["date"]),
+            }
+            item["startMinutes"] = _time_minutes(item["startTime"])
+            item["endMinutes"] = _time_minutes(item["endTime"])
+            item["isActive"] = item["startMinutes"] <= now_minutes < item["endMinutes"]
+            rows.append(item)
+    rows.sort(key=lambda item: (item["startMinutes"], item["endMinutes"], item["id"]))
+    active_rows = [item for item in rows if item["isActive"]]
+    next_rows = [item for item in rows if item["startMinutes"] > now_minutes]
+    emphasized_id = active_rows[0]["id"] if active_rows else (next_rows[0]["id"] if next_rows else "")
+    for item in rows:
+        item["isEmphasized"] = item["id"] == emphasized_id
+        item["timeRange"] = f"{item['startTime']}-{item['endTime']}"
+        item.pop("startMinutes")
+        item.pop("endMinutes")
+    send_json(handler, HTTPStatus.OK, {"data": {"date": today, "items": rows}})
 
 
 def _hot_score(db: dict[str, Any], post: dict[str, Any]) -> float:

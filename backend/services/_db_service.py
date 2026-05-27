@@ -1480,6 +1480,9 @@ RADIO_STATE_KEYS = [
     "announcementPreferences",
     "campusServices",
     "campusMaps",
+    "courseSchedules",
+    "examSchedules",
+    "experimentSchedules",
     "hotTopics",
     "hotTopicSummaries",
     "knowledgeSources",
@@ -1661,6 +1664,10 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
         if not db.get("campusMaps"):
             db["campusMaps"] = maps
         changed = True
+    for key in ("courseSchedules", "examSchedules", "experimentSchedules"):
+        if key not in db:
+            db[key] = []
+            changed = True
     if not db.get("knowledgeSources"):
         db["knowledgeSources"] = [
             {"id": "ks-campus", "name": "校园基础知识", "sourceType": "campus", "createdAt": created},

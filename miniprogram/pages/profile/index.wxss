@@ -4,7 +4,7 @@ page {
 
 .profile-page {
   min-height: 100vh;
-  padding: 0 0 env(safe-area-inset-bottom);
+  padding: 0;
   background: var(--app-background);
 }
 

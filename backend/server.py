@@ -370,6 +370,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/campus/quick-links":
                 _radio_handler.handle_campus_quick_links(self, db)
                 return
+            if path == "/api/campus/schedules/today":
+                _radio_handler.handle_campus_today_schedules(self, db)
+                return
 
             if path == "/api/hot-topics":
                 _radio_handler.handle_get_hot_topics(self, db)

@@ -1,14 +1,19 @@
 import request from '../utils/request';
-import { getData, toArray } from '../utils/format';
+import { formatTime, getData, toArray } from '../utils/format';
+
+const normalizeAnnouncement = (raw) => ({
+  ...raw,
+  timeText: formatTime(raw.publishedAt)
+});
 
 export const getAnnouncementList = async (params = {}) => {
   const response = await request.get('/api/announcements', params);
-  return toArray(getData(response, []));
+  return toArray(getData(response, [])).map(normalizeAnnouncement);
 };
 
 export const getAnnouncementDetail = async (id) => {
   const response = await request.get(`/api/announcements/${id}`);
-  return getData(response, {});
+  return normalizeAnnouncement(getData(response, {}));
 };
 
 export const getAnnouncementFilters = async () => {

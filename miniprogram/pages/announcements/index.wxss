@@ -18,7 +18,7 @@
 .nav-title { flex: 1; min-width: 0; }
 .nav-name { color: var(--brand-deep); font-size: 31rpx; font-weight: 700; }
 .nav-subtitle { color: var(--text-secondary); font-size: 22rpx; }
-.ann-scroll { height: calc(100vh - env(safe-area-inset-bottom)); }
+.ann-scroll { height: 100vh; }
 .daily-card {
   margin: 24rpx 32rpx;
   padding: 32rpx;

@@ -1,4 +1,23 @@
 <view class="page display-page mobile-list-page {{themeClass}}">
+  <view class="mobile-section-title">深浅模式</view>
+  <view class="mobile-tile-card">
+    <view
+      wx:for="{{modeOptions}}"
+      wx:key="value"
+      class="mobile-tile option-row {{currentModeOption === item.value ? 'active' : ''}}"
+      data-mode="{{item.value}}"
+      bindtap="onModeTap"
+    >
+      <text class="mobile-tile-icon">◑</text>
+      <view class="mobile-tile-body">
+        <view class="mobile-tile-title">{{item.label}}</view>
+        <view class="mobile-tile-subtitle">显示模式</view>
+      </view>
+      <text wx:if="{{currentModeOption === item.value}}" class="check-mark">✓</text>
+    </view>
+  </view>
+
+  <view class="mobile-section-title">主题配色</view>
   <view class="mobile-tile-card">
     <view
       wx:for="{{themeOptions}}"
@@ -16,6 +35,7 @@
     </view>
   </view>
 
+  <view class="mobile-section-title">语言</view>
   <view class="mobile-tile-card">
     <view
       wx:for="{{langOptions}}"

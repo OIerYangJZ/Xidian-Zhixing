@@ -2,15 +2,12 @@
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
 
   <view class="home-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="channel-trigger" bindtap="openDrawer" aria-label="打开抽屉">
+    <view class="avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="top-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="top-avatar top-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+    </view>
+    <view class="channel-trigger" bindtap="toggleChannelMenu" aria-label="筛选">
       <view class="menu-lines"><view></view><view></view><view></view></view>
-    </view>
-    <view class="appbar-title">
-      <view class="appbar-name" style="color: var(--brand-deep);">树洞</view>
-      <view class="appbar-subtitle" style="color: var(--text-secondary);">{{activeSection ? activeSection.sectionName : '把今天藏进一枚印章里'}}</view>
-    </view>
-    <view class="icon-button" bindtap="toggleChannelMenu" aria-label="筛选">
-      <view class="filter-icon" style="border-color: var(--brand-deep);"></view>
     </view>
     <view class="icon-button" bindtap="goSearch" aria-label="搜索">
       <view class="search-icon" style="border-color: var(--brand-deep);"></view>
