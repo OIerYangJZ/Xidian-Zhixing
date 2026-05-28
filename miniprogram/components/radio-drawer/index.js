@@ -47,11 +47,6 @@ Component({
       wx.navigateTo({ url: '/pages/profile/index' });
     },
 
-    goConversations() {
-      this.close();
-      wx.navigateTo({ url: '/pages/profile/conversations/index' });
-    },
-
     goConversation(event) {
       const item = this.data.conversations[Number(event.currentTarget.dataset.index)];
       if (!item) return;

@@ -17,17 +17,21 @@
   left: 0;
   width: 612rpx;
   max-width: 82vw;
+  display: flex;
+  flex-direction: column;
   background: var(--app-surface);
   border-right: 1rpx solid var(--app-divider);
 }
 
 .drawer-safe {
-  height: calc(28rpx + env(safe-area-inset-top));
+  height: calc(52rpx + env(safe-area-inset-top));
+  flex: 0 0 auto;
 }
 
 .drawer-profile {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
   min-height: 132rpx;
   padding: 16rpx 28rpx 24rpx;
 }
@@ -74,8 +78,27 @@
   white-space: nowrap;
 }
 
-.drawer-list {
+.drawer-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   border-top: 1rpx solid var(--app-divider);
+  padding-bottom: 16rpx;
+}
+
+.drawer-bottom {
+  flex: 0 0 auto;
+  padding-bottom: calc(18rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.message-section-head {
+  display: flex;
+  align-items: center;
+  min-height: 92rpx;
+  padding: 0 28rpx;
+  border-bottom: 1rpx solid var(--app-divider);
 }
 
 .drawer-row {
@@ -83,7 +106,10 @@
   align-items: center;
   min-height: 104rpx;
   padding: 0 28rpx;
-  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.drawer-row + .drawer-row {
+  border-top: 1rpx solid var(--app-divider);
 }
 
 .drawer-symbol {
@@ -174,20 +200,20 @@
 }
 
 .drawer-conversations {
-  padding: 10rpx 0;
-  border-bottom: 1rpx solid var(--app-divider);
+  padding: 8rpx 0 0;
 }
 
 .drawer-conversation {
   display: flex;
-  align-items: center;
-  min-height: 88rpx;
-  padding: 0 28rpx 0 52rpx;
+  align-items: flex-start;
+  min-height: 92rpx;
+  padding: 14rpx 28rpx;
 }
 
 .mini-avatar {
   width: 56rpx;
   height: 56rpx;
+  flex: 0 0 auto;
   border-radius: 50%;
   background: var(--app-control);
   color: var(--app-primary);
@@ -203,7 +229,16 @@
   margin-left: 16rpx;
 }
 
+.mini-head {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  min-width: 0;
+}
+
 .mini-name {
+  flex: 1;
+  min-width: 0;
   color: var(--app-text-primary);
   font-size: 26rpx;
   font-weight: 600;
@@ -212,9 +247,18 @@
   white-space: nowrap;
 }
 
+.mini-time {
+  flex: 0 0 auto;
+  color: var(--app-text-tertiary);
+  font-size: 22rpx;
+  line-height: 1.35;
+}
+
 .mini-badge {
   min-width: 32rpx;
   height: 32rpx;
+  flex: 0 0 auto;
+  margin-left: 12rpx;
   padding: 0 8rpx;
   border-radius: 16rpx;
   background: var(--app-error);
@@ -222,4 +266,11 @@
   font-size: 20rpx;
   line-height: 32rpx;
   text-align: center;
+}
+
+.drawer-empty-message {
+  padding: 32rpx 28rpx;
+  color: var(--app-text-secondary);
+  font-size: 25rpx;
+  line-height: 1.4;
 }

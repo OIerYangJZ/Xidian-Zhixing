@@ -12,14 +12,12 @@
       <view class="drawer-chevron"></view>
     </view>
 
-    <view class="drawer-list">
-      <view class="drawer-row" bindtap="goConversations">
+    <view class="drawer-main">
+      <view class="message-section-head">
         <view class="drawer-symbol message-symbol"></view>
         <view class="drawer-row-body">
           <view class="drawer-row-title">私信</view>
-          <view class="drawer-row-subtitle">完整会话列表</view>
         </view>
-        <view class="drawer-chevron"></view>
       </view>
 
       <view class="drawer-conversations" wx:if="{{conversations.length}}">
@@ -30,15 +28,22 @@
           data-index="{{index}}"
           bindtap="goConversation"
         >
-          <view class="mini-avatar">{{item.avatarInitial}}</view>
+          <image wx:if="{{item.avatarUrl}}" class="mini-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="mini-avatar">{{item.avatarInitial}}</view>
           <view class="mini-body">
-            <view class="mini-name">{{item.name}}</view>
-            <view class="mini-message">{{item.lastMessage || '暂无新消息'}}</view>
+            <view class="mini-head">
+              <view class="mini-name">{{item.name}}</view>
+              <view class="mini-time">{{item.timeText}}</view>
+            </view>
+            <view class="mini-message">{{item.lastMessage}}</view>
           </view>
           <view wx:if="{{item.unreadCount}}" class="mini-badge">{{item.unreadCount}}</view>
         </view>
       </view>
+      <view wx:else class="drawer-empty-message">暂无私信</view>
+    </view>
 
+    <view class="drawer-bottom">
       <view class="drawer-row" bindtap="goMailbox">
         <view class="drawer-symbol mail-symbol"></view>
         <view class="drawer-row-body">
