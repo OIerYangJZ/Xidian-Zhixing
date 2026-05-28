@@ -1,7 +1,9 @@
 import { formatTime, truncate } from '../../utils/format';
+import { getUserInfo } from '../../api/auth';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { getAiConfig } from '../../api/ai';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
+import { avatarInitial } from '../../utils/format';
 
 Page({
   data: {
@@ -13,13 +15,15 @@ Page({
     touchStartX: 0,
     touchStartY: 0,
     navTop: 0,
-    navHeight: 48
+    navHeight: 48,
+    userInfo: null
   },
 
   onLoad() {
     this.initCustomNav();
     setTimeout(() => {
       if (!requireLoginPage()) return;
+      this.loadUserInfo();
       this.loadHistory();
     }, 0);
   },
@@ -30,6 +34,7 @@ Page({
     setTimeout(() => {
       applyThemeAndLanguage(this);
       if (!requireLoginPage()) return;
+      this.loadUserInfo();
       this.loadHistory();
     }, 0);
   },
@@ -57,6 +62,17 @@ Page({
       subtitleText: config.apiKey && config.baseUrl && config.model
         ? `当前模型：${config.model}`
         : '请先配置 OpenAI 兼容接口'
+    });
+  },
+
+  async loadUserInfo() {
+    const response = await getUserInfo();
+    const user = response.data || {};
+    this.setData({
+      userInfo: {
+        ...user,
+        avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
+      }
     });
   },
 

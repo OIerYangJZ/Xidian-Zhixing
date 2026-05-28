@@ -82,12 +82,6 @@
         "text": "公告",
         "iconPath": "assets/tabbar/announcements.png",
         "selectedIconPath": "assets/tabbar/announcements_selected.png"
-      },
-      {
-        "pagePath": "pages/profile/index",
-        "text": "我的",
-        "iconPath": "assets/tabbar/profile.png",
-        "selectedIconPath": "assets/tabbar/profile_selected.png"
       }
     ]
   },

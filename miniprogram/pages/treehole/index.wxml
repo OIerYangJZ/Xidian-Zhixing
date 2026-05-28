@@ -2,9 +2,9 @@
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
 
   <view class="home-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="top-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="top-avatar top-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
     <view class="channel-trigger" bindtap="toggleChannelMenu" aria-label="筛选">
       <view class="menu-lines"><view></view><view></view><view></view></view>
@@ -16,10 +16,6 @@
 
   <view class="channel-menu-mask" wx:if="{{showChannelMenu}}" bindtap="closeChannelMenu"></view>
   <view class="channel-menu" wx:if="{{showChannelMenu}}" style="top: {{navTop + navHeight + 8}}px;">
-    <view class="channel-menu-section"><view class="channel-menu-title">频道</view></view>
-    <view wx:for="{{channels}}" wx:key="*this" data-channel="{{item}}" class="channel-menu-item {{activeChannel === item ? 'active' : ''}}" bindtap="onChannelTap">
-      <text>{{item}}</text><text wx:if="{{activeChannel === item}}" class="check-mark">✓</text>
-    </view>
     <view class="channel-menu-section"><view class="channel-menu-title">排序</view></view>
     <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="channel-menu-item {{activeSort === item.value ? 'active' : ''}}" bindtap="onSortTap">
       <text>{{item.label}}</text><text wx:if="{{activeSort === item.value}}" class="check-mark">✓</text>
@@ -45,8 +41,10 @@
         <view class="feed-head">
           <view class="feed-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
           <view wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</view>
-          <view class="feed-dot" style="background: {{item.channelColor}}"></view>
-          <view class="feed-channel" style="color: {{item.channelColor}}">{{item.sectionName || item.displayChannel || item.channel || '综合'}}</view>
+          <block wx:if="{{item.sectionName}}">
+            <view class="feed-dot" style="background: {{item.sectionColor}}"></view>
+            <view class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</view>
+          </block>
           <view wx:if="{{item.isPinned}}" class="pin-icon"></view>
           <view class="feed-time">{{item.timeText}}</view>
         </view>
@@ -82,23 +80,9 @@
 
   <scroll-view class="secondary-page section-page" scroll-y wx:if="{{currentTab === 'sections'}}" style="padding-top: {{navTop + navHeight + 64}}px;">
     <view class="section-group">
-      <view class="section-heading">学校总分区</view>
-      <view class="section-cell" data-section="{{sectionTree.school}}" bindtap="selectSection">
-        <view><view class="section-name">{{sectionTree.school.sectionName || '学校总分区'}}</view><view class="section-desc">全校公共讨论入口</view></view>
-        <view class="menu-arrow">></view>
-      </view>
-    </view>
-    <view class="section-group">
-      <view class="section-heading">学院分区</view>
-      <view class="section-cell" wx:for="{{sectionTree.colleges}}" wx:key="id" data-section="{{item}}" bindtap="selectSection">
+      <view class="section-heading">分区</view>
+      <view class="section-cell" wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" bindtap="selectSection">
         <view><view class="section-name">{{item.sectionName}}</view><view class="section-desc">{{item.ruleText}}</view></view>
-        <view class="menu-arrow">></view>
-      </view>
-    </view>
-    <view class="section-group">
-      <view class="section-heading">频道分区</view>
-      <view class="section-cell" wx:for="{{sectionTree.channels}}" wx:key="id" data-section="{{item}}" bindtap="selectSection">
-        <view><view class="section-name">{{item.sectionName}}</view><view class="section-desc">{{item.description}}</view></view>
         <view class="menu-arrow">></view>
       </view>
     </view>

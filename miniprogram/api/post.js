@@ -26,7 +26,7 @@ const normalizeLegacyPostListResponse = (response) => {
 
 /**
  * 获取帖子列表
- * @param {Object} params - 分页或过滤参数，例如 { page: 1, limit: 10, channel: 'treehole' }
+ * @param {Object} params - 分页或过滤参数，例如 { page: 1, limit: 10, keyword: '树洞' }
  */
 export const getPosts = async (params = {}) => {
   const response = await request.get('/api/posts', params);
@@ -56,7 +56,7 @@ export const likePost = (postId, isLike = true) => {
 
 /**
  * 发布帖子
- * @param {Object} data - 帖子数据 { content, channel, tags, imageIds, isAnonymous }
+ * @param {Object} data - 帖子数据 { content, sectionId, sectionType, tags, imageIds, isAnonymous }
  */
 export const createPost = (data) => {
   return request.post('/api/posts', data);

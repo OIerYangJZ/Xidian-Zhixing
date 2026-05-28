@@ -141,12 +141,10 @@ def configure() -> None:
         local_public_prefix="/api/storage",
     )
 
-    DEFAULT_CHANNELS[:] = [
-        "综合", "找对象", "找搭子", "交友扩列", "吐槽日常",
-        "八卦吃瓜", "求助问答", "失物招领", "二手交易",
-        "学习交流", "活动拼车", "其他",
-    ]
+    DEFAULT_CHANNELS[:] = []
     DEFAULT_TAGS[:] = [
+        "找对象", "找搭子", "交友扩列", "吐槽日常", "八卦吃瓜",
+        "求助问答", "失物招领", "二手交易", "学习交流", "活动拼车",
         "学习", "北校区", "南校区", "运动", "周末",
         "食堂", "日常", "数码", "毕业季",
     ]
@@ -164,16 +162,16 @@ def configure() -> None:
 
     SEED_POSTS[:] = [
         {"title": "求助：图书馆哪里插座最多？", "content": "这周赶大作业，想找一个相对安静而且插座多的位置，北校区优先。",
-         "channel": "求助问答", "tags": ["学习", "北校区"], "hasImage": False, "status": "ongoing",
+         "channel": "", "tags": ["求助问答", "学习", "北校区"], "hasImage": False, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-青橙", "authorId": "seed-user-1"},
         {"title": "找周末羽毛球搭子", "content": "周六下午操场旁边羽毛球馆，水平一般，主打一起运动。",
-         "channel": "找搭子", "tags": ["运动", "周末"], "hasImage": True, "status": "ongoing",
+         "channel": "", "tags": ["找搭子", "运动", "周末"], "hasImage": True, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-极光", "authorId": "seed-user-1"},
         {"title": "二手显示器出一个 24 寸", "content": "毕业清东西，成色还不错，支持当面看货。",
-         "channel": "二手交易", "tags": ["数码", "毕业季"], "hasImage": True, "status": "ongoing",
+         "channel": "", "tags": ["二手交易", "数码", "毕业季"], "hasImage": True, "status": "ongoing",
          "allowComment": True, "allowDm": True, "authorAlias": "洞主-小行星", "authorId": "seed-user-2"},
         {"title": "吐槽：食堂晚高峰排队太久", "content": "今天排了 25 分钟，想知道有没有错峰吃饭攻略。",
-         "channel": "吐槽日常", "tags": ["食堂", "日常"], "hasImage": False, "status": "resolved",
+         "channel": "", "tags": ["吐槽日常", "食堂", "日常"], "hasImage": False, "status": "resolved",
          "allowComment": True, "allowDm": False, "authorAlias": "洞主-银杏", "authorId": "seed-user-2"},
     ]
 

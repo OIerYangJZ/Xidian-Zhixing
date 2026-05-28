@@ -21,7 +21,7 @@ from services import (
 from services._db_service import ensure_radio_schema
 
 
-SECTION_TYPES = {"school", "college", "channel", "club"}
+SECTION_TYPES = {"general", "college", "club"}
 ANNOUNCEMENT_TYPES = {
     "school",
     "college",
@@ -221,18 +221,27 @@ def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, A
 
 def handle_get_sections(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [_serialize_section(row) for row in db.get("sections", []) if bool(row.get("enabled", True))]
+    rows = [
+        _serialize_section(row)
+        for row in db.get("sections", [])
+        if bool(row.get("enabled", True)) and str(row.get("sectionType", "")).strip().lower() != "school"
+    ]
     rows.sort(key=lambda item: (item.get("sortOrder", 0), item.get("name", "")))
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
 
 def handle_get_sections_tree(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [_serialize_section(row) for row in db.get("sections", []) if bool(row.get("enabled", True))]
+    rows = [
+        _serialize_section(row)
+        for row in db.get("sections", [])
+        if bool(row.get("enabled", True)) and str(row.get("sectionType", "")).strip().lower() != "school"
+    ]
+    sections = [row for row in rows if row["sectionType"] in {"general", "college", "club"}]
     tree = {
-        "school": next((row for row in rows if row["sectionType"] == "school"), None),
+        "sections": sections,
+        "general": [row for row in rows if row["sectionType"] == "general"],
         "colleges": [row for row in rows if row["sectionType"] == "college"],
-        "channels": [row for row in rows if row["sectionType"] == "channel"],
         "clubs": [row for row in rows if row["sectionType"] == "club"],
     }
     send_json(handler, HTTPStatus.OK, {"data": tree})

@@ -198,6 +198,34 @@ button::after {
   text-align: center;
 }
 
+.nav-avatar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border-radius: 22px;
+  background: transparent;
+}
+
+.nav-avatar {
+  display: block;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 64rpx;
+  text-align: center;
+}
+
+.nav-avatar-text {
+  display: block;
+}
+
 /* 篆刻印章头像 */
 .seal-avatar {
   width: 80rpx;

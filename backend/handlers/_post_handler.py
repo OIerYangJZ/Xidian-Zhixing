@@ -128,6 +128,17 @@ def _markdown_to_plain_text(source: str) -> str:
     return text.strip()
 
 
+def _extract_inline_tags(*values: Any) -> list[str]:
+    tags: list[str] = []
+    for value in values:
+        text = str(value or "")
+        for match in re.findall(r"#([\w\u4e00-\u9fff-]{1,30})", text):
+            tag = match.strip()
+            if tag and tag not in tags:
+                tags.append(tag)
+    return tags
+
+
 def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_id: str) -> dict[str, Any]:
     author_id = str(comment.get("userId", "")).strip()
     author_user = find_user_by_id(db, author_id)
@@ -213,7 +224,6 @@ def handle_get_posts(
     viewer_user_id = str(viewer.get("id", "")) if viewer else ""
 
     keyword = (query.get("keyword", [""])[0] or "").strip().lower()
-    channel = (query.get("channel", [""])[0] or "").strip()
     has_image = parse_bool(query.get("hasImage", [None])[0])
     allow_dm = parse_bool(query.get("allowDm", [None])[0])
     status = (query.get("status", [""])[0] or "").strip().lower()
@@ -225,8 +235,6 @@ def handle_get_posts(
     filtered_posts = []
     for post in list_posts(db, sort_by=sort_by):
         if not _can_view_post(post, viewer_user_id):
-            continue
-        if channel and post.get("channel") != channel:
             continue
         if status and str(post.get("status", "")).lower() != status:
             continue
@@ -246,7 +254,6 @@ def handle_get_posts(
                 [
                     str(post.get("title", "")).lower(),
                     str(post.get("content", "")).lower(),
-                    str(post.get("channel", "")).lower(),
                     " ".join(str(tag).lower() for tag in post.get("tags", [])),
                 ]
             )
@@ -598,19 +605,19 @@ def handle_create_post(
     if content_format == "markdown":
         markdown_source = str(body.get("markdownSource", raw_content)).strip() or raw_content
         content = _markdown_to_plain_text(markdown_source) or markdown_source
-    available_channels = list(
-        dict.fromkeys(["综合", *(db.get("channels", []) or []), *_globals.DEFAULT_CHANNELS])
-    )
-    channel = str(body.get("channel", "")).strip()
-    if not channel:
-        channel = available_channels[0] if available_channels else "综合"
-    section_type = str(body.get("sectionType", "school")).strip().lower() or "school"
-    section_id = str(body.get("sectionId", "xdu")).strip() or "xdu"
-    section_name = str(body.get("sectionName", "学校总分区")).strip() or "学校总分区"
+    legacy_channel = str(body.get("channel", "")).strip()
+    section_type = str(body.get("sectionType", "general")).strip().lower() or "general"
+    section_id = str(body.get("sectionId", "general")).strip() or "general"
+    section_name = str(body.get("sectionName", "综合")).strip() or "综合"
     publisher_type = str(body.get("publisherType", "user")).strip().lower() or "user"
     publisher_club_id = str(body.get("publisherClubId", body.get("clubId", ""))).strip()
     raw_tags = body.get("tags", [])
     tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()] if isinstance(raw_tags, list) else []
+    for tag in _extract_inline_tags(title, raw_content):
+        if tag not in tags:
+            tags.append(tag)
+    if legacy_channel and legacy_channel != "综合" and legacy_channel not in tags:
+        tags.append(legacy_channel)
     raw_image_ids = body.get("imageUploadIds") or body.get("imageIds") or []
     image_ids = [str(image_id).strip() for image_id in raw_image_ids if str(image_id).strip()] if isinstance(raw_image_ids, list) else []
     use_anonymous_alias = bool(body.get("useAnonymousAlias"))
@@ -624,10 +631,7 @@ def handle_create_post(
     if not raw_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
         return
-    if channel not in available_channels:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的频道")
-        return
-    if section_type not in {"school", "college", "channel", "club"}:
+    if section_type not in {"general", "college", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的分区类型")
         return
     if publisher_type not in {"user", "club"}:
@@ -713,7 +717,7 @@ def handle_create_post(
         "content": content,
         "contentFormat": content_format,
         "markdownSource": markdown_source,
-        "channel": channel,
+        "channel": "",
         "tags": tags,
         "hasImage": has_image or bool(picked_uploads),
         "imageIds": image_ids,

@@ -15,26 +15,9 @@
 
   <view class="create-content" style="padding-top: {{navTop + navHeight + 8}}px;">
     <view class="compact-selector">
-      <view class="compact-selector-row" bindtap="toggleChannelSelector">
-        <text class="compact-selector-label">频道</text>
-        <text class="compact-selector-pill">{{channels[channelIndex]}}</text>
-        <text class="selector-arrow">{{channelSelectorOpen ? '⌃' : '⌄'}}</text>
-      </view>
-      <view class="selector-chip-wrap" wx:if="{{channelSelectorOpen}}">
-        <view
-          wx:for="{{channels}}"
-          wx:key="*this"
-          data-channel="{{item}}"
-          class="pill-chip {{channelIndex === index ? 'active' : ''}}"
-          bindtap="onChannelTap"
-        >{{item}}</view>
-      </view>
-    </view>
-
-    <view class="compact-selector">
       <view class="compact-selector-row" bindtap="toggleSectionSelector">
         <text class="compact-selector-label">分区</text>
-        <text class="compact-selector-pill">{{sections[sectionIndex].sectionName || '学校总分区'}}</text>
+        <text class="compact-selector-pill">{{sections[sectionIndex].sectionName || '综合'}}</text>
         <text class="selector-arrow">{{sectionSelectorOpen ? '⌃' : '⌄'}}</text>
       </view>
       <view class="selector-chip-wrap" wx:if="{{sectionSelectorOpen}}">

@@ -1,7 +1,10 @@
 <view class="page announcements-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
   <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
-    <view class="nav-menu" bindtap="openDrawer" style="color: var(--brand-deep);"><view></view><view></view><view></view></view>
+    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+    </view>
     <view class="nav-title">
       <view class="nav-name" style="color: var(--brand-deep);">公告</view>
       <view class="nav-subtitle" style="color: var(--text-secondary);">重要消息，不错过</view>

@@ -107,6 +107,15 @@ Page({
     });
   },
 
+  goBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+      return;
+    }
+    wx.switchTab({ url: '/pages/treehole/index' });
+  },
+
   onPullDownRefresh() {
     this.refreshAll().finally(() => wx.stopPullDownRefresh());
   },

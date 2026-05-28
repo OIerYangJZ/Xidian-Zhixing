@@ -8,8 +8,10 @@
         <view class="feed-head">
           <text class="feed-author">{{item.authorAlias}}</text>
           <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
-          <text class="feed-dot" style="background: {{item.channelColor}}"></text>
-          <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
+          <block wx:if="{{item.sectionName}}">
+            <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
+            <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
+          </block>
           <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
           <text class="feed-time">{{item.timeText}}</text>
         </view>

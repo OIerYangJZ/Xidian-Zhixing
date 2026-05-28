@@ -1,17 +1,5 @@
 import request from '../utils/request';
-import { DEFAULT_CHANNELS, getData, normalizeComment, normalizePost, toArray } from '../utils/format';
-
-export const getChannels = async () => {
-  try {
-    const response = await request.get('/api/channels');
-    const rows = toArray(getData(response, []))
-      .map((item) => String(item && item.name ? item.name : item).trim())
-      .filter(Boolean);
-    return rows.length ? rows : DEFAULT_CHANNELS;
-  } catch (error) {
-    return DEFAULT_CHANNELS;
-  }
-};
+import { getData, normalizeComment, normalizePost, toArray } from '../utils/format';
 
 export const getPosts = async (params = {}) => {
   const response = await request.get('/api/posts', params);

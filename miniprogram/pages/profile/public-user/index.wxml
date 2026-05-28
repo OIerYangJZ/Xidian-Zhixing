@@ -26,7 +26,7 @@
         <view class="post-title">{{item.displayTitle}}</view>
         <view class="post-summary">{{item.summary}}</view>
         <view class="post-meta">
-          <text>{{item.channel}}</text>
+          <text wx:if="{{item.sectionName}}">{{item.sectionName}}</text>
           <text>{{item.timeText}}</text>
           <text>赞 {{item.likeCount}}</text>
           <text>评 {{item.commentCount}}</text>

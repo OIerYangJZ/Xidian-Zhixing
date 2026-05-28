@@ -1507,21 +1507,14 @@ def _default_sections(created: str) -> list[dict[str, Any]]:
         ("college-human", "人文学院", "human"),
         ("college-econ", "经济与管理学院", "econ"),
     ]
-    channels = [
-        ("channel-general", "综合", "general"),
-        ("channel-study", "学习交流", "study"),
-        ("channel-help", "求助问答", "help"),
-        ("channel-secondhand", "二手交易", "secondhand"),
-        ("channel-life", "吐槽日常", "life"),
-    ]
-    rows = [{
-        "id": "school-xdu",
-        "sectionType": "school",
-        "sectionId": "xdu",
-        "sectionName": "学校总分区",
-        "name": "学校总分区",
-        "description": "面向全校同学的公共讨论区",
-        "ruleText": "可浏览、发帖、评论、点赞、收藏、举报。",
+    rows: list[dict[str, Any]] = [{
+        "id": "section-general",
+        "sectionType": "general",
+        "sectionId": "general",
+        "sectionName": "综合",
+        "name": "综合",
+        "description": "全校公共讨论分区。",
+        "ruleText": "默认发布到综合分区；话题请使用 #标签。",
         "createdAt": created,
         "updatedAt": created,
         "enabled": True,
@@ -1540,19 +1533,6 @@ def _default_sections(created: str) -> list[dict[str, Any]]:
         "enabled": True,
         "sortOrder": index,
     } for index, (section_id, name, key) in enumerate(colleges, start=10))
-    rows.extend({
-        "id": section_id,
-        "sectionType": "channel",
-        "sectionId": key,
-        "sectionName": name,
-        "name": name,
-        "description": "按话题聚合树洞内容。",
-        "ruleText": "选择该频道后发帖会保存频道和分区字段。",
-        "createdAt": created,
-        "updatedAt": created,
-        "enabled": True,
-        "sortOrder": index,
-    } for index, (section_id, name, key) in enumerate(channels, start=100))
     return rows
 
 
@@ -1641,9 +1621,28 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
         if key not in db.setdefault("seq", {}):
             db["seq"][key] = 0
             changed = True
+    default_sections = _default_sections(created)
     if not db.get("sections"):
-        db["sections"] = _default_sections(created)
+        db["sections"] = default_sections
         changed = True
+    else:
+        before_count = len(db.get("sections", []))
+        db["sections"] = [
+            row for row in db.get("sections", [])
+            if str(row.get("sectionType", "")).strip().lower() != "school"
+            and str(row.get("sectionName", "")).strip() != "学校总分区"
+        ]
+        if len(db["sections"]) != before_count:
+            changed = True
+        existing_section_names = {
+            str(row.get("sectionName") or row.get("name") or "").strip()
+            for row in db.get("sections", [])
+        }
+        for section in default_sections:
+            if str(section.get("sectionName", "")).strip() not in existing_section_names:
+                db["sections"].append(section)
+                existing_section_names.add(str(section.get("sectionName", "")).strip())
+                changed = True
     if not db.get("announcementSources"):
         db["announcementSources"] = [
             {"id": "src-school", "name": "学校官方通知", "sourceType": "school", "createdAt": created},
@@ -1847,9 +1846,9 @@ def default_db() -> dict[str, Any]:
                 "deleted": False,
                 "reviewStatus": "approved",
                 "riskMarked": False,
-                "sectionType": "school",
-                "sectionId": "xdu",
-                "sectionName": "学校总分区",
+                "sectionType": "general",
+                "sectionId": "general",
+                "sectionName": "综合",
                 "publisherType": "user",
                 "publisherClubId": "",
                 "shareCount": 0,
@@ -1970,20 +1969,29 @@ def migrate_db(db: dict[str, Any]) -> bool:
         changed = True
 
     if "channels" not in db:
-        db["channels"] = list(_globals.DEFAULT_CHANNELS)
+        db["channels"] = []
         changed = True
     elif not isinstance(db.get("channels"), list):
-        db["channels"] = list(_globals.DEFAULT_CHANNELS)
+        db["channels"] = []
         changed = True
     else:
-        for default_channel in _globals.DEFAULT_CHANNELS:
-            if default_channel not in db["channels"]:
-                db["channels"].append(default_channel)
-                changed = True
+        legacy_channels = [str(channel).strip() for channel in db.get("channels", []) if str(channel).strip()]
+        if legacy_channels:
+            tags = db.setdefault("tags", [])
+            for channel in legacy_channels:
+                if channel != "综合" and channel not in tags:
+                    tags.append(channel)
+            db["channels"] = []
+            changed = True
 
     if "tags" not in db:
         db["tags"] = list(_globals.DEFAULT_TAGS)
         changed = True
+    else:
+        for default_tag in _globals.DEFAULT_TAGS:
+            if default_tag not in db["tags"]:
+                db["tags"].append(default_tag)
+                changed = True
     if "sensitiveWords" not in db:
         db["sensitiveWords"] = list(_globals.DEFAULT_SENSITIVE_WORDS)
         changed = True
@@ -2153,9 +2161,9 @@ def migrate_db(db: dict[str, Any]) -> bool:
                 post["isAnonymous"] = True
             changed = True
         for k, v in {
-            "sectionType": "school",
-            "sectionId": "xdu",
-            "sectionName": "学校总分区",
+            "sectionType": "general",
+            "sectionId": "general",
+            "sectionName": "综合",
             "publisherType": "user",
             "publisherClubId": "",
             "shareCount": 0,
@@ -2163,6 +2171,18 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if k not in post:
                 post[k] = v
                 changed = True
+        if str(post.get("sectionType", "")).strip().lower() == "school" or str(post.get("sectionName", "")).strip() == "学校总分区":
+            post["sectionType"] = "general"
+            post["sectionId"] = "general"
+            post["sectionName"] = "综合"
+            changed = True
+        legacy_channel = str(post.get("channel", "")).strip()
+        if legacy_channel:
+            post_tags = post.setdefault("tags", [])
+            if legacy_channel != "综合" and legacy_channel not in post_tags:
+                post_tags.append(legacy_channel)
+            post["channel"] = ""
+            changed = True
 
     for comment in db.get("comments", []):
         for k, v in {

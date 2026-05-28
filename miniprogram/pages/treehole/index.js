@@ -1,6 +1,5 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
-import { getChannels } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { getClubs } from '../../api/clubs';
 import { requireLoginPage } from '../../utils/auth_guard';
@@ -16,14 +15,12 @@ Page({
   data: {
     currentTab: 'community',
     posts: [],
-    sectionTree: { school: null, colleges: [], channels: [], clubs: [] },
+    sectionTree: { sections: [], colleges: [], clubs: [] },
     clubs: [],
     loading: false,
     hasMore: true,
     page: 1,
     limit: 10,
-    channels: ['全部'],
-    activeChannel: '全部',
     activeSection: null,
     sortOptions: SORT_OPTIONS,
     activeSort: 'latest',
@@ -41,7 +38,6 @@ Page({
     this.initCustomNav();
     setTimeout(() => {
       if (!requireLoginPage()) return;
-      this.loadChannels();
       this.loadSections();
       this.loadClubs();
       this.loadUserInfo();
@@ -69,14 +65,21 @@ Page({
     });
   },
 
-  async loadChannels() {
-    const channels = await getChannels();
-    this.setData({ channels: ['全部', ...channels.filter((item) => item !== '全部')] });
-  },
-
   async loadSections() {
     const response = await getSectionsTree();
-    this.setData({ sectionTree: response.data || response || { school: null, colleges: [], channels: [], clubs: [] } });
+    const tree = response.data || response || {};
+    const sections = [
+      ...(tree.sections || []),
+      ...(tree.colleges || []),
+      ...(tree.clubs || [])
+    ];
+    const dedupedSections = [];
+    sections.forEach((section) => {
+      if (!dedupedSections.some((item) => item.id === section.id || item.sectionName === section.sectionName)) {
+        dedupedSections.push(section);
+      }
+    });
+    this.setData({ sectionTree: { ...tree, sections: dedupedSections } });
   },
 
   async loadClubs() {
@@ -113,19 +116,6 @@ Page({
     }, () => this.fetchPosts());
   },
 
-  onChannelTap(event) {
-    const channel = event.currentTarget.dataset.channel;
-    if (!channel) return;
-    this.setData({
-      activeChannel: channel,
-      activeSection: null,
-      posts: [],
-      page: 1,
-      hasMore: true,
-      showChannelMenu: false
-    }, () => this.fetchPosts());
-  },
-
   onSortTap(event) {
     const sort = event.currentTarget.dataset.sort;
     if (!sort) return;
@@ -153,7 +143,6 @@ Page({
       limit: this.data.limit,
       sort: this.data.activeSort
     };
-    if (this.data.activeChannel !== '全部') params.channel = this.data.activeChannel;
     if (this.data.activeSection) {
       params.sectionId = this.data.activeSection.sectionId || this.data.activeSection.id;
       params.sectionType = this.data.activeSection.sectionType;

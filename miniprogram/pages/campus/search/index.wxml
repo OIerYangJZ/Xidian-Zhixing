@@ -9,18 +9,6 @@
     <view class="type-chip {{activeType === 'users' ? 'active' : ''}}" data-type="users" bindtap="onTypeTap">用户</view>
   </view>
 
-  <scroll-view class="filter-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{activeType === 'posts'}}">
-    <view class="filter-row">
-      <view
-        wx:for="{{channels}}"
-        wx:key="*this"
-        data-channel="{{item}}"
-        class="filter-chip {{activeChannel === item ? 'active' : ''}}"
-        bindtap="onChannelTap"
-      >{{item}}</view>
-    </view>
-  </scroll-view>
-
   <view class="sort-row" wx:if="{{activeType === 'posts'}}">
     <view
       wx:for="{{sortOptions}}"
@@ -52,8 +40,10 @@
         <view class="feed-head">
           <text class="feed-author">{{item.authorAlias}}</text>
           <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
-          <text class="feed-dot" style="background: {{item.channelColor}}"></text>
-          <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
+          <block wx:if="{{item.sectionName}}">
+            <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
+            <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
+          </block>
           <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
           <text class="feed-time">{{item.timeText}}</text>
         </view>

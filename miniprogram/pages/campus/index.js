@@ -1,6 +1,8 @@
 import { getCampusQuickLinks, getCampusServices, getTodaySchedules } from '../../api/campus';
+import { getUserInfo } from '../../api/auth';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
+import { avatarInitial } from '../../utils/format';
 
 Page({
   data: {
@@ -12,6 +14,7 @@ Page({
     groupedServices: [],
     todaySchedules: [],
     todayScheduleDate: '',
+    userInfo: null,
     touchStartX: 0,
     touchStartY: 0
   },
@@ -19,6 +22,7 @@ Page({
   onLoad() {
     this.initCustomNav();
     if (!requireLoginPage()) return;
+    this.loadUserInfo();
     this.loadData();
   },
 
@@ -60,6 +64,17 @@ Page({
       groupedServices: groups,
       todaySchedules,
       todayScheduleDate: scheduleData.date
+    });
+  },
+
+  async loadUserInfo() {
+    const response = await getUserInfo();
+    const user = response.data || {};
+    this.setData({
+      userInfo: {
+        ...user,
+        avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
+      }
     });
   },
 

@@ -1,5 +1,8 @@
 <view class="page profile-page {{themeClass}}">
   <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+    <view class="profile-back-button" bindtap="goBack" aria-label="返回">
+      <view class="profile-back-icon"></view>
+    </view>
     <view class="nav-title">
       <view class="nav-name" style="color: var(--brand-deep);">我的</view>
       <view class="nav-subtitle" style="color: var(--text-secondary);">管理你的身份、内容与设置</view>
@@ -8,7 +11,7 @@
 
   <view class="profile-header" style="margin-top: {{navTop + navHeight + 8}}px;">
     <view class="profile-background {{userInfo && userInfo.backgroundImageUrl ? 'has-image' : ''}}" style="height: {{userInfo && userInfo.backgroundImageUrl ? 180 : 80}}rpx;">
-      <image wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-image" src="{{userInfo.backgroundImageUrl}}" mode="aspectFill"></image>
+      <image wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-image" src="{{userInfo.backgroundImageUrl}}" mode="aspectFit"></image>
       <view wx:if="{{userInfo && userInfo.backgroundImageUrl}}" class="profile-background-overlay"></view>
     </view>
 
@@ -71,7 +74,7 @@
       </view>
       <view wx:else class="profile-feed">
         <view class="feed-card profile-post-card" wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <view wx:if="{{item.isAnonymous}}" class="seal-avatar">{{item.authorInitial || '匿'}}</view>
+          <view wx:if="{{item.isAnonymous}}" class="feed-avatar anonymous-feed-avatar">{{item.authorInitial || '匿'}}</view>
           <block wx:else>
             <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
             <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
@@ -80,8 +83,10 @@
             <view class="feed-head">
               <text class="feed-author">{{item.authorAlias}}</text>
               <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
-              <text class="feed-dot" style="background: {{item.channelColor}}"></text>
-              <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
+              <block wx:if="{{item.sectionName}}">
+                <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
+                <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
+              </block>
               <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
               <text class="feed-time">{{item.timeText}}</text>
             </view>
@@ -114,7 +119,7 @@
       </view>
       <view wx:else class="profile-feed">
         <view class="feed-card profile-post-card" wx:for="{{favoritePosts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <view wx:if="{{item.isAnonymous}}" class="seal-avatar">{{item.authorInitial || '匿'}}</view>
+          <view wx:if="{{item.isAnonymous}}" class="feed-avatar anonymous-feed-avatar">{{item.authorInitial || '匿'}}</view>
           <block wx:else>
             <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
             <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
@@ -123,8 +128,10 @@
             <view class="feed-head">
               <text class="feed-author">{{item.authorAlias}}</text>
               <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
-              <text class="feed-dot" style="background: {{item.channelColor}}"></text>
-              <text class="feed-channel" style="color: {{item.channelColor}}">{{item.displayChannel || item.channel}}</text>
+              <block wx:if="{{item.sectionName}}">
+                <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
+                <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
+              </block>
               <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
               <text class="feed-time">{{item.timeText}}</text>
             </view>

@@ -119,7 +119,6 @@
   line-height: 1.45;
 }
 
-.avatar-button,
 .channel-trigger {
   display: flex;
   align-items: center;
@@ -128,23 +127,6 @@
   height: 44px;
   border-radius: 22px;
   background: transparent;
-}
-
-.top-avatar {
-  display: block;
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
-  font-size: 28rpx;
-  font-weight: 700;
-  line-height: 64rpx;
-  text-align: center;
-}
-
-.top-avatar-text {
-  display: block;
 }
 
 .channel-trigger.active {
@@ -304,6 +286,32 @@
 .news-list {
   height: 100vh;
   background: var(--app-background);
+}
+
+.feed-list .feed-card {
+  gap: 16rpx;
+  margin: 14rpx 24rpx;
+  padding: 22rpx 24rpx;
+  border-radius: 28rpx;
+}
+
+.feed-list .feed-title {
+  margin-top: 4rpx;
+}
+
+.feed-list .feed-summary {
+  margin-top: 4rpx;
+  line-height: 1.38;
+  -webkit-line-clamp: 3;
+}
+
+.feed-list .feed-tags {
+  margin-top: 8rpx;
+}
+
+.feed-list .feed-actions {
+  min-height: 40rpx;
+  margin-top: 8rpx;
 }
 
 .post-images {

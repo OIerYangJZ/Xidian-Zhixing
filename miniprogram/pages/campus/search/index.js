@@ -1,4 +1,4 @@
-import { getChannels, getPosts } from '../../../api/posts';
+import { getPosts } from '../../../api/posts';
 import { searchUsers } from '../../../api/user';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
@@ -13,8 +13,6 @@ Page({
   data: {
     keyword: '',
     activeType: 'posts',
-    channels: ['全部'],
-    activeChannel: '全部',
     sortOptions: SORT_OPTIONS,
     activeSort: 'hot',
     posts: [],
@@ -25,15 +23,11 @@ Page({
   },
 
   onLoad(options) {
-    if (options.channel) {
-      this.setData({ activeChannel: decodeURIComponent(options.channel) });
-    }
     if (options.keyword) {
       this.setData({ keyword: decodeURIComponent(options.keyword) });
     }
     if (!requireLoginPage()) return;
     this.setData({ history: wx.getStorageSync('searchHistory') || [] });
-    this.loadChannels();
     if (this.data.keyword) {
       this.search();
     }
@@ -43,9 +37,6 @@ Page({
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
     this.setData({ history: wx.getStorageSync('searchHistory') || [] });
-    if (this.data.channels.length <= 1) {
-      this.loadChannels();
-    }
     if (this.data.keyword && !this.data.searched) {
       this.search();
     }
@@ -58,16 +49,6 @@ Page({
   onHistoryTap(event) {
     this.setData({ keyword: event.currentTarget.dataset.keyword });
     this.search();
-  },
-
-  async loadChannels() {
-    const channels = await getChannels();
-    this.setData({ channels: ['全部', ...channels.filter((item) => item !== '全部')] });
-  },
-
-  onChannelTap(event) {
-    this.setData({ activeChannel: event.currentTarget.dataset.channel });
-    if (this.data.searched || this.data.keyword.trim()) this.search();
   },
 
   onSortTap(event) {
@@ -84,7 +65,7 @@ Page({
 
   async search() {
     const keyword = this.data.keyword.trim();
-    if (!keyword && this.data.activeChannel === '全部' && this.data.activeType === 'posts') {
+    if (!keyword && this.data.activeType === 'posts') {
       wx.showToast({ title: '请输入关键词', icon: 'none' });
       return;
     }
@@ -99,8 +80,7 @@ Page({
       if (this.data.activeType === 'posts') {
         posts = await getPosts({
           keyword,
-          sort: this.data.activeSort,
-          ...(this.data.activeChannel !== '全部' ? { channel: this.data.activeChannel } : {})
+          sort: this.data.activeSort
         });
       } else {
         users = await searchUsers(keyword);

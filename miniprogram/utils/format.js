@@ -1,20 +1,5 @@
 import { baseUrl } from '../config/env';
 
-export const DEFAULT_CHANNELS = [
-  '综合',
-  '找对象',
-  '找搭子',
-  '交友扩列',
-  '吐槽日常',
-  '八卦吃瓜',
-  '求助问答',
-  '失物招领',
-  '二手交易',
-  '学习交流',
-  '活动拼车',
-  '其他'
-];
-
 export const getData = (response, fallback = null) => {
   if (response && Object.prototype.hasOwnProperty.call(response, 'data')) {
     return response.data;
@@ -50,7 +35,7 @@ export const formatTime = (value) => {
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 };
 
-const CHANNEL_COLORS = {
+const SECTION_COLORS = {
   全部: '#8E8E93',
   综合: '#6B7FD7',
   学习交流: '#5E8FD4',
@@ -66,8 +51,8 @@ const CHANNEL_COLORS = {
   其他: '#6B7FD7'
 };
 
-export const channelColor = (channel) => {
-  return CHANNEL_COLORS[String(channel || '').trim()] || '#155E75';
+export const sectionColor = (sectionName) => {
+  return SECTION_COLORS[String(sectionName || '').trim()] || '#155E75';
 };
 
 export const avatarInitial = (value) => {
@@ -103,8 +88,7 @@ export const normalizePost = (raw = {}) => {
   const authorAlias = isAnonymous
     ? String(raw.authorAlias || raw.alias || raw.authorName || '匿名用户')
     : String(raw.authorAlias || raw.alias || raw.authorName || '匿名同学');
-  const channel = String(raw.channel || raw.channelName || '综合');
-  const displayChannel = channel === '其他' ? '综合' : channel;
+  const sectionName = String(raw.sectionName || '').trim();
   return {
     ...raw,
     id: String(raw.id || raw.postId || ''),
@@ -112,9 +96,8 @@ export const normalizePost = (raw = {}) => {
     displayTitle,
     content,
     summary: truncate(content, 96),
-    channel,
-    displayChannel,
-    channelColor: channelColor(channel),
+    sectionName,
+    sectionColor: sectionColor(sectionName),
     tags,
     tagText: tags.join(' / '),
     authorAlias,

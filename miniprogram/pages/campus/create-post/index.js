@@ -1,7 +1,7 @@
 import { getUserInfo } from '../../../api/auth';
 import { getSectionsTree } from '../../../api/campus';
 import { getClubs } from '../../../api/clubs';
-import { createPost, getChannels } from '../../../api/posts';
+import { createPost } from '../../../api/posts';
 import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
@@ -24,6 +24,16 @@ const PIN_OPTIONS = [
   { label: '3 天', minutes: 4320 }
 ];
 const TAG_OPTIONS = [
+  '找对象',
+  '找搭子',
+  '交友扩列',
+  '吐槽日常',
+  '八卦吃瓜',
+  '求助问答',
+  '失物招领',
+  '二手交易',
+  '学习交流',
+  '活动拼车',
   '求助',
   '学习',
   '二手',
@@ -54,6 +64,18 @@ function buildTagOptions(selectedTags) {
   }));
 }
 
+function extractInlineTags(...values) {
+  const tags = [];
+  values.forEach((value) => {
+    String(value || '').replace(/#([\w\u4e00-\u9fff-]{1,30})/g, (_, tag) => {
+      const cleanTag = String(tag || '').trim();
+      if (cleanTag && !tags.includes(cleanTag)) tags.push(cleanTag);
+      return '';
+    });
+  });
+  return tags;
+}
+
 function generateAnonymousAlias() {
   const now = Date.now();
   const adj = ALIAS_WORDS[Math.floor(now / 13) % ALIAS_WORDS.length];
@@ -66,9 +88,6 @@ Page({
     navTop: 0,
     navHeight: 0,
     loading: true,
-    channels: ['综合'],
-    channelIndex: 0,
-    channelSelectorOpen: false,
     sections: [],
     sectionIndex: 0,
     sectionSelectorOpen: false,
@@ -112,7 +131,6 @@ Page({
     this.initCustomNav();
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
-    this.loadChannels();
     this.loadSections();
     this.loadClubs();
     this.loadUserLevel();
@@ -131,32 +149,22 @@ Page({
     });
   },
 
-  async loadChannels() {
-    try {
-      const channels = await getChannels();
-      const rows = channels.filter((channel) => channel !== '全部');
-      this.setData({
-        channels: rows.length ? rows : ['综合']
-      });
-    } catch (error) {
-      this.setData({
-        channels: ['综合', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子']
-      });
-    } finally {
-      this.setData({ loading: false });
-    }
-  },
-
   async loadSections() {
     const response = await getSectionsTree();
     const tree = response.data || response || {};
     const sections = [
-      tree.school,
+      ...(tree.sections || []),
       ...(tree.colleges || []),
-      ...(tree.channels || []),
       ...(tree.clubs || [])
     ].filter(Boolean);
-    this.setData({ sections });
+    const dedupedSections = [];
+    sections.forEach((section) => {
+      if (!dedupedSections.some((item) => item.id === section.id || item.sectionName === section.sectionName)) {
+        dedupedSections.push(section);
+      }
+    });
+    const defaultIndex = Math.max(0, dedupedSections.findIndex((section) => section.sectionName === '综合'));
+    this.setData({ sections: dedupedSections, sectionIndex: defaultIndex, loading: false });
   },
 
   async loadClubs() {
@@ -182,7 +190,6 @@ Page({
 
   closeInlineSelectors() {
     this.setData({
-      channelSelectorOpen: false,
       sectionSelectorOpen: false,
       clubIdentityOpen: false,
       tagSelectorOpen: false,
@@ -205,22 +212,9 @@ Page({
     });
   },
 
-  toggleChannelSelector() {
-    this.setData({
-      channelSelectorOpen: !this.data.channelSelectorOpen,
-      sectionSelectorOpen: false,
-      clubIdentityOpen: false,
-      tagSelectorOpen: false,
-      statusSelectorOpen: false,
-      pinSelectorOpen: false,
-      visibilitySelectorOpen: false
-    });
-  },
-
   toggleSectionSelector() {
     this.setData({
       sectionSelectorOpen: !this.data.sectionSelectorOpen,
-      channelSelectorOpen: false,
       clubIdentityOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
@@ -238,7 +232,6 @@ Page({
     this.setData({
       clubIdentityOpen: !this.data.clubIdentityOpen,
       sectionSelectorOpen: false,
-      channelSelectorOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
       pinSelectorOpen: false,
@@ -253,16 +246,6 @@ Page({
     });
   },
 
-  onChannelTap(event) {
-    const channel = event.currentTarget.dataset.channel;
-    const index = this.data.channels.indexOf(channel);
-    if (index < 0) return;
-    this.setData({
-      channelIndex: index,
-      channelSelectorOpen: false
-    });
-  },
-
   toggleTagSelector() {
     if (this.data.tagSelectorOpen) {
       this.setData({ tagSelectorOpen: false });
@@ -273,7 +256,6 @@ Page({
       customTagText: '',
       tagOptions: buildTagOptions(this.data.tags),
       tagSelectorOpen: true,
-      channelSelectorOpen: false,
       statusSelectorOpen: false,
       pinSelectorOpen: false,
       visibilitySelectorOpen: false
@@ -334,7 +316,6 @@ Page({
   toggleStatusSelector() {
     this.setData({
       statusSelectorOpen: !this.data.statusSelectorOpen,
-      channelSelectorOpen: false,
       tagSelectorOpen: false,
       pinSelectorOpen: false,
       visibilitySelectorOpen: false
@@ -353,7 +334,6 @@ Page({
     if (!this.data.isLevelOneUser) return;
     this.setData({
       pinSelectorOpen: !this.data.pinSelectorOpen,
-      channelSelectorOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
       visibilitySelectorOpen: false
@@ -383,7 +363,6 @@ Page({
   toggleVisibilitySelector() {
     this.setData({
       visibilitySelectorOpen: !this.data.visibilitySelectorOpen,
-      channelSelectorOpen: false,
       tagSelectorOpen: false,
       statusSelectorOpen: false,
       pinSelectorOpen: false
@@ -513,17 +492,20 @@ Page({
         .filter(Boolean);
       const pinMinutes = PIN_OPTIONS[this.data.pinIndex].minutes;
       const anonymousAlias = this.data.anonymousAlias.trim();
+      const tags = this.data.tags.slice(0, 5);
+      extractInlineTags(this.data.title, content).forEach((tag) => {
+        if (tags.length < 5 && !tags.includes(tag)) tags.push(tag);
+      });
       const payload = {
         title: this.data.title.trim(),
         content,
         contentFormat: 'plain',
-        channel: this.data.channels[this.data.channelIndex] || '综合',
-        sectionType: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionType) || 'school',
-        sectionId: (this.data.sections[this.data.sectionIndex] && (this.data.sections[this.data.sectionIndex].sectionId || this.data.sections[this.data.sectionIndex].id)) || 'xdu',
-        sectionName: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionName) || '学校总分区',
+        sectionType: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionType) || 'general',
+        sectionId: (this.data.sections[this.data.sectionIndex] && (this.data.sections[this.data.sectionIndex].sectionId || this.data.sections[this.data.sectionIndex].id)) || 'general',
+        sectionName: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionName) || '综合',
         publisherType: this.data.clubIdentityIndex >= 0 ? 'club' : 'user',
         publisherClubId: this.data.clubIdentityIndex >= 0 && this.data.clubs[this.data.clubIdentityIndex] ? this.data.clubs[this.data.clubIdentityIndex].id : '',
-        tags: this.data.tags.slice(0, 5),
+        tags,
         allowComment: true,
         allowDm: !this.data.useAnonymousAlias,
         visibility: this.data.privateOnly ? 'private' : 'public',

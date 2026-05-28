@@ -1,7 +1,10 @@
 <view class="page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
   <view class="ai-topbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; box-sizing: border-box; background: var(--app-background);">
-    <view class="nav-menu" bindtap="openDrawer" style="color: var(--brand-deep);"><view></view><view></view><view></view></view>
+    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
+      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+    </view>
     <view>
       <view class="ai-title" style="color: var(--brand-deep);">AI 助手</view>
       <view class="ai-subtitle" style="color: var(--text-secondary);">学习、生活、校园问题都可以问</view>

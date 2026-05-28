@@ -17,23 +17,6 @@
   border-bottom: 1rpx solid var(--app-divider);
 }
 
-.nav-menu {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 6rpx;
-  width: 88rpx;
-  height: 88rpx;
-  color: var(--brand-deep);
-}
-
-.nav-menu view {
-  width: 36rpx;
-  height: 4rpx;
-  border-radius: 2rpx;
-  background: currentColor;
-}
-
 .nav-title {
   flex: 1;
   min-width: 0;

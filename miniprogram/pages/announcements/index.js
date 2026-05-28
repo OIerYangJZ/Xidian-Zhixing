@@ -1,6 +1,8 @@
 import { getAnnouncementFilters, getAnnouncementList, getDailySummary } from '../../api/announcements';
+import { getUserInfo } from '../../api/auth';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { requireLoginPage } from '../../utils/auth_guard';
+import { avatarInitial } from '../../utils/format';
 
 Page({
   data: {
@@ -12,6 +14,7 @@ Page({
     dailySummary: null,
     activeType: '',
     preferredCollege: '',
+    userInfo: null,
     touchStartX: 0,
     touchStartY: 0
   },
@@ -19,6 +22,7 @@ Page({
   onLoad() {
     this.initCustomNav();
     if (!requireLoginPage()) return;
+    this.loadUserInfo();
     this.loadData();
   },
 
@@ -42,6 +46,17 @@ Page({
       getDailySummary()
     ]);
     this.setData({ announcements, filters, dailySummary });
+  },
+
+  async loadUserInfo() {
+    const response = await getUserInfo();
+    const user = response.data || {};
+    this.setData({
+      userInfo: {
+        ...user,
+        avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
+      }
+    });
   },
 
   selectType(event) {

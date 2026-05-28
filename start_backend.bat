@@ -15,7 +15,7 @@ for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%BACKEND_PORT% .*LIST
 
 timeout /t 1 /nobreak >nul
 if not defined BACKEND_LAN_HOST (
-  for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$route = Get-NetRoute -DestinationPrefix '0.0.0.0/0' | Sort-Object RouteMetric, InterfaceMetric | Select-Object -First 1; if ($route) { Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $route.InterfaceIndex | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254*' -and $_.AddressState -eq 'Preferred' } | Select-Object -First 1 -ExpandProperty IPAddress }"`) do (
+  for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$excludedIp = '^(127\.|169\.254\.|198\.18\.|198\.19\.)'; $excludedAlias = 'Mihomo|ZeroTier|Tailscale|Loopback|VMware|VirtualBox|Hyper-V|vEthernet|Wintun|TAP'; Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.AddressState -eq 'Preferred' -and $_.IPAddress -notmatch $excludedIp -and $_.InterfaceAlias -notmatch $excludedAlias } | Sort-Object @{Expression={ if ($_.InterfaceAlias -match 'WLAN|Wi-Fi|Ethernet') { 0 } else { 1 } }}, InterfaceMetric | Select-Object -First 1 -ExpandProperty IPAddress"`) do (
     set "BACKEND_LAN_HOST=%%I"
   )
 )
