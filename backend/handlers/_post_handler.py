@@ -606,9 +606,9 @@ def handle_create_post(
         markdown_source = str(body.get("markdownSource", raw_content)).strip() or raw_content
         content = _markdown_to_plain_text(markdown_source) or markdown_source
     legacy_channel = str(body.get("channel", "")).strip()
-    section_type = str(body.get("sectionType", "general")).strip().lower() or "general"
-    section_id = str(body.get("sectionId", "general")).strip() or "general"
-    section_name = str(body.get("sectionName", "综合")).strip() or "综合"
+    section_type = str(body.get("sectionType", "")).strip().lower()
+    section_id = str(body.get("sectionId", "")).strip()
+    section_name = str(body.get("sectionName", "")).strip()
     publisher_type = str(body.get("publisherType", "user")).strip().lower() or "user"
     publisher_club_id = str(body.get("publisherClubId", body.get("clubId", ""))).strip()
     raw_tags = body.get("tags", [])
@@ -631,7 +631,7 @@ def handle_create_post(
     if not raw_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
         return
-    if section_type not in {"general", "college", "club"}:
+    if section_type and section_type not in {"general", "college", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的分区类型")
         return
     if publisher_type not in {"user", "club"}:

@@ -12,7 +12,7 @@
   <scroll-view wx:if="{{!loading && post}}" scroll-y class="main-scroll" scroll-into-view="{{targetAnchor}}" scroll-with-animation style="padding-top: {{navTop + navHeight + 8}}px;">
     <view class="post-card">
       <view class="post-header">
-        <view wx:if="{{post.isAnonymous}}" class="seal-avatar">{{post.authorInitial || '匿'}}</view>
+        <view wx:if="{{post.isAnonymous}}" class="post-avatar post-avatar-text">{{post.authorInitial || '匿'}}</view>
         <block wx:else>
           <image wx:if="{{post.authorAvatarUrl}}" class="post-avatar" src="{{post.authorAvatarUrl}}" mode="aspectFill" bindtap="openAuthorProfile"></image>
           <view wx:else class="post-avatar post-avatar-text" bindtap="openAuthorProfile">{{post.authorInitial}}</view>
@@ -78,7 +78,7 @@
       <view class="empty-state" wx:if="{{comments.length === 0}}">暂无评论，快来抢沙发~</view>
 
       <view id="{{item.anchorId}}" class="comment-item {{item.isTarget ? 'target' : ''}}" wx:for="{{comments}}" wx:key="id" style="{{item.indentStyle}}" data-index="{{index}}" bindlongpress="showCommentMenu">
-        <view wx:if="{{item.isAnonymous}}" class="seal-avatar" style="width: 64rpx; height: 64rpx; line-height: 56rpx; font-size: 26rpx; border-radius: 18rpx; margin-right: 20rpx;">{{item.authorInitial || '匿'}}</view>
+        <view wx:if="{{item.isAnonymous}}" class="comment-avatar comment-avatar-text" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;">{{item.authorInitial || '匿'}}</view>
         <block wx:else>
           <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;"></image>
           <view wx:else class="comment-avatar comment-avatar-text" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;">{{item.authorInitial}}</view>

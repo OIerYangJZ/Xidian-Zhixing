@@ -126,6 +126,11 @@
   line-height: 32rpx;
 }
 
+.compact-selector-pill.placeholder {
+  background: var(--app-control);
+  color: var(--app-text-tertiary);
+}
+
 .selector-arrow {
   margin-left: 8rpx;
   color: var(--app-text-tertiary);

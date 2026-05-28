@@ -89,7 +89,7 @@ Page({
     navHeight: 0,
     loading: true,
     sections: [],
-    sectionIndex: 0,
+    sectionIndex: -1,
     sectionSelectorOpen: false,
     clubs: [],
     clubIdentityIndex: -1,
@@ -163,8 +163,7 @@ Page({
         dedupedSections.push(section);
       }
     });
-    const defaultIndex = Math.max(0, dedupedSections.findIndex((section) => section.sectionName === '综合'));
-    this.setData({ sections: dedupedSections, sectionIndex: defaultIndex, loading: false });
+    this.setData({ sections: dedupedSections, sectionIndex: -1, loading: false });
   },
 
   async loadClubs() {
@@ -225,7 +224,10 @@ Page({
 
   onSectionTap(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
-    this.setData({ sectionIndex: index, sectionSelectorOpen: false });
+    this.setData({
+      sectionIndex: this.data.sectionIndex === index ? -1 : index,
+      sectionSelectorOpen: false
+    });
   },
 
   toggleClubIdentity() {
@@ -496,13 +498,14 @@ Page({
       extractInlineTags(this.data.title, content).forEach((tag) => {
         if (tags.length < 5 && !tags.includes(tag)) tags.push(tag);
       });
+      const selectedSection = this.data.sectionIndex >= 0 ? this.data.sections[this.data.sectionIndex] : null;
       const payload = {
         title: this.data.title.trim(),
         content,
         contentFormat: 'plain',
-        sectionType: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionType) || 'general',
-        sectionId: (this.data.sections[this.data.sectionIndex] && (this.data.sections[this.data.sectionIndex].sectionId || this.data.sections[this.data.sectionIndex].id)) || 'general',
-        sectionName: (this.data.sections[this.data.sectionIndex] && this.data.sections[this.data.sectionIndex].sectionName) || '综合',
+        sectionType: selectedSection ? selectedSection.sectionType : '',
+        sectionId: selectedSection ? (selectedSection.sectionId || selectedSection.id) : '',
+        sectionName: selectedSection ? selectedSection.sectionName : '',
         publisherType: this.data.clubIdentityIndex >= 0 ? 'club' : 'user',
         publisherClubId: this.data.clubIdentityIndex >= 0 && this.data.clubs[this.data.clubIdentityIndex] ? this.data.clubs[this.data.clubIdentityIndex].id : '',
         tags,

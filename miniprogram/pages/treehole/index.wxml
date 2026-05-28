@@ -32,7 +32,7 @@
   <scroll-view class="feed-list" scroll-y wx:if="{{currentTab === 'community'}}" bindscrolltolower="onReachBottom" bindscroll="onScroll" style="padding-top: {{navTop + navHeight + 64}}px;">
     <view class="section-rule" wx:if="{{activeSection && activeSection.ruleText}}">{{activeSection.ruleText}}</view>
     <view class="feed-card" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-      <view wx:if="{{item.isAnonymous}}" class="seal-avatar">{{item.authorInitial || '匿'}}</view>
+      <view wx:if="{{item.isAnonymous}}" class="feed-avatar">{{item.authorInitial || '匿'}}</view>
       <block wx:else>
         <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile"></image>
         <view wx:else class="feed-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">{{item.authorInitial}}</view>
