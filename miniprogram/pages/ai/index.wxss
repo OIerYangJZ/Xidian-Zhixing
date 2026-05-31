@@ -107,7 +107,7 @@
   min-height: 96rpx;
   padding: 28rpx 32rpx;
   margin: 16rpx 24rpx;
-  background: #ffffff;
+  background: var(--app-card);
   border: 1rpx solid var(--app-divider);
   border-radius: 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);

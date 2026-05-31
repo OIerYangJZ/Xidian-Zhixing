@@ -231,6 +231,7 @@ def handle_get_posts(
     author_id = (query.get("authorId", [""])[0] or "").strip()
     section_id = (query.get("sectionId", [""])[0] or "").strip()
     section_type = (query.get("sectionType", [""])[0] or "").strip()
+    channel = (query.get("channel", [""])[0] or "").strip()
 
     filtered_posts = []
     for post in list_posts(db, sort_by=sort_by):
@@ -248,6 +249,11 @@ def handle_get_posts(
             continue
         if section_type and str(post.get("sectionType", "")).strip() != section_type:
             continue
+        if channel and channel != "全部":
+            post_channel = str(post.get("channel", "")).strip()
+            post_tags = post.get("tags", [])
+            if post_channel != channel and channel not in post_tags:
+                continue
 
         if keyword:
             text = " ".join(

@@ -1,4 +1,4 @@
-<view class="page apply-page">
+<view class="page apply-page {{themeClass}}">
   <view class="field-label">社团名称</view>
   <input class="app-input" value="{{name}}" data-field="name" bindinput="onInput" placeholder="输入社团名称" />
   <view class="field-label">类型</view>

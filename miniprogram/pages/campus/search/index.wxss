@@ -103,7 +103,7 @@
 }
 
 .sort-chip.active {
-  background: rgba(21, 94, 117, .1);
+  background: var(--app-primary-soft);
   color: var(--app-primary);
   font-weight: 600;
 }
@@ -176,7 +176,7 @@
 }
 
 .user-avatar.fallback {
-  background: rgba(21, 94, 117, .12);
+  background: var(--app-primary-soft);
 }
 
 .user-main {

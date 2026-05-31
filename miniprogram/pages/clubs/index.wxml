@@ -1,4 +1,4 @@
-<view class="page club-page">
+<view class="page club-page {{themeClass}}">
   <button class="apply-btn" bindtap="apply">申请社团分区</button>
   <view class="club-row" wx:for="{{clubs}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
     <view class="club-name">{{item.name}}</view>

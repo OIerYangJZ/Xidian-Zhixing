@@ -60,7 +60,7 @@ page {
 
 .profile-header {
   position: relative;
-  background: linear-gradient(to bottom, var(--background-softRed), #ffffff);
+  background: linear-gradient(to bottom, var(--background-softRed), var(--app-surface));
 }
 
 .profile-background {
@@ -167,7 +167,7 @@ page {
 }
 
 .profile-info.with-background {
-  background: rgba(255, 255, 255, .72);
+  background: var(--app-surface-translucent);
 }
 
 

@@ -22,7 +22,7 @@
   padding: 32rpx;
   border: 1rpx solid var(--app-divider);
   border-radius: 36rpx;
-  background: #ffffff;
+  background: var(--app-card);
   box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
 }
 .daily-title { color: var(--brand-deep); font-size: 32rpx; font-weight: 700; }
@@ -50,7 +50,7 @@
   margin: 24rpx 32rpx;
   border: 1rpx solid var(--app-divider);
   border-radius: 36rpx;
-  background: #ffffff;
+  background: var(--app-card);
   box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
 }
 .announcement-head { display: flex; align-items: center; gap: 12rpx; }

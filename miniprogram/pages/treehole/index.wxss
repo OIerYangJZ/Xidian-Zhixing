@@ -505,3 +505,34 @@
   font-size: 28rpx;
   border-radius: 40rpx;
 }
+
+.active-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18rpx 24rpx 6rpx;
+  padding: 18rpx 24rpx;
+  border-radius: 18rpx;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 26rpx;
+}
+
+.filter-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.filter-text {
+  font-weight: 600;
+}
+
+.filter-clear-btn {
+  padding: 6rpx 16rpx;
+  border-radius: 12rpx;
+  background: var(--app-primary);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 600;
+}

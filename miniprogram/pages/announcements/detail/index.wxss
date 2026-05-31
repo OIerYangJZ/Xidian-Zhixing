@@ -10,7 +10,7 @@
 
 .detail-paper-card {
   padding: 36rpx;
-  background: #ffffff;
+  background: var(--app-card);
   border: 1rpx solid var(--app-divider);
   border-radius: 36rpx; /* card.radius = 18px = 36rpx */
   box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);

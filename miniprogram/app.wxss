@@ -17,6 +17,7 @@ page {
   --app-accent: var(--brand-bright);
   --app-background: var(--background-paper);
   --app-surface: #ffffff;
+  --app-surface-translucent: rgba(255, 255, 255, 0.72);
   --app-card: #ffffff;
   --app-text-primary: var(--text-primary);
   --app-text-secondary: var(--text-secondary);
@@ -247,7 +248,7 @@ button::after {
   gap: 20rpx;
   padding: 32rpx;
   margin: 24rpx 32rpx;
-  background: #ffffff;
+  background: var(--app-card);
   border: 1rpx solid var(--app-divider);
   border-radius: 36rpx; /* card.radius = 18px = 36rpx */
   box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.04);
@@ -1054,21 +1055,30 @@ button::after {
 
 .color-mode-dark {
   --brand-deep: #ffffff;
-  --background-paper: #000000;
-  --background-softRed: #000000;
+  --brand-primary: var(--brand-bright);
+  --brand-seal: var(--brand-bright);
+  --app-primary: var(--brand-bright);
+  --background-paper: #121212;
+  --background-softRed: rgba(255, 255, 255, 0.08);
   --text-primary: #ffffff;
-  --text-secondary: #ffffff;
-  --border-default: #ffffff;
-  --app-background: #000000;
-  --app-surface: #000000;
-  --app-card: #000000;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border-default: rgba(255, 255, 255, 0.15);
+  --app-background: #121212;
+  --app-surface: #1c1c1e;
+  --app-surface-translucent: rgba(28, 28, 30, 0.72);
+  --app-card: #1c1c1e;
   --app-text-primary: #ffffff;
-  --app-text-secondary: #ffffff;
-  --app-text-tertiary: #ffffff;
-  --app-divider: #ffffff;
-  --app-primary-soft: #000000;
-  --app-accent-soft: #000000;
-  --app-control: #000000;
+  --app-text-secondary: rgba(255, 255, 255, 0.7);
+  --app-text-tertiary: rgba(255, 255, 255, 0.45);
+  --app-divider: rgba(255, 255, 255, 0.12);
+  --app-primary-soft: rgba(255, 255, 255, 0.08);
+  --app-accent-soft: rgba(255, 255, 255, 0.08);
+  --app-control: rgba(255, 255, 255, 0.06);
+}
+
+.color-mode-dark .anonymous-badge,
+.color-mode-dark .seal-badge-hollow {
+  background: transparent !important;
 }
 
 .theme-minimal.color-mode-dark {

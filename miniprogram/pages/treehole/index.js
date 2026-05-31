@@ -1,5 +1,6 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
+import { getChannels } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { getClubs } from '../../api/clubs';
 import { requireLoginPage } from '../../utils/auth_guard';
@@ -21,6 +22,8 @@ Page({
     hasMore: true,
     page: 1,
     limit: 10,
+    channels: ['全部'],
+    activeChannel: '全部',
     activeSection: null,
     sortOptions: SORT_OPTIONS,
     activeSort: 'latest',
@@ -38,6 +41,7 @@ Page({
     this.initCustomNav();
     setTimeout(() => {
       if (!requireLoginPage()) return;
+      this.loadChannels();
       this.loadSections();
       this.loadClubs();
       this.loadUserInfo();
@@ -52,7 +56,7 @@ Page({
 
   onPullDownRefresh() {
     this.setData({ page: 1, posts: [], hasMore: true }, () => {
-      Promise.all([this.loadSections(), this.loadClubs(), this.fetchPosts()])
+      Promise.all([this.loadChannels(), this.loadSections(), this.loadClubs(), this.fetchPosts()])
         .finally(() => wx.stopPullDownRefresh());
     });
   },
@@ -63,6 +67,15 @@ Page({
       navTop: app.globalData.navTop || 44,
       navHeight: app.globalData.navHeight || 32
     });
+  },
+
+  async loadChannels() {
+    try {
+      const channels = await getChannels();
+      this.setData({ channels: ['全部', ...channels.filter((item) => item !== '全部')] });
+    } catch (error) {
+      this.setData({ channels: ['全部'] });
+    }
   },
 
   async loadSections() {
@@ -108,11 +121,36 @@ Page({
     const section = event.currentTarget.dataset.section;
     this.setData({
       activeSection: section || null,
+      activeChannel: '全部',
       currentTab: 'community',
       posts: [],
       page: 1,
       hasMore: true,
       showChannelMenu: false
+    }, () => this.fetchPosts());
+  },
+
+  onChannelTap(event) {
+    const channel = event.currentTarget.dataset.channel;
+    if (!channel) return;
+    this.setData({
+      activeChannel: channel,
+      activeSection: null,
+      currentTab: 'community',
+      posts: [],
+      page: 1,
+      hasMore: true,
+      showChannelMenu: false
+    }, () => this.fetchPosts());
+  },
+
+  clearActiveSection() {
+    this.setData({
+      activeSection: null,
+      activeChannel: '全部',
+      posts: [],
+      page: 1,
+      hasMore: true
     }, () => this.fetchPosts());
   },
 
@@ -143,6 +181,9 @@ Page({
       limit: this.data.limit,
       sort: this.data.activeSort
     };
+    if (this.data.activeChannel && this.data.activeChannel !== '全部') {
+      params.channel = this.data.activeChannel;
+    }
     if (this.data.activeSection) {
       params.sectionId = this.data.activeSection.sectionId || this.data.activeSection.id;
       params.sectionType = this.data.activeSection.sectionType;

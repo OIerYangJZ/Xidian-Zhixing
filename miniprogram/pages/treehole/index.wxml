@@ -16,6 +16,14 @@
 
   <view class="channel-menu-mask" wx:if="{{showChannelMenu}}" bindtap="closeChannelMenu"></view>
   <view class="channel-menu" wx:if="{{showChannelMenu}}" style="top: {{navTop + navHeight + 8}}px;">
+    <view class="channel-menu-section"><view class="channel-menu-title">频道</view></view>
+    <view wx:for="{{channels}}" wx:key="*this" data-channel="{{item}}" class="channel-menu-item {{activeChannel === item && !activeSection ? 'active' : ''}}" bindtap="onChannelTap">
+      <text>{{item}}</text><text wx:if="{{activeChannel === item && !activeSection}}" class="check-mark">✓</text>
+    </view>
+    <view class="channel-menu-section"><view class="channel-menu-title">学院</view></view>
+    <view wx:for="{{sectionTree.colleges}}" wx:key="id" data-section="{{item}}" class="channel-menu-item {{activeSection && activeSection.id === item.id ? 'active' : ''}}" bindtap="selectSection">
+      <text>{{item.sectionName}}</text><text wx:if="{{activeSection && activeSection.id === item.id}}" class="check-mark">✓</text>
+    </view>
     <view class="channel-menu-section"><view class="channel-menu-title">排序</view></view>
     <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="channel-menu-item {{activeSort === item.value ? 'active' : ''}}" bindtap="onSortTap">
       <text>{{item.label}}</text><text wx:if="{{activeSort === item.value}}" class="check-mark">✓</text>
@@ -24,12 +32,16 @@
 
   <view class="treehole-tabs" style="top: {{navTop + navHeight + 8}}px;">
     <view class="treehole-tab {{currentTab === 'community' ? 'active' : ''}}" data-tab="community" bindtap="switchTab">论坛</view>
-    <view class="treehole-tab {{currentTab === 'sections' ? 'active' : ''}}" data-tab="sections" bindtap="switchTab">分区</view>
     <view class="treehole-tab" bindtap="goHot">热榜</view>
-    <view class="treehole-tab {{currentTab === 'clubs' ? 'active' : ''}}" data-tab="clubs" bindtap="switchTab">社团</view>
   </view>
 
   <scroll-view class="feed-list" scroll-y wx:if="{{currentTab === 'community'}}" bindscrolltolower="onReachBottom" bindscroll="onScroll" style="padding-top: {{navTop + navHeight + 64}}px;">
+    <view class="active-filter-bar" wx:if="{{activeSection || (activeChannel && activeChannel !== '全部')}}">
+      <view class="filter-info">
+        <text class="filter-text">当前筛选：{{activeSection ? '#' + (activeSection.sectionName || activeSection.name) : '#' + activeChannel}}</text>
+      </view>
+      <view class="filter-clear-btn" bindtap="clearActiveSection">清除筛选</view>
+    </view>
     <view class="section-rule" wx:if="{{activeSection && activeSection.ruleText}}">{{activeSection.ruleText}}</view>
     <view class="feed-card" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
       <view wx:if="{{item.isAnonymous}}" class="feed-avatar">{{item.authorInitial || '匿'}}</view>
@@ -76,35 +88,6 @@
     </view>
     
     <view class="no-more" wx:if="{{!loading && !hasMore && posts.length > 0}}">没有更多了</view>
-  </scroll-view>
-
-  <scroll-view class="secondary-page section-page" scroll-y wx:if="{{currentTab === 'sections'}}" style="padding-top: {{navTop + navHeight + 64}}px;">
-    <view class="section-group">
-      <view class="section-heading">分区</view>
-      <view class="section-cell" wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" bindtap="selectSection">
-        <view><view class="section-name">{{item.sectionName}}</view><view class="section-desc">{{item.ruleText}}</view></view>
-        <view class="menu-arrow">></view>
-      </view>
-    </view>
-    <view class="section-group">
-      <view class="section-heading">社团分区</view>
-      <view class="section-cell" wx:for="{{sectionTree.clubs}}" wx:key="id" data-section="{{item}}" bindtap="selectSection">
-        <view><view class="section-name">{{item.sectionName}}</view><view class="section-desc">{{item.ruleText}}</view></view>
-        <view class="menu-arrow">></view>
-      </view>
-    </view>
-  </scroll-view>
-
-  <scroll-view class="secondary-page clubs-page" scroll-y wx:if="{{currentTab === 'clubs'}}" style="padding-top: {{navTop + navHeight + 64}}px;">
-    <view class="club-apply-card" bindtap="goClubApply">
-      <view class="club-apply-title">申请社团分区</view>
-      <view class="club-apply-desc">负责人可申请社团分区，通过后支持社团名义发布。</view>
-    </view>
-    <view class="section-cell" wx:for="{{clubs}}" wx:key="id" data-id="{{item.id}}" bindtap="goClubDetail">
-      <view><view class="section-name">{{item.name}}</view><view class="section-desc">{{item.description}}</view></view>
-      <view class="menu-arrow">></view>
-    </view>
-    <view class="empty-state" wx:if="{{clubs.length === 0}}">暂无社团分区，先提交申请</view>
   </scroll-view>
 
   <view class="floating-publish {{showPublishButton ? '' : 'hidden'}}" wx:if="{{currentTab === 'community'}}" bindtap="goCreatePost" style="line-height: 96rpx; font-size: 32rpx; font-weight: 600;">写</view>

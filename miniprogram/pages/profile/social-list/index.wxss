@@ -26,7 +26,7 @@
 }
 
 .avatar.fallback {
-  background: rgba(21, 94, 117, .12);
+  background: var(--app-primary-soft);
 }
 
 .user-body {
@@ -53,7 +53,7 @@
   width: 108rpx;
   height: 60rpx;
   border-radius: 12rpx;
-  background: rgba(21, 94, 117, .1);
+  background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 26rpx;
   line-height: 60rpx;

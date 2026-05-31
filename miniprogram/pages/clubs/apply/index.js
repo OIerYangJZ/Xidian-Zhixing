@@ -1,4 +1,5 @@
 import { getMyClubApplications, submitClubApplication } from '../../../api/clubs';
+import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   data: {
@@ -6,10 +7,14 @@ Page({
     category: '',
     description: '',
     contact: '',
-    applications: []
+    applications: [],
+    themeClass: ''
   },
   async onLoad() {
     this.setData({ applications: await getMyClubApplications() });
+  },
+  onShow() {
+    applyThemeAndLanguage(this);
   },
   onInput(event) {
     this.setData({ [event.currentTarget.dataset.field]: event.detail.value });

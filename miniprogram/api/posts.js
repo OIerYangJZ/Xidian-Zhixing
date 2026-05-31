@@ -77,3 +77,8 @@ export const deleteComment = async (commentId) => {
   const response = await request.delete(`/api/comments/${commentId}`, {});
   return getData(response, {});
 };
+
+export const getChannels = async () => {
+  const response = await request.get('/api/channels');
+  return toArray(getData(response, []));
+};

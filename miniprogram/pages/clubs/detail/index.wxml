@@ -1,4 +1,4 @@
-<view class="page club-detail" wx:if="{{club}}">
+<view class="page club-detail {{themeClass}}" wx:if="{{club}}">
   <view class="club-title">{{club.name}}</view>
   <view class="club-owner">负责人：{{club.ownerName}}</view>
   <view class="club-text">{{club.description}}</view>

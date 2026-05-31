@@ -82,7 +82,7 @@
 .post-card {
   padding: 32rpx;
   margin: 24rpx;
-  background: #ffffff;
+  background: var(--app-card);
   border: 1rpx solid var(--app-divider);
   border-radius: 36rpx;
   box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
@@ -361,7 +361,7 @@
   display: flex;
   padding: 24rpx;
   margin: 16rpx 24rpx;
-  background: #ffffff;
+  background: var(--app-card);
   border: 1rpx solid var(--app-divider);
   border-radius: 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);

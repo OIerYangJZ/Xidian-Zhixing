@@ -1,4 +1,5 @@
 import { getAnnouncementDetail, summarizeAnnouncement } from '../../../api/announcements';
+import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   data: {
@@ -10,6 +11,10 @@ Page({
   onLoad(options) {
     this.setData({ id: options.id || '' });
     this.loadDetail();
+  },
+
+  onShow() {
+    applyThemeAndLanguage(this);
   },
 
   async loadDetail() {

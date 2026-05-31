@@ -123,7 +123,7 @@
 }
 
 .message-assistant .message-bubble {
-  background: #ffffff;
+  background: var(--app-card);
   color: var(--app-text-primary);
   border-top-left-radius: 4rpx;
 }
