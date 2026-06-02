@@ -11,11 +11,11 @@ const THEME_MAP = {
   xingrenhuang: { navBg: '#FCF7EC', navFront: '#000000', tabSelectedColor: '#C28A3A', tabSelectedColorDark: '#DDAA5C' },
   haiyanqing: { navBg: '#F1F8F8', navFront: '#000000', tabSelectedColor: '#5B9EA6', tabSelectedColorDark: '#84C2C8' },
   mohui: { navBg: '#F5F4F0', navFront: '#000000', tabSelectedColor: '#4F5552', tabSelectedColorDark: '#747D78' },
-  minimal: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#00BCD4', tabSelectedColorDark: '#00BCD4' }
+  minimal: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#000000', tabSelectedColorDark: '#ffffff' }
 };
 
 export const getDisplayTheme = () => {
-  return wx.getStorageSync('colorTheme') || 'zhushachi';
+  return wx.getStorageSync('colorTheme') || 'minimal';
 };
 
 export const getDisplayMode = () => {

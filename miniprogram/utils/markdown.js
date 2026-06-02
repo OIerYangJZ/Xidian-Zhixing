@@ -14,6 +14,8 @@ const inlineNodes = (text) => {
     const italicMatch = /(\*([^*]+)\*)|(_([^_]+)_)/.exec(rest);
     // 4. Link: [text](url)
     const linkMatch = /\[([^\]]*)\]\(([^)]*)\)/.exec(rest);
+    // 5. Inline tag: #tag
+    const tagMatch = /#[\w\u4e00-\u9fff-]{1,30}/.exec(rest);
 
     let earliest = null;
     let matchType = ''; // 'code', 'bold', 'italic', 'link'
@@ -33,6 +35,10 @@ const inlineNodes = (text) => {
     if (linkMatch && (earliest === null || linkMatch.index < earliest.index)) {
       earliest = linkMatch;
       matchType = 'link';
+    }
+    if (tagMatch && (earliest === null || tagMatch.index < earliest.index)) {
+      earliest = tagMatch;
+      matchType = 'tag';
     }
 
     if (!earliest) {
@@ -72,6 +78,12 @@ const inlineNodes = (text) => {
         name: 'a',
         attrs: { class: 'md-link', href: linkUrl },
         children: inlineNodes(linkText)
+      });
+    } else if (matchType === 'tag') {
+      nodes.push({
+        name: 'span',
+        attrs: { class: 'inline-tag' },
+        children: [{ type: 'text', text: earliest[0] }]
       });
     }
 

@@ -38,6 +38,91 @@
   border-bottom: 1rpx solid var(--app-divider);
 }
 
+.hot-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22rpx 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.hot-title {
+  color: var(--app-text-primary);
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.hot-summary-btn {
+  min-width: 132rpx;
+  height: 58rpx;
+  padding: 0 20rpx;
+  border-radius: 29rpx;
+  background: var(--app-primary);
+  color: var(--app-surface);
+  font-size: 25rpx;
+  font-weight: 600;
+  line-height: 58rpx;
+  text-align: center;
+}
+
+.hot-summary-card {
+  margin: 20rpx 24rpx;
+  padding: 22rpx 24rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 18rpx;
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  font-size: 27rpx;
+  line-height: 1.55;
+}
+
+.hot-row {
+  display: flex;
+  gap: 20rpx;
+  padding: 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.hot-rank {
+  width: 52rpx;
+  height: 52rpx;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--app-control);
+  color: var(--app-text-primary);
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 52rpx;
+  text-align: center;
+}
+
+.hot-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.hot-name {
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.hot-summary {
+  margin-top: 8rpx;
+  color: var(--app-text-secondary);
+  font-size: 26rpx;
+  line-height: 1.45;
+}
+
+.hot-meta {
+  margin-top: 10rpx;
+  color: var(--app-text-tertiary);
+  font-size: 23rpx;
+}
+
 .type-chip {
   flex: 1;
   height: 64rpx;
@@ -202,4 +287,8 @@
 .user-action {
   color: var(--app-primary);
   font-size: 26rpx;
+}
+
+.inline-tag {
+  color: #2563eb;
 }

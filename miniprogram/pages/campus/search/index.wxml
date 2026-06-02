@@ -5,6 +5,7 @@
   </view>
 
   <view class="type-row">
+    <view class="type-chip {{activeType === 'hot' ? 'active' : ''}}" data-type="hot" bindtap="onTypeTap">热榜</view>
     <view class="type-chip {{activeType === 'posts' ? 'active' : ''}}" data-type="posts" bindtap="onTypeTap">帖子</view>
     <view class="type-chip {{activeType === 'users' ? 'active' : ''}}" data-type="users" bindtap="onTypeTap">用户</view>
   </view>
@@ -33,6 +34,23 @@
   <view wx:elif="{{searched && activeType === 'posts' && !posts.length}}" class="empty">没有找到相关帖子</view>
   <view wx:elif="{{searched && activeType === 'users' && !users.length}}" class="empty">没有找到相关用户</view>
 
+  <view wx:if="{{activeType === 'hot' && !loading}}">
+    <view class="hot-tools">
+      <view class="hot-title">热榜</view>
+      <view class="hot-summary-btn" bindtap="summarizeHotTopics">AI 总结</view>
+    </view>
+    <view class="hot-summary-card" wx:if="{{hotSummary}}">{{hotSummary}}</view>
+    <view class="hot-row" wx:for="{{hotTopics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="goHotPost">
+      <view class="hot-rank">{{item.rank}}</view>
+      <view class="hot-body">
+        <view class="hot-name">{{item.title}}</view>
+        <view class="hot-summary">{{item.summary}}</view>
+        <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
+      </view>
+    </view>
+    <view class="empty" wx:if="{{!hotTopics.length}}">暂无热榜内容</view>
+  </view>
+
   <view wx:if="{{activeType === 'posts' && !loading}}">
     <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
       <view class="feed-avatar">{{item.authorInitial}}</view>
@@ -47,8 +65,12 @@
           <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
           <text class="feed-time">{{item.timeText}}</text>
         </view>
-        <view class="feed-title">{{item.displayTitle}}</view>
-        <view class="feed-summary">{{item.summary}}</view>
+        <view class="feed-title">
+          <text wx:for="{{item.displayTitleSegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+        </view>
+        <view class="feed-summary">
+          <text wx:for="{{item.summarySegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+        </view>
         <view class="feed-actions">
           <view class="feed-action {{item.liked ? 'active' : ''}}">
             <view class="feed-action-icon like-icon"></view>

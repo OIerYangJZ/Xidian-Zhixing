@@ -6,8 +6,10 @@ Page({
     themeOptions: [],
     modeOptions: [],
     langOptions: [],
-    currentThemeOption: 'zhushachi',
-    currentModeOption: 'system'
+    layoutOptions: [],
+    currentThemeOption: 'minimal',
+    currentModeOption: 'system',
+    currentPostLayout: 'threads'
   },
 
   onShow() {
@@ -18,12 +20,14 @@ Page({
   updateOptionsAndApply() {
     applyThemeAndLanguage(this);
     const t = this.data.t;
-    const currentThemeOption = wx.getStorageSync('colorTheme') || 'zhushachi';
+    const currentThemeOption = wx.getStorageSync('colorTheme') || 'minimal';
     const currentModeOption = getDisplayMode();
+    const currentPostLayout = wx.getStorageSync('treeholePostLayout') || 'threads';
 
     this.setData({
       currentThemeOption,
       currentModeOption,
+      currentPostLayout,
       themeOptions: [
         { label: '朱砂赤', value: 'zhushachi' },
         { label: '胭脂红', value: 'yanzhihong' },
@@ -46,6 +50,10 @@ Page({
         { label: t.lang_cn || '简体中文', value: 'zh-CN' },
         { label: t.lang_tw || '繁體中文', value: 'zh-TW' },
         { label: t.lang_en || 'English', value: 'en' }
+      ],
+      layoutOptions: [
+        { label: 'Threads 极简', value: 'threads' },
+        { label: '原卡片', value: 'card' }
       ]
     });
   },
@@ -70,6 +78,14 @@ Page({
     const lang = event.currentTarget.dataset.lang;
     if (!lang) return;
     setLanguage(lang);
+    this.updateOptionsAndApply();
+    wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
+  },
+
+  onLayoutTap(event) {
+    const layout = event.currentTarget.dataset.layout;
+    if (!layout) return;
+    wx.setStorageSync('treeholePostLayout', layout);
     this.updateOptionsAndApply();
     wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   }

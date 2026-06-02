@@ -2,7 +2,6 @@ import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
 import { getChannels } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
-import { getClubs } from '../../api/clubs';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
@@ -14,10 +13,9 @@ const SORT_OPTIONS = [
 
 Page({
   data: {
-    currentTab: 'community',
     posts: [],
     sectionTree: { sections: [], colleges: [], clubs: [] },
-    clubs: [],
+    postLayout: 'threads',
     loading: false,
     hasMore: true,
     page: 1,
@@ -39,11 +37,11 @@ Page({
 
   onLoad() {
     this.initCustomNav();
+    this.loadPostLayout();
     setTimeout(() => {
       if (!requireLoginPage()) return;
       this.loadChannels();
       this.loadSections();
-      this.loadClubs();
       this.loadUserInfo();
       this.fetchPosts();
     }, 0);
@@ -52,11 +50,12 @@ Page({
   onShow() {
     applyThemeAndLanguage(this);
     this.initCustomNav();
+    this.loadPostLayout();
   },
 
   onPullDownRefresh() {
     this.setData({ page: 1, posts: [], hasMore: true }, () => {
-      Promise.all([this.loadChannels(), this.loadSections(), this.loadClubs(), this.fetchPosts()])
+      Promise.all([this.loadChannels(), this.loadSections(), this.fetchPosts()])
         .finally(() => wx.stopPullDownRefresh());
     });
   },
@@ -67,6 +66,10 @@ Page({
       navTop: app.globalData.navTop || 44,
       navHeight: app.globalData.navHeight || 32
     });
+  },
+
+  loadPostLayout() {
+    this.setData({ postLayout: wx.getStorageSync('treeholePostLayout') || 'threads' });
   },
 
   async loadChannels() {
@@ -95,11 +98,6 @@ Page({
     this.setData({ sectionTree: { ...tree, sections: dedupedSections } });
   },
 
-  async loadClubs() {
-    const clubs = await getClubs();
-    this.setData({ clubs });
-  },
-
   async loadUserInfo() {
     const response = await getUserInfo();
     const user = response.data;
@@ -111,18 +109,11 @@ Page({
     });
   },
 
-  switchTab(event) {
-    const tab = event.currentTarget.dataset.tab;
-    if (!tab || tab === this.data.currentTab) return;
-    this.setData({ currentTab: tab, showChannelMenu: false });
-  },
-
   selectSection(event) {
     const section = event.currentTarget.dataset.section;
     this.setData({
       activeSection: section || null,
       activeChannel: '全部',
-      currentTab: 'community',
       posts: [],
       page: 1,
       hasMore: true,
@@ -136,7 +127,6 @@ Page({
     this.setData({
       activeChannel: channel,
       activeSection: null,
-      currentTab: 'community',
       posts: [],
       page: 1,
       hasMore: true,
@@ -205,7 +195,7 @@ Page({
   },
 
   onReachBottom() {
-    if (this.data.currentTab === 'community') this.fetchPosts();
+    this.fetchPosts();
   },
 
   onScroll(event) {
@@ -237,10 +227,6 @@ Page({
 
   goCreatePost() {
     wx.navigateTo({ url: '/pages/campus/create-post/index' });
-  },
-
-  goHot() {
-    wx.navigateTo({ url: '/pages/treehole/hot/index' });
   },
 
   goClubApply() {

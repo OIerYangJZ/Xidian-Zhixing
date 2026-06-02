@@ -163,6 +163,30 @@
   transform: rotate(-32deg);
 }
 
+.clubs-symbol::before,
+.clubs-symbol::after {
+  content: '';
+  position: absolute;
+  border: 3rpx solid currentColor;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+.clubs-symbol::before {
+  left: 8rpx;
+  top: 4rpx;
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.clubs-symbol::after {
+  left: 3rpx;
+  bottom: 4rpx;
+  width: 38rpx;
+  height: 20rpx;
+  border-radius: 20rpx 20rpx 8rpx 8rpx;
+}
+
 .settings-symbol {
   border: 4rpx solid currentColor;
   border-radius: 50%;

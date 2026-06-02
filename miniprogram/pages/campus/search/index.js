@@ -1,5 +1,6 @@
 import { getPosts } from '../../../api/posts';
 import { searchUsers } from '../../../api/user';
+import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
@@ -12,11 +13,13 @@ const SORT_OPTIONS = [
 Page({
   data: {
     keyword: '',
-    activeType: 'posts',
+    activeType: 'hot',
     sortOptions: SORT_OPTIONS,
     activeSort: 'hot',
     posts: [],
     users: [],
+    hotTopics: [],
+    hotSummary: '',
     history: [],
     searched: false,
     loading: false
@@ -29,7 +32,10 @@ Page({
     if (!requireLoginPage()) return;
     this.setData({ history: wx.getStorageSync('searchHistory') || [] });
     if (this.data.keyword) {
+      this.setData({ activeType: 'posts' });
       this.search();
+    } else {
+      this.loadHotTopics();
     }
   },
 
@@ -38,12 +44,17 @@ Page({
     if (!requireLoginPage()) return;
     this.setData({ history: wx.getStorageSync('searchHistory') || [] });
     if (this.data.keyword && !this.data.searched) {
+      this.setData({ activeType: 'posts' });
       this.search();
     }
   },
 
   onInput(event) {
-    this.setData({ keyword: event.detail.value });
+    const keyword = event.detail.value;
+    this.setData({ keyword });
+    if (keyword.trim() && this.data.activeType === 'hot') {
+      this.setData({ activeType: 'posts' });
+    }
   },
 
   onHistoryTap(event) {
@@ -60,11 +71,19 @@ Page({
     const type = event.currentTarget.dataset.type;
     if (!type || type === this.data.activeType) return;
     this.setData({ activeType: type });
-    if (this.data.searched || this.data.keyword.trim()) this.search();
+    if (type === 'hot') {
+      this.loadHotTopics();
+    } else if (this.data.searched || this.data.keyword.trim()) {
+      this.search();
+    }
   },
 
   async search() {
     const keyword = this.data.keyword.trim();
+    if (this.data.activeType === 'hot') {
+      this.loadHotTopics();
+      return;
+    }
     if (!keyword && this.data.activeType === 'posts') {
       wx.showToast({ title: '请输入关键词', icon: 'none' });
       return;
@@ -98,6 +117,26 @@ Page({
   clearHistory() {
     wx.removeStorageSync('searchHistory');
     this.setData({ history: [] });
+  },
+
+  async loadHotTopics() {
+    this.setData({ loading: true, searched: false });
+    try {
+      const hotTopics = await getHotTopics();
+      this.setData({ hotTopics, loading: false });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async summarizeHotTopics() {
+    const result = await getHotTopicSummary();
+    this.setData({ hotSummary: result.answer || '' });
+  },
+
+  goHotPost(event) {
+    const postId = event.currentTarget.dataset.postId;
+    if (postId) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${postId}` });
   },
 
   goPostDetail(event) {

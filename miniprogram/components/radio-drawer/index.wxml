@@ -44,6 +44,15 @@
     </view>
 
     <view class="drawer-bottom">
+      <view class="drawer-row" bindtap="goClubs">
+        <view class="drawer-symbol clubs-symbol"></view>
+        <view class="drawer-row-body">
+          <view class="drawer-row-title">社团</view>
+          <view class="drawer-row-subtitle">浏览社团与申请入口</view>
+        </view>
+        <view class="drawer-chevron"></view>
+      </view>
+
       <view class="drawer-row" bindtap="goMailbox">
         <view class="drawer-symbol mail-symbol"></view>
         <view class="drawer-row-body">

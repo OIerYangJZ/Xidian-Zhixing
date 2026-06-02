@@ -17,6 +17,26 @@ export const truncate = (value, max = 80) => {
   return `${text.slice(0, max)}...`;
 };
 
+export const inlineTagSegments = (value) => {
+  const text = String(value || '');
+  const segments = [];
+  const pattern = /#[\w\u4e00-\u9fff-]{1,30}/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) {
+      segments.push({ type: 'text', text: text.slice(cursor, match.index) });
+    }
+    segments.push({ type: 'tag', text: match[0] });
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) {
+    segments.push({ type: 'text', text: text.slice(cursor) });
+  }
+  return segments;
+};
+
 export const formatTime = (value) => {
   const text = String(value || '').trim();
   const date = text ? new Date(text) : null;
@@ -84,6 +104,7 @@ export const normalizePost = (raw = {}) => {
   const sourceImageUrls = rawImageUrls.length ? rawImageUrls : toArray(raw.images);
   const imageUrls = sourceImageUrls.map(resolveUrl).filter(Boolean);
   const displayTitle = title || truncate(content, 24) || '无标题帖子';
+  const summary = truncate(content, 96);
   const isAnonymous = Boolean(raw.isAnonymous || raw.useAnonymousAlias);
   const authorAlias = isAnonymous
     ? String(raw.authorAlias || raw.alias || raw.authorName || '匿名用户')
@@ -93,9 +114,13 @@ export const normalizePost = (raw = {}) => {
     ...raw,
     id: String(raw.id || raw.postId || ''),
     title,
+    titleSegments: inlineTagSegments(title),
     displayTitle,
+    displayTitleSegments: inlineTagSegments(displayTitle),
     content,
-    summary: truncate(content, 96),
+    contentSegments: inlineTagSegments(content),
+    summary,
+    summarySegments: inlineTagSegments(summary),
     sectionName,
     sectionColor: sectionColor(sectionName),
     tags,

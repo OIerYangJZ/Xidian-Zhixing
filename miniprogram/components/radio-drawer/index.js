@@ -61,6 +61,11 @@ Component({
       wx.navigateTo({ url: '/pages/profile/feedback/index' });
     },
 
+    goClubs() {
+      this.close();
+      wx.navigateTo({ url: '/pages/clubs/index' });
+    },
+
     goSettings() {
       this.close();
       wx.navigateTo({ url: '/pages/profile/settings/index' });

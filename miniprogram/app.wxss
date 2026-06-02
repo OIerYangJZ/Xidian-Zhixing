@@ -1029,15 +1029,15 @@ button::after {
 }
 
 .theme-minimal {
-  --brand-primary: #00BCD4;
+  --brand-primary: #000000;
   --brand-deep: #000000;
-  --brand-bright: #00BCD4;
-  --brand-seal: #00BCD4;
+  --brand-bright: #111111;
+  --brand-seal: #000000;
   --background-paper: #ffffff;
-  --background-softRed: #ffffff;
+  --background-softRed: #f5f5f5;
   --text-primary: #000000;
-  --text-secondary: #000000;
-  --border-default: #000000;
+  --text-secondary: #555555;
+  --border-default: #e8e8e8;
   --app-primary: var(--brand-primary);
   --app-primary-dark: #000000;
   --app-accent: var(--brand-primary);
@@ -1045,12 +1045,12 @@ button::after {
   --app-surface: #ffffff;
   --app-card: #ffffff;
   --app-text-primary: #000000;
-  --app-text-secondary: #000000;
-  --app-text-tertiary: #000000;
-  --app-divider: #000000;
-  --app-primary-soft: #ffffff;
-  --app-accent-soft: #ffffff;
-  --app-control: #ffffff;
+  --app-text-secondary: #555555;
+  --app-text-tertiary: #9a9a9a;
+  --app-divider: #e8e8e8;
+  --app-primary-soft: #f5f5f5;
+  --app-accent-soft: #f5f5f5;
+  --app-control: #f4f4f4;
 }
 
 .color-mode-dark {
@@ -1083,6 +1083,10 @@ button::after {
 
 .theme-minimal.color-mode-dark {
   --brand-deep: #ffffff;
+  --brand-primary: #ffffff;
+  --brand-bright: #ffffff;
+  --brand-seal: #ffffff;
   --app-primary-dark: #ffffff;
+  --app-primary: #ffffff;
 }
 

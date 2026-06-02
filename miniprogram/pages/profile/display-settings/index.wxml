@@ -35,6 +35,24 @@
     </view>
   </view>
 
+  <view class="mobile-section-title">帖子布局</view>
+  <view class="mobile-tile-card">
+    <view
+      wx:for="{{layoutOptions}}"
+      wx:key="value"
+      class="mobile-tile option-row {{currentPostLayout === item.value ? 'active' : ''}}"
+      data-layout="{{item.value}}"
+      bindtap="onLayoutTap"
+    >
+      <text class="mobile-tile-icon">☰</text>
+      <view class="mobile-tile-body">
+        <view class="mobile-tile-title">{{item.label}}</view>
+        <view class="mobile-tile-subtitle">树洞帖子样式</view>
+      </view>
+      <text wx:if="{{currentPostLayout === item.value}}" class="check-mark">✓</text>
+    </view>
+  </view>
+
   <view class="mobile-section-title">语言</view>
   <view class="mobile-tile-card">
     <view

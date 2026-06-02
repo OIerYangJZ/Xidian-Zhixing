@@ -2,6 +2,23 @@
   background: var(--app-background);
 }
 
+.treehole-layout-threads {
+  background: var(--app-surface);
+}
+
+.treehole-layout-threads .home-appbar {
+  background: var(--app-surface);
+}
+
+.treehole-layout-threads .section-rule {
+  margin: 0;
+  padding: 18rpx 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  border-radius: 0;
+  background: var(--app-surface);
+  color: var(--app-text-secondary);
+}
+
 .home-appbar {
   position: fixed;
   top: 0;
@@ -16,34 +33,6 @@
   padding-bottom: 8px;
   background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
-}
-
-.treehole-tabs {
-  position: fixed;
-  left: 0;
-  right: 0;
-  z-index: 55;
-  display: flex;
-  gap: 10rpx;
-  padding: 10rpx 24rpx;
-  background: var(--app-surface);
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.treehole-tab {
-  flex: 1;
-  height: 52rpx;
-  border-radius: 16rpx;
-  color: var(--app-text-secondary);
-  font-size: 25rpx;
-  font-weight: 650;
-  line-height: 52rpx;
-  text-align: center;
-}
-
-.treehole-tab.active {
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
 }
 
 .section-rule {
@@ -288,6 +277,186 @@
   background: var(--app-background);
 }
 
+.treehole-layout-threads .feed-list {
+  background: var(--app-surface);
+}
+
+.treehole-layout-threads .active-filter-bar {
+  margin: 0;
+  padding: 18rpx 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  border-radius: 0;
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+}
+
+.treehole-layout-threads .filter-clear-btn {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+}
+
+.thread-post {
+  display: flex;
+  gap: 20rpx;
+  padding: 26rpx 24rpx 24rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  background: var(--app-surface);
+}
+
+.thread-avatar-wrap {
+  position: relative;
+  width: 78rpx;
+  flex: 0 0 78rpx;
+}
+
+.thread-avatar {
+  width: 78rpx;
+  height: 78rpx;
+  border-radius: 50%;
+  background: var(--app-control);
+  color: var(--app-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 78rpx;
+  text-align: center;
+}
+
+.thread-follow-dot {
+  position: absolute;
+  right: -8rpx;
+  top: 52rpx;
+  width: 34rpx;
+  height: 34rpx;
+  border: 4rpx solid var(--app-surface);
+  border-radius: 50%;
+  background: var(--app-text-primary);
+  color: var(--app-surface);
+  font-size: 28rpx;
+  font-weight: 650;
+  line-height: 28rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.thread-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.thread-head {
+  display: flex;
+  align-items: center;
+  min-height: 36rpx;
+}
+
+.thread-author {
+  max-width: 360rpx;
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thread-time {
+  margin-left: 10rpx;
+  color: var(--app-text-tertiary);
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.thread-menu-dot {
+  position: relative;
+  width: 48rpx;
+  height: 44rpx;
+  margin-left: auto;
+}
+
+.thread-menu-dot::before,
+.thread-menu-dot::after {
+  content: '';
+  position: absolute;
+  top: 20rpx;
+  width: 6rpx;
+  height: 6rpx;
+  border-radius: 50%;
+  background: var(--app-text-tertiary);
+}
+
+.thread-menu-dot::before {
+  left: 14rpx;
+}
+
+.thread-menu-dot::after {
+  right: 14rpx;
+}
+
+.thread-text {
+  margin-top: 8rpx;
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  line-height: 1.38;
+  word-break: break-word;
+}
+
+.inline-tag {
+  color: #2563eb;
+}
+
+.thread-actions {
+  display: flex;
+  align-items: center;
+  gap: 48rpx;
+  min-height: 54rpx;
+  margin-top: 18rpx;
+  color: var(--app-text-secondary);
+  font-size: 28rpx;
+}
+
+.thread-action {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  min-width: 56rpx;
+}
+
+.thread-action.active {
+  color: #ff2d55;
+}
+
+.thread-action .feed-action-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.thread-images {
+  height: 360rpx;
+  margin-top: 16rpx;
+  border-radius: 20rpx;
+}
+
+.treehole-layout-threads .floating-publish {
+  width: 112rpx;
+  height: 112rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 32rpx;
+  background: rgba(255, 255, 255, .92);
+  color: var(--app-text-tertiary);
+  line-height: 106rpx;
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, .12);
+}
+
+.theme-minimal.color-mode-dark.treehole-layout-threads .floating-publish,
+.color-mode-dark.treehole-layout-threads .floating-publish {
+  background: rgba(28, 28, 30, .92);
+  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, .42);
+}
+
 .feed-list .feed-card {
   gap: 16rpx;
   margin: 14rpx 24rpx;
@@ -303,10 +472,6 @@
   margin-top: 4rpx;
   line-height: 1.38;
   -webkit-line-clamp: 3;
-}
-
-.feed-list .feed-tags {
-  margin-top: 8rpx;
 }
 
 .feed-list .feed-actions {
@@ -338,8 +503,9 @@
   border-radius: 48rpx;
   background: var(--app-primary);
   color: #ffffff;
-  font-size: 48rpx;
-  line-height: 92rpx;
+  font-size: 58rpx;
+  font-weight: 300;
+  line-height: 90rpx;
   text-align: center;
   transition: transform 0.28s ease, opacity 0.28s ease;
   z-index: 20;
