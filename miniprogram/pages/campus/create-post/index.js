@@ -57,23 +57,36 @@ const VISIBILITY_OPTIONS = [
 const ALIAS_WORDS = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
 const ALIAS_NOUNS = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
 
-function buildTagOptions(selectedTags) {
-  return TAG_OPTIONS.map((label) => ({
-    label,
-    selected: selectedTags.includes(label)
-  }));
-}
-
 function extractInlineTags(...values) {
   const tags = [];
   values.forEach((value) => {
-    String(value || '').replace(/#([\w\u4e00-\u9fff-]{1,30})/g, (_, tag) => {
+    String(value || '').replace(/#([^\s#]{1,30})(?=\s)/g, (_, tag) => {
       const cleanTag = String(tag || '').trim();
       if (cleanTag && !tags.includes(cleanTag)) tags.push(cleanTag);
       return '';
     });
   });
   return tags;
+}
+
+function buildInlineSegments(value) {
+  const text = String(value || '');
+  const segments = [];
+  const pattern = /#([^\s#]{1,30})(?=\s)/g;
+  let cursor = 0;
+  let match = pattern.exec(text);
+  while (match) {
+    if (match.index > cursor) {
+      segments.push({ type: 'text', text: text.slice(cursor, match.index) });
+    }
+    segments.push({ type: 'tag', text: match[0] });
+    cursor = match.index + match[0].length;
+    match = pattern.exec(text);
+  }
+  if (cursor < text.length) {
+    segments.push({ type: 'text', text: text.slice(cursor) });
+  }
+  return segments;
 }
 
 function generateAnonymousAlias() {
@@ -98,16 +111,17 @@ Page({
     title: '',
     content: '',
     contentLength: 0,
+    contentCursor: 0,
+    contentSegments: [],
     canPublish: false,
 
-    tags: [],
-    tagDraft: [],
     tagSelectorOpen: false,
     customTagText: '',
-    tagOptions: buildTagOptions([]),
+    tagOptions: TAG_OPTIONS,
 
     statusOptions: STATUS_OPTIONS,
-    postStatusIndex: 0,
+    postStatusIndex: -1,
+    selectedStatus: null,
     statusSelectorOpen: false,
 
     pinOptions: PIN_OPTIONS,
@@ -183,6 +197,7 @@ Page({
     const content = nextContent == null ? this.data.content : nextContent;
     this.setData({
       contentLength: content.length,
+      contentSegments: buildInlineSegments(content),
       canPublish: content.trim().length > 0 && !this.data.isPublishing
     });
   },
@@ -204,11 +219,20 @@ Page({
 
   onContentInput(event) {
     const value = event.detail.value.slice(0, CONTENT_LIMIT);
+    const cursor = typeof event.detail.cursor === 'number' ? event.detail.cursor : value.length;
     this.setData({
       content: value,
       contentLength: value.length,
+      contentCursor: cursor,
+      contentSegments: buildInlineSegments(value),
       canPublish: value.trim().length > 0 && !this.data.isPublishing
     });
+  },
+
+  onContentBlur(event) {
+    if (typeof event.detail.cursor === 'number') {
+      this.setData({ contentCursor: event.detail.cursor });
+    }
   },
 
   toggleSectionSelector() {
@@ -254,9 +278,7 @@ Page({
       return;
     }
     this.setData({
-      tagDraft: this.data.tags.slice(),
       customTagText: '',
-      tagOptions: buildTagOptions(this.data.tags),
       tagSelectorOpen: true,
       statusSelectorOpen: false,
       pinSelectorOpen: false,
@@ -268,17 +290,10 @@ Page({
     this.setData({ customTagText: event.detail.value });
   },
 
-  toggleDraftTag(event) {
+  insertTag(event) {
     const tag = event.currentTarget.dataset.tag;
     if (!tag) return;
-    const tagDraft = this.data.tagDraft.slice();
-    const index = tagDraft.indexOf(tag);
-    if (index >= 0) {
-      tagDraft.splice(index, 1);
-    } else if (tagDraft.length < 5) {
-      tagDraft.push(tag);
-    }
-    this.setData({ tagDraft, tagOptions: buildTagOptions(tagDraft) });
+    this.insertInlineTag(tag);
   },
 
   addCustomTag() {
@@ -289,30 +304,35 @@ Page({
       .map((item) => item.trim())
       .filter(Boolean);
     if (!rows.length) return;
-    const tagDraft = this.data.tagDraft.slice();
     rows.forEach((tag) => {
-      if (tagDraft.length >= 5) return;
-      if (!tagDraft.includes(tag)) tagDraft.push(tag);
+      this.insertInlineTag(tag);
     });
-    this.setData({ tagDraft, customTagText: '', tagOptions: buildTagOptions(tagDraft) });
-  },
-
-  confirmTags() {
-    this.setData({
-      tags: this.data.tagDraft.slice(0, 5),
-      tagOptions: buildTagOptions(this.data.tagDraft.slice(0, 5)),
-      tagSelectorOpen: false
-    });
+    this.setData({ customTagText: '' });
   },
 
   closeTagSelector() {
     this.setData({ tagSelectorOpen: false });
   },
 
-  removeTag(event) {
-    const tag = event.currentTarget.dataset.tag;
-    const tags = this.data.tags.filter((item) => item !== tag);
-    this.setData({ tags, tagOptions: buildTagOptions(tags) });
+  insertInlineTag(tag) {
+    const cleanTag = String(tag || '').replace(/^#+/, '').trim();
+    if (!cleanTag) return;
+    const content = this.data.content;
+    const cursor = Math.max(0, Math.min(this.data.contentCursor, content.length));
+    const before = content.slice(0, cursor);
+    const after = content.slice(cursor);
+    const prefix = before && !/\s$/.test(before) ? ' ' : '';
+    const suffix = after && !/^\s/.test(after) ? ' ' : '';
+    const insertText = `${prefix}#${cleanTag} `;
+    const nextContent = `${before}${insertText}${suffix}${after}`.slice(0, CONTENT_LIMIT);
+    const nextCursor = Math.min(before.length + insertText.length, nextContent.length);
+    this.setData({
+      content: nextContent,
+      contentLength: nextContent.length,
+      contentCursor: nextCursor,
+      contentSegments: buildInlineSegments(nextContent),
+      canPublish: nextContent.trim().length > 0 && !this.data.isPublishing
+    });
   },
 
   toggleStatusSelector() {
@@ -326,8 +346,10 @@ Page({
 
   onStatusTap(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
+    const nextIndex = this.data.postStatusIndex === index ? -1 : index;
     this.setData({
-      postStatusIndex: index,
+      postStatusIndex: nextIndex,
+      selectedStatus: nextIndex >= 0 ? STATUS_OPTIONS[nextIndex] : null,
       statusSelectorOpen: false
     });
   },
@@ -494,10 +516,7 @@ Page({
         .filter(Boolean);
       const pinMinutes = PIN_OPTIONS[this.data.pinIndex].minutes;
       const anonymousAlias = this.data.anonymousAlias.trim();
-      const tags = this.data.tags.slice(0, 5);
-      extractInlineTags(this.data.title, content).forEach((tag) => {
-        if (tags.length < 5 && !tags.includes(tag)) tags.push(tag);
-      });
+      const tags = extractInlineTags(content).slice(0, 5);
       const selectedSection = this.data.sectionIndex >= 0 ? this.data.sections[this.data.sectionIndex] : null;
       const payload = {
         title: this.data.title.trim(),
@@ -512,12 +531,14 @@ Page({
         allowComment: true,
         allowDm: !this.data.useAnonymousAlias,
         visibility: this.data.privateOnly ? 'private' : 'public',
-        status: STATUS_OPTIONS[this.data.postStatusIndex].value,
         hasImage: this.data.images.length > 0,
         imageUploadIds: uploadedImageIds,
         useAnonymousAlias: this.data.useAnonymousAlias
       };
 
+      if (this.data.postStatusIndex >= 0) {
+        payload.status = STATUS_OPTIONS[this.data.postStatusIndex].value;
+      }
       if (pinMinutes != null && pinMinutes > 0) {
         payload.pinDurationMinutes = pinMinutes;
       }

@@ -60,26 +60,21 @@
       bindinput="onTitleInput"
     />
 
-    <textarea
-      class="content-input"
-      placeholder="今天想悄悄说些什么？"
-      placeholder-class="textarea-placeholder"
-      maxlength="2000"
-      value="{{content}}"
-      bindinput="onContentInput"
-      auto-height
-    />
-
-    <view class="selected-tags" wx:if="{{tags.length}}">
-      <view
-        wx:for="{{tags}}"
-        wx:key="*this"
-        data-tag="{{item}}"
-        class="selected-tag-chip"
-      >
-        <text>#{{item}}</text>
-        <text class="selected-tag-remove" data-tag="{{item}}" bindtap="removeTag">×</text>
+    <view class="content-editor">
+      <view class="content-highlight" wx:if="{{content}}">
+        <text wx:for="{{contentSegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
       </view>
+      <textarea
+        class="content-input {{content ? 'with-highlight' : ''}}"
+        placeholder="今天想悄悄说些什么？"
+        placeholder-class="textarea-placeholder"
+        maxlength="2000"
+        value="{{content}}"
+        cursor="{{contentCursor}}"
+        bindinput="onContentInput"
+        bindblur="onContentBlur"
+        auto-height
+      />
     </view>
 
     <view class="anonymous-row" wx:if="{{useAnonymousAlias}}">
@@ -94,9 +89,9 @@
       />
     </view>
 
-    <view class="status-badge-row">
-      <view class="status-badge {{statusOptions[postStatusIndex].value}}">
-        {{statusOptions[postStatusIndex].label}}
+    <view class="status-badge-row" wx:if="{{selectedStatus}}">
+      <view class="status-badge {{selectedStatus.value}}">
+        {{selectedStatus.label}}
       </view>
     </view>
 
@@ -138,20 +133,19 @@
 
       <view class="tag-selector-sheet" wx:if="{{tagSelectorOpen}}">
         <view class="selector-head">
-          <text>标签（{{tagDraft.length}}/5）</text>
+          <text>插入标签</text>
           <view class="selector-actions">
-            <text class="selector-done" bindtap="confirmTags">完成</text>
             <text class="selector-close" bindtap="closeTagSelector">×</text>
           </view>
         </view>
         <view class="tag-option-wrap">
           <view
           wx:for="{{tagOptions}}"
-            wx:key="label"
-            data-tag="{{item.label}}"
-            class="option-pill {{item.selected ? 'active' : ''}}"
-            bindtap="toggleDraftTag"
-          >{{item.label}}</view>
+            wx:key="*this"
+            data-tag="{{item}}"
+            class="option-pill"
+            bindtap="insertTag"
+          >{{item}}</view>
         </view>
         <view class="custom-tag-row">
           <input
@@ -211,7 +205,7 @@
         <view class="tag-icon"></view>
       </view>
       <view class="toolbar-icon-button {{statusSelectorOpen ? 'active' : ''}}" bindtap="toggleStatusSelector" aria-label="状态">
-        <view class="status-toolbar-icon {{statusOptions[postStatusIndex].icon}}"></view>
+        <view class="status-toolbar-icon {{selectedStatus ? selectedStatus.icon : 'help'}}"></view>
       </view>
       <view class="toolbar-icon-button {{useAnonymousAlias ? 'active' : ''}}" bindtap="toggleAnonymous" aria-label="匿名">
         <view class="eye-off-icon"></view>

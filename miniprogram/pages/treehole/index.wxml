@@ -6,7 +6,7 @@
       <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
       <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
-    <view class="channel-trigger" bindtap="toggleChannelMenu" aria-label="筛选">
+    <view class="filter-trigger" bindtap="toggleFilterMenu" aria-label="筛选">
       <view class="menu-lines"><view></view><view></view><view></view></view>
     </view>
     <view class="icon-button" bindtap="goSearch" aria-label="搜索">
@@ -14,26 +14,36 @@
     </view>
   </view>
 
-  <view class="channel-menu-mask" wx:if="{{showChannelMenu}}" bindtap="closeChannelMenu"></view>
-  <view class="channel-menu" wx:if="{{showChannelMenu}}" style="top: {{navTop + navHeight + 8}}px;">
-    <view class="channel-menu-section"><view class="channel-menu-title">频道</view></view>
-    <view wx:for="{{channels}}" wx:key="*this" data-channel="{{item}}" class="channel-menu-item {{activeChannel === item && !activeSection ? 'active' : ''}}" bindtap="onChannelTap">
-      <text>{{item}}</text><text wx:if="{{activeChannel === item && !activeSection}}" class="check-mark">✓</text>
-    </view>
-    <view class="channel-menu-section"><view class="channel-menu-title">分区</view></view>
-    <view wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" class="channel-menu-item {{activeSection && activeSection.id === item.id ? 'active' : ''}}" bindtap="selectSection">
-      <text>{{item.sectionName}}</text><text wx:if="{{activeSection && activeSection.id === item.id}}" class="check-mark">✓</text>
-    </view>
-    <view class="channel-menu-section"><view class="channel-menu-title">排序</view></view>
-    <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="channel-menu-item {{activeSort === item.value ? 'active' : ''}}" bindtap="onSortTap">
+  <view class="filter-menu-mask" wx:if="{{showFilterMenu}}" bindtap="closeFilterMenu"></view>
+  <view class="filter-menu" wx:if="{{showFilterMenu}}" style="top: {{navTop + navHeight + 8}}px;">
+    <view class="filter-menu-section"><view class="filter-menu-title">排序</view></view>
+    <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="filter-menu-item {{activeSort === item.value ? 'active' : ''}}" bindtap="onSortTap">
       <text>{{item.label}}</text><text wx:if="{{activeSort === item.value}}" class="check-mark">✓</text>
+    </view>
+    <view class="filter-menu-section"><view class="filter-menu-title">分区</view></view>
+    <view wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" class="filter-menu-item {{activeSection && activeSection.id === item.id ? 'active' : ''}}" bindtap="selectSection">
+      <text>{{item.sectionName}}</text><text wx:if="{{activeSection && activeSection.id === item.id}}" class="check-mark">✓</text>
     </view>
   </view>
 
-  <scroll-view class="feed-list" scroll-y bindscrolltolower="onReachBottom" bindscroll="onScroll" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view class="active-filter-bar" wx:if="{{activeSection || (activeChannel && activeChannel !== '全部')}}">
+  <view class="refresh-feedback" wx:if="{{refreshFeedbackVisible}}" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view class="refresh-feedback-pill">正在刷新</view>
+  </view>
+
+  <scroll-view
+    class="feed-list"
+    scroll-y
+    refresher-enabled
+    refresher-triggered="{{refreshTriggered}}"
+    refresher-background="transparent"
+    bindrefresherrefresh="onRefresherRefresh"
+    bindscrolltolower="onReachBottom"
+    bindscroll="onScroll"
+    style="padding-top: {{navTop + navHeight + 8}}px;"
+  >
+    <view class="active-filter-bar" wx:if="{{activeSection}}">
       <view class="filter-info">
-        <text class="filter-text">当前筛选：{{activeSection ? '#' + (activeSection.sectionName || activeSection.name) : '#' + activeChannel}}</text>
+        <text class="filter-text">当前筛选：#{{activeSection.sectionName || activeSection.name}}</text>
       </view>
       <view class="filter-clear-btn" bindtap="clearActiveSection">清除筛选</view>
     </view>

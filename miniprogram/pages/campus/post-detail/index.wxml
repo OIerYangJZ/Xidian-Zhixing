@@ -1,10 +1,10 @@
 <view class="page post-detail-page {{themeClass}}">
-  <view class="detail-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
-    <view class="detail-nav-button" bindtap="goBack" aria-label="返回" style="color: var(--brand-deep);">
+  <view class="detail-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-surface);">
+    <view class="detail-nav-button" bindtap="goBack" aria-label="返回">
       <view class="back-icon"></view>
     </view>
-    <view class="detail-nav-title" style="color: var(--brand-deep);">帖子详情</view>
-    <view class="detail-nav-more" bindtap="showPostOptions" aria-label="更多" style="color: var(--brand-deep);">
+    <view class="detail-nav-title">Thread</view>
+    <view class="detail-nav-more" bindtap="showPostOptions" aria-label="更多">
       <view class="more-dots"><view></view><view></view><view></view></view>
     </view>
   </view>
@@ -39,7 +39,7 @@
           </view>
         </view>
       </view>
-      <view class="post-title" wx:if="{{post.title}}" style="color: var(--brand-deep);">{{post.title}}</view>
+      <view class="post-title" wx:if="{{post.title}}">{{post.title}}</view>
       <view class="post-content">
         <rich-text nodes="{{contentNodes}}"></rich-text>
       </view>
@@ -75,10 +75,10 @@
       <view class="empty-state" wx:if="{{comments.length === 0}}">暂无评论，快来抢沙发~</view>
 
       <view id="{{item.anchorId}}" class="comment-item {{item.isTarget ? 'target' : ''}}" wx:for="{{comments}}" wx:key="id" style="{{item.indentStyle}}" data-index="{{index}}" bindlongpress="showCommentMenu">
-        <view wx:if="{{item.isAnonymous}}" class="comment-avatar comment-avatar-text" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;">{{item.authorInitial || '匿'}}</view>
+        <view wx:if="{{item.isAnonymous}}" class="comment-avatar comment-avatar-text">{{item.authorInitial || '匿'}}</view>
         <block wx:else>
-          <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;"></image>
-          <view wx:else class="comment-avatar comment-avatar-text" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor" style="margin-left: 0; margin-right: 20rpx; width: 64rpx; height: 64rpx; line-height: 64rpx; font-size: 26rpx;">{{item.authorInitial}}</view>
+          <image wx:if="{{item.authorAvatarUrl}}" class="comment-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor"></image>
+          <view wx:else class="comment-avatar comment-avatar-text" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorInitial}}</view>
         </block>
         <view class="comment-content-box">
           <view class="comment-header">

@@ -14,6 +14,13 @@ const THEME_MAP = {
   minimal: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#000000', tabSelectedColorDark: '#ffffff' }
 };
 
+const TAB_BAR_ITEMS = [
+  { index: 0, key: 'home' },
+  { index: 1, key: 'campus' },
+  { index: 2, key: 'ai' },
+  { index: 3, key: 'announcements' }
+];
+
 export const getDisplayTheme = () => {
   return wx.getStorageSync('colorTheme') || 'minimal';
 };
@@ -58,5 +65,11 @@ export const applyThemeAndLanguage = (page) => {
     selectedColor: isDark ? colors.tabSelectedColorDark : colors.tabSelectedColor,
     backgroundColor: tabBg,
     borderStyle: isDark ? 'black' : 'white'
+  });
+  TAB_BAR_ITEMS.forEach((item) => {
+    wx.setTabBarItem({
+      index: item.index,
+      selectedIconPath: `assets/tabbar/theme-${theme}${isDark ? '_dark' : ''}/${item.key}_selected.png`
+    });
   });
 };

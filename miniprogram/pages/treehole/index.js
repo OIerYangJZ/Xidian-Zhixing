@@ -1,6 +1,5 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
-import { getChannels } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
@@ -20,13 +19,13 @@ Page({
     hasMore: true,
     page: 1,
     limit: 10,
-    channels: ['全部'],
-    activeChannel: '全部',
     activeSection: null,
     sortOptions: SORT_OPTIONS,
     activeSort: 'latest',
     showPublishButton: true,
-    showChannelMenu: false,
+    showFilterMenu: false,
+    refreshTriggered: false,
+    refreshFeedbackVisible: false,
     drawerOpen: false,
     touchStartX: 0,
     touchStartY: 0,
@@ -40,7 +39,6 @@ Page({
     this.loadPostLayout();
     setTimeout(() => {
       if (!requireLoginPage()) return;
-      this.loadChannels();
       this.loadSections();
       this.loadUserInfo();
       this.fetchPosts();
@@ -54,10 +52,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.setData({ page: 1, posts: [], hasMore: true }, () => {
-      Promise.all([this.loadChannels(), this.loadSections(), this.fetchPosts()])
-        .finally(() => wx.stopPullDownRefresh());
-    });
+    this.refreshFeed({ stopPageRefresh: true });
   },
 
   initCustomNav() {
@@ -70,15 +65,6 @@ Page({
 
   loadPostLayout() {
     this.setData({ postLayout: wx.getStorageSync('treeholePostLayout') || 'threads' });
-  },
-
-  async loadChannels() {
-    try {
-      const channels = await getChannels();
-      this.setData({ channels: ['全部', ...channels.filter((item) => item !== '全部')] });
-    } catch (error) {
-      this.setData({ channels: ['全部'] });
-    }
   },
 
   async loadSections() {
@@ -113,31 +99,16 @@ Page({
     const section = event.currentTarget.dataset.section;
     this.setData({
       activeSection: section || null,
-      activeChannel: '全部',
       posts: [],
       page: 1,
       hasMore: true,
-      showChannelMenu: false
-    }, () => this.fetchPosts());
-  },
-
-  onChannelTap(event) {
-    const channel = event.currentTarget.dataset.channel;
-    if (!channel) return;
-    this.setData({
-      activeChannel: channel,
-      activeSection: null,
-      posts: [],
-      page: 1,
-      hasMore: true,
-      showChannelMenu: false
+      showFilterMenu: false
     }, () => this.fetchPosts());
   },
 
   clearActiveSection() {
     this.setData({
       activeSection: null,
-      activeChannel: '全部',
       posts: [],
       page: 1,
       hasMore: true
@@ -152,16 +123,40 @@ Page({
       posts: [],
       page: 1,
       hasMore: true,
-      showChannelMenu: false
+      showFilterMenu: false
     }, () => this.fetchPosts());
   },
 
-  toggleChannelMenu() {
-    this.setData({ showChannelMenu: !this.data.showChannelMenu });
+  toggleFilterMenu() {
+    this.setData({ showFilterMenu: !this.data.showFilterMenu });
   },
 
-  closeChannelMenu() {
-    this.setData({ showChannelMenu: false });
+  closeFilterMenu() {
+    this.setData({ showFilterMenu: false });
+  },
+
+  refreshFeed(options = {}) {
+    this.setData({
+      refreshTriggered: true,
+      refreshFeedbackVisible: true,
+      page: 1,
+      posts: [],
+      hasMore: true,
+      loading: false
+    }, () => {
+      Promise.all([this.loadSections(), this.fetchPosts()])
+        .finally(() => {
+          if (options.stopPageRefresh) wx.stopPullDownRefresh();
+          this.setData({ refreshTriggered: false });
+          setTimeout(() => {
+            this.setData({ refreshFeedbackVisible: false });
+          }, 350);
+        });
+    });
+  },
+
+  onRefresherRefresh() {
+    this.refreshFeed();
   },
 
   async fetchPosts() {
@@ -171,9 +166,6 @@ Page({
       limit: this.data.limit,
       sort: this.data.activeSort
     };
-    if (this.data.activeChannel && this.data.activeChannel !== '全部') {
-      params.channel = this.data.activeChannel;
-    }
     if (this.data.activeSection) {
       params.sectionId = this.data.activeSection.sectionId || this.data.activeSection.id;
       params.sectionType = this.data.activeSection.sectionType;

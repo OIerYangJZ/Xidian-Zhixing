@@ -108,7 +108,7 @@
   line-height: 1.45;
 }
 
-.channel-trigger {
+.filter-trigger {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -118,7 +118,7 @@
   background: transparent;
 }
 
-.channel-trigger.active {
+.filter-trigger.active {
   background: var(--app-primary-soft);
 }
 
@@ -135,7 +135,7 @@
   background: var(--app-text-primary);
 }
 
-.channel-trigger.active .menu-lines view {
+.filter-trigger.active .menu-lines view {
   background: var(--app-primary);
 }
 
@@ -210,14 +210,14 @@
   right: 5px;
 }
 
-.channel-menu-mask {
+.filter-menu-mask {
   position: fixed;
   inset: 0;
   z-index: 20;
   background: transparent;
 }
 
-.channel-menu {
+.filter-menu {
   position: fixed;
   left: 16rpx;
   z-index: 70;
@@ -229,19 +229,19 @@
   background: var(--app-surface);
 }
 
-.channel-menu-section {
+.filter-menu-section {
   min-height: 58rpx;
   padding: 18rpx 28rpx 0;
   background: var(--app-surface);
 }
 
-.channel-menu-title {
+.filter-menu-title {
   color: var(--app-text-secondary);
   font-size: 24rpx;
   font-weight: 600;
 }
 
-.channel-menu-item {
+.filter-menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -252,11 +252,11 @@
   font-size: 30rpx;
 }
 
-.channel-menu-item:last-child {
+.filter-menu-item:last-child {
   border-bottom: none;
 }
 
-.channel-menu-item.active {
+.filter-menu-item.active {
   color: var(--app-primary);
   font-weight: 650;
 }
@@ -275,6 +275,40 @@
 .news-list {
   height: 100vh;
   background: var(--app-background);
+}
+
+.refresh-feedback {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  display: flex;
+  justify-content: center;
+  background: rgba(255, 255, 255, .68);
+  pointer-events: none;
+}
+
+.refresh-feedback-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56rpx;
+  margin-top: 18rpx;
+  padding: 0 28rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 28rpx;
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  font-size: 24rpx;
+  font-weight: 600;
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, .08);
+}
+
+.color-mode-dark .refresh-feedback {
+  background: rgba(0, 0, 0, .42);
+}
+
+.color-mode-dark .refresh-feedback-pill {
+  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, .32);
 }
 
 .treehole-layout-threads .feed-list {
