@@ -3,7 +3,6 @@
     <view class="detail-nav-button" bindtap="goBack" aria-label="返回">
       <view class="back-icon"></view>
     </view>
-    <view class="detail-nav-title">Thread</view>
     <view class="detail-nav-more" bindtap="showPostOptions" aria-label="更多">
       <view class="more-dots"><view></view><view></view><view></view></view>
     </view>

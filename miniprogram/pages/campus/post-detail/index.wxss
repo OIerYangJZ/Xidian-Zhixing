@@ -38,19 +38,10 @@
   color: var(--app-text-primary);
 }
 
-.detail-nav-title {
-  position: absolute;
-  left: 50%;
-  bottom: 30rpx;
-  color: var(--app-text-primary);
-  font-size: 32rpx;
-  font-weight: 700;
-  line-height: 36rpx;
-  transform: translateX(-50%);
-}
-
 .detail-nav-more {
-  margin-left: auto;
+  position: absolute;
+  right: 260rpx;
+  bottom: 8rpx;
 }
 
 .back-icon {
