@@ -1,5 +1,6 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
+import { favoritePost, togglePostLike as togglePostLikeApi, unfavoritePost } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
@@ -204,6 +205,39 @@ Page({
 
   goToDetail(event) {
     wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${event.currentTarget.dataset.id}` });
+  },
+
+  async togglePostLike(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const post = this.data.posts[index];
+    if (!post || !post.id) return;
+    const result = await togglePostLikeApi(post.id);
+    const liked = Boolean(result.liked);
+    const posts = this.data.posts.slice();
+    posts[index] = {
+      ...post,
+      liked,
+      isLiked: liked,
+      likeCount: Math.max(0, Number(post.likeCount || 0) + (liked ? 1 : -1))
+    };
+    this.setData({ posts });
+  },
+
+  async togglePostFavorite(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const post = this.data.posts[index];
+    if (!post || !post.id) return;
+    const favorited = Boolean(post.favorited || post.isFavorited);
+    const result = favorited ? await unfavoritePost(post.id) : await favoritePost(post.id);
+    const nextFavorited = !favorited;
+    const posts = this.data.posts.slice();
+    posts[index] = {
+      ...post,
+      favorited: nextFavorited,
+      isFavorited: nextFavorited,
+      favoriteCount: Number(result.favoriteCount)
+    };
+    this.setData({ posts });
   },
 
   openAuthorProfile(event) {

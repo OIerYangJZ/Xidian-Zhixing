@@ -77,9 +77,9 @@
             </swiper-item>
           </swiper>
           <view class="thread-actions">
-            <view class="thread-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
+            <view class="thread-action {{item.liked || item.isLiked ? 'active' : ''}}" data-index="{{index}}" catchtap="togglePostLike"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
             <view class="thread-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="thread-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+            <view class="thread-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
           </view>
         </view>
       </view>
@@ -115,9 +115,9 @@
             </swiper-item>
           </swiper>
           <view class="feed-actions">
-            <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
+            <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}" data-index="{{index}}" catchtap="togglePostLike"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
             <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+            <view class="feed-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
           </view>
         </view>
       </view>

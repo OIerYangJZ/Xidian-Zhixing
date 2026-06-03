@@ -463,6 +463,10 @@
   color: #ff2d55;
 }
 
+.thread-action.favorited {
+  color: #ff9500;
+}
+
 .thread-action .feed-action-icon {
   width: 36rpx;
   height: 36rpx;
@@ -511,6 +515,11 @@
 .feed-list .feed-actions {
   min-height: 40rpx;
   margin-top: 8rpx;
+}
+
+.feed-list .feed-action.favorited {
+  color: #ff9500;
+  font-weight: 650;
 }
 
 .post-images {
