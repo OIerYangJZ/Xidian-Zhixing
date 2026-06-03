@@ -168,9 +168,11 @@ def extract_local_object_key_from_url(value: str) -> str:
     return key
 
 
-def parse_bool(value: str | None) -> bool | None:
+def parse_bool(value: str | bool | None) -> bool | None:
     if value is None:
         return None
+    if isinstance(value, bool):
+        return value
     lowered = value.strip().lower()
     if lowered in {"1", "true", "yes"}:
         return True

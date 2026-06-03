@@ -247,10 +247,12 @@ class TestPasswordReset:
         assert parse_bool("True") is True
         assert parse_bool("1") is True
         assert parse_bool("yes") is True
+        assert parse_bool(True) is True
 
         assert parse_bool("false") is False
         assert parse_bool("0") is False
         assert parse_bool("no") is False
+        assert parse_bool(False) is False
 
         # 无效值
         assert parse_bool("invalid") is None

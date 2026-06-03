@@ -66,10 +66,16 @@
             <view class="thread-menu-dot"></view>
           </view>
           <view class="thread-text" wx:if="{{item.titleSegments && item.titleSegments.length}}">
-            <text wx:for="{{item.titleSegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+            <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:else>{{segment.text}}</text>
+            </block>
           </view>
           <view class="thread-text" wx:if="{{item.summarySegments && item.summarySegments.length}}">
-            <text wx:for="{{item.summarySegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+            <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:else>{{segment.text}}</text>
+            </block>
           </view>
           <swiper class="post-images thread-images" wx:if="{{item.images && item.images.length > 0}}" indicator-dots="{{item.images.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
             <swiper-item wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
@@ -104,10 +110,16 @@
             <view class="feed-time">{{item.timeText}}</view>
           </view>
           <view class="feed-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
-            <text wx:for="{{item.titleSegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+            <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:else>{{segment.text}}</text>
+            </block>
           </view>
           <view class="feed-summary" wx:if="{{!(item.images && item.images.length > 0) && item.summarySegments && item.summarySegments.length}}">
-            <text wx:for="{{item.summarySegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+            <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:else>{{segment.text}}</text>
+            </block>
           </view>
           <swiper class="post-images" wx:if="{{item.images && item.images.length > 0}}" indicator-dots="{{item.images.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
             <swiper-item wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">

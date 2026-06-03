@@ -144,6 +144,11 @@ Page({
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
 
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+  },
+
   goUserDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${id}` });

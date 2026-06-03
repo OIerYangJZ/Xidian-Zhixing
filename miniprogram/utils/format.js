@@ -20,14 +20,14 @@ export const truncate = (value, max = 80) => {
 export const inlineTagSegments = (value) => {
   const text = String(value || '');
   const segments = [];
-  const pattern = /#[\w\u4e00-\u9fff-]{1,30}/g;
+  const pattern = /#([^\s#]{1,30})(?=\s|$)/g;
   let cursor = 0;
   let match = pattern.exec(text);
   while (match) {
     if (match.index > cursor) {
       segments.push({ type: 'text', text: text.slice(cursor, match.index) });
     }
-    segments.push({ type: 'tag', text: match[0] });
+    segments.push({ type: 'tag', text: match[0], tag: match[1] });
     cursor = match.index + match[0].length;
     match = pattern.exec(text);
   }

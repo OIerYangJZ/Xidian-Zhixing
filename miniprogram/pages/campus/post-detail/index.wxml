@@ -38,9 +38,20 @@
           </view>
         </view>
       </view>
-      <view class="post-title" wx:if="{{post.title}}">{{post.title}}</view>
-      <view class="post-content">
+      <view class="post-title" wx:if="{{post.titleSegments && post.titleSegments.length}}">
+        <block wx:for="{{post.titleSegments}}" wx:for-item="segment" wx:key="index">
+          <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:else>{{segment.text}}</text>
+        </block>
+      </view>
+      <view class="post-content" wx:if="{{post.contentFormat === 'markdown'}}">
         <rich-text nodes="{{contentNodes}}"></rich-text>
+      </view>
+      <view class="post-content" wx:else>
+        <block wx:for="{{post.contentSegments}}" wx:for-item="segment" wx:key="index">
+          <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+          <text wx:else>{{segment.text}}</text>
+        </block>
       </view>
       <view class="post-images" wx:if="{{post.imageUrls && post.imageUrls.length > 0}}">
         <image wx:for="{{post.imageUrls}}" wx:for-item="img" wx:key="*this" src="{{img}}" data-url="{{img}}" bindtap="previewPostImage" mode="widthFix" class="post-image"></image>

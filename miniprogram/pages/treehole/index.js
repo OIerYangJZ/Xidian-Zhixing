@@ -207,6 +207,12 @@ Page({
     wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${event.currentTarget.dataset.id}` });
   },
 
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (!tag) return;
+    wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+  },
+
   async togglePostLike(event) {
     const index = Number(event.currentTarget.dataset.index);
     const post = this.data.posts[index];

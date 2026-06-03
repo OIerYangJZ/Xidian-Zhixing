@@ -326,6 +326,11 @@ Page({
     });
   },
 
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+  },
+
   showPostOptions() {
     if (!this.data.post) return;
     const itemList = ['问 AI', '举报'];
