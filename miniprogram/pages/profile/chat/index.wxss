@@ -242,6 +242,25 @@
   font-weight: 600;
 }
 
+.failed-actions {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  color: var(--app-error);
+}
+
+.failed-indicator {
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  background: var(--app-error);
+  color: #ffffff;
+  font-size: 22rpx;
+  font-weight: 800;
+  line-height: 28rpx;
+  text-align: center;
+}
+
 .recalled-placeholder {
   padding: 16rpx 14rpx;
   color: var(--app-text-secondary);

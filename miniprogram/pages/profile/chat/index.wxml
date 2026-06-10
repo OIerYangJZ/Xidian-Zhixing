@@ -50,7 +50,10 @@
               <view wx:else class="bubble-content">{{item.message.content}}</view>
               <view class="bubble-meta">
                 <text class="bubble-time">{{item.message.displayTime}}</text>
-                <text wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="retry-link" data-index="{{item.message.index}}" catchtap="retrySend">点击重试</text>
+                <view wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="failed-actions">
+                  <text class="failed-indicator">!</text>
+                  <text class="retry-link" data-index="{{item.message.index}}" catchtap="retrySend">点击重试</text>
+                </view>
               </view>
             </view>
           </view>

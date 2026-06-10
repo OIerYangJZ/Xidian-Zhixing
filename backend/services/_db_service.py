@@ -1180,7 +1180,6 @@ def serialize_post(
     include_unapproved_images: bool = False,
 ) -> dict[str, Any]:
     from services._user_service import (
-        can_request_dm_from_post,
         can_request_dm_to_user,
         effective_post_allow_dm,
         is_post_anonymous,
@@ -1265,10 +1264,10 @@ def serialize_post(
     can_message_author = bool(
         can_view_author_profile
         and viewer_user_id != author_id
-        and can_request_dm_from_post(
+        and can_request_dm_to_user(
             db,
             viewer_user_id=viewer_user_id,
-            post=post,
+            target_user_id=author_id,
         )
     )
 

@@ -354,7 +354,6 @@ Page({
         deliveryStatus: 'failed',
         canRecall: false
       });
-      wx.showToast({ title: `发送失败：${error}`, icon: 'none' });
     }
 
     this.setData({ sending: false });
@@ -401,7 +400,6 @@ Page({
         timeText: '发送失败',
         canRecall: false
       });
-      wx.showToast({ title: `发送失败：${error}`, icon: 'none' });
     }
 
     this.setData({ sending: false });

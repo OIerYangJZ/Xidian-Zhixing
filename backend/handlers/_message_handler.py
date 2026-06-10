@@ -465,13 +465,6 @@ def handle_direct_conversation(
         if is_post_anonymous(db, post):
             json_error(handler, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
             return
-        if not effective_post_allow_dm(db, post):
-            target_user = find_user_by_id(db, str(post.get("authorId", "")).strip())
-            if target_user is not None and not bool(target_user.get("allowStrangerDm", True)):
-                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-            else:
-                json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
-            return
 
     if not target_user_id:
         json_error(handler, HTTPStatus.BAD_REQUEST, "缺少目标用户")
@@ -528,31 +521,6 @@ def handle_direct_conversation(
                 }
             },
         )
-        return
-
-    if post is not None:
-        if not can_request_dm_from_post(
-            db,
-            viewer_user_id=str(user.get("id", "")),
-            post=post,
-        ):
-            if not bool(target_user.get("allowStrangerDm", True)):
-                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-                return
-            json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
-            return
-    elif not can_request_dm_to_user(
-        db,
-        viewer_user_id=str(user.get("id", "")),
-        target_user_id=target_user_id,
-    ):
-        if not bool(target_user.get("showContactable", True)):
-            json_error(handler, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
-            return
-        if not bool(target_user.get("allowStrangerDm", True)):
-            json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-            return
-        json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
         return
 
     sync_conversation_pair(
@@ -663,11 +631,18 @@ def handle_send_message(
         return
 
     peer_user_id = str(conv.get("peerUserId", "")).strip()
+    peer_user = find_user_by_id(db, peer_user_id)
+    if peer_user is None or peer_user.get("deleted"):
+        json_error(handler, HTTPStatus.NOT_FOUND, "对方账户不存在")
+        return
     if is_user_blocked(db, user["id"], peer_user_id):
         json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，无法发送消息")
         return
     if is_user_blocked(db, peer_user_id, user["id"]):
         json_error(handler, HTTPStatus.FORBIDDEN, "对方已将你屏蔽，暂时无法发送消息")
+        return
+    if not bool(peer_user.get("allowStrangerDm", True)):
+        json_error(handler, HTTPStatus.FORBIDDEN, "对方已关闭私信，消息未发送")
         return
     conversation_key = _globals.conversation_key_for_users(
         str(user.get("id", "")),

@@ -305,10 +305,6 @@ def can_request_dm_to_user(
     target_user = find_user_by_id(db, target)
     if viewer_user is None or target_user is None:
         return False
-    if not bool(target_user.get("showContactable", True)):
-        return False
-    if not bool(target_user.get("allowStrangerDm", True)):
-        return False
     if is_user_blocked(db, viewer, target):
         return False
     if is_user_blocked(db, target, viewer):

@@ -26,7 +26,11 @@ export const createDirectConversation = async (payload) => {
 };
 
 export const sendConversationMessage = async (conversationId, payload) => {
-  const response = await request.post(`/api/messages/conversations/${conversationId}/messages`, payload);
+  const response = await request.post(
+    `/api/messages/conversations/${conversationId}/messages`,
+    payload,
+    { silentErrorToast: true }
+  );
   return getData(response, {});
 };
 

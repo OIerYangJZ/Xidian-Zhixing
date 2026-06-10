@@ -6,7 +6,7 @@
         <text class="mobile-tile-icon">◌</text>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">允许陌生人私信</view>
-          <view class="mobile-tile-subtitle">关闭后，其他人无法通过你的公开主页或帖子给你发起私信</view>
+          <view class="mobile-tile-subtitle">关闭后，对方仍可进入对话页，但消息发送后会失败提示</view>
         </view>
         <switch checked="{{form.allowStrangerDm}}" data-key="allowStrangerDm" bindchange="onPrivacySwitchChange" color="#155E75" />
       </view>

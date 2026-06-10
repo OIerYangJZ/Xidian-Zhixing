@@ -85,7 +85,9 @@ const request = (options) => {
         } else {
           // 其他服务器错误
           console.error('[request http error]', url, res);
-          showToastOnce((data && data.message) || networkErrorMessage());
+          if (!options.silentErrorToast) {
+            showToastOnce((data && data.message) || networkErrorMessage());
+          }
           reject(res);
         }
       },

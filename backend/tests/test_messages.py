@@ -204,6 +204,120 @@ class TestMessageQueries:
             # 注意：可能找不到精确匹配，这是正常的
 
 
+class TestDirectMessagePrivacyRules:
+    """测试直接私信入口与发送阶段的隐私规则。"""
+
+    def test_direct_entry_ignores_contact_visibility_and_dm_privacy(self):
+        from server import default_db
+        from services._user_service import can_request_dm_to_user
+
+        db = default_db()
+        viewer = {"id": "viewer_dm_entry", "email": "viewer@stu.xidian.edu.cn", "nickname": "Viewer"}
+        target = {
+            "id": "target_dm_entry",
+            "email": "target@stu.xidian.edu.cn",
+            "nickname": "Target",
+            "allowStrangerDm": False,
+            "showContactable": False,
+        }
+        db["users"].extend([viewer, target])
+
+        assert can_request_dm_to_user(
+            db,
+            viewer_user_id=viewer["id"],
+            target_user_id=target["id"],
+        )
+
+    def test_post_author_message_entry_ignores_dm_privacy(self):
+        from server import default_db
+        from services._db_service import serialize_post
+
+        db = default_db()
+        viewer = {"id": "viewer_post_dm", "email": "viewer_post@stu.xidian.edu.cn", "nickname": "Viewer"}
+        author = {
+            "id": "author_post_dm",
+            "email": "author_post@stu.xidian.edu.cn",
+            "nickname": "Author",
+            "allowStrangerDm": False,
+            "showContactable": False,
+        }
+        post = {
+            "id": "post_dm_entry",
+            "title": "Test",
+            "content": "Test content",
+            "authorId": author["id"],
+            "authorAlias": "Author",
+            "createdAt": "2026-01-01T00:00:00Z",
+            "updatedAt": "2026-01-01T00:00:00Z",
+            "deleted": False,
+            "useAnonymousAlias": False,
+            "visibility": "public",
+            "reviewStatus": "approved",
+            "allowComment": True,
+            "allowDm": False,
+        }
+        db["users"].extend([viewer, author])
+        db["posts"].append(post)
+
+        serialized = serialize_post(db, post, viewer_user_id=viewer["id"])
+
+        assert serialized["canMessageAuthor"] is True
+
+    def test_send_message_rejects_when_peer_closed_dm(self, monkeypatch: pytest.MonkeyPatch):
+        import io
+        import json
+
+        from handlers import _message_handler
+        from server import default_db
+
+        db = default_db()
+        sender = {"id": "sender_closed_dm", "email": "sender@stu.xidian.edu.cn", "nickname": "Sender"}
+        receiver = {
+            "id": "receiver_closed_dm",
+            "email": "receiver@stu.xidian.edu.cn",
+            "nickname": "Receiver",
+            "allowStrangerDm": False,
+        }
+        conversation = {
+            "id": "conv_closed_dm",
+            "userId": sender["id"],
+            "peerUserId": receiver["id"],
+            "name": "Receiver",
+            "lastMessage": "",
+            "updatedAt": "2026-01-01T00:00:00Z",
+            "unreadCount": 0,
+            "deleted": False,
+        }
+        db["users"].extend([sender, receiver])
+        db["conversations"].append(conversation)
+
+        class FakeHandler:
+            def __init__(self):
+                self.wfile = io.BytesIO()
+                self.status_code = 0
+                self.response_headers = []
+                self.headers = {}
+
+            def send_response(self, code):
+                self.status_code = code
+
+            def send_header(self, key, val):
+                self.response_headers.append((key, val))
+
+            def end_headers(self):
+                pass
+
+        monkeypatch.setattr(_message_handler, "auth_user_helper", lambda h, d: (sender, "token"))
+        monkeypatch.setattr(_message_handler, "read_json_body", lambda h: {"content": "hello"})
+
+        handler = FakeHandler()
+        _message_handler.handle_send_message(handler, db, conversation["id"])
+
+        assert handler.status_code == 403
+        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        assert "关闭私信" in payload["message"]
+
+
 class TestUserBlockHandlers:
     """测试全局黑名单 API 处理函数。"""
 
