@@ -5,6 +5,7 @@ import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../utils/feed_images';
 
 const SORT_OPTIONS = [
   { label: '最新', value: 'latest' },
@@ -178,10 +179,11 @@ Page({
       const currentUserId = String((this.data.userInfo && this.data.userInfo.id) || '').trim();
       const newPosts = ((res.data && res.data.items) || []).map((post) => {
         const authorUserId = String(post.authorUserId || post.authorId || '').trim();
-        return {
+        const isFollowingAuthor = Boolean(post.followingAuthor || post.isFollowingAuthor || post.isFollowing);
+        return attachDisplayImages({
           ...post,
-          canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== currentUserId)
-        };
+          canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== currentUserId && !isFollowingAuthor)
+        });
       });
       this.setData({
         posts: this.data.posts.concat(newPosts),
@@ -189,8 +191,18 @@ Page({
         hasMore: res.data && res.data.hasMore !== undefined ? res.data.hasMore : newPosts.length >= this.data.limit,
         loading: false
       });
+      this.hydrateFeedImages();
     } catch (error) {
       this.setData({ loading: false });
+    }
+  },
+
+  async hydrateFeedImages() {
+    const posts = this.data.posts;
+    const hydratedByPostId = await hydrateDisplayImages(posts);
+    const hydratedPosts = applyHydratedDisplayImages(this.data.posts, hydratedByPostId);
+    if (hydratedPosts !== this.data.posts) {
+      this.setData({ posts: hydratedPosts });
     }
   },
 

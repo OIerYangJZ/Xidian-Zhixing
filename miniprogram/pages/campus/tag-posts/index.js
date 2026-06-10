@@ -2,6 +2,7 @@ import { getUserInfo } from '../../../api/auth';
 import { favoritePost, getPosts, togglePostLike, unfavoritePost } from '../../../api/posts';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 
 const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -66,17 +67,28 @@ Page({
         .filter((post) => postHasTag(post, this.data.tag))
         .map((post) => {
           const authorUserId = String(post.authorUserId || post.authorId || '').trim();
-          return {
+          const isFollowingAuthor = Boolean(post.followingAuthor || post.isFollowingAuthor || post.isFollowing);
+          return attachDisplayImages({
             ...post,
-            canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== this.data.currentUserId)
-          };
+            canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== this.data.currentUserId && !isFollowingAuthor)
+          });
         });
       this.setData({
         posts: filteredPosts,
         total: filteredPosts.length
       });
+      this.hydrateFeedImages();
     } finally {
       this.setData({ loading: false });
+    }
+  },
+
+  async hydrateFeedImages() {
+    const posts = this.data.posts;
+    const hydratedByPostId = await hydrateDisplayImages(posts);
+    const hydratedPosts = applyHydratedDisplayImages(this.data.posts, hydratedByPostId);
+    if (hydratedPosts !== this.data.posts) {
+      this.setData({ posts: hydratedPosts });
     }
   },
 

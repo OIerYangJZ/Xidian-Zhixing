@@ -77,8 +77,8 @@
               <text wx:else>{{segment.text}}</text>
             </block>
           </view>
-          <swiper class="post-images thread-images" wx:if="{{item.images && item.images.length > 0}}" indicator-dots="{{item.images.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-            <swiper-item wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+          <swiper class="post-images thread-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
+            <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
               <image src="{{img}}" mode="aspectFill" class="post-image"></image>
             </swiper-item>
           </swiper>
@@ -115,14 +115,14 @@
               <text wx:else>{{segment.text}}</text>
             </block>
           </view>
-          <view class="feed-summary" wx:if="{{!(item.images && item.images.length > 0) && item.summarySegments && item.summarySegments.length}}">
+          <view class="feed-summary" wx:if="{{!(item.displayImages && item.displayImages.length > 0) && item.summarySegments && item.summarySegments.length}}">
             <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
               <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
               <text wx:else>{{segment.text}}</text>
             </block>
           </view>
-          <swiper class="post-images" wx:if="{{item.images && item.images.length > 0}}" indicator-dots="{{item.images.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-            <swiper-item wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+          <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
+            <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
               <image src="{{img}}" mode="aspectFill" class="post-image"></image>
             </swiper-item>
           </swiper>

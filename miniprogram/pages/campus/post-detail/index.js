@@ -17,6 +17,7 @@ import { followUser, unfollowUser } from '../../../api/user';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { markdownToNodes } from '../../../utils/markdown';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 
 const REPORT_REASONS = ['广告引流', '人身攻击', '违规内容', '垃圾信息', '其他'];
 const COMMENT_SORTS = [
@@ -142,14 +143,27 @@ Page({
         getPost(this.data.postId),
         getPostComments(this.data.postId, { page: 1, limit: 100, sort: this.data.commentSort })
       ]);
+      const displayPost = attachDisplayImages(post);
       this.setData({
-        post,
+        post: displayPost,
         contentNodes: markdownToNodes(post.contentFormat === 'markdown' ? (post.markdownSource || post.content) : post.content),
         comments: buildCommentRows(comments, this.data.targetCommentId),
         loading: false
       });
+      this.hydratePostImages();
     } catch (error) {
       this.setData({ loading: false });
+    }
+  },
+
+  async hydratePostImages() {
+    const post = this.data.post;
+    if (!post) return;
+    const hydratedByPostId = await hydrateDisplayImages([post]);
+    const hydratedPosts = applyHydratedDisplayImages([this.data.post], hydratedByPostId);
+    const hydratedPost = hydratedPosts[0];
+    if (hydratedPost !== this.data.post) {
+      this.setData({ post: hydratedPost });
     }
   },
 
@@ -290,7 +304,7 @@ Page({
 
   previewPostImage(event) {
     const current = event.currentTarget.dataset.url;
-    const urls = (this.data.post && this.data.post.imageUrls) || [];
+    const urls = (this.data.post && this.data.post.displayImages) || [];
     if (current && urls.length) wx.previewImage({ current, urls });
   },
 

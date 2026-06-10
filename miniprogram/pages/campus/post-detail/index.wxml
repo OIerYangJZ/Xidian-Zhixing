@@ -53,8 +53,8 @@
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
-      <view class="post-images" wx:if="{{post.imageUrls && post.imageUrls.length > 0}}">
-        <image wx:for="{{post.imageUrls}}" wx:for-item="img" wx:key="*this" src="{{img}}" data-url="{{img}}" bindtap="previewPostImage" mode="widthFix" class="post-image"></image>
+      <view class="post-images" wx:if="{{post.displayImages && post.displayImages.length > 0}}">
+        <image wx:for="{{post.displayImages}}" wx:for-item="img" wx:key="*this" src="{{img}}" data-url="{{img}}" bindtap="previewPostImage" mode="widthFix" class="post-image"></image>
       </view>
       <view class="post-footer">
         <view class="detail-action {{post.liked ? 'active' : ''}}" bindtap="handleLike">
