@@ -43,7 +43,7 @@
 .avatar {
   width: 90rpx;
   height: 90rpx;
-  border-radius: 50%;
+  border-radius: 22rpx;
   background: var(--app-control);
 }
 

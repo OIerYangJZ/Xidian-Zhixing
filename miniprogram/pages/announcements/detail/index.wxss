@@ -10,24 +10,70 @@
 
 .detail-paper-card {
   padding: 36rpx;
-  background: var(--app-card);
+  background: var(--app-surface);
   border: 1rpx solid var(--app-divider);
-  border-radius: 36rpx; /* card.radius = 18px = 36rpx */
-  box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
+  border-radius: 24rpx;
 }
 
 .detail-type {
-  color: var(--brand-seal);
+  color: var(--app-primary);
   font-size: 25rpx;
   font-weight: 700;
 }
 
+.detail-title {
+  margin-top: 16rpx;
+  color: var(--app-text-primary);
+  font-size: 38rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.detail-meta {
+  margin-top: 12rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid var(--app-divider);
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+}
+
+.summary-card {
+  box-sizing: border-box;
+  margin: 24rpx 0;
+  padding: 24rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 24rpx;
+  background: var(--app-primary-soft);
+}
+
+.summary-head {
+  color: var(--app-text-primary);
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.summary-text {
+  margin-top: 10rpx;
+  color: var(--app-text-primary);
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+
 .summary-button {
   margin-top: 20rpx;
-  height: 72rpx;
+  width: 100%;
+  height: 68rpx;
   border-radius: 18rpx;
   background: var(--app-primary);
   color: #fff;
   font-size: 27rpx;
-  line-height: 72rpx;
+  line-height: 68rpx;
+}
+
+.detail-content {
+  margin-top: 32rpx;
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  line-height: 1.7;
+  white-space: pre-wrap;
 }

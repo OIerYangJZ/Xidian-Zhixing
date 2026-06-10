@@ -9,7 +9,7 @@
 .avatar {
   width: 82rpx;
   height: 82rpx;
-  border-radius: 50%;
+  border-radius: 20rpx;
   background: var(--app-control);
   overflow: hidden;
   display: flex;

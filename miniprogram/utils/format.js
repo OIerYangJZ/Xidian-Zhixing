@@ -49,7 +49,10 @@ export const formatTime = (value) => {
   if (diff >= 0 && diff < 5 * minute) return 'now';
   if (diff >= 0 && diff < hour) return `${Math.floor(diff / minute)}min`;
   if (diff >= 0 && diff < day) return `${Math.floor(diff / hour)}h`;
-  if (diff >= 0 && diff < 7 * day) return `${Math.floor(diff / day)}d`;
+  if (diff >= 0 && diff < 7 * day) {
+    const days = Math.floor(diff / day);
+    return `${days} ${days === 1 ? 'day' : 'days'}`;
+  }
 
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;

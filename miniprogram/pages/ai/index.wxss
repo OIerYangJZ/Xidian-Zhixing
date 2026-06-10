@@ -19,13 +19,13 @@
 }
 
 .ai-title {
-  color: var(--brand-deep);
+  color: var(--app-text-primary);
   font-size: 34rpx;
   font-weight: 750;
 }
 
 .ai-subtitle {
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   font-size: 23rpx;
   line-height: 1.35;
 }
@@ -86,7 +86,7 @@
 }
 
 .section-title {
-  color: var(--brand-deep);
+  color: var(--app-text-primary);
   font-size: 32rpx;
   font-weight: 700;
 }
@@ -107,10 +107,9 @@
   min-height: 96rpx;
   padding: 28rpx 32rpx;
   margin: 16rpx 24rpx;
-  background: var(--app-card);
+  background: var(--app-surface);
   border: 1rpx solid var(--app-divider);
   border-radius: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
 }
 
 .item-icon {

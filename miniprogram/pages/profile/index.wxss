@@ -107,7 +107,7 @@ page {
   height: 160rpx;
   margin-top: -48rpx;
   border: 8rpx solid var(--app-surface);
-  border-radius: 50%;
+  border-radius: 36rpx;
   background: var(--app-primary-soft);
   overflow: hidden;
 }
@@ -116,7 +116,7 @@ page {
   display: block;
   width: 144rpx;
   height: 144rpx;
-  border-radius: 50%;
+  border-radius: 30rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 40rpx;
@@ -492,7 +492,7 @@ page {
 .follow-avatar {
   width: 80rpx;
   height: 80rpx;
-  border-radius: 50%;
+  border-radius: 20rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 30rpx;

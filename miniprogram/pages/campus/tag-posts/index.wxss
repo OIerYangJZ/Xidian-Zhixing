@@ -82,7 +82,7 @@
 .thread-avatar {
   width: 78rpx;
   height: 78rpx;
-  border-radius: 50%;
+  border-radius: 20rpx;
   background: var(--app-control);
   color: var(--app-primary);
   font-size: 30rpx;
@@ -95,15 +95,18 @@
   position: absolute;
   right: -8rpx;
   top: 52rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 34rpx;
   height: 34rpx;
   border: 4rpx solid var(--app-surface);
   border-radius: 50%;
   background: var(--app-text-primary);
   color: var(--app-surface);
-  font-size: 28rpx;
+  font-size: 24rpx;
   font-weight: 650;
-  line-height: 28rpx;
+  line-height: 1;
   text-align: center;
   box-sizing: border-box;
 }

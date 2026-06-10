@@ -71,7 +71,7 @@
   width: 86rpx;
   height: 86rpx;
   flex: 0 0 auto;
-  border-radius: 50%;
+  border-radius: 22rpx;
   background: var(--app-control);
   overflow: hidden;
   display: flex;

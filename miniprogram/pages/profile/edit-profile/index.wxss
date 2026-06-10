@@ -36,7 +36,7 @@
 .avatar-preview {
   width: 128rpx;
   height: 128rpx;
-  border-radius: 50%;
+  border-radius: 30rpx;
   overflow: hidden;
   background: var(--app-control);
   display: flex;

@@ -30,7 +30,7 @@
 .avatar,
 .picker-avatar {
   flex: 0 0 auto;
-  border-radius: 50%;
+  border-radius: 18rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-weight: 700;

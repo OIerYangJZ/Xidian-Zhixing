@@ -6,8 +6,8 @@
       <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
     <view>
-      <view class="ai-title" style="color: var(--brand-deep);">AI 助手</view>
-      <view class="ai-subtitle" style="color: var(--text-secondary);">学习、生活、校园问题都可以问</view>
+      <view class="ai-title">AI 助手</view>
+      <view class="ai-subtitle">学习、生活、校园问题都可以问</view>
     </view>
   </view>
   
@@ -21,7 +21,7 @@
 
   <view class="history-section">
     <view class="section-header">
-      <view class="section-title" style="margin-bottom: 0; color: var(--brand-deep);">历史对话</view>
+      <view class="section-title" style="margin-bottom: 0;">历史对话</view>
       <view class="more-link" bindtap="goToHistory" wx:if="{{history.length}}">查看全部</view>
     </view>
     <view class="history-list">

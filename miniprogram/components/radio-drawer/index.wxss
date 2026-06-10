@@ -39,7 +39,7 @@
 .drawer-avatar {
   width: 86rpx;
   height: 86rpx;
-  border-radius: 50%;
+  border-radius: 22rpx;
   background: var(--app-primary-soft);
 }
 
@@ -238,7 +238,7 @@
   width: 56rpx;
   height: 56rpx;
   flex: 0 0 auto;
-  border-radius: 50%;
+  border-radius: 14rpx;
   background: var(--app-control);
   color: var(--app-primary);
   font-size: 24rpx;

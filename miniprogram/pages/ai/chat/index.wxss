@@ -47,7 +47,7 @@
   width: 80rpx;
   height: 80rpx;
   flex-shrink: 0;
-  border-radius: 50%;
+  border-radius: 20rpx;
   background: var(--app-control);
   color: var(--app-primary);
   font-size: 28rpx;
@@ -61,7 +61,7 @@
 }
 
 .avatar-assistant {
-  background: var(--brand-seal);
+  background: var(--app-primary);
   color: #ffffff;
   border-radius: 20rpx; /* square seal avatar */
 }
@@ -116,14 +116,14 @@
 }
 
 .message-user .message-bubble {
-  background: var(--background-softRed);
-  color: var(--brand-deep);
+  background: var(--app-primary-soft);
+  color: var(--app-text-primary);
   border-color: var(--app-divider);
   border-top-right-radius: 4rpx;
 }
 
 .message-assistant .message-bubble {
-  background: var(--app-card);
+  background: var(--app-surface);
   color: var(--app-text-primary);
   border-top-left-radius: 4rpx;
 }

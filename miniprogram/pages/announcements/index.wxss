@@ -14,19 +14,18 @@
   border-bottom: 1rpx solid var(--app-divider);
 }
 .nav-title { flex: 1; min-width: 0; }
-.nav-name { color: var(--brand-deep); font-size: 31rpx; font-weight: 700; }
-.nav-subtitle { color: var(--text-secondary); font-size: 22rpx; }
+.nav-name { color: var(--app-text-primary); font-size: 31rpx; font-weight: 700; }
+.nav-subtitle { color: var(--app-text-secondary); font-size: 22rpx; }
 .ann-scroll { height: 100vh; }
 .daily-card {
   margin: 24rpx 32rpx;
   padding: 32rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 36rpx;
-  background: var(--app-card);
-  box-shadow: 0 4rpx 16rpx rgba(178, 58, 46, 0.03);
+  border-radius: 24rpx;
+  background: var(--app-surface);
 }
-.daily-title { color: var(--brand-deep); font-size: 32rpx; font-weight: 700; }
-.daily-text { margin-top: 10rpx; color: var(--text-secondary); font-size: 26rpx; line-height: 1.5; }
+.daily-title { color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; }
+.daily-text { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.5; }
 .filter-strip {
   white-space: nowrap;
   padding: 0 24rpx 18rpx;
@@ -39,8 +38,8 @@
   margin-right: 12rpx;
   padding: 0 22rpx;
   border-radius: 18rpx;
-  background: var(--background-softRed);
-  color: var(--brand-deep);
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
   font-size: 25rpx;
   font-weight: 650;
 }
@@ -49,14 +48,13 @@
   padding: 32rpx;
   margin: 24rpx 32rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 36rpx;
-  background: var(--app-card);
-  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.02);
+  border-radius: 24rpx;
+  background: var(--app-surface);
 }
 .announcement-head { display: flex; align-items: center; gap: 12rpx; }
-.announcement-type { color: var(--brand-seal); font-size: 24rpx; font-weight: 700; }
-.announcement-title { margin-top: 10rpx; color: var(--brand-deep); font-size: 32rpx; font-weight: 700; line-height: 1.35; }
-.announcement-summary { margin-top: 10rpx; color: var(--text-secondary); font-size: 26rpx; line-height: 1.45; }
+.announcement-type { color: var(--app-primary); font-size: 24rpx; font-weight: 700; }
+.announcement-title { margin-top: 10rpx; color: var(--app-text-primary); font-size: 32rpx; font-weight: 700; line-height: 1.35; }
+.announcement-summary { margin-top: 10rpx; color: var(--app-text-secondary); font-size: 26rpx; line-height: 1.45; }
 .announcement-footer { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 18rpx; color: var(--app-text-tertiary); font-size: 23rpx; }
 
 /* Empty state styling */
