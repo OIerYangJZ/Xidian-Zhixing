@@ -1574,7 +1574,7 @@ def _default_announcements(created: str) -> list[dict[str, Any]]:
 def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     groups = [
         ("study", "学习事务", ["课表", "成绩单", "考试安排", "实验安排", "空闲教室", "考勤", "体育成绩"]),
-        ("life", "校园生活", ["宿舍水电", "校园地图", "建筑位置", "楼宇结构图", "教室定位", "办公室定位", "校园功能空间定位"]),
+        ("life", "校园生活", ["宿舍水电", "校园地图", "楼宇结构图", "校园功能空间定位"]),
         ("quick", "快速跳转", ["移动门户跳转", "请销假系统", "体育场馆预约", "学校企业微信", "学校小程序", "其他校内服务入口"]),
     ]
     services: list[dict[str, Any]] = []
@@ -1598,7 +1598,6 @@ def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[d
     maps = [
         {"id": "map-main", "name": "校园地图", "type": "map", "status": "待导入", "description": "预留真实地图数据结构。", "createdAt": created},
         {"id": "map-building", "name": "楼宇结构图", "type": "building", "status": "待导入", "description": "预留 B 楼等楼宇结构图。", "createdAt": created},
-        {"id": "map-classroom", "name": "教室与办公室定位", "type": "locator", "status": "待接入", "description": "预留教室、办公室和功能空间定位。", "createdAt": created},
     ]
     return services, maps
 

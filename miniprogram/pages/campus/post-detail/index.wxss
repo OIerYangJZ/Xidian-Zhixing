@@ -91,7 +91,7 @@
   width: 78rpx;
   height: 78rpx;
   flex: 0 0 auto;
-  border-radius: 50%;
+  border-radius: 20rpx;
   background: var(--app-control);
   color: var(--app-primary);
   font-size: 30rpx;
@@ -362,7 +362,7 @@
   width: 64rpx;
   height: 64rpx;
   margin: 0 20rpx 0 0;
-  border-radius: 50%;
+  border-radius: 16rpx;
   background: var(--app-control);
   color: var(--app-primary);
   font-size: 26rpx;

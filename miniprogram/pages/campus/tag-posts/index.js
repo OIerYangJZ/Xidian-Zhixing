@@ -1,3 +1,4 @@
+import { getUserInfo } from '../../../api/auth';
 import { favoritePost, getPosts, togglePostLike, unfavoritePost } from '../../../api/posts';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
@@ -20,15 +21,17 @@ Page({
     loading: true,
     themeClass: '',
     navTop: 0,
-    navHeight: 32
+    navHeight: 32,
+    currentUserId: ''
   },
 
-  onLoad(options) {
+  async onLoad(options) {
     this.initCustomNav();
     applyThemeAndLanguage(this);
     const tag = decodeURIComponent(options.tag || '').replace(/^#+/, '').trim();
     this.setData({ tag });
     if (!requireLoginPage()) return;
+    await this.loadUserInfo();
     if (tag) this.loadPosts();
     if (!tag) this.setData({ loading: false });
   },
@@ -36,6 +39,12 @@ Page({
   onShow() {
     applyThemeAndLanguage(this);
     this.initCustomNav();
+  },
+
+  async loadUserInfo() {
+    const response = await getUserInfo();
+    const user = response.data || {};
+    this.setData({ currentUserId: String(user.id || '').trim() });
   },
 
   initCustomNav() {
@@ -53,7 +62,15 @@ Page({
         keyword: this.data.tag,
         sort: 'latest'
       });
-      const filteredPosts = posts.filter((post) => postHasTag(post, this.data.tag));
+      const filteredPosts = posts
+        .filter((post) => postHasTag(post, this.data.tag))
+        .map((post) => {
+          const authorUserId = String(post.authorUserId || post.authorId || '').trim();
+          return {
+            ...post,
+            canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== this.data.currentUserId)
+          };
+        });
       this.setData({
         posts: filteredPosts,
         total: filteredPosts.length

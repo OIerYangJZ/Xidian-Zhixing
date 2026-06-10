@@ -38,10 +38,10 @@ Page({
   onLoad() {
     this.initCustomNav();
     this.loadPostLayout();
-    setTimeout(() => {
+    setTimeout(async () => {
       if (!requireLoginPage()) return;
+      await this.loadUserInfo();
       this.loadSections();
-      this.loadUserInfo();
       this.fetchPosts();
     }, 0);
   },
@@ -175,7 +175,14 @@ Page({
     this.setData({ loading: true });
     try {
       const res = await getPosts(params);
-      const newPosts = (res.data && res.data.items) || [];
+      const currentUserId = String((this.data.userInfo && this.data.userInfo.id) || '').trim();
+      const newPosts = ((res.data && res.data.items) || []).map((post) => {
+        const authorUserId = String(post.authorUserId || post.authorId || '').trim();
+        return {
+          ...post,
+          canShowFollowDot: Boolean(authorUserId && !post.isAnonymous && authorUserId !== currentUserId)
+        };
+      });
       this.setData({
         posts: this.data.posts.concat(newPosts),
         page: this.data.page + 1,

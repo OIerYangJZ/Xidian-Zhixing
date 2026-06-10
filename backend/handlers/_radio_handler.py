@@ -606,7 +606,12 @@ def handle_seed_demo_announcements(handler: BaseHTTPRequestHandler, db: dict[str
 
 def handle_campus_services(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [row for row in db.get("campusServices", []) if bool(row.get("enabled", True))]
+    hidden_service_names = {"建筑位置", "教室定位", "办公室定位"}
+    rows = [
+        row
+        for row in db.get("campusServices", [])
+        if bool(row.get("enabled", True)) and str(row.get("name", "")).strip() not in hidden_service_names
+    ]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
@@ -666,6 +671,35 @@ def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str,
         item["timeRange"] = f"{item['startTime']}-{item['endTime']}"
         item.pop("startMinutes")
         item.pop("endMinutes")
+    if not rows:
+        rows = [
+            {
+                "id": "mock-campus-schedule-1",
+                "source": "mockSchedules",
+                "sourceLabel": "模拟日程",
+                "title": "高等数学复习",
+                "startTime": "09:00",
+                "endTime": "10:30",
+                "timeRange": "09:00-10:30",
+                "location": "南校区 B 楼 203",
+                "date": today,
+                "isActive": 9 * 60 <= now_minutes < 10 * 60 + 30,
+                "isEmphasized": True,
+            },
+            {
+                "id": "mock-campus-schedule-2",
+                "source": "mockSchedules",
+                "sourceLabel": "模拟日程",
+                "title": "创新创业讲座",
+                "startTime": "14:30",
+                "endTime": "16:00",
+                "timeRange": "14:30-16:00",
+                "location": "北校区阶梯教室 101",
+                "date": today,
+                "isActive": 14 * 60 + 30 <= now_minutes < 16 * 60,
+                "isEmphasized": False,
+            },
+        ]
     send_json(handler, HTTPStatus.OK, {"data": {"date": today, "items": rows}})
 
 

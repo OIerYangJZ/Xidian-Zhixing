@@ -17,7 +17,7 @@
           <image wx:if="{{item.authorAvatarUrl}}" class="thread-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile"></image>
           <view wx:else class="thread-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">{{item.authorInitial}}</view>
         </block>
-        <view class="thread-follow-dot">+</view>
+        <view wx:if="{{item.canShowFollowDot}}" class="thread-follow-dot">+</view>
       </view>
 
       <view class="thread-body">

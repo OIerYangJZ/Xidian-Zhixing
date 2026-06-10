@@ -4,6 +4,13 @@ import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
 
+const SERVICE_WEB_URLS = {
+  移动门户跳转: 'https://xxcapp.xidian.edu.cn/site/xidianPage/home',
+  请销假系统: 'https://service.xidian.edu.cn/v2/matter/m_start?id=189'
+};
+
+const HIDDEN_SERVICE_NAMES = ['建筑位置', '教室定位', '办公室定位'];
+
 Page({
   data: {
     navTop: 0,
@@ -45,7 +52,8 @@ Page({
       getCampusQuickLinks(),
       getTodaySchedules()
     ]);
-    const services = servicesResponse.data || servicesResponse || [];
+    const services = (servicesResponse.data || servicesResponse || [])
+      .filter((service) => !HIDDEN_SERVICE_NAMES.includes(service.name));
     const quickLinks = quickLinksResponse.data || quickLinksResponse || [];
     const scheduleData = todaySchedulesResponse.data || todaySchedulesResponse;
     const todaySchedules = scheduleData.items;
@@ -89,8 +97,8 @@ Page({
   openService(event) {
     const service = this.data.services.find((item) => item.id === event.currentTarget.dataset.id);
     if (!service) return;
-    if (service.name === '移动门户跳转') {
-      const url = encodeURIComponent('https://xxcapp.xidian.edu.cn/site/xidianPage/home');
+    if (SERVICE_WEB_URLS[service.name]) {
+      const url = encodeURIComponent(SERVICE_WEB_URLS[service.name]);
       wx.navigateTo({ url: `/pages/campus/webview/index?url=${url}` });
       return;
     }
