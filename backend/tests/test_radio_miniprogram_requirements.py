@@ -273,6 +273,93 @@ def test_xidian_slider_solver_uses_signed_tracks_and_expanded_delta(monkeypatch)
     assert 96 in verify_moves
 
 
+def test_xidian_ids_password_post_keeps_service_param(monkeypatch) -> None:
+    import helpers._xidian_auth as xidian_auth
+
+    class FakeResponse:
+        status_code = 200
+        text = (
+            '<form><input name="pwdEncryptSalt" value="1234567890123456">'
+            '<input name="lt" value=""><input name="execution" value="e1s1"></form>'
+        )
+        headers: dict[str, str] = {}
+
+    class FakeRedirect:
+        status_code = 302
+        text = ""
+        headers = {"Location": "https://ehall.xidian.edu.cn/new/index.html"}
+
+    class FakeSession:
+        def __init__(self) -> None:
+            self.headers = {}
+            self.post_params = None
+
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        def post(self, *args, **kwargs):
+            self.post_params = kwargs.get("params")
+            return FakeRedirect()
+
+    session = FakeSession()
+
+    class FakeRequests:
+        Session = lambda self=None: session
+        class RequestException(Exception):
+            pass
+
+    monkeypatch.setattr(xidian_auth, "_import_requests", lambda: FakeRequests())
+    monkeypatch.setattr(xidian_auth, "_encrypt_ids_password", lambda password, key: "encrypted")
+    monkeypatch.setattr(xidian_auth, "_solve_slider_captcha", lambda _session: None)
+
+    result = xidian_auth.login_via_xidian_ids("2300000000", "secret-pass")
+
+    assert result.student_id == "2300000000"
+    assert session.post_params == {"service": xidian_auth.EHALL_SERVICE_URL}
+
+
+def test_xidian_ids_error_page_maps_to_password_error(monkeypatch) -> None:
+    import pytest
+    import helpers._xidian_auth as xidian_auth
+
+    class FakeLoginPage:
+        status_code = 200
+        text = (
+            '<form><input name="pwdEncryptSalt" value="1234567890123456">'
+            '<input name="lt" value=""><input name="execution" value="e1s1"></form>'
+        )
+        headers: dict[str, str] = {}
+
+    class FakeErrorPage:
+        status_code = 200
+        text = '<div id="showErrorTip">用户名或密码错误</div>'
+        headers: dict[str, str] = {}
+
+    class FakeSession:
+        def __init__(self) -> None:
+            self.headers = {}
+
+        def get(self, *args, **kwargs):
+            return FakeLoginPage()
+
+        def post(self, *args, **kwargs):
+            return FakeErrorPage()
+
+    class FakeRequests:
+        Session = lambda self=None: FakeSession()
+        class RequestException(Exception):
+            pass
+
+    monkeypatch.setattr(xidian_auth, "_import_requests", lambda: FakeRequests())
+    monkeypatch.setattr(xidian_auth, "_encrypt_ids_password", lambda password, key: "encrypted")
+    monkeypatch.setattr(xidian_auth, "_solve_slider_captcha", lambda _session: None)
+
+    with pytest.raises(xidian_auth.XidianAuthPasswordError) as error:
+        xidian_auth.login_via_xidian_ids("2300000000", "bad-pass")
+
+    assert str(error.value) == "学号或统一认证密码错误"
+
+
 def test_my_feedbacks_returns_only_current_user_rows() -> None:
     from handlers._user_handler import handle_my_feedbacks
 

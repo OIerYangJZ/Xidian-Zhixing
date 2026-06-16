@@ -23,6 +23,7 @@ from helpers._xidian_auth import (
     XidianAuthUnavailableError,
     _build_login_payload,
     _extract_inputs,
+    _extract_login_error_message,
     _import_requests,
     _parse_password_error_message,
     _requests_timeout,
@@ -226,6 +227,9 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
         return session, response.headers.get("Location", "")
     if response.status_code == 401:
         raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+    error_message = _extract_login_error_message(response.text)
+    if error_message:
+        raise XidianAuthPasswordError(_parse_password_error_message(response.text))
 
     continue_inputs = _extract_inputs(response.text, form_id="continue")
     if continue_inputs:
@@ -242,8 +246,11 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
             return session, response.headers.get("Location", "")
         if response.status_code == 401:
             raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+        error_message = _extract_login_error_message(response.text)
+        if error_message:
+            raise XidianAuthPasswordError(_parse_password_error_message(response.text))
 
-    raise XidianAuthUnavailableError("统一认证登录失败，请稍后重试")
+    raise XidianAuthUnavailableError("统一认证登录失败：未返回目标系统跳转")
 
 
 def _follow_redirects(session: Any, location: str, *, max_steps: int = 8) -> str:

@@ -155,6 +155,17 @@ def _parse_password_error_message(page_html: str) -> str:
     return message or "统一认证登录失败"
 
 
+def _extract_login_error_message(page_html: str) -> str:
+    match = re.search(
+        r'<[^>]*id=["\']showErrorTip["\'][^>]*>(.*?)</[^>]+>',
+        page_html or "",
+        flags=re.S | re.I,
+    )
+    if not match:
+        return ""
+    return _strip_html(match.group(1))
+
+
 def _extract_inputs(page_html: str, *, form_id: str | None = None) -> dict[str, str]:
     parser = _InputParser(target_form_id=form_id)
     parser.feed(page_html or "")
@@ -573,6 +584,7 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
         response = session.post(
             IDS_LOGIN_URL,
             data=payload,
+            params={"service": EHALL_SERVICE_URL},
             allow_redirects=False,
             timeout=_requests_timeout(),
         )
@@ -588,12 +600,17 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
     if response.status_code == 401:
         raise XidianAuthPasswordError(_parse_password_error_message(response.text))
 
+    error_message = _extract_login_error_message(response.text)
+    if error_message:
+        raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+
     continue_inputs = _extract_inputs(response.text, form_id="continue")
     if continue_inputs:
         try:
             response = session.post(
                 IDS_LOGIN_URL,
                 data=continue_inputs,
+                params={"service": EHALL_SERVICE_URL},
                 allow_redirects=False,
                 timeout=_requests_timeout(),
             )
@@ -606,8 +623,11 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
             )
         if response.status_code == 401:
             raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+        error_message = _extract_login_error_message(response.text)
+        if error_message:
+            raise XidianAuthPasswordError(_parse_password_error_message(response.text))
 
-    raise XidianAuthUnavailableError("统一认证登录失败，请稍后重试")
+    raise XidianAuthUnavailableError("统一认证登录失败：未返回登录跳转")
 
 
 def _xml_local_name(tag: str) -> str:

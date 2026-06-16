@@ -96,7 +96,10 @@ const request = (options) => {
       },
       fail: (err) => {
         console.error('[request failed]', url, err);
-        showToastOnce(networkErrorMessage());
+        const message = /timeout/i.test(String((err && err.errMsg) || err || ''))
+          ? '请求超时，请稍后重试'
+          : networkErrorMessage();
+        showToastOnce(message);
         reject(err);
       }
     });

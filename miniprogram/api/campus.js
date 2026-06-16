@@ -1,5 +1,7 @@
 import request from '../utils/request';
 
+const CAMPUS_AUTH_TIMEOUT = 60000;
+
 /**
  * 获取校园公告/新闻
  */
@@ -47,23 +49,23 @@ export const getCalendarSchedules = (params = {}) => {
 };
 
 export const loginCampusIds = (identifier, password) => {
-  return request.post('/api/campus/auth/ids', { identifier, password });
+  return request.post('/api/campus/auth/ids', { identifier, password }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const loginCampusPayment = (identifier, password) => {
-  return request.post('/api/campus/auth/payment', { identifier, password });
+  return request.post('/api/campus/auth/payment', { identifier, password }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const loginCampusPhysics = (identifier, password) => {
-  return request.post('/api/campus/auth/physics', { identifier, password });
+  return request.post('/api/campus/auth/physics', { identifier, password }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const loginCampusSport = (identifier, password) => {
-  return request.post('/api/campus/auth/sport', { identifier, password });
+  return request.post('/api/campus/auth/sport', { identifier, password }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const createCampusSchoolnetCaptcha = (identifier) => {
-  return request.post('/api/campus/auth/schoolnet/captcha', { identifier });
+  return request.post('/api/campus/auth/schoolnet/captcha', { identifier }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const loginCampusSchoolnet = (attemptId, identifier, password, captcha) => {
@@ -72,11 +74,11 @@ export const loginCampusSchoolnet = (attemptId, identifier, password, captcha) =
     identifier,
     password,
     captcha
-  });
+  }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const createDormWaterCaptcha = () => {
-  return request.post('/api/campus/auth/dorm-water/captcha', {});
+  return request.post('/api/campus/auth/dorm-water/captcha', {}, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const sendDormWaterSms = (sessionId, phone, imageCode) => {
@@ -84,12 +86,12 @@ export const sendDormWaterSms = (sessionId, phone, imageCode) => {
     sessionId,
     phone,
     imageCode
-  });
+  }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
 
 export const loginDormWater = (phone, smsCode) => {
   return request.post('/api/campus/auth/dorm-water/login', {
     phone,
     smsCode
-  });
+  }, { timeout: CAMPUS_AUTH_TIMEOUT });
 };
