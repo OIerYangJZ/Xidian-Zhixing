@@ -19,6 +19,27 @@ export const login = (identifier, password) => {
 };
 
 /**
+ * 西电统一认证密码登录
+ */
+export const loginWithXidianPassword = (identifier, password) => {
+  return request.post('/api/auth/xidian/password', { identifier, password });
+};
+
+/**
+ * 创建西电统一认证会话
+ */
+export const createXidianAuthSession = (platform = 'mobile', nextPath = '/') => {
+  return request.post('/api/auth/xidian/session', { platform, nextPath });
+};
+
+/**
+ * 轮询西电统一认证会话
+ */
+export const getXidianAuthSession = (attemptId) => {
+  return request.get(`/api/auth/xidian/session/${attemptId}`);
+};
+
+/**
  * 注册
  */
 export const register = (data) => {

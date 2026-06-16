@@ -53,10 +53,12 @@ from helpers import (
     student_id_from_email,
 )
 from helpers._xidian_auth import (
+    XidianAuthCaptchaError,
     XidianAuthDependencyError,
     XidianAuthPasswordError,
     XidianAuthUnavailableError,
     IDS_LOGIN_URL,
+    login_via_xidian_ids,
     validate_xidian_service_ticket,
 )
 from services import (
@@ -410,6 +412,7 @@ def _issue_auth_payload(
     *,
     student_id: str,
     campus_email: str,
+    audit_action: str = "login_by_xidian_ids_ticket",
 ) -> dict[str, Any]:
     user = _upsert_user_from_xidian_identity(
         db,
@@ -418,7 +421,7 @@ def _issue_auth_payload(
     )
     token = secrets.token_urlsafe(24)
     db["sessions"][token] = user["id"]
-    add_audit_log(db, user.get("id", "-"), "login_by_xidian_ids_ticket", f"统一认证 ticket 登录 {student_id}")
+    add_audit_log(db, user.get("id", "-"), audit_action, f"统一认证登录 {student_id}")
     save_db(db)
     return {
         "token": token,
@@ -432,6 +435,53 @@ def _issue_auth_payload(
 # ---------------------------------------------------------------------------
 # Public handler functions
 # ---------------------------------------------------------------------------
+
+
+def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
+    body = read_json_body(handler)
+    identifier = str(
+        body.get("identifier", body.get("studentId", body.get("username", ""))),
+    ).strip()
+    password = str(body.get("password", "")).strip()
+
+    student_id = identifier
+    email_hint = ""
+    if "@" in identifier:
+        email_hint = identifier.lower()
+        if not is_campus_email(email_hint):
+            json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
+            return
+        student_id = student_id_from_email(email_hint)
+
+    if not is_valid_student_id(student_id):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请输入有效学号")
+        return
+    if not password:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "统一认证密码不能为空")
+        return
+
+    try:
+        result = login_via_xidian_ids(student_id, password, email_hint=email_hint)
+        auth_payload = _issue_auth_payload(
+            db,
+            student_id=result.student_id,
+            campus_email=result.campus_email,
+            audit_action="login_by_xidian_ids_password",
+        )
+    except PermissionError as error:
+        json_error(handler, HTTPStatus.FORBIDDEN, str(error))
+        return
+    except XidianAuthPasswordError as error:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, str(error))
+        return
+    except XidianAuthCaptchaError as error:
+        json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
+        return
+    except (XidianAuthUnavailableError, XidianAuthDependencyError) as error:
+        json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
+        return
+
+    send_json(handler, HTTPStatus.OK, {"data": auth_payload}, no_cache=True)
 
 
 def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:

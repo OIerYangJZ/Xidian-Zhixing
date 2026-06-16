@@ -350,6 +350,8 @@ def serialize_public_user_profile(
         "canFollow": bool(viewer_user_id and viewer_user_id != target_user_id),
         "bio": str(target_user.get("bio", "")).strip(),
         "gender": str(target_user.get("gender", "")).strip(),
+        "college": str(target_user.get("college", "")).strip(),
+        "major": str(target_user.get("major", "")).strip(),
         "backgroundImageUrl": normalize_media_url(str(target_user.get("backgroundImageUrl", "")).strip()),
         "canDirectMessage": can_request_dm_to_user(
             db,

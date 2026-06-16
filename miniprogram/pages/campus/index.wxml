@@ -1,44 +1,54 @@
-<view class="page campus-service-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+<view class="page campus-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; background: var(--app-background);">
+
+  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
     <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
       <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
       <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
     <view class="nav-title">
-      <view class="nav-name" style="color: var(--brand-deep);">校园</view>
-      <view class="nav-subtitle" style="color: var(--text-secondary);">在学校里，需要的都在这里</view>
+      <view class="nav-name">校园</view>
+      <view class="nav-subtitle">服务、日程、地图</view>
     </view>
   </view>
 
-  <scroll-view scroll-y class="service-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view class="schedule-panel">
-      <view class="schedule-header">
-        <view>
-          <view class="schedule-title" style="color: var(--brand-deep);">今日日程</view>
-          <view class="schedule-date" style="color: var(--text-secondary);">{{todayScheduleDate}}</view>
-        </view>
+  <scroll-view scroll-y class="campus-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view class="ids-card" bindtap="openIdsLogin">
+      <view class="ids-mark"></view>
+      <view class="ids-body">
+        <view class="ids-title">西电统一认证</view>
+        <view class="ids-desc">登录 IDS 后测试一站式、缴费、课表等校园服务</view>
       </view>
-      <view wx:if="{{todaySchedules.length}}" class="schedule-list">
-        <view class="schedule-item {{item.isEmphasized ? 'emphasized' : ''}}" wx:for="{{todaySchedules}}" wx:key="id">
-          <view class="schedule-time">{{item.timeRange}}</view>
-          <view class="schedule-body">
-            <view class="schedule-name">{{item.title}}</view>
-            <view class="schedule-meta">{{item.sourceLabel}} · {{item.location}}</view>
-          </view>
-          <view wx:if="{{item.isActive}}" class="schedule-state">进行中</view>
-        </view>
-      </view>
-      <view wx:else class="schedule-empty">今天没有课表、考试或实验安排</view>
+      <view class="ids-arrow">›</view>
     </view>
 
-    <view class="service-group" wx:for="{{groupedServices}}" wx:key="id">
-      <view class="group-title" style="color: var(--brand-deep);">{{item.name}}</view>
+    <view class="today-section">
+      <view class="section-head">
+        <view>
+          <view class="section-title">今日日程</view>
+          <view class="section-subtitle">{{todayScheduleDate}}</view>
+        </view>
+      </view>
+      <view class="today-list" wx:if="{{todaySchedules.length}}">
+        <view class="today-row {{item.isActive ? 'active' : ''}}" wx:for="{{todaySchedules}}" wx:key="id" data-source="{{item.source}}" bindtap="openScheduleService">
+          <view class="today-time">{{item.timeRange}}</view>
+          <view class="today-body">
+            <view class="today-title">{{item.title}}</view>
+            <view class="today-meta">{{item.sourceLabel}} · {{item.location}}</view>
+          </view>
+          <view wx:if="{{item.isActive}}" class="today-badge">进行中</view>
+        </view>
+      </view>
+      <view wx:else class="today-empty">今天没有课表、考试或实验安排</view>
+    </view>
+
+    <view class="service-section" wx:for="{{groupedServices}}" wx:key="id">
+      <view class="section-title group-title">{{item.name}}</view>
       <view class="service-grid">
-        <view class="service-item" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
-          <view class="service-icon" style="border-color: var(--app-primary);"></view>
-          <view class="service-name" style="color: var(--text-primary);">{{service.name}}</view>
-          <view class="service-status" style="color: var(--app-primary);">{{service.status}}</view>
+        <view class="service-card" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
+          <view class="service-symbol service-symbol-{{service.kind}}"></view>
+          <view class="service-name">{{service.name}}</view>
+          <view class="service-status">{{service.status}}</view>
         </view>
       </view>
     </view>

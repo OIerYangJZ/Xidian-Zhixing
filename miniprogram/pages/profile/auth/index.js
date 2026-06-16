@@ -1,4 +1,4 @@
-import { login } from '../../../api/auth';
+import { login, loginWithXidianPassword } from '../../../api/auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -6,8 +6,23 @@ Page({
     applyThemeAndLanguage(this);
   },
   data: {
+    authMode: 'xidian',
     identifier: '',
-    password: ''
+    password: '',
+    submitting: false
+  },
+
+  onLoad(options) {
+    if (options && options.mode === 'xidian') {
+      this.setData({ authMode: 'xidian' });
+      wx.setNavigationBarTitle({ title: '西电统一认证' });
+    }
+  },
+
+  switchAuthMode(e) {
+    const mode = e.currentTarget.dataset.mode;
+    if (!mode || mode === this.data.authMode) return;
+    this.setData({ authMode: mode });
   },
 
   onIdentifierInput(e) {
@@ -19,15 +34,19 @@ Page({
   },
 
   async handleLogin() {
-    const { identifier, password } = this.data;
+    const { authMode, identifier, password, submitting } = this.data;
+    if (submitting) return;
     if (!identifier || !password) {
-      wx.showToast({ title: '请输入学号和密码', icon: 'none' });
+      wx.showToast({ title: authMode === 'xidian' ? '请输入学号和统一认证密码' : '请输入账号和密码', icon: 'none' });
       return;
     }
 
-    wx.showLoading({ title: '登录中' });
+    this.setData({ submitting: true });
+    wx.showLoading({ title: authMode === 'xidian' ? '统一认证中' : '登录中' });
     try {
-      const res = await login(identifier, password);
+      const res = authMode === 'xidian'
+        ? await loginWithXidianPassword(identifier, password)
+        : await login(identifier, password);
       wx.hideLoading();
       if (res && res.data && res.data.token) {
         wx.setStorageSync('token', res.data.token);
@@ -54,6 +73,8 @@ Page({
     } catch (err) {
       wx.hideLoading();
       console.error(err);
+    } finally {
+      this.setData({ submitting: false });
     }
   },
 

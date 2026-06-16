@@ -10,4 +10,21 @@
     <input class="contact-input" maxlength="80" value="{{contact}}" placeholder="联系方式（可选）" bindinput="onContactInput" />
   </view>
   <button class="primary-button submit" loading="{{submitting}}" bindtap="submitFeedback">提交</button>
+
+  <view class="record-section">
+    <view class="record-title">我的信箱记录</view>
+    <view wx:if="{{loadingRecords}}" class="record-empty">正在加载...</view>
+    <view wx:elif="{{!records.length}}" class="record-empty">暂无提交记录</view>
+    <view wx:else>
+      <view class="record-card" wx:for="{{records}}" wx:key="id">
+        <view class="record-head">
+          <view class="record-category">{{item.category}}</view>
+          <view class="record-status {{item.status}}">{{item.statusText}}</view>
+        </view>
+        <view class="record-content">{{item.content}}</view>
+        <view wx:if="{{item.schoolReply}}" class="record-reply">回复：{{item.schoolReply}}</view>
+        <view class="record-time">{{item.timeText}}</view>
+      </view>
+    </view>
+  </view>
 </view>

@@ -31,6 +31,9 @@
         <view class="profile-name" style="color: var(--brand-deep);">{{userInfo ? (userInfo.nickname || userInfo.alias || '匿名同学') : ''}}</view>
         <view class="seal-badge-hollow" wx:if="{{userInfo && (userInfo.isVerified || userInfo.verified)}}" style="font-size: 18rpx; height: 32rpx; line-height: 28rpx; padding: 0 8rpx;">校内认证</view>
       </view>
+      <view wx:if="{{userInfo && (userInfo.college || userInfo.major)}}" class="profile-school-meta">
+        {{userInfo.college}}{{userInfo.college && userInfo.major ? ' · ' : ''}}{{userInfo.major}}
+      </view>
       <view wx:if="{{userInfo && userInfo.bio}}" class="profile-bio">{{userInfo.bio}}</view>
       <view wx:if="{{userInfo && userInfo.gender}}" class="profile-gender">
         <text class="profile-gender-icon">{{userInfo.gender === '男' ? '♂' : '♀'}}</text>

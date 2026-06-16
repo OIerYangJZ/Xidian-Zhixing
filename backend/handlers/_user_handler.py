@@ -93,6 +93,8 @@ def handle_get_me(
                 "avatarUrl": user_avatar_url(user),
                 "bio": str(user.get("bio", "")).strip(),
                 "gender": str(user.get("gender", "")).strip(),
+                "college": str(user.get("college", "")).strip(),
+                "major": str(user.get("major", "")).strip(),
                 "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
                 "verified": bool(user.get("verified")),
                 "verifiedAt": str(user.get("verifiedAt", "")).strip(),
@@ -195,6 +197,8 @@ def handle_update_me(
     new_background_image = normalize_media_url(str(body.get("backgroundImageUrl", "")))
     new_bio = str(body.get("bio", "")).strip()
     new_gender = str(body.get("gender", "")).strip()
+    new_college = re.sub(r"\s+", "", str(body.get("college", "")).strip())[:80]
+    new_major = re.sub(r"\s+", "", str(body.get("major", "")).strip())[:80]
 
     if len(new_bio) > 100:
         json_error(handler, HTTPStatus.BAD_REQUEST, "个性签名不能超过 100 个字符")
@@ -213,6 +217,8 @@ def handle_update_me(
 
     user["bio"] = new_bio
     user["gender"] = new_gender
+    user["college"] = new_college
+    user["major"] = new_major
     user["backgroundImageUrl"] = new_background_image
 
     add_audit_log(db, user["id"], "update_profile", "更新个人资料")
@@ -226,6 +232,8 @@ def handle_update_me(
                 "nickname": user_nickname(user),
                 "bio": str(user.get("bio", "")).strip(),
                 "gender": str(user.get("gender", "")).strip(),
+                "college": str(user.get("college", "")).strip(),
+                "major": str(user.get("major", "")).strip(),
                 "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
             }
         },
@@ -253,6 +261,34 @@ def handle_update_privacy(
     )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+
+
+def handle_my_feedbacks(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """GET /api/feedback/mine"""
+    user, _ = auth_user_helper(handler, db)
+    if user is None:
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
+        return
+
+    rows = [
+        {
+            "id": str(item.get("id", "")),
+            "category": str(item.get("category", "其他反馈")),
+            "content": str(item.get("content", "")),
+            "contact": str(item.get("contact", "")),
+            "status": str(item.get("status", "pending")),
+            "schoolReply": str(item.get("schoolReply", "")),
+            "createdAt": str(item.get("createdAt", "")),
+            "handledAt": str(item.get("handledAt", "")),
+        }
+        for item in db.get("feedbacks", [])
+        if str(item.get("userId", "")) == str(user.get("id", ""))
+    ]
+    rows.sort(key=lambda item: item["createdAt"], reverse=True)
+    send_json(handler, HTTPStatus.OK, {"data": rows})
 
 
 def handle_update_notification_preferences(

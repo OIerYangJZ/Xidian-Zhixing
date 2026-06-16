@@ -1,15 +1,9 @@
-import { getCampusQuickLinks, getCampusServices, getTodaySchedules } from '../../api/campus';
+import { getCampusServices, getTodaySchedules } from '../../api/campus';
 import { getUserInfo } from '../../api/auth';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
-
-const SERVICE_WEB_URLS = {
-  移动门户跳转: 'https://xxcapp.xidian.edu.cn/site/xidianPage/home',
-  请销假系统: 'https://service.xidian.edu.cn/v2/matter/m_start?id=189'
-};
-
-const HIDDEN_SERVICE_NAMES = ['建筑位置', '教室定位', '办公室定位'];
+import { openAppTarget } from '../../utils/navigation';
 
 Page({
   data: {
@@ -17,7 +11,6 @@ Page({
     navHeight: 48,
     drawerOpen: false,
     services: [],
-    quickLinks: [],
     groupedServices: [],
     todaySchedules: [],
     todayScheduleDate: '',
@@ -47,16 +40,13 @@ Page({
   },
 
   async loadData() {
-    const [servicesResponse, quickLinksResponse, todaySchedulesResponse] = await Promise.all([
+    const [servicesResponse, todaySchedulesResponse] = await Promise.all([
       getCampusServices(),
-      getCampusQuickLinks(),
       getTodaySchedules()
     ]);
-    const services = (servicesResponse.data || servicesResponse || [])
-      .filter((service) => !HIDDEN_SERVICE_NAMES.includes(service.name));
-    const quickLinks = quickLinksResponse.data || quickLinksResponse || [];
+    const services = servicesResponse.data || servicesResponse || [];
     const scheduleData = todaySchedulesResponse.data || todaySchedulesResponse;
-    const todaySchedules = scheduleData.items;
+    const todaySchedules = Array.isArray(scheduleData.items) ? scheduleData.items : [];
     const groups = [];
     services.forEach((service) => {
       let group = groups.find((item) => item.id === service.groupId);
@@ -68,7 +58,6 @@ Page({
     });
     this.setData({
       services,
-      quickLinks,
       groupedServices: groups,
       todaySchedules,
       todayScheduleDate: scheduleData.date
@@ -97,11 +86,62 @@ Page({
   openService(event) {
     const service = this.data.services.find((item) => item.id === event.currentTarget.dataset.id);
     if (!service) return;
-    if (SERVICE_WEB_URLS[service.name]) {
-      const url = encodeURIComponent(SERVICE_WEB_URLS[service.name]);
-      wx.navigateTo({ url: `/pages/campus/webview/index?url=${url}` });
+    const action = Array.isArray(service.actions) ? service.actions[0] : null;
+    if (service.slug === 'map' || service.slug === 'campus-map' || (action && action.type === 'map')) {
+      wx.navigateTo({ url: '/pages/campus/map/index' });
       return;
     }
+    if (action && action.type === 'notice') {
+      wx.showModal({
+        title: '需要配置',
+        content: service.requiredAccess || '该入口需要学校提供正式跳转配置后启用。',
+        showCancel: false
+      });
+      return;
+    }
+    if (service.groupId === 'quick' && action && action.type === 'external') {
+      if (!openAppTarget(action || service)) {
+        wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+      }
+      return;
+    }
+    if (service.kind === 'external' && action && action.type === 'external') {
+      if (!openAppTarget(action || service)) {
+        wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+      }
+      return;
+    }
+    wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
+  },
+
+  openIdsLogin() {
+    const service = this.data.services.find((item) => item.slug === 'ids-login');
+    if (service) {
+      wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/profile/auth/index?mode=xidian' });
+  },
+
+  openQuickLink(event) {
+    const service = this.data.services.find((item) => item.id === event.currentTarget.dataset.id);
+    if (!service) return;
+    const action = Array.isArray(service.actions) ? service.actions[0] : null;
+    if (!openAppTarget(action || service)) {
+      wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+    }
+  },
+
+  openScheduleService(event) {
+    const source = event.currentTarget.dataset.source || 'courseSchedules';
+    const sourceToSlug = {
+      courseSchedules: 'classtable',
+      examSchedules: 'exam',
+      experimentSchedules: 'experiment'
+    };
+    const slug = sourceToSlug[source] || 'classtable';
+    const service = this.data.services.find((item) => item.slug === slug);
+    if (!service) return;
     wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
   },
 

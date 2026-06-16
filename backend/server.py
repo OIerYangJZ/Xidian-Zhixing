@@ -31,6 +31,7 @@ import handlers._radio_handler as _radio_handler
 import handlers._static_handler as _static_handler
 import handlers._upload_handler as _upload_handler
 import handlers._user_handler as _user_handler
+import helpers._campus_auth as _campus_auth
 
 _logger = logging.getLogger("xduwhisperbox")
 _logged_already = False
@@ -183,6 +184,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         "/api/auth/resend-code",
         "/api/auth/password/send-code",
         "/api/auth/password/reset",
+        "/api/auth/xidian/password",
+        "/api/auth/xidian/session",
         "/api/announcements",
     }
 
@@ -242,6 +245,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         if client_type != "wechat-miniprogram":
             return True
         if path in self.miniprogram_public_paths:
+            return True
+        if re.fullmatch(r"/api/auth/xidian/session/[^/]+", path):
             return True
 
         with DB_LOCK:
@@ -364,6 +369,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/campus/services":
                 _radio_handler.handle_campus_services(self, db)
                 return
+            _campus_service_match = re.fullmatch(r"/api/campus/services/([^/]+)", path)
+            if _campus_service_match:
+                _radio_handler.handle_campus_service_detail(self, db, _campus_service_match.group(1))
+                return
             if path == "/api/campus/maps":
                 _radio_handler.handle_campus_maps(self, db)
                 return
@@ -372,6 +381,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/campus/schedules/today":
                 _radio_handler.handle_campus_today_schedules(self, db)
+                return
+            if path == "/api/campus/schedules/calendar":
+                _radio_handler.handle_campus_calendar_schedules(self, db, query)
                 return
 
             if path == "/api/hot-topics":
@@ -482,6 +494,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/users/me/friends":
                 _user_handler.handle_get_friends(self, db)
                 return
+            if path == "/api/feedback/mine":
+                _user_handler.handle_my_feedbacks(self, db)
+                return
             if path == "/api/users/me/blocks":
                 _user_handler.handle_get_blocks(self, db)
                 return
@@ -576,6 +591,112 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_post(self, path: str) -> None:
+        def require_campus_auth_user() -> bool:
+            with DB_LOCK:
+                db = load_db()
+                user, _ = auth_user_helper(self, db)
+            if user is None or user.get("deleted"):
+                json_error(self, HTTPStatus.UNAUTHORIZED, "请先登录")
+                return False
+            if user.get("banned"):
+                json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
+                return False
+            return True
+
+        def send_campus_auth_result(fn: Any) -> None:
+            try:
+                data = fn()
+            except Exception as error:
+                status, message = _campus_auth.map_campus_auth_error(error)
+                json_error(self, HTTPStatus(status), message)
+                return
+            send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
+
+        if path == "/api/auth/xidian/password":
+            with DB_LOCK:
+                db = load_db()
+                _auth_handler.handle_xidian_password_login(self, db)
+            return
+        if path == "/api/campus/auth/ids":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_ids(
+                body.get("identifier", body.get("studentId", "")),
+                body.get("password", ""),
+            ))
+            return
+        if path == "/api/campus/auth/payment":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_payment(
+                body.get("identifier", body.get("studentId", "")),
+                body.get("password", ""),
+            ))
+            return
+        if path == "/api/campus/auth/physics":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_physics(
+                body.get("identifier", body.get("studentId", "")),
+                body.get("password", ""),
+            ))
+            return
+        if path == "/api/campus/auth/sport":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_sport(
+                body.get("identifier", body.get("studentId", "")),
+                body.get("password", ""),
+            ))
+            return
+        if path == "/api/campus/auth/schoolnet/captcha":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.create_schoolnet_captcha(
+                body.get("identifier", body.get("studentId", "")),
+            ))
+            return
+        if path == "/api/campus/auth/schoolnet/login":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_schoolnet(
+                body.get("attemptId", ""),
+                body.get("identifier", body.get("studentId", "")),
+                body.get("password", ""),
+                body.get("captcha", ""),
+            ))
+            return
+        if path == "/api/campus/auth/dorm-water/captcha":
+            if not require_campus_auth_user():
+                return
+            send_campus_auth_result(lambda: _campus_auth.create_dorm_water_captcha())
+            return
+        if path == "/api/campus/auth/dorm-water/sms":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.send_dorm_water_sms(
+                body.get("sessionId", ""),
+                body.get("phone", ""),
+                body.get("imageCode", ""),
+            ))
+            return
+        if path == "/api/campus/auth/dorm-water/login":
+            if not require_campus_auth_user():
+                return
+            body = read_json_body(self)
+            send_campus_auth_result(lambda: _campus_auth.login_dorm_water(
+                body.get("phone", ""),
+                body.get("smsCode", ""),
+            ))
+            return
+
         if path == "/api/ai/models":
             with DB_LOCK:
                 db = load_db()

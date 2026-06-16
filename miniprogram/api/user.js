@@ -118,6 +118,11 @@ export const submitFeedback = async (payload) => {
   return getData(response, {});
 };
 
+export const getMyFeedbacks = async () => {
+  const response = await request.get('/api/feedback/mine');
+  return toArray(getData(response, []));
+};
+
 export const getBlocks = async () => {
   const response = await request.get('/api/users/me/blocks');
   return toArray(getData(response, [])).map((item) => ({

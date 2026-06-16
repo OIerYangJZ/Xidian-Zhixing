@@ -640,6 +640,14 @@ def handle_create_post(
     if section_type and section_type not in {"general", "college", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的分区类型")
         return
+    if section_type == "college":
+        user_college = str(user.get("college", "")).strip()
+        if not user_college:
+            json_error(handler, HTTPStatus.FORBIDDEN, "请先在个人资料中完善学院后再发布学院分区帖子")
+            return
+        if section_name and user_college != section_name:
+            json_error(handler, HTTPStatus.FORBIDDEN, "只能在本学院分区发帖")
+            return
     if publisher_type not in {"user", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的发布身份")
         return

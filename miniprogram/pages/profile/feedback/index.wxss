@@ -47,3 +47,86 @@
   border-radius: 24rpx;
   line-height: 100rpx;
 }
+
+.record-section {
+  margin-top: 42rpx;
+}
+
+.record-title {
+  margin-bottom: 18rpx;
+  color: var(--app-text-primary);
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.record-empty {
+  padding: 42rpx 0;
+  color: var(--app-text-secondary);
+  font-size: 26rpx;
+  text-align: center;
+}
+
+.record-card {
+  margin-bottom: 18rpx;
+  padding: 24rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 20rpx;
+  background: var(--app-surface);
+}
+
+.record-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+
+.record-category {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-primary);
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.record-status {
+  flex: 0 0 auto;
+  height: 38rpx;
+  padding: 0 14rpx;
+  border-radius: 10rpx;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 22rpx;
+  font-weight: 650;
+  line-height: 38rpx;
+}
+
+.record-status.resolved {
+  background: rgba(78, 125, 102, .14);
+  color: var(--app-success);
+}
+
+.record-content {
+  margin-top: 16rpx;
+  color: var(--app-text-primary);
+  font-size: 26rpx;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.record-reply {
+  margin-top: 16rpx;
+  padding: 18rpx;
+  border-radius: 16rpx;
+  background: var(--app-primary-soft);
+  color: var(--app-text-primary);
+  font-size: 25rpx;
+  line-height: 1.5;
+}
+
+.record-time {
+  margin-top: 14rpx;
+  color: var(--app-text-secondary);
+  font-size: 23rpx;
+}

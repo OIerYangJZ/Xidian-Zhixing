@@ -1,33 +1,58 @@
-<view class="container {{themeClass}}" style="background: var(--app-background); min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; padding: 80rpx 40rpx 40rpx;">
-  <view class="auth-body" style="width: 100%;">
-    <view class="logo-area" style="text-align: center; margin-bottom: 60rpx;">
-      <!-- 标注：此处如果需要图片，可使用 logo_seal.png -->
-      <view class="logo-seal-placeholder"></view>
-      <view class="product-name" style="color: var(--brand-deep); font-size: 42rpx; font-weight: 800; margin-top: 16rpx; font-family: serif;">SeeRadio</view>
+<view class="auth-page {{themeClass}}">
+  <view class="auth-main">
+    <view class="brand-block">
+      <view class="brand-mark">电</view>
+      <view class="brand-name">SeeRadio</view>
+      <view class="brand-subtitle">西电校园服务</view>
     </view>
 
-    <view class="title" style="color: var(--brand-deep); font-size: 48rpx; font-weight: bold; margin-bottom: 12rpx;">欢迎回来</view>
-    <view class="subtitle" style="color: var(--text-secondary); font-size: 28rpx; margin-bottom: 60rpx;">回到你的校园电台</view>
-
-    <view class="form-group" style="margin-bottom: 32rpx;">
-      <input class="app-input" placeholder="学号" value="{{identifier}}" bindinput="onIdentifierInput" />
-    </view>
-    <view class="form-group" style="margin-bottom: 48rpx;">
-      <input class="app-input" type="password" placeholder="密码" value="{{password}}" bindinput="onPasswordInput" />
+    <view class="mode-control">
+      <view class="mode-item {{authMode === 'xidian' ? 'active' : ''}}" data-mode="xidian" bindtap="switchAuthMode">西电统一认证</view>
+      <view class="mode-item {{authMode === 'local' ? 'active' : ''}}" data-mode="local" bindtap="switchAuthMode">电台账号</view>
     </view>
 
-    <button class="primary-button" bindtap="handleLogin" style="width: 100%;">登录</button>
-    
-    <view class="actions" style="display: flex; justify-content: center; gap: 48rpx; margin-top: 48rpx;">
-      <text class="link" bindtap="handleEmailCodeLogin" style="color: var(--app-primary); font-size: 28rpx;">验证码登录/注册</text>
-      <text class="link" bindtap="handleResetPassword" style="color: var(--app-primary); font-size: 28rpx;">忘记密码</text>
+    <view class="auth-tip" wx:if="{{authMode === 'xidian'}}">用于校园服务测试和一站式校内入口验证</view>
+
+    <view class="form-list">
+      <view class="form-row">
+        <view class="field-label">账号</view>
+        <input
+          class="field-input"
+          value="{{identifier}}"
+          placeholder="{{authMode === 'xidian' ? '学号' : '学号或邮箱'}}"
+          placeholder-class="field-placeholder"
+          bindinput="onIdentifierInput"
+        />
+      </view>
+      <view class="form-divider"></view>
+      <view class="form-row">
+        <view class="field-label">密码</view>
+        <input
+          class="field-input"
+          type="password"
+          value="{{password}}"
+          placeholder="{{authMode === 'xidian' ? '统一认证密码' : '电台账号密码'}}"
+          placeholder-class="field-placeholder"
+          bindinput="onPasswordInput"
+        />
+      </view>
+    </view>
+
+    <button class="login-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleLogin">
+      {{authMode === 'xidian' ? '登录统一认证' : '登录'}}
+    </button>
+
+    <view class="aux-actions" wx:if="{{authMode === 'local'}}">
+      <text class="aux-link" bindtap="handleEmailCodeLogin">验证码登录/注册</text>
+      <text class="aux-dot"></text>
+      <text class="aux-link" bindtap="handleResetPassword">忘记密码</text>
     </view>
   </view>
 
-  <view class="bottom-agreements" style="text-align: center; font-size: 24rpx; color: var(--text-secondary); width: 100%; margin-top: 60rpx;">
+  <view class="agreement">
     <text>登录即代表您同意</text>
-    <text class="link-inline" bindtap="goTerms" style="color: var(--app-primary); font-weight: 600; text-decoration: underline; margin: 0 4rpx;">用户协议</text>
+    <text class="agreement-link" bindtap="goTerms">用户协议</text>
     <text>与</text>
-    <text class="link-inline" bindtap="goPrivacy" style="color: var(--app-primary); font-weight: 600; text-decoration: underline; margin: 0 4rpx;">隐私政策</text>
+    <text class="agreement-link" bindtap="goPrivacy">隐私政策</text>
   </view>
 </view>

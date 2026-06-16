@@ -1572,34 +1572,826 @@ def _default_announcements(created: str) -> list[dict[str, Any]]:
 
 
 def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    groups = [
-        ("study", "学习事务", ["课表", "成绩单", "考试安排", "实验安排", "空闲教室", "考勤", "体育成绩"]),
-        ("life", "校园生活", ["宿舍水电", "校园地图", "楼宇结构图", "校园功能空间定位"]),
-        ("quick", "快速跳转", ["移动门户跳转", "请销假系统", "体育场馆预约", "学校企业微信", "学校小程序", "其他校内服务入口"]),
+    ehall_url = "https://ehall.xidian.edu.cn/new/index.html"
+    mobile_portal_url = "https://xxcapp.xidian.edu.cn/site/xidianPage/home"
+    gis_url = "https://gis.xidian.edu.cn/#/home?campus=21047"
+    payment_url = (
+        "https://xxcapp.xidian.edu.cn/uc/api/oauth/index?"
+        "redirect=https://ignypt.xidian.edu.cn/revenueH5/login?"
+        "opcode=MPAY&appid=200260318155520600&state=1231231231"
+    )
+    remote_access_url = "https://xxzx.xidian.edu.cn/f_w/ssfw/xwycfwfw.htm"
+    print_service_url = "https://xxzx.xidian.edu.cn/f_w/ssfw/zzdy.htm"
+    email_service_url = "https://xxzx.xidian.edu.cn/f_w/ssfw/yx.htm"
+    software_service_url = "https://gsoft.xidian.edu.cn"
+    repair_url = (
+        "https://ids.xidian.edu.cn/authserver/login?service="
+        "https%3A%2F%2Fids.xidian.edu.cn%2Fauthserver%2Foauth2.0%2F"
+        "callbackAuthorize%3Fclient_id%3D869608421533880320%26"
+        "redirect_uri%3Dhttp%253A%252F%252Frepair.xidian.edu.cn%252F"
+        "appsys%252FxidianCasLogin%252FoauthLogin%26response_type%3D"
+        "code%26state%3Dhome%26client_name%3DCasOAuthClient"
+    )
+    service_specs = [
+        {
+            "name": "统一认证",
+            "slug": "ids-login",
+            "groupId": "account",
+            "groupName": "账户认证",
+            "kind": "account",
+            "iconKey": "person",
+            "authType": "ids",
+            "status": "可测试",
+            "summary": "用于验证西电统一身份认证账号，临时接入 PDA 同类登录方式，验证通过后可继续测试各类校园服务。",
+            "requiredAccess": "西电统一身份认证账号密码；密码仅用于本次请求，不写入数据库。",
+            "features": ["统一认证验证", "学生身份校验", "一站式入口", "短时测试"],
+            "dataFields": ["学号", "统一认证状态", "校内邮箱"],
+            "emptyText": "",
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "课表",
+            "slug": "classtable",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "schedule",
+            "iconKey": "calendar",
+            "authType": "ids",
+            "status": "日历视图",
+            "summary": "以周历展示课程、考试与实验安排，按日期查看当天所有校园日程。",
+            "requiredAccess": "一站式课表接口、统一身份认证回传用户唯一 ID。",
+            "features": ["周历课表", "今日高亮", "课程/考试/实验合并日程", "地点与教师信息"],
+            "dataFields": ["课程名称", "上课日期", "开始/结束时间", "地点", "教师", "节次"],
+            "calendarSource": "courseSchedules",
+            "emptyText": "当前没有课表数据。完成统一认证并接入学校课表接口后会显示周历。",
+            "actions": [{"label": "查看周历", "type": "calendar"}],
+        },
+        {
+            "name": "成绩单",
+            "slug": "score",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "grade",
+            "iconKey": "chart",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "查看学期成绩、课程性质、学分、等级成绩，并支持后续均分/GPA 汇总。",
+            "requiredAccess": "一站式成绩接口、统一身份认证、查询即返回的短期内存缓存。",
+            "features": ["成绩列表", "按学期筛选", "均分/GPA 汇总", "未通过课程提示"],
+            "dataFields": ["课程名称", "成绩", "学年学期", "学分", "课程性质", "等级", "是否通过"],
+            "emptyText": "成绩接口尚未接入。可先打开一站式查看原始成绩。",
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "考试安排",
+            "slug": "exam",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "schedule",
+            "iconKey": "calendar",
+            "authType": "ids",
+            "status": "日历视图",
+            "summary": "展示已安排考试与暂无考务安排的课程，自动进入课表日历。",
+            "requiredAccess": "一站式考试安排接口。",
+            "features": ["考试时间", "考场与座位", "未安排课程", "日历合并展示"],
+            "dataFields": ["考试科目", "考试类型", "开始/结束时间", "地点", "座位号"],
+            "calendarSource": "examSchedules",
+            "emptyText": "当前没有考试安排数据。接入考试接口后会按日期显示。",
+            "actions": [{"label": "查看考试日历", "type": "calendar"}],
+        },
+        {
+            "name": "实验安排",
+            "slug": "experiment",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "schedule",
+            "iconKey": "flask",
+            "authType": "physicsPassword",
+            "status": "日历视图",
+            "summary": "汇总物理实验与其他实验安排，包含时间、地点、教师、座位和成绩字段。",
+            "requiredAccess": "物理实验系统账号密码；其他实验系统使用一站式认证入口。",
+            "features": ["物理实验", "其他实验", "实验成绩", "课前提醒数据"],
+            "dataFields": ["实验名称", "开始/结束时间", "地点", "教师", "座位号", "成绩"],
+            "calendarSource": "experimentSchedules",
+            "emptyText": "当前没有实验安排数据。物理实验和其他实验接口接入后会显示。",
+            "actions": [
+                {"label": "查看实验日历", "type": "calendar"},
+                {"label": "物理实验系统", "type": "external", "url": "http://wlsy.xidian.edu.cn/PhyEws/default.aspx"},
+                {"label": "其他实验系统", "type": "external", "url": "https://sysj.xidian.edu.cn/xidian/webapp/login"},
+            ],
+        },
+        {
+            "name": "空闲教室",
+            "slug": "empty-classroom",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "location",
+            "iconKey": "building",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "按校区、楼宇、节次筛选空闲教室，适合自习与临时讨论。",
+            "requiredAccess": "教室占用数据或教务课表公共查询接口。",
+            "features": ["校区筛选", "楼宇筛选", "节次占用", "关键词搜索"],
+            "dataFields": ["教室名称", "1-2 节", "3-4 节", "5-6 节", "7-8 节", "9-10 节"],
+            "emptyText": "空闲教室查询接口尚未接入。可先打开一站式教务入口。",
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "考勤",
+            "slug": "attendance",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "attendance",
+            "iconKey": "check",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "展示课程考勤、签到详情、任务点、作业和考试进度。",
+            "requiredAccess": "考勤系统接口、请销假系统状态接口。",
+            "features": ["课程考勤记录", "签到详情", "学习进度", "请假关联"],
+            "dataFields": ["课程名称", "签到次数", "异常次数", "任务点进度", "作业进度", "考试进度"],
+            "emptyText": "考勤接口尚未接入。请销假入口已可跳转。",
+            "actions": [{"label": "打开请销假系统", "type": "external", "url": "https://service.xidian.edu.cn/v2/matter/m_start?id=189"}],
+        },
+        {
+            "name": "体育信息",
+            "slug": "sport",
+            "groupId": "study",
+            "groupName": "学习事务",
+            "kind": "sport",
+            "iconKey": "activity",
+            "authType": "sportPassword",
+            "status": "待接口接入",
+            "summary": "查看体育课程、体测成绩、分项成绩和等级。",
+            "requiredAccess": "体育系统账号密码。",
+            "features": ["体育课程", "体测总分", "体测分项", "成绩等级"],
+            "dataFields": ["学期", "课程名称", "教师", "上课时间", "课程成绩", "体测项目", "等级"],
+            "emptyText": "体育信息接口尚未接入。可先打开体育教学系统。",
+            "actions": [{"label": "打开体育系统", "type": "external", "url": "http://tybjxgl.xidian.edu.cn/app/"}],
+        },
+        {
+            "name": "宿舍电费",
+            "slug": "electricity",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "energy",
+            "iconKey": "bolt",
+            "authType": "ids",
+            "status": "已接入缴费入口",
+            "summary": "查看宿舍电量、欠费金额和历史读表趋势，当前先接入学校缴费入口。",
+            "requiredAccess": "宿舍电费查询接口、缴费系统跳转授权。",
+            "features": ["剩余电量", "欠费金额", "历史读表", "缴费入口"],
+            "dataFields": ["抓取日期", "剩余电量", "欠费金额", "电费账号"],
+            "emptyText": "电量查询接口尚未接入。缴费系统可以直接打开。",
+            "actions": [{"label": "打开缴费系统", "type": "external", "url": payment_url}],
+        },
+        {
+            "name": "宿舍水机",
+            "slug": "dorm-water",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "water",
+            "iconKey": "drop",
+            "authType": "phoneSms",
+            "status": "待接口接入",
+            "summary": "通过手机号和短信验证码登录水机服务，管理设备并开始/结束接水。",
+            "requiredAccess": "宿舍水机服务 API、短信验证码、设备二维码。",
+            "features": ["手机号登录", "设备列表", "扫码添加设备", "开始/结束接水"],
+            "dataFields": ["手机号", "设备 ID", "设备名称", "接水状态", "Token"],
+            "emptyText": "宿舍水机 API 尚未接入小程序。可先打开订水系统。",
+            "actions": [{"label": "打开订水系统", "type": "external", "url": "https://order.xidian.edu.cn/mobile/thirdoauth/oauth2Xidian/1"}],
+        },
+        {
+            "name": "图书馆",
+            "slug": "library",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "library",
+            "iconKey": "book",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "查看个人借阅、续借、馆藏搜索和南北校区在馆/空位情况。",
+            "requiredAccess": "图书馆统一认证、借阅接口、馆藏检索与座位数据。",
+            "features": ["借阅列表", "续借", "馆藏搜索", "图书馆容量"],
+            "dataFields": ["书名", "作者", "ISBN", "借阅日期", "应还日期", "可否续借", "空位数"],
+            "mapIds": ["map-main"],
+            "emptyText": "图书馆接口尚未接入。可先打开图书馆主页。",
+            "actions": [{"label": "打开图书馆", "type": "external", "url": "https://lib.xidian.edu.cn"}],
+        },
+        {
+            "name": "校园卡",
+            "slug": "school-card",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "card",
+            "iconKey": "card",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "查看校园卡余额、消费流水，并预留付款码能力。",
+            "requiredAccess": "校园卡接口、统一认证、二维码付款码授权。",
+            "features": ["余额", "消费流水", "日期范围筛选", "付款码"],
+            "dataFields": ["交易时间", "商户名称", "收入", "支出", "余额"],
+            "emptyText": "校园卡接口尚未接入。可先打开一站式。",
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "校园网",
+            "slug": "schoolnet",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "network",
+            "iconKey": "wifi",
+            "authType": "schoolnetPassword",
+            "status": "已接入入口",
+            "summary": "查询校园网套餐、余额、已用流量、剩余流量和在线设备。",
+            "requiredAccess": "校园网账号密码、验证码识别或手动验证码。",
+            "features": ["当前账号", "在线设备", "已用流量", "余额", "当前网络信息"],
+            "dataFields": ["账号", "套餐", "余额", "已用流量", "剩余流量", "在线 IP"],
+            "emptyText": "校园网查询接口尚未接入小程序。可先打开校园网自服务。",
+            "actions": [{"label": "打开校园网自服务", "type": "external", "url": "https://zfw.xidian.edu.cn"}],
+        },
+        {
+            "name": "校园地图",
+            "slug": "map",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "map",
+            "iconKey": "map",
+            "authType": "public",
+            "status": "已接入官方导航",
+            "summary": "直接打开西电官方 GIS 导航系统，并保留南校区常用地点索引。",
+            "requiredAccess": "官方 GIS 导航系统业务域名授权。",
+            "features": ["官方 GIS 地图", "南校区导航", "常用地点索引"],
+            "dataFields": ["地点名称", "分类", "校区", "位置说明"],
+            "mapIds": ["map-main"],
+            "actions": [{"label": "打开学校导航系统", "type": "external", "url": gis_url}],
+        },
+        {
+            "name": "楼宇结构图",
+            "slug": "building-map",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "map",
+            "iconKey": "building",
+            "authType": "public",
+            "status": "可查看索引",
+            "summary": "用于展示楼层、教室、办公室和功能空间分布。",
+            "requiredAccess": "楼宇结构图、房间与部门定位数据。",
+            "features": ["教学楼索引", "办公室定位", "功能空间查询"],
+            "dataFields": ["楼宇", "楼层", "房间", "部门", "用途"],
+            "mapIds": ["map-building"],
+            "actions": [{"label": "查看楼宇索引", "type": "map"}],
+        },
+        {
+            "name": "校园功能空间定位",
+            "slug": "places",
+            "groupId": "life",
+            "groupName": "校园生活",
+            "kind": "map",
+            "iconKey": "pin",
+            "authType": "public",
+            "status": "可查看索引",
+            "summary": "快速定位图书馆、食堂、办事大厅、打印点、体育场馆等校园空间。",
+            "requiredAccess": "校园 POI 数据与服务分类。",
+            "features": ["服务点分类", "位置索引", "地图跳转"],
+            "dataFields": ["服务点", "分类", "校区", "位置"],
+            "mapIds": ["map-main"],
+            "actions": [{"label": "打开学校导航系统", "type": "external", "url": gis_url}],
+        },
+        {
+            "name": "学期与住宿信息",
+            "slug": "student-info",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "profile",
+            "iconKey": "person",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "读取当前学期、学生基础信息和住宿地址，为课表、电费等服务提供基础资料。",
+            "requiredAccess": "一站式个人信息接口、研究生/本科生学期接口。",
+            "features": ["当前学期", "住宿地址", "学号绑定", "基础资料"],
+            "dataFields": ["学号", "当前学期", "住宿地址", "学院", "专业"],
+            "emptyText": "个人信息接口尚未接入。",
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "缴费系统",
+            "slug": "payment",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "payment",
+            "iconKey": "pay",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校缴费系统，处理电费等校园缴费事项。",
+            "requiredAccess": "缴费系统业务域名授权。",
+            "features": ["电费缴费", "缴费记录", "欠费处理"],
+            "dataFields": ["缴费项目", "金额", "状态", "时间"],
+            "actions": [{"label": "打开缴费系统", "type": "external", "url": payment_url}],
+        },
+        {
+            "name": "订水系统",
+            "slug": "drinking-water",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "water",
+            "iconKey": "drop",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校订水系统。",
+            "requiredAccess": "订水系统业务域名授权。",
+            "features": ["订水入口", "订单查看", "配送信息"],
+            "dataFields": ["订单", "地址", "状态", "联系方式"],
+            "actions": [{"label": "打开订水系统", "type": "external", "url": "https://order.xidian.edu.cn/mobile/thirdoauth/oauth2Xidian/1"}],
+        },
+        {
+            "name": "后勤报修",
+            "slug": "repair",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "repair",
+            "iconKey": "tool",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校后勤报修系统，提交宿舍、楼宇、网络等维修事项。",
+            "requiredAccess": "报修系统统一认证跳转授权。",
+            "features": ["报修提交", "维修进度", "历史记录"],
+            "dataFields": ["报修类型", "地点", "描述", "状态", "处理结果"],
+            "actions": [{"label": "打开后勤报修", "type": "external", "url": repair_url}],
+        },
+        {
+            "name": "空间预约",
+            "slug": "space-reservation",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "reservation",
+            "iconKey": "building",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入空间预约系统，预约图书馆或校内可用空间。",
+            "requiredAccess": "空间预约业务域名授权。",
+            "features": ["空间查询", "预约时段", "预约记录"],
+            "dataFields": ["空间名称", "可预约时间", "预约人", "状态"],
+            "actions": [{"label": "打开空间预约", "type": "external", "url": "http://libspace.xidian.edu.cn"}],
+        },
+        {
+            "name": "请销假系统",
+            "slug": "leave",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "leave",
+            "iconKey": "check",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校请销假事项入口。",
+            "requiredAccess": "学校服务大厅业务域名授权。",
+            "features": ["请假申请", "销假", "审批进度"],
+            "dataFields": ["申请类型", "时间", "审批状态", "处理人"],
+            "actions": [{"label": "打开请销假系统", "type": "external", "url": "https://service.xidian.edu.cn/v2/matter/m_start?id=189"}],
+        },
+        {
+            "name": "双创竞赛",
+            "slug": "creative",
+            "groupId": "affairs",
+            "groupName": "校务办理",
+            "kind": "competition",
+            "iconKey": "star",
+            "authType": "ids",
+            "status": "待接口接入",
+            "summary": "查询创新创业竞赛项目、岗位或报名相关信息。",
+            "requiredAccess": "双创平台统一认证和查询接口。",
+            "features": ["项目查询", "竞赛岗位", "报名信息"],
+            "dataFields": ["项目名称", "主办方", "报名时间", "状态"],
+            "emptyText": "双创竞赛接口尚未接入。",
+            "actions": [{"label": "打开双创平台", "type": "external", "url": "https://scjspt.xidian.edu.cn"}],
+        },
+        {
+            "name": "物理计算",
+            "slug": "physics-helper",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "tool",
+            "iconKey": "calculator",
+            "authType": "public",
+            "status": "已接入入口",
+            "summary": "打开物理实验计算辅助工具。",
+            "requiredAccess": "目标工具业务域名授权。",
+            "features": ["物理实验计算", "数据处理辅助"],
+            "dataFields": ["实验数据", "计算结果"],
+            "actions": [{"label": "打开物理计算", "type": "external", "url": "https://experiment-helper.wizzstudio.com/#/"}],
+        },
+        {
+            "name": "移动门户跳转",
+            "slug": "mobile-portal",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "external",
+            "iconKey": "phone",
+            "authType": "ids",
+            "status": "可跳转",
+            "summary": "打开西电移动门户，继续办理学校已有线上事项。",
+            "requiredAccess": "学校移动门户开放跳转或小程序业务域名授权。",
+            "features": ["移动门户", "校内事项入口"],
+            "dataFields": ["事项名称", "跳转链接"],
+            "actions": [{"label": "打开移动门户", "type": "external", "url": mobile_portal_url}],
+        },
+        {
+            "name": "体育场馆预约",
+            "slug": "venue-reservation",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "external",
+            "iconKey": "activity",
+            "authType": "ids",
+            "status": "待配置入口",
+            "summary": "预约体育场馆、查看可预约时段和预约记录。",
+            "requiredAccess": "体育场馆预约系统跳转授权。",
+            "features": ["场馆预约", "时段查询", "预约记录"],
+            "dataFields": ["场馆", "时间", "状态"],
+            "actions": [{"label": "打开一站式", "type": "external", "url": ehall_url}],
+        },
+        {
+            "name": "学校企业微信",
+            "slug": "wecom",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "external",
+            "iconKey": "phone",
+            "authType": "external",
+            "status": "待配置",
+            "summary": "进入学校企业微信相关服务。",
+            "requiredAccess": "企业微信应用跳转配置或官方链接。",
+            "features": ["企业微信服务"],
+            "dataFields": ["应用 appId", "跳转路径"],
+            "actions": [{"label": "查看接入说明", "type": "notice"}],
+        },
+        {
+            "name": "学校小程序",
+            "slug": "official-miniprogram",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "external",
+            "iconKey": "phone",
+            "authType": "external",
+            "status": "待配置",
+            "summary": "跳转到学校官方小程序或对应服务页面。",
+            "requiredAccess": "目标小程序 appId 与跳转路径配置。",
+            "features": ["官方小程序跳转"],
+            "dataFields": ["目标 appId", "目标页面路径"],
+            "actions": [{"label": "查看接入说明", "type": "notice"}],
+        },
+        {
+            "name": "其他校内服务入口",
+            "slug": "service-hall",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "external",
+            "iconKey": "grid",
+            "authType": "ids",
+            "status": "可扩展",
+            "summary": "预留更多校内服务链接，后续由后台配置增补。",
+            "requiredAccess": "服务名称、官方链接、业务域名授权。",
+            "features": ["校园服务大厅", "后台可配置入口"],
+            "dataFields": ["服务名称", "官方链接", "跳转方式"],
+            "actions": [{"label": "打开校园服务大厅", "type": "external", "url": "https://service.xidian.edu.cn"}],
+        },
+        {
+            "name": "校外访问",
+            "slug": "remote-access",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "network",
+            "iconKey": "wifi",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校校外远程访问服务说明，用于在校外访问校园网资源。",
+            "requiredAccess": "一网通办零信任/堡垒机账号申请或学校远程访问账号。",
+            "features": ["校外访问", "零信任申请", "堡垒机账号", "校园网资源"],
+            "dataFields": ["账号", "申请状态", "回执", "使用手册"],
+            "actions": [{"label": "打开校外访问说明", "type": "external", "url": remote_access_url}],
+        },
+        {
+            "name": "自助打印",
+            "slug": "self-print",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "print",
+            "iconKey": "print",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "查看自助打印和校务行接入说明，后续可对接成绩单、证明材料等自助打印场景。",
+            "requiredAccess": "一网通办自助打印及校务行接入申请。",
+            "features": ["证明打印", "表单上线", "数据来源选择", "设备打印"],
+            "dataFields": ["表单名称", "数据来源", "审批状态", "设备位置"],
+            "actions": [{"label": "打开自助打印说明", "type": "external", "url": print_service_url}],
+        },
+        {
+            "name": "校园邮箱",
+            "slug": "campus-email",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "email",
+            "iconKey": "mail",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校邮箱服务入口，处理学生邮件和邮件安全相关问题。",
+            "requiredAccess": "学生邮箱账号或统一认证相关账号。",
+            "features": ["学生邮件", "密码安全", "邮件异常处理", "邮箱入口"],
+            "dataFields": ["邮箱账号", "绑定状态", "安全提醒"],
+            "actions": [{"label": "打开邮箱服务", "type": "external", "url": email_service_url}],
+        },
+        {
+            "name": "正版软件",
+            "slug": "genuine-software",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "software",
+            "iconKey": "download",
+            "authType": "ids",
+            "status": "已接入入口",
+            "summary": "进入学校正版化软件服务，查看可用软件和申请说明。",
+            "requiredAccess": "统一认证账号和软件使用资格。",
+            "features": ["正版软件下载", "软件申请", "授权说明"],
+            "dataFields": ["软件名称", "授权范围", "下载地址"],
+            "actions": [{"label": "打开正版软件平台", "type": "external", "url": software_service_url}],
+        },
+        {
+            "name": "社团推荐",
+            "slug": "club-suggestion",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "club",
+            "iconKey": "star",
+            "authType": "public",
+            "status": "已接入站内",
+            "summary": "参考 PDA 的社团推荐入口，跳转到小程序已有社团功能，用于浏览社团、查看详情和提交申请。",
+            "requiredAccess": "站内社团数据。",
+            "features": ["社团浏览", "社团详情", "申请加入", "社团分区"],
+            "dataFields": ["社团名称", "类别", "简介", "负责人", "申请状态"],
+            "actions": [{"label": "打开社团", "type": "page", "path": "/pages/clubs/index"}],
+        },
+        {
+            "name": "日程提醒",
+            "slug": "schedule-reminder",
+            "groupId": "tools",
+            "groupName": "工具入口",
+            "kind": "schedule",
+            "iconKey": "calendar",
+            "authType": "ids",
+            "status": "日历视图",
+            "summary": "参考 PDA 的课表/考试/实验提醒与系统日历同步能力，先在小程序聚合展示今日与周历数据。",
+            "requiredAccess": "一站式课表、考试和实验安排数据。",
+            "features": ["今日提醒", "周历查看", "考试提醒", "实验提醒"],
+            "dataFields": ["日程类型", "日期", "时间", "地点", "备注"],
+            "calendarSource": "all",
+            "emptyText": "当前没有可提醒的日程数据。",
+            "actions": [{"label": "查看周历", "type": "calendar"}],
+        },
     ]
     services: list[dict[str, Any]] = []
-    order = 1
-    for group_id, group_name, names in groups:
-        for name in names:
-            services.append({
-                "id": f"svc-{order}",
-                "name": name,
-                "groupId": group_id,
-                "groupName": group_name,
-                "status": "待接入",
-                "description": "第一阶段提供入口和测试模拟页面，后续接入学校真实接口。",
-                "path": "/pages/campus/service-detail/index",
-                "enabled": True,
-                "sortOrder": order,
-                "createdAt": created,
-                "updatedAt": created,
-            })
-            order += 1
+    for order, spec in enumerate(service_specs, start=1):
+        services.append({
+            "id": f"svc-{spec.get('slug') or order}",
+            "name": spec["name"],
+            "slug": spec.get("slug", ""),
+            "groupId": spec["groupId"],
+            "groupName": spec["groupName"],
+            "kind": spec["kind"],
+            "iconKey": spec.get("iconKey", "service"),
+            "authType": spec.get("authType", ""),
+            "status": spec["status"],
+            "description": spec["summary"],
+            "requiredAccess": spec["requiredAccess"],
+            "features": spec.get("features", []),
+            "dataFields": spec.get("dataFields", []),
+            "calendarSource": spec.get("calendarSource", ""),
+            "emptyText": spec.get("emptyText", ""),
+            "mapIds": spec.get("mapIds", []),
+            "actions": spec["actions"],
+            "path": "/pages/campus/service-detail/index",
+            "enabled": True,
+            "sortOrder": order,
+            "createdAt": created,
+            "updatedAt": created,
+        })
     maps = [
-        {"id": "map-main", "name": "校园地图", "type": "map", "status": "待导入", "description": "预留真实地图数据结构。", "createdAt": created},
-        {"id": "map-building", "name": "楼宇结构图", "type": "building", "status": "待导入", "description": "预留 B 楼等楼宇结构图。", "createdAt": created},
+        {
+            "id": "map-main",
+            "name": "南校区常用地点",
+            "type": "map",
+            "status": "已接入官方导航",
+            "description": "图书馆、教学楼、食堂、体育馆等南校区常用地点索引。",
+            "officialUrl": gis_url,
+            "items": [
+                {"name": "图书馆", "category": "学习", "campus": "南校区", "location": "G6 北侧、Sq2 西侧", "x": 42, "y": 47},
+                {"name": "A/B/C/D/E/F/G 教学楼", "category": "教学", "campus": "南校区", "location": "中部巨构教学区", "x": 55, "y": 39},
+                {"name": "海棠餐厅", "category": "生活", "campus": "南校区", "location": "海棠学生公寓区", "x": 31, "y": 16},
+                {"name": "竹园餐厅", "category": "生活", "campus": "南校区", "location": "竹园学生公寓区", "x": 67, "y": 17},
+                {"name": "丁香餐厅", "category": "生活", "campus": "南校区", "location": "丁香学生公寓区", "x": 28, "y": 64},
+                {"name": "北操场", "category": "运动", "campus": "南校区", "location": "西北角 S1", "x": 12, "y": 20},
+                {"name": "南操场", "category": "运动", "campus": "南校区", "location": "西南侧 S2", "x": 12, "y": 55},
+                {"name": "办公楼", "category": "行政", "campus": "南校区", "location": "东南侧 4/5 号楼", "x": 76, "y": 50},
+                {"name": "校医院", "category": "医疗", "campus": "南校区", "location": "东北门附近", "x": 87, "y": 14},
+                {"name": "礼仪广场", "category": "广场", "campus": "南校区", "location": "Sq1", "x": 51, "y": 28},
+                {"name": "中心广场", "category": "广场", "campus": "南校区", "location": "Sq2", "x": 52, "y": 47},
+            ],
+            "createdAt": created,
+        },
+        {
+            "id": "map-building",
+            "name": "楼宇结构图",
+            "type": "building",
+            "status": "可查看索引",
+            "description": "楼层、教室、办公室与功能空间的结构化索引。",
+            "items": [
+                {"name": "A 楼", "category": "巨构", "campus": "南校区", "location": "教学区西侧", "x": 27, "y": 37},
+                {"name": "B 楼", "category": "巨构", "campus": "南校区", "location": "教学区西南侧", "x": 36, "y": 41},
+                {"name": "C 楼", "category": "巨构", "campus": "南校区", "location": "教学区中部", "x": 43, "y": 37},
+                {"name": "D 楼", "category": "巨构", "campus": "南校区", "location": "教学区中部偏东", "x": 52, "y": 36},
+                {"name": "E 楼", "category": "巨构", "campus": "南校区", "location": "教学区东南侧", "x": 61, "y": 39},
+                {"name": "F 楼", "category": "巨构", "campus": "南校区", "location": "教学区东侧", "x": 63, "y": 36},
+                {"name": "G 楼", "category": "巨构", "campus": "南校区", "location": "教学区东端", "x": 77, "y": 36},
+            ],
+            "createdAt": created,
+        },
     ]
     return services, maps
+
+
+def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    sources = [
+        {
+            "id": "ks-campus",
+            "name": "校园基础知识",
+            "sourceType": "campus",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "createdAt": created,
+        },
+        {
+            "id": "ks-announcements",
+            "name": "公告聚合",
+            "sourceType": "announcement",
+            "sourceUrl": "",
+            "createdAt": created,
+        },
+        {
+            "id": "ks-posts",
+            "name": "树洞公开帖子",
+            "sourceType": "post",
+            "sourceUrl": "",
+            "createdAt": created,
+        },
+        {
+            "id": "ks-xidian-services",
+            "name": "西电官方学生服务指南",
+            "sourceType": "official_xidian",
+            "sourceUrl": "https://service.xidian.edu.cn/",
+            "createdAt": created,
+        },
+    ]
+    guide_chunks = [
+        {
+            "id": "kc-xidian-ids",
+            "title": "西电统一身份认证与一站式服务",
+            "sourceUrl": "https://ids.xidian.edu.cn/authserver/login",
+            "content": (
+                "西电统一身份认证 IDS 是进入一站式大厅、教务、缴费、后勤报修、请销假等校内系统的主要入口。"
+                "学生通常使用学号和统一认证密码登录。小程序内的校园服务测试只在发起请求时使用密码，不写入数据库。"
+                "常见入口包括一站式大厅 https://ehall.xidian.edu.cn/new/index.html 和服务大厅 https://service.xidian.edu.cn/。"
+            ),
+        },
+        {
+            "id": "kc-xidian-study",
+            "title": "课表、成绩、考试、空闲教室与考勤",
+            "sourceUrl": "https://ehall.xidian.edu.cn/new/index.html",
+            "content": (
+                "学习事务主要通过一站式/教务相关服务查询：课表按周和日期查看课程时间、地点、教师和节次；"
+                "成绩单关注学年学期、课程名、学分、课程性质、成绩、等级和是否通过；考试安排关注考试类型、时间、地点和座位；"
+                "空闲教室按校区、楼宇、日期和节次筛选；考勤可查看课程签到、异常次数、任务点和作业进度。"
+            ),
+        },
+        {
+            "id": "kc-xidian-experiment",
+            "title": "物理实验与其他实验系统",
+            "sourceUrl": "http://wlsy.xidian.edu.cn/PhyEws/default.aspx",
+            "content": (
+                "物理实验系统常用独立账号密码登录，关注实验名称、开始/结束时间、地点、负责老师、座位号和实验成绩。"
+                "其他实验可从一站式或实验教学入口进入。做实验前应确认实验时间、地点、分组、座位以及是否需要预习报告或课前签到。"
+            ),
+        },
+        {
+            "id": "kc-xidian-sport",
+            "title": "体育课程、体测与乐跑记录",
+            "sourceUrl": "http://tybjxgl.xidian.edu.cn/app/",
+            "content": (
+                "体育系统用于查询体育课、体测成绩和运动记录。体测通常包含总分、等级和分项成绩；体育课程关注学期、课程、教师、上课时间和课程成绩。"
+                "PDA 中乐跑计数作为体育系统关联信息展示，小程序当前先接入体育系统登录验证和入口跳转。"
+            ),
+        },
+        {
+            "id": "kc-xidian-energy",
+            "title": "宿舍电费、水电缴费与宿舍水机",
+            "sourceUrl": "https://xxcapp.xidian.edu.cn/uc/api/oauth/index?redirect=https://ignypt.xidian.edu.cn/revenueH5/login?opcode=MPAY&appid=200260318155520600&state=1231231231",
+            "content": (
+                "宿舍电费和水电缴费可通过学校缴费入口进入，查询时通常需要确认宿舍或缴费账号、剩余电量、欠费金额和缴费记录。"
+                "宿舍水机服务使用手机号、图形验证码和短信验证码登录，关注设备列表、设备二维码、开始/结束接水和接水状态。"
+                "订水入口为 https://order.xidian.edu.cn/mobile/thirdoauth/oauth2Xidian/1。"
+            ),
+        },
+        {
+            "id": "kc-xidian-network",
+            "title": "校园网自服务",
+            "sourceUrl": "https://zfw.xidian.edu.cn",
+            "content": (
+                "校园网自服务用于查询账号套餐、余额、已用流量、剩余流量、在线 IP 和当前网络信息。"
+                "登录一般需要学号/校园网账号、查询密码和图形验证码。信息网络技术中心学生服务目录还包括网络接入、一网通办、统一认证、一卡通、校外访问和邮件等服务。"
+                "真机调试时若本地接口不可访问，应确认手机与电脑在同一 Wi-Fi 且后端地址不是 localhost。"
+            ),
+        },
+        {
+            "id": "kc-xidian-xxzx-services",
+            "title": "信息网络技术中心学生服务目录",
+            "sourceUrl": "https://xxzx.xidian.edu.cn/f_w/ssfw/xwycfwfw.htm",
+            "content": (
+                "西电信息网络技术中心面向学生提供网络接入、校园一卡通、一网通办、统一身份认证、邮箱、自助打印、正版软件、校外访问等服务。"
+                "校外访问常见流程包括进入一网通办服务大厅、搜索零信任账号申请或堡垒机账号申请、填写申请表并等待回执。"
+                "自助打印相关服务可用于材料打印、表单上线和校务行接入；正版软件平台用于查看学校授权软件。"
+            ),
+        },
+        {
+            "id": "kc-xidian-library",
+            "title": "图书馆借阅、馆藏检索与空间预约",
+            "sourceUrl": "https://lib.xidian.edu.cn",
+            "content": (
+                "图书馆服务包括馆藏检索、个人借阅、续借、到期提醒、馆藏位置和座位/空间预约。"
+                "借阅信息通常包含书名、作者、ISBN、借阅日期、应还日期和是否可续借；空间预约入口可使用 http://libspace.xidian.edu.cn。"
+            ),
+        },
+        {
+            "id": "kc-xidian-card",
+            "title": "校园卡与消费流水",
+            "sourceUrl": "https://v8scan.xidian.edu.cn/home/openXDOAuth2Page",
+            "content": (
+                "校园卡服务关注余额、消费流水、充值记录和付款码能力。消费流水常用字段包括交易时间、商户、收入、支出和余额。"
+                "涉及付款码或资金信息时应以学校官方页面为准，应用侧只展示必要信息并减少敏感数据留存。"
+            ),
+        },
+        {
+            "id": "kc-xidian-map",
+            "title": "校园地图与南校区导航",
+            "sourceUrl": "https://gis.xidian.edu.cn/#/home?campus=21047",
+            "content": (
+                "校园地图使用西电官方 GIS 导航系统。南校区常用地点包括图书馆、A/B/C/D/E/F/G 教学楼、海棠餐厅、竹园餐厅、丁香餐厅、"
+                "北操场、南操场、办公楼、校医院、礼仪广场和中心广场。需要路线规划时优先打开官方 GIS。"
+            ),
+        },
+        {
+            "id": "kc-xidian-affairs",
+            "title": "请销假、后勤报修、缴费、空间预约和双创竞赛",
+            "sourceUrl": "https://service.xidian.edu.cn/",
+            "content": (
+                "常见校务办理包括请销假、后勤报修、缴费、空间预约和双创竞赛。请销假入口可从服务大厅事项进入；"
+                "后勤报修用于宿舍、楼宇、网络等维修事项；缴费系统处理电费等缴费；空间预约用于图书馆或校内空间预约；"
+                "双创竞赛平台用于查看项目、岗位、报名时间和状态。"
+            ),
+        },
+        {
+            "id": "kc-xidian-ai-usage",
+            "title": "AI 问答如何回答西电服务问题",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "回答西电服务问题时，应优先给出校内官方入口、需要准备的账号或材料、操作路径和注意事项；"
+                "涉及成绩、考勤、缴费、校园卡、宿舍水机、校园网等个人数据时，提示用户只在官方系统或小程序真实登录页输入凭据，"
+                "不要在普通聊天内容中发送密码、验证码、付款码或完整个人敏感信息。"
+            ),
+        },
+    ]
+    document_content = "\n\n".join(
+        f"{item['title']}\n来源：{item['sourceUrl']}\n{item['content']}"
+        for item in guide_chunks
+    )
+    documents = [
+        {
+            "id": "kd-xidian-services",
+            "sourceId": "ks-xidian-services",
+            "title": "西电官方学生服务指南浓缩版",
+            "content": document_content,
+            "sourceUrl": "https://service.xidian.edu.cn/",
+            "createdAt": created,
+        }
+    ]
+    chunks = [
+        {
+            "id": item["id"],
+            "sourceId": "ks-xidian-services",
+            "documentId": "kd-xidian-services",
+            "title": item["title"],
+            "content": f"{item['content']} 来源：{item['sourceUrl']}",
+            "sourceUrl": item["sourceUrl"],
+            "createdAt": created,
+        }
+        for item in guide_chunks
+    ]
+    return sources, documents, chunks
 
 
 def ensure_radio_schema(db: dict[str, Any]) -> bool:
@@ -1655,23 +2447,143 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
     if not db.get("announcements"):
         db["announcements"] = _default_announcements(created)
         changed = True
+    default_services, default_maps = _default_campus_services(created)
     if not db.get("campusServices"):
-        services, maps = _default_campus_services(created)
-        db["campusServices"] = services
+        db["campusServices"] = default_services
         if not db.get("campusMaps"):
-            db["campusMaps"] = maps
+            db["campusMaps"] = default_maps
         changed = True
+    else:
+        default_by_name = {str(item.get("name", "")).strip(): item for item in default_services}
+        seen_service_names = {
+            str(item.get("name", "")).strip()
+            for item in db.get("campusServices", [])
+            if str(item.get("name", "")).strip()
+        }
+        for service in db.get("campusServices", []):
+            default_service = default_by_name.get(str(service.get("name", "")).strip())
+            if not default_service:
+                continue
+            for key in (
+                "slug",
+                "groupId",
+                "groupName",
+                "kind",
+                "iconKey",
+                "authType",
+                "status",
+                "description",
+                "requiredAccess",
+                "features",
+                "dataFields",
+                "calendarSource",
+                "emptyText",
+                "mapIds",
+                "actions",
+                "path",
+                "enabled",
+                "sortOrder",
+            ):
+                if service.get(key) != default_service.get(key):
+                    service[key] = default_service.get(key)
+                    changed = True
+        for default_service in default_services:
+            service_name = str(default_service.get("name", "")).strip()
+            if service_name and service_name not in seen_service_names:
+                db["campusServices"].append(default_service)
+                seen_service_names.add(service_name)
+                changed = True
+        if not db.get("campusMaps"):
+            db["campusMaps"] = default_maps
+            changed = True
+    if db.get("campusMaps"):
+        default_maps_by_id = {str(item.get("id", "")).strip(): item for item in default_maps}
+        seen_map_ids = {
+            str(item.get("id", "")).strip()
+            for item in db.get("campusMaps", [])
+            if str(item.get("id", "")).strip()
+        }
+        for campus_map in db.get("campusMaps", []):
+            default_map = default_maps_by_id.get(str(campus_map.get("id", "")).strip())
+            if not default_map:
+                continue
+            for key in ("name", "type", "status", "description", "items", "officialUrl"):
+                if campus_map.get(key) != default_map.get(key):
+                    campus_map[key] = default_map.get(key)
+                    changed = True
+        for default_map in default_maps:
+            map_id = str(default_map.get("id", "")).strip()
+            if map_id and map_id not in seen_map_ids:
+                db["campusMaps"].append(default_map)
+                seen_map_ids.add(map_id)
+                changed = True
     for key in ("courseSchedules", "examSchedules", "experimentSchedules"):
         if key not in db:
             db[key] = []
             changed = True
-    if not db.get("knowledgeSources"):
-        db["knowledgeSources"] = [
-            {"id": "ks-campus", "name": "校园基础知识", "sourceType": "campus", "createdAt": created},
-            {"id": "ks-announcements", "name": "公告聚合", "sourceType": "announcement", "createdAt": created},
-            {"id": "ks-posts", "name": "树洞公开帖子", "sourceType": "post", "createdAt": created},
-        ]
-        changed = True
+    default_sources, default_documents, default_chunks = _default_xidian_knowledge(created)
+    existing_sources = {
+        str(item.get("id", "")).strip(): item
+        for item in db.get("knowledgeSources", [])
+        if str(item.get("id", "")).strip()
+    }
+    for source in default_sources:
+        source_id = str(source.get("id", "")).strip()
+        existing = existing_sources.get(source_id)
+        if existing is None:
+            db.setdefault("knowledgeSources", []).append(source)
+            existing_sources[source_id] = source
+            changed = True
+            continue
+        for key in ("name", "sourceType", "sourceUrl"):
+            if existing.get(key) != source.get(key):
+                existing[key] = source.get(key)
+                changed = True
+        if not existing.get("createdAt"):
+            existing["createdAt"] = source.get("createdAt")
+            changed = True
+
+    existing_documents = {
+        str(item.get("id", "")).strip(): item
+        for item in db.get("knowledgeDocuments", [])
+        if str(item.get("id", "")).strip()
+    }
+    for document in default_documents:
+        document_id = str(document.get("id", "")).strip()
+        existing = existing_documents.get(document_id)
+        if existing is None:
+            db.setdefault("knowledgeDocuments", []).append(document)
+            existing_documents[document_id] = document
+            changed = True
+            continue
+        for key in ("sourceId", "title", "content", "sourceUrl"):
+            if existing.get(key) != document.get(key):
+                existing[key] = document.get(key)
+                changed = True
+        if not existing.get("createdAt"):
+            existing["createdAt"] = document.get("createdAt")
+            changed = True
+
+    existing_chunks = {
+        str(item.get("id", "")).strip(): item
+        for item in db.get("knowledgeChunks", [])
+        if str(item.get("id", "")).strip()
+    }
+    for chunk in default_chunks:
+        chunk_id = str(chunk.get("id", "")).strip()
+        existing = existing_chunks.get(chunk_id)
+        if existing is None:
+            db.setdefault("knowledgeChunks", []).append(chunk)
+            existing_chunks[chunk_id] = chunk
+            changed = True
+            continue
+        for key in ("sourceId", "documentId", "title", "content", "sourceUrl"):
+            if existing.get(key) != chunk.get(key):
+                existing[key] = chunk.get(key)
+                changed = True
+        if not existing.get("createdAt"):
+            existing["createdAt"] = chunk.get("createdAt")
+            changed = True
     return changed
 
 
@@ -2108,6 +3020,10 @@ def migrate_db(db: dict[str, Any]) -> bool:
             normalized_avatar = normalize_avatar_url(str(user.get("avatarUrl", "")))
             if normalized_avatar != str(user.get("avatarUrl", "")):
                 user["avatarUrl"] = normalized_avatar
+                changed = True
+        for key in ("college", "major"):
+            if key not in user:
+                user[key] = ""
                 changed = True
         for key in (
             "notifyComment",

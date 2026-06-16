@@ -1,16 +1,31 @@
-<view class="page map-page">
-  <view class="map-title">校园地图</view>
-  <view class="map-stage">
-    <view class="map-grid"></view>
-    <view class="map-marker one"></view>
-    <view class="map-marker two"></view>
-    <view class="map-marker three"></view>
+<view class="map-page {{themeClass}}">
+  <view class="map-head">
+    <view class="map-kicker">Xidian GIS</view>
+    <view class="map-title">校园地图</view>
+    <view class="map-subtitle">南校区常用地点索引，导航由学校官方系统提供。</view>
+    <button class="map-button" bindtap="openOfficialMap">打开学校导航系统</button>
   </view>
-  <view class="map-row" wx:for="{{maps}}" wx:key="id">
-    <view>
-      <view class="map-row-title">{{item.name}}</view>
-      <view class="map-row-desc">{{item.description}}</view>
+
+  <view wx:if="{{loading}}" class="loading-state">正在加载地图索引</view>
+
+  <block wx:else>
+    <view class="map-group" wx:for="{{maps}}" wx:key="id">
+      <view class="group-head">
+        <view>
+          <view class="group-title">{{item.name}}</view>
+          <view class="group-subtitle">{{item.description}}</view>
+        </view>
+        <view class="group-status">{{item.status}}</view>
+      </view>
+      <view class="place-list">
+        <view class="place-row" wx:for="{{item.items}}" wx:for-item="place" wx:key="name">
+          <view class="place-main">
+            <view class="place-name">{{place.name}}</view>
+            <view class="place-location">{{place.location}}</view>
+          </view>
+          <view class="place-category">{{place.category}}</view>
+        </view>
+      </view>
     </view>
-    <view class="map-row-status">{{item.status}}</view>
-  </view>
+  </block>
 </view>

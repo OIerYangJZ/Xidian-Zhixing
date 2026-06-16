@@ -39,9 +39,12 @@ const request = (options) => {
       '/api/auth/send-code',
       '/api/auth/resend-code',
       '/api/auth/password/send-code',
-      '/api/auth/password/reset'
+      '/api/auth/password/reset',
+      '/api/auth/xidian/password',
+      '/api/auth/xidian/session'
     ];
-    const isPublicAuthPath = publicAuthPaths.some((path) => requestUrl === path);
+    const isPublicAuthPath = publicAuthPaths.some((path) => requestUrl === path)
+      || /^\/api\/auth\/xidian\/session\/[^/]+$/.test(requestUrl);
 
     if (!token && !isPublicAuthPath) {
       clearLoginAndRedirect();

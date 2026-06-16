@@ -33,6 +33,14 @@
         <text>{{form.studentId || '-'}}</text>
       </view>
       <view class="info-row">
+        <text>学院</text>
+        <input class="row-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" placeholder="例如：计算机科学与技术学院" />
+      </view>
+      <view class="info-row">
+        <text>专业</text>
+        <input class="row-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" placeholder="例如：软件工程" />
+      </view>
+      <view class="info-row">
         <text>邮箱</text>
         <text>{{form.email || '-'}}</text>
       </view>

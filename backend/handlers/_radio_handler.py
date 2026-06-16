@@ -131,6 +131,48 @@ def _serialize_club(club: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _serialize_campus_service(row: dict[str, Any]) -> dict[str, Any]:
+    actions = []
+    for item in _as_list(row.get("actions")):
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label", "")).strip()
+        action_type = str(item.get("type", "")).strip()
+        if not label or not action_type:
+            continue
+        actions.append({
+            "label": label,
+            "type": action_type,
+            "url": str(item.get("url", "")).strip(),
+            "path": str(item.get("path", "")).strip(),
+            "payload": item.get("payload", {}),
+        })
+    return {
+        "id": str(row.get("id", "")),
+        "slug": str(row.get("slug", "")),
+        "name": str(row.get("name", "")),
+        "groupId": str(row.get("groupId", "")),
+        "groupName": str(row.get("groupName", "")),
+        "kind": str(row.get("kind", "integration")),
+        "iconKey": str(row.get("iconKey", "service")),
+        "authType": str(row.get("authType", "")),
+        "status": str(row.get("status", "待接入")),
+        "description": str(row.get("description", "")),
+        "requiredAccess": str(row.get("requiredAccess", "")),
+        "features": [str(item).strip() for item in _as_list(row.get("features")) if str(item).strip()],
+        "dataFields": [str(item).strip() for item in _as_list(row.get("dataFields")) if str(item).strip()],
+        "calendarSource": str(row.get("calendarSource", "")),
+        "emptyText": str(row.get("emptyText", "")),
+        "mapIds": [str(item).strip() for item in _as_list(row.get("mapIds")) if str(item).strip()],
+        "actions": actions,
+        "path": str(row.get("path", "/pages/campus/service-detail/index")),
+        "enabled": bool(row.get("enabled", True)),
+        "sortOrder": _safe_int(row.get("sortOrder"), 0),
+        "createdAt": str(row.get("createdAt", "")),
+        "updatedAt": str(row.get("updatedAt", "")),
+    }
+
+
 def _serialize_announcement(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": str(row.get("id", "")),
@@ -215,6 +257,7 @@ def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, A
         "summary": _clean(item.get("content", ""), 90),
         "publishedAt": str(item.get("createdAt", "")),
         "publisher": str(item.get("sourceName", "")),
+        "sourceUrl": str(item.get("sourceUrl", "")),
         "jumpUrl": "",
     }
 
@@ -606,14 +649,29 @@ def handle_seed_demo_announcements(handler: BaseHTTPRequestHandler, db: dict[str
 
 def handle_campus_services(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    hidden_service_names = {"建筑位置", "教室定位", "办公室定位"}
-    rows = [
-        row
-        for row in db.get("campusServices", [])
-        if bool(row.get("enabled", True)) and str(row.get("name", "")).strip() not in hidden_service_names
-    ]
+    rows = [row for row in db.get("campusServices", []) if bool(row.get("enabled", True))]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
-    send_json(handler, HTTPStatus.OK, {"data": rows})
+    send_json(handler, HTTPStatus.OK, {"data": [_serialize_campus_service(row) for row in rows]})
+
+
+def handle_campus_service_detail(handler: BaseHTTPRequestHandler, db: dict[str, Any], service_id: str) -> None:
+    ensure_radio_schema(db)
+    row = next(
+        (
+            item
+            for item in db.get("campusServices", [])
+            if str(item.get("id", "")) == service_id or str(item.get("slug", "")) == service_id
+        ),
+        None,
+    )
+    if row is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "校园服务不存在")
+        return
+    payload = _serialize_campus_service(row)
+    map_ids = set(payload.get("mapIds") or [])
+    maps = db.get("campusMaps", [])
+    payload["maps"] = [item for item in maps if str(item.get("id", "")) in map_ids] if map_ids else []
+    send_json(handler, HTTPStatus.OK, {"data": payload})
 
 
 def handle_campus_maps(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -623,9 +681,13 @@ def handle_campus_maps(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> N
 
 def handle_campus_quick_links(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [row for row in db.get("campusServices", []) if row.get("groupId") == "quick" and bool(row.get("enabled", True))]
+    rows = [
+        row
+        for row in db.get("campusServices", [])
+        if row.get("groupId") in {"quick", "tools"} and bool(row.get("enabled", True))
+    ]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
-    send_json(handler, HTTPStatus.OK, {"data": rows})
+    send_json(handler, HTTPStatus.OK, {"data": [_serialize_campus_service(row) for row in rows]})
 
 
 def _time_minutes(value: str) -> int:
@@ -633,11 +695,25 @@ def _time_minutes(value: str) -> int:
     return int(hour) * 60 + int(minute)
 
 
-def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    ensure_radio_schema(db)
-    now = datetime.now(SCHOOL_TZ)
-    today = now.date().isoformat()
-    now_minutes = now.hour * 60 + now.minute
+def _serialize_schedule_row(row: dict[str, Any], source_key: str, source_label: str) -> dict[str, Any]:
+    item = {
+        "id": str(row.get("id", "")),
+        "source": source_key,
+        "sourceLabel": source_label,
+        "title": str(row.get("title", "")),
+        "startTime": str(row.get("startTime", "")),
+        "endTime": str(row.get("endTime", "")),
+        "location": str(row.get("location", "")),
+        "date": str(row.get("date", "")),
+        "teacher": str(row.get("teacher", "")),
+        "section": str(row.get("section", "")),
+        "kind": str(row.get("kind", "")),
+    }
+    item["timeRange"] = f"{item['startTime']}-{item['endTime']}".strip("-")
+    return item
+
+
+def _campus_schedule_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
     sources = [
         ("courseSchedules", "课表"),
         ("examSchedules", "考试安排"),
@@ -646,22 +722,31 @@ def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str,
     rows: list[dict[str, Any]] = []
     for source_key, source_label in sources:
         for row in db.get(source_key, []):
-            if str(row["date"]) != today:
+            item = _serialize_schedule_row(row, source_key, source_label)
+            if not item["date"]:
                 continue
-            item = {
-                "id": str(row["id"]),
-                "source": source_key,
-                "sourceLabel": source_label,
-                "title": str(row["title"]),
-                "startTime": str(row["startTime"]),
-                "endTime": str(row["endTime"]),
-                "location": str(row["location"]),
-                "date": str(row["date"]),
-            }
+            rows.append(item)
+    rows.sort(key=lambda item: (item["date"], item["startTime"], item["endTime"], item["id"]))
+    return rows
+
+
+def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
+    ensure_radio_schema(db)
+    now = datetime.now(SCHOOL_TZ)
+    today = now.date().isoformat()
+    now_minutes = now.hour * 60 + now.minute
+    rows: list[dict[str, Any]] = []
+    for item in _campus_schedule_rows(db):
+        if item["date"] != today:
+            continue
+        try:
             item["startMinutes"] = _time_minutes(item["startTime"])
             item["endMinutes"] = _time_minutes(item["endTime"])
-            item["isActive"] = item["startMinutes"] <= now_minutes < item["endMinutes"]
-            rows.append(item)
+        except (ValueError, TypeError):
+            item["startMinutes"] = 0
+            item["endMinutes"] = 0
+        item["isActive"] = item["startMinutes"] <= now_minutes < item["endMinutes"]
+        rows.append(item)
     rows.sort(key=lambda item: (item["startMinutes"], item["endMinutes"], item["id"]))
     active_rows = [item for item in rows if item["isActive"]]
     next_rows = [item for item in rows if item["startMinutes"] > now_minutes]
@@ -671,36 +756,51 @@ def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str,
         item["timeRange"] = f"{item['startTime']}-{item['endTime']}"
         item.pop("startMinutes")
         item.pop("endMinutes")
-    if not rows:
-        rows = [
-            {
-                "id": "mock-campus-schedule-1",
-                "source": "mockSchedules",
-                "sourceLabel": "模拟日程",
-                "title": "高等数学复习",
-                "startTime": "09:00",
-                "endTime": "10:30",
-                "timeRange": "09:00-10:30",
-                "location": "南校区 B 楼 203",
-                "date": today,
-                "isActive": 9 * 60 <= now_minutes < 10 * 60 + 30,
-                "isEmphasized": True,
-            },
-            {
-                "id": "mock-campus-schedule-2",
-                "source": "mockSchedules",
-                "sourceLabel": "模拟日程",
-                "title": "创新创业讲座",
-                "startTime": "14:30",
-                "endTime": "16:00",
-                "timeRange": "14:30-16:00",
-                "location": "北校区阶梯教室 101",
-                "date": today,
-                "isActive": 14 * 60 + 30 <= now_minutes < 16 * 60,
-                "isEmphasized": False,
-            },
-        ]
     send_json(handler, HTTPStatus.OK, {"data": {"date": today, "items": rows}})
+
+
+def handle_campus_calendar_schedules(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    query: dict[str, list[str]],
+) -> None:
+    ensure_radio_schema(db)
+    today = datetime.now(SCHOOL_TZ).date()
+    start_text = (query.get("startDate", [""])[0] or "").strip()
+    try:
+        start_date = datetime.fromisoformat(start_text).date() if start_text else today - timedelta(days=today.weekday())
+    except ValueError:
+        start_date = today - timedelta(days=today.weekday())
+    days_count = max(1, min(_safe_int((query.get("days", ["7"])[0] or "7"), 7), 31))
+    source_filter = (query.get("source", [""])[0] or "").strip()
+    if source_filter == "all":
+        source_filter = ""
+    wanted_dates = [(start_date + timedelta(days=offset)).isoformat() for offset in range(days_count)]
+    rows = [
+        item
+        for item in _campus_schedule_rows(db)
+        if item["date"] in wanted_dates and (not source_filter or item["source"] == source_filter)
+    ]
+    day_payload = []
+    for date_text in wanted_dates:
+        day_items = [item for item in rows if item["date"] == date_text]
+        day_payload.append({
+            "date": date_text,
+            "weekday": "一二三四五六日"[(datetime.fromisoformat(date_text).weekday())],
+            "isToday": date_text == today.isoformat(),
+            "items": day_items,
+        })
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": {
+                "startDate": wanted_dates[0],
+                "endDate": wanted_dates[-1],
+                "days": day_payload,
+            }
+        },
+    )
 
 
 def _hot_score(db: dict[str, Any], post: dict[str, Any]) -> float:

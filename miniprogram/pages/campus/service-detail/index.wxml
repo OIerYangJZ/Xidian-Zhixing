@@ -1,7 +1,223 @@
-<view class="page service-detail">
-  <view class="detail-title">{{name}}</view>
-  <view class="detail-card">
-    <view class="detail-status">待接入</view>
-    <view class="detail-text">第一阶段提供前端入口和可扩展数据结构，后续接入学校真实接口后展示实时数据。</view>
-  </view>
+<view class="service-page safe-bottom {{themeClass}}">
+  <view wx:if="{{loading}}" class="loading-state">正在加载校园服务</view>
+
+  <block wx:elif="{{service}}">
+    <view class="detail-head">
+      <view class="detail-kicker">{{service.groupName}} · {{service.status}}</view>
+      <view class="detail-title">{{service.name || name}}</view>
+      <view class="detail-desc">{{service.description}}</view>
+      <view class="head-meta">
+        <view class="meta-chip">{{service.authLabel}}</view>
+        <view class="meta-chip">{{service.kind}}</view>
+      </view>
+    </view>
+
+    <view class="section-card auth-entry-card" wx:if="{{service.slug !== 'ids-login'}}" bindtap="openIdsLogin">
+      <view class="card-main">
+        <view class="card-title">西电统一认证入口</view>
+        <view class="card-desc">用于登录电台账号并验证学生身份</view>
+      </view>
+      <view class="card-arrow">›</view>
+    </view>
+
+    <view class="section-card action-panel" wx:if="{{service.actions.length}}">
+      <view class="section-title">操作</view>
+      <view class="action-grid">
+        <view class="action-card" wx:for="{{service.actions}}" wx:key="label" data-index="{{index}}" bindtap="runAction">
+          <view class="action-icon"></view>
+          <view class="action-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card auth-panel" wx:if="{{authPanel === 'ids' || authPanel === 'payment'}}">
+      <view class="section-head-tight">
+        <view>
+          <view class="section-title">{{authPanel === 'payment' ? '缴费/水电登录测试' : '统一认证测试'}}</view>
+          <view class="section-note">密码仅用于本次请求，不会写入数据库</view>
+        </view>
+      </view>
+      <view class="form-box">
+        <view class="form-row">
+          <view class="field-label">学号</view>
+          <input class="field-input" value="{{studentId}}" placeholder="请输入学号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
+        </view>
+        <view class="form-row">
+          <view class="field-label">密码</view>
+          <input class="field-input" type="password" value="{{idsPassword}}" placeholder="统一认证密码" placeholder-class="field-placeholder" bindinput="onIdsPasswordInput" />
+        </view>
+      </view>
+      <button class="primary-action" loading="{{submittingAuth}}" disabled="{{submittingAuth}}" bindtap="submitIdsAuth">
+        {{authPanel === 'payment' ? '验证并跳转缴费系统' : '验证统一认证'}}
+      </button>
+    </view>
+
+    <view class="section-card auth-panel" wx:if="{{authPanel === 'physics'}}">
+      <view class="section-title">物理实验系统测试</view>
+      <view class="section-note">使用物理实验系统账号密码，独立于统一认证密码</view>
+      <view class="form-box">
+        <view class="form-row">
+          <view class="field-label">学号</view>
+          <input class="field-input" value="{{studentId}}" placeholder="请输入学号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
+        </view>
+        <view class="form-row">
+          <view class="field-label">密码</view>
+          <input class="field-input" type="password" value="{{physicsPassword}}" placeholder="物理实验密码" placeholder-class="field-placeholder" bindinput="onPhysicsPasswordInput" />
+        </view>
+      </view>
+      <button class="primary-action" loading="{{submittingAuth}}" disabled="{{submittingAuth}}" bindtap="submitPhysicsAuth">登录物理实验系统</button>
+    </view>
+
+    <view class="section-card auth-panel" wx:if="{{authPanel === 'sport'}}">
+      <view class="section-title">体育系统测试</view>
+      <view class="section-note">使用体育系统账号密码，验证课程、体测等接口可访问性</view>
+      <view class="form-box">
+        <view class="form-row">
+          <view class="field-label">学号</view>
+          <input class="field-input" value="{{studentId}}" placeholder="请输入学号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
+        </view>
+        <view class="form-row">
+          <view class="field-label">密码</view>
+          <input class="field-input" type="password" value="{{sportPassword}}" placeholder="体育系统密码" placeholder-class="field-placeholder" bindinput="onSportPasswordInput" />
+        </view>
+      </view>
+      <button class="primary-action" loading="{{submittingAuth}}" disabled="{{submittingAuth}}" bindtap="submitSportAuth">登录体育系统</button>
+    </view>
+
+    <view class="section-card auth-panel" wx:if="{{authPanel === 'schoolnet'}}">
+      <view class="section-title">校园网自服务测试</view>
+      <view class="section-note">先获取图形验证码，再提交账号、查询密码和验证码</view>
+      <view class="form-box">
+        <view class="form-row">
+          <view class="field-label">账号</view>
+          <input class="field-input" value="{{studentId}}" placeholder="学号或校园网账号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
+        </view>
+        <view class="form-row">
+          <view class="field-label">密码</view>
+          <input class="field-input" type="password" value="{{schoolnetPassword}}" placeholder="校园网查询密码" placeholder-class="field-placeholder" bindinput="onSchoolnetPasswordInput" />
+        </view>
+        <view class="captcha-row">
+          <view class="captcha-input">
+            <view class="field-label">验证码</view>
+            <input class="field-input" value="{{schoolnetCaptcha}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onSchoolnetCaptchaInput" />
+          </view>
+          <view class="captcha-box" bindtap="refreshSchoolnetCaptcha">
+            <image wx:if="{{schoolnetImageSrc}}" class="captcha-image" src="{{schoolnetImageSrc}}" mode="aspectFit"></image>
+            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中' : '获取'}}</view>
+          </view>
+        </view>
+      </view>
+      <button class="secondary-action" loading="{{captchaLoading}}" disabled="{{captchaLoading}}" bindtap="refreshSchoolnetCaptcha">刷新验证码</button>
+      <button class="primary-action" loading="{{submittingAuth}}" disabled="{{submittingAuth}}" bindtap="submitSchoolnetAuth">登录校园网自服务</button>
+    </view>
+
+    <view class="section-card auth-panel" wx:if="{{authPanel === 'dormWater'}}">
+      <view class="section-title">宿舍水机测试</view>
+      <view class="section-note">手机号接收短信验证码后登录水机服务</view>
+      <view class="form-box">
+        <view class="form-row">
+          <view class="field-label">手机号</view>
+          <input class="field-input" type="digit" value="{{dormWaterPhone}}" placeholder="请输入手机号" placeholder-class="field-placeholder" bindinput="onDormWaterPhoneInput" />
+        </view>
+        <view class="captcha-row">
+          <view class="captcha-input">
+            <view class="field-label">图形码</view>
+            <input class="field-input" value="{{dormWaterImageCode}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onDormWaterImageCodeInput" />
+          </view>
+          <view class="captcha-box" bindtap="refreshDormWaterCaptcha">
+            <image wx:if="{{dormWaterImageSrc}}" class="captcha-image" src="{{dormWaterImageSrc}}" mode="aspectFit"></image>
+            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中' : '获取'}}</view>
+          </view>
+        </view>
+        <view class="form-row">
+          <view class="field-label">短信码</view>
+          <input class="field-input" type="digit" value="{{dormWaterSmsCode}}" placeholder="短信验证码" placeholder-class="field-placeholder" bindinput="onDormWaterSmsCodeInput" />
+        </view>
+      </view>
+      <button class="secondary-action" loading="{{smsSending}}" disabled="{{smsSending}}" bindtap="sendDormWaterCode">发送短信验证码</button>
+      <button class="primary-action" loading="{{submittingAuth}}" disabled="{{submittingAuth}}" bindtap="submitDormWaterAuth">登录宿舍水机</button>
+    </view>
+
+    <view class="section-card result-card" wx:if="{{authMessage}}">
+      <view class="result-title">{{authMessage}}</view>
+      <view class="result-row" wx:for="{{authResultRows}}" wx:key="key">
+        <view class="result-key">{{item.key}}</view>
+        <view class="result-value">{{item.value}}</view>
+      </view>
+    </view>
+
+    <view class="calendar-section section-card" wx:if="{{service.kind === 'schedule' || service.calendarSource}}">
+      <view class="section-head-tight">
+        <view>
+          <view class="section-title">日历视图</view>
+          <view class="section-note">{{calendar.startDate}} - {{calendar.endDate}}</view>
+        </view>
+      </view>
+      <view class="week-strip">
+        <view class="day-tab {{item.isToday ? 'today' : ''}}" wx:for="{{calendarDays}}" wx:key="date">
+          <view class="day-week">周{{item.label || item.weekday}}</view>
+          <view class="day-date">{{item.shortDate}}</view>
+          <view class="day-count">{{item.items.length}}</view>
+        </view>
+      </view>
+      <view class="calendar-list">
+        <view class="calendar-day" wx:for="{{calendarDays}}" wx:key="date">
+          <view class="calendar-day-head">
+            <view>
+              <view class="calendar-day-title">周{{item.label || item.weekday}}</view>
+              <view class="calendar-day-date">{{item.date}}</view>
+            </view>
+          </view>
+          <view wx:if="{{item.items.length}}" class="schedule-list">
+            <view class="schedule-row" wx:for="{{item.items}}" wx:for-item="schedule" wx:key="id">
+              <view class="schedule-time">{{schedule.timeRange}}</view>
+              <view class="schedule-body">
+                <view class="schedule-title">{{schedule.title}}</view>
+                <view class="schedule-meta">{{schedule.sourceLabel}} · {{schedule.location}}</view>
+                <view wx:if="{{schedule.teacher || schedule.section}}" class="schedule-meta">{{schedule.teacher}} {{schedule.section}}</view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="day-empty">{{service.emptyText || '当天暂无安排'}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card info-card">
+      <view class="section-title">接入信息</view>
+      <view class="info-row">
+        <view class="info-label">认证</view>
+        <view class="info-value">{{service.authLabel}}</view>
+      </view>
+      <view class="info-row">
+        <view class="info-label">权限</view>
+        <view class="info-value">{{service.requiredAccess}}</view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{service.features.length}}">
+      <view class="section-title">功能覆盖</view>
+      <view class="tag-wrap">
+        <view class="feature-tag" wx:for="{{service.features}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{service.dataFields.length}}">
+      <view class="section-title">数据字段</view>
+      <view class="field-grid">
+        <view class="field-chip" wx:for="{{service.dataFields}}" wx:key="*this">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{maps.length}}">
+      <view class="section-head-tight">
+        <view class="section-title">相关地图</view>
+        <view class="section-link" bindtap="openMap">打开地图</view>
+      </view>
+      <view class="map-row" wx:for="{{maps}}" wx:key="id">
+        <view class="map-title">{{item.name}}</view>
+        <view class="map-desc">{{item.description}}</view>
+      </view>
+    </view>
+  </block>
 </view>

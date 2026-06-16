@@ -16,6 +16,8 @@ Page({
       nickname: '',
       bio: '',
       gender: '',
+      college: '',
+      major: '',
       studentId: '',
       email: ''
     },
@@ -42,6 +44,8 @@ Page({
           nickname,
           bio: profile.bio || '',
           gender: profile.gender || '',
+          college: profile.college || '',
+          major: profile.major || '',
           studentId: profile.studentId || '',
           email: profile.email || ''
         },
@@ -135,6 +139,8 @@ Page({
         nickname,
         bio,
         gender: this.data.form.gender,
+        college: this.data.form.college.trim(),
+        major: this.data.form.major.trim(),
         avatarUrl: this.data.avatarPreview || '',
         backgroundImageUrl: this.data.backgroundPreview || ''
       });

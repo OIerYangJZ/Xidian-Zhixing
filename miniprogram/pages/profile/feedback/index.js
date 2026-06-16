@@ -1,6 +1,7 @@
 import { requireLoginPage } from '../../../utils/auth_guard';
-import { submitFeedback } from '../../../api/user';
+import { getMyFeedbacks, submitFeedback } from '../../../api/user';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { formatTime } from '../../../utils/format';
 
 Page({
   data: {
@@ -8,12 +9,32 @@ Page({
     categoryIndex: 0,
     content: '',
     contact: '',
+    records: [],
+    loadingRecords: true,
     submitting: false
   },
 
   onShow() {
     applyThemeAndLanguage(this);
-    requireLoginPage();
+    if (!requireLoginPage()) return;
+    this.loadRecords();
+  },
+
+  async loadRecords() {
+    this.setData({ loadingRecords: true });
+    try {
+      const records = await getMyFeedbacks();
+      this.setData({
+        records: records.map((item) => ({
+          ...item,
+          timeText: formatTime(item.createdAt),
+          statusText: item.status === 'resolved' ? '已回复' : (item.status === 'closed' ? '已关闭' : '待处理')
+        })),
+        loadingRecords: false
+      });
+    } catch (error) {
+      this.setData({ loadingRecords: false });
+    }
   },
 
   onContentInput(event) {
@@ -44,9 +65,7 @@ Page({
       });
       wx.showToast({ title: '已提交反馈', icon: 'success' });
       this.setData({ content: '', contact: '', submitting: false });
-      setTimeout(() => {
-        wx.navigateBack({ fail: () => wx.navigateTo({ url: '/pages/profile/index' }) });
-      }, 700);
+      this.loadRecords();
     } catch (error) {
       this.setData({ submitting: false });
     }

@@ -189,6 +189,14 @@ page {
   word-break: break-word;
 }
 
+.profile-school-meta {
+  margin-top: 8rpx;
+  color: var(--app-text-primary);
+  font-size: 26rpx;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
 .profile-gender {
   display: flex;
   align-items: center;
