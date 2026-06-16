@@ -591,17 +591,17 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_post(self, path: str) -> None:
-        def require_campus_auth_user() -> bool:
+        def require_campus_auth_user() -> dict[str, Any] | None:
             with DB_LOCK:
                 db = load_db()
                 user, _ = auth_user_helper(self, db)
             if user is None or user.get("deleted"):
                 json_error(self, HTTPStatus.UNAUTHORIZED, "请先登录")
-                return False
+                return None
             if user.get("banned"):
                 json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
-                return False
-            return True
+                return None
+            return user
 
         def send_campus_auth_result(fn: Any) -> None:
             try:
@@ -618,16 +618,28 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _auth_handler.handle_xidian_password_login(self, db)
             return
         if path == "/api/campus/auth/ids":
-            if not require_campus_auth_user():
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
-            send_campus_auth_result(lambda: _campus_auth.login_ids(
-                body.get("identifier", body.get("studentId", "")),
-                body.get("password", ""),
-            ))
+            try:
+                with DB_LOCK:
+                    db = load_db()
+                    data = _campus_auth.login_ids(
+                        body.get("identifier", body.get("studentId", "")),
+                        body.get("password", ""),
+                        owner_user_id=str(user.get("id", "")),
+                        db=db,
+                    )
+                    save_db(db)
+            except Exception as error:
+                status, message = _campus_auth.map_campus_auth_error(error)
+                json_error(self, HTTPStatus(status), message)
+                return
+            send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
             return
         if path == "/api/campus/auth/payment":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_payment(
@@ -636,7 +648,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/physics":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_physics(
@@ -645,7 +657,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/sport":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_sport(
@@ -654,7 +666,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/schoolnet/captcha":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.create_schoolnet_captcha(
@@ -662,7 +674,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/schoolnet/login":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_schoolnet(
@@ -673,12 +685,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/dorm-water/captcha":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             send_campus_auth_result(lambda: _campus_auth.create_dorm_water_captcha())
             return
         if path == "/api/campus/auth/dorm-water/sms":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.send_dorm_water_sms(
@@ -688,7 +700,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/dorm-water/login":
-            if not require_campus_auth_user():
+            if require_campus_auth_user() is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_dorm_water(

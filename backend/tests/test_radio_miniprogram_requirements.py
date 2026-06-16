@@ -184,6 +184,65 @@ def test_calendar_schedules_all_source_returns_merged_rows() -> None:
     assert [row["id"] for row in items] == ["course-1", "exam-1"]
 
 
+def test_calendar_schedules_hides_other_users_private_rows() -> None:
+    from handlers._radio_handler import handle_campus_calendar_schedules
+
+    db = make_db()
+    db["courseSchedules"].append({
+        "id": "mine",
+        "ownerUserId": "u1",
+        "title": "我的课",
+        "date": "2026-06-16",
+        "startTime": "08:30",
+        "endTime": "10:05",
+    })
+    db["courseSchedules"].append({
+        "id": "other",
+        "ownerUserId": "u2",
+        "title": "别人的课",
+        "date": "2026-06-16",
+        "startTime": "10:25",
+        "endTime": "12:00",
+    })
+    db["courseSchedules"].append({
+        "id": "public",
+        "title": "公共日程",
+        "date": "2026-06-16",
+        "startTime": "14:00",
+        "endTime": "15:00",
+    })
+    handler = FakeHandler()
+    handle_campus_calendar_schedules(
+        handler,
+        db,
+        {"startDate": ["2026-06-16"], "days": ["1"], "source": ["courseSchedules"]},
+    )
+
+    items = handler.payload()["data"]["days"][0]["items"]
+    assert [row["id"] for row in items] == ["mine", "public"]
+
+
+def test_apply_ids_academic_data_replaces_current_user_synced_rows() -> None:
+    from helpers._campus_auth import apply_ids_academic_data
+
+    db = make_db()
+    db["courseSchedules"] = [
+        {"id": "old", "ownerUserId": "u1", "sourceProvider": "xidian-ehall"},
+        {"id": "manual", "ownerUserId": "u1", "sourceProvider": "manual"},
+        {"id": "other", "ownerUserId": "u2", "sourceProvider": "xidian-ehall"},
+    ]
+    synced = {
+        "courseSchedules": [{"id": "new", "ownerUserId": "u1", "sourceProvider": "xidian-ehall"}],
+        "examSchedules": [{"id": "exam", "ownerUserId": "u1", "sourceProvider": "xidian-ehall"}],
+    }
+
+    counts = apply_ids_academic_data(db, owner_user_id="u1", synced=synced)
+
+    assert counts == {"courseSchedules": 1, "examSchedules": 1}
+    assert [row["id"] for row in db["courseSchedules"]] == ["manual", "other", "new"]
+    assert [row["id"] for row in db["examSchedules"]] == ["exam"]
+
+
 def test_xidian_official_guides_seed_ai_knowledge() -> None:
     from handlers._radio_handler import handle_ai_search
 
@@ -209,8 +268,9 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
     monkeypatch.setattr(
         server._campus_auth,
         "login_ids",
-        lambda identifier, password: {"system": "ids", "studentId": identifier, "message": "ok"},
+        lambda identifier, password, **_kwargs: {"system": "ids", "studentId": identifier, "message": "ok"},
     )
+    monkeypatch.setattr(server, "save_db", lambda _db: None)
     authed_handler = FakeHandler(body={"identifier": "2300000000", "password": "secret-pass"})
     server.TreeholeHandler._handle_post(authed_handler, "/api/campus/auth/ids")
 

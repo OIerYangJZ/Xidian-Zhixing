@@ -260,6 +260,9 @@ Page({
       resultMessage: (result && result.message) || '验证通过',
       resultRows: resultRows(display)
     });
+    if (systemId === 'ids') {
+      wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
+    }
     wx.showToast({ title: '验证通过', icon: 'success' });
   },
 

@@ -14,6 +14,7 @@ Page({
     groupedServices: [],
     todaySchedules: [],
     todayScheduleDate: '',
+    lastScheduleUpdatedAt: 0,
     userInfo: null,
     touchStartX: 0,
     touchStartY: 0
@@ -29,6 +30,11 @@ Page({
   onShow() {
     applyThemeAndLanguage(this);
     this.initCustomNav();
+    const updatedAt = Number(wx.getStorageSync('campusScheduleUpdatedAt') || 0);
+    if (updatedAt && updatedAt !== this.data.lastScheduleUpdatedAt) {
+      this.setData({ lastScheduleUpdatedAt: updatedAt });
+      this.loadData();
+    }
   },
 
   initCustomNav() {

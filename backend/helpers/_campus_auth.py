@@ -10,9 +10,10 @@ import string
 import threading
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 from helpers._xidian_auth import (
     IDS_HEADERS,
@@ -37,6 +38,12 @@ PAYMENT_SERVICE_URL = (
     "redirect=https://ignypt.xidian.edu.cn/revenueH5/login?"
     "opcode=MPAY&appid=200260318155520600&state=12312312312312&qrcode=0"
 )
+EHALL_HOME_SERVICE_URL = "https://ehall.xidian.edu.cn/login?service=https://ehall.xidian.edu.cn/new/index.html"
+EHALL_REFERER_URL = "http://ehall.xidian.edu.cn/new/index_xd.html"
+EHALL_APP_IDS = {
+    "classtable": "4770397878132218",
+    "exam": "4768687067472349",
+}
 PHYSICS_LOGIN_URL = "http://wlsy.xidian.edu.cn/PhyEws/default.aspx"
 PHYSICS_SELECT_URL = "http://wlsy.xidian.edu.cn/PhyEws/student/select.aspx"
 SPORT_BASE_URL = "http://tybjxgl.xidian.edu.cn/app"
@@ -85,6 +92,22 @@ class _InputCollector(HTMLParser):
 _SCHOOLNET_LOCK = threading.Lock()
 _SCHOOLNET_ATTEMPTS: dict[str, _SchoolnetAttempt] = {}
 _ATTEMPT_TTL_SECONDS = 8 * 60
+CLASS_SECTION_TIMES = {
+    1: ("08:30", "09:15"),
+    2: ("09:20", "10:05"),
+    3: ("10:25", "11:10"),
+    4: ("11:15", "12:00"),
+    5: ("14:00", "14:45"),
+    6: ("14:50", "15:35"),
+    7: ("15:55", "16:40"),
+    8: ("16:45", "17:30"),
+    9: ("19:00", "19:45"),
+    10: ("19:50", "20:35"),
+    11: ("20:40", "21:25"),
+}
+EXAM_TIME_RE = re.compile(
+    r"(?P<date>\d{4}-\d{2}-\d{2}).*?(?P<start>\d{2}):(?P<start_min>\d{2})-(?P<end>\d{2}):(?P<end_min>\d{2})"
+)
 
 
 def _cleanup_schoolnet_attempts_locked() -> None:
@@ -150,6 +173,18 @@ def _json_response(response: Any) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise CampusAuthError("目标系统响应格式异常")
     return data
+
+
+def _ehall_headers() -> dict[str, str]:
+    return {
+        "User-Agent": IDS_HEADERS["User-Agent"],
+        "Referer": EHALL_REFERER_URL,
+        "Host": "ehall.xidian.edu.cn",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "X-Requested-With": "XMLHttpRequest",
+    }
 
 
 def _host_from_url(url: str) -> str:
@@ -270,19 +305,273 @@ def _follow_redirects(session: Any, location: str, *, max_steps: int = 8) -> str
         next_location = response.headers.get("Location", "")
         if not next_location:
             return response.url or current
-        current = next_location
+        current = urljoin(response.url or current, next_location)
     return current
 
 
-def login_ids(identifier: str, password: str) -> dict[str, Any]:
+def _ensure_ehall_session(session: Any, location: str = "") -> None:
+    if location:
+        _follow_redirects(session, location)
+    requests = _import_requests()
+    try:
+        response = session.get(
+            "https://ehall.xidian.edu.cn/jsonp/getAppUsageMonitor.json",
+            params={"type": "uv"},
+            headers=_ehall_headers(),
+            timeout=_requests_timeout(),
+        )
+    except requests.RequestException as exc:
+        raise CampusAuthError("一站式登录状态检查失败") from exc
+    try:
+        data = response.json()
+    except ValueError:
+        data = {}
+    if isinstance(data, dict) and data.get("hasLogin") is True:
+        return
+    raise CampusAuthError("统一认证已通过，但一站式登录状态未生效")
+
+
+def _use_ehall_app(session: Any, app_id: str) -> str:
+    requests = _import_requests()
+    try:
+        response = session.get(
+            "https://ehall.xidian.edu.cn/appShow",
+            params={"appId": app_id},
+            headers=_ehall_headers(),
+            allow_redirects=False,
+            timeout=_requests_timeout(),
+        )
+    except requests.RequestException as exc:
+        raise CampusAuthError("一站式应用跳转失败") from exc
+    location = response.headers.get("Location", "")
+    if not location:
+        raise CampusAuthError("一站式应用未返回跳转地址")
+    return re.sub(r";jsessionid=.*?\?", "?", urljoin(response.url, location))
+
+
+def _open_ehall_app(session: Any, app_id: str, *, method: str = "get") -> None:
+    requests = _import_requests()
+    location = _use_ehall_app(session, app_id)
+    try:
+        if method == "post":
+            response = session.post(
+                location,
+                headers=_ehall_headers(),
+                allow_redirects=False,
+                timeout=_requests_timeout(),
+            )
+        else:
+            response = session.get(
+                location,
+                headers=_ehall_headers(),
+                allow_redirects=False,
+                timeout=_requests_timeout(),
+            )
+    except requests.RequestException as exc:
+        raise CampusAuthError("一站式应用初始化失败") from exc
+    next_location = response.headers.get("Location", "")
+    if next_location:
+        _follow_redirects(session, urljoin(response.url or location, next_location))
+
+
+def _post_ehall_json(session: Any, url: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
+    requests = _import_requests()
+    try:
+        response = session.post(
+            url,
+            data=data or {},
+            headers=_ehall_headers(),
+            timeout=_requests_timeout(),
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("一站式数据接口请求失败") from exc
+    return _json_response(response)
+
+
+def _current_semester_code(session: Any) -> str:
+    _open_ehall_app(session, EHALL_APP_IDS["classtable"], method="post")
+    data = _post_ehall_json(
+        session,
+        "https://ehall.xidian.edu.cn/jwapp/sys/wdkb/modules/jshkcb/dqxnxq.do",
+    )
+    rows = (((data.get("datas") or {}).get("dqxnxq") or {}).get("rows") or [])
+    if not rows:
+        raise CampusAuthError("一站式未返回当前学期")
+    return str(rows[0].get("DM", "")).strip()
+
+
+def _section_time_range(start: Any, stop: Any) -> tuple[str, str]:
+    try:
+        start_no = int(start)
+        stop_no = int(stop)
+    except (TypeError, ValueError):
+        return "", ""
+    start_time = CLASS_SECTION_TIMES.get(start_no, ("", ""))[0]
+    end_time = CLASS_SECTION_TIMES.get(stop_no, ("", ""))[1]
+    return start_time, end_time
+
+
+def _date_for_weekday(term_start: str, week_index: int, weekday: int) -> str:
+    base = datetime.fromisoformat(str(term_start).split(" ", 1)[0]).date()
+    return (base + timedelta(days=(week_index * 7) + max(0, weekday - 1))).isoformat()
+
+
+def _sync_course_schedules(session: Any, *, student_id: str, owner_user_id: str, semester_code: str) -> list[dict[str, Any]]:
+    _open_ehall_app(session, EHALL_APP_IDS["classtable"], method="post")
+    year_parts = semester_code.split("-")
+    term_start_data = _post_ehall_json(
+        session,
+        "https://ehall.xidian.edu.cn/jwapp/sys/wdkb/modules/jshkcb/cxjcs.do",
+        {
+            "XN": f"{year_parts[0]}-{year_parts[1]}" if len(year_parts) >= 2 else semester_code,
+            "XQ": year_parts[2] if len(year_parts) >= 3 else "",
+        },
+    )
+    term_rows = (((term_start_data.get("datas") or {}).get("cxjcs") or {}).get("rows") or [])
+    term_start = str((term_rows[0] if term_rows else {}).get("XQKSRQ", "")).strip()
+    if not term_start:
+        raise CampusAuthError("一站式未返回学期开始日期")
+
+    data = _post_ehall_json(
+        session,
+        "https://ehall.xidian.edu.cn/jwapp/sys/wdkb/modules/xskcb/xskcb.do",
+        {"XNXQDM": semester_code, "XH": student_id},
+    )
+    table = ((data.get("datas") or {}).get("xskcb") or {})
+    ext = table.get("extParams") if isinstance(table.get("extParams"), dict) else {}
+    if ext and int(ext.get("code", 1) or 0) != 1:
+        message = str(ext.get("msg") or "课表接口返回异常")
+        if "未发布" in message:
+            return []
+        raise CampusAuthError(message)
+    rows = table.get("rows") if isinstance(table.get("rows"), list) else []
+    schedules: list[dict[str, Any]] = []
+    for row in rows:
+        week_bits = str(row.get("SKZC") or "")
+        weekday = int(row.get("SKXQ") or 0)
+        start_time, end_time = _section_time_range(row.get("KSJC"), row.get("JSJC"))
+        if not week_bits or not weekday or not start_time or not end_time:
+            continue
+        for week_index, enabled in enumerate(week_bits):
+            if enabled != "1":
+                continue
+            schedules.append({
+                "id": f"ids-course-{owner_user_id}-{semester_code}-{row.get('KCH', '')}-{row.get('KXH', '')}-{week_index + 1}-{weekday}-{row.get('KSJC', '')}",
+                "ownerUserId": owner_user_id,
+                "studentId": student_id,
+                "semesterCode": semester_code,
+                "title": str(row.get("KCM") or ""),
+                "date": _date_for_weekday(term_start, week_index, weekday),
+                "startTime": start_time,
+                "endTime": end_time,
+                "location": str(row.get("JASMC") or ""),
+                "teacher": str(row.get("SKJS") or ""),
+                "section": f"{row.get('KSJC')}-{row.get('JSJC')} 节",
+                "kind": "course",
+                "sourceProvider": "xidian-ehall",
+            })
+    return schedules
+
+
+def _parse_exam_time(value: Any) -> tuple[str, str, str]:
+    match = EXAM_TIME_RE.search(str(value or ""))
+    if not match:
+        return "", "", ""
+    return (
+        match.group("date"),
+        f"{match.group('start')}:{match.group('start_min')}",
+        f"{match.group('end')}:{match.group('end_min')}",
+    )
+
+
+def _sync_exam_schedules(session: Any, *, student_id: str, owner_user_id: str, semester_code: str) -> list[dict[str, Any]]:
+    _open_ehall_app(session, EHALL_APP_IDS["exam"])
+    data = _post_ehall_json(
+        session,
+        "https://ehall.xidian.edu.cn/jwapp/sys/studentWdksapApp/modules/wdksap/wdksap.do",
+        {"XNXQDM": semester_code, "*order": "-KSRQ,-KSSJMS"},
+    )
+    table = ((data.get("datas") or {}).get("wdksap") or {})
+    rows = table.get("rows") if isinstance(table.get("rows"), list) else []
+    schedules: list[dict[str, Any]] = []
+    for index, row in enumerate(rows):
+        date_text, start_time, end_time = _parse_exam_time(row.get("KSSJMS"))
+        if not date_text:
+            continue
+        schedules.append({
+            "id": f"ids-exam-{owner_user_id}-{semester_code}-{row.get('KCH', '')}-{index}",
+            "ownerUserId": owner_user_id,
+            "studentId": student_id,
+            "semesterCode": semester_code,
+            "title": str(row.get("KCM") or row.get("KCMH") or "考试"),
+            "date": date_text,
+            "startTime": start_time,
+            "endTime": end_time,
+            "location": str(row.get("JASMC") or "尚无安排"),
+            "teacher": "",
+            "section": str(row.get("ZWH") or ""),
+            "kind": "exam",
+            "examType": str(row.get("KSMC") or ""),
+            "sourceProvider": "xidian-ehall",
+        })
+    return schedules
+
+
+def sync_ids_academic_data(session: Any, *, student_id: str, owner_user_id: str) -> dict[str, Any]:
+    semester_code = _current_semester_code(session)
+    courses = _sync_course_schedules(
+        session,
+        student_id=student_id,
+        owner_user_id=owner_user_id,
+        semester_code=semester_code,
+    )
+    exams = _sync_exam_schedules(
+        session,
+        student_id=student_id,
+        owner_user_id=owner_user_id,
+        semester_code=semester_code,
+    )
+    return {
+        "semesterCode": semester_code,
+        "courseSchedules": courses,
+        "examSchedules": exams,
+    }
+
+
+def apply_ids_academic_data(db: dict[str, Any], *, owner_user_id: str, synced: dict[str, Any]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    for key in ("courseSchedules", "examSchedules"):
+        rows = synced.get(key) if isinstance(synced.get(key), list) else []
+        db[key] = [
+            row for row in db.get(key, [])
+            if str(row.get("ownerUserId", "")) != owner_user_id or str(row.get("sourceProvider", "")) != "xidian-ehall"
+        ]
+        db[key].extend(rows)
+        counts[key] = len(rows)
+    return counts
+
+
+def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: dict[str, Any] | None = None) -> dict[str, Any]:
     student_id = _require_identifier(identifier)
-    result = login_via_xidian_ids(student_id, _require_password(password, "统一认证密码"))
+    password = _require_password(password, "统一认证密码")
+    session, location = _login_ids_for_service(student_id, password, EHALL_HOME_SERVICE_URL)
+    _ensure_ehall_session(session, location)
+    synced = sync_ids_academic_data(session, student_id=student_id, owner_user_id=owner_user_id or student_id)
+    sync_counts = {"courseSchedules": 0, "examSchedules": 0}
+    if db is not None and owner_user_id:
+        sync_counts = apply_ids_academic_data(db, owner_user_id=owner_user_id, synced=synced)
     return {
         "system": "ids",
         "status": "authenticated",
-        "studentId": result.student_id,
-        "email": result.campus_email,
-        "message": "统一认证验证通过",
+        "studentId": student_id,
+        "email": f"{student_id}@stu.xidian.edu.cn",
+        "semesterCode": synced.get("semesterCode", ""),
+        "synced": {
+            "courseCount": sync_counts.get("courseSchedules", 0),
+            "examCount": sync_counts.get("examSchedules", 0),
+        },
+        "message": "统一认证验证通过，已同步课表和考试安排",
     }
 
 

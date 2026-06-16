@@ -261,6 +261,18 @@ Page({
     });
   },
 
+  async reloadCalendar() {
+    const service = this.data.service || {};
+    const source = service.calendarSource || '';
+    if (!(service.kind === 'schedule' || source)) return;
+    const calendarData = await getCalendarSchedules({ source });
+    const calendar = calendarData.data || calendarData || {};
+    this.setData({
+      calendar,
+      calendarDays: buildCalendarDays(calendar)
+    });
+  },
+
   showAuthError(error, fallback) {
     const message = errorMessage(error, fallback);
     this.setData({
@@ -283,7 +295,9 @@ Page({
         : await loginCampusIds(studentId, idsPassword);
       wx.hideLoading();
       this.showAuthResult(response.data || response || {});
+      wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
       wx.showToast({ title: '验证通过', icon: 'success' });
+      this.reloadCalendar().catch((error) => console.error(error));
     } catch (error) {
       wx.hideLoading();
       console.error(error);

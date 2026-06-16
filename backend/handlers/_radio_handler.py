@@ -698,6 +698,7 @@ def _time_minutes(value: str) -> int:
 def _serialize_schedule_row(row: dict[str, Any], source_key: str, source_label: str) -> dict[str, Any]:
     item = {
         "id": str(row.get("id", "")),
+        "ownerUserId": str(row.get("ownerUserId", "")),
         "source": source_key,
         "sourceLabel": source_label,
         "title": str(row.get("title", "")),
@@ -713,7 +714,7 @@ def _serialize_schedule_row(row: dict[str, Any], source_key: str, source_label: 
     return item
 
 
-def _campus_schedule_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
+def _campus_schedule_rows(db: dict[str, Any], *, owner_user_id: str = "") -> list[dict[str, Any]]:
     sources = [
         ("courseSchedules", "课表"),
         ("examSchedules", "考试安排"),
@@ -722,6 +723,9 @@ def _campus_schedule_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for source_key, source_label in sources:
         for row in db.get(source_key, []):
+            row_owner = str(row.get("ownerUserId", ""))
+            if row_owner and row_owner != owner_user_id:
+                continue
             item = _serialize_schedule_row(row, source_key, source_label)
             if not item["date"]:
                 continue
@@ -732,11 +736,13 @@ def _campus_schedule_rows(db: dict[str, Any]) -> list[dict[str, Any]]:
 
 def handle_campus_today_schedules(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
+    user, _ = auth_user_helper(handler, db)
+    owner_user_id = str((user or {}).get("id", ""))
     now = datetime.now(SCHOOL_TZ)
     today = now.date().isoformat()
     now_minutes = now.hour * 60 + now.minute
     rows: list[dict[str, Any]] = []
-    for item in _campus_schedule_rows(db):
+    for item in _campus_schedule_rows(db, owner_user_id=owner_user_id):
         if item["date"] != today:
             continue
         try:
@@ -765,6 +771,8 @@ def handle_campus_calendar_schedules(
     query: dict[str, list[str]],
 ) -> None:
     ensure_radio_schema(db)
+    user, _ = auth_user_helper(handler, db)
+    owner_user_id = str((user or {}).get("id", ""))
     today = datetime.now(SCHOOL_TZ).date()
     start_text = (query.get("startDate", [""])[0] or "").strip()
     try:
@@ -778,7 +786,7 @@ def handle_campus_calendar_schedules(
     wanted_dates = [(start_date + timedelta(days=offset)).isoformat() for offset in range(days_count)]
     rows = [
         item
-        for item in _campus_schedule_rows(db)
+        for item in _campus_schedule_rows(db, owner_user_id=owner_user_id)
         if item["date"] in wanted_dates and (not source_filter or item["source"] == source_filter)
     ]
     day_payload = []
