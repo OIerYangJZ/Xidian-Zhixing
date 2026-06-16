@@ -462,12 +462,6 @@ def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, 
 
     try:
         result = login_via_xidian_ids(student_id, password, email_hint=email_hint)
-        auth_payload = _issue_auth_payload(
-            db,
-            student_id=result.student_id,
-            campus_email=result.campus_email,
-            audit_action="login_by_xidian_ids_password",
-        )
     except PermissionError as error:
         json_error(handler, HTTPStatus.FORBIDDEN, str(error))
         return
@@ -481,7 +475,20 @@ def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, 
         json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
         return
 
-    send_json(handler, HTTPStatus.OK, {"data": auth_payload}, no_cache=True)
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": {
+                "system": "ids",
+                "status": "authenticated",
+                "studentId": result.student_id,
+                "email": result.campus_email,
+                "message": "统一认证验证通过",
+            }
+        },
+        no_cache=True,
+    )
 
 
 def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:

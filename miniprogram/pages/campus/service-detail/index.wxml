@@ -15,7 +15,7 @@
     <view class="section-card auth-entry-card" wx:if="{{service.slug !== 'ids-login'}}" bindtap="openIdsLogin">
       <view class="card-main">
         <view class="card-title">西电统一认证入口</view>
-        <view class="card-desc">用于登录电台账号并验证学生身份</view>
+        <view class="card-desc">仅用于校园服务测试，不影响电台账号登录状态</view>
       </view>
       <view class="card-arrow">›</view>
     </view>

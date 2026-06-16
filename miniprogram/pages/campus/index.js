@@ -115,12 +115,7 @@ Page({
   },
 
   openIdsLogin() {
-    const service = this.data.services.find((item) => item.slug === 'ids-login');
-    if (service) {
-      wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
-      return;
-    }
-    wx.navigateTo({ url: '/pages/profile/auth/index?mode=xidian' });
+    wx.navigateTo({ url: '/pages/campus/auth-center/index?system=ids' });
   },
 
   openQuickLink(event) {

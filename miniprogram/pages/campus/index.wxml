@@ -17,7 +17,7 @@
       <view class="ids-mark"></view>
       <view class="ids-body">
         <view class="ids-title">西电统一认证</view>
-        <view class="ids-desc">登录 IDS 后测试一站式、缴费、课表等校园服务</view>
+        <view class="ids-desc">管理统一认证、水电、物理实验等校园系统登录</view>
       </view>
       <view class="ids-arrow">›</view>
     </view>

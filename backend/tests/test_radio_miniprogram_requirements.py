@@ -218,7 +218,7 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
     assert authed_handler.payload()["data"]["system"] == "ids"
 
 
-def test_xidian_password_login_issues_token(monkeypatch) -> None:
+def test_xidian_password_login_returns_campus_auth_result_without_token(monkeypatch) -> None:
     import handlers._auth_handler as auth_handler
     from helpers._xidian_auth import XidianAuthResult
 
@@ -236,7 +236,9 @@ def test_xidian_password_login_issues_token(monkeypatch) -> None:
 
     payload = handler.payload()["data"]
     assert handler.status_code == 200
-    assert payload["token"]
+    assert "token" not in payload
+    assert payload["system"] == "ids"
+    assert payload["status"] == "authenticated"
     assert payload["studentId"] == "2300000000"
     assert payload["email"] == "2300000000@stu.xidian.edu.cn"
 

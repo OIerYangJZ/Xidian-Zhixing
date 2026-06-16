@@ -1,4 +1,4 @@
-import { login, loginWithXidianPassword } from '../../../api/auth';
+import { login } from '../../../api/auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -6,7 +6,6 @@ Page({
     applyThemeAndLanguage(this);
   },
   data: {
-    authMode: 'xidian',
     identifier: '',
     password: '',
     submitting: false
@@ -14,15 +13,12 @@ Page({
 
   onLoad(options) {
     if (options && options.mode === 'xidian') {
-      this.setData({ authMode: 'xidian' });
-      wx.setNavigationBarTitle({ title: '西电统一认证' });
+      wx.redirectTo({
+        url: '/pages/campus/auth-center/index?system=ids'
+      });
+      return;
     }
-  },
-
-  switchAuthMode(e) {
-    const mode = e.currentTarget.dataset.mode;
-    if (!mode || mode === this.data.authMode) return;
-    this.setData({ authMode: mode });
+    wx.setNavigationBarTitle({ title: '电台账号登录' });
   },
 
   onIdentifierInput(e) {
@@ -34,19 +30,17 @@ Page({
   },
 
   async handleLogin() {
-    const { authMode, identifier, password, submitting } = this.data;
+    const { identifier, password, submitting } = this.data;
     if (submitting) return;
     if (!identifier || !password) {
-      wx.showToast({ title: authMode === 'xidian' ? '请输入学号和统一认证密码' : '请输入账号和密码', icon: 'none' });
+      wx.showToast({ title: '请输入账号和密码', icon: 'none' });
       return;
     }
 
     this.setData({ submitting: true });
-    wx.showLoading({ title: authMode === 'xidian' ? '统一认证中' : '登录中' });
+    wx.showLoading({ title: '登录中' });
     try {
-      const res = authMode === 'xidian'
-        ? await loginWithXidianPassword(identifier, password)
-        : await login(identifier, password);
+      const res = await login(identifier, password);
       wx.hideLoading();
       if (res && res.data && res.data.token) {
         wx.setStorageSync('token', res.data.token);
@@ -73,6 +67,10 @@ Page({
     } catch (err) {
       wx.hideLoading();
       console.error(err);
+      wx.showToast({
+        title: (err && err.data && err.data.message) || '登录失败，请检查账号和密码',
+        icon: 'none'
+      });
     } finally {
       this.setData({ submitting: false });
     }

@@ -3,15 +3,8 @@
     <view class="brand-block">
       <view class="brand-mark">电</view>
       <view class="brand-name">SeeRadio</view>
-      <view class="brand-subtitle">西电校园服务</view>
+      <view class="brand-subtitle">电台账号登录</view>
     </view>
-
-    <view class="mode-control">
-      <view class="mode-item {{authMode === 'xidian' ? 'active' : ''}}" data-mode="xidian" bindtap="switchAuthMode">西电统一认证</view>
-      <view class="mode-item {{authMode === 'local' ? 'active' : ''}}" data-mode="local" bindtap="switchAuthMode">电台账号</view>
-    </view>
-
-    <view class="auth-tip" wx:if="{{authMode === 'xidian'}}">用于校园服务测试和一站式校内入口验证</view>
 
     <view class="form-list">
       <view class="form-row">
@@ -19,7 +12,7 @@
         <input
           class="field-input"
           value="{{identifier}}"
-          placeholder="{{authMode === 'xidian' ? '学号' : '学号或邮箱'}}"
+          placeholder="学号或邮箱"
           placeholder-class="field-placeholder"
           bindinput="onIdentifierInput"
         />
@@ -31,7 +24,7 @@
           class="field-input"
           type="password"
           value="{{password}}"
-          placeholder="{{authMode === 'xidian' ? '统一认证密码' : '电台账号密码'}}"
+          placeholder="电台账号密码"
           placeholder-class="field-placeholder"
           bindinput="onPasswordInput"
         />
@@ -39,10 +32,10 @@
     </view>
 
     <button class="login-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleLogin">
-      {{authMode === 'xidian' ? '登录统一认证' : '登录'}}
+      登录
     </button>
 
-    <view class="aux-actions" wx:if="{{authMode === 'local'}}">
+    <view class="aux-actions">
       <text class="aux-link" bindtap="handleEmailCodeLogin">验证码登录/注册</text>
       <text class="aux-dot"></text>
       <text class="aux-link" bindtap="handleResetPassword">忘记密码</text>

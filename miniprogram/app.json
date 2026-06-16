@@ -5,6 +5,7 @@
     "pages/ai/index",
     "pages/announcements/index",
     "pages/announcements/detail/index",
+    "pages/campus/auth-center/index",
     "pages/campus/service-detail/index",
     "pages/campus/webview/index",
     "pages/campus/map/index",

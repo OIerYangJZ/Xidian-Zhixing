@@ -85,6 +85,12 @@ const resultRows = (result = {}) => {
   return rows;
 };
 
+const errorMessage = (error, fallback = '操作失败，请稍后重试') => {
+  return (error && error.data && error.data.message)
+    || (error && error.message)
+    || fallback;
+};
+
 const resolveAuthPanel = (service = {}) => {
   const slug = service.slug || '';
   const authType = service.authType || '';
@@ -255,6 +261,16 @@ Page({
     });
   },
 
+  showAuthError(error, fallback) {
+    const message = errorMessage(error, fallback);
+    this.setData({
+      authResult: null,
+      authResultRows: [],
+      authMessage: message
+    });
+    wx.showToast({ title: message, icon: 'none' });
+  },
+
   async submitIdsAuth() {
     const { studentId, idsPassword, authPanel } = this.data;
     if (!this.ensureStudentAndPassword(idsPassword, '统一认证密码')) return;
@@ -270,6 +286,7 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error(error);
+      this.showAuthError(error, '统一认证验证失败');
     } finally {
       this.setData({ submittingAuth: false, idsPassword: '' });
     }
@@ -288,6 +305,7 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error(error);
+      this.showAuthError(error, '物理实验系统登录失败');
     } finally {
       this.setData({ submittingAuth: false, physicsPassword: '' });
     }
@@ -306,6 +324,7 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error(error);
+      this.showAuthError(error, '体育系统登录失败');
     } finally {
       this.setData({ submittingAuth: false, sportPassword: '' });
     }
@@ -327,6 +346,7 @@ Page({
       });
     } catch (error) {
       console.error(error);
+      this.showAuthError(error, '校园网验证码获取失败');
     } finally {
       this.setData({ captchaLoading: false });
     }
@@ -359,6 +379,7 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error(error);
+      this.showAuthError(error, '校园网自服务登录失败');
       this.refreshSchoolnetCaptcha();
     } finally {
       this.setData({ submittingAuth: false, schoolnetPassword: '', schoolnetCaptcha: '' });
@@ -377,6 +398,7 @@ Page({
       });
     } catch (error) {
       console.error(error);
+      this.showAuthError(error, '宿舍水机验证码获取失败');
     } finally {
       this.setData({ captchaLoading: false });
     }
@@ -399,6 +421,7 @@ Page({
       wx.showToast({ title: '短信已发送', icon: 'success' });
     } catch (error) {
       console.error(error);
+      this.showAuthError(error, '短信验证码发送失败');
       this.refreshDormWaterCaptcha();
     } finally {
       this.setData({ smsSending: false });
@@ -421,13 +444,14 @@ Page({
     } catch (error) {
       wx.hideLoading();
       console.error(error);
+      this.showAuthError(error, '宿舍水机登录失败');
     } finally {
       this.setData({ submittingAuth: false, dormWaterSmsCode: '' });
     }
   },
 
   openIdsLogin() {
-    wx.navigateTo({ url: '/pages/profile/auth/index?mode=xidian' });
+    wx.navigateTo({ url: '/pages/campus/auth-center/index?system=ids' });
   },
 
   runAction(event) {
