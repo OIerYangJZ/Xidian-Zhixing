@@ -783,11 +783,16 @@ def handle_campus_calendar_schedules(
     source_filter = (query.get("source", [""])[0] or "").strip()
     if source_filter == "all":
         source_filter = ""
+    wanted_sources = {"courseSchedules", "examSchedules"} if source_filter == "academic" else set()
     wanted_dates = [(start_date + timedelta(days=offset)).isoformat() for offset in range(days_count)]
     rows = [
         item
         for item in _campus_schedule_rows(db, owner_user_id=owner_user_id)
-        if item["date"] in wanted_dates and (not source_filter or item["source"] == source_filter)
+        if item["date"] in wanted_dates
+        and (
+            bool(wanted_sources and item["source"] in wanted_sources)
+            or (not wanted_sources and (not source_filter or item["source"] == source_filter))
+        )
     ]
     day_payload = []
     for date_text in wanted_dates:

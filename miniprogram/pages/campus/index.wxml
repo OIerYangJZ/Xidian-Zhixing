@@ -48,7 +48,6 @@
         <view class="service-card" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
           <view class="service-symbol service-symbol-{{service.kind}}"></view>
           <view class="service-name">{{service.name}}</view>
-          <view class="service-status">{{service.status}}</view>
         </view>
       </view>
     </view>

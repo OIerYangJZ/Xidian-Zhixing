@@ -184,6 +184,46 @@ def test_calendar_schedules_all_source_returns_merged_rows() -> None:
     assert [row["id"] for row in items] == ["course-1", "exam-1"]
 
 
+def test_calendar_schedules_academic_source_merges_courses_and_exams_only() -> None:
+    from handlers._radio_handler import handle_campus_calendar_schedules
+
+    db = make_db()
+    db["courseSchedules"].append({
+        "id": "course-1",
+        "title": "信号与系统",
+        "date": "2026-06-16",
+        "startTime": "08:30",
+        "endTime": "10:05",
+        "location": "南校区 B 楼 203",
+    })
+    db["examSchedules"].append({
+        "id": "exam-1",
+        "title": "大学物理考试",
+        "date": "2026-06-16",
+        "startTime": "14:00",
+        "endTime": "16:00",
+        "location": "南校区 C 楼 101",
+    })
+    db["experimentSchedules"].append({
+        "id": "experiment-1",
+        "title": "物理实验",
+        "date": "2026-06-16",
+        "startTime": "19:00",
+        "endTime": "20:35",
+        "location": "实验楼",
+    })
+    handler = FakeHandler()
+    handle_campus_calendar_schedules(
+        handler,
+        db,
+        {"startDate": ["2026-06-16"], "days": ["1"], "source": ["academic"]},
+    )
+
+    items = handler.payload()["data"]["days"][0]["items"]
+    assert handler.status_code == 200
+    assert [row["id"] for row in items] == ["course-1", "exam-1"]
+
+
 def test_calendar_schedules_hides_other_users_private_rows() -> None:
     from handlers._radio_handler import handle_campus_calendar_schedules
 

@@ -53,8 +53,12 @@ Page({
     const services = servicesResponse.data || servicesResponse || [];
     const scheduleData = todaySchedulesResponse.data || todaySchedulesResponse;
     const todaySchedules = Array.isArray(scheduleData.items) ? scheduleData.items : [];
+    const usableServices = services.filter((service) => {
+      const actions = Array.isArray(service.actions) ? service.actions : [];
+      return actions.some((action) => action && action.type !== 'notice');
+    });
     const groups = [];
-    services.forEach((service) => {
+    usableServices.forEach((service) => {
       let group = groups.find((item) => item.id === service.groupId);
       if (!group) {
         group = { id: service.groupId, name: service.groupName, items: [] };
@@ -63,7 +67,7 @@ Page({
       group.items.push(service);
     });
     this.setData({
-      services,
+      services: usableServices,
       groupedServices: groups,
       todaySchedules,
       todayScheduleDate: scheduleData.date
@@ -97,23 +101,15 @@ Page({
       wx.navigateTo({ url: '/pages/campus/map/index' });
       return;
     }
-    if (action && action.type === 'notice') {
-      wx.showModal({
-        title: '需要配置',
-        content: service.requiredAccess || '该入口需要学校提供正式跳转配置后启用。',
-        showCancel: false
-      });
-      return;
-    }
     if (service.groupId === 'quick' && action && action.type === 'external') {
       if (!openAppTarget(action || service)) {
-        wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+        wx.showToast({ title: '入口不可用', icon: 'none' });
       }
       return;
     }
     if (service.kind === 'external' && action && action.type === 'external') {
       if (!openAppTarget(action || service)) {
-        wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+        wx.showToast({ title: '入口不可用', icon: 'none' });
       }
       return;
     }
@@ -129,7 +125,7 @@ Page({
     if (!service) return;
     const action = Array.isArray(service.actions) ? service.actions[0] : null;
     if (!openAppTarget(action || service)) {
-      wx.showToast({ title: '暂未配置跳转地址', icon: 'none' });
+      wx.showToast({ title: '入口不可用', icon: 'none' });
     }
   },
 
