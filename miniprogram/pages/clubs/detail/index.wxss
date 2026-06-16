@@ -1,8 +1,10 @@
-.club-detail { padding: 32rpx; background: var(--app-background); }
+.club-detail { padding: 32rpx 0; background: var(--app-background); }
 .club-title { color: var(--app-text-primary); font-size: 42rpx; font-weight: 750; line-height: 1.25; }
+.club-title,
+.club-owner,
+.club-text,
+.section-title { margin-left: 32rpx; margin-right: 32rpx; }
 .club-owner { margin-top: 12rpx; color: var(--app-primary); font-size: 25rpx; font-weight: 650; }
 .club-text { margin-top: 24rpx; color: var(--app-text-primary); font-size: 29rpx; line-height: 1.6; }
 .section-title { margin-top: 36rpx; color: var(--app-text-secondary); font-size: 25rpx; font-weight: 650; }
-.post-row { padding: 22rpx 0; border-bottom: 1rpx solid var(--app-divider); }
-.post-title { color: var(--app-text-primary); font-size: 29rpx; font-weight: 650; }
-.post-summary { margin-top: 8rpx; color: var(--app-text-secondary); font-size: 25rpx; line-height: 1.45; }
+.empty-posts { padding: 28rpx 0; color: var(--app-text-secondary); font-size: 26rpx; text-align: center; }

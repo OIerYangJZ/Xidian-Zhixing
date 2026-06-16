@@ -2,12 +2,6 @@ import { fetchAiModels, getAiConfig, saveAiConfig } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
-const DEFAULT_KNOWLEDGE = [
-  '西安电子科技大学简称西电，校区包括南校区和北校区。',
-  '校园政策、校历、考试安排、奖助学金、宿舍管理等信息应以学校和学院官方通知为准。',
-  '树洞帖子可以作为同学经验和近期讨论线索，涉及政策结论时需要提醒用户核对官方渠道。'
-].join('\n\n');
-
 Page({
   data: {
     form: {
@@ -106,10 +100,6 @@ Page({
       modelIndex: index,
       'form.model': model
     });
-  },
-
-  useDefaultKnowledge() {
-    this.setData({ 'form.knowledgeBase': DEFAULT_KNOWLEDGE });
   },
 
   saveConfig() {

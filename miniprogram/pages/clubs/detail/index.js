@@ -12,5 +12,9 @@ Page({
   },
   async loadDetail() {
     this.setData({ club: await getClubDetail(this.data.id) });
+  },
+  openPost(event) {
+    const id = event.currentTarget.dataset.id;
+    if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   }
 });

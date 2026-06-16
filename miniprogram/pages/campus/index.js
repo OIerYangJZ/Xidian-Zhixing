@@ -55,7 +55,7 @@ Page({
     const todaySchedules = Array.isArray(scheduleData.items) ? scheduleData.items : [];
     const usableServices = services.filter((service) => {
       const actions = Array.isArray(service.actions) ? service.actions : [];
-      return actions.some((action) => action && action.type !== 'notice');
+      return service.groupId !== 'account' && actions.some((action) => action && action.type !== 'notice');
     });
     const groups = [];
     usableServices.forEach((service) => {

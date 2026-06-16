@@ -3,8 +3,21 @@
   <view class="club-owner">负责人：{{club.ownerName}}</view>
   <view class="club-text">{{club.description}}</view>
   <view class="section-title">社团发布</view>
-  <view class="post-row" wx:for="{{club.posts}}" wx:key="id">
-    <view class="post-title">{{item.displayTitle || item.title}}</view>
-    <view class="post-summary">{{item.summary}}</view>
+  <view class="feed-card" wx:for="{{club.posts}}" wx:key="id" data-id="{{item.id}}" bindtap="openPost">
+    <view class="feed-avatar">{{item.authorInitial || club.name[0]}}</view>
+    <view class="feed-body">
+      <view class="feed-head">
+        <text class="feed-author">{{item.authorAlias || club.name}}</text>
+        <text class="feed-time">{{item.timeText || item.createdAt}}</text>
+      </view>
+      <view class="feed-title">{{item.displayTitle || item.title}}</view>
+      <view class="feed-summary">{{item.summary}}</view>
+      <view class="feed-actions">
+        <view class="feed-action"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
+        <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
+        <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+      </view>
+    </view>
   </view>
+  <view wx:if="{{!club.posts.length}}" class="empty-posts">暂无发布</view>
 </view>

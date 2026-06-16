@@ -14,8 +14,8 @@
 }
 
 .config-bar {
-  background: rgba(255, 149, 0, .12);
-  color: var(--app-warning);
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
 }
 
 .model-bar {
@@ -103,6 +103,12 @@
 
 .reference-title {
   margin-bottom: 8rpx;
+  font-weight: 600;
+}
+
+.reference-link {
+  padding: 6rpx 0;
+  color: var(--app-primary);
   font-weight: 600;
 }
 

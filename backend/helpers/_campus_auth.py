@@ -44,6 +44,8 @@ EHALL_APP_IDS = {
     "classtable": "4770397878132218",
     "exam": "4768687067472349",
 }
+YJSPT_CLASSTABLE_SERVICE_URL = "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/*default/index.do#/xskcb"
+YJSPT_CLASSTABLE_URL = "https://yjspt.xidian.edu.cn/gsapp/sys/wdkbapp/modules/xskcb/xspkjgcx.do"
 PHYSICS_LOGIN_URL = "http://wlsy.xidian.edu.cn/PhyEws/default.aspx"
 PHYSICS_SELECT_URL = "http://wlsy.xidian.edu.cn/PhyEws/student/select.aspx"
 SPORT_BASE_URL = "http://tybjxgl.xidian.edu.cn/app"
@@ -417,7 +419,75 @@ def _date_for_weekday(term_start: str, week_index: int, weekday: int) -> str:
     return (base + timedelta(days=(week_index * 7) + max(0, weekday - 1))).isoformat()
 
 
-def _sync_course_schedules(session: Any, *, student_id: str, owner_user_id: str, semester_code: str) -> list[dict[str, Any]]:
+def _int_or_zero(value: Any) -> int:
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return 0
+
+
+def _first_row_text(row: dict[str, Any], keys: tuple[str, ...]) -> str:
+    for key in keys:
+        value = row.get(key)
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
+
+
+def _course_rows_to_schedules(
+    rows: list[dict[str, Any]],
+    *,
+    term_start: str,
+    student_id: str,
+    owner_user_id: str,
+    semester_code: str,
+    source_tag: str,
+) -> list[dict[str, Any]]:
+    schedules: list[dict[str, Any]] = []
+    for index, row in enumerate(rows):
+        week_bits = _first_row_text(row, ("SKZC", "ZCBH"))
+        weekday = _int_or_zero(row.get("SKXQ", row.get("XQ")))
+        start_section = row.get("KSJC", row.get("KSJCDM"))
+        stop_section = row.get("JSJC", row.get("JSJCDM"))
+        start_time, end_time = _section_time_range(start_section, stop_section)
+        if not week_bits or not weekday or not start_time or not end_time:
+            continue
+        course_name = _first_row_text(row, ("KCM", "KCMC", "XSKCM"))
+        course_code = _first_row_text(row, ("KCH", "KCDM"))
+        course_number = _first_row_text(row, ("KXH", "BJH"))
+        teacher = _first_row_text(row, ("SKJS", "JSXM"))
+        location = _first_row_text(row, ("JASMC", "JSMC"))
+        for week_index, enabled in enumerate(week_bits):
+            if enabled != "1":
+                continue
+            schedules.append({
+                "id": (
+                    f"ids-course-{source_tag}-{owner_user_id}-{semester_code}-"
+                    f"{course_code}-{course_number}-{index}-{week_index + 1}-{weekday}-{start_section}"
+                ),
+                "ownerUserId": owner_user_id,
+                "studentId": student_id,
+                "semesterCode": semester_code,
+                "title": course_name,
+                "date": _date_for_weekday(term_start, week_index, weekday),
+                "startTime": start_time,
+                "endTime": end_time,
+                "location": location,
+                "teacher": teacher,
+                "section": f"{start_section}-{stop_section} 节",
+                "kind": "course",
+                "sourceProvider": "xidian-ehall",
+            })
+    return schedules
+
+
+def _sync_undergraduate_course_schedules(
+    session: Any,
+    *,
+    student_id: str,
+    owner_user_id: str,
+    semester_code: str,
+) -> list[dict[str, Any]]:
     _open_ehall_app(session, EHALL_APP_IDS["classtable"], method="post")
     year_parts = semester_code.split("-")
     term_start_data = _post_ehall_json(
@@ -446,32 +516,107 @@ def _sync_course_schedules(session: Any, *, student_id: str, owner_user_id: str,
             return []
         raise CampusAuthError(message)
     rows = table.get("rows") if isinstance(table.get("rows"), list) else []
-    schedules: list[dict[str, Any]] = []
-    for row in rows:
-        week_bits = str(row.get("SKZC") or "")
-        weekday = int(row.get("SKXQ") or 0)
-        start_time, end_time = _section_time_range(row.get("KSJC"), row.get("JSJC"))
-        if not week_bits or not weekday or not start_time or not end_time:
-            continue
-        for week_index, enabled in enumerate(week_bits):
-            if enabled != "1":
-                continue
-            schedules.append({
-                "id": f"ids-course-{owner_user_id}-{semester_code}-{row.get('KCH', '')}-{row.get('KXH', '')}-{week_index + 1}-{weekday}-{row.get('KSJC', '')}",
-                "ownerUserId": owner_user_id,
-                "studentId": student_id,
-                "semesterCode": semester_code,
-                "title": str(row.get("KCM") or ""),
-                "date": _date_for_weekday(term_start, week_index, weekday),
-                "startTime": start_time,
-                "endTime": end_time,
-                "location": str(row.get("JASMC") or ""),
-                "teacher": str(row.get("SKJS") or ""),
-                "section": f"{row.get('KSJC')}-{row.get('JSJC')} 节",
-                "kind": "course",
-                "sourceProvider": "xidian-ehall",
-            })
-    return schedules
+    return _course_rows_to_schedules(
+        rows,
+        term_start=term_start,
+        student_id=student_id,
+        owner_user_id=owner_user_id,
+        semester_code=semester_code,
+        source_tag="ehall",
+    )
+
+
+def _sync_graduate_course_schedules(
+    *,
+    student_id: str,
+    password: str,
+    owner_user_id: str,
+    semester_code: str,
+) -> list[dict[str, Any]]:
+    if not password:
+        return []
+    session, location = _login_ids_for_service(student_id, password, YJSPT_CLASSTABLE_SERVICE_URL)
+    _follow_redirects(session, location)
+    requests = _import_requests()
+    today = datetime.now().date()
+    try:
+        week_response = session.post(
+            "https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/portal/queryRcap.do",
+            data={"day": today.strftime("%Y%m%d")},
+            timeout=_requests_timeout(),
+        )
+        week_response.raise_for_status()
+        week_data = week_response.json()
+    except requests.RequestException as exc:
+        raise CampusAuthError("研究生课表当前周次接口请求失败") from exc
+    except ValueError as exc:
+        raise CampusAuthError("研究生课表当前周次响应格式异常") from exc
+    match = re.search(r"\d+", str((week_data or {}).get("xnxq", "")))
+    if not match:
+        return []
+    current_week = _int_or_zero(match.group(0))
+    if current_week <= 0:
+        return []
+    term_start = (today + timedelta(days=(1 - current_week) * 7 - today.weekday())).isoformat()
+    try:
+        response = session.post(
+            YJSPT_CLASSTABLE_URL,
+            data={"XNXQDM": semester_code},
+            timeout=_requests_timeout(),
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("研究生课表接口请求失败") from exc
+    data = _json_response(response)
+    if str(data.get("code", "")) not in {"", "0"}:
+        ext = data.get("extParams") if isinstance(data.get("extParams"), dict) else {}
+        message = str(ext.get("msg") or data.get("msg") or "研究生课表接口返回异常")
+        if "未发布" in message:
+            return []
+        raise CampusAuthError(message)
+    table = ((data.get("datas") or {}).get("xspkjgcx") or {})
+    rows = table.get("rows") if isinstance(table.get("rows"), list) else []
+    return _course_rows_to_schedules(
+        rows,
+        term_start=term_start,
+        student_id=student_id,
+        owner_user_id=owner_user_id,
+        semester_code=semester_code,
+        source_tag="yjspt",
+    )
+
+
+def _sync_course_schedules(
+    session: Any,
+    *,
+    student_id: str,
+    password: str = "",
+    owner_user_id: str,
+    semester_code: str,
+) -> list[dict[str, Any]]:
+    undergraduate_error: Exception | None = None
+    try:
+        courses = _sync_undergraduate_course_schedules(
+            session,
+            student_id=student_id,
+            owner_user_id=owner_user_id,
+            semester_code=semester_code,
+        )
+        if courses:
+            return courses
+    except CampusAuthError as error:
+        undergraduate_error = error
+    graduate_courses = _sync_graduate_course_schedules(
+        student_id=student_id,
+        password=password,
+        owner_user_id=owner_user_id,
+        semester_code=semester_code,
+    )
+    if graduate_courses:
+        return graduate_courses
+    if undergraduate_error is not None:
+        raise undergraduate_error
+    return []
 
 
 def _parse_exam_time(value: Any) -> tuple[str, str, str]:
@@ -511,6 +656,7 @@ def _sync_exam_schedules(session: Any, *, student_id: str, owner_user_id: str, s
             "location": str(row.get("JASMC") or "尚无安排"),
             "teacher": "",
             "section": str(row.get("ZWH") or ""),
+            "seatNo": str(row.get("ZWH") or ""),
             "kind": "exam",
             "examType": str(row.get("KSMC") or ""),
             "sourceProvider": "xidian-ehall",
@@ -518,11 +664,12 @@ def _sync_exam_schedules(session: Any, *, student_id: str, owner_user_id: str, s
     return schedules
 
 
-def sync_ids_academic_data(session: Any, *, student_id: str, owner_user_id: str) -> dict[str, Any]:
+def sync_ids_academic_data(session: Any, *, student_id: str, owner_user_id: str, password: str = "") -> dict[str, Any]:
     semester_code = _current_semester_code(session)
     courses = _sync_course_schedules(
         session,
         student_id=student_id,
+        password=password,
         owner_user_id=owner_user_id,
         semester_code=semester_code,
     )
@@ -557,7 +704,12 @@ def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: di
     password = _require_password(password, "统一认证密码")
     session, location = _login_ids_for_service(student_id, password, EHALL_HOME_SERVICE_URL)
     _ensure_ehall_session(session, location)
-    synced = sync_ids_academic_data(session, student_id=student_id, owner_user_id=owner_user_id or student_id)
+    synced = sync_ids_academic_data(
+        session,
+        student_id=student_id,
+        password=password,
+        owner_user_id=owner_user_id or student_id,
+    )
     sync_counts = {"courseSchedules": 0, "examSchedules": 0}
     if db is not None and owner_user_id:
         sync_counts = apply_ids_academic_data(db, owner_user_id=owner_user_id, synced=synced)

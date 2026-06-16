@@ -1,10 +1,12 @@
 .public-page {
-  padding: 42rpx 30rpx;
+  padding: 42rpx 0;
+  background: var(--app-background);
 }
 
 .profile-head {
   position: relative;
   overflow: hidden;
+  margin: 0 30rpx;
   border-radius: 18rpx;
   padding: 34rpx 24rpx;
   background: var(--app-surface);
@@ -59,6 +61,14 @@
   line-height: 1.5;
 }
 
+.school-meta {
+  margin-top: 8rpx;
+  color: var(--app-text-primary);
+  font-size: 26rpx;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
 .stats {
   display: flex;
   justify-content: center;
@@ -71,7 +81,7 @@
 .actions {
   display: flex;
   gap: 18rpx;
-  margin-top: 42rpx;
+  margin: 42rpx 30rpx 0;
 }
 
 .primary,
@@ -98,39 +108,10 @@
 }
 
 .section-title {
-  margin-bottom: 18rpx;
+  margin: 0 30rpx 18rpx;
   color: var(--app-text-primary);
   font-size: 31rpx;
   font-weight: 750;
-}
-
-.post-card {
-  padding: 24rpx;
-  margin-bottom: 18rpx;
-  border-radius: 16rpx;
-  background: var(--app-surface);
-}
-
-.post-title {
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-}
-
-.post-summary {
-  margin-top: 10rpx;
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
-  line-height: 1.5;
-}
-
-.post-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18rpx;
-  margin-top: 16rpx;
-  color: var(--app-text-secondary);
-  font-size: 23rpx;
 }
 
 .empty-small {

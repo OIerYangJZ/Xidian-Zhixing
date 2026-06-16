@@ -31,10 +31,36 @@
 
 .detail-meta {
   margin-top: 12rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid var(--app-divider);
   color: var(--app-text-secondary);
   font-size: 24rpx;
+}
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin-top: 18rpx;
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--app-divider);
+  border-bottom: 1rpx solid var(--app-divider);
+}
+
+.source-text {
+  flex: 1;
+  min-width: 0;
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-link {
+  flex: 0 0 auto;
+  color: var(--app-primary);
+  font-size: 25rpx;
+  font-weight: 650;
 }
 
 .summary-card {

@@ -48,12 +48,23 @@ export const getTodaySchedules = () => {
   return request.get('/api/campus/schedules/today');
 };
 
-export const getCalendarSchedules = (params = {}) => {
-  return request.get('/api/campus/schedules/calendar', params);
+const buildQuery = (params = {}) => {
+  const query = Object.keys(params)
+    .filter((key) => params[key] !== undefined && params[key] !== null && params[key] !== '')
+    .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
+    .join('&');
+  return query ? `?${query}` : '';
 };
 
-export const loginCampusIds = (identifier, password) => {
-  return request.post('/api/campus/auth/ids', { identifier, password }, CAMPUS_AUTH_OPTIONS);
+export const getCalendarSchedules = (params = {}) => {
+  return request.get(`/api/campus/schedules/calendar${buildQuery(params)}`);
+};
+
+export const loginCampusIds = (identifier, password, options = {}) => {
+  return request.post('/api/campus/auth/ids', { identifier, password }, {
+    ...CAMPUS_AUTH_OPTIONS,
+    ...options
+  });
 };
 
 export const loginCampusPayment = (identifier, password) => {

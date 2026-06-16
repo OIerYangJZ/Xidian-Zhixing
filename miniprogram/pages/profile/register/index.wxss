@@ -58,12 +58,6 @@
   white-space: nowrap;
 }
 
-.debug-code {
-  margin: 0 0 22rpx;
-  color: var(--app-accent);
-  font-size: 26rpx;
-}
-
 .secondary-button {
   margin-bottom: 18rpx;
 }

@@ -1,6 +1,6 @@
 .tag-posts-page {
   height: 100vh;
-  background: #ffffff;
+  background: var(--app-background);
 }
 
 .tag-appbar {
@@ -15,7 +15,7 @@
   padding-right: 260rpx;
   padding-left: 16rpx;
   border-bottom: 1rpx solid var(--app-divider);
-  background: #ffffff;
+  background: var(--app-surface);
   box-sizing: border-box;
 }
 
@@ -26,7 +26,7 @@
   width: 72rpx;
   height: 64rpx;
   flex: 0 0 auto;
-  color: #000000;
+  color: var(--app-text-primary);
 }
 
 .back-icon {
@@ -43,7 +43,7 @@
 }
 
 .tag-name {
-  color: #000000;
+  color: var(--app-text-primary);
   font-size: 32rpx;
   font-weight: 760;
   line-height: 1.2;
@@ -62,15 +62,18 @@
 .tag-list {
   height: 100vh;
   box-sizing: border-box;
-  background: var(--app-surface);
+  background: var(--app-background);
 }
 
 .thread-post {
   display: flex;
   gap: 20rpx;
-  padding: 26rpx 24rpx 24rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
+  margin: 24rpx 32rpx;
+  padding: 32rpx;
+  border: 1rpx solid var(--app-divider);
+  border-radius: 36rpx;
+  background: var(--app-card);
+  box-shadow: 0 2rpx 8rpx rgba(178, 58, 46, 0.04);
 }
 
 .thread-avatar-wrap {
@@ -175,7 +178,7 @@
 }
 
 .inline-tag {
-  color: #2563eb;
+  color: var(--app-primary);
 }
 
 .thread-actions {
@@ -236,6 +239,6 @@
 
 .tag-empty-desc {
   margin-top: 10rpx;
-  color: #2563eb;
+  color: var(--app-primary);
   font-size: 26rpx;
 }

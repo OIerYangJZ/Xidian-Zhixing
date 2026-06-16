@@ -11,6 +11,6 @@
   <view class="history-title">我的申请</view>
   <view class="history-row" wx:for="{{applications}}" wx:key="id">
     <view class="history-name">{{item.name}}</view>
-    <view class="history-status">{{item.status}}</view>
+    <view class="history-status {{item.status}}">{{item.statusText}}</view>
   </view>
 </view>

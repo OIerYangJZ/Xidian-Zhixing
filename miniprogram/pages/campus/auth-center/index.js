@@ -11,8 +11,11 @@ import {
 } from '../../../api/campus';
 import { getUserInfo } from '../../../api/auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
-
-const STORAGE_KEY = 'campusAuthStates';
+import {
+  CAMPUS_AUTH_STATE_KEY,
+  removeCampusAuthSecret,
+  saveCampusAuthSecret
+} from '../../../utils/campus_auth';
 
 const SYSTEMS = [
   {
@@ -87,20 +90,6 @@ const errorMessage = (error, fallback = '操作失败，请稍后重试') => {
     || fallback;
 };
 
-const resultRows = (result = {}) => {
-  const rows = [];
-  Object.keys(result || {}).forEach((key) => {
-    const value = result[key];
-    if (value === undefined || value === null || value === '' || key === 'message') return;
-    if (typeof value === 'object') {
-      rows.push({ key, value: JSON.stringify(value) });
-      return;
-    }
-    rows.push({ key, value: String(value) });
-  });
-  return rows;
-};
-
 const buildSystemCards = (states = {}) => {
   return SYSTEMS.map((item) => ({
     ...item,
@@ -129,7 +118,6 @@ Page({
     authStates: {},
     activeState: null,
     resultMessage: '',
-    resultRows: [],
     themeClass: ''
   },
 
@@ -157,7 +145,7 @@ Page({
   },
 
   loadAuthStates() {
-    const states = wx.getStorageSync(STORAGE_KEY) || {};
+    const states = wx.getStorageSync(CAMPUS_AUTH_STATE_KEY) || {};
     this.setData({
       authStates: states,
       activeState: states[this.data.activeSystem] || null,
@@ -165,20 +153,20 @@ Page({
     });
   },
 
-  persistAuthState(systemId, result) {
-    const current = wx.getStorageSync(STORAGE_KEY) || {};
+  persistAuthState(systemId, result, secret = null) {
+    const current = wx.getStorageSync(CAMPUS_AUTH_STATE_KEY) || {};
     const state = {
       system: systemId,
       status: 'authenticated',
       studentId: result && result.studentId ? maskText(result.studentId) : '',
-      message: (result && result.message) || '验证通过',
       updatedAt: nowText()
     };
     const next = {
       ...current,
       [systemId]: state
     };
-    wx.setStorageSync(STORAGE_KEY, next);
+    wx.setStorageSync(CAMPUS_AUTH_STATE_KEY, next);
+    if (secret) saveCampusAuthSecret(systemId, secret);
     this.setData({
       authStates: next,
       activeState: next[this.data.activeSystem] || null,
@@ -196,8 +184,7 @@ Page({
       schoolnetCaptcha: '',
       dormWaterImageCode: '',
       dormWaterSmsCode: '',
-      resultMessage: '',
-      resultRows: []
+      resultMessage: ''
     });
     wx.setNavigationBarTitle({ title: info.name });
     if (info.id === 'schoolnet' && this.data.studentId && !this.data.schoolnetAttemptId) {
@@ -250,28 +237,15 @@ Page({
     return true;
   },
 
-  showResult(systemId, result) {
-    const display = {
-      ...result,
-      studentId: result && result.studentId ? maskText(result.studentId) : ''
-    };
-    this.persistAuthState(systemId, result || {});
-    this.setData({
-      resultMessage: (result && result.message) || '验证通过',
-      resultRows: resultRows(display)
-    });
+  showResult(systemId, result, secret = null) {
+    this.persistAuthState(systemId, result || {}, secret);
     if (systemId === 'ids') {
       wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
     }
-    wx.showToast({ title: '验证通过', icon: 'success' });
   },
 
   showError(error, fallback) {
     const message = errorMessage(error, fallback);
-    this.setData({
-      resultMessage: message,
-      resultRows: []
-    });
     wx.showToast({ title: message, icon: 'none' });
   },
 
@@ -295,12 +269,15 @@ Page({
     const action = actions[activeSystem];
     if (!action) return;
 
-    this.setData({ submitting: true, resultMessage: '', resultRows: [] });
+    this.setData({ submitting: true, resultMessage: '' });
     wx.showLoading({ title: '正在验证' });
     try {
       const response = await action(studentId, password);
       wx.hideLoading();
-      this.showResult(activeSystem, response.data || response || {});
+      this.showResult(activeSystem, response.data || response || {}, {
+        identifier: studentId,
+        password
+      });
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -316,7 +293,7 @@ Page({
       wx.showToast({ title: '请输入学号后获取验证码', icon: 'none' });
       return;
     }
-    this.setData({ captchaLoading: true, schoolnetCaptcha: '', resultMessage: '', resultRows: [] });
+    this.setData({ captchaLoading: true, schoolnetCaptcha: '', resultMessage: '' });
     try {
       const response = await createCampusSchoolnetCaptcha(this.data.studentId);
       const data = response.data || response || {};
@@ -341,12 +318,15 @@ Page({
       return;
     }
 
-    this.setData({ submitting: true, resultMessage: '', resultRows: [] });
+    this.setData({ submitting: true, resultMessage: '' });
     wx.showLoading({ title: '正在登录' });
     try {
       const response = await loginCampusSchoolnet(schoolnetAttemptId, studentId, password, schoolnetCaptcha);
       wx.hideLoading();
-      this.showResult('schoolnet', response.data || response || {});
+      this.showResult('schoolnet', response.data || response || {}, {
+        identifier: studentId,
+        password
+      });
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -359,7 +339,7 @@ Page({
 
   async refreshDormWaterCaptcha() {
     if (this.data.captchaLoading) return;
-    this.setData({ captchaLoading: true, dormWaterImageCode: '', resultMessage: '', resultRows: [] });
+    this.setData({ captchaLoading: true, dormWaterImageCode: '', resultMessage: '' });
     try {
       const response = await createDormWaterCaptcha();
       const data = response.data || response || {};
@@ -385,13 +365,9 @@ Page({
       wx.showToast({ title: '请先填写图形验证码', icon: 'none' });
       return;
     }
-    this.setData({ smsSending: true, resultMessage: '', resultRows: [] });
+    this.setData({ smsSending: true, resultMessage: '' });
     try {
-      const response = await sendDormWaterSms(dormWaterSessionId, dormWaterPhone, dormWaterImageCode);
-      this.setData({
-        resultMessage: (response.data && response.data.message) || response.message || '短信已发送',
-        resultRows: resultRows(response.data || response || {})
-      });
+      await sendDormWaterSms(dormWaterSessionId, dormWaterPhone, dormWaterImageCode);
       wx.showToast({ title: '短信已发送', icon: 'success' });
     } catch (error) {
       console.error(error);
@@ -409,12 +385,14 @@ Page({
       wx.showToast({ title: '请输入手机号和短信验证码', icon: 'none' });
       return;
     }
-    this.setData({ submitting: true, resultMessage: '', resultRows: [] });
+    this.setData({ submitting: true, resultMessage: '' });
     wx.showLoading({ title: '正在登录' });
     try {
       const response = await loginDormWater(dormWaterPhone, dormWaterSmsCode);
       wx.hideLoading();
-      this.showResult('dormWater', response.data || response || {});
+      this.showResult('dormWater', response.data || response || {}, {
+        phone: dormWaterPhone
+      });
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -426,15 +404,15 @@ Page({
 
   clearCurrentState() {
     const { activeSystem } = this.data;
-    const states = wx.getStorageSync(STORAGE_KEY) || {};
+    const states = wx.getStorageSync(CAMPUS_AUTH_STATE_KEY) || {};
     delete states[activeSystem];
-    wx.setStorageSync(STORAGE_KEY, states);
+    wx.setStorageSync(CAMPUS_AUTH_STATE_KEY, states);
+    removeCampusAuthSecret(activeSystem);
     this.setData({
       authStates: states,
       activeState: states[activeSystem] || null,
       systems: buildSystemCards(states),
-      resultMessage: '已清除本地验证状态',
-      resultRows: []
+      resultMessage: ''
     });
   }
 });

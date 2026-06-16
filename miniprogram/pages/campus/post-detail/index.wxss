@@ -142,7 +142,7 @@
   height: 28rpx;
   padding: 0 10rpx;
   border-radius: 6rpx;
-  background: rgba(52, 199, 89, .1);
+  background: var(--app-primary-soft);
   color: var(--app-success);
   font-size: 20rpx;
   font-weight: 600;
@@ -289,7 +289,7 @@
 }
 
 .inline-tag {
-  color: #2563eb;
+  color: var(--app-primary);
 }
 
 .md-heading {

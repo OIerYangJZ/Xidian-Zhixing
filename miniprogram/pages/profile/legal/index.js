@@ -64,12 +64,8 @@ const CONTENT = {
     title: '致谢',
     sections: [
       {
-        heading: '项目说明',
-        body: '电台由校园社区需求驱动，感谢参与测试、反馈问题和维护内容秩序的同学。'
-      },
-      {
-        heading: '技术生态',
-        body: '项目使用微信小程序、Flutter Web、Python 标准库 HTTP 服务、SQLite、Riverpod 等技术构建。'
+        heading: '感谢',
+        body: '感谢每一位参与内容建设、反馈问题和维护社区秩序的同学。'
       }
     ]
   }

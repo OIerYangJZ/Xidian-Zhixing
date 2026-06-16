@@ -709,6 +709,8 @@ def _serialize_schedule_row(row: dict[str, Any], source_key: str, source_label: 
         "teacher": str(row.get("teacher", "")),
         "section": str(row.get("section", "")),
         "kind": str(row.get("kind", "")),
+        "seatNo": str(row.get("seatNo", "")),
+        "examType": str(row.get("examType", "")),
     }
     item["timeRange"] = f"{item['startTime']}-{item['endTime']}".strip("-")
     return item

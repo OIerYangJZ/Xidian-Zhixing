@@ -1,14 +1,26 @@
-<view class="service-page safe-bottom {{themeClass}}">
+<view class="service-page safe-bottom {{themeClass}}" style="padding-top: {{service ? navTop + navHeight + 8 : 0}}px;">
+  <view class="schedule-nav" wx:if="{{service}}" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
+    <view class="schedule-back" bindtap="goBack" aria-label="返回"></view>
+    <view class="top-week-switch" wx:if="{{service.slug === 'classtable'}}">
+      <view class="top-week-arrow" data-delta="-1" bindtap="shiftWeek">‹</view>
+      <picker mode="selector" range="{{weekPickerLabels}}" value="{{weekPickerIndex}}" bindchange="pickWeek">
+        <view class="top-week-current">{{selectedWeekText || '选择周次'}}</view>
+      </picker>
+      <view class="top-week-arrow" data-delta="1" bindtap="shiftWeek">›</view>
+    </view>
+    <view wx:else class="top-service-title">{{service.name || name}}</view>
+  </view>
+
   <view wx:if="{{loading}}" class="loading-state">正在加载</view>
 
   <block wx:elif="{{service}}">
-    <view class="detail-head">
+    <view class="detail-head" wx:if="{{false}}">
       <view class="detail-title">{{service.name || name}}</view>
     </view>
 
     <view class="calendar-section" wx:if="{{service.kind === 'schedule' || service.calendarSource}}">
-      <view class="calendar-toolbar">
-        <view class="calendar-title">日程</view>
+      <view class="calendar-toolbar" wx:if="{{service.slug !== 'classtable'}}">
+        <view class="calendar-title">{{isExamList ? '考试安排' : '日程'}}</view>
         <view class="calendar-nav">
           <view class="nav-button" data-delta="-1" bindtap="shiftWeek">‹</view>
           <picker mode="date" value="{{selectedDate}}" bindchange="pickDate">
@@ -18,50 +30,72 @@
         </view>
       </view>
 
-      <scroll-view class="week-strip" scroll-x="true" show-scrollbar="false">
-        <view
-          class="week-card {{item.startDate === selectedWeekStartDate ? 'active' : ''}}"
-          wx:for="{{weekOptions}}"
-          wx:key="startDate"
-          data-start-date="{{item.startDate}}"
-          bindtap="switchWeek"
-        >
-          <view class="week-card-label">{{item.label}}</view>
-          <view class="week-card-range">{{item.range}}</view>
-          <view class="week-card-dots">
-            <view class="week-dot {{dot.active ? 'active' : ''}}" wx:for="{{item.dots}}" wx:for-item="dot" wx:key="index"></view>
-          </view>
-        </view>
-      </scroll-view>
-
-      <scroll-view class="schedule-grid-scroll" scroll-x="true" show-scrollbar="false">
-        <view class="schedule-grid">
-          <view class="schedule-corner"></view>
-          <view class="schedule-day-head" wx:for="{{calendarGrid.columns}}" wx:key="date">
-            <view class="schedule-day-name">{{item.name}}</view>
-            <view class="schedule-day-num">{{item.dayNumber}}</view>
-          </view>
-          <block wx:for="{{calendarGrid.rows}}" wx:key="section">
-            <view class="schedule-time-head">
-              <view wx:if="{{item.period}}" class="schedule-period">{{item.period}}</view>
-              <view class="schedule-section">{{item.section}}</view>
-              <view class="schedule-time-range">{{item.start}}</view>
-              <view class="schedule-time-range">{{item.end}}</view>
+      <block wx:if="{{isExamList}}">
+        <view class="exam-list" wx:if="{{examItems.length}}">
+          <view class="exam-card" wx:for="{{examItems}}" wx:key="id">
+            <view class="exam-date">{{item.dateLabel}}</view>
+            <view class="exam-title">{{item.title}}</view>
+            <view class="exam-row">
+              <view class="exam-label">时间</view>
+              <view class="exam-value">{{item.timeLabel}}</view>
             </view>
-            <view class="schedule-empty-cell" wx:for="{{calendarGrid.columns}}" wx:key="date"></view>
-          </block>
-          <view
-            wx:for="{{calendarGrid.blocks}}"
-            wx:key="id"
-            class="schedule-block block--{{item.color}} {{item.isExam ? 'exam' : ''}}"
-            style="grid-column: {{item.gridColumn}}; grid-row: {{item.gridRow}} / span {{item.span}};"
-          >
-            <view class="schedule-block-title">{{item.shortTitle}}</view>
-            <view class="schedule-block-meta">{{item.locationText}}</view>
-            <view wx:if="{{item.teacher}}" class="schedule-block-meta">{{item.teacher}}</view>
+            <view class="exam-row" wx:if="{{item.locationText}}">
+              <view class="exam-label">地点</view>
+              <view class="exam-value">{{item.locationText}}</view>
+            </view>
+            <view class="exam-row" wx:if="{{item.seatText}}">
+              <view class="exam-label">座位号</view>
+              <view class="exam-value">{{item.seatText}}</view>
+            </view>
           </view>
         </view>
-      </scroll-view>
+        <view wx:else class="schedule-empty">暂无考试安排</view>
+      </block>
+
+      <block wx:else>
+        <scroll-view class="schedule-grid-scroll" scroll-x="true" show-scrollbar="false">
+          <view class="schedule-grid">
+            <view class="schedule-corner"></view>
+            <view
+              class="schedule-day-head"
+              wx:for="{{calendarGrid.columns}}"
+              wx:for-index="dayIndex"
+              wx:key="date"
+              style="grid-column: {{dayIndex + 2}}; grid-row: 1;"
+            >
+              <view class="schedule-day-name">{{item.name}}</view>
+              <view class="schedule-day-num">{{item.dayNumber}}</view>
+            </view>
+            <block wx:for="{{calendarGrid.rows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="section">
+              <view class="schedule-time-head" style="grid-column: 1; grid-row: {{rowIndex + 2}};">
+                <view class="schedule-period">{{row.period}}</view>
+                <view class="schedule-section">{{row.section}}</view>
+                <view class="schedule-time-range">{{row.start}}</view>
+                <view class="schedule-time-range">{{row.end}}</view>
+              </view>
+              <view
+                class="schedule-empty-cell"
+                wx:for="{{calendarGrid.columns}}"
+                wx:for-item="col"
+                wx:for-index="colIndex"
+                wx:key="date"
+                style="grid-column: {{colIndex + 2}}; grid-row: {{rowIndex + 2}};"
+              ></view>
+            </block>
+            <view
+              wx:for="{{calendarGrid.blocks}}"
+              wx:key="id"
+              class="schedule-block block--{{item.color}} {{item.isExam ? 'exam' : ''}}"
+              style="grid-column: {{item.gridColumn}}; grid-row: {{item.gridRow}} / span {{item.span}};"
+            >
+              <view class="schedule-block-title">{{item.shortTitle}}</view>
+              <view class="schedule-block-meta">{{item.locationText}}</view>
+              <view wx:if="{{item.teacher}}" class="schedule-block-meta">{{item.teacher}}</view>
+            </view>
+          </view>
+        </scroll-view>
+        <view wx:if="{{!calendarGrid.blocks.length}}" class="schedule-empty">本周暂无课表或考试安排</view>
+      </block>
     </view>
 
     <view class="section-card action-panel" wx:if="{{actions.length}}">

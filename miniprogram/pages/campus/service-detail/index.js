@@ -8,19 +8,20 @@ import { openAppTarget } from '../../../utils/navigation';
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 const WEEKDAY_NAMES = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.'];
 const SECTION_ROWS = [
-  { section: 1, start: '08:30', end: '09:15', period: 'mo' },
+  { section: 1, start: '08:30', end: '09:15', period: '上午' },
   { section: 2, start: '09:20', end: '10:05', period: '' },
   { section: 3, start: '10:25', end: '11:10', period: '' },
   { section: 4, start: '11:15', end: '12:00', period: '' },
-  { section: 5, start: '14:00', end: '14:45', period: 'Noon' },
+  { section: 5, start: '14:00', end: '14:45', period: '下午' },
   { section: 6, start: '14:50', end: '15:35', period: '' },
   { section: 7, start: '15:55', end: '16:40', period: '' },
   { section: 8, start: '16:45', end: '17:30', period: '' },
-  { section: 9, start: '19:00', end: '19:45', period: 'Super' },
+  { section: 9, start: '19:00', end: '19:45', period: '晚上' },
   { section: 10, start: '19:50', end: '20:35', period: '' },
   { section: 11, start: '20:40', end: '21:25', period: '' }
 ];
 const COURSE_COLORS = ['cyan', 'purple', 'indigo', 'pink', 'green', 'blue', 'rose'];
+const EXAM_LIST_DAYS = 31;
 
 const dateToYmd = (date) => {
   const pad = (value) => String(value).padStart(2, '0');
@@ -68,6 +69,15 @@ const normalizeCalendarSource = (source = '') => {
   return source || 'academic';
 };
 
+const isExamService = (service = {}) => service.slug === 'exam' || service.calendarSource === 'examSchedules';
+
+const calendarQueryForService = (service = {}, startDate = '') => {
+  if (isExamService(service)) {
+    return { source: 'examSchedules', startDate, days: EXAM_LIST_DAYS };
+  }
+  return { source: normalizeCalendarSource(service.calendarSource || ''), startDate, days: 7 };
+};
+
 const buildCalendarDays = (calendar = {}) => {
   const days = Array.isArray(calendar.days) ? calendar.days : [];
   return days.map((day) => {
@@ -108,10 +118,24 @@ const buildWeekOptions = (selectedStartDate = '', days = []) => {
     return {
       label: startDate === currentStart ? '本周' : `${shortDate(startDate)}`,
       range: `${shortDate(startDate)}-${shortDate(endDate)}`,
+      fullRange: `${startDate} - ${endDate}`,
       startDate,
+      viewId: `week-${startDate}`,
       dots: offset === 0 ? buildWeekDots(days) : Array.from({ length: 35 }).map(() => ({ active: false }))
     };
   });
+};
+
+const activeWeekViewId = (startDate = '') => startDate ? `week-${startDate}` : '';
+
+const activeWeekState = (weekOptions = [], selectedStartDate = '') => {
+  const index = Math.max(0, weekOptions.findIndex((item) => item.startDate === selectedStartDate));
+  const active = weekOptions[index] || weekOptions[0] || {};
+  return {
+    weekPickerLabels: weekOptions.map((item) => item.fullRange || item.range || item.startDate),
+    weekPickerIndex: index,
+    selectedWeekText: active.fullRange || active.range || ''
+  };
 };
 
 const buildScheduleGrid = (days = []) => {
@@ -134,6 +158,7 @@ const buildScheduleGrid = (days = []) => {
         colorMap[key] = COURSE_COLORS[colorIndex % COURSE_COLORS.length];
         colorIndex += 1;
       }
+      const title = String(item.title || '');
       blocks.push({
         ...item,
         color: item.source === 'examSchedules' ? 'rose' : colorMap[key],
@@ -142,7 +167,7 @@ const buildScheduleGrid = (days = []) => {
         gridRow: startSection + 1,
         span,
         locationText: item.location ? `@${item.location}` : '',
-        shortTitle: item.source === 'examSchedules' ? `${item.title}考试` : item.title
+        shortTitle: item.source === 'examSchedules' && title && !/考试$/.test(title) ? `${title}考试` : title
       });
     });
   });
@@ -151,6 +176,23 @@ const buildScheduleGrid = (days = []) => {
     rows: SECTION_ROWS,
     blocks
   };
+};
+
+const buildExamItems = (days = []) => {
+  const rows = [];
+  days.forEach((day) => {
+    (day.items || []).forEach((item) => {
+      rows.push({
+        ...item,
+        dateLabel: `${day.shortDate} 周${day.label || day.weekday || ''}`,
+        timeLabel: item.timeRange || `${item.startTime || ''}-${item.endTime || ''}`.replace(/^-|-$/g, ''),
+        locationText: item.location || '',
+        seatText: item.seatNo || item.section || ''
+      });
+    });
+  });
+  rows.sort((left, right) => `${left.date} ${left.startTime} ${left.id}`.localeCompare(`${right.date} ${right.startTime} ${right.id}`));
+  return rows;
 };
 
 const businessActions = (service = {}) => {
@@ -167,18 +209,31 @@ Page({
     calendar: null,
     calendarDays: [],
     calendarGrid: { columns: [], rows: SECTION_ROWS, blocks: [] },
+    examItems: [],
+    isExamList: false,
     weekOptions: [],
+    weekPickerLabels: [],
+    weekPickerIndex: 0,
+    selectedWeekText: '',
+    weekScrollIntoView: '',
     selectedWeekStartDate: '',
     selectedDate: '',
     maps: [],
+    navTop: 44,
+    navHeight: 32,
     loading: true
   },
 
   onLoad(options) {
     const id = options.id || '';
     const name = decodeURIComponent(options.name || '');
-    this.setData({ id, name });
-    if (name) wx.setNavigationBarTitle({ title: name });
+    const app = getApp();
+    this.setData({
+      id,
+      name,
+      navTop: (app.globalData && app.globalData.navTop) || 44,
+      navHeight: (app.globalData && app.globalData.navHeight) || 32
+    });
     this.loadData();
   },
 
@@ -192,20 +247,17 @@ Page({
       const detailResponse = await getCampusServiceDetail(this.data.id);
       const service = detailResponse.data || detailResponse || {};
       const source = service.calendarSource || '';
+      const isExamList = isExamService(service);
       let calendar = null;
       let calendarDays = [];
       if (service.kind === 'schedule' || source) {
         const startDate = this.data.selectedWeekStartDate || '';
-        const calendarData = await getCalendarSchedules({
-          source: normalizeCalendarSource(source),
-          startDate,
-          days: 7
-        });
+        const calendarData = await getCalendarSchedules(calendarQueryForService(service, startDate));
         calendar = calendarData.data || calendarData || {};
         calendarDays = buildCalendarDays(calendar);
       }
       const selectedWeekStartDate = (calendar && calendar.startDate) || this.data.selectedWeekStartDate;
-      wx.setNavigationBarTitle({ title: service.name || this.data.name || '校园服务' });
+      const weekOptions = isExamList ? [] : buildWeekOptions(selectedWeekStartDate, calendarDays);
       this.setData({
         service,
         actions: businessActions(service),
@@ -213,7 +265,11 @@ Page({
         calendar,
         calendarDays,
         calendarGrid: buildScheduleGrid(calendarDays),
-        weekOptions: buildWeekOptions(selectedWeekStartDate, calendarDays),
+        examItems: buildExamItems(calendarDays),
+        isExamList,
+        weekOptions,
+        ...activeWeekState(weekOptions, selectedWeekStartDate),
+        weekScrollIntoView: activeWeekViewId(selectedWeekStartDate),
         selectedWeekStartDate,
         selectedDate: selectedWeekStartDate,
         maps: service.maps || [],
@@ -229,19 +285,21 @@ Page({
     const service = this.data.service || {};
     const source = service.calendarSource || '';
     if (!(service.kind === 'schedule' || source)) return;
-    const calendarData = await getCalendarSchedules({
-      source: normalizeCalendarSource(source),
-      startDate: this.data.selectedWeekStartDate,
-      days: 7
-    });
+    const calendarData = await getCalendarSchedules(calendarQueryForService(service, this.data.selectedWeekStartDate));
     const calendar = calendarData.data || calendarData || {};
     const calendarDays = buildCalendarDays(calendar);
     const selectedWeekStartDate = calendar.startDate || this.data.selectedWeekStartDate;
+    const isExamList = isExamService(service);
+    const weekOptions = isExamList ? [] : buildWeekOptions(selectedWeekStartDate, calendarDays);
     this.setData({
       calendar,
       calendarDays,
       calendarGrid: buildScheduleGrid(calendarDays),
-      weekOptions: buildWeekOptions(selectedWeekStartDate, calendarDays),
+      examItems: buildExamItems(calendarDays),
+      isExamList,
+      weekOptions,
+      ...activeWeekState(weekOptions, selectedWeekStartDate),
+      weekScrollIntoView: activeWeekViewId(selectedWeekStartDate),
       selectedWeekStartDate,
       selectedDate: selectedWeekStartDate
     });
@@ -250,8 +308,33 @@ Page({
   switchWeek(event) {
     const startDate = event.currentTarget.dataset.startDate;
     if (!startDate || startDate === this.data.selectedWeekStartDate) return;
-    this.setData({ selectedWeekStartDate: startDate });
+    this.setData({
+      selectedWeekStartDate: startDate,
+      weekScrollIntoView: activeWeekViewId(startDate)
+    });
     this.reloadCalendar().catch((error) => console.error(error));
+  },
+
+  pickWeek(event) {
+    const index = Number(event.detail.value);
+    const option = this.data.weekOptions[index];
+    if (!option || !option.startDate || option.startDate === this.data.selectedWeekStartDate) return;
+    this.setData({
+      selectedWeekStartDate: option.startDate,
+      weekPickerIndex: index,
+      selectedWeekText: option.fullRange || option.range || '',
+      weekScrollIntoView: activeWeekViewId(option.startDate)
+    });
+    this.reloadCalendar().catch((error) => console.error(error));
+  },
+
+  goBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+      return;
+    }
+    wx.switchTab({ url: '/pages/campus/index' });
   },
 
   shiftWeek(event) {
@@ -260,7 +343,10 @@ Page({
       ? new Date(`${this.data.selectedWeekStartDate}T00:00:00`)
       : mondayOf(new Date());
     const next = dateToYmd(addDays(base, delta * 7));
-    this.setData({ selectedWeekStartDate: next });
+    this.setData({
+      selectedWeekStartDate: next,
+      weekScrollIntoView: activeWeekViewId(next)
+    });
     this.reloadCalendar().catch((error) => console.error(error));
   },
 
@@ -270,7 +356,8 @@ Page({
     const weekStart = dateToYmd(mondayOf(new Date(`${value}T00:00:00`)));
     this.setData({
       selectedDate: value,
-      selectedWeekStartDate: weekStart
+      selectedWeekStartDate: weekStart,
+      weekScrollIntoView: activeWeekViewId(weekStart)
     });
     this.reloadCalendar().catch((error) => console.error(error));
   },

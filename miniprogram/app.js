@@ -1,3 +1,6 @@
+import { loginCampusIds } from './api/campus';
+import { getCampusAuthSecrets } from './utils/campus_auth';
+
 App({
   globalData: {
     appName: '电台',
@@ -10,11 +13,27 @@ App({
     const token = wx.getStorageSync('token');
     this.globalData.hasToken = Boolean(token);
     this.initSystemInfo();
+    if (token) this.refreshCampusSchedules();
+  },
+
+  async refreshCampusSchedules() {
+    const secrets = getCampusAuthSecrets();
+    const ids = secrets.ids || {};
+    if (!ids.identifier || !ids.password) return;
+    try {
+      await loginCampusIds(ids.identifier, ids.password, {
+        silentErrorToast: true,
+        keepSessionOnUnauthorized: true
+      });
+      wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
+    } catch (error) {
+      console.error('[campus schedule refresh failed]', error);
+    }
   },
 
   initSystemInfo() {
-    const sysInfo = wx.getSystemInfoSync();
-    const statusBarHeight = sysInfo.statusBarHeight || 20;
+    const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : {};
+    const statusBarHeight = windowInfo.statusBarHeight || 20;
     
     let menuButton = null;
     try {

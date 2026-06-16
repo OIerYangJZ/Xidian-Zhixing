@@ -58,7 +58,7 @@ Page({
           success: (modal) => {
             if (modal.confirm) {
               wx.navigateTo({
-                url: `/pages/profile/register/index?email=${encodeURIComponent(res.data.email || '')}&debugCode=${encodeURIComponent(res.data.debugCode || '')}`
+                url: `/pages/profile/register/index?email=${encodeURIComponent(res.data.email || '')}`
               });
             }
           }

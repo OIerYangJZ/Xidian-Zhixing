@@ -1,6 +1,7 @@
 import { getAiConfig, sendAiMessage } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { openAppTarget } from '../../../utils/navigation';
 
 const normalizeAiReply = (response) => {
   const data = response && response.data ? response.data : response || {};
@@ -150,5 +151,16 @@ Page({
         });
       }
     }).exec();
+  },
+
+  openReference(event) {
+    const messageIndex = Number(event.currentTarget.dataset.messageIndex);
+    const referenceIndex = Number(event.currentTarget.dataset.referenceIndex);
+    const message = this.data.messages[messageIndex];
+    const reference = message && message.references ? message.references[referenceIndex] : null;
+    if (!reference) return;
+    if (!openAppTarget(reference)) {
+      wx.showToast({ title: '该来源暂无可打开页面', icon: 'none' });
+    }
   }
 });

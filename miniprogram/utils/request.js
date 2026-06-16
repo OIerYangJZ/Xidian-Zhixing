@@ -115,7 +115,9 @@ const request = (options) => {
       fail: (err) => {
         console.error('[request failed]', url, err);
         const message = requestFailMessage(err, Date.now() - startedAt, timeoutMs);
-        showToastOnce(message);
+        if (!options.silentErrorToast) {
+          showToastOnce(message);
+        }
         reject(err);
       }
     });

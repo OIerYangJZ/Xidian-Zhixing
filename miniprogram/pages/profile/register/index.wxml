@@ -10,7 +10,6 @@
       <text class="email-suffix">{{emailSuffix}}</text>
     </view>
     <input class="input" placeholder="6 位验证码" maxlength="6" value="{{code}}" bindinput="onCodeInput" />
-    <view class="debug-code" wx:if="{{debugCode}}">内测验证码：{{debugCode}}</view>
     <button class="secondary-button" loading="{{sendingCode}}" bindtap="submitSendCode">{{codeSent ? '重新发送验证码' : '发送验证码'}}</button>
     <button class="primary-button" loading="{{verifying}}" bindtap="submitVerify">完成验证</button>
   </view>

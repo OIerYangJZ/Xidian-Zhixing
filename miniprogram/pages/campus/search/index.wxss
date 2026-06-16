@@ -290,5 +290,5 @@
 }
 
 .inline-tag {
-  color: #2563eb;
+  color: var(--app-primary);
 }

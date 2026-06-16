@@ -26,13 +26,12 @@
     <view class="section-head">
       <view>
         <view class="section-title">{{activeInfo.name}}</view>
-        <view class="section-note">密码和验证码只用于本次请求，不会写入本地或数据库。</view>
       </view>
       <view wx:if="{{activeState}}" class="clear-link" bindtap="clearCurrentState">清除</view>
     </view>
 
     <view wx:if="{{activeState}}" class="saved-state">
-      <view class="saved-title">{{activeState.message}}</view>
+      <view class="saved-title">已保存账号</view>
       <view class="saved-meta">{{activeState.updatedAt}} · {{activeState.studentId}}</view>
     </view>
 
@@ -106,13 +105,5 @@
       <button class="secondary-action" loading="{{smsSending}}" disabled="{{smsSending}}" bindtap="sendDormWaterCode">发送短信验证码</button>
       <button class="primary-action" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDormWaterAuth">登录宿舍水机</button>
     </block>
-  </view>
-
-  <view class="section-card result-card" wx:if="{{resultMessage}}">
-    <view class="result-title">{{resultMessage}}</view>
-    <view class="result-row" wx:for="{{resultRows}}" wx:key="key">
-      <view class="result-key">{{item.key}}</view>
-      <view class="result-value">{{item.value}}</view>
-    </view>
   </view>
 </view>

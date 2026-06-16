@@ -131,7 +131,7 @@
 }
 
 .login-button[disabled] {
-  background: #b8b8be !important;
+  background: var(--app-divider) !important;
   color: #ffffff !important;
 }
 

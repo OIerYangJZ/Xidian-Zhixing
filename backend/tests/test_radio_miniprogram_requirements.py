@@ -75,7 +75,6 @@ def test_campus_services_cover_plan_and_exclude_ruisi() -> None:
         "后勤报修",
         "空间预约",
         "双创竞赛",
-        "统一认证",
         "社团推荐",
         "日程提醒",
         "校外访问",
@@ -85,6 +84,7 @@ def test_campus_services_cover_plan_and_exclude_ruisi() -> None:
     }
     assert handler.status_code == 200
     assert required.issubset(names)
+    assert "统一认证" not in names
     assert not any("睿思" in name for name in names)
     assert not any(row.get("groupName") == "快速跳转" for row in rows)
     assert len({row["id"] for row in rows}) == len(rows)
@@ -100,7 +100,7 @@ def test_classtable_detail_uses_calendar_action() -> None:
     payload = handler.payload()["data"]
     assert handler.status_code == 200
     assert payload["name"] == "课表"
-    assert payload["calendarSource"] == "courseSchedules"
+    assert payload["calendarSource"] == "academic"
     assert payload["actions"][0]["type"] == "calendar"
 
 
@@ -281,6 +281,86 @@ def test_apply_ids_academic_data_replaces_current_user_synced_rows() -> None:
     assert counts == {"courseSchedules": 1, "examSchedules": 1}
     assert [row["id"] for row in db["courseSchedules"]] == ["manual", "other", "new"]
     assert [row["id"] for row in db["examSchedules"]] == ["exam"]
+
+
+def test_ids_course_sync_uses_graduate_classtable_when_ehall_has_no_rows(monkeypatch) -> None:
+    import helpers._campus_auth as campus_auth
+
+    class FakeResponse:
+        def __init__(self, payload: dict) -> None:
+            self._payload = payload
+            self.status_code = 200
+
+        def raise_for_status(self) -> None:
+            pass
+
+        def json(self) -> dict:
+            return self._payload
+
+    class FakeGraduateSession:
+        def post(self, url: str, **kwargs):
+            if url.endswith("/queryRcap.do"):
+                return FakeResponse({"xnxq": "第2周"})
+            if url.endswith("/xspkjgcx.do"):
+                return FakeResponse({
+                    "code": "0",
+                    "datas": {
+                        "xspkjgcx": {
+                            "rows": [{
+                                "KCMC": "矩阵论",
+                                "KCDM": "MATH701",
+                                "KSJCDM": 1,
+                                "JSJCDM": 2,
+                                "XQ": 3,
+                                "ZCBH": "11",
+                                "JSXM": "李老师",
+                                "JASMC": "南校区 A-101",
+                            }]
+                        }
+                    },
+                })
+            raise AssertionError(url)
+
+    class FakeRequests:
+        class RequestException(Exception):
+            pass
+
+    def fake_post_ehall_json(_session, url, data=None):
+        if url.endswith("/cxjcs.do"):
+            return {"datas": {"cxjcs": {"rows": [{"XQKSRQ": "2026-03-02"}]}}}
+        if url.endswith("/xskcb.do"):
+            return {"datas": {"xskcb": {"extParams": {"code": 1}, "rows": []}}}
+        raise AssertionError(url)
+
+    monkeypatch.setattr(campus_auth, "_open_ehall_app", lambda *args, **kwargs: None)
+    monkeypatch.setattr(campus_auth, "_post_ehall_json", fake_post_ehall_json)
+    monkeypatch.setattr(campus_auth, "_login_ids_for_service", lambda *_args, **_kwargs: (FakeGraduateSession(), ""))
+    monkeypatch.setattr(campus_auth, "_follow_redirects", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(campus_auth, "_import_requests", lambda: FakeRequests())
+    monkeypatch.setattr(campus_auth, "datetime", type(
+        "FakeDateTime",
+        (),
+        {
+            "now": staticmethod(lambda: __import__("datetime").datetime(2026, 3, 10, 12, 0, 0)),
+            "fromisoformat": staticmethod(__import__("datetime").datetime.fromisoformat),
+        },
+    ))
+
+    rows = campus_auth._sync_course_schedules(
+        object(),
+        student_id="2300000000",
+        password="secret-pass",
+        owner_user_id="u1",
+        semester_code="2025-2026-2",
+    )
+
+    assert len(rows) == 2
+    assert rows[0]["title"] == "矩阵论"
+    assert rows[0]["date"] == "2026-03-04"
+    assert rows[1]["date"] == "2026-03-11"
+    assert rows[0]["startTime"] == "08:30"
+    assert rows[0]["endTime"] == "10:05"
+    assert rows[0]["location"] == "南校区 A-101"
 
 
 def test_xidian_official_guides_seed_ai_knowledge() -> None:

@@ -55,6 +55,10 @@ Page({
       return;
     }
     if (item.relatedType === 'announcement' || item.type === 'system_announcement') {
+      if (item.relatedId && item.relatedType === 'announcement') {
+        wx.navigateTo({ url: `/pages/announcements/detail/index?id=${item.relatedId}` });
+        return;
+      }
       wx.navigateTo({
         url: `/pages/campus/announcement-detail/index?title=${encodeURIComponent(item.title || '')}&content=${encodeURIComponent(item.content || '')}&createdAt=${encodeURIComponent(item.createdAt || '')}`
       });

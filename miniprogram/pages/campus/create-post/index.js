@@ -128,6 +128,8 @@ Page({
     pinIndex: 0,
     pinSelectorOpen: false,
     isLevelOneUser: false,
+    userCollege: '',
+    userMajor: '',
 
     useAnonymousAlias: false,
     anonymousAlias: '',
@@ -189,7 +191,11 @@ Page({
     try {
       const response = await getUserInfo();
       const profile = response.data || {};
-      this.setData({ isLevelOneUser: Boolean(profile.isLevelOneUser) });
+      this.setData({
+        isLevelOneUser: Boolean(profile.isLevelOneUser),
+        userCollege: profile.college || '',
+        userMajor: profile.major || ''
+      });
     } catch (error) {}
   },
 
@@ -248,6 +254,24 @@ Page({
 
   onSectionTap(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
+    const section = this.data.sections[index];
+    if (section && section.sectionType === 'college') {
+      if (!this.data.userCollege) {
+        wx.showModal({
+          title: '完善学院信息',
+          content: '学院分区仅允许本学院同学发布，请先在个人资料中填写学院。',
+          confirmText: '去填写',
+          success: (res) => {
+            if (res.confirm) wx.navigateTo({ url: '/pages/profile/edit-profile/index' });
+          }
+        });
+        return;
+      }
+      if (this.data.userCollege !== section.sectionName) {
+        wx.showToast({ title: '只能在本学院分区发帖', icon: 'none' });
+        return;
+      }
+    }
     this.setData({
       sectionIndex: this.data.sectionIndex === index ? -1 : index,
       sectionSelectorOpen: false

@@ -1,7 +1,7 @@
 .create-page {
   min-height: 100vh;
   padding: 0 0 calc(108rpx + env(safe-area-inset-bottom));
-  background: var(--app-background); /* 宣纸背景色 */
+  background: var(--app-background);
 }
 
 .create-appbar {
@@ -31,7 +31,7 @@
   position: relative;
   width: 36rpx;
   height: 36rpx;
-  color: var(--brand-deep); /* 深赤色 */
+  color: var(--brand-deep);
 }
 
 .close-icon::before,
@@ -96,7 +96,7 @@
 }
 
 .create-content {
-  background: var(--app-card); /* 信纸感卡片 */
+  background: var(--app-card);
   margin: 24rpx;
   padding: 24rpx 0;
   border-radius: 36rpx;
@@ -134,6 +134,13 @@
 .compact-selector-pill.placeholder {
   background: var(--app-control);
   color: var(--app-text-tertiary);
+}
+
+.section-rule-tip {
+  padding: 0 32rpx 20rpx;
+  color: var(--app-text-secondary);
+  font-size: 24rpx;
+  line-height: 1.45;
 }
 
 .selector-arrow {
@@ -204,7 +211,7 @@
 }
 
 .inline-tag {
-  color: #2563eb;
+  color: var(--app-primary);
   font-weight: 500;
 }
 
@@ -256,7 +263,7 @@
 }
 
 .status-badge.resolved {
-  background: rgba(52, 199, 89, .1);
+  background: var(--app-primary-soft);
   color: var(--app-success);
 }
 

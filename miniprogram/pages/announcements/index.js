@@ -23,7 +23,6 @@ Page({
     this.initCustomNav();
     if (!requireLoginPage()) return;
     this.loadUserInfo();
-    this.loadData();
   },
 
   onShow() {
@@ -52,11 +51,12 @@ Page({
     const response = await getUserInfo();
     const user = response.data || {};
     this.setData({
+      preferredCollege: user.college || '',
       userInfo: {
         ...user,
         avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
       }
-    });
+    }, () => this.loadData());
   },
 
   selectType(event) {

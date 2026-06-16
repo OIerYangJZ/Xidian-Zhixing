@@ -1,8 +1,3 @@
-// 环境配置
-// auto: 电脑微信开发者工具使用本机 localhost；真机使用当前电脑局域网 IP
-// devtools: 只在电脑微信开发者工具中使用本机后端
-// lan: 真机调试本地后端，手机和电脑必须在同一局域网
-// prod: 线上 HTTPS 域名，需配置到小程序后台 request 合法域名
 const loadLocalConfig = () => {
   try {
     if (typeof require !== 'function') {
@@ -25,17 +20,14 @@ const ENV = LOCAL_CONFIG.env || 'auto'; // 'auto' | 'devtools' | 'lan' | 'prod'
 const CONFIG = {
   devtools: {
     name: 'devtools',
-    // 仅电脑开发者工具可用；真机中的 localhost 指向手机自身。
     baseUrl: LOCAL_CONFIG.devtoolsBaseUrl || 'http://localhost:8080',
   },
   lan: {
     name: 'lan',
-    // start_backend.bat / scripts/start_backend.sh 会按当前电脑 WLAN IP 生成 env.local.js。
     baseUrl: LOCAL_CONFIG.lanBaseUrl,
   },
   prod: {
     name: 'prod',
-    // 生产环境域名（需要配置在小程序后台的 request 合法域名中）
     baseUrl: 'https://www.seediantreehole.cn',
   }
 };
@@ -45,8 +37,8 @@ const getRuntimePlatform = () => {
     if (typeof wx !== 'undefined' && wx.getDeviceInfo) {
       return String(wx.getDeviceInfo().platform || '').toLowerCase();
     }
-    if (typeof wx !== 'undefined' && wx.getSystemInfoSync) {
-      const info = wx.getSystemInfoSync();
+    if (typeof wx !== 'undefined' && wx.getAppBaseInfo) {
+      const info = wx.getAppBaseInfo();
       return String(info.platform || '').toLowerCase();
     }
   } catch (error) {}
@@ -76,7 +68,7 @@ const isDevtoolsRuntime = () => {
     }
   } catch (error) {}
   try {
-    if (typeof wx !== 'undefined' && wx.getSystemInfoSync && hasDevtoolsMarker(wx.getSystemInfoSync())) {
+    if (typeof wx !== 'undefined' && wx.getWindowInfo && hasDevtoolsMarker(wx.getWindowInfo())) {
       return true;
     }
   } catch (error) {}

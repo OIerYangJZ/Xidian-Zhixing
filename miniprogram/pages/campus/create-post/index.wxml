@@ -20,6 +20,9 @@
         <text class="compact-selector-pill {{sectionIndex >= 0 ? '' : 'placeholder'}}">{{sectionIndex >= 0 ? sections[sectionIndex].sectionName : '不选分区'}}</text>
         <text class="selector-arrow">{{sectionSelectorOpen ? '⌃' : '⌄'}}</text>
       </view>
+      <view wx:if="{{sectionIndex >= 0 && sections[sectionIndex].sectionType === 'college'}}" class="section-rule-tip">
+        学院分区仅允许本学院同学发布，其他同学可浏览。
+      </view>
       <view class="selector-chip-wrap" wx:if="{{sectionSelectorOpen}}">
         <view
           wx:for="{{sections}}"

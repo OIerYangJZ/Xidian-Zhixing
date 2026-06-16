@@ -11,7 +11,6 @@ Page({
     studentId: '',
     emailSuffix: EMAIL_SUFFIX,
     code: '',
-    debugCode: '',
     sendingCode: false,
     verifying: false,
     codeSent: false
@@ -21,7 +20,6 @@ Page({
     const email = options.email ? decodeURIComponent(options.email) : '';
     this.setData({
       studentId: email ? email.split('@')[0] : '',
-      debugCode: options.debugCode ? decodeURIComponent(options.debugCode) : '',
       codeSent: Boolean(options.email)
     });
   },
@@ -49,13 +47,11 @@ Page({
     this.setData({ sendingCode: true });
     wx.showLoading({ title: '发送中' });
     try {
-      const res = await sendCode(email);
+      await sendCode(email);
       wx.hideLoading();
-      const data = res.data || {};
       this.setData({
         sendingCode: false,
-        codeSent: true,
-        debugCode: data.debugCode || ''
+        codeSent: true
       });
       wx.showToast({ title: '验证码已发送', icon: 'success' });
     } catch (error) {

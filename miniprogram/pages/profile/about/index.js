@@ -18,7 +18,7 @@ Page({
   onLoad() {
     const accountInfo = wx.getAccountInfoSync ? wx.getAccountInfoSync() : {};
     const miniProgram = accountInfo.miniProgram || {};
-    this.setData({ version: miniProgram.version || '开发版' });
+    this.setData({ version: miniProgram.version || '' });
   },
 
   openLegal(event) {
