@@ -243,6 +243,36 @@ def test_xidian_password_login_returns_campus_auth_result_without_token(monkeypa
     assert payload["email"] == "2300000000@stu.xidian.edu.cn"
 
 
+def test_xidian_slider_solver_uses_signed_tracks_and_expanded_delta(monkeypatch) -> None:
+    import helpers._xidian_auth as xidian_auth
+
+    verify_moves: list[int] = []
+
+    monkeypatch.setattr(
+        xidian_auth,
+        "_load_slider_payload",
+        lambda _session: {"bigImage": "big", "smallImage": "small"},
+    )
+    monkeypatch.setattr(
+        xidian_auth,
+        "_decode_image",
+        lambda value: b"captcha-image-key!" if value == "small" else b"big-image",
+    )
+    monkeypatch.setattr(xidian_auth, "_solve_slider_offset", lambda _big, _small: 100 / 280)
+
+    def fake_verify(_session, *, move_length: int, key_bytes: bytes) -> bool:
+        verify_moves.append(move_length)
+        assert key_bytes == b"ptcha-image-key!"
+        return move_length == 90
+
+    monkeypatch.setattr(xidian_auth, "_verify_slider_tracks", fake_verify)
+
+    xidian_auth._solve_slider_captcha(object(), retry_count=1)
+
+    assert 90 in verify_moves
+    assert 96 in verify_moves
+
+
 def test_my_feedbacks_returns_only_current_user_rows() -> None:
     from handlers._user_handler import handle_my_feedbacks
 

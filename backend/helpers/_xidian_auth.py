@@ -4,6 +4,8 @@ import base64
 import binascii
 import html
 import io
+import json
+import random
 import re
 import subprocess
 import time
@@ -30,6 +32,12 @@ IDS_AES_PREFIX = (
     "xidianscriptsxdu"
     "xidianscriptsxdu"
     "xidianscriptsxdu"
+)
+IDS_CAPTCHA_CANVAS_WIDTH = 280
+IDS_CAPTCHA_AES_CHARS = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678"
+IDS_CAPTCHA_MOVE_DELTAS = (
+    1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 8, -8, 10, -10,
+    12, -12, 15, -15, 18, -18, 22, -22, 26, -26, 30, -30, 34, -34, 38, -38, 42, -42,
 )
 IDS_HEADERS = {
     "User-Agent": (
@@ -250,6 +258,96 @@ def _verify_slider_answer(session: Any, *, move_length: int, canvas_length: int)
     return isinstance(data, dict) and int(data.get("errorCode", 0)) == 1
 
 
+def _captcha_aes_sign(payload: str, key_bytes: bytes) -> str:
+    if len(key_bytes) != 16:
+        raise XidianAuthUnavailableError("统一认证验证码密钥长度异常")
+    nonce = "".join(random.choice(IDS_CAPTCHA_AES_CHARS) for _ in range(80))
+    raw = (nonce[:64] + payload).encode("utf-8")
+    pad_len = 16 - (len(raw) % 16)
+    raw += bytes([pad_len]) * pad_len
+    try:
+        result = subprocess.run(
+            [
+                "openssl",
+                "enc",
+                "-aes-128-cbc",
+                "-K",
+                key_bytes.hex(),
+                "-iv",
+                nonce[64:80].encode("utf-8").hex(),
+                "-e",
+                "-A",
+                "-base64",
+            ],
+            input=raw,
+            capture_output=True,
+            check=False,
+        )
+    except FileNotFoundError as exc:
+        raise XidianAuthDependencyError("后端缺少 openssl，无法使用统一认证登录") from exc
+    if result.returncode != 0:
+        stderr = result.stderr.decode("utf-8", errors="ignore").strip()
+        raise XidianAuthUnavailableError(stderr or "统一认证验证码签名失败")
+    return result.stdout.decode("utf-8", errors="ignore").strip()
+
+
+def _generate_slider_tracks(move_length: int) -> list[dict[str, int]]:
+    move = max(0, min(IDS_CAPTCHA_CANVAS_WIDTH, int(move_length)))
+    tracks = [{"a": 0, "b": 0, "c": 0}]
+    point_count = random.randint(10, 14)
+    y = 0
+    norm = 1.0 / (1.0 + pow(2.718281828459045, -7.0 * (1.0 - 0.42)))
+    for index in range(point_count):
+        z = (1.0 / (1.0 + pow(2.718281828459045, -7.0 * ((index / point_count) - 0.42)))) / norm
+        x = min(move - 1, max(tracks[-1]["a"] + 1, round(move * z))) if move > 0 else 0
+        r = random.random()
+        if r < 0.65:
+            y -= 1
+        elif r < 0.80:
+            y += 1
+        y = max(-10, min(10, y))
+        tracks.append({"a": int(x), "b": int(y), "c": random.randint(300, 500)})
+    tracks.append({"a": move, "b": int(y), "c": random.randint(300, 500)})
+    return tracks
+
+
+def _verify_slider_tracks(session: Any, *, move_length: int, key_bytes: bytes) -> bool:
+    requests = _import_requests()
+    tracks = _generate_slider_tracks(move_length)
+    payload = json.dumps(
+        {
+            "canvasLength": IDS_CAPTCHA_CANVAS_WIDTH,
+            "moveLength": tracks[-1]["a"] if tracks else 0,
+            "tracks": tracks,
+        },
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    sign = _captcha_aes_sign(payload, key_bytes)
+    try:
+        response = session.post(
+            IDS_SLIDER_VERIFY_URL,
+            data={"sign": sign},
+            headers={
+                "Accept": "application/json, text/javascript, */*; q=0.01",
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "Origin": "https://ids.xidian.edu.cn",
+                "Referer": "https://ids.xidian.edu.cn/authserver/login",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            allow_redirects=False,
+            timeout=_requests_timeout(),
+        )
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise XidianAuthUnavailableError("统一认证验证码校验失败，请稍后重试") from exc
+    try:
+        data = response.json()
+    except ValueError:
+        return False
+    return isinstance(data, dict) and int(data.get("errorCode", 0)) == 1
+
+
 def _find_alpha_bounding_box(alpha_pixels: list[int], *, width: int, height: int) -> tuple[int, int, int, int] | None:
     x_left = width
     y_top = height
@@ -345,8 +443,8 @@ def _solve_slider_offset(puzzle_data: bytes, piece_data: bytes, *, border: int =
     if x_right <= x_left or y_bottom <= y_top:
         return None
 
-    match_width = x_right - x_left
-    match_height = y_bottom - y_top
+    match_width = x_right - x_left + 1
+    match_height = y_bottom - y_top + 1
     if match_width <= 0 or match_height <= 0:
         return None
 
@@ -360,19 +458,18 @@ def _solve_slider_offset(puzzle_data: bytes, piece_data: bytes, *, border: int =
     )
     puzzle_pixels = list(puzzle_gray.getdata())
 
-    min_x = x_left + 1
-    max_x = puzzle_width - piece_width - 1
-    if max_x <= min_x:
+    search_width = puzzle_width - piece_width + match_width
+    if search_width <= match_width:
         return None
 
     best_score = float("-inf")
-    best_x = min_x
+    best_x = 0
     area = max(1, match_width * match_height)
-    for candidate_x in range(min_x, max_x + 1):
+    for candidate_x in range(0, search_width - match_width):
         mean_window = _sum_region(
             puzzle_pixels,
             image_width=puzzle_width,
-            x=candidate_x,
+            x=candidate_x + x_left,
             y=y_top,
             width=match_width,
             height=match_height,
@@ -380,7 +477,7 @@ def _solve_slider_offset(puzzle_data: bytes, piece_data: bytes, *, border: int =
         score = _calc_ncc(
             puzzle_pixels,
             image_width=puzzle_width,
-            x=candidate_x,
+            x=candidate_x + x_left,
             y=y_top,
             width=match_width,
             height=match_height,
@@ -390,22 +487,28 @@ def _solve_slider_offset(puzzle_data: bytes, piece_data: bytes, *, border: int =
         if score > best_score:
             best_score = score
             best_x = candidate_x
-    return max(0.0, (best_x - x_left - 1) / max(1, puzzle_width))
+    return best_x / max(1, puzzle_width)
 
 
-def _solve_slider_captcha(session: Any, *, retry_count: int = 20) -> None:
+def _solve_slider_captcha(session: Any, *, retry_count: int = 6) -> None:
     for _ in range(retry_count):
         payload = _load_slider_payload(session)
         big_image = str(payload.get("bigImage", "")).strip()
         small_image = str(payload.get("smallImage", "")).strip()
         if not big_image or not small_image:
             continue
-        offset_ratio = _solve_slider_offset(_decode_image(big_image), _decode_image(small_image))
+        small_bytes = _decode_image(small_image)
+        offset_ratio = _solve_slider_offset(_decode_image(big_image), small_bytes)
         if offset_ratio is None:
             continue
-        move_length = int(offset_ratio * 280)
-        if _verify_slider_answer(session, move_length=move_length, canvas_length=280):
-            return
+        base_move = round(offset_ratio * IDS_CAPTCHA_CANVAS_WIDTH)
+        key_bytes = small_bytes[-16:]
+        for delta in IDS_CAPTCHA_MOVE_DELTAS:
+            move_length = base_move + delta
+            if move_length < 0 or move_length > IDS_CAPTCHA_CANVAS_WIDTH:
+                continue
+            if _verify_slider_tracks(session, move_length=move_length, key_bytes=key_bytes):
+                return
     raise XidianAuthCaptchaError("统一认证验证码校验失败，请稍后重试")
 
 
