@@ -273,6 +273,7 @@ Page({
   },
 
   async submitPasswordAuth() {
+    if (this.data.submitting) return;
     const { activeSystem, studentId, password } = this.data;
     const labels = {
       ids: '统一认证密码',
@@ -329,6 +330,7 @@ Page({
   },
 
   async submitSchoolnetAuth() {
+    if (this.data.submitting) return;
     const { studentId, password, schoolnetCaptcha, schoolnetAttemptId } = this.data;
     if (!this.requireStudentAndPassword('校园网查询密码')) return;
     if (!schoolnetAttemptId || !schoolnetCaptcha) {
@@ -398,6 +400,7 @@ Page({
   },
 
   async submitDormWaterAuth() {
+    if (this.data.submitting) return;
     const { dormWaterPhone, dormWaterSmsCode } = this.data;
     if (!dormWaterPhone || !dormWaterSmsCode) {
       wx.showToast({ title: '请输入手机号和短信验证码', icon: 'none' });

@@ -25,6 +25,18 @@ const networkErrorMessage = () => {
   return '网络异常，请检查域名和 HTTPS 配置';
 };
 
+const requestFailMessage = (err, elapsedMs, timeoutMs) => {
+  const errMsg = String((err && err.errMsg) || err || '');
+  const isTimeout = /timeout/i.test(errMsg);
+  if (isTimeout && elapsedMs >= Math.max(1000, timeoutMs - 1000)) {
+    return '请求超时，请稍后重试';
+  }
+  if (isTimeout) {
+    return networkErrorMessage();
+  }
+  return networkErrorMessage();
+};
+
 /**
  * 封装微信的 wx.request
  */
@@ -64,20 +76,26 @@ const request = (options) => {
     }
 
     const url = buildUrl(options.url);
+    const timeoutMs = options.timeout || 15000;
+    const startedAt = Date.now();
 
     wx.request({
       url,
       method: options.method || 'GET',
       data: options.data || {},
       header: header,
-      timeout: options.timeout || 15000,
+      timeout: timeoutMs,
       success: (res) => {
         const { statusCode, data } = res;
         
         // HTTP 状态码 2xx 表示成功
         if (statusCode >= 200 && statusCode < 300) {
           resolve(data);
-        } else if (statusCode === 401 && token) {
+        } else if (
+          statusCode === 401
+          && token
+          && (!options.keepSessionOnUnauthorized || (data && data.message === '请先登录'))
+        ) {
           // 未登录或 token 过期
           clearLoginAndRedirect();
           wx.showToast({
@@ -96,9 +114,7 @@ const request = (options) => {
       },
       fail: (err) => {
         console.error('[request failed]', url, err);
-        const message = /timeout/i.test(String((err && err.errMsg) || err || ''))
-          ? '请求超时，请稍后重试'
-          : networkErrorMessage();
+        const message = requestFailMessage(err, Date.now() - startedAt, timeoutMs);
         showToastOnce(message);
         reject(err);
       }

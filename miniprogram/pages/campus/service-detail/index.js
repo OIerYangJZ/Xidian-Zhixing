@@ -272,6 +272,7 @@ Page({
   },
 
   async submitIdsAuth() {
+    if (this.data.submittingAuth) return;
     const { studentId, idsPassword, authPanel } = this.data;
     if (!this.ensureStudentAndPassword(idsPassword, '统一认证密码')) return;
     this.setData({ submittingAuth: true, authMessage: '' });
@@ -293,6 +294,7 @@ Page({
   },
 
   async submitPhysicsAuth() {
+    if (this.data.submittingAuth) return;
     const { studentId, physicsPassword } = this.data;
     if (!this.ensureStudentAndPassword(physicsPassword, '物理实验密码')) return;
     this.setData({ submittingAuth: true, authMessage: '' });
@@ -312,6 +314,7 @@ Page({
   },
 
   async submitSportAuth() {
+    if (this.data.submittingAuth) return;
     const { studentId, sportPassword } = this.data;
     if (!this.ensureStudentAndPassword(sportPassword, '体育系统密码')) return;
     this.setData({ submittingAuth: true, authMessage: '' });
@@ -353,6 +356,7 @@ Page({
   },
 
   async submitSchoolnetAuth() {
+    if (this.data.submittingAuth) return;
     const {
       studentId,
       schoolnetPassword,
@@ -429,6 +433,7 @@ Page({
   },
 
   async submitDormWaterAuth() {
+    if (this.data.submittingAuth) return;
     const { dormWaterPhone, dormWaterSmsCode } = this.data;
     if (!dormWaterPhone || !dormWaterSmsCode) {
       wx.showToast({ title: '请输入手机号和短信验证码', icon: 'none' });
