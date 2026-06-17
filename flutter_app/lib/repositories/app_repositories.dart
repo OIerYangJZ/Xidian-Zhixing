@@ -2,8 +2,11 @@ import '../core/auth/admin_auth_store.dart';
 import '../core/network/api_client.dart';
 import 'admin_repository.dart';
 import 'admin_auth_repository.dart';
+import 'ai_repository.dart';
+import 'announcement_repository.dart';
 import 'app_release_repository.dart';
 import 'auth_repository.dart';
+import 'campus_repository.dart';
 import 'message_repository.dart';
 import 'notification_repository.dart';
 import 'post_repository.dart';
@@ -24,6 +27,11 @@ class AppRepositories {
     apiClient,
   );
   static final UserRepository users = UserRepository(apiClient);
+  static final CampusRepository campus = CampusRepository(apiClient);
+  static final AnnouncementRepository announcements = AnnouncementRepository(
+    apiClient,
+  );
+  static final AiRepository ai = AiRepository(apiClient);
   static final AppReleaseRepository releases = AppReleaseRepository(apiClient);
   static final AdminRepository admin = AdminRepository(apiClient);
   static final AdminRepository adminPortal = AdminRepository(adminApiClient);

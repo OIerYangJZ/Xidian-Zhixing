@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/notification_item.dart';
 import '../../models/post_item.dart';
@@ -132,8 +133,10 @@ class _NotificationCenterPageState
                                     maxLines: 3,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.72),
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.72),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -143,7 +146,7 @@ class _NotificationCenterPageState
                                         _labelForType(item.type),
                                         style: const TextStyle(
                                           fontSize: 12,
-                                          color: Color(0xFF0F766E),
+                                          color: SharedColors.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -268,18 +271,18 @@ class _NotificationCenterPageState
   Color _badgeColor(String type) {
     switch (type) {
       case 'comment':
-        return const Color(0xFF0284C7);
+        return SharedColors.primary;
       case 'reply':
-        return const Color(0xFF0F766E);
+        return SharedColors.success;
       case 'like':
-        return const Color(0xFFDB2777);
+        return SharedColors.danger;
       case 'favorite':
-        return const Color(0xFFD97706);
+        return SharedColors.warning;
       case 'report_result':
-        return const Color(0xFF7C3AED);
+        return SharedColors.deep;
       case 'system_announcement':
       default:
-        return const Color(0xFF334155);
+        return SharedColors.textSecondary;
     }
   }
 

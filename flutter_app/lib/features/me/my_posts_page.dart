@@ -80,10 +80,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           runSpacing: 8,
                           children: <Widget>[
                             OutlinedButton(
-                              onPressed: _actionBusy ? null : () => _edit(post),
-                              child: const Text('编辑'),
-                            ),
-                            OutlinedButton(
                               onPressed: _actionBusy
                                   ? null
                                   : () => _updateStatus(post),
@@ -153,10 +149,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
         });
       }
     }
-  }
-
-  Future<void> _edit(PostItem post) async {
-    _toast('编辑接口待后端提供（当前仅保留入口）。');
   }
 
   Future<void> _updateStatus(PostItem post) async {

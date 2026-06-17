@@ -10,7 +10,6 @@ import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/report_guidelines_page.dart';
-import '../download/android_release_page.dart';
 import '../auth/login_page.dart';
 import '../auth/reset_password_page.dart';
 import 'emoji_settings_page.dart';
@@ -317,19 +316,6 @@ class ProfilePageState extends State<ProfilePage> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.download_outlined),
-                title: const Text('下载 Android 客户端'),
-                subtitle: const Text('查看当前最新 APK 版本并下载安装'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const AndroidReleasePage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
                 leading: const Icon(Icons.delete_outline),
                 title: const Text('注销账号申请'),
                 subtitle: Text(
@@ -575,7 +561,9 @@ class ProfilePageState extends State<ProfilePage> {
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 30,
-        backgroundColor: const Color(0xFFE5EAF3),
+        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+          alpha: 0.1,
+        ),
         child: ClipOval(
           child: Image.network(
             resolved,

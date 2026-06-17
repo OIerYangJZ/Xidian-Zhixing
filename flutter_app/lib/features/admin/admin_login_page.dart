@@ -18,12 +18,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   String? _error;
 
   @override
-  void initState() {
-    super.initState();
-    _usernameController.text = 'admin';
-  }
-
-  @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();

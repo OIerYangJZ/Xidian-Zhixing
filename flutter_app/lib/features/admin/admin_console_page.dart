@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
 import '../../models/admin_models.dart';
@@ -164,14 +165,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: <Color>[Color(0xFFEAF4FA), Color(0xFFF5F9FC)],
-          ),
-        ),
+      body: ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : (_isPrimaryAdmin
@@ -198,14 +193,18 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Material(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(14),
-              child: const TabBar(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              child: TabBar(
                 isScrollable: true,
                 dividerColor: Colors.transparent,
-                tabs: <Tab>[
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.62),
+                tabs: const <Tab>[
                   Tab(text: '概览'),
-                  Tab(text: '内容审核'),
+                  Tab(text: '帖子管理'),
                   Tab(text: '举报处理'),
                   Tab(text: '图片审核'),
                   Tab(text: '帖子置顶'),
@@ -261,11 +260,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Material(
-              color: Colors.white.withValues(alpha: 0.92),
-              borderRadius: BorderRadius.circular(14),
-              child: const TabBar(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              child: TabBar(
                 dividerColor: Colors.transparent,
-                tabs: <Tab>[
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.62),
+                tabs: const <Tab>[
                   Tab(text: '帖子置顶'),
                   Tab(text: '用户管理'),
                 ],
@@ -303,9 +306,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFD5E2)),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Wrap(
         spacing: 10,
@@ -371,13 +374,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: const Color(0xFFEDF5FA),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Icon(icon, size: 16, color: const Color(0xFF155E75)),
+          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 6),
           Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
@@ -411,55 +414,55 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               title: '今日新增用户',
               value: overview.todayNewUsers,
               icon: Icons.person_add_alt_1_rounded,
-              color: const Color(0xFF2061A8),
+              color: SharedColors.primary,
             ),
             _metricCard(
               title: '今日发帖数',
               value: overview.todayPosts,
               icon: Icons.edit_note_rounded,
-              color: const Color(0xFF126E5E),
+              color: SharedColors.success,
             ),
             _metricCard(
               title: '今日评论数',
               value: overview.todayComments,
               icon: Icons.forum_outlined,
-              color: const Color(0xFF5C4DB0),
+              color: SharedColors.deep,
             ),
             _metricCard(
               title: '今日举报数',
               value: overview.todayReports,
               icon: Icons.flag_circle_outlined,
-              color: const Color(0xFFB34B1E),
+              color: SharedColors.warning,
             ),
             _metricCard(
               title: '待审核内容',
               value: overview.pendingReviews,
               icon: Icons.approval_outlined,
-              color: const Color(0xFFA46A00),
+              color: SharedColors.warning,
             ),
             _metricCard(
               title: '待注销申请',
               value: overview.pendingCancellationRequests,
               icon: Icons.person_remove_alt_1_outlined,
-              color: const Color(0xFF8F4B12),
+              color: SharedColors.warning,
             ),
             _metricCard(
               title: '活跃账号数',
               value: overview.activeUsers,
               icon: Icons.groups_rounded,
-              color: const Color(0xFF155E75),
+              color: SharedColors.primary,
             ),
             _metricCard(
               title: '被封禁用户',
               value: overview.bannedUsers,
               icon: Icons.gpp_bad_outlined,
-              color: const Color(0xFFAF2333),
+              color: SharedColors.danger,
             ),
             _metricCard(
               title: '被禁言用户',
               value: overview.mutedUsers,
               icon: Icons.volume_off_outlined,
-              color: const Color(0xFF7C3AED),
+              color: SharedColors.deep,
             ),
           ],
         ),
@@ -478,7 +481,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                 FilledButton.tonalIcon(
                   onPressed: _actionBusy ? null : _loadReviews,
                   icon: const Icon(Icons.assignment_turned_in_outlined),
-                  label: const Text('刷新内容审核'),
+                  label: const Text('刷新人工审核'),
                 ),
                 FilledButton.tonalIcon(
                   onPressed: _actionBusy ? null : _loadReports,
@@ -602,6 +605,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
+        _adminSectionHeader(
+          icon: Icons.article_outlined,
+          title: '帖子管理',
+          subtitle: '人工审核帖子与评论，处理通过、驳回、风险标记和删除。',
+        ),
+        const SizedBox(height: 12),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -683,7 +692,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '已选 ${_selectedReviewIds.length} 条',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: _reviews.isEmpty ? null : _toggleSelectAllReviews,
@@ -774,7 +785,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     '实际账号：${item.authorNickname}'
                     '${item.authorEmail.isNotEmpty ? ' · ${item.authorEmail}' : ''}'
                     '${item.authorStudentId.isNotEmpty ? ' · 学号 ${item.authorStudentId}' : ''}',
-                    style: const TextStyle(color: Colors.black87),
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.72),
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Wrap(
@@ -2284,16 +2299,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       width: 52,
       height: 52,
       decoration: BoxDecoration(
-        color: const Color(0xFFE6F0F6),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
       ),
       alignment: Alignment.center,
       child: Text(
         label.trim().isEmpty ? '?' : label.trim().substring(0, 1).toUpperCase(),
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w800,
-          color: Color(0xFF155E75),
+          color: Theme.of(context).colorScheme.primary,
         ),
       ),
     );
@@ -2737,6 +2752,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
+        _adminSectionHeader(
+          icon: Icons.shield_outlined,
+          title: '审核与屏蔽',
+          subtitle: '管理敏感词屏蔽、发帖评论频率和图片上传限制。',
+        ),
+        const SizedBox(height: 12),
         if (_isPrimaryAdmin) _buildAdminAccountCard(),
         if (_isPrimaryAdmin) const SizedBox(height: 12),
         Card(
@@ -2746,19 +2767,20 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  '系统风控配置',
+                  '敏感词屏蔽',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text('敏感词（英文逗号分隔）'),
-                const SizedBox(height: 6),
                 TextField(
                   controller: _sensitiveController,
                   minLines: 2,
                   maxLines: 5,
-                  decoration: const InputDecoration(hintText: '例如：广告,引流,辱骂,诈骗'),
+                  decoration: const InputDecoration(
+                    labelText: '屏蔽词',
+                    hintText: '广告,引流,辱骂,诈骗',
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Wrap(
@@ -2770,7 +2792,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       child: TextField(
                         controller: _postLimitController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: '发帖频率限制'),
+                      decoration: const InputDecoration(labelText: '发帖限制'),
                       ),
                     ),
                     SizedBox(
@@ -2778,7 +2800,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       child: TextField(
                         controller: _commentLimitController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: '评论频率限制'),
+                        decoration: const InputDecoration(labelText: '评论限制'),
                       ),
                     ),
                     SizedBox(
@@ -2786,7 +2808,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       child: TextField(
                         controller: _messageLimitController,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: '私信频率限制'),
+                        decoration: const InputDecoration(labelText: '私信限制'),
                       ),
                     ),
                     SizedBox(
@@ -2809,12 +2831,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     FilledButton.icon(
                       onPressed: _actionBusy ? null : _saveConfig,
                       icon: const Icon(Icons.save_outlined),
-                      label: const Text('保存系统配置'),
+                      label: const Text('保存屏蔽规则'),
                     ),
                     FilledButton.tonalIcon(
                       onPressed: _actionBusy ? null : _loadConfig,
                       icon: const Icon(Icons.restore),
-                      label: const Text('重新读取当前配置'),
+                      label: const Text('重新读取'),
                     ),
                   ],
                 ),
@@ -2949,6 +2971,59 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  Widget _adminSectionHeader({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _metricCard({
     required String title,
     required int value,
@@ -2970,7 +3045,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   Expanded(
                     child: Text(
                       title,
-                      style: const TextStyle(color: Colors.black54),
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.58),
+                      ),
                     ),
                   ),
                 ],
@@ -2994,12 +3073,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   Widget _statusChip(String status) {
     final String normalized = status.trim().toLowerCase();
     final Map<String, Color> colors = <String, Color>{
-      'pending': const Color(0xFFBB6B00),
-      'approved': const Color(0xFF126E5E),
-      'resolved': const Color(0xFF126E5E),
-      'rejected': const Color(0xFFB42318),
-      'closed': const Color(0xFF7A5C00),
-      'risk': const Color(0xFF8F4B12),
+      'pending': SharedColors.warning,
+      'approved': SharedColors.success,
+      'resolved': SharedColors.success,
+      'rejected': SharedColors.danger,
+      'closed': SharedColors.textSecondary,
+      'risk': SharedColors.warning,
     };
     final Map<String, String> labels = <String, String>{
       'pending': '待处理',
@@ -3009,7 +3088,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       'closed': '已关闭',
       'risk': '风险',
     };
-    final Color color = colors[normalized] ?? Colors.black54;
+    final Color color =
+        colors[normalized] ??
+        Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.58);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

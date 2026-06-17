@@ -73,9 +73,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final CreatePostState state = ref.watch(createPostControllerProvider);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
-    final List<String> channels =
-        state.channels.isNotEmpty ? state.channels : const <String>['未分类'];
-    final String selectedChannel = _deriveSelectedChannel(channels);
+    final List<String> channels = state.channels;
+    final bool hasChannels = channels.isNotEmpty;
+    final String? selectedChannel = hasChannels
+        ? _deriveSelectedChannel(channels)
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('发布树洞')),
@@ -245,28 +247,31 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     ),
                   ],
                   const SizedBox(height: 10),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedChannel,
-                    decoration: const InputDecoration(labelText: '频道'),
-                    items: channels
-                        .map(
-                          (String channel) => DropdownMenuItem<String>(
-                            value: channel,
-                            child: Text(channel),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: isBusy
-                        ? null
-                        : (String? value) {
-                            if (value == null) {
-                              return;
-                            }
-                            setState(() {
-                              _selectedChannel = value;
-                            });
-                          },
-                  ),
+                  if (hasChannels)
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedChannel,
+                      decoration: const InputDecoration(labelText: '频道'),
+                      items: channels
+                          .map(
+                            (String channel) => DropdownMenuItem<String>(
+                              value: channel,
+                              child: Text(channel),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: isBusy
+                          ? null
+                          : (String? value) {
+                              if (value == null) {
+                                return;
+                              }
+                              setState(() {
+                                _selectedChannel = value;
+                              });
+                            },
+                    )
+                  else
+                    const _EmptyChannelCard(),
                   const SizedBox(height: 10),
                   DropdownButtonFormField<PostStatus>(
                     initialValue: _status,
@@ -432,7 +437,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: isBusy ? null : () => _submit(selectedChannel),
+                      onPressed: isBusy || selectedChannel == null
+                          ? null
+                          : () => _submit(selectedChannel),
                       icon: const Icon(Icons.send_rounded),
                       label: Text(state.submitting ? '发布中...' : '发布帖子'),
                     ),
@@ -750,6 +757,35 @@ class _ProgressCard extends StatelessWidget {
             Expanded(child: Text(text)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EmptyChannelCard extends StatelessWidget {
+  const _EmptyChannelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
+        ),
+      ),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            Icons.category_outlined,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 10),
+          const Expanded(child: Text('暂无可用频道')),
+        ],
       ),
     );
   }

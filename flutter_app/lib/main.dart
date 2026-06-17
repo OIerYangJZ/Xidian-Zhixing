@@ -11,9 +11,11 @@ import 'mobile/mobile_app_entry_stub.dart'
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await AuthStore.instance.init();
-  await AdminAuthStore.instance.init();
-  await EmojiSettingsStore.instance.init();
+  await Future.wait(<Future<void>>[
+    AuthStore.instance.init(),
+    AdminAuthStore.instance.init(),
+    EmojiSettingsStore.instance.init(),
+  ]);
 
   if (kIsWeb) {
     runApp(const ProviderScope(child: XduTreeholeApp()));

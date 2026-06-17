@@ -149,19 +149,12 @@ class _VerifyPageState extends State<VerifyPage> {
     });
 
     try {
-      final String? debugCode =
-          await AppRepositories.auth.resendCode(widget.campusEmail);
+      await AppRepositories.auth.resendCode(widget.campusEmail);
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            debugCode == null
-                ? '验证码已重新发送。'
-                : '验证码已重新发送（内测模式验证码：$debugCode）。',
-          ),
-        ),
+        const SnackBar(content: Text('验证码已重新发送。')),
       );
     } on ApiException catch (error) {
       _showError(error.message);

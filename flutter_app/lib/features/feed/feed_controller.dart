@@ -65,12 +65,13 @@ class FeedController extends StateNotifier<FeedState> {
   Future<void> loadInitial() async {
     state = state.copyWith(loading: true, clearError: true);
     try {
-      final List<String> channels = await _ref
-          .read(postRepositoryProvider)
-          .fetchChannels();
-      final List<PostItem> posts = await _ref
-          .read(postRepositoryProvider)
-          .fetchPosts(sort: state.sort);
+      final PostRepository repository = _ref.read(postRepositoryProvider);
+      final results = await Future.wait<Object>(<Future<Object>>[
+        repository.fetchChannels(),
+        repository.fetchPosts(sort: state.sort),
+      ]);
+      final List<String> channels = results[0] as List<String>;
+      final List<PostItem> posts = results[1] as List<PostItem>;
       state = state.copyWith(
         channels: <String>['全部', ...channels.toSet().where((c) => c != '其他')],
         posts: sortPostsForView(posts, sort: state.sort),
@@ -155,6 +156,31 @@ class FeedController extends StateNotifier<FeedState> {
     } catch (error) {
       state = state.copyWith(loading: false, error: '排序切换失败：$error');
     }
+  }
+
+  Future<void> toggleLike(PostItem post) async {
+    final bool nextLiked = !post.isLiked;
+    if (nextLiked) {
+      await _ref.read(postRepositoryProvider).likePost(post.id);
+    } else {
+      await _ref.read(postRepositoryProvider).unlikePost(post.id);
+    }
+    final int nextCount = (post.likeCount + (nextLiked ? 1 : -1)).clamp(0, 1 << 31);
+    replacePost(post.copyWith(isLiked: nextLiked, likeCount: nextCount));
+  }
+
+  Future<void> toggleFavorite(PostItem post) async {
+    final FavoriteActionResult result = post.isFavorited
+        ? await _ref.read(postRepositoryProvider).unfavoritePost(post.id)
+        : await _ref.read(postRepositoryProvider).favoritePost(post.id);
+    replacePost(
+      post.copyWith(
+        isFavorited: result.favorited,
+        favoriteCount:
+            result.favoriteCount ??
+            (post.favoriteCount + (result.favorited ? 1 : -1)).clamp(0, 1 << 31),
+      ),
+    );
   }
 
   Future<void> loadMoreIfNeeded() async {

@@ -260,7 +260,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         name.trim().isEmpty ? '?' : name.trim().substring(0, 1);
     if (resolved.isNotEmpty) {
       return CircleAvatar(
-        backgroundColor: const Color(0xFFE5EAF3),
+        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+          alpha: 0.1,
+        ),
         child: ClipOval(
           child: Image.network(
             resolved,

@@ -7,7 +7,6 @@ import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../admin/admin_login_page.dart';
-import '../download/android_release_page.dart';
 import '../../widgets/home_shell.dart';
 import 'register_page.dart';
 import 'reset_password_page.dart';
@@ -38,15 +37,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: <Color>[Color(0xFFEAF3FB), Color(0xFFF6F8FB)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
+      body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Card(
@@ -154,9 +145,14 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       '注册、验证码和密码找回仅支持 @stu.xidian.edu.cn 学生邮箱。',
-                      style: TextStyle(fontSize: 12, color: Colors.black54),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.62),
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: _isBusy
@@ -170,19 +166,6 @@ class _LoginPageState extends State<LoginPage> {
                             },
                       icon: const Icon(Icons.admin_panel_settings_outlined),
                       label: const Text('管理员后台登录'),
-                    ),
-                    TextButton.icon(
-                      onPressed: _isBusy
-                          ? null
-                          : () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const AndroidReleasePage(),
-                                ),
-                              );
-                            },
-                      icon: const Icon(Icons.download_outlined),
-                      label: const Text('下载 Android 客户端'),
                     ),
                     const SizedBox(height: 4),
                     TextButton(
@@ -203,7 +186,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-        ),
       ),
     );
   }

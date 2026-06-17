@@ -11,8 +11,6 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(_title),
-        backgroundColor: const Color(0xFF0E7490),
-        foregroundColor: Colors.white,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -146,12 +144,9 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[Color(0xFF0E7490), Color(0xFF155E75)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: <Widget>[
@@ -162,13 +157,16 @@ class PrivacyPolicyPage extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Icon(Icons.shield_outlined, color: Colors.white, size: 32),
+            child: Icon(
+              Icons.shield_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             _title,
-            style: TextStyle(
-              color: Colors.white,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
@@ -176,8 +174,10 @@ class PrivacyPolicyPage extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '最后更新：$_lastUpdated',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.62),
               fontSize: 12,
             ),
           ),
@@ -190,15 +190,9 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -209,7 +203,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                 width: 4,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0E7490),
+                  color: Theme.of(context).colorScheme.primary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -217,10 +211,10 @@ class PrivacyPolicyPage extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF155E75),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -229,10 +223,12 @@ class PrivacyPolicyPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               height: 1.7,
-              color: Color(0xFF374151),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.74),
             ),
           ),
         ],
@@ -244,20 +240,28 @@ class PrivacyPolicyPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FA),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF0E7490).withValues(alpha: 0.2)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
+        ),
       ),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.info_outline, color: Color(0xFF0E7490), size: 20),
+          Icon(
+            Icons.info_outline,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '西电树洞 · 校园匿名社交平台\n我们致力于保护您的个人信息安全',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.62),
                 height: 1.5,
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/shared_colors.dart';
 import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
 import '../../models/direct_message_item.dart';
@@ -319,11 +320,15 @@ class _ChatPageState extends State<ChatPage> {
               constraints: const BoxConstraints(maxWidth: 420),
               decoration: BoxDecoration(
                 color: message.fromMe
-                    ? const Color(0xFF155E75).withValues(alpha: 0.12)
-                    : Colors.white,
+                    ? Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.12)
+                    : Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: const Color(0xFF155E75).withValues(alpha: 0.1),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
                 ),
               ),
               child: Column(
@@ -334,10 +339,10 @@ class _ChatPageState extends State<ChatPage> {
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
                         message.senderAlias,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF155E75),
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                     ),
@@ -365,7 +370,7 @@ class _ChatPageState extends State<ChatPage> {
                           style: TextStyle(
                             fontSize: 11,
                             color: message.isRead
-                                ? const Color(0xFF0F766E)
+                                ? SharedColors.success
                                 : Colors.black45,
                             fontWeight: FontWeight.w600,
                           ),
@@ -521,7 +526,7 @@ class _ChatPageState extends State<ChatPage> {
             width: 3,
             height: 32,
             decoration: BoxDecoration(
-              color: const Color(0xFF155E75),
+              color: Theme.of(context).colorScheme.primary,
               borderRadius: BorderRadius.circular(3),
             ),
           ),
@@ -533,10 +538,10 @@ class _ChatPageState extends State<ChatPage> {
               children: <Widget>[
                 Text(
                   '回复 ${_displaySender(message)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF155E75),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -562,12 +567,14 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildQuotedMessage(DirectMessageItem message, bool isMe) {
     final Color accentColor = isMe
-        ? const Color(0xFF0F172A)
-        : const Color(0xFF155E75);
+        ? Theme.of(context).colorScheme.onSurface
+        : Theme.of(context).colorScheme.primary;
     final Color backgroundColor = isMe
-        ? const Color(0xFFFFFFFF).withValues(alpha: 0.55)
-        : const Color(0xFF155E75).withValues(alpha: 0.06);
-    final Color bodyColor = isMe ? const Color(0xFF334155) : Colors.black54;
+        ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.55)
+        : Theme.of(context).colorScheme.primary.withValues(alpha: 0.06);
+    final Color bodyColor = Theme.of(
+      context,
+    ).colorScheme.onSurface.withValues(alpha: 0.62);
 
     return Container(
       width: double.infinity,
@@ -637,13 +644,24 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      color: const Color(0xFFF3F4F6),
+      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.shield_outlined, size: 18, color: Color(0xFF475569)),
+          Icon(
+            Icons.shield_outlined,
+            size: 18,
+            color: Theme.of(context).colorScheme.primary,
+          ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: const TextStyle(color: Color(0xFF334155))),
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.72),
+              ),
+            ),
           ),
           if (blockedByMe && !blockedByPeer)
             TextButton(
@@ -826,7 +844,9 @@ class _ChatPageState extends State<ChatPage> {
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 14,
-        backgroundColor: const Color(0xFFE5EAF3),
+        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+          alpha: 0.1,
+        ),
         child: ClipOval(
           child: Image.network(
             resolved,

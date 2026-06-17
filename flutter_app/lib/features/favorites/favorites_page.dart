@@ -99,12 +99,9 @@ class FavoritesPageState extends State<FavoritesPage> {
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: const LinearGradient(
-          colors: <Color>[Color(0xFF155E75), Color(0xFF0F766E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: <Widget>[
@@ -115,23 +112,22 @@ class FavoritesPageState extends State<FavoritesPage> {
                 Text(
                   '我的收藏夹',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
                         fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '总收藏 ${_favorites.length} 条 · 当前显示 $filteredCount 条',
-                  style: const TextStyle(color: Colors.white70),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.62),
+                  ),
                 ),
               ],
             ),
           ),
           FilledButton.tonalIcon(
-            style: FilledButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF155E75),
-            ),
             onPressed: _loadFavorites,
             icon: const Icon(Icons.refresh),
             label: const Text('刷新'),
@@ -146,8 +142,9 @@ class FavoritesPageState extends State<FavoritesPage> {
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: <Widget>[

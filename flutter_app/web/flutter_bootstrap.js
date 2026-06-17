@@ -14,7 +14,9 @@ _flutter.loader.load({
       if (typeof xduBootUpdateStatus === 'function') {
         xduBootUpdateStatus('正在初始化渲染引擎...');
       }
-      const appRunner = await engineInitializer.initializeEngine();
+      const appRunner = await engineInitializer.initializeEngine({
+        renderer: 'html',
+      });
       if (typeof xduBootUpdateStatus === 'function') {
         xduBootUpdateStatus('正在进入首页...');
       }

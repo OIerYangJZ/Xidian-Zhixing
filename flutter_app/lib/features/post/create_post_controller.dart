@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
-import '../../data/mock_data.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -9,7 +8,7 @@ import '../../repositories/post_repository.dart';
 
 class CreatePostState {
   const CreatePostState({
-    this.channels = kChannels,
+    this.channels = const <String>[],
     this.loadingChannels = true,
     this.userLevel = 2,
     this.userLevelLabel = '二级用户',
@@ -79,7 +78,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
           await _ref.read(postRepositoryProvider).fetchChannels();
       final profile = await AppRepositories.users.fetchProfile();
       state = state.copyWith(
-        channels: channels.isEmpty ? kChannels : channels,
+        channels: channels,
         loadingChannels: false,
         userLevel: profile.userLevel,
         userLevelLabel: profile.userLevelLabel,

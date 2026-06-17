@@ -304,7 +304,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: const Color(0xFFE5EAF3),
+        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
+          alpha: 0.1,
+        ),
           backgroundImage: resolvedAvatar.isNotEmpty
               ? NetworkImage(resolvedAvatar)
               : null,

@@ -10,7 +10,7 @@
     <link rel="manifest" href="manifest.json" />
     <style>
       :root {
-        color-scheme: light;
+        color-scheme: light dark;
       }
 
       html,
@@ -19,7 +19,7 @@
         padding: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, #eaf3fb 0%, #f6f8fb 100%);
+        background: #ffffff;
         font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
           sans-serif;
       }
@@ -30,7 +30,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: linear-gradient(135deg, #eaf3fb 0%, #f6f8fb 100%);
+        background: #ffffff;
         z-index: 9999;
         transition: opacity 220ms ease;
       }
@@ -43,10 +43,10 @@
       .boot-card {
         width: min(420px, calc(100vw - 32px));
         padding: 24px 22px 20px;
-        border-radius: 20px;
-        background: rgba(255, 255, 255, 0.92);
-        box-shadow: 0 20px 48px rgba(15, 45, 58, 0.12);
-        border: 1px solid rgba(21, 94, 117, 0.08);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: none;
+        border: 1px solid #eee4e1;
         box-sizing: border-box;
       }
 
@@ -55,13 +55,13 @@
         font-size: 30px;
         font-weight: 800;
         line-height: 1.2;
-        color: #0f2d3a;
+        color: #2d2522;
       }
 
       .boot-subtitle {
         margin: 8px 0 0;
         font-size: 14px;
-        color: rgba(15, 45, 58, 0.68);
+        color: #847a76;
       }
 
       .boot-progress {
@@ -70,7 +70,7 @@
         height: 8px;
         border-radius: 999px;
         overflow: hidden;
-        background: rgba(14, 116, 144, 0.12);
+        background: #f8ecea;
       }
 
       .boot-progress > span {
@@ -78,14 +78,14 @@
         width: 42%;
         height: 100%;
         border-radius: inherit;
-        background: linear-gradient(90deg, #0e7490 0%, #155e75 100%);
+        background: #a8332c;
         animation: boot-progress 1.4s ease-in-out infinite;
       }
 
       .boot-status {
         margin-top: 14px;
         font-size: 13px;
-        color: #155e75;
+        color: #a8332c;
       }
 
       .boot-error {
@@ -101,12 +101,45 @@
         display: none;
         border: 0;
         border-radius: 12px;
-        background: #155e75;
+        background: #a8332c;
         color: #fff;
         padding: 10px 14px;
         font-size: 14px;
         font-weight: 700;
         cursor: pointer;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html,
+        body,
+        #boot-shell {
+          background: #120f0e;
+        }
+
+        .boot-card {
+          background: #171211;
+          border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .boot-title {
+          color: #f5efed;
+        }
+
+        .boot-subtitle {
+          color: rgba(245, 239, 237, 0.68);
+        }
+
+        .boot-progress {
+          background: rgba(224, 114, 105, 0.14);
+        }
+
+        .boot-progress > span {
+          background: #e07269;
+        }
+
+        .boot-status {
+          color: #e6a09a;
+        }
       }
 
       @keyframes boot-progress {
@@ -140,7 +173,7 @@
       const bootStatus = document.getElementById('boot-status');
       const bootError = document.getElementById('boot-error');
       const bootRetry = document.getElementById('boot-retry');
-      const cleanupVersion = '2026-03-28-web-bootstrap-v2';
+      const cleanupVersion = '2026-06-17-web-bootstrap-v3';
       const cleanupStorageKey = `xdu_treehole_boot_cleanup_${cleanupVersion}`;
       let bootFinished = false;
 
@@ -257,10 +290,10 @@
 
       async function loadFlutterApp() {
         try {
-          await maybeResetFlutterCaches();
           watchFlutterMount();
           await injectFlutterScript();
           updateBootStatus('正在启动应用...');
+          maybeResetFlutterCaches();
         } catch (error) {
           console.error(error);
           showBootError(error?.message || '页面初始化失败，请稍后重试。');

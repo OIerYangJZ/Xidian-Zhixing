@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/shared_colors.dart';
+
 class CommunityGuidelinesPage extends StatelessWidget {
   const CommunityGuidelinesPage({super.key});
 
@@ -11,8 +13,6 @@ class CommunityGuidelinesPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(_title),
-        backgroundColor: const Color(0xFF0E7490),
-        foregroundColor: Colors.white,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -32,7 +32,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '一、言论自由与责任',
             icon: Icons.record_voice_over_outlined,
-            iconColor: const Color(0xFF0E7490),
+            iconColor: Theme.of(context).colorScheme.primary,
             content:
                 '我们珍视每一位用户的表达权利，同时呼吁大家：\n\n'
                 '• 理性表达：对事不对人，避免情绪化攻击\n'
@@ -160,12 +160,9 @@ class CommunityGuidelinesPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[Color(0xFF0E7490), Color(0xFF155E75)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: <Widget>[
@@ -176,13 +173,16 @@ class CommunityGuidelinesPage extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(15),
             ),
-            child: const Icon(Icons.groups_outlined, color: Colors.white, size: 32),
+            child: Icon(
+              Icons.groups_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              size: 32,
+            ),
           ),
           const SizedBox(height: 12),
-          const Text(
+          Text(
             _title,
-            style: TextStyle(
-              color: Colors.white,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w800,
             ),
@@ -190,8 +190,10 @@ class CommunityGuidelinesPage extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '最后更新：$_lastUpdated',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.62),
               fontSize: 12,
             ),
           ),
@@ -211,18 +213,13 @@ class CommunityGuidelinesPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isWarning ? const Color(0xFFFEF2F2) : Colors.white,
+        color: isWarning
+            ? SharedColors.danger.withValues(alpha: 0.06)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
         border: isWarning
-            ? Border.all(color: const Color(0xFFDC2626).withValues(alpha: 0.2))
-            : null,
+            ? Border.all(color: SharedColors.danger.withValues(alpha: 0.18))
+            : Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +242,9 @@ class CommunityGuidelinesPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: isWarning ? const Color(0xFF991B1B) : const Color(0xFF155E75),
+                    color: isWarning
+                        ? SharedColors.danger
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
@@ -257,7 +256,11 @@ class CommunityGuidelinesPage extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               height: 1.7,
-              color: isWarning ? const Color(0xFF7F1D1D) : const Color(0xFF374151),
+              color: isWarning
+                  ? SharedColors.danger
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.74),
             ),
           ),
         ],
@@ -269,20 +272,28 @@ class CommunityGuidelinesPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F9FA),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF0E7490).withValues(alpha: 0.2)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
+        ),
       ),
       child: Row(
         children: <Widget>[
-          const Icon(Icons.info_outline, color: Color(0xFF0E7490), size: 20),
+          Icon(
+            Icons.info_outline,
+            color: Theme.of(context).colorScheme.primary,
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '西电树洞 · 校园匿名社交平台\n共建清朗网络空间，需要你我共同努力',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey.shade600,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.62),
                 height: 1.5,
               ),
             ),

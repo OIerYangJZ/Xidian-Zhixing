@@ -118,7 +118,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: <Widget>[
                           CircleAvatar(
                             radius: 24,
-                            backgroundColor: const Color(0xFFE5EAF3),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                             child: _selectedAvatar == null
                                 ? const Icon(
                                     Icons.person_outline,
@@ -182,22 +184,26 @@ class _RegisterPageState extends State<RegisterPage> {
                                         _agreeTerms = !_agreeTerms;
                                       });
                                     },
-                              child: const Text.rich(
+                              child: Text.rich(
                                 TextSpan(
                                   children: <InlineSpan>[
-                                    TextSpan(text: '我已阅读并同意'),
+                                    const TextSpan(text: '我已阅读并同意'),
                                     TextSpan(
                                       text: '《用户协议》',
                                       style: TextStyle(
-                                        color: Color(0xFF0E7490),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
-                                    TextSpan(text: '与'),
+                                    const TextSpan(text: '与'),
                                     TextSpan(
                                       text: '《社区规范》',
                                       style: TextStyle(
-                                        color: Color(0xFF0E7490),
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -308,16 +314,12 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      final String? debugCode = await AppRepositories.auth.sendEmailCode(email);
+      await AppRepositories.auth.sendEmailCode(email);
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            debugCode == null ? '验证码已发送至 $email' : '验证码已发送（内测模式验证码：$debugCode）',
-          ),
-        ),
+        SnackBar(content: Text('验证码已发送至 $email')),
       );
     } on ApiException catch (error) {
       _showError(error.message);
