@@ -22,6 +22,11 @@ const SECTION_ROWS = [
 ];
 const COURSE_COLORS = ['cyan', 'purple', 'indigo', 'pink', 'green', 'blue', 'rose'];
 const EXAM_LIST_DAYS = 31;
+const SCHEDULE_TIME_COL_RPX = 84;
+const SCHEDULE_HEADER_RPX = 78;
+const SCHEDULE_ROW_RPX = 112;
+const SCHEDULE_BOTTOM_RPX = 28;
+const SCHEDULE_DAY_WIDTH_PERCENT = 100 / 7;
 
 const dateToYmd = (date) => {
   const pad = (value) => String(value).padStart(2, '0');
@@ -53,6 +58,19 @@ const minutesOf = (value = '') => {
   return hour * 60 + minute;
 };
 
+const SCHEDULE_START_MINUTE = minutesOf(SECTION_ROWS[0].start);
+const SCHEDULE_END_MINUTE = minutesOf(SECTION_ROWS[SECTION_ROWS.length - 1].end);
+const SCHEDULE_TIME_ANCHORS = [
+  ...SECTION_ROWS.map((row, index) => ({
+    minute: minutesOf(row.start),
+    y: SCHEDULE_HEADER_RPX + index * SCHEDULE_ROW_RPX
+  })),
+  {
+    minute: SCHEDULE_END_MINUTE,
+    y: SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX
+  }
+];
+
 const sectionForTime = (value = '') => {
   const target = minutesOf(value);
   let best = SECTION_ROWS[0].section;
@@ -61,6 +79,43 @@ const sectionForTime = (value = '') => {
   });
   return best;
 };
+
+const fixed = (value) => Number(value).toFixed(3).replace(/\.?0+$/, '');
+
+const scheduleYForTime = (value = '') => {
+  const target = minutesOf(value);
+  if (target <= SCHEDULE_START_MINUTE) return SCHEDULE_HEADER_RPX;
+  for (let index = 0; index < SCHEDULE_TIME_ANCHORS.length - 1; index += 1) {
+    const current = SCHEDULE_TIME_ANCHORS[index];
+    const next = SCHEDULE_TIME_ANCHORS[index + 1];
+    if (target <= next.minute) {
+      const ratio = (target - current.minute) / Math.max(1, next.minute - current.minute);
+      return current.y + (next.y - current.y) * ratio;
+    }
+  }
+  return SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX;
+};
+
+const dayColumnStyle = (dayIndex, insetRpx = 0) => {
+  const leftPercent = dayIndex * SCHEDULE_DAY_WIDTH_PERCENT;
+  const leftOffset = SCHEDULE_TIME_COL_RPX * (1 - dayIndex / 7) + insetRpx;
+  const widthOffset = SCHEDULE_TIME_COL_RPX / 7 + insetRpx * 2;
+  return [
+    'position: absolute',
+    `left: calc(${fixed(leftPercent)}% + ${fixed(leftOffset)}rpx)`,
+    `width: calc(${fixed(SCHEDULE_DAY_WIDTH_PERCENT)}% - ${fixed(widthOffset)}rpx)`
+  ].join(';');
+};
+
+const scheduleRows = () => SECTION_ROWS.map((row) => {
+  const topRpx = scheduleYForTime(row.start);
+  const heightRpx = SCHEDULE_ROW_RPX;
+  return {
+    ...row,
+    topRpx: fixed(topRpx),
+    heightRpx: fixed(heightRpx)
+  };
+});
 
 const isAcademicSource = (source = '') => source === 'courseSchedules' || source === 'examSchedules';
 
@@ -143,29 +198,32 @@ const buildScheduleGrid = (days = []) => {
     date: day.date,
     name: WEEKDAY_NAMES[index] || '',
     dayNumber: String(day.date || '').slice(8),
-    label: WEEKDAY_LABELS[index] || ''
+    label: WEEKDAY_LABELS[index] || '',
+    headStyle: `${dayColumnStyle(index)}; top: 0; height: ${SCHEDULE_HEADER_RPX}rpx;`,
+    cellStyle: `${dayColumnStyle(index)};`,
+    blockColumnStyle: dayColumnStyle(index, 3)
   }));
   const colorMap = {};
   let colorIndex = 0;
   const blocks = [];
   days.forEach((day, dayIndex) => {
     (day.items || []).forEach((item) => {
-      const startSection = sectionForTime(item.startTime);
-      const stopSection = Math.max(startSection, sectionForTime(item.endTime));
-      const span = Math.max(1, stopSection - startSection + 1);
       const key = `${item.source}-${item.title}`;
       if (!colorMap[key]) {
         colorMap[key] = COURSE_COLORS[colorIndex % COURSE_COLORS.length];
         colorIndex += 1;
       }
       const title = String(item.title || '');
+      const topRpx = scheduleYForTime(item.startTime);
+      const heightRpx = Math.max(
+        SCHEDULE_ROW_RPX * 0.48,
+        scheduleYForTime(item.endTime) - topRpx
+      );
       blocks.push({
         ...item,
         color: item.source === 'examSchedules' ? 'rose' : colorMap[key],
         isExam: item.source === 'examSchedules',
-        gridColumn: dayIndex + 2,
-        gridRow: startSection + 1,
-        span,
+        blockStyle: `${columns[dayIndex].blockColumnStyle}; top: ${fixed(topRpx)}rpx; height: ${fixed(heightRpx)}rpx;`,
         locationText: item.location ? `@${item.location}` : '',
         shortTitle: item.source === 'examSchedules' && title && !/考试$/.test(title) ? `${title}考试` : title
       });
@@ -173,8 +231,9 @@ const buildScheduleGrid = (days = []) => {
   });
   return {
     columns,
-    rows: SECTION_ROWS,
-    blocks
+    rows: scheduleRows(),
+    blocks,
+    heightRpx: fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX + SCHEDULE_BOTTOM_RPX)
   };
 };
 
@@ -208,7 +267,7 @@ Page({
     actions: [],
     calendar: null,
     calendarDays: [],
-    calendarGrid: { columns: [], rows: SECTION_ROWS, blocks: [] },
+    calendarGrid: { columns: [], rows: scheduleRows(), blocks: [], heightRpx: 0 },
     examItems: [],
     isExamList: false,
     weekOptions: [],

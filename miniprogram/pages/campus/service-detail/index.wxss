@@ -292,9 +292,6 @@
 
 .schedule-grid {
   position: relative;
-  display: grid;
-  grid-template-columns: 84rpx repeat(7, minmax(0, 1fr));
-  grid-template-rows: 78rpx repeat(11, 112rpx);
   width: 100%;
   max-width: 100%;
   min-height: 1310rpx;
@@ -312,11 +309,15 @@
 }
 
 .schedule-corner {
-  grid-column: 1;
-  grid-row: 1;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 84rpx;
+  height: 78rpx;
 }
 
 .schedule-day-head {
+  top: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -336,10 +337,12 @@
 }
 
 .schedule-time-head {
+  position: absolute;
+  left: 0;
+  width: 84rpx;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 112rpx;
   padding: 0 2rpx;
   color: var(--app-text-primary);
   text-align: center;
@@ -367,14 +370,22 @@
 }
 
 .schedule-empty-cell {
+  position: absolute;
   border-top: 1rpx solid var(--app-divider);
+}
+
+.schedule-row-line {
+  position: absolute;
+  left: 84rpx;
+  right: 0;
+  height: 1rpx;
+  background: var(--app-divider);
 }
 
 .schedule-block {
   z-index: 2;
   overflow: hidden;
-  position: relative;
-  margin: 6rpx 3rpx;
+  position: absolute;
   padding: 11rpx 5rpx 9rpx 9rpx;
   border: 1rpx solid var(--schedule-line);
   border-left: 5rpx solid var(--schedule-accent);
