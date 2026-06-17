@@ -86,10 +86,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                     _destinations[_currentIndex].subtitle,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.58),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.58),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -103,7 +102,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             IconButton(
               tooltip: '筛选',
               onPressed: _openFeedFilters,
-              icon: const Icon(Icons.tune_rounded),
+              icon: const Icon(Icons.menu_rounded),
             ),
           if (_currentIndex == 0)
             IconButton(
@@ -263,7 +262,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   void _openSearch() {
     Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const SearchPage(autofocus: true)),
+      MaterialPageRoute<void>(
+        builder: (_) => const SearchPage(autofocus: true),
+      ),
     );
   }
 

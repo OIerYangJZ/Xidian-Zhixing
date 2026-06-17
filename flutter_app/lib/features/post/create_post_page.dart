@@ -95,8 +95,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 text: _pastingMarkdownImages
                     ? '上传粘贴图片中...'
                     : _pickingImages
-                        ? '读取图片中...'
-                        : (state.progressText ?? '提交中...'),
+                    ? '读取图片中...'
+                    : (state.progressText ?? '提交中...'),
               ),
             Form(
               key: _formKey,
@@ -131,9 +131,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   const SizedBox(height: 10),
                   SwitchListTile(
                     value: _useMarkdown,
-                    onChanged: isBusy
-                        ? null
-                        : _handleMarkdownToggle,
+                    onChanged: isBusy ? null : _handleMarkdownToggle,
                     title: const Text('使用 Markdown 编辑'),
                     subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
                     contentPadding: EdgeInsets.zero,
@@ -200,13 +198,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outlineVariant
-                              .withValues(alpha: 0.6),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outlineVariant.withValues(alpha: 0.6),
                         ),
                       ),
                       child: Column(
@@ -214,33 +211,37 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         children: <Widget>[
                           Text(
                             '实时预览',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 10),
                           ValueListenableBuilder<TextEditingValue>(
                             valueListenable: _contentController,
-                            builder: (
-                              BuildContext context,
-                              TextEditingValue value,
-                              Widget? child,
-                            ) {
-                              final String source = value.text.trim();
-                              if (source.isEmpty) {
-                                return const Text(
-                                  '输入 Markdown 源码后，这里会显示渲染效果。',
-                                  style: TextStyle(color: Colors.black54),
-                                );
-                              }
-                              return PostContentBody(
-                                content: '',
-                                contentFormat: 'markdown',
-                                markdownSource: source,
-                                selectable: false,
-                              );
-                            },
+                            builder:
+                                (
+                                  BuildContext context,
+                                  TextEditingValue value,
+                                  Widget? child,
+                                ) {
+                                  final String source = value.text.trim();
+                                  if (source.isEmpty) {
+                                    return Text(
+                                      '输入 Markdown 源码后，这里会显示渲染效果。',
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.58),
+                                      ),
+                                    );
+                                  }
+                                  return PostContentBody(
+                                    content: '',
+                                    contentFormat: 'markdown',
+                                    markdownSource: source,
+                                    selectable: false,
+                                  );
+                                },
                           ),
                         ],
                       ),
@@ -362,7 +363,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     _privateOnly
                         ? '仅你自己能在“我的帖子”里看到这条内容。'
                         : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.58),
+                    ),
                   ),
                   if (state.isLevelOneUser) ...<Widget>[
                     const SizedBox(height: 8),
@@ -407,9 +413,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   ),
                   const SizedBox(height: 8),
                   if (_pickedImages.isEmpty)
-                    const Text(
+                    Text(
                       '未选择图片。支持 jpg/png/webp/gif。',
-                      style: TextStyle(color: Colors.black54),
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.58),
+                      ),
                     )
                   else
                     Wrap(
@@ -421,15 +431,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           .map(
                             (MapEntry<int, PickedImageData> entry) =>
                                 _PickedImageCard(
-                              image: entry.value,
-                              onRemove: isBusy
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _pickedImages.removeAt(entry.key);
-                                      });
-                                    },
-                            ),
+                                  image: entry.value,
+                                  onRemove: isBusy
+                                      ? null
+                                      : () {
+                                          setState(() {
+                                            _pickedImages.removeAt(entry.key);
+                                          });
+                                        },
+                                ),
                           )
                           .toList(),
                     ),
@@ -471,8 +481,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     });
 
     try {
-      final List<PickedImageData> selected =
-          await pickImageFiles(multiple: true);
+      final List<PickedImageData> selected = await pickImageFiles(
+        multiple: true,
+      );
       if (!mounted || selected.isEmpty) {
         return;
       }
@@ -480,9 +491,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       const int maxImages = 9;
       final int remaining = maxImages - _pickedImages.length;
       if (remaining <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('最多上传 9 张图片')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('最多上传 9 张图片')));
         return;
       }
 
@@ -508,9 +519,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       if (largeFiles.isNotEmpty && accepted.length == remaining) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              '提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。',
-            ),
+            content: Text('提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。'),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -519,9 +528,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('选择图片失败：$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('选择图片失败：$error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -538,7 +547,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
     _pruneMarkdownImageMappings();
     final String rawContent = _contentController.text;
-    final String submittedContent = _useMarkdown ? rawContent : rawContent.trim();
+    final String submittedContent = _useMarkdown
+        ? rawContent
+        : rawContent.trim();
     final List<String> tags = _tagsController.text
         .split(RegExp(r'[,，\s\n]+'))
         .map((String item) => item.trim())
@@ -557,35 +568,35 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         .toList();
     final CreatePostState state = ref.read(createPostControllerProvider);
 
-    final PostItem? created =
-        await ref.read(createPostControllerProvider.notifier).submit(
-              title: _titleController.text.trim(),
-              content: submittedContent,
-              useMarkdown: _useMarkdown,
-              channel: selectedChannel,
-              tags: tags,
-              privateOnly: _privateOnly,
-              status: _status,
-              useAnonymousAlias: _useAnonymousAlias,
-              anonymousAlias: _useAnonymousAlias
-                  ? _anonymousAliasController.text.trim()
-                  : null,
-              pinDurationMinutes:
-                  state.isLevelOneUser ? _selectedPinDurationMinutes : null,
-              uploadPayloads: uploadPayloads,
-              preUploadedImageIds: _useMarkdown
-                  ? _markdownImageUploadIdsByUrl.values.toList()
-                  : const <String>[],
-            );
+    final PostItem? created = await ref
+        .read(createPostControllerProvider.notifier)
+        .submit(
+          title: _titleController.text.trim(),
+          content: submittedContent,
+          useMarkdown: _useMarkdown,
+          channel: selectedChannel,
+          tags: tags,
+          privateOnly: _privateOnly,
+          status: _status,
+          useAnonymousAlias: _useAnonymousAlias,
+          anonymousAlias: _useAnonymousAlias
+              ? _anonymousAliasController.text.trim()
+              : null,
+          pinDurationMinutes: state.isLevelOneUser
+              ? _selectedPinDurationMinutes
+              : null,
+          uploadPayloads: uploadPayloads,
+          preUploadedImageIds: _useMarkdown
+              ? _markdownImageUploadIdsByUrl.values.toList()
+              : const <String>[],
+        );
 
     if (!mounted || created == null) {
       return;
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          created.isPinned ? '帖子发布成功，已置顶展示。' : '帖子发布成功，已立即展示。',
-        ),
+        content: Text(created.isPinned ? '帖子发布成功，已置顶展示。' : '帖子发布成功，已立即展示。'),
       ),
     );
     Navigator.of(context).pop(true);
@@ -605,9 +616,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            value
-                ? '已切换到 Markdown 编辑，当前正文已清空。'
-                : '已切换到纯文本编辑，当前正文已清空。',
+            value ? '已切换到 Markdown 编辑，当前正文已清空。' : '已切换到纯文本编辑，当前正文已清空。',
           ),
         ),
       );
@@ -621,11 +630,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     _pruneMarkdownImageMappings();
     const int maxImages = 9;
     final int remaining =
-        maxImages - (_pickedImages.length + _markdownImageUploadIdsByUrl.length);
+        maxImages -
+        (_pickedImages.length + _markdownImageUploadIdsByUrl.length);
     if (remaining <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('最多上传 9 张图片')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('最多上传 9 张图片')));
       return;
     }
 
@@ -641,12 +651,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     try {
       final List<String> snippets = <String>[];
       for (final PickedImageData image in accepted) {
-        final UploadedImageItem uploaded =
-            await ref.read(postRepositoryProvider).uploadImage(
-                  fileName: image.fileName,
-                  contentType: image.contentType,
-                  dataBase64: image.dataBase64,
-                );
+        final UploadedImageItem uploaded = await ref
+            .read(postRepositoryProvider)
+            .uploadImage(
+              fileName: image.fileName,
+              contentType: image.contentType,
+              dataBase64: image.dataBase64,
+            );
         final String alt = _deriveMarkdownImageAlt(image.fileName);
         snippets.add('![$alt](${uploaded.url})');
         _markdownImageUploadIdsByUrl[uploaded.url] = uploaded.id;
@@ -659,9 +670,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(
-            content: Text('已插入 ${accepted.length} 张 Markdown 图片'),
-          ),
+          SnackBar(content: Text('已插入 ${accepted.length} 张 Markdown 图片')),
         );
       if (images.length > accepted.length) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -678,9 +687,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('粘贴图片失败：$error')),
-        );
+        ..showSnackBar(SnackBar(content: Text('粘贴图片失败：$error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -729,7 +736,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       return '图片';
     }
     final int dotIndex = trimmed.lastIndexOf('.');
-    final String baseName = dotIndex > 0 ? trimmed.substring(0, dotIndex) : trimmed;
+    final String baseName = dotIndex > 0
+        ? trimmed.substring(0, dotIndex)
+        : trimmed;
     final String sanitized = baseName.trim();
     return sanitized.isEmpty ? '图片' : sanitized;
   }
@@ -792,10 +801,7 @@ class _EmptyChannelCard extends StatelessWidget {
 }
 
 class _PickedImageCard extends StatelessWidget {
-  const _PickedImageCard({
-    required this.image,
-    required this.onRemove,
-  });
+  const _PickedImageCard({required this.image, required this.onRemove});
 
   final PickedImageData image;
   final VoidCallback? onRemove;
@@ -812,7 +818,7 @@ class _PickedImageCard extends StatelessWidget {
       );
     } catch (_) {
       preview = Container(
-        color: Colors.black12,
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
         alignment: Alignment.center,
         child: const Icon(Icons.broken_image_outlined),
       );
@@ -850,8 +856,11 @@ class _PickedImageCard extends StatelessWidget {
                           customBorder: const CircleBorder(),
                           child: const Padding(
                             padding: EdgeInsets.all(4),
-                            child: Icon(Icons.close,
-                                size: 14, color: Colors.white),
+                            child: Icon(
+                              Icons.close,
+                              size: 14,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ),
@@ -894,7 +903,9 @@ class _PickedImageCard extends StatelessWidget {
                   sizeStr,
                   style: TextStyle(
                     fontSize: 10,
-                    color: Colors.grey[600],
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.58),
                   ),
                 ),
             ],

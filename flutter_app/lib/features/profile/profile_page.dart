@@ -459,8 +459,9 @@ class ProfilePageState extends State<ProfilePage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,7 +508,9 @@ class ProfilePageState extends State<ProfilePage> {
                           Text(
                             profile.bio.trim(),
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.black87,
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.82,
+                              ),
                               height: 1.5,
                             ),
                           ),
@@ -520,13 +523,17 @@ class ProfilePageState extends State<ProfilePage> {
                                     ? Icons.male
                                     : Icons.female,
                                 size: 16,
-                                color: Colors.black54,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.58,
+                                ),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 profile.gender.trim(),
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.black54,
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.58,
+                                  ),
                                 ),
                               ),
                             ],
@@ -561,9 +568,9 @@ class ProfilePageState extends State<ProfilePage> {
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 30,
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.1),
         child: ClipOval(
           child: Image.network(
             resolved,

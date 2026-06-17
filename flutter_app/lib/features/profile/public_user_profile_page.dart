@@ -247,7 +247,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                             Text(
                               profile.bio.trim(),
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: Colors.black87,
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.82,
+                                ),
                                 height: 1.5,
                               ),
                             ),
@@ -261,13 +263,16 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                       ? Icons.male
                                       : Icons.female,
                                   size: 16,
-                                  color: Colors.black54,
+                                  color: theme.colorScheme.onSurface.withValues(
+                                    alpha: 0.58,
+                                  ),
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
                                   profile.gender.trim(),
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.black54,
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.58),
                                   ),
                                 ),
                               ],
@@ -325,7 +330,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                 child: Text(
                                   '对方当前未开放私信入口',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: Colors.black54,
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.58),
                                   ),
                                 ),
                               ),

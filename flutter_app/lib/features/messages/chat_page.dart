@@ -132,15 +132,21 @@ class _ChatPageState extends State<ChatPage> {
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              color: const Color(0xFFFFF4E5),
+              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
               child: Row(
                 children: <Widget>[
-                  const Icon(Icons.error_outline, size: 18),
+                  Icon(
+                    Icons.error_outline,
+                    size: 18,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _error!,
-                      style: const TextStyle(color: Color(0xFF9A3412)),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ),
                   if (_lastFailedContent != null && !_loading)
@@ -170,9 +176,11 @@ class _ChatPageState extends State<ChatPage> {
             top: false,
             child: Container(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(top: BorderSide(color: Color(0xFFE5ECF2))),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                border: Border(
+                  top: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -297,7 +305,11 @@ class _ChatPageState extends State<ChatPage> {
           padding: const EdgeInsets.all(24),
           child: Text(
             _error == null ? '还没有消息，先打个招呼吧。' : '消息加载失败，请重试。',
-            style: const TextStyle(color: Colors.black54),
+            style: TextStyle(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
       );
@@ -358,9 +370,11 @@ class _ChatPageState extends State<ChatPage> {
                     children: <Widget>[
                       Text(
                         message.timeText,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Colors.black54,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.58),
                         ),
                       ),
                       if (message.fromMe) ...<Widget>[
@@ -371,7 +385,8 @@ class _ChatPageState extends State<ChatPage> {
                             fontSize: 11,
                             color: message.isRead
                                 ? SharedColors.success
-                                : Colors.black45,
+                                : Theme.of(context).colorScheme.onSurface
+                                      .withValues(alpha: 0.45),
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -401,10 +416,12 @@ class _ChatPageState extends State<ChatPage> {
                                   child: Text('撤回'),
                                 ),
                             ],
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.more_horiz,
                           size: 16,
-                          color: Colors.black45,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.45),
                         ),
                       ),
                     ],
@@ -516,9 +533,11 @@ class _ChatPageState extends State<ChatPage> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7FAFC),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFD7E2EA)),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+        ),
       ),
       child: Row(
         children: <Widget>[
@@ -549,7 +568,12 @@ class _ChatPageState extends State<ChatPage> {
                   message.content,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.58),
+                  ),
                 ),
               ],
             ),
@@ -844,9 +868,9 @@ class _ChatPageState extends State<ChatPage> {
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 14,
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.1),
         child: ClipOval(
           child: Image.network(
             resolved,

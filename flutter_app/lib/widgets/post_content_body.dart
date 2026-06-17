@@ -22,8 +22,9 @@ class PostContentBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final String normalizedFormat = contentFormat.trim().toLowerCase();
-    final String markdownData =
-        markdownSource.isNotEmpty ? markdownSource : content;
+    final String markdownData = markdownSource.isNotEmpty
+        ? markdownSource
+        : content;
     if (normalizedFormat != 'markdown' || markdownData.trim().isEmpty) {
       final TextStyle? style = Theme.of(
         context,
@@ -31,10 +32,7 @@ class PostContentBody extends StatelessWidget {
       if (selectable) {
         return SelectableText(content, style: style);
       }
-      return Text(
-        content,
-        style: style,
-      );
+      return Text(content, style: style);
     }
 
     return MarkdownBody(
@@ -42,21 +40,19 @@ class PostContentBody extends StatelessWidget {
       selectable: selectable,
       softLineBreak: true,
       extensionSet: md.ExtensionSet.gitHubFlavored,
-      inlineSyntaxes: <md.InlineSyntax>[
-        _InlineMathSyntax(),
-      ],
-      blockSyntaxes: <md.BlockSyntax>[
-        _BlockMathSyntax(),
-      ],
+      inlineSyntaxes: <md.InlineSyntax>[_InlineMathSyntax()],
+      blockSyntaxes: <md.BlockSyntax>[_BlockMathSyntax()],
       builders: <String, MarkdownElementBuilder>{
         'math-inline': _MathElementBuilder(isBlock: false),
         'math-block': _MathElementBuilder(isBlock: true),
       },
       sizedImageBuilder: (MarkdownImageConfig config) {
         final String resolvedUrl = AppConfig.resolveUrl(config.uri.toString());
-        final String rawSemanticLabel = (config.alt ?? config.title ?? '').trim();
-        final String semanticLabel =
-            rawSemanticLabel.isEmpty ? '图片' : rawSemanticLabel;
+        final String rawSemanticLabel = (config.alt ?? config.title ?? '')
+            .trim();
+        final String semanticLabel = rawSemanticLabel.isEmpty
+            ? '图片'
+            : rawSemanticLabel;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: ClipRRect(
@@ -67,37 +63,43 @@ class PostContentBody extends StatelessWidget {
               height: config.height,
               fit: BoxFit.contain,
               semanticLabel: semanticLabel,
-              loadingBuilder: (
-                BuildContext context,
-                Widget child,
-                ImageChunkEvent? loadingProgress,
-              ) {
-                if (loadingProgress == null) {
-                  return child;
-                }
-                return Container(
-                  constraints: const BoxConstraints(minHeight: 120),
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(strokeWidth: 2.4),
-                );
-              },
-              errorBuilder: (
-                BuildContext context,
-                Object error,
-                StackTrace? stackTrace,
-              ) {
-                return Container(
-                  constraints: const BoxConstraints(minHeight: 120),
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.all(16),
-                  child: const Text(
-                    '图片加载失败',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                );
-              },
+              loadingBuilder:
+                  (
+                    BuildContext context,
+                    Widget child,
+                    ImageChunkEvent? loadingProgress,
+                  ) {
+                    if (loadingProgress == null) {
+                      return child;
+                    }
+                    return Container(
+                      constraints: const BoxConstraints(minHeight: 120),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(strokeWidth: 2.4),
+                    );
+                  },
+              errorBuilder:
+                  (BuildContext context, Object error, StackTrace? stackTrace) {
+                    return Container(
+                      constraints: const BoxConstraints(minHeight: 120),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      alignment: Alignment.center,
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        '图片加载失败',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.58),
+                        ),
+                      ),
+                    );
+                  },
             ),
           ),
         );
@@ -105,17 +107,17 @@ class PostContentBody extends StatelessWidget {
       styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
         p: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.7),
         blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.74),
-              height: 1.6,
-            ),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.74),
+          height: 1.6,
+        ),
         code: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontFamily: 'monospace',
-              backgroundColor:
-                  Theme.of(context).colorScheme.surfaceContainerHighest,
-            ),
+          fontFamily: 'monospace',
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest,
+        ),
         codeblockDecoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
@@ -140,7 +142,8 @@ class _MathElementBuilder extends MarkdownElementBuilder {
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
   ) {
-    final String source = (element.attributes['tex'] ?? element.textContent).trim();
+    final String source = (element.attributes['tex'] ?? element.textContent)
+        .trim();
     if (source.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -231,7 +234,9 @@ class _BlockMathSyntax extends md.BlockSyntax {
         final String line = parser.current.content;
         final String trimmed = line.trim();
         if (trimmed.endsWith(r'$$')) {
-          final String trailing = trimmed.substring(0, trimmed.length - 2).trim();
+          final String trailing = trimmed
+              .substring(0, trimmed.length - 2)
+              .trim();
           if (trailing.isNotEmpty) {
             buffer.writeln(trailing);
           }

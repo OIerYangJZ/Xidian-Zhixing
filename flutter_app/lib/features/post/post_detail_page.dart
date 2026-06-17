@@ -68,8 +68,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -109,12 +110,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       if (supplementaryImageUrls.isNotEmpty)
                         ImageGallery(images: supplementaryImageUrls),
                       if (_post.hasImage && supplementaryImageUrls.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.only(top: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             '图片暂时不可用，请稍后重试',
                             style: TextStyle(
-                              color: Colors.black54,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.58),
                               fontSize: 12,
                             ),
                           ),
@@ -200,8 +203,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -811,18 +815,22 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
     final String fallback = comment.authorAlias.trim().isEmpty
         ? '匿'
         : comment.authorAlias.trim().characters.first;
+    final ThemeData theme = Theme.of(context);
+    final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.58);
 
     return Padding(
       padding: EdgeInsets.only(left: leftInset, top: 8),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: widget.depth == 0 ? Colors.white : const Color(0xFFF7F8FB),
+          color: widget.depth == 0
+              ? theme.colorScheme.surface
+              : theme.colorScheme.primary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: widget.depth == 0
-                ? const Color(0xFFE9EDF5)
-                : const Color(0xFFE2E6EF),
+                ? theme.dividerColor
+                : theme.colorScheme.primary.withValues(alpha: 0.1),
           ),
         ),
         child: Column(
@@ -862,8 +870,8 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: comment.authorUserId.isEmpty
-                                      ? Colors.black87
-                                      : Theme.of(context).colorScheme.primary,
+                                      ? theme.colorScheme.onSurface
+                                      : theme.colorScheme.primary,
                                 ),
                               ),
                             ),
@@ -871,20 +879,14 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                           if (widget.floorLabel != null)
                             Text(
                               widget.floorLabel!,
-                              style: const TextStyle(
-                                color: Colors.black45,
-                                fontSize: 12,
-                              ),
+                              style: TextStyle(color: muted, fontSize: 12),
                             ),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         comment.createdAt.toLocal().toString(),
-                        style: const TextStyle(
-                          color: Colors.black54,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: muted, fontSize: 12),
                       ),
                     ],
                   ),
@@ -894,9 +896,9 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
             const SizedBox(height: 10),
             Text(
               comment.content,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Colors.black87,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.84),
                 height: 1.5,
               ),
             ),
@@ -947,10 +949,7 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                     padding: const EdgeInsets.only(left: 4, top: 8),
                     child: Text(
                       '${comment.effectiveReplyCount} 条回复',
-                      style: const TextStyle(
-                        color: Colors.black54,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: muted, fontSize: 12),
                     ),
                   ),
               ],

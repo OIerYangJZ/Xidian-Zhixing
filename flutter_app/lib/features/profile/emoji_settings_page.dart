@@ -46,7 +46,11 @@ class EmojiSettingsPage extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(
                         '已选 ${store.favorites.length}/${EmojiSettingsStore.maxFavorites}。点按可取消，再点其他可加入。',
-                        style: const TextStyle(color: Colors.black54),
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.58),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Wrap(
@@ -62,11 +66,12 @@ class EmojiSettingsPage extends StatelessWidget {
                             ),
                             onSelected: store.enabled
                                 ? (_) async {
-                                    final bool success =
-                                        await store.toggleFavorite(emoji);
+                                    final bool success = await store
+                                        .toggleFavorite(emoji);
                                     if (!success && context.mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         const SnackBar(
                                           content: Text('常用表情最多 16 个'),
                                         ),

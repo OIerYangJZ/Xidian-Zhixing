@@ -25,8 +25,9 @@ class _NotificationCenterPageState
   void initState() {
     super.initState();
     Future<void>.microtask(() {
-      final NotificationsState state =
-          ref.read(notificationsControllerProvider);
+      final NotificationsState state = ref.read(
+        notificationsControllerProvider,
+      );
       if (!state.loading || state.items.isNotEmpty) {
         return Future<void>.value();
       }
@@ -45,8 +46,8 @@ class _NotificationCenterPageState
             onPressed: state.actionBusy || state.unreadCount == 0
                 ? null
                 : () => ref
-                    .read(notificationsControllerProvider.notifier)
-                    .markAllRead(),
+                      .read(notificationsControllerProvider.notifier)
+                      .markAllRead(),
             icon: const Icon(Icons.done_all_outlined),
             tooltip: '全部已读',
           ),
@@ -54,8 +55,8 @@ class _NotificationCenterPageState
             onPressed: state.loading
                 ? null
                 : () => ref
-                    .read(notificationsControllerProvider.notifier)
-                    .refresh(),
+                      .read(notificationsControllerProvider.notifier)
+                      .refresh(),
             icon: const Icon(Icons.refresh),
             tooltip: '刷新',
           ),
@@ -88,13 +89,17 @@ class _NotificationCenterPageState
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: item.isRead
-                              ? Colors.white
-                              : const Color(0xFFF0F9FF),
+                              ? Theme.of(context).colorScheme.surface
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: item.isRead
-                                ? const Color(0xFFD9E4EC)
-                                : const Color(0xFF7DD3FC),
+                                ? Theme.of(context).dividerColor
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.primary.withValues(alpha: 0.16),
                           ),
                         ),
                         child: Row(
@@ -153,9 +158,12 @@ class _NotificationCenterPageState
                                       const SizedBox(width: 10),
                                       Text(
                                         item.timeText,
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
-                                          color: Colors.black54,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withValues(alpha: 0.58),
                                         ),
                                       ),
                                     ],
@@ -164,9 +172,11 @@ class _NotificationCenterPageState
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Icon(
+                            Icon(
                               Icons.chevron_right_rounded,
-                              color: Colors.black38,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.38),
                             ),
                           ],
                         ),
@@ -222,16 +232,17 @@ class _NotificationCenterPageState
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('打开帖子失败：$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('打开帖子失败：$error')));
     }
   }
 
   Future<void> _openReport(String reportId) async {
     try {
-      final ReportItem detail =
-          await AppRepositories.users.fetchMyReportDetail(reportId);
+      final ReportItem detail = await AppRepositories.users.fetchMyReportDetail(
+        reportId,
+      );
       if (!mounted) {
         return;
       }
@@ -244,9 +255,9 @@ class _NotificationCenterPageState
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('打开举报详情失败：$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('打开举报详情失败：$error')));
     }
   }
 

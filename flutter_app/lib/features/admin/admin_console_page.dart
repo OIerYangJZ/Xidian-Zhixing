@@ -72,7 +72,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   final TextEditingController _androidReleaseNotesController =
       TextEditingController();
   final TextEditingController _reportReasonController = TextEditingController();
-  final TextEditingController _reviewKeywordController = TextEditingController();
+  final TextEditingController _reviewKeywordController =
+      TextEditingController();
   final TextEditingController _reportKeywordController =
       TextEditingController();
   final TextEditingController _userKeywordController = TextEditingController();
@@ -554,10 +555,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         value: 'userlevelrequests',
                         child: Text('一级用户申请'),
                       ),
-                      DropdownMenuItem(
-                        value: 'auditlogs',
-                        child: Text('审计日志'),
-                      ),
+                      DropdownMenuItem(value: 'auditlogs', child: Text('审计日志')),
                     ],
                     onChanged: (String? value) {
                       if (value == null) {
@@ -692,9 +690,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               children: <Widget>[
                 Text(
                   '已选 ${_selectedReviewIds.length} 条',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 OutlinedButton.icon(
                   onPressed: _reviews.isEmpty ? null : _toggleSelectAllReviews,
@@ -1236,7 +1234,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       width: 96,
       height: 96,
       decoration: BoxDecoration(
-        color: const Color(0xFFF0F4F8),
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(10),
       ),
       child: const Icon(Icons.image_not_supported_outlined),
@@ -1318,9 +1316,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配置顶申请 ${rows.length} / 总计 ${_postPinRequests.length}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
         ...rows.map(
@@ -1504,9 +1504,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申请 ${rows.length} / 总计 ${_userLevelRequests.length}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
         ...rows.map(
@@ -1691,9 +1693,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申请 ${rows.length} / 总计 ${_accountCancellationRequests.length}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
         ...rows.map(
@@ -1900,9 +1904,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配申诉 ${rows.length} / 总计 ${_appeals.length}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
         ...rows.map(
@@ -2133,9 +2139,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
           child: Text(
             '匹配用户 ${rows.length} / 总计 ${_users.length}',
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: Colors.black54),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.58),
+            ),
           ),
         ),
         ...rows.map(
@@ -2506,9 +2514,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FBFD),
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: const Color(0xFFD7E4EC)),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2522,9 +2532,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           const SizedBox(height: 8),
                           Text(
                             '${announcement.timeText} · ${announcement.id}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.black54,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.58),
                             ),
                           ),
                         ],
@@ -2637,9 +2649,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                 const Text('上传成功后，会覆盖当前“最新 Android 安装包”元数据，并生成新的下载链接。'),
                 if (!kIsWeb) ...<Widget>[
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     '当前环境不支持直接上传 APK，请在 Web 管理后台中操作。',
-                    style: TextStyle(color: Colors.black54),
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.58),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -2698,9 +2714,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FBFD),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFD7E4EC)),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Text(
                     _selectedAndroidApk == null
@@ -2792,7 +2808,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       child: TextField(
                         controller: _postLimitController,
                         keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: '发帖限制'),
+                        decoration: const InputDecoration(labelText: '发帖限制'),
                       ),
                     ),
                     SizedBox(
@@ -2905,9 +2921,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   margin: const EdgeInsets.only(bottom: 10),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FBFD),
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFD7E4EC)),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3174,7 +3190,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         keyword: _reviewKeywordController.text.trim(),
       );
       final List<AdminReportEntry> reports = await _repo.fetchReports(
-
         status: _reportStatus,
       );
       final List<AdminImageReviewItem> imageReviews = await _repo

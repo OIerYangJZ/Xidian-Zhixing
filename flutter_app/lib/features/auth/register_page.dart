@@ -105,7 +105,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF5F7FA),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
@@ -150,7 +152,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                   _selectedAvatar == null
                                       ? '未选择图片'
                                       : _selectedAvatar!.fileName,
-                                  style: const TextStyle(color: Colors.black54),
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withValues(alpha: 0.58),
+                                  ),
                                 ),
                               ],
                             ),
@@ -318,9 +325,9 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('验证码已发送至 $email')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('验证码已发送至 $email')));
     } on ApiException catch (error) {
       _showError(error.message);
     } catch (error) {
