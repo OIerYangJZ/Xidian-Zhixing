@@ -112,11 +112,21 @@ const scheduleRows = () => SECTION_ROWS.map((row) => {
   const heightRpx = SCHEDULE_ROW_RPX;
   return {
     ...row,
-    nextStart: row.end,
     topRpx: fixed(topRpx),
     heightRpx: fixed(heightRpx)
   };
 });
+
+const scheduleTimeLabels = () => [
+  ...SECTION_ROWS.map((row) => ({
+    label: row.start,
+    topRpx: fixed(scheduleYForTime(row.start))
+  })),
+  {
+    label: SECTION_ROWS[SECTION_ROWS.length - 1].end,
+    topRpx: fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX)
+  }
+];
 
 const isAcademicSource = (source = '') => source === 'courseSchedules' || source === 'examSchedules';
 
@@ -239,6 +249,7 @@ const buildScheduleGrid = (days = []) => {
   return {
     columns,
     rows: scheduleRows(),
+    timeLabels: scheduleTimeLabels(),
     blocks,
     heightRpx: fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX + SCHEDULE_BOTTOM_RPX)
   };
@@ -274,7 +285,7 @@ Page({
     actions: [],
     calendar: null,
     calendarDays: [],
-    calendarGrid: { columns: [], rows: scheduleRows(), blocks: [], heightRpx: 0 },
+    calendarGrid: { columns: [], rows: scheduleRows(), timeLabels: scheduleTimeLabels(), blocks: [], heightRpx: 0 },
     examItems: [],
     isExamList: false,
     weekOptions: [],

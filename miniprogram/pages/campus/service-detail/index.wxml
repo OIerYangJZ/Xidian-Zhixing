@@ -69,8 +69,6 @@
             <block wx:for="{{calendarGrid.rows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="section">
               <view class="schedule-time-head" style="grid-column: 1; grid-row: {{rowIndex + 2}};">
                 <view class="schedule-section">{{row.section}}</view>
-                <view class="schedule-time-start">{{row.start}}</view>
-                <view class="schedule-time-end">{{row.end}}</view>
               </view>
               <view
                 class="schedule-empty-cell"
@@ -81,6 +79,12 @@
                 style="grid-column: {{colIndex + 2}}; grid-row: {{rowIndex + 2}};"
               ></view>
             </block>
+            <view
+              class="schedule-time-label"
+              wx:for="{{calendarGrid.timeLabels}}"
+              wx:key="label"
+              style="top: {{item.topRpx}}rpx;"
+            >{{item.label}}</view>
             <view
               wx:for="{{calendarGrid.blocks}}"
               wx:key="id"
