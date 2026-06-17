@@ -10,6 +10,7 @@ class AdminUserEntry {
     required this.alias,
     required this.avatarUrl,
     required this.verified,
+    required this.isAdmin,
     required this.userLevel,
     required this.userLevelLabel,
     required this.banned,
@@ -30,6 +31,7 @@ class AdminUserEntry {
   final String alias;
   final String avatarUrl;
   final bool verified;
+  final bool isAdmin;
   final int userLevel;
   final String userLevelLabel;
   final bool banned;
@@ -51,6 +53,7 @@ class AdminUserEntry {
       alias: (json['alias'] ?? '匿名同学').toString(),
       avatarUrl: (json['avatarUrl'] ?? '').toString(),
       verified: _toBool(json['verified']) ?? false,
+      isAdmin: _toBool(json['isAdmin']) ?? false,
       userLevel: _toInt(json['userLevel']) ?? 2,
       userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),
       banned: _toBool(json['banned']) ?? false,

@@ -65,6 +65,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       TextEditingController();
   final TextEditingController _adminPasswordController =
       TextEditingController();
+  final TextEditingController _userAdminStudentIdController =
+      TextEditingController();
   final TextEditingController _androidVersionNameController =
       TextEditingController();
   final TextEditingController _androidVersionCodeController =
@@ -128,6 +130,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     _announcementContentController.dispose();
     _adminUsernameController.dispose();
     _adminPasswordController.dispose();
+    _userAdminStudentIdController.dispose();
     _androidVersionNameController.dispose();
     _androidVersionCodeController.dispose();
     _androidReleaseNotesController.dispose();
@@ -2182,6 +2185,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                           label: Text('已认证'),
                           visualDensity: VisualDensity.compact,
                         ),
+                      if (user.isAdmin)
+                        const Chip(
+                          label: Text('管理员'),
+                          visualDensity: VisualDensity.compact,
+                        ),
                       if (user.hasPendingCancellationRequest)
                         const Chip(
                           label: Text('待注销审核'),
@@ -2211,7 +2219,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   Text(
                     '状态：${user.deleted ? '已注销' : '正常'} / '
                     '${user.banned ? '封禁' : '未封禁'} / '
-                    '${user.muted ? '禁言' : '可发言'}',
+                    '${user.muted ? '禁言' : '可发言'} / '
+                    '${user.isAdmin ? '管理员' : '普通账号'}',
                   ),
                   const SizedBox(height: 10),
                   Wrap(
@@ -2284,6 +2293,30 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                                   defaultNote: '管理员已恢复该账号的登录资格',
                                 ),
                           child: const Text('恢复账号'),
+                        ),
+                      if (!user.isAdmin)
+                        FilledButton.tonal(
+                          onPressed: _actionBusy || user.deleted
+                              ? null
+                              : () => _promptAndUpdateUserAction(
+                                  userId: user.id,
+                                  action: 'grant_admin',
+                                  actionLabel: '设为管理员',
+                                  defaultNote: '按用户列表设为管理员',
+                                ),
+                          child: const Text('设为管理员'),
+                        ),
+                      if (user.isAdmin)
+                        OutlinedButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndUpdateUserAction(
+                                  userId: user.id,
+                                  action: 'revoke_admin',
+                                  actionLabel: '移除管理员',
+                                  defaultNote: '按用户列表移除管理员权限',
+                                ),
+                          child: const Text('移除管理员'),
                         ),
                     ],
                   ),
@@ -2865,6 +2898,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildAdminAccountCard() {
+    final int userAdminCount = _users
+        .where((AdminUserEntry user) => user.isAdmin)
+        .length;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -2878,8 +2914,46 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
-            const Text('一级管理员可以创建、注销和恢复二级管理员账号。'),
+            Text('普通账号管理员 $userAdminCount 个'),
             const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: <Widget>[
+                SizedBox(
+                  width: 240,
+                  child: TextField(
+                    controller: _userAdminStudentIdController,
+                    decoration: const InputDecoration(labelText: '学生学号'),
+                  ),
+                ),
+                FilledButton.icon(
+                  onPressed: _actionBusy
+                      ? null
+                      : () => _updateUserAdminByStudentId('grant_admin'),
+                  icon: const Icon(Icons.admin_panel_settings_outlined),
+                  label: const Text('设为管理员'),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _actionBusy
+                      ? null
+                      : () => _updateUserAdminByStudentId('revoke_admin'),
+                  icon: const Icon(Icons.person_remove_alt_1_outlined),
+                  label: const Text('移除管理员'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            const Divider(height: 1),
+            const SizedBox(height: 10),
+            Text(
+              '二级管理员账号',
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
             Wrap(
               spacing: 10,
               runSpacing: 10,
@@ -3755,6 +3829,41 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       () => _repo.updateAdminAccount(adminId: adminId, action: action),
       successText: action == 'deactivate' ? '二级管理员已注销' : '二级管理员已恢复',
       onSuccess: _loadAdminAccounts,
+    );
+  }
+
+  Future<void> _updateUserAdminByStudentId(String action) async {
+    final String studentId = _userAdminStudentIdController.text.trim();
+    if (studentId.isEmpty) {
+      _toast('请输入学号');
+      return;
+    }
+    final List<AdminUserEntry> matches = _users
+        .where((AdminUserEntry user) => user.studentId.trim() == studentId)
+        .toList();
+    if (matches.isEmpty) {
+      _toast('未找到该学号对应的普通账号');
+      return;
+    }
+    if (matches.length > 1) {
+      _toast('该学号匹配到多个账号，请先在用户列表核对');
+      return;
+    }
+    final AdminUserEntry user = matches.single;
+    await _runAction(
+      () => _repo.updateUserState(
+        userId: user.id,
+        action: action,
+        note: action == 'grant_admin'
+            ? '按学号 $studentId 设为管理员'
+            : '按学号 $studentId 移除管理员权限',
+      ),
+      successText: action == 'grant_admin' ? '管理员已设置' : '管理员权限已移除',
+      onSuccess: () async {
+        _userAdminStudentIdController.clear();
+        await _loadUsers();
+        await _loadOverview();
+      },
     );
   }
 
