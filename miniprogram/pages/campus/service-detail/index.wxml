@@ -80,11 +80,18 @@
               ></view>
             </block>
             <view
-              class="schedule-time-label"
+              class="schedule-time-label-group"
               wx:for="{{calendarGrid.timeLabels}}"
-              wx:key="label"
-              style="top: {{item.topRpx}}rpx;"
-            >{{item.label}}</view>
+              wx:key="style"
+              style="{{item.style}}"
+            >
+              <view
+                class="schedule-time-label"
+                wx:for="{{item.labels}}"
+                wx:for-item="label"
+                wx:key="*this"
+              >{{label}}</view>
+            </view>
             <view
               wx:for="{{calendarGrid.blocks}}"
               wx:key="id"

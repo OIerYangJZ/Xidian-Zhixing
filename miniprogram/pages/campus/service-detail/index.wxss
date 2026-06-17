@@ -354,19 +354,24 @@
   line-height: 1.05;
 }
 
-.schedule-time-label {
+.schedule-time-label-group {
   position: absolute;
   left: 0;
   width: 84rpx;
-  padding-right: 10rpx;
+  padding-right: 8rpx;
   transform: translateY(-50%);
   box-sizing: border-box;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.schedule-time-label {
+  display: block;
+  margin: 2rpx 0;
   color: var(--app-text-secondary);
   font-size: 18rpx;
-  line-height: 1;
+  line-height: 1.05;
   text-align: right;
-  z-index: 1;
-  pointer-events: none;
 }
 
 .schedule-empty-cell {
