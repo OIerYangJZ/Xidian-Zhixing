@@ -67,11 +67,8 @@
               <view class="schedule-day-num">{{item.dayNumber}}</view>
             </view>
             <block wx:for="{{calendarGrid.rows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="section">
-              <view class="schedule-time-head" style="grid-column: 1; grid-row: {{rowIndex + 2}};">
-                <view class="schedule-section">{{row.section}}</view>
-              </view>
               <view
-                class="schedule-empty-cell"
+                class="schedule-empty-cell {{row.isInnerLine ? 'is-inner' : ''}}"
                 wx:for="{{calendarGrid.columns}}"
                 wx:for-item="col"
                 wx:for-index="colIndex"
@@ -79,6 +76,14 @@
                 style="grid-column: {{colIndex + 2}}; grid-row: {{rowIndex + 2}};"
               ></view>
             </block>
+            <view
+              class="schedule-time-head"
+              wx:for="{{calendarGrid.periods}}"
+              wx:key="section"
+              style="grid-column: 1; grid-row: {{item.gridRow}};"
+            >
+              <view class="schedule-section">{{item.section}}</view>
+            </view>
             <view
               class="schedule-time-label-group"
               wx:for="{{calendarGrid.timeLabels}}"

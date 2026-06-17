@@ -127,17 +127,26 @@ const scheduleRows = () => SECTION_ROWS.map((row) => {
   const heightRpx = SCHEDULE_ROW_RPX;
   return {
     ...row,
+    isInnerLine: row.section % 2 === 0,
     topRpx: fixed(topRpx),
     heightRpx: fixed(heightRpx)
   };
 });
 
+const schedulePeriods = () => Array.from({ length: SECTION_ROWS.length / 2 }).map((_, index) => ({
+  section: index + 1,
+  gridRow: `${index * 2 + 2} / span 2`
+}));
+
 const uniqueLabels = (labels = []) => Array.from(new Set(labels.filter(Boolean)));
 
 const scheduleTimeLabels = () => {
-  const groups = SECTION_ROWS.map((row, index) => {
-    const labels = index === 0 ? [row.start] : [SECTION_ROWS[index - 1].end, row.start];
-    const topRpx = SCHEDULE_HEADER_RPX + index * SCHEDULE_ROW_RPX;
+  const groups = Array.from({ length: SECTION_ROWS.length / 2 }).map((_, index) => {
+    const rowIndex = index * 2;
+    const labels = rowIndex === 0
+      ? [SECTION_ROWS[rowIndex].start]
+      : [SECTION_ROWS[rowIndex - 1].end, SECTION_ROWS[rowIndex].start];
+    const topRpx = SCHEDULE_HEADER_RPX + rowIndex * SCHEDULE_ROW_RPX;
     return {
       labels: uniqueLabels(labels),
       style: `top: ${fixed(topRpx)}rpx;`
@@ -271,6 +280,7 @@ const buildScheduleGrid = (days = []) => {
   return {
     columns,
     rows: scheduleRows(),
+    periods: schedulePeriods(),
     timeLabels: scheduleTimeLabels(),
     blocks,
     heightRpx: fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX + SCHEDULE_BOTTOM_RPX)
@@ -307,7 +317,7 @@ Page({
     actions: [],
     calendar: null,
     calendarDays: [],
-    calendarGrid: { columns: [], rows: scheduleRows(), timeLabels: scheduleTimeLabels(), blocks: [], heightRpx: 0 },
+    calendarGrid: { columns: [], rows: scheduleRows(), periods: schedulePeriods(), timeLabels: scheduleTimeLabels(), blocks: [], heightRpx: 0 },
     examItems: [],
     isExamList: false,
     weekOptions: [],

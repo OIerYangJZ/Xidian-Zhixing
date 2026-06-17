@@ -341,7 +341,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 112rpx;
   padding: 0 2rpx 0 0;
   color: var(--app-text-primary);
   text-align: center;
@@ -376,6 +375,10 @@
 
 .schedule-empty-cell {
   border-top: 1rpx solid var(--app-divider);
+}
+
+.schedule-empty-cell.is-inner {
+  border-top-color: transparent;
 }
 
 .schedule-block {
