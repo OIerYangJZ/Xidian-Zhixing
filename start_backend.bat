@@ -4,8 +4,17 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 set "BACKEND_HOST=0.0.0.0"
 set "BACKEND_PORT=8080"
+set "START_TOKEN=%RANDOM%-%RANDOM%-%TIME%"
+set "START_TOKEN_FILE=%TEMP%\seeradio-backend-start.token"
+
+> "%START_TOKEN_FILE%" echo %START_TOKEN%
 
 echo Restarting backend server on port %BACKEND_PORT%...
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^python' -and $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains('backend\server.py') } | ForEach-Object { $_.ProcessId }"`) do (
+  echo Stopping backend process %%P...
+  taskkill /PID %%P /F >nul 2>nul
+)
+
 for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%BACKEND_PORT% .*LISTENING"') do (
   if not "%%P"=="0" (
     echo Stopping process %%P...
@@ -13,7 +22,26 @@ for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%BACKEND_PORT% .*LIST
   )
 )
 
-timeout /t 1 /nobreak >nul
+set "PORT_RELEASED="
+for /l %%A in (1,1,20) do (
+  set "PORT_IN_USE="
+  for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%BACKEND_PORT% .*LISTENING"') do (
+    set "PORT_IN_USE=1"
+  )
+  if not defined PORT_IN_USE (
+    set "PORT_RELEASED=1"
+    goto :port_released
+  )
+  timeout /t 1 /nobreak >nul
+)
+
+:port_released
+if not defined PORT_RELEASED (
+  echo Port %BACKEND_PORT% is still listening after waiting.
+  pause
+  exit /b 1
+)
+
 if not defined BACKEND_LAN_HOST (
   for /f "usebackq delims=" %%I in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$excludedIp = '^(127\.|169\.254\.|198\.18\.|198\.19\.)'; $excludedAlias = 'Mihomo|ZeroTier|Tailscale|Loopback|VMware|VirtualBox|Hyper-V|vEthernet|Wintun|TAP'; Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.AddressState -eq 'Preferred' -and $_.IPAddress -notmatch $excludedIp -and $_.InterfaceAlias -notmatch $excludedAlias } | Sort-Object @{Expression={ if ($_.InterfaceAlias -match 'WLAN|Wi-Fi|Ethernet') { 0 } else { 1 } }}, InterfaceMetric | Select-Object -First 1 -ExpandProperty IPAddress"`) do (
     set "BACKEND_LAN_HOST=%%I"
@@ -36,6 +64,13 @@ if defined BACKEND_LAN_HOST (
   echo Mini config: miniprogram\config\env.local.js
 ) else (
   echo LAN IP not detected. Set BACKEND_LAN_HOST manually before running this script.
+)
+
+set "LATEST_TOKEN="
+if exist "%START_TOKEN_FILE%" set /p LATEST_TOKEN=<"%START_TOKEN_FILE%"
+if not "%LATEST_TOKEN%"=="%START_TOKEN%" (
+  echo A newer backend startup was requested. Exiting this startup.
+  exit /b 0
 )
 
 echo Starting backend server...
