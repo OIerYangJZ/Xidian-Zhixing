@@ -94,8 +94,8 @@
               <text class="feed-time">{{item.timeText}}</text>
             </view>
             <view wx:if="{{item.title}}" class="feed-title">{{item.title}}</view>
-            <swiper wx:if="{{item.imageUrls && item.imageUrls.length}}" class="profile-card-images" indicator-dots="{{item.imageUrls.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-              <swiper-item wx:for="{{item.imageUrls}}" wx:for-item="img" wx:key="*this">
+            <swiper wx:if="{{item.displayImages && item.displayImages.length}}" class="profile-card-images" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
+              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
                 <image class="profile-card-image" src="{{img}}" mode="aspectFill" data-source="posts" data-post-index="{{postIndex}}" data-url="{{img}}" catchtap="previewPostImage"></image>
               </swiper-item>
             </swiper>
@@ -139,8 +139,8 @@
               <text class="feed-time">{{item.timeText}}</text>
             </view>
             <view wx:if="{{item.title}}" class="feed-title">{{item.title}}</view>
-            <swiper wx:if="{{item.imageUrls && item.imageUrls.length}}" class="profile-card-images" indicator-dots="{{item.imageUrls.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-              <swiper-item wx:for="{{item.imageUrls}}" wx:for-item="img" wx:key="*this">
+            <swiper wx:if="{{item.displayImages && item.displayImages.length}}" class="profile-card-images" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
+              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
                 <image class="profile-card-image" src="{{img}}" mode="aspectFill" data-source="favorites" data-post-index="{{postIndex}}" data-url="{{img}}" catchtap="previewPostImage"></image>
               </swiper-item>
             </swiper>

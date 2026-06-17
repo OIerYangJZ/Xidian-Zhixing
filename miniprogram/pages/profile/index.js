@@ -9,6 +9,7 @@ import {
 import { avatarInitial, resolveUrl } from '../../utils/format';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../utils/feed_images';
 
 const TABS = [
   { key: 'posts', label: '帖子' },
@@ -45,10 +46,12 @@ const buildPost = (raw = {}) => {
     : Array.isArray(raw.images)
       ? raw.images
       : [];
+  const normalizedImageUrls = imageUrls.map(resolveUrl).filter(Boolean);
   return {
     ...raw,
     id: String(raw.id || raw.postId || ''),
-    imageUrls: imageUrls.map(resolveUrl).filter(Boolean),
+    images: normalizedImageUrls,
+    imageUrls: normalizedImageUrls,
     liked: Boolean(raw.liked || raw.isLiked),
     isLiked: Boolean(raw.liked || raw.isLiked),
     likeCount: Number(raw.likeCount || 0),
@@ -160,18 +163,29 @@ Page({
     this.setData({ loadingPosts: true });
     const posts = await getMyPosts();
     this.setData({
-      posts: posts.map(buildPost),
+      posts: posts.map((post) => attachDisplayImages(buildPost(post))),
       loadingPosts: false
     });
+    this.hydrateProfileImages('posts');
   },
 
   async loadFavorites() {
     this.setData({ loadingFavorites: true });
     const posts = await getFavoritePosts();
     this.setData({
-      favoritePosts: posts.map(buildPost),
+      favoritePosts: posts.map((post) => attachDisplayImages(buildPost(post))),
       loadingFavorites: false
     });
+    this.hydrateProfileImages('favoritePosts');
+  },
+
+  async hydrateProfileImages(key) {
+    const posts = this.data[key] || [];
+    const hydratedByPostId = await hydrateDisplayImages(posts);
+    const hydratedPosts = applyHydratedDisplayImages(this.data[key] || [], hydratedByPostId);
+    if (hydratedPosts !== this.data[key]) {
+      this.setData({ [key]: hydratedPosts });
+    }
   },
 
   async loadComments() {
@@ -279,7 +293,7 @@ Page({
     const current = event.currentTarget.dataset.url;
     const posts = source === 'favorites' ? this.data.favoritePosts : this.data.posts;
     const post = posts[postIndex];
-    const urls = (post && post.imageUrls) || [];
+    const urls = (post && (post.displayImages || post.imageUrls)) || [];
     if (current && urls.length) {
       wx.previewImage({ current, urls });
     }
