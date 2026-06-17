@@ -187,6 +187,30 @@
   border-radius: 20rpx 20rpx 8rpx 8rpx;
 }
 
+.admin-symbol {
+  border: 3rpx solid currentColor;
+  border-radius: 10rpx;
+}
+
+.admin-symbol::before,
+.admin-symbol::after {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  right: 8rpx;
+  height: 3rpx;
+  border-radius: 2rpx;
+  background: currentColor;
+}
+
+.admin-symbol::before {
+  top: 13rpx;
+}
+
+.admin-symbol::after {
+  top: 26rpx;
+}
+
 .settings-symbol {
   border: 4rpx solid currentColor;
   border-radius: 50%;

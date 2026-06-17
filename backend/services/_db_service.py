@@ -196,7 +196,7 @@ def auth_admin(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
 ) -> tuple[dict[str, Any] | None, str | None]:
-    """Extract Bearer token, validate admin session, return (admin, token) or (None, None)."""
+    """Extract Bearer token, validate admin or user-admin session."""
     auth_header = handler.headers.get("Authorization", "")
     if not auth_header.startswith("Bearer "):
         return None, None
@@ -205,14 +205,26 @@ def auth_admin(
         return None, None
     with _globals.ADMIN_SESSION_LOCK:
         admin_id = _globals.ADMIN_SESSIONS.get(token)
-    if not admin_id:
+    if admin_id:
+        account = find_admin_account_by_id(db, str(admin_id), include_inactive=True)
+        if account is None or not bool(account.get("active", True)):
+            with _globals.ADMIN_SESSION_LOCK:
+                _globals.ADMIN_SESSIONS.pop(token, None)
+            return None, token
+        return build_authenticated_admin(account), token
+
+    user_id = db.get("sessions", {}).get(token)
+    if not user_id:
         return None, token
-    account = find_admin_account_by_id(db, str(admin_id), include_inactive=True)
-    if account is None or not bool(account.get("active", True)):
-        with _globals.ADMIN_SESSION_LOCK:
-            _globals.ADMIN_SESSIONS.pop(token, None)
+    user = _find_user_by_id_unsafe(db, str(user_id))
+    if (
+        user is None
+        or bool(user.get("deleted", False))
+        or bool(user.get("banned", False))
+        or not bool(user.get("isAdmin", False))
+    ):
         return None, token
-    return build_authenticated_admin(account), token
+    return build_authenticated_user_admin(user), token
 
 
 def build_authenticated_admin(account: dict[str, Any]) -> dict[str, Any]:
@@ -225,6 +237,27 @@ def build_authenticated_admin(account: dict[str, Any]) -> dict[str, Any]:
         "roleLabel": admin_role_label(role),
         "isPrimary": role == _globals.ADMIN_ROLE_PRIMARY,
         "isAdmin": True,
+    }
+
+
+def build_authenticated_user_admin(user: dict[str, Any]) -> dict[str, Any]:
+    role = _globals.ADMIN_ROLE_PRIMARY
+    nickname = str(
+        user.get("nickname")
+        or user.get("alias")
+        or user.get("studentId")
+        or user.get("email")
+        or "admin",
+    ).strip()
+    return {
+        "id": str(user.get("id", "")).strip(),
+        "adminId": str(user.get("id", "")).strip(),
+        "username": nickname,
+        "role": role,
+        "roleLabel": admin_role_label(role),
+        "isPrimary": True,
+        "isAdmin": True,
+        "fromUserAccount": True,
     }
 
 
@@ -363,6 +396,7 @@ def build_admin_user_rows(
                 "alias": user_nickname(user),
                 "avatarUrl": user_avatar_url(user),
                 "verified": bool(user.get("verified", False)),
+                "isAdmin": bool(user.get("isAdmin", False)),
                 "userLevel": level,
                 "userLevelLabel": user_level_label(level),
                 "banned": bool(user.get("banned", False)),

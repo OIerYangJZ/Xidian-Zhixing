@@ -1,0 +1,584 @@
+import {
+  addChannel,
+  addTag,
+  createAdminAnnouncement,
+  createKnowledgeSource,
+  deleteChannel,
+  deleteTag,
+  getAdminAnnouncements,
+  getAdminAppeals,
+  getAdminConfig,
+  getAdminImages,
+  getAdminOverview,
+  getAdminReports,
+  getAdminReviews,
+  getAdminUsers,
+  getCancellationRequests,
+  getChannelsTags,
+  getClubApplications,
+  getCurrentAdmin,
+  getPostPinRequests,
+  getUserLevelRequests,
+  handleAdminAppeal,
+  handleAdminImage,
+  handleAdminReport,
+  handleAdminReview,
+  handleAdminUser,
+  handleCancellationRequest,
+  handleClubApplication,
+  handlePostPinRequest,
+  handleUserLevelRequest,
+  reindexKnowledge,
+  renameChannel,
+  renameTag,
+  updateAdminConfig
+} from '../../api/admin';
+import { requireLoginPage } from '../../utils/auth_guard';
+import { applyThemeAndLanguage } from '../../utils/theme_i18n';
+
+const TABS = [
+  { key: 'overview', label: '概览' },
+  { key: 'reviews', label: '审核' },
+  { key: 'reports', label: '举报' },
+  { key: 'images', label: '图片' },
+  { key: 'users', label: '用户' },
+  { key: 'requests', label: '申请' },
+  { key: 'system', label: '系统' }
+];
+
+const REVIEW_TYPES = [
+  { key: 'post', label: '帖子' },
+  { key: 'comment', label: '评论' }
+];
+
+const REVIEW_STATUSES = [
+  { key: 'pending', label: '待审' },
+  { key: 'risk', label: '风险' },
+  { key: 'approved', label: '通过' },
+  { key: 'rejected', label: '驳回' },
+  { key: 'all', label: '全部' }
+];
+
+const REPORT_STATUSES = [
+  { key: 'pending', label: '待处理' },
+  { key: 'resolved', label: '已处理' },
+  { key: 'all', label: '全部' }
+];
+
+const REQUEST_TYPES = [
+  { key: 'pin', label: '置顶' },
+  { key: 'level', label: '等级' },
+  { key: 'cancel', label: '注销' },
+  { key: 'appeal', label: '申诉' },
+  { key: 'club', label: '社团' }
+];
+
+const REQUEST_STATUSES = [
+  { key: 'pending', label: '待处理' },
+  { key: 'approved', label: '通过' },
+  { key: 'rejected', label: '驳回' },
+  { key: 'all', label: '全部' }
+];
+
+const SYSTEM_TYPES = [
+  { key: 'config', label: '配置' },
+  { key: 'channels', label: '频道' },
+  { key: 'tags', label: '标签' },
+  { key: 'announcements', label: '公告' },
+  { key: 'knowledge', label: '知识库' }
+];
+
+const STATUS_TEXT = {
+  pending: '待处理',
+  approved: '已通过',
+  rejected: '已驳回',
+  resolved: '已处理',
+  risk: '风险',
+  deleted: '已删除',
+  all: '全部'
+};
+
+const reviewLabel = (value) => STATUS_TEXT[String(value || '').toLowerCase()] || value || '';
+
+const buildRequestRows = (rows) => rows.map((item) => ({
+  ...item,
+  statusText: reviewLabel(item.status || item.reviewStatus),
+  displayTitle: item.title || item.postTitle || item.name || item.appealType || item.reason || item.id,
+  displayUser: item.userNickname || item.applicantName || item.authorNickname || item.email || item.userEmail || item.studentId || item.userId || '',
+  displayContent: item.reason || item.reviewNote || item.description || item.content || item.summary || ''
+}));
+
+Page({
+  data: {
+    tabs: TABS,
+    reviewTypes: REVIEW_TYPES,
+    reviewStatuses: REVIEW_STATUSES,
+    reportStatuses: REPORT_STATUSES,
+    requestTypes: REQUEST_TYPES,
+    requestStatuses: REQUEST_STATUSES,
+    systemTypes: SYSTEM_TYPES,
+    activeTab: 'overview',
+    reviewType: 'post',
+    reviewStatus: 'pending',
+    reportStatus: 'pending',
+    requestType: 'pin',
+    requestStatus: 'pending',
+    systemType: 'config',
+    loading: true,
+    admin: null,
+    noPermission: false,
+    overview: null,
+    overviewCards: [],
+    reviews: [],
+    reports: [],
+    images: [],
+    users: [],
+    requestRows: [],
+    sensitiveWordsText: '',
+    rateRulesText: '',
+    channels: [],
+    tags: [],
+    announcements: [],
+    newAnnouncement: {
+      title: '',
+      content: '',
+      sourceName: '',
+      type: ''
+    },
+    knowledgeForm: {
+      name: '',
+      content: ''
+    },
+    submitting: false
+  },
+
+  onLoad() {
+    applyThemeAndLanguage(this);
+    if (!requireLoginPage()) return;
+    this.bootstrap();
+  },
+
+  onShow() {
+    applyThemeAndLanguage(this);
+  },
+
+  onPullDownRefresh() {
+    this.loadActiveTab().finally(() => wx.stopPullDownRefresh());
+  },
+
+  async bootstrap() {
+    this.setData({ loading: true, noPermission: false });
+    try {
+      const admin = await getCurrentAdmin();
+      this.setData({ admin });
+      await this.loadActiveTab();
+    } catch (error) {
+      this.setData({ loading: false, noPermission: true });
+    }
+  },
+
+  async loadActiveTab() {
+    const { activeTab } = this.data;
+    if (activeTab === 'overview') return this.loadOverview();
+    if (activeTab === 'reviews') return this.loadReviews();
+    if (activeTab === 'reports') return this.loadReports();
+    if (activeTab === 'images') return this.loadImages();
+    if (activeTab === 'users') return this.loadUsers();
+    if (activeTab === 'requests') return this.loadRequests();
+    if (activeTab === 'system') return this.loadSystem();
+    return Promise.resolve();
+  },
+
+  switchTab(event) {
+    const key = event.currentTarget.dataset.key;
+    if (!key || key === this.data.activeTab) return;
+    this.setData({ activeTab: key }, () => this.loadActiveTab());
+  },
+
+  setReviewType(event) {
+    this.setData({ reviewType: event.currentTarget.dataset.key }, () => this.loadReviews());
+  },
+
+  setReviewStatus(event) {
+    this.setData({ reviewStatus: event.currentTarget.dataset.key }, () => this.loadReviews());
+  },
+
+  setReportStatus(event) {
+    this.setData({ reportStatus: event.currentTarget.dataset.key }, () => this.loadReports());
+  },
+
+  setRequestType(event) {
+    this.setData({ requestType: event.currentTarget.dataset.key }, () => this.loadRequests());
+  },
+
+  setRequestStatus(event) {
+    this.setData({ requestStatus: event.currentTarget.dataset.key }, () => this.loadRequests());
+  },
+
+  setSystemType(event) {
+    this.setData({ systemType: event.currentTarget.dataset.key }, () => this.loadSystem());
+  },
+
+  async loadOverview() {
+    this.setData({ loading: true });
+    try {
+      const overview = await getAdminOverview();
+      const overviewCards = [
+        { label: '用户', value: overview.totalUsers || 0 },
+        { label: '帖子', value: overview.totalPosts || 0 },
+        { label: '评论', value: overview.totalComments || 0 },
+        { label: '待审', value: overview.pendingReviewCount || overview.pendingReviews || 0 },
+        { label: '举报', value: overview.pendingReportCount || overview.pendingReports || 0 },
+        { label: '图片', value: overview.pendingImageCount || overview.pendingImages || 0 }
+      ];
+      this.setData({ overview, overviewCards, loading: false });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadReviews() {
+    this.setData({ loading: true });
+    try {
+      const rows = await getAdminReviews({
+        type: this.data.reviewType,
+        status: this.data.reviewStatus
+      });
+      this.setData({
+        reviews: rows.map((item) => ({
+          ...item,
+          statusText: reviewLabel(item.reviewStatus)
+        })),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadReports() {
+    this.setData({ loading: true });
+    try {
+      const reports = await getAdminReports({ status: this.data.reportStatus });
+      this.setData({
+        reports: reports.map((item) => ({
+          ...item,
+          statusText: reviewLabel(item.status),
+          displayTitle: item.targetTitle || item.title || item.targetId || item.id
+        })),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadImages() {
+    this.setData({ loading: true });
+    try {
+      const images = await getAdminImages();
+      this.setData({
+        images: images.map((item) => ({
+          ...item,
+          statusText: reviewLabel(item.status)
+        })),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadUsers() {
+    this.setData({ loading: true });
+    try {
+      const users = await getAdminUsers();
+      this.setData({
+        users: users.map((item) => ({
+          ...item,
+          statusText: item.deleted ? '已注销' : item.banned ? '已封禁' : item.muted ? '已禁言' : '正常',
+          displayName: item.alias || item.nickname || item.email || item.studentId || item.id
+        })),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadRequests() {
+    this.setData({ loading: true });
+    try {
+      const status = this.data.requestStatus;
+      let rows = [];
+      if (this.data.requestType === 'pin') rows = await getPostPinRequests({ status });
+      if (this.data.requestType === 'level') rows = await getUserLevelRequests({ status });
+      if (this.data.requestType === 'cancel') rows = await getCancellationRequests({ status });
+      if (this.data.requestType === 'appeal') rows = await getAdminAppeals({ status });
+      if (this.data.requestType === 'club') rows = await getClubApplications({ status: status === 'all' ? '' : status });
+      this.setData({ requestRows: buildRequestRows(rows), loading: false });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadSystem() {
+    if (this.data.systemType === 'config') return this.loadConfig();
+    if (this.data.systemType === 'channels' || this.data.systemType === 'tags') return this.loadChannelsTags();
+    if (this.data.systemType === 'announcements') return this.loadAnnouncements();
+    this.setData({ loading: false });
+    return Promise.resolve();
+  },
+
+  async loadConfig() {
+    this.setData({ loading: true });
+    try {
+      const config = await getAdminConfig();
+      this.setData({
+        sensitiveWordsText: (config.sensitiveWords || []).join('\n'),
+        rateRulesText: JSON.stringify(config.rateLimitRules || {}, null, 2),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadChannelsTags() {
+    this.setData({ loading: true });
+    try {
+      const data = await getChannelsTags();
+      this.setData({
+        channels: data.channels || [],
+        tags: data.tags || [],
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadAnnouncements() {
+    this.setData({ loading: true });
+    try {
+      const announcements = await getAdminAnnouncements();
+      this.setData({ announcements, loading: false });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async runAction(action) {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '处理中' });
+    try {
+      await action();
+      wx.hideLoading();
+      wx.showToast({ title: '已完成', icon: 'success' });
+      await this.loadActiveTab();
+    } catch (error) {
+      wx.hideLoading();
+    }
+    this.setData({ submitting: false });
+  },
+
+  askNote({ title, placeholderText = '处理备注', confirmText = '确定' }, onConfirm) {
+    wx.showModal({
+      title,
+      editable: true,
+      placeholderText,
+      confirmText,
+      success: (res) => {
+        if (!res.confirm) return;
+        onConfirm(String(res.content || '').trim());
+      }
+    });
+  },
+
+  confirm({ title, content = '', confirmText = '确定' }, onConfirm) {
+    wx.showModal({
+      title,
+      content,
+      confirmText,
+      success: (res) => {
+        if (res.confirm) onConfirm();
+      }
+    });
+  },
+
+  actReview(event) {
+    const { id, action } = event.currentTarget.dataset;
+    this.runAction(() => handleAdminReview({ type: this.data.reviewType, id, action }));
+  },
+
+  actReport(event) {
+    const { id, action } = event.currentTarget.dataset;
+    this.askNote({ title: '处理举报', placeholderText: '处理结果', confirmText: '提交' }, (reviewNote) => {
+      this.runAction(() => handleAdminReport(id, { action, reviewNote }));
+    });
+  },
+
+  actImage(event) {
+    const { id, action } = event.currentTarget.dataset;
+    this.askNote({ title: '审核图片', placeholderText: '审核备注', confirmText: '提交' }, (reviewNote) => {
+      this.runAction(() => handleAdminImage(id, { action, reviewNote }));
+    });
+  },
+
+  actUser(event) {
+    const { id, action } = event.currentTarget.dataset;
+    const titleMap = {
+      mute: '禁言用户',
+      unmute: '解除禁言',
+      ban: '封禁用户',
+      unban: '解除封禁',
+      cancel: '注销账号',
+      restore: '恢复账号',
+      grant_admin: '设为管理员',
+      revoke_admin: '移除管理员'
+    };
+    const needsNote = ['mute', 'ban', 'cancel', 'grant_admin', 'revoke_admin'].includes(action);
+    if (needsNote) {
+      this.askNote({ title: titleMap[action], placeholderText: '处理备注', confirmText: '提交' }, (reviewNote) => {
+        this.runAction(() => handleAdminUser(id, { action, reviewNote }));
+      });
+      return;
+    }
+    this.confirm({ title: titleMap[action], confirmText: '确定' }, () => {
+      this.runAction(() => handleAdminUser(id, { action }));
+    });
+  },
+
+  actRequest(event) {
+    const { id, action } = event.currentTarget.dataset;
+    this.askNote({ title: '处理申请', placeholderText: '处理备注', confirmText: '提交' }, (reviewNote) => {
+      const payload = { action, reviewNote };
+      this.runAction(() => {
+        if (this.data.requestType === 'pin') return handlePostPinRequest(id, payload);
+        if (this.data.requestType === 'level') return handleUserLevelRequest(id, payload);
+        if (this.data.requestType === 'cancel') return handleCancellationRequest(id, payload);
+        if (this.data.requestType === 'appeal') return handleAdminAppeal(id, payload);
+        return handleClubApplication(id, payload);
+      });
+    });
+  },
+
+  onSensitiveInput(event) {
+    this.setData({ sensitiveWordsText: event.detail.value });
+  },
+
+  onRateRulesInput(event) {
+    this.setData({ rateRulesText: event.detail.value });
+  },
+
+  saveConfig() {
+    let rateLimitRules = {};
+    try {
+      rateLimitRules = JSON.parse(this.data.rateRulesText || '{}');
+    } catch (error) {
+      wx.showToast({ title: '频控配置不是有效 JSON', icon: 'none' });
+      return;
+    }
+    const sensitiveWords = this.data.sensitiveWordsText
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean);
+    this.runAction(() => updateAdminConfig({ sensitiveWords, rateLimitRules }));
+  },
+
+  addChannel() {
+    this.askNote({ title: '新增频道', placeholderText: '频道名称', confirmText: '保存' }, (value) => {
+      if (!value) return;
+      this.runAction(() => addChannel(value));
+    });
+  },
+
+  editChannel(event) {
+    const name = event.currentTarget.dataset.name;
+    this.askNote({ title: '重命名频道', placeholderText: name, confirmText: '保存' }, (value) => {
+      if (!value) return;
+      this.runAction(() => renameChannel(name, value));
+    });
+  },
+
+  removeChannel(event) {
+    const name = event.currentTarget.dataset.name;
+    this.confirm({ title: '删除频道', content: name, confirmText: '删除' }, () => {
+      this.runAction(() => deleteChannel(name));
+    });
+  },
+
+  addTag() {
+    this.askNote({ title: '新增标签', placeholderText: '标签名称', confirmText: '保存' }, (value) => {
+      if (!value) return;
+      this.runAction(() => addTag(value));
+    });
+  },
+
+  editTag(event) {
+    const name = event.currentTarget.dataset.name;
+    this.askNote({ title: '重命名标签', placeholderText: name, confirmText: '保存' }, (value) => {
+      if (!value) return;
+      this.runAction(() => renameTag(name, value));
+    });
+  },
+
+  removeTag(event) {
+    const name = event.currentTarget.dataset.name;
+    this.confirm({ title: '删除标签', content: name, confirmText: '删除' }, () => {
+      this.runAction(() => deleteTag(name));
+    });
+  },
+
+  onAnnouncementInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`newAnnouncement.${key}`]: event.detail.value });
+  },
+
+  publishAnnouncement() {
+    const payload = {
+      ...this.data.newAnnouncement,
+      title: this.data.newAnnouncement.title.trim(),
+      content: this.data.newAnnouncement.content.trim(),
+      sourceName: this.data.newAnnouncement.sourceName.trim(),
+      type: this.data.newAnnouncement.type.trim()
+    };
+    if (!payload.title || !payload.content) {
+      wx.showToast({ title: '标题和正文不能为空', icon: 'none' });
+      return;
+    }
+    this.runAction(async () => {
+      await createAdminAnnouncement(payload);
+      this.setData({
+        newAnnouncement: { title: '', content: '', sourceName: '', type: '' }
+      });
+    });
+  },
+
+  onKnowledgeInput(event) {
+    const key = event.currentTarget.dataset.key;
+    this.setData({ [`knowledgeForm.${key}`]: event.detail.value });
+  },
+
+  saveKnowledgeSource() {
+    const payload = {
+      name: this.data.knowledgeForm.name.trim(),
+      content: this.data.knowledgeForm.content.trim()
+    };
+    if (!payload.name) {
+      wx.showToast({ title: '名称不能为空', icon: 'none' });
+      return;
+    }
+    this.runAction(async () => {
+      await createKnowledgeSource(payload);
+      this.setData({ knowledgeForm: { name: '', content: '' } });
+    });
+  },
+
+  reindexKnowledge() {
+    this.confirm({ title: '重建知识库索引', confirmText: '重建' }, () => {
+      this.runAction(() => reindexKnowledge());
+    });
+  }
+});

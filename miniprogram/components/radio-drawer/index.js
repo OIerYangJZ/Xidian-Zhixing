@@ -66,6 +66,11 @@ Component({
       wx.navigateTo({ url: '/pages/clubs/index' });
     },
 
+    goAdmin() {
+      this.close();
+      wx.navigateTo({ url: '/pages/admin/index' });
+    },
+
     goSettings() {
       this.close();
       wx.navigateTo({ url: '/pages/profile/settings/index' });

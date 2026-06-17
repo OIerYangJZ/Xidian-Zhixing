@@ -62,6 +62,15 @@
         <view class="drawer-chevron"></view>
       </view>
 
+      <view wx:if="{{profile && profile.isAdmin}}" class="drawer-row" bindtap="goAdmin">
+        <view class="drawer-symbol admin-symbol"></view>
+        <view class="drawer-row-body">
+          <view class="drawer-row-title">管理</view>
+          <view class="drawer-row-subtitle">审核、用户、系统配置</view>
+        </view>
+        <view class="drawer-chevron"></view>
+      </view>
+
       <view class="drawer-row" bindtap="goSettings">
         <view class="drawer-symbol settings-symbol"></view>
         <view class="drawer-row-body">
