@@ -61,26 +61,24 @@
               wx:for="{{calendarGrid.columns}}"
               wx:for-index="dayIndex"
               wx:key="date"
-              style="{{item.headStyle}}"
+              style="grid-column: {{dayIndex + 2}}; grid-row: 1;"
             >
               <view class="schedule-day-name">{{item.name}}</view>
               <view class="schedule-day-num">{{item.dayNumber}}</view>
             </view>
             <block wx:for="{{calendarGrid.rows}}" wx:for-item="row" wx:for-index="rowIndex" wx:key="section">
-              <view class="schedule-time-head" style="top: {{row.topRpx}}rpx; height: {{row.heightRpx}}rpx;">
-                <view class="schedule-period">{{row.period}}</view>
+              <view class="schedule-time-head" style="grid-column: 1; grid-row: {{rowIndex + 2}};">
                 <view class="schedule-section">{{row.section}}</view>
-                <view class="schedule-time-range">{{row.start}}</view>
-                <view class="schedule-time-range">{{row.end}}</view>
+                <view class="schedule-time-start">{{row.start}}</view>
+                <view class="schedule-time-end">{{row.end}}</view>
               </view>
-              <view class="schedule-row-line" style="top: {{row.topRpx}}rpx;"></view>
               <view
                 class="schedule-empty-cell"
                 wx:for="{{calendarGrid.columns}}"
                 wx:for-item="col"
                 wx:for-index="colIndex"
                 wx:key="date"
-                style="{{col.cellStyle}}; top: {{row.topRpx}}rpx; height: {{row.heightRpx}}rpx;"
+                style="grid-column: {{colIndex + 2}}; grid-row: {{rowIndex + 2}};"
               ></view>
             </block>
             <view

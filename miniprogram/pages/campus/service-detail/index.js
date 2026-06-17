@@ -8,23 +8,23 @@ import { openAppTarget } from '../../../utils/navigation';
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 const WEEKDAY_NAMES = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.'];
 const SECTION_ROWS = [
-  { section: 1, start: '08:30', end: '09:15', period: '上午' },
-  { section: 2, start: '09:20', end: '10:05', period: '' },
-  { section: 3, start: '10:25', end: '11:10', period: '' },
-  { section: 4, start: '11:15', end: '12:00', period: '' },
-  { section: 5, start: '14:00', end: '14:45', period: '下午' },
-  { section: 6, start: '14:50', end: '15:35', period: '' },
-  { section: 7, start: '15:55', end: '16:40', period: '' },
-  { section: 8, start: '16:45', end: '17:30', period: '' },
-  { section: 9, start: '19:00', end: '19:45', period: '晚上' },
-  { section: 10, start: '19:50', end: '20:35', period: '' },
-  { section: 11, start: '20:40', end: '21:25', period: '' }
+  { section: 1, start: '08:30', end: '09:15' },
+  { section: 2, start: '09:20', end: '10:05' },
+  { section: 3, start: '10:25', end: '11:10' },
+  { section: 4, start: '11:15', end: '12:00' },
+  { section: 5, start: '14:00', end: '14:45' },
+  { section: 6, start: '14:50', end: '15:35' },
+  { section: 7, start: '15:55', end: '16:40' },
+  { section: 8, start: '16:45', end: '17:30' },
+  { section: 9, start: '19:00', end: '19:45' },
+  { section: 10, start: '19:50', end: '20:35' }
 ];
 const COURSE_COLORS = ['cyan', 'purple', 'indigo', 'pink', 'green', 'blue', 'rose'];
 const EXAM_LIST_DAYS = 31;
 const SCHEDULE_TIME_COL_RPX = 84;
 const SCHEDULE_HEADER_RPX = 78;
 const SCHEDULE_ROW_RPX = 112;
+const SCHEDULE_ROW_MINUTES = 45;
 const SCHEDULE_BOTTOM_RPX = 28;
 const SCHEDULE_DAY_WIDTH_PERCENT = 100 / 7;
 
@@ -112,6 +112,7 @@ const scheduleRows = () => SECTION_ROWS.map((row) => {
   const heightRpx = SCHEDULE_ROW_RPX;
   return {
     ...row,
+    nextStart: row.end,
     topRpx: fixed(topRpx),
     heightRpx: fixed(heightRpx)
   };
@@ -199,8 +200,6 @@ const buildScheduleGrid = (days = []) => {
     name: WEEKDAY_NAMES[index] || '',
     dayNumber: String(day.date || '').slice(8),
     label: WEEKDAY_LABELS[index] || '',
-    headStyle: `${dayColumnStyle(index)}; top: 0; height: ${SCHEDULE_HEADER_RPX}rpx;`,
-    cellStyle: `${dayColumnStyle(index)};`,
     blockColumnStyle: dayColumnStyle(index, 3)
   }));
   const colorMap = {};
@@ -208,22 +207,30 @@ const buildScheduleGrid = (days = []) => {
   const blocks = [];
   days.forEach((day, dayIndex) => {
     (day.items || []).forEach((item) => {
+      const isExam = item.source === 'examSchedules';
       const key = `${item.source}-${item.title}`;
       if (!colorMap[key]) {
         colorMap[key] = COURSE_COLORS[colorIndex % COURSE_COLORS.length];
         colorIndex += 1;
       }
       const title = String(item.title || '');
-      const topRpx = scheduleYForTime(item.startTime);
-      const heightRpx = Math.max(
-        SCHEDULE_ROW_RPX * 0.48,
-        scheduleYForTime(item.endTime) - topRpx
-      );
+      const startSection = sectionForTime(item.startTime);
+      const stopSection = Math.max(startSection, sectionForTime(item.endTime));
+      const span = Math.max(1, stopSection - startSection + 1);
+      const topRpx = isExam ? scheduleYForTime(item.startTime) : 0;
+      const heightRpx = isExam
+        ? Math.max(
+            SCHEDULE_ROW_RPX * 0.72,
+            (minutesOf(item.endTime) - minutesOf(item.startTime)) / SCHEDULE_ROW_MINUTES * SCHEDULE_ROW_RPX
+          )
+        : 0;
       blocks.push({
         ...item,
-        color: item.source === 'examSchedules' ? 'rose' : colorMap[key],
-        isExam: item.source === 'examSchedules',
-        blockStyle: `${columns[dayIndex].blockColumnStyle}; top: ${fixed(topRpx)}rpx; height: ${fixed(heightRpx)}rpx;`,
+        color: isExam ? 'rose' : colorMap[key],
+        isExam,
+        blockStyle: isExam
+          ? `${columns[dayIndex].blockColumnStyle}; top: ${fixed(topRpx)}rpx; height: ${fixed(heightRpx)}rpx;`
+          : `grid-column: ${dayIndex + 2}; grid-row: ${startSection + 1} / span ${span};`,
         locationText: item.location ? `@${item.location}` : '',
         shortTitle: item.source === 'examSchedules' && title && !/考试$/.test(title) ? `${title}考试` : title
       });
