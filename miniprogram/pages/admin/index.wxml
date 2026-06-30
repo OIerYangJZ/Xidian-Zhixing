@@ -194,28 +194,6 @@
         </view>
       </view>
 
-      <view wx:if="{{systemType === 'announcements'}}" class="admin-card form-card">
-        <view class="form-label">标题</view>
-        <input class="form-input" value="{{newAnnouncement.title}}" data-key="title" bindinput="onAnnouncementInput" />
-        <view class="form-label">正文</view>
-        <textarea class="form-textarea" value="{{newAnnouncement.content}}" data-key="content" bindinput="onAnnouncementInput" maxlength="-1"></textarea>
-        <view class="form-label">来源</view>
-        <input class="form-input" value="{{newAnnouncement.sourceName}}" data-key="sourceName" bindinput="onAnnouncementInput" />
-        <view class="form-label">类型</view>
-        <input class="form-input" value="{{newAnnouncement.type}}" data-key="type" bindinput="onAnnouncementInput" />
-        <button class="full-button" bindtap="publishAnnouncement">发布公告</button>
-      </view>
-      <view wx:if="{{systemType === 'announcements'}}">
-        <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-        <view wx:elif="{{!announcements.length}}" class="empty compact">暂无公告</view>
-        <view wx:else>
-          <view wx:for="{{announcements}}" wx:key="id" class="admin-card announcement-card">
-            <view class="card-title">{{item.title}}</view>
-            <view class="card-meta">{{item.sourceName || item.publisher || item.type}} · {{item.publishedAt || item.createdAt}}</view>
-            <view class="card-content">{{item.summary || item.content}}</view>
-          </view>
-        </view>
-      </view>
 
       <view wx:if="{{systemType === 'knowledge'}}" class="admin-card form-card">
         <view class="form-label">名称</view>

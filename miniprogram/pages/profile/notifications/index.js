@@ -54,16 +54,6 @@ Page({
       wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${postId}${commentId ? `&commentId=${commentId}` : ''}` });
       return;
     }
-    if (item.relatedType === 'announcement' || item.type === 'system_announcement') {
-      if (item.relatedId && item.relatedType === 'announcement') {
-        wx.navigateTo({ url: `/pages/announcements/detail/index?id=${item.relatedId}` });
-        return;
-      }
-      wx.navigateTo({
-        url: `/pages/campus/announcement-detail/index?title=${encodeURIComponent(item.title || '')}&content=${encodeURIComponent(item.content || '')}&createdAt=${encodeURIComponent(item.createdAt || '')}`
-      });
-      return;
-    }
     if (item.relatedType === 'conversation' || item.type === 'message') {
       wx.navigateTo({ url: '/pages/profile/conversations/index' });
       return;

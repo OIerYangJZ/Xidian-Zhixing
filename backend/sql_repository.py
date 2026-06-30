@@ -348,15 +348,6 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(receiver_user_id) REFERENCES users(id) ON DELETE CASCADE
             );
 
-            CREATE TABLE IF NOT EXISTS system_announcements (
-              id TEXT PRIMARY KEY,
-              title TEXT NOT NULL,
-              content TEXT NOT NULL,
-              created_at TEXT NOT NULL,
-              created_by TEXT NULL,
-              FOREIGN KEY(created_by) REFERENCES users(id) ON DELETE SET NULL
-            );
-
             CREATE TABLE IF NOT EXISTS feedbacks (
               id TEXT PRIMARY KEY,
               user_id TEXT NOT NULL,
@@ -517,8 +508,7 @@ class SqliteTreeholeRepository:
               ON conversations(user_id, updated_at DESC);
             CREATE INDEX IF NOT EXISTS idx_direct_messages_key_created
               ON direct_messages(conversation_key, created_at ASC, id ASC);
-            CREATE INDEX IF NOT EXISTS idx_system_announcements_created
-              ON system_announcements(created_at DESC, id DESC);
+
             CREATE INDEX IF NOT EXISTS idx_notifications_user_created
               ON notifications(user_id, created_at DESC, id DESC);
             CREATE INDEX IF NOT EXISTS idx_notifications_user_read
@@ -624,7 +614,6 @@ class SqliteTreeholeRepository:
             "userBlocks": [],
             "conversations": [],
             "directMessages": [],
-            "systemAnnouncements": [],
             "feedbacks": [],
             "notifications": [],
             "appeals": [],
@@ -710,9 +699,6 @@ class SqliteTreeholeRepository:
                 "clubs",
                 "clubApplications",
                 "clubMembers",
-                "announcements",
-                "announcementSources",
-                "announcementPreferences",
                 "campusServices",
                 "campusMaps",
                 "courseSchedules",
@@ -968,23 +954,6 @@ class SqliteTreeholeRepository:
 
         for row in conn.execute(
             """
-            SELECT id, title, content, created_at, created_by
-            FROM system_announcements
-            ORDER BY created_at DESC, id DESC
-            """
-        ):
-            db["systemAnnouncements"].append(
-                {
-                    "id": _to_str(row["id"]),
-                    "title": _to_str(row["title"]),
-                    "content": _to_str(row["content"]),
-                    "createdAt": _to_str(row["created_at"]),
-                    "createdBy": _to_str(row["created_by"]),
-                }
-            )
-
-        for row in conn.execute(
-            """
             SELECT id, user_id, user_email, user_nickname, content, contact, category, status,
                    school_reply, created_at, handled_at, handled_by
             FROM feedbacks
@@ -1190,7 +1159,6 @@ class SqliteTreeholeRepository:
                 "post_pin_requests",
                 "appeals",
                 "notifications",
-                "system_announcements",
                 "direct_messages",
                 "conversations",
                 "user_blocks",
@@ -1320,9 +1288,6 @@ class SqliteTreeholeRepository:
                 "clubs": db.get("clubs", []),
                 "clubApplications": db.get("clubApplications", []),
                 "clubMembers": db.get("clubMembers", []),
-                "announcements": db.get("announcements", []),
-                "announcementSources": db.get("announcementSources", []),
-                "announcementPreferences": db.get("announcementPreferences", []),
                 "campusServices": db.get("campusServices", []),
                 "campusMaps": db.get("campusMaps", []),
                 "courseSchedules": db.get("courseSchedules", []),
@@ -1672,27 +1637,6 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("createdAt")) or created_now,
                         _to_str(row.get("readAt")) or None,
                         _to_bool_int(row.get("deleted")),
-                    ),
-                )
-
-            for row in db.get("systemAnnouncements", []):
-                if not isinstance(row, dict):
-                    continue
-                announcement_id = _to_str(row.get("id")).strip()
-                if not announcement_id:
-                    continue
-                conn.execute(
-                    """
-                    INSERT INTO system_announcements (
-                      id, title, content, created_at, created_by
-                    ) VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (
-                        announcement_id,
-                        _to_str(row.get("title")),
-                        _to_str(row.get("content")),
-                        _to_str(row.get("createdAt")) or created_now,
-                        _to_str(row.get("createdBy")) or None,
                     ),
                 )
 

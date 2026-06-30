@@ -17,8 +17,7 @@ const THEME_MAP = {
 const TAB_BAR_ITEMS = [
   { index: 0, key: 'home' },
   { index: 1, key: 'campus' },
-  { index: 2, key: 'ai' },
-  { index: 3, key: 'announcements' }
+  { index: 2, key: 'ai' }
 ];
 
 export const getDisplayTheme = () => {

@@ -98,8 +98,8 @@ from services import (
     load_db, save_db, default_db, ensure_db, migrate_db, add_audit_log, next_id,
     find_user_by_email, find_user_by_id, find_user_by_student_id,
     user_nickname, user_avatar_url, serialize_public_user_profile,
-    create_notification, serialize_notification, serialize_system_announcement,
-    publish_system_announcement, cancel_user_account, restore_user_account,
+    create_notification, serialize_notification,
+    cancel_user_account, restore_user_account,
     serialize_account_cancellation_request, serialize_appeal,
     serialize_admin_user_level_request, serialize_admin_post_pin_request,
     sync_cancellation_requests_after_admin_cancel, recalc_post_has_image,
@@ -186,7 +186,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         "/api/auth/password/reset",
         "/api/auth/xidian/password",
         "/api/auth/xidian/session",
-        "/api/announcements",
     }
 
     def do_OPTIONS(self) -> None:  # noqa: N802
@@ -352,20 +351,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_get_club(self, db, _club_match.group(1))
                 return
 
-            if path == "/api/announcements":
-                _radio_handler.handle_get_announcements(self, db, query)
-                return
-            if path == "/api/announcements/filters":
-                _radio_handler.handle_announcement_filters(self, db)
-                return
-            if path == "/api/announcements/daily-summary":
-                _radio_handler.handle_daily_summary(self, db)
-                return
-            _announcement_match = re.fullmatch(r"/api/announcements/([^/]+)", path)
-            if _announcement_match:
-                _radio_handler.handle_get_announcement(self, db, _announcement_match.group(1))
-                return
-
             if path == "/api/campus/services":
                 _radio_handler.handle_campus_services(self, db)
                 return
@@ -388,9 +373,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/hot-topics":
                 _radio_handler.handle_get_hot_topics(self, db)
-                return
-            if path == "/api/ai/announcements/daily-summary":
-                _radio_handler.handle_ai_daily_summary(self, db)
                 return
             if path == "/api/ai/hot-topics/summary":
                 _radio_handler.handle_ai_hot_summary(self, db)
@@ -580,9 +562,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/releases/android":
                 _admin_handler.handle_admin_android_release(self, db)
                 return
-            if path == "/api/admin/announcements":
-                _radio_handler.handle_admin_get_announcements(self, db, query)
-                return
             if path == "/api/releases/android/latest":
                 _admin_handler.handle_public_android_release(self, db)
                 return
@@ -761,11 +740,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_ai_post_selection(self, db)
                 return
 
-            match_ai_announcement_summary = re.fullmatch(r"/api/ai/announcements/([^/]+)/summary", path)
-            if match_ai_announcement_summary:
-                _radio_handler.handle_ai_announcement_summary(self, db, match_ai_announcement_summary.group(1))
-                return
-
             if path == "/api/admin/ai/knowledge-sources":
                 _radio_handler.handle_admin_knowledge_source(self, db)
                 return
@@ -862,14 +836,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/appeals":
                 _post_handler.handle_submit_appeal(self, db)
-                return
-
-            if path == "/api/admin/announcements":
-                _radio_handler.handle_admin_create_announcement(self, db)
-                return
-
-            if path == "/api/admin/announcements/seed-demo":
-                _radio_handler.handle_seed_demo_announcements(self, db)
                 return
 
             if path == "/api/admin/releases/android":

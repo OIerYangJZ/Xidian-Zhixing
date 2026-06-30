@@ -1508,9 +1508,6 @@ RADIO_STATE_KEYS = [
     "clubs",
     "clubApplications",
     "clubMembers",
-    "announcements",
-    "announcementSources",
-    "announcementPreferences",
     "campusServices",
     "campusMaps",
     "courseSchedules",
@@ -1568,41 +1565,6 @@ def _default_sections(created: str) -> list[dict[str, Any]]:
     } for index, (section_id, name, key) in enumerate(colleges, start=10))
     return rows
 
-
-def _default_announcements(created: str) -> list[dict[str, Any]]:
-    seeds = [
-        ("ann-school-1", "学校官方通知", "关于夏季作息与服务窗口调整的通知", "5 月 27 日起部分服务窗口开放时间调整，请同学们提前规划。", "党政办公室", "school", "", "", ["校级", "重要"], True),
-        ("ann-college-1", "学院通知", "计算机学院本科生科研训练报名提醒", "报名截止至 5 月 30 日，学院将按年级和方向组织导师匹配。", "计算机科学与技术学院", "college", "计算机科学与技术学院", "", ["科研", "学院"], True),
-        ("ann-major-1", "专业通知", "软件工程专业课程设计分组安排", "请相关同学在本周内完成小组确认并提交题目偏好。", "软件工程系", "major", "计算机科学与技术学院", "软件工程", ["课程", "专业"], False),
-        ("ann-competition-1", "比赛通知", "校赛创新创业训练营开放报名", "训练营包含选题、路演、商业计划书三场工作坊。", "创新创业学院", "competition", "", "", ["比赛", "训练营"], False),
-        ("ann-club-1", "社团活动", "无线电协会开放日活动预告", "欢迎对硬件、通信和校园技术服务感兴趣的同学参加。", "无线电协会", "club", "", "", ["社团", "活动"], False),
-        ("ann-service-1", "一站式平台消息", "学生事务服务大厅端午值班安排", "端午期间保留应急事项窗口，普通事项节后办理。", "一站式学生社区", "service", "", "", ["一站式", "服务"], False),
-        ("ann-other-1", "其他校内通知", "图书馆研讨间预约系统维护", "维护期间暂不支持新增预约，已预约记录不受影响。", "图书馆", "other", "", "", ["图书馆"], False),
-    ]
-    rows = []
-    for offset, (ann_id, type_name, title, content, publisher, source_type, college, major, tags, important) in enumerate(seeds):
-        rows.append({
-            "id": ann_id,
-            "title": title,
-            "content": content,
-            "summary": content[:80],
-            "aiSummary": "",
-            "publishedAt": created,
-            "createdAt": created,
-            "publisher": publisher,
-            "sourceType": source_type,
-            "sourceName": type_name,
-            "type": type_name,
-            "college": college,
-            "major": major,
-            "tags": tags,
-            "isImportant": important,
-            "originalUrl": "",
-            "jumpUrl": f"/pages/announcements/detail/index?id={ann_id}",
-            "sortOrder": offset,
-            "reviewStatus": "approved",
-        })
-    return rows
 
 
 def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
@@ -2419,8 +2381,7 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
             db[key] = []
             changed = True
     for key in [
-        "section", "club", "clubApplication", "clubMember", "announcement",
-        "announcementSource", "announcementPreference", "campusService",
+        "section", "club", "clubApplication", "clubMember", "campusService",
         "campusMap", "hotTopic", "hotTopicSummary", "knowledgeSource",
         "knowledgeDocument", "knowledgeChunk", "aiConversation", "aiMessage",
         "aiCitation", "dailySummary", "moderationTask",
@@ -2450,20 +2411,6 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
                 db["sections"].append(section)
                 existing_section_names.add(str(section.get("sectionName", "")).strip())
                 changed = True
-    if not db.get("announcementSources"):
-        db["announcementSources"] = [
-            {"id": "src-school", "name": "学校官方通知", "sourceType": "school", "createdAt": created},
-            {"id": "src-college", "name": "学院通知", "sourceType": "college", "createdAt": created},
-            {"id": "src-major", "name": "专业通知", "sourceType": "major", "createdAt": created},
-            {"id": "src-competition", "name": "比赛通知", "sourceType": "competition", "createdAt": created},
-            {"id": "src-club", "name": "社团活动", "sourceType": "club", "createdAt": created},
-            {"id": "src-service", "name": "一站式平台消息", "sourceType": "service", "createdAt": created},
-            {"id": "src-other", "name": "其他校内通知", "sourceType": "other", "createdAt": created},
-        ]
-        changed = True
-    if not db.get("announcements"):
-        db["announcements"] = _default_announcements(created)
-        changed = True
     default_services, default_maps = _default_campus_services(created)
     if not db.get("campusServices"):
         db["campusServices"] = default_services
@@ -2733,7 +2680,6 @@ def default_db() -> dict[str, Any]:
         "userFollows": [],
         "conversations": [],
         "directMessages": [],
-        "systemAnnouncements": [],
         "feedbacks": [],
         "notifications": [],
         "appeals": [],
@@ -3133,11 +3079,6 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if k not in notification:
                 notification[k] = v
                 changed = True
-
-    for announcement in db.get("systemAnnouncements", []):
-        if "createdBy" not in announcement:
-            announcement["createdBy"] = ""
-            changed = True
 
     for upload in db.get("mediaUploads", []):
         for k, v in {

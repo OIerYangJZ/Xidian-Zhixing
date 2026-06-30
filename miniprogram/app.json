@@ -3,8 +3,6 @@
     "pages/treehole/index",
     "pages/campus/index",
     "pages/ai/index",
-    "pages/announcements/index",
-    "pages/announcements/detail/index",
     "pages/campus/auth-center/index",
     "pages/campus/service-detail/index",
     "pages/campus/webview/index",
@@ -15,7 +13,6 @@
     "pages/clubs/detail/index",
     "pages/clubs/apply/index",
     "pages/profile/index",
-    "pages/campus/announcement-detail/index",
     "pages/campus/college/index",
     "pages/campus/post-detail/index",
     "pages/campus/create-post/index",
@@ -79,12 +76,6 @@
         "text": "AI",
         "iconPath": "assets/tabbar/ai.png",
         "selectedIconPath": "assets/tabbar/ai_selected.png"
-      },
-      {
-        "pagePath": "pages/announcements/index",
-        "text": "公告",
-        "iconPath": "assets/tabbar/announcements.png",
-        "selectedIconPath": "assets/tabbar/announcements_selected.png"
       }
     ]
   },

@@ -7,13 +7,6 @@ const CAMPUS_AUTH_OPTIONS = {
 };
 
 /**
- * 获取校园公告/新闻
- */
-export const getAnnouncements = () => {
-  return request.get('/api/announcements');
-};
-
-/**
  * 获取学院列表
  */
 export const getColleges = () => {

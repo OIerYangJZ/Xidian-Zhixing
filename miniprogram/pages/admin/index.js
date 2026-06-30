@@ -1,11 +1,9 @@
 import {
   addChannel,
   addTag,
-  createAdminAnnouncement,
   createKnowledgeSource,
   deleteChannel,
   deleteTag,
-  getAdminAnnouncements,
   getAdminAppeals,
   getAdminConfig,
   getAdminImages,
@@ -84,7 +82,6 @@ const SYSTEM_TYPES = [
   { key: 'config', label: '配置' },
   { key: 'channels', label: '频道' },
   { key: 'tags', label: '标签' },
-  { key: 'announcements', label: '公告' },
   { key: 'knowledge', label: '知识库' }
 ];
 
@@ -138,13 +135,6 @@ Page({
     rateRulesText: '',
     channels: [],
     tags: [],
-    announcements: [],
-    newAnnouncement: {
-      title: '',
-      content: '',
-      sourceName: '',
-      type: ''
-    },
     knowledgeForm: {
       name: '',
       content: ''
@@ -325,7 +315,6 @@ Page({
   async loadSystem() {
     if (this.data.systemType === 'config') return this.loadConfig();
     if (this.data.systemType === 'channels' || this.data.systemType === 'tags') return this.loadChannelsTags();
-    if (this.data.systemType === 'announcements') return this.loadAnnouncements();
     this.setData({ loading: false });
     return Promise.resolve();
   },
@@ -353,16 +342,6 @@ Page({
         tags: data.tags || [],
         loading: false
       });
-    } catch (error) {
-      this.setData({ loading: false });
-    }
-  },
-
-  async loadAnnouncements() {
-    this.setData({ loading: true });
-    try {
-      const announcements = await getAdminAnnouncements();
-      this.setData({ announcements, loading: false });
     } catch (error) {
       this.setData({ loading: false });
     }
@@ -528,31 +507,6 @@ Page({
     const name = event.currentTarget.dataset.name;
     this.confirm({ title: '删除标签', content: name, confirmText: '删除' }, () => {
       this.runAction(() => deleteTag(name));
-    });
-  },
-
-  onAnnouncementInput(event) {
-    const key = event.currentTarget.dataset.key;
-    this.setData({ [`newAnnouncement.${key}`]: event.detail.value });
-  },
-
-  publishAnnouncement() {
-    const payload = {
-      ...this.data.newAnnouncement,
-      title: this.data.newAnnouncement.title.trim(),
-      content: this.data.newAnnouncement.content.trim(),
-      sourceName: this.data.newAnnouncement.sourceName.trim(),
-      type: this.data.newAnnouncement.type.trim()
-    };
-    if (!payload.title || !payload.content) {
-      wx.showToast({ title: '标题和正文不能为空', icon: 'none' });
-      return;
-    }
-    this.runAction(async () => {
-      await createAdminAnnouncement(payload);
-      this.setData({
-        newAnnouncement: { title: '', content: '', sourceName: '', type: '' }
-      });
     });
   },
 

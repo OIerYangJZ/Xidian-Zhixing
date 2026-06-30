@@ -942,49 +942,6 @@ def serialize_notification(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def serialize_system_announcement(row: dict[str, Any]) -> dict[str, Any]:
-    created_at = str(row.get("createdAt", ""))
-    return {
-        "id": str(row.get("id", "")),
-        "title": str(row.get("title", "")),
-        "content": str(row.get("content", "")),
-        "createdAt": created_at,
-        "timeText": iso_to_time_text(created_at),
-        "createdBy": str(row.get("createdBy", "")),
-    }
-
-
-def publish_system_announcement(
-    db: dict[str, Any],
-    *,
-    admin: dict[str, Any],
-    title: str,
-    content: str,
-) -> dict[str, Any]:
-    announcement = {
-        "id": next_id(db, "announcement", "ann"),
-        "title": title.strip(),
-        "content": content.strip(),
-        "createdAt": now_iso(),
-        "createdBy": str(admin.get("id", "")).strip(),
-    }
-    db.setdefault("systemAnnouncements", []).append(announcement)
-    for user in db.get("users", []):
-        if user.get("deleted"):
-            continue
-        create_notification(
-            db,
-            user_id=str(user.get("id", "")),
-            notification_type="system_announcement",
-            title=announcement["title"],
-            content=announcement["content"],
-            related_type="announcement",
-            related_id=announcement["id"],
-            actor_id=str(admin.get("id", "")),
-            actor_alias="管理员",
-        )
-    return announcement
-
 
 # ---------------------------------------------------------------------------
 # Account cancellation helpers

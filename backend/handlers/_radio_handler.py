@@ -22,15 +22,6 @@ from services._db_service import ensure_radio_schema
 
 
 SECTION_TYPES = {"general", "college", "club"}
-ANNOUNCEMENT_TYPES = {
-    "school",
-    "college",
-    "major",
-    "competition",
-    "club",
-    "service",
-    "other",
-}
 SCHOOL_TZ = timezone(timedelta(hours=8))
 
 
@@ -173,58 +164,6 @@ def _serialize_campus_service(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _serialize_announcement(row: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "id": str(row.get("id", "")),
-        "title": str(row.get("title", "")),
-        "content": str(row.get("content", "")),
-        "summary": str(row.get("summary") or _clean(row.get("content", ""), 90)),
-        "aiSummary": str(row.get("aiSummary", "")),
-        "publishedAt": str(row.get("publishedAt") or row.get("createdAt") or ""),
-        "createdAt": str(row.get("createdAt") or row.get("publishedAt") or ""),
-        "publisher": str(row.get("publisher", "")),
-        "sourceType": str(row.get("sourceType", "other")),
-        "sourceName": str(row.get("sourceName", "")),
-        "type": str(row.get("type", "")),
-        "college": str(row.get("college", "")),
-        "major": str(row.get("major", "")),
-        "tags": [str(tag) for tag in _as_list(row.get("tags")) if str(tag).strip()],
-        "isImportant": bool(row.get("isImportant", False)),
-        "originalUrl": str(row.get("originalUrl", "")),
-        "jumpUrl": str(row.get("jumpUrl", "")),
-        "reviewStatus": str(row.get("reviewStatus", "approved")),
-    }
-
-
-def _announcement_matches(row: dict[str, Any], query: dict[str, list[str]]) -> bool:
-    filters = {
-        "college": str(row.get("college", "")),
-        "major": str(row.get("major", "")),
-        "type": str(row.get("type", "")),
-        "sourceType": str(row.get("sourceType", "")),
-    }
-    for key, row_value in filters.items():
-        wanted = (query.get(key, [""])[0] or "").strip()
-        if wanted and row_value != wanted:
-            return False
-    keyword = (query.get("keyword", [""])[0] or "").strip().lower()
-    if keyword:
-        text = f"{row.get('title', '')} {row.get('content', '')} {row.get('publisher', '')}".lower()
-        if keyword not in text:
-            return False
-    start_date = (query.get("startDate", [""])[0] or "").strip()
-    end_date = (query.get("endDate", [""])[0] or "").strip()
-    published = str(row.get("publishedAt") or row.get("createdAt") or "")
-    if start_date and published[:10] < start_date:
-        return False
-    if end_date and published[:10] > end_date:
-        return False
-    if (query.get("competition", [""])[0] or "").strip() and row.get("sourceType") != "competition":
-        return False
-    if (query.get("club", [""])[0] or "").strip() and row.get("sourceType") != "club":
-        return False
-    return True
-
 
 def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, Any]:
     if source_type == "post":
@@ -237,17 +176,6 @@ def _serialize_source_ref(item: dict[str, Any], source_type: str) -> dict[str, A
             "publishedAt": str(item.get("createdAt", "")),
             "publisher": str(item.get("sectionName") or item.get("channel") or ""),
             "jumpUrl": f"/pages/campus/post-detail/index?id={item.get('id', '')}",
-        }
-    if source_type == "announcement":
-        return {
-            "sourceType": "公告",
-            "targetType": "announcement",
-            "targetId": str(item.get("id", "")),
-            "title": str(item.get("title", "")),
-            "summary": str(item.get("summary") or _clean(item.get("content", ""), 90)),
-            "publishedAt": str(item.get("publishedAt") or item.get("createdAt") or ""),
-            "publisher": str(item.get("publisher", "")),
-            "jumpUrl": f"/pages/announcements/detail/index?id={item.get('id', '')}",
         }
     return {
         "sourceType": "校园知识",
@@ -500,152 +428,6 @@ def handle_admin_club_application_action(
     send_json(handler, HTTPStatus.OK, {"data": application})
 
 
-def _announcement_rows(db: dict[str, Any], query: dict[str, list[str]]) -> list[dict[str, Any]]:
-    rows = [
-        _serialize_announcement(row)
-        for row in db.get("announcements", [])
-        if str(row.get("reviewStatus", "approved")) in {"approved", "resolved"} and _announcement_matches(row, query)
-    ]
-    preferred_college = (query.get("preferredCollege", [""])[0] or "").strip()
-    rows.sort(
-        key=lambda item: (
-            1 if preferred_college and item.get("college") == preferred_college else 0,
-            1 if item.get("isImportant") else 0,
-            str(item.get("publishedAt", "")),
-        ),
-        reverse=True,
-    )
-    return rows
-
-
-def handle_get_announcements(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    query: dict[str, list[str]],
-) -> None:
-    ensure_radio_schema(db)
-    send_json(handler, HTTPStatus.OK, {"data": _announcement_rows(db, query)})
-
-
-def handle_admin_get_announcements(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    query: dict[str, list[str]],
-) -> None:
-    admin = _require_admin(handler, db)
-    if admin is None:
-        return
-    send_json(handler, HTTPStatus.OK, {"data": _announcement_rows(db, query)})
-
-
-def handle_get_announcement(handler: BaseHTTPRequestHandler, db: dict[str, Any], announcement_id: str) -> None:
-    row = next((item for item in db.get("announcements", []) if str(item.get("id", "")) == announcement_id), None)
-    if row is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "公告不存在")
-        return
-    send_json(handler, HTTPStatus.OK, {"data": _serialize_announcement(row)})
-
-
-def handle_announcement_filters(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    rows = [_serialize_announcement(row) for row in db.get("announcements", [])]
-    data = {
-        "colleges": sorted({row["college"] for row in rows if row["college"]}),
-        "majors": sorted({row["major"] for row in rows if row["major"]}),
-        "types": sorted({row["type"] for row in rows if row["type"]}),
-        "sourceTypes": sorted({row["sourceType"] for row in rows if row["sourceType"]}),
-        "tags": sorted({tag for row in rows for tag in row["tags"]}),
-    }
-    send_json(handler, HTTPStatus.OK, {"data": data})
-
-
-def _build_daily_summary(db: dict[str, Any]) -> dict[str, Any]:
-    today = now_iso()[:10]
-    rows = [
-        _serialize_announcement(row)
-        for row in db.get("announcements", [])
-        if str(row.get("publishedAt") or row.get("createdAt") or "")[:10] == today
-    ]
-    if not rows:
-        rows = [_serialize_announcement(row) for row in db.get("announcements", [])][:6]
-    important = [row for row in rows if row.get("isImportant")]
-    lines = [f"{row['title']}：{row['summary']}" for row in (important or rows)[:6]]
-    summary = "今日重点：" + "；".join(lines) if lines else "今日暂无公告。"
-    item = {
-        "id": f"daily-{today}",
-        "date": today,
-        "title": "每日公告摘要",
-        "summary": summary,
-        "items": rows,
-        "reviewStatus": "pending",
-        "createdAt": now_iso(),
-    }
-    existing = next((row for row in db.get("dailySummaries", []) if row.get("id") == item["id"]), None)
-    if existing is None:
-        db.setdefault("dailySummaries", []).append(item)
-        add_moderation_task(db, target_type="daily_summary", target_id=item["id"], title=item["title"], content=summary)
-    else:
-        existing.update(item)
-    return item
-
-
-def handle_daily_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    item = _build_daily_summary(db)
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": item})
-
-
-def handle_admin_create_announcement(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    admin = _require_admin(handler, db)
-    if admin is None:
-        return
-    body = read_json_body(handler)
-    title = _clean(body.get("title"), 120)
-    content = _clean(body.get("content"), 5000)
-    if not title or not content:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "标题和正文不能为空")
-        return
-    source_type = str(body.get("sourceType", "other")).strip()
-    if source_type not in ANNOUNCEMENT_TYPES:
-        source_type = "other"
-    row = {
-        "id": next_id(db, "announcement", "ann"),
-        "title": title,
-        "content": content,
-        "summary": _clean(body.get("summary") or content, 120),
-        "aiSummary": _clean(body.get("aiSummary"), 600),
-        "publishedAt": str(body.get("publishedAt") or now_iso()),
-        "createdAt": now_iso(),
-        "publisher": _clean(body.get("publisher") or "电台管理员", 80),
-        "sourceType": source_type,
-        "sourceName": _clean(body.get("sourceName"), 80),
-        "type": _clean(body.get("type") or source_type, 40),
-        "college": _clean(body.get("college"), 80),
-        "major": _clean(body.get("major"), 80),
-        "tags": [str(tag).strip() for tag in _as_list(body.get("tags")) if str(tag).strip()],
-        "isImportant": bool(body.get("isImportant", False)),
-        "originalUrl": str(body.get("originalUrl", "")).strip(),
-        "jumpUrl": str(body.get("jumpUrl", "")).strip(),
-        "reviewStatus": "approved",
-    }
-    db.setdefault("announcements", []).append(row)
-    add_audit_log(db, str(admin.get("adminId", "")), "create_announcement", title)
-    save_db(db)
-    send_json(handler, HTTPStatus.CREATED, {"data": _serialize_announcement(row)})
-
-
-def handle_seed_demo_announcements(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    admin = _require_admin(handler, db)
-    if admin is None:
-        return
-    before = len(db.get("announcements", []))
-    db["announcements"] = [row for row in db.get("announcements", []) if not str(row.get("id", "")).startswith("ann-")]
-    from services._db_service import _default_announcements
-
-    db["announcements"].extend(_default_announcements(now_iso()))
-    add_audit_log(db, str(admin.get("adminId", "")), "seed_demo_announcements", str(before))
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "count": len(db.get("announcements", []))}})
-
 
 def handle_campus_services(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
@@ -880,11 +662,6 @@ def _search_items(db: dict[str, Any], query_text: str) -> list[dict[str, Any]]:
         haystack = text.lower()
         return sum(1 + len(term) for term in terms if term in haystack)
 
-    for announcement in db.get("announcements", []):
-        text = f"{announcement.get('title', '')} {announcement.get('content', '')} {announcement.get('publisher', '')}"
-        value = score(text)
-        if value > 0 or not terms:
-            rows.append((value, _serialize_source_ref(announcement, "announcement")))
     for post in list_posts(db, sort_by="latest"):
         text = f"{post.get('title', '')} {post.get('content', '')} {post.get('channel', '')} {' '.join(post.get('tags', []))}"
         value = score(text)
@@ -936,27 +713,6 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": citations, "relatedActions": [], "usage": {"sourceCount": len(citations)}, "reviewStatus": "approved"}})
 
-
-def handle_ai_announcement_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any], announcement_id: str) -> None:
-    user = _require_user(handler, db)
-    if user is None:
-        return
-    row = next((item for item in db.get("announcements", []) if str(item.get("id", "")) == announcement_id), None)
-    if row is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "公告不存在")
-        return
-    summary = f"{row.get('title', '')}：{_clean(row.get('content', ''), 180)}"
-    row["aiSummary"] = summary
-    row["reviewStatus"] = "pending"
-    add_moderation_task(db, target_type="announcement_summary", target_id=announcement_id, title=str(row.get("title", "")), content=summary)
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"answer": summary, "citations": [_serialize_source_ref(row, "announcement")], "reviewStatus": "pending"}})
-
-
-def handle_ai_daily_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    item = _build_daily_summary(db)
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"answer": item["summary"], "citations": [_serialize_source_ref(row, "announcement") for row in item.get("items", [])], "reviewStatus": item["reviewStatus"]}})
 
 
 def handle_ai_hot_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -1022,15 +778,6 @@ def handle_admin_reindex(handler: BaseHTTPRequestHandler, db: dict[str, Any]) ->
     if admin is None:
         return
     chunks = []
-    for row in db.get("announcements", []):
-        chunks.append({
-            "id": next_id(db, "knowledgeChunk", "kc"),
-            "sourceId": "ks-announcements",
-            "documentId": str(row.get("id", "")),
-            "title": str(row.get("title", "")),
-            "content": str(row.get("content", "")),
-            "createdAt": now_iso(),
-        })
     db["knowledgeChunks"] = chunks
     add_audit_log(db, str(admin.get("adminId", "")), "reindex_knowledge", str(len(chunks)))
     save_db(db)

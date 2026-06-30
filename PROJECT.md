@@ -9,13 +9,13 @@
 最近一次较大的功能提交是 `97e9a62 Implement radio MVP modules`，核心是把原有树洞项目改造成「电台」产品结构：
 
 1. 新增小程序树洞首页 `pages/treehole/index`，承载论坛列表、分区入口、热榜入口和社团入口。
-2. 新增公告模块 `pages/announcements/*`，支持公告列表、公告详情、筛选项、每日公告摘要和单条公告 AI 摘要入口。
+2. [已移除] 曾新增公告模块 `pages/announcements/*`，支持公告列表、公告详情、筛选项、每日公告摘要和单条公告 AI 摘要入口（现已彻底清理相关代码和页面）。
 3. 新增校园模块入口，接入校园服务、校园地图、快速跳转等配置型数据。
 4. 新增左侧抽屉组件 `components/radio-drawer`，包含头像区域、最近私信、信箱、设置入口。
 5. 新增社团分区页面：社团列表、详情、申请页。
 6. 新增热榜页 `pages/treehole/hot/index`，可以展示热榜帖子并请求热榜总结。
 7. 后端新增 `backend/handlers/_radio_handler.py`，集中处理分区、社团、公告、校园服务、热榜、AI 检索和摘要等接口。
-8. 后端扩展数据初始化，增加 `sections`、`clubs`、`clubApplications`、`announcements`、`campusServices`、`campusMaps`、`hotTopics`、`knowledgeSources`、`knowledgeChunks`、`dailySummaries`、`moderationTasks` 等数据结构。
+8. 后端扩展数据初始化，增加 `sections`、`clubs`、`clubApplications`、`campusServices`、`campusMaps`、`hotTopics`、`knowledgeSources`、`knowledgeChunks`、`moderationTasks` 等数据结构（已移除 announcements, dailySummaries 数据结构）。
 9. 发帖流程增加分区字段和社团身份字段，支持把帖子与学院、频道、社团分区关联。
 10. 信箱沿用反馈页，页面命名和文案已向“信箱”对齐。
 
@@ -83,7 +83,7 @@
 
 1. 独立 AI 页已有。
 2. 后端已有 `/api/ai/chat`。
-3. 新增 `/api/ai/search`、`/api/ai/post-selection`、`/api/ai/announcements/:id/summary`、`/api/ai/announcements/daily-summary`、`/api/ai/hot-topics/summary` 等接口。
+3. 新增 `/api/ai/search`、`/api/ai/post-selection`、`/api/ai/hot-topics/summary` 等接口（已移除公告相关 AI 摘要接口）。
 4. 已有知识来源、知识文档、知识分片、引用来源等轻量数据结构。
 5. AI 搜索返回结果包含可跳转的来源引用字段。
 6. 帖子详情页已有选中文本问 AI 的调用入口。

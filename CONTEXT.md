@@ -11,7 +11,7 @@ This file is the main handoff context for AI coding assistants working in this r
 - 前台主流程已具备登录/注册、发帖、评论、搜索、收藏、举报、私信、个人中心、头像上传、管理员后台等能力
 - 后端已完成 JSON 到 SQLite Repository/DAO + 事务的迁移
 - 图片上传、图片审核、账号注销审核、真实邮箱验证码、私信持久化都已完成
-- 通知中心的评论/回复/点赞/收藏/举报结果/系统公告通知、未读数、已读逻辑已进入代码库
+- 通知中心的评论/回复/点赞/收藏/举报结果通知、未读数、已读逻辑已进入代码库
 - AI 助手后端 RAG 接口已完成，并与小程序端联调
 - 管理员后台已强化，包含审核/举报关键字搜索、批量审核、数据导出等能力
 - **[最新进展]** 全局黑名单（屏蔽用户）功能已完成前后端联调与存储迁移，微信小程序端已上线“黑名单管理”页面并支持乐观更新，后端附带单元测试验证
@@ -98,7 +98,7 @@ Do not place Flutter-specific files such as `pubspec.yaml` at the repository roo
 
 4. `flutter_app/lib/features/admin/admin_console_page.dart`
    - Main admin console
-   - Content review, report handling, image review, account-deletion review, system config, and announcements live here
+   - Content review, report handling, image review, account-deletion review, and system config live here
 
 5. `flutter_app/lib/repositories/app_repositories.dart`
    - Frontend repository assembly point
@@ -180,14 +180,13 @@ Do not place Flutter-specific files such as `pubspec.yaml` at the repository roo
    - Backup / rollback
    - Logging and alerting
 5. **「电台产品需求梳理」中未实现的功能对接**：
-   - **教师端与教师角色**：支持工号登录分流、教授/副教授身份认证、教师发布学院公告与招募信息、教师私信及邮箱联系等（目前数据库与前后端均无工号与教师角色设计）。
+   - **教师端与教师角色**：支持工号登录分流、教授/副教授身份认证、教师发布招募信息、教师私信及邮箱联系等（目前数据库与前后端均无工号与教师角色设计）。
    - **学院分区发帖限制**：后端及前端在发布到学院分区时应增加权限校验（只有本学院学生可在本学院发帖，非本学院学生只能浏览不能发帖）。
    - **社团管理与以社团名义发帖**：小程序与 App 端需实现社团负责人以社团名义发布招募、活动和日常信息的界面，以及社团分区的管理（如成员管理）。
-   - **真实 RAG AI 问答与大模型对接**：目前 AI 检索和提问仅为字面匹配及模拟回复，需对接真实大模型（如通过 API）并动态生成包含原帖/公告标题、链接及跳转入口的精准引用。
+   - **真实 RAG AI 问答与大模型对接**：目前 AI 检索和提问仅为字面匹配及模拟回复，需对接真实大模型（如通过 API）并动态生成包含原帖标题、链接及跳转入口的精准引用。
    - **校园服务一站式真实对接**：课表、成绩、考试安排、水电费等服务目前仅为“待接入”静态页面，需对接教务、校园系统真实数据接口。
    - **校园地图与楼宇结构图**：目前地图、B楼等结构图、教室/办公室定位页均为静态占位，需导入地图坐标和定位数据。
    - **论坛热榜 AI 总结与审核流**：小程序端增加热榜 AI 总结的展示区，并在审核后台完善对 AI 热点总结的审核确认发布流程。
-   - **个性化公告推荐**：数据库支持保存用户的专业/学院关联推荐，小程序端在请求时自动获取并呈送，以优先推荐本专业/本学院公告。
 
 ## Workspace Note
 

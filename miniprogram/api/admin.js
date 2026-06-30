@@ -159,16 +159,6 @@ export const updateAdminConfig = async (payload) => {
   return getData(response, {});
 };
 
-export const getAdminAnnouncements = async (params = {}) => {
-  const response = await request.get('/api/admin/announcements', params, adminOptions);
-  return toArray(getData(response, []));
-};
-
-export const createAdminAnnouncement = async (payload) => {
-  const response = await request.post('/api/admin/announcements', payload, adminOptions);
-  return getData(response, {});
-};
-
 export const createKnowledgeSource = async (payload) => {
   const response = await request.post('/api/admin/ai/knowledge-sources', payload, adminOptions);
   return getData(response, {});

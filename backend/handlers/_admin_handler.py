@@ -87,14 +87,12 @@ from services import (
     next_id,
     normalize_user_level,
     post_counts,
-    publish_system_announcement,
     recalc_post_has_image,
     restore_user_account,
     save_db,
     set_android_release,
     serialize_admin_account,
     serialize_admin_auth_payload,
-    serialize_system_announcement,
     sync_cancellation_requests_after_admin_cancel,
     target_owner,
     user_level_label,
@@ -524,18 +522,6 @@ def handle_public_android_release(
     send_json(handler, HTTPStatus.OK, {"data": release})
 
 
-def handle_admin_announcements(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-) -> None:
-    """GET /api/admin/announcements"""
-    admin = _require_admin(handler, db)
-    if admin is None:
-        return
-    rows = [serialize_system_announcement(row) for row in db.get("systemAnnouncements", [])]
-    rows.sort(key=lambda x: x.get("createdAt", ""), reverse=True)
-    send_json(handler, HTTPStatus.OK, {"data": rows})
-
 
 # ===========================================================================
 # POST handlers
@@ -576,27 +562,6 @@ def handle_admin_change_password(
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"message": "密码修改成功，请重新登录", "data": {"ok": True}})
 
-
-def handle_admin_announcement(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-) -> None:
-    """POST /api/admin/announcements"""
-    admin = _require_primary_admin(handler, db)
-    if admin is None:
-        return
-
-    body = read_json_body(handler)
-    title = str(body.get("title", "")).strip()
-    content = str(body.get("content", "")).strip()
-    if not title or not content:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "标题和内容不能为空")
-        return
-
-    announcement = publish_system_announcement(db, admin=admin, title=title, content=content)
-    add_audit_log(db, admin.get("adminId", "-"), "publish_announcement", f"发布系统公告: {title}")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": serialize_system_announcement(announcement)})
 
 
 def handle_admin_upload_android_release(
