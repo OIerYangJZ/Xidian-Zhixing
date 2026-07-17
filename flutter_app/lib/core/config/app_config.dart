@@ -5,7 +5,7 @@ class AppConfig {
   static const String _localApiBaseUrl = 'http://127.0.0.1:8080/api';
   static const String _androidEmulatorApiBaseUrl = 'http://10.0.2.2:8080/api';
   static const String _productionApiBaseUrl =
-      'https://www.seediantreehole.cn/api';
+      'https://radio.xidian.edu.cn/api';
 
   // Web 通常使用 API_BASE_URL 覆盖；移动端使用 MOBILE_API_BASE_URL 覆盖。
   static String get apiBaseUrl {

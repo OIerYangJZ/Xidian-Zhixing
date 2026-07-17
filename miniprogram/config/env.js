@@ -28,7 +28,7 @@ const CONFIG = {
   },
   prod: {
     name: 'prod',
-    baseUrl: 'https://www.seediantreehole.cn',
+    baseUrl: 'https://radio.xidian.edu.cn',
   }
 };
 

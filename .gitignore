@@ -15,6 +15,9 @@ flutter_app/android/build/
 .vscode/
 *.iml
 
+# Runtime logs
+*.log
+
 # macOS
 .DS_Store
 *.pem
