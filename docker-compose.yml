@@ -27,6 +27,10 @@ services:
       BACKEND_SMTP_USE_STARTTLS: "${BACKEND_SMTP_USE_STARTTLS:-false}"
       BACKEND_ALLOW_DEBUG_VERIFY_CODE: "${BACKEND_ALLOW_DEBUG_VERIFY_CODE:-false}"
       BACKEND_INCLUDE_DEBUG_CODE: "${BACKEND_INCLUDE_DEBUG_CODE:-false}"
+      BACKEND_AI_BASE_URL: "${BACKEND_AI_BASE_URL:-}"
+      BACKEND_AI_API_KEY: "${BACKEND_AI_API_KEY:-}"
+      BACKEND_AI_MODEL: "${BACKEND_AI_MODEL:-gpt-4o-mini}"
+      BACKEND_AI_EMBEDDING_MODEL: "${BACKEND_AI_EMBEDDING_MODEL:-}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/channels"]
       interval: 30s

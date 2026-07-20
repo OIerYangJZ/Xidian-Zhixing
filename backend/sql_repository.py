@@ -709,6 +709,9 @@ class SqliteTreeholeRepository:
                 "knowledgeSources",
                 "knowledgeDocuments",
                 "knowledgeChunks",
+                "ragCrawlRuns",
+                "ragRetrievalLogs",
+                "ragIndex",
                 "aiConversations",
                 "aiMessages",
                 "aiCitations",
@@ -716,7 +719,10 @@ class SqliteTreeholeRepository:
                 "moderationTasks",
             ):
                 value = radio_state.get(key)
-                db[key] = value if isinstance(value, list) else []
+                if key == "ragIndex":
+                    db[key] = value if isinstance(value, dict) else {}
+                else:
+                    db[key] = value if isinstance(value, list) else []
 
         for row in conn.execute(
             """
@@ -1298,6 +1304,9 @@ class SqliteTreeholeRepository:
                 "knowledgeSources": db.get("knowledgeSources", []),
                 "knowledgeDocuments": db.get("knowledgeDocuments", []),
                 "knowledgeChunks": db.get("knowledgeChunks", []),
+                "ragCrawlRuns": db.get("ragCrawlRuns", []),
+                "ragRetrievalLogs": db.get("ragRetrievalLogs", []),
+                "ragIndex": db.get("ragIndex", {}),
                 "aiConversations": db.get("aiConversations", []),
                 "aiMessages": db.get("aiMessages", []),
                 "aiCitations": db.get("aiCitations", []),

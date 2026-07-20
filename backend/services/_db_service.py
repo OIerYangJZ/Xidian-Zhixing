@@ -1518,6 +1518,8 @@ RADIO_STATE_KEYS = [
     "knowledgeSources",
     "knowledgeDocuments",
     "knowledgeChunks",
+    "ragCrawlRuns",
+    "ragRetrievalLogs",
     "aiConversations",
     "aiMessages",
     "aiCitations",
@@ -2385,10 +2387,14 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
         "campusMap", "hotTopic", "hotTopicSummary", "knowledgeSource",
         "knowledgeDocument", "knowledgeChunk", "aiConversation", "aiMessage",
         "aiCitation", "dailySummary", "moderationTask",
+        "ragCrawlRun", "ragRetrievalLog",
     ]:
         if key not in db.setdefault("seq", {}):
             db["seq"][key] = 0
             changed = True
+    if "ragIndex" not in db or not isinstance(db.get("ragIndex"), dict):
+        db["ragIndex"] = {}
+        changed = True
     default_sections = _default_sections(created)
     if not db.get("sections"):
         db["sections"] = default_sections
@@ -2719,6 +2725,7 @@ def default_db() -> dict[str, Any]:
                 "deleted": False,
                 "reviewStatus": "approved",
                 "riskMarked": False,
+                "seedData": True,
                 "sectionType": "general",
                 "sectionId": "general",
                 "sectionName": "综合",
@@ -3060,6 +3067,53 @@ def migrate_db(db: dict[str, Any]) -> bool:
                 post_tags.append(legacy_channel)
             post["channel"] = ""
             changed = True
+
+    existing_seed_titles = {
+        str(post.get("title", "")).strip()
+        for post in db.get("posts", [])
+        if str(post.get("title", "")).strip()
+    }
+    for row in _globals.SEED_POSTS[4:]:
+        title = str(row.get("title", "")).strip()
+        if not title or title in existing_seed_titles:
+            continue
+        db["seq"]["post"] = int(db["seq"].get("post", 0)) + 1
+        created = now_iso()
+        tags = list(dict.fromkeys([*row.get("tags", []), str(row.get("channel", "")).strip()]))
+        db.setdefault("posts", []).append({
+            "id": f"p{db['seq']['post']}",
+            "title": title,
+            "content": str(row.get("content", "")),
+            "contentFormat": "plain",
+            "markdownSource": "",
+            "channel": "",
+            "tags": [tag for tag in tags if tag and tag != "综合"],
+            "hasImage": bool(row.get("hasImage")),
+            "status": str(row.get("status", "ongoing")),
+            "allowComment": bool(row.get("allowComment", True)),
+            "allowDm": bool(row.get("allowDm", False)),
+            "visibility": "public",
+            "authorAlias": str(row.get("authorAlias", "洞主-测试")),
+            "authorId": str(row.get("authorId", "seed-user-1")),
+            "pinStartedAt": "",
+            "pinExpiresAt": "",
+            "pinDurationMinutes": 0,
+            "createdAt": created,
+            "updatedAt": created,
+            "deleted": False,
+            "reviewStatus": "approved",
+            "riskMarked": False,
+            "seedData": True,
+            "sectionType": "general",
+            "sectionId": "general",
+            "sectionName": "综合",
+            "publisherType": "user",
+            "publisherClubId": "",
+            "shareCount": 0,
+            "viewCount": 0,
+        })
+        existing_seed_titles.add(title)
+        changed = True
 
     for comment in db.get("comments", []):
         for k, v in {

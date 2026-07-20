@@ -1,7 +1,7 @@
 import { formatTime, truncate } from '../../utils/format';
 import { getUserInfo } from '../../api/auth';
 import { requireLoginPage } from '../../utils/auth_guard';
-import { getAiConfig } from '../../api/ai';
+import { fetchAiModels, getAiConfig } from '../../api/ai';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
 
@@ -47,7 +47,7 @@ Page({
     });
   },
 
-  loadHistory() {
+  async loadHistory() {
     const config = getAiConfig();
     const rows = (wx.getStorageSync('aiHistory') || []).slice(0, 5).map((item) => ({
       id: item.createdAt || item.question,
@@ -57,12 +57,22 @@ Page({
     }));
     this.setData({
       history: rows,
-      configured: Boolean(config.apiKey && config.baseUrl && config.model),
+      configured: Boolean(config.configured && config.model),
       currentModel: config.model || '',
-      subtitleText: config.apiKey && config.baseUrl && config.model
+      subtitleText: config.configured && config.model
         ? `当前模型：${config.model}`
-        : '请先配置 OpenAI 兼容接口'
+        : 'AI 服务由服务器统一提供'
     });
+    try {
+      const status = await fetchAiModels();
+      this.setData({
+        configured: Boolean(status.configured),
+        currentModel: status.model || '',
+        subtitleText: status.configured ? `当前模型：${status.model}` : '服务器 AI 尚未配置'
+      });
+    } catch (error) {
+      this.setData({ configured: false, currentModel: '', subtitleText: '服务器 AI 尚未配置' });
+    }
   },
 
   async loadUserInfo() {

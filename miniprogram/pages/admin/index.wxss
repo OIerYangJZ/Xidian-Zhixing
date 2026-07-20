@@ -257,3 +257,15 @@
 .compact {
   padding: 56rpx 0;
 }
+
+.knowledge-source-row {
+  padding: 18rpx 0;
+  border-top: 1rpx solid var(--app-divider);
+}
+
+.knowledge-source-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -1,50 +1,42 @@
 import request from '../utils/request';
 import { getData, toArray } from '../utils/format';
 
-export const AI_CONFIG_STORAGE_KEY = 'aiProviderConfig';
-
 export const DEFAULT_AI_CONFIG = {
-  apiKey: '',
-  baseUrl: '',
   model: '',
   models: [],
-  knowledgeBase: '',
-  includePosts: true
+  configured: false
 };
 
 export const getAiConfig = () => ({
   ...DEFAULT_AI_CONFIG,
-  ...(wx.getStorageSync(AI_CONFIG_STORAGE_KEY) || {})
+  ...(wx.getStorageSync('aiServerStatus') || {})
 });
 
 export const saveAiConfig = (config) => {
-  const next = {
-    ...getAiConfig(),
-    ...(config || {})
-  };
-  wx.setStorageSync(AI_CONFIG_STORAGE_KEY, next);
+  const next = { ...DEFAULT_AI_CONFIG, ...(config || {}) };
+  wx.setStorageSync('aiServerStatus', next);
   return next;
 };
 
 export const clearAiConfig = () => {
-  wx.removeStorageSync(AI_CONFIG_STORAGE_KEY);
+  wx.removeStorageSync('aiServerStatus');
 };
 
-export const fetchAiModels = async ({ apiKey, baseUrl }) => {
-  const response = await request.post('/api/ai/models', { apiKey, baseUrl }, { timeout: 25000 });
+export const fetchAiModels = async () => {
+  const response = await request.get('/api/ai/models', {}, { timeout: 25000 });
   const data = getData(response, {});
-  return toArray(data.models).map((item) => String(item || '').trim()).filter(Boolean);
+  const status = {
+    configured: Boolean(data.currentModel),
+    model: String(data.currentModel || '').trim(),
+    models: toArray(data.models).map((item) => String(item || '').trim()).filter(Boolean)
+  };
+  saveAiConfig(status);
+  return status;
 };
 
 export const sendAiMessage = (content, options = {}) => {
-  const config = getAiConfig();
   return request.post('/api/ai/chat', {
     content,
-    apiKey: config.apiKey,
-    baseUrl: config.baseUrl,
-    model: config.model,
-    knowledgeBase: config.knowledgeBase,
-    includePosts: config.includePosts !== false,
     messages: options.messages || []
   }, { timeout: 60000 });
 };

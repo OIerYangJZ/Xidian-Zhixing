@@ -1,4 +1,4 @@
-import { getAiConfig, sendAiMessage } from '../../../api/ai';
+import { fetchAiModels, getAiConfig, sendAiMessage } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { openAppTarget } from '../../../utils/navigation';
@@ -82,12 +82,18 @@ Page({
     this.setData({ inputVal: e.detail.value });
   },
 
-  refreshConfigState() {
+  async refreshConfigState() {
     const config = getAiConfig();
     this.setData({
-      configured: Boolean(config.apiKey && config.baseUrl && config.model),
+      configured: Boolean(config.configured && config.model),
       currentModel: config.model || ''
     });
+    try {
+      const status = await fetchAiModels();
+      this.setData({ configured: Boolean(status.configured), currentModel: status.model || '' });
+    } catch (error) {
+      this.setData({ configured: false, currentModel: '' });
+    }
   },
 
   goSettings() {
@@ -98,7 +104,7 @@ Page({
     const text = this.data.inputVal.trim();
     if (!text || this.data.isSending) return;
     if (!this.data.configured) {
-      wx.showToast({ title: '请先配置 AI 接口', icon: 'none' });
+      wx.showToast({ title: '服务器 AI 尚未配置', icon: 'none' });
       this.goSettings();
       return;
     }

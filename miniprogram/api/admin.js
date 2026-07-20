@@ -164,6 +164,21 @@ export const createKnowledgeSource = async (payload) => {
   return getData(response, {});
 };
 
+export const getKnowledgeSources = async () => {
+  const response = await request.get('/api/admin/ai/knowledge-sources', {}, adminOptions);
+  return getData(response, { items: [], index: {} });
+};
+
+export const updateKnowledgeSource = async (id, payload) => {
+  const response = await request.patch(`/api/admin/ai/knowledge-sources/${encodeURIComponent(id)}`, payload, adminOptions);
+  return getData(response, {});
+};
+
+export const deleteKnowledgeSource = async (id) => {
+  const response = await request.delete(`/api/admin/ai/knowledge-sources/${encodeURIComponent(id)}`, {}, adminOptions);
+  return getData(response, {});
+};
+
 export const reindexKnowledge = async () => {
   const response = await request.post('/api/admin/ai/reindex', {}, adminOptions);
   return getData(response, {});

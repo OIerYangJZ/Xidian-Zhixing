@@ -31,3 +31,9 @@ services:
         value: "false"
       - key: BACKEND_INCLUDE_DEBUG_CODE
         value: "false"
+      - key: BACKEND_AI_BASE_URL
+        sync: false
+      - key: BACKEND_AI_API_KEY
+        sync: false
+      - key: BACKEND_AI_MODEL
+        value: gpt-4o-mini

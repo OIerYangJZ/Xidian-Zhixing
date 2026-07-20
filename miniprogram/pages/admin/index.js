@@ -2,6 +2,7 @@ import {
   addChannel,
   addTag,
   createKnowledgeSource,
+  deleteKnowledgeSource,
   deleteChannel,
   deleteTag,
   getAdminAppeals,
@@ -14,6 +15,7 @@ import {
   getCancellationRequests,
   getChannelsTags,
   getClubApplications,
+  getKnowledgeSources,
   getCurrentAdmin,
   getPostPinRequests,
   getUserLevelRequests,
@@ -29,7 +31,8 @@ import {
   reindexKnowledge,
   renameChannel,
   renameTag,
-  updateAdminConfig
+  updateAdminConfig,
+  updateKnowledgeSource
 } from '../../api/admin';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
@@ -137,8 +140,12 @@ Page({
     tags: [],
     knowledgeForm: {
       name: '',
+      sourceUrl: '',
+      authority: 'curated',
       content: ''
     },
+    knowledgeSources: [],
+    knowledgeIndex: {},
     submitting: false
   },
 
@@ -315,6 +322,7 @@ Page({
   async loadSystem() {
     if (this.data.systemType === 'config') return this.loadConfig();
     if (this.data.systemType === 'channels' || this.data.systemType === 'tags') return this.loadChannelsTags();
+    if (this.data.systemType === 'knowledge') return this.loadKnowledgeSources();
     this.setData({ loading: false });
     return Promise.resolve();
   },
@@ -340,6 +348,20 @@ Page({
       this.setData({
         channels: data.channels || [],
         tags: data.tags || [],
+        loading: false
+      });
+    } catch (error) {
+      this.setData({ loading: false });
+    }
+  },
+
+  async loadKnowledgeSources() {
+    this.setData({ loading: true });
+    try {
+      const data = await getKnowledgeSources();
+      this.setData({
+        knowledgeSources: data.items || [],
+        knowledgeIndex: data.index || {},
         loading: false
       });
     } catch (error) {
@@ -518,6 +540,8 @@ Page({
   saveKnowledgeSource() {
     const payload = {
       name: this.data.knowledgeForm.name.trim(),
+      sourceUrl: this.data.knowledgeForm.sourceUrl.trim(),
+      authority: this.data.knowledgeForm.authority || 'curated',
       content: this.data.knowledgeForm.content.trim()
     };
     if (!payload.name) {
@@ -526,7 +550,25 @@ Page({
     }
     this.runAction(async () => {
       await createKnowledgeSource(payload);
-      this.setData({ knowledgeForm: { name: '', content: '' } });
+      this.setData({ knowledgeForm: { name: '', sourceUrl: '', authority: 'curated', content: '' } });
+    });
+  },
+
+  editKnowledgeSource(event) {
+    const id = event.currentTarget.dataset.id;
+    const source = this.data.knowledgeSources.find((item) => item.id === id);
+    if (!source) return;
+    this.askNote({ title: '修改知识来源名称', placeholderText: source.name, confirmText: '保存' }, (name) => {
+      if (!name) return;
+      this.runAction(() => updateKnowledgeSource(id, { name }));
+    });
+  },
+
+  removeKnowledgeSource(event) {
+    const id = event.currentTarget.dataset.id;
+    const source = this.data.knowledgeSources.find((item) => item.id === id);
+    this.confirm({ title: '删除知识来源', content: source ? source.name : id, confirmText: '删除' }, () => {
+      this.runAction(() => deleteKnowledgeSource(id));
     });
   },
 

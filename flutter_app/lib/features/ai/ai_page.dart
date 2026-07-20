@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/state/app_providers.dart';
 import '../../core/theme/shared_colors.dart';
@@ -21,9 +20,9 @@ class _AiPageState extends ConsumerState<AiPage> {
       children: <Widget>[
         FilledButton.icon(
           onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AiChatPage()),
-            );
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute<void>(builder: (_) => const AiChatPage()));
           },
           icon: const Icon(Icons.add_rounded),
           label: const Text('发起新对话'),
@@ -64,7 +63,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   final ScrollController _scrollController = ScrollController();
   final List<AiMessage> _messages = <AiMessage>[];
   bool _sending = false;
-  AiConfig _config = const AiConfig();
+  AiServerStatus _status = const AiServerStatus(model: '', models: <String>[]);
 
   @override
   void initState() {
@@ -80,21 +79,26 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 
   Future<void> _loadConfig() async {
-    final AiConfig config = await AiConfig.load();
+    AiServerStatus status;
+    try {
+      status = await ref.read(aiRepositoryProvider).fetchStatus();
+    } catch (_) {
+      status = const AiServerStatus(model: '', models: <String>[]);
+    }
     if (!mounted) {
       return;
     }
     setState(() {
-      _config = config;
+      _status = status;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool configured = _config.configured;
+    final bool configured = _status.configured;
     return Scaffold(
       appBar: AppBar(
-        title: Text(configured ? '当前模型：${_config.model}' : 'AI 助手'),
+        title: Text(configured ? '当前模型：${_status.model}' : 'AI 助手'),
         actions: <Widget>[
           IconButton(
             tooltip: 'AI 设置',
@@ -145,7 +149,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                       minLines: 1,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: configured ? '输入问题...' : '请先配置 AI 接口与模型',
+                        hintText: configured ? '输入问题...' : '服务器 AI 尚未配置',
                       ),
                       onSubmitted: (_) => _send(),
                     ),
@@ -176,15 +180,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
     _scrollToBottom();
     try {
-      final AiChatResponse response = await ref.read(aiRepositoryProvider).sendMessage(
-            content: text,
-            apiKey: _config.apiKey,
-            baseUrl: _config.baseUrl,
-            model: _config.model,
-            knowledgeBase: _config.knowledgeBase,
-            includePosts: _config.includePosts,
-            messages: _messages,
-          );
+      final AiChatResponse response = await ref
+          .read(aiRepositoryProvider)
+          .sendMessage(content: text, messages: _messages);
       if (!mounted) {
         return;
       }
@@ -199,9 +197,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       });
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('发送失败：$error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('发送失败：$error')));
       }
     } finally {
       if (mounted) {
@@ -227,19 +225,16 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 }
 
-class AiSettingsPage extends StatefulWidget {
+class AiSettingsPage extends ConsumerStatefulWidget {
   const AiSettingsPage({super.key});
 
   @override
-  State<AiSettingsPage> createState() => _AiSettingsPageState();
+  ConsumerState<AiSettingsPage> createState() => _AiSettingsPageState();
 }
 
-class _AiSettingsPageState extends State<AiSettingsPage> {
-  final TextEditingController _apiKeyController = TextEditingController();
-  final TextEditingController _baseUrlController = TextEditingController();
-  final TextEditingController _modelController = TextEditingController();
-  final TextEditingController _knowledgeController = TextEditingController();
-  bool _includePosts = true;
+class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
+  AiServerStatus _status = const AiServerStatus(model: '', models: <String>[]);
+  bool _loading = true;
 
   @override
   void initState() {
@@ -247,41 +242,23 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
     Future<void>.microtask(_load);
   }
 
-  @override
-  void dispose() {
-    _apiKeyController.dispose();
-    _baseUrlController.dispose();
-    _modelController.dispose();
-    _knowledgeController.dispose();
-    super.dispose();
-  }
-
   Future<void> _load() async {
-    final AiConfig config = await AiConfig.load();
-    if (!mounted) {
-      return;
+    setState(() => _loading = true);
+    try {
+      final AiServerStatus status = await ref
+          .read(aiRepositoryProvider)
+          .fetchStatus();
+      if (!mounted) return;
+      setState(() => _status = status);
+    } catch (_) {
+      if (mounted) {
+        setState(
+          () => _status = const AiServerStatus(model: '', models: <String>[]),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-    setState(() {
-      _apiKeyController.text = config.apiKey;
-      _baseUrlController.text = config.baseUrl;
-      _modelController.text = config.model;
-      _knowledgeController.text = config.knowledgeBase;
-      _includePosts = config.includePosts;
-    });
-  }
-
-  Future<void> _save() async {
-    await AiConfig(
-      apiKey: _apiKeyController.text.trim(),
-      baseUrl: _baseUrlController.text.trim(),
-      model: _modelController.text.trim(),
-      knowledgeBase: _knowledgeController.text.trim(),
-      includePosts: _includePosts,
-    ).save();
-    if (!mounted) {
-      return;
-    }
-    Navigator.of(context).pop();
   }
 
   @override
@@ -291,41 +268,38 @@ class _AiSettingsPageState extends State<AiSettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          TextField(
-            controller: _apiKeyController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'API Key'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _baseUrlController,
-            decoration: const InputDecoration(labelText: 'Base URL'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _modelController,
-            decoration: const InputDecoration(labelText: '模型'),
-          ),
-          const SizedBox(height: 10),
-          TextField(
-            controller: _knowledgeController,
-            minLines: 4,
-            maxLines: 8,
-            decoration: const InputDecoration(labelText: '知识库'),
-          ),
-          const SizedBox(height: 10),
-          SwitchListTile(
+          ListTile(
             contentPadding: EdgeInsets.zero,
-            value: _includePosts,
-            onChanged: (bool value) {
-              setState(() {
-                _includePosts = value;
-              });
-            },
-            title: const Text('包含公开帖子'),
+            leading: Icon(
+              _status.configured
+                  ? Icons.cloud_done_outlined
+                  : Icons.cloud_off_outlined,
+            ),
+            title: const Text('服务器 AI'),
+            subtitle: Text(_status.configured ? '已启用' : '尚未配置'),
+          ),
+          if (_status.configured)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('当前模型'),
+              subtitle: Text(_status.model),
+            ),
+          const ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text('校园知识库'),
+            subtitle: Text('由服务器统一维护并建立索引'),
+          ),
+          const ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text('论坛公开帖子'),
+            subtitle: Text('审核通过后自动进入检索'),
           ),
           const SizedBox(height: 14),
-          FilledButton(onPressed: _save, child: const Text('保存')),
+          FilledButton.icon(
+            onPressed: _loading ? null : _load,
+            icon: const Icon(Icons.refresh_rounded),
+            label: Text(_loading ? '读取中' : '刷新状态'),
+          ),
         ],
       ),
     );
@@ -350,12 +324,17 @@ class _MessageBubble extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: user ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: user
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: <Widget>[
           if (!user) const _AiAvatar(label: '印'),
           Flexible(
             child: Container(
-              margin: EdgeInsets.only(left: user ? 48 : 10, right: user ? 10 : 48),
+              margin: EdgeInsets.only(
+                left: user ? 48 : 10,
+                right: user ? 10 : 48,
+              ),
               padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
                 color: user
@@ -382,10 +361,9 @@ class _MessageBubble extends StatelessWidget {
                         style: TextStyle(
                           color: user
                               ? Colors.white.withValues(alpha: 0.82)
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withValues(alpha: 0.86),
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: 0.86),
                           fontSize: 12,
                         ),
                       ),
@@ -424,48 +402,5 @@ class _AiAvatar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class AiConfig {
-  const AiConfig({
-    this.apiKey = '',
-    this.baseUrl = '',
-    this.model = '',
-    this.knowledgeBase = '',
-    this.includePosts = true,
-  });
-
-  static const String storageKey = 'aiProviderConfig';
-
-  final String apiKey;
-  final String baseUrl;
-  final String model;
-  final String knowledgeBase;
-  final bool includePosts;
-
-  bool get configured =>
-      apiKey.trim().isNotEmpty &&
-      baseUrl.trim().isNotEmpty &&
-      model.trim().isNotEmpty;
-
-  static Future<AiConfig> load() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return AiConfig(
-      apiKey: prefs.getString('ai_api_key') ?? '',
-      baseUrl: prefs.getString('ai_base_url') ?? '',
-      model: prefs.getString('ai_model') ?? '',
-      knowledgeBase: prefs.getString('ai_knowledge_base') ?? '',
-      includePosts: prefs.getBool('ai_include_posts') ?? true,
-    );
-  }
-
-  Future<void> save() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('ai_api_key', apiKey);
-    await prefs.setString('ai_base_url', baseUrl);
-    await prefs.setString('ai_model', model);
-    await prefs.setString('ai_knowledge_base', knowledgeBase);
-    await prefs.setBool('ai_include_posts', includePosts);
   }
 }
