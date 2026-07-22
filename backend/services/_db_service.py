@@ -3075,52 +3075,53 @@ def migrate_db(db: dict[str, Any]) -> bool:
             post["channel"] = ""
             changed = True
 
-    existing_seed_titles = {
-        str(post.get("title", "")).strip()
-        for post in db.get("posts", [])
-        if str(post.get("title", "")).strip()
-    }
-    for row in _globals.SEED_POSTS[4:]:
-        title = str(row.get("title", "")).strip()
-        if not title or title in existing_seed_titles:
-            continue
-        db["seq"]["post"] = int(db["seq"].get("post", 0)) + 1
-        created = now_iso()
-        tags = list(dict.fromkeys([*row.get("tags", []), str(row.get("channel", "")).strip()]))
-        db.setdefault("posts", []).append({
-            "id": f"p{db['seq']['post']}",
-            "title": title,
-            "content": str(row.get("content", "")),
-            "contentFormat": "plain",
-            "markdownSource": "",
-            "channel": "",
-            "tags": [tag for tag in tags if tag and tag != "综合"],
-            "hasImage": bool(row.get("hasImage")),
-            "status": str(row.get("status", "ongoing")),
-            "allowComment": bool(row.get("allowComment", True)),
-            "allowDm": bool(row.get("allowDm", False)),
-            "visibility": "public",
-            "authorAlias": str(row.get("authorAlias", "洞主-测试")),
-            "authorId": str(row.get("authorId", "seed-user-1")),
-            "pinStartedAt": "",
-            "pinExpiresAt": "",
-            "pinDurationMinutes": 0,
-            "createdAt": created,
-            "updatedAt": created,
-            "deleted": False,
-            "reviewStatus": "approved",
-            "riskMarked": False,
-            "seedData": True,
-            "sectionType": "general",
-            "sectionId": "general",
-            "sectionName": "综合",
-            "publisherType": "user",
-            "publisherClubId": "",
-            "shareCount": 0,
-            "viewCount": 0,
-        })
-        existing_seed_titles.add(title)
-        changed = True
+    if _globals.SEED_DEMO_DATA:
+        existing_seed_titles = {
+            str(post.get("title", "")).strip()
+            for post in db.get("posts", [])
+            if str(post.get("title", "")).strip()
+        }
+        for row in _globals.SEED_POSTS[4:]:
+            title = str(row.get("title", "")).strip()
+            if not title or title in existing_seed_titles:
+                continue
+            db["seq"]["post"] = int(db["seq"].get("post", 0)) + 1
+            created = now_iso()
+            tags = list(dict.fromkeys([*row.get("tags", []), str(row.get("channel", "")).strip()]))
+            db.setdefault("posts", []).append({
+                "id": f"p{db['seq']['post']}",
+                "title": title,
+                "content": str(row.get("content", "")),
+                "contentFormat": "plain",
+                "markdownSource": "",
+                "channel": "",
+                "tags": [tag for tag in tags if tag and tag != "综合"],
+                "hasImage": bool(row.get("hasImage")),
+                "status": str(row.get("status", "ongoing")),
+                "allowComment": bool(row.get("allowComment", True)),
+                "allowDm": bool(row.get("allowDm", False)),
+                "visibility": "public",
+                "authorAlias": str(row.get("authorAlias", "洞主-测试")),
+                "authorId": str(row.get("authorId", "seed-user-1")),
+                "pinStartedAt": "",
+                "pinExpiresAt": "",
+                "pinDurationMinutes": 0,
+                "createdAt": created,
+                "updatedAt": created,
+                "deleted": False,
+                "reviewStatus": "approved",
+                "riskMarked": False,
+                "seedData": True,
+                "sectionType": "general",
+                "sectionId": "general",
+                "sectionName": "综合",
+                "publisherType": "user",
+                "publisherClubId": "",
+                "shareCount": 0,
+                "viewCount": 0,
+            })
+            existing_seed_titles.add(title)
+            changed = True
 
     for comment in db.get("comments", []):
         for k, v in {

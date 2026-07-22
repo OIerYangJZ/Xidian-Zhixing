@@ -81,11 +81,72 @@ class SqliteTreeholeRepository:
     def initialize(self, seed_factory: Callable[[], dict[str, Any]]) -> None:
         self.db_file.parent.mkdir(parents=True, exist_ok=True)
         with self._connect() as conn:
+            schema_exists = conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'users'",
+            ).fetchone()
+            if schema_exists is None:
+                try:
+                    self._create_schema(conn, begin_transaction=True)
+                    self._save_state_tx(
+                        conn,
+                        seed_factory(),
+                        transaction_started=True,
+                    )
+                except Exception:
+                    conn.rollback()
+                    raise
+                return
+
             self._create_schema(conn)
-            count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
-            if count == 0:
-                seed = seed_factory()
-                self._save_state_tx(conn, seed)
+            initialized = conn.execute(
+                "SELECT 1 FROM repository_meta WHERE meta_key = 'initialized'",
+            ).fetchone()
+            if initialized is not None:
+                return
+
+            # Older databases predate repository_meta.  Preserve any existing
+            # state and backfill the marker instead of treating a legitimate
+            # zero-user production database as a fresh database.
+            state_tables = (
+                "users",
+                "sessions",
+                "email_codes",
+                "channels",
+                "tags",
+                "sensitive_words",
+                "settings",
+                "admin_accounts",
+                "meta_seq",
+                "posts",
+                "post_tags",
+                "comments",
+                "likes",
+                "favorites",
+                "user_follows",
+                "reports",
+                "dm_requests",
+                "user_blocks",
+                "conversations",
+                "direct_messages",
+                "feedbacks",
+                "notifications",
+                "appeals",
+                "post_pin_requests",
+                "user_level_requests",
+                "audit_logs",
+                "account_cancellation_requests",
+                "media_uploads",
+            )
+            has_existing_state = any(
+                conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is not None
+                for table in state_tables
+            )
+            if has_existing_state:
+                self._mark_initialized(conn)
+                conn.commit()
+                return
+
+            self._save_state_tx(conn, seed_factory())
 
     def load_state(self) -> dict[str, Any]:
         with self._connect() as conn:
@@ -108,9 +169,13 @@ class SqliteTreeholeRepository:
         conn.execute("PRAGMA synchronous = NORMAL")
         return conn
 
-    def _create_schema(self, conn: sqlite3.Connection) -> None:
-        conn.executescript(
-            """
+    def _create_schema(
+        self,
+        conn: sqlite3.Connection,
+        *,
+        begin_transaction: bool = False,
+    ) -> None:
+        schema_sql = """
             CREATE TABLE IF NOT EXISTS users (
               id TEXT PRIMARY KEY,
               email TEXT NOT NULL UNIQUE,
@@ -192,6 +257,12 @@ class SqliteTreeholeRepository:
             CREATE TABLE IF NOT EXISTS meta_seq (
               seq_key TEXT PRIMARY KEY,
               seq_value INTEGER NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS repository_meta (
+              meta_key TEXT PRIMARY KEY,
+              meta_value TEXT NOT NULL,
+              updated_at TEXT NOT NULL
             );
 
             CREATE TABLE IF NOT EXISTS posts (
@@ -540,7 +611,7 @@ class SqliteTreeholeRepository:
             CREATE INDEX IF NOT EXISTS idx_admin_accounts_role_active
               ON admin_accounts(role, active, created_at DESC);
             """
-        )
+        conn.executescript(f"BEGIN;\n{schema_sql}" if begin_transaction else schema_sql)
         self._ensure_column(conn, "users", "user_level", "INTEGER NOT NULL DEFAULT 2")
         self._ensure_column(conn, "users", "nickname", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
@@ -583,7 +654,8 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "direct_messages", "read_at", "TEXT NULL")
         self._ensure_column(conn, "likes", "comment_id", "TEXT NULL")
         self._ensure_column(conn, "likes", "post_id", "TEXT NULL")
-        conn.commit()
+        if not begin_transaction:
+            conn.commit()
 
     def _ensure_column(self, conn: sqlite3.Connection, table_name: str, column_name: str, ddl: str) -> None:
         existing = {
@@ -592,6 +664,15 @@ class SqliteTreeholeRepository:
         }
         if column_name not in existing:
             conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {ddl}")
+
+    def _mark_initialized(self, conn: sqlite3.Connection) -> None:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO repository_meta (meta_key, meta_value, updated_at)
+            VALUES ('initialized', '1', ?)
+            """,
+            (now_iso(),),
+        )
 
     def _load_state_tx(self, conn: sqlite3.Connection) -> dict[str, Any]:
         db: dict[str, Any] = {
@@ -1154,8 +1235,15 @@ class SqliteTreeholeRepository:
 
         return db
 
-    def _save_state_tx(self, conn: sqlite3.Connection, db: dict[str, Any]) -> None:
-        conn.execute("BEGIN")
+    def _save_state_tx(
+        self,
+        conn: sqlite3.Connection,
+        db: dict[str, Any],
+        *,
+        transaction_started: bool = False,
+    ) -> None:
+        if not transaction_started:
+            conn.execute("BEGIN")
         try:
             for table in [
                 "media_uploads",
@@ -1165,9 +1253,11 @@ class SqliteTreeholeRepository:
                 "post_pin_requests",
                 "appeals",
                 "notifications",
+                "feedbacks",
                 "direct_messages",
                 "conversations",
                 "user_blocks",
+                "user_follows",
                 "dm_requests",
                 "reports",
                 "favorites",
@@ -1887,6 +1977,7 @@ class SqliteTreeholeRepository:
                     ),
                 )
 
+            self._mark_initialized(conn)
             conn.commit()
         except Exception:
             conn.rollback()
