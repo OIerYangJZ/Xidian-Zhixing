@@ -17,19 +17,24 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 GIT_HASH="$(cd "$ROOT_DIR" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")"
 GIT_BRANCH="$(cd "$ROOT_DIR" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")"
 GIT_TAG="$(cd "$ROOT_DIR" && git describe --tags --exact-match 2>/dev/null || echo "")"
-GIT_DIRTY="$(cd "$ROOT_DIR" && git diff --stat 2>/dev/null | tail -1 | grep -q "0 files" && echo "false" || echo "true")"
+if [ -z "$(cd "$ROOT_DIR" && git status --porcelain --untracked-files=normal)" ]; then
+  GIT_DIRTY="false"
+else
+  GIT_DIRTY="true"
+fi
 
 # 构建时间
 BUILD_DATE="$(date -u +%Y-%m-%d)"
 BUILD_TIME="$(date -u +%H:%M:%S)"
 BUILD_TIMESTAMP="$(date -u +%Y%m%d%H%M%S)"
 
-# 默认版本号从 pubspec.yaml 读取
-if [ -f "$ROOT_DIR/pubspec.yaml" ]; then
-  APP_VERSION=$(grep -m1 '^version:' "$ROOT_DIR/pubspec.yaml" | sed 's/version: *//' | tr -d ' ')
-else
-  APP_VERSION="0.0.0+1"
+# 默认版本号从 Flutter 工程的 pubspec.yaml 读取。
+PUBSPEC_FILE="$ROOT_DIR/flutter_app/pubspec.yaml"
+if [ ! -f "$PUBSPEC_FILE" ]; then
+  echo "[version] missing Flutter pubspec: $PUBSPEC_FILE" >&2
+  return 1 2>/dev/null || exit 1
 fi
+APP_VERSION=$(grep -m1 '^version:' "$PUBSPEC_FILE" | sed 's/version: *//' | tr -d ' ')
 
 # 构建类型（可由调用方覆盖）
 BUILD_TYPE="${BUILD_TYPE:-release}"

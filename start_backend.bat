@@ -4,22 +4,22 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0"
 set "BACKEND_HOST=0.0.0.0"
 set "BACKEND_PORT=8080"
+set "BACKEND_SCRIPT=%CD%\backend\server.py"
 set "START_TOKEN=%RANDOM%-%RANDOM%-%TIME%"
 set "START_TOKEN_FILE=%TEMP%\seeradio-backend-start.token"
+
+if not defined BACKEND_ADMIN_PASSWORD (
+  echo BACKEND_ADMIN_PASSWORD is required. Set it before running this script.
+  pause
+  exit /b 1
+)
 
 > "%START_TOKEN_FILE%" echo %START_TOKEN%
 
 echo Restarting backend server on port %BACKEND_PORT%...
-for /f "usebackq delims=" %%P in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^python' -and $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains('backend\server.py') } | ForEach-Object { $_.ProcessId }"`) do (
+for /f "usebackq delims=" %%P in (`powershell -NoProfile -ExecutionPolicy Bypass -Command "$target = $env:BACKEND_SCRIPT.ToLowerInvariant(); Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^python' -and $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains($target) } | ForEach-Object { $_.ProcessId }"`) do (
   echo Stopping backend process %%P...
   taskkill /PID %%P /F >nul 2>nul
-)
-
-for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":%BACKEND_PORT% .*LISTENING"') do (
-  if not "%%P"=="0" (
-    echo Stopping process %%P...
-    taskkill /PID %%P /F >nul 2>nul
-  )
 )
 
 set "PORT_RELEASED="
@@ -74,7 +74,7 @@ if not "%LATEST_TOKEN%"=="%START_TOKEN%" (
 )
 
 echo Starting backend server...
-python backend\server.py
+python "%BACKEND_SCRIPT%"
 if errorlevel 1 (
   echo.
   echo Backend startup failed.

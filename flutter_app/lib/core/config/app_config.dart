@@ -4,9 +4,6 @@ import 'package:flutter/foundation.dart'
 class AppConfig {
   static const String _localApiBaseUrl = 'http://127.0.0.1:8080/api';
   static const String _androidEmulatorApiBaseUrl = 'http://10.0.2.2:8080/api';
-  static const String _productionApiBaseUrl =
-      'https://radio.xidian.edu.cn/api';
-
   // Web 通常使用 API_BASE_URL 覆盖；移动端使用 MOBILE_API_BASE_URL 覆盖。
   static String get apiBaseUrl {
     const mobileUrl = String.fromEnvironment(
@@ -35,12 +32,19 @@ class AppConfig {
     if (webUrl.trim().isNotEmpty) {
       return _normalizeApiBaseUrl(webUrl);
     }
-    return kReleaseMode ? _productionApiBaseUrl : _localApiBaseUrl;
+    if (kReleaseMode) {
+      throw StateError(
+        '生产构建缺少 API_BASE_URL；请在构建时显式注入 HTTPS API 地址',
+      );
+    }
+    return _localApiBaseUrl;
   }
 
   static String get _defaultMobileApiBaseUrl {
     if (kReleaseMode) {
-      return _productionApiBaseUrl;
+      throw StateError(
+        '移动端生产构建缺少 MOBILE_API_BASE_URL；请在构建时显式注入 HTTPS API 地址',
+      );
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Android 模拟器访问宿主机 localhost 需要使用 10.0.2.2。

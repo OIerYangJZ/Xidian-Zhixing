@@ -115,9 +115,23 @@ def _verification_response_data(
         "email": email,
         "studentId": student_id,
     }
-    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE or not _globals.smtp_configured():
+    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
         payload["debugCode"] = str((code_store or {}).get("code", "")).strip() or "123456"
     return payload
+
+
+def _verification_code_or_error(handler: BaseHTTPRequestHandler) -> tuple[str, bool] | None:
+    smtp_enabled = _globals.smtp_configured()
+    if smtp_enabled:
+        return random_code(), True
+    if _globals.verify_code_debug_enabled():
+        return "123456", False
+    json_error(
+        handler,
+        HTTPStatus.SERVICE_UNAVAILABLE,
+        "邮件服务未配置，无法发送验证码",
+    )
+    return None
 
 
 def _query_value(query: dict[str, list[str]], key: str) -> str:
@@ -550,8 +564,10 @@ def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not bool(user.get("verified", False)):
         code_store = db.get("emailCodes", {}).get(login_email)
         if not code_store:
-            smtp_enabled = _globals.smtp_configured()
-            code = random_code() if smtp_enabled else "123456"
+            verification = _verification_code_or_error(handler)
+            if verification is None:
+                return
+            code, smtp_enabled = verification
             if smtp_enabled:
                 try:
                     send_verification_email(
@@ -944,8 +960,10 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
         user["studentId"] = student_id
         user["avatarUrl"] = avatar_url
 
-    smtp_enabled = _globals.smtp_configured()
-    code = random_code() if smtp_enabled else "123456"
+    verification = _verification_code_or_error(handler)
+    if verification is None:
+        return
+    code, smtp_enabled = verification
     if smtp_enabled:
         try:
             send_verification_email(to_email=email, code=code, expires_in_minutes=10)
@@ -976,7 +994,7 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
         {
             "message": "注册成功，请完成邮箱验证"
             if smtp_enabled
-            else "注册成功，邮件服务未配置，内测验证码为 123456",
+            else "注册成功，已生成调试验证码",
             "data": _verification_response_data(
                 email=email,
                 student_id=student_id,
@@ -1100,8 +1118,10 @@ def handle_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> Non
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
 
-    smtp_enabled = _globals.smtp_configured()
-    code = random_code() if smtp_enabled else "123456"
+    verification = _verification_code_or_error(handler)
+    if verification is None:
+        return
+    code, smtp_enabled = verification
     if smtp_enabled:
         try:
             send_verification_email(to_email=email, code=code, expires_in_minutes=10)
@@ -1124,13 +1144,13 @@ def handle_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> Non
         "email": email,
         "expiresInSeconds": 600,
     }
-    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE or not smtp_enabled:
+    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
         data["debugCode"] = code
     send_json(
         handler,
         HTTPStatus.OK,
         {
-            "message": "验证码已发送" if smtp_enabled else "邮件服务未配置，已启用内测验证码",
+            "message": "验证码已发送" if smtp_enabled else "已生成调试验证码",
             "data": data,
         },
     )
@@ -1151,8 +1171,10 @@ def handle_password_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any
         json_error(handler, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
         return
 
-    smtp_enabled = _globals.smtp_configured()
-    code = random_code() if smtp_enabled else "123456"
+    verification = _verification_code_or_error(handler)
+    if verification is None:
+        return
+    code, smtp_enabled = verification
     if smtp_enabled:
         try:
             send_password_reset_email(
@@ -1178,13 +1200,13 @@ def handle_password_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any
         "email": email,
         "expiresInSeconds": 600,
     }
-    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE or not smtp_enabled:
+    if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
         data["debugCode"] = code
     send_json(
         handler,
         HTTPStatus.OK,
         {
-            "message": "重置密码验证码已发送" if smtp_enabled else "邮件服务未配置，已启用内测验证码",
+            "message": "重置密码验证码已发送" if smtp_enabled else "已生成调试验证码",
             "data": data,
         },
     )

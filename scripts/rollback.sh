@@ -9,8 +9,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-DEPLOY_DIR="${DEPLOY_DIR:-/opt/xdu-whisperbox}"
-SERVICE_NAME="${SERVICE_NAME:-xdu-whisperbox}"
+DEPLOY_DIR="${DEPLOY_DIR:-/home/ubuntu/treehole}"
+SERVICE_NAME="${SERVICE_NAME:-treehole}"
 
 # 颜色输出
 RED='\033[0;31m'
@@ -152,51 +152,31 @@ fi
 echo ""
 
 # 更新 current 软链接
-if [ -L "$DEPLOY_DIR/current" ]; then
-  rm -f "$DEPLOY_DIR/current"
-fi
-ln -s "$TARGET_DIR" "$DEPLOY_DIR/current"
+ln -sfn "$TARGET_DIR" "$DEPLOY_DIR/current"
 log_info "软链接已更新: current -> $TARGET_NAME"
-
-# 记录回滚日志
-if [ -d "$DEPLOY_DIR/releases/$TARGET_NAME" ]; then
-  ROLLBACK_LOG="$DEPLOY_DIR/releases/$TARGET_NAME/rollback.log"
-  echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) - 回滚到此版本" >> "$ROLLBACK_LOG" 2>/dev/null || true
-fi
 
 # 重启服务
 echo ""
-if command -v systemctl >/dev/null 2>&1; then
-  log_info "正在重启服务..."
-  if systemctl restart "$SERVICE_NAME" 2>/dev/null; then
-    sleep 2
-    if systemctl is-active --quiet "$SERVICE_NAME"; then
-      log_info "服务已重启"
-      systemctl status "$SERVICE_NAME" --no-pager -l || true
-    else
-      log_warn "服务启动状态未知，请手动检查"
-    fi
-  else
-    log_warn "无法通过 systemctl 重启服务，请手动重启"
-  fi
-elif command -v service >/dev/null 2>&1; then
-  log_info "正在重启服务..."
-  service "$SERVICE_NAME" restart 2>/dev/null || log_warn "无法通过 service 重启服务"
-elif pgrep -f "server.py" > /dev/null; then
-  log_info "正在重启 Python 服务..."
-  pkill -f "server.py" 2>/dev/null || true
-  sleep 1
-  cd "$DEPLOY_DIR/current"
-  nohup python3 server.py > /var/log/xdu-whisperbox.log 2>&1 &
-  sleep 2
-  if pgrep -f "server.py" > /dev/null; then
-    log_info "服务已重启"
-  else
-    log_warn "服务启动失败，请检查日志"
-  fi
-else
-  log_warn "未找到服务管理工具，请手动重启服务"
+if ! command -v systemctl >/dev/null 2>&1; then
+  log_error "systemd 不可用，拒绝使用进程名匹配方式重启服务"
+  exit 1
 fi
+
+log_info "正在重启服务..."
+if systemctl restart "$SERVICE_NAME" 2>/dev/null; then
+  sleep 2
+fi
+if ! systemctl is-active --quiet "$SERVICE_NAME"; then
+  log_error "目标版本启动失败"
+  if [ -n "$CURRENT_LINK" ] && [ -d "$CURRENT_LINK" ]; then
+    ln -sfn "$CURRENT_LINK" "$DEPLOY_DIR/current"
+    systemctl restart "$SERVICE_NAME" 2>/dev/null || true
+    log_warn "已恢复原版本链接: $CURRENT_NAME"
+  fi
+  exit 1
+fi
+log_info "服务已重启"
+systemctl status "$SERVICE_NAME" --no-pager -l || true
 
 echo ""
 log_info "回滚完成"

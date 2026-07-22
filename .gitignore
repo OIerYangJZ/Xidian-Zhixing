@@ -4,6 +4,7 @@
 .pub/
 flutter_app/build/
 flutter_app/android/build/
+/build/
 
 # Flutter generated
 .flutter-plugins
@@ -44,3 +45,5 @@ miniprogram/config/env.local.js
 miniprogram/project.private.config.json
 __pycache__/
 dist/
+offline/*
+!offline/README.md

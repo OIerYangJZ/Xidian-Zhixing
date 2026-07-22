@@ -2692,6 +2692,11 @@ def default_db() -> dict[str, Any]:
     }
     ensure_radio_schema(db)
 
+    if not _globals.SEED_DEMO_DATA:
+        db["users"] = []
+        db["seq"]["user"] = 0
+        return db
+
     for row in _globals.SEED_POSTS:
         db["seq"]["post"] += 1
         post_id = f"p{db['seq']['post']}"
@@ -2819,7 +2824,8 @@ def ensure_db() -> None:
                 migrate_db(legacy_db)
                 _globals.REPOSITORY.save_state(legacy_db)
         except Exception:
-            pass
+            logger.exception("[db] Legacy JSON import failed")
+            raise
     else:
         # Not first boot, but let's migrate any missing schema items/sequences
         try:
@@ -2829,6 +2835,7 @@ def ensure_db() -> None:
                 _globals.REPOSITORY.save_state(db)
         except Exception as e:
             logger.error(f"[db] Migration check failed: {e}", exc_info=True)
+            raise
 
 
 def save_db(db: dict[str, Any]) -> None:

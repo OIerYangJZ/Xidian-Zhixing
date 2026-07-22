@@ -2,7 +2,7 @@
 handlers/_ai_handler.py
 
 AI Assistant endpoints:
-  GET  /api/ai/models
+  POST /api/ai/models
   POST /api/ai/chat
 """
 from __future__ import annotations
@@ -290,21 +290,13 @@ def _call_chat_completion(
 
 
 def handle_ai_models(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    """GET /api/ai/models?baseUrl=...&apiKey=..."""
+    """POST /api/ai/models with the provider credentials in the request body."""
     if _require_auth(handler, db) is None:
         return
 
-    if handler.command.upper() == "POST":
-        body = read_json_body(handler)
-        base_url = _normalize_base_url(body.get("baseUrl"))
-        api_key = str(body.get("apiKey", "")).strip()
-    else:
-        parsed = urlparse(handler.path)
-        from urllib.parse import parse_qs
-
-        query = parse_qs(parsed.query)
-        base_url = _normalize_base_url((query.get("baseUrl") or [""])[0])
-        api_key = str((query.get("apiKey") or [""])[0]).strip()
+    body = read_json_body(handler)
+    base_url = _normalize_base_url(body.get("baseUrl"))
+    api_key = str(body.get("apiKey", "")).strip()
     if not base_url or not api_key:
         json_error(handler, HTTPStatus.BAD_REQUEST, "请先填写 API Key 和 URL")
         return

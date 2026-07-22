@@ -88,6 +88,12 @@ export BACKEND_OBJECT_STORAGE_BACKEND="${BACKEND_OBJECT_STORAGE_BACKEND:-local}"
 export BACKEND_WEB_ROOT="${BACKEND_WEB_ROOT:-$ROOT_DIR/build/web}"
 export PYTHONUNBUFFERED="${PYTHONUNBUFFERED:-1}"
 
+if [[ -z "${BACKEND_ADMIN_PASSWORD:-}" ]]; then
+  echo "[backend] BACKEND_ADMIN_PASSWORD is required." >&2
+  echo "[backend] Set it in .env/.env.local or export it before starting." >&2
+  exit 1
+fi
+
 PYTHON_BIN="${PYTHON_BIN:-}"
 if [[ -z "$PYTHON_BIN" ]]; then
   if [[ -x "$ROOT_DIR/.venv/bin/python3" ]]; then

@@ -8,7 +8,7 @@ DEPLOY_HOST="${DEPLOY_HOST:-}"
 DEPLOY_USER="${DEPLOY_USER:-}"
 DEPLOY_PORT="${DEPLOY_PORT:-22}"
 DEPLOY_SSH_KEY="${DEPLOY_SSH_KEY:-}"
-REMOTE_TMP="${REMOTE_TMP:-/tmp/xdu-whisperbox-deploy}"
+REMOTE_TMP="${REMOTE_TMP:-/tmp/treehole-deploy}"
 
 if [[ -z "$DEPLOY_HOST" || -z "$DEPLOY_USER" ]]; then
   echo "[deploy] set DEPLOY_HOST and DEPLOY_USER"
@@ -28,7 +28,11 @@ ARCHIVE_NAME="$(basename "$ARCHIVE_PATH")"
 REMOTE_TARGET="$DEPLOY_USER@$DEPLOY_HOST"
 
 ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "mkdir -p '$REMOTE_TMP'"
-scp "${SCP_OPTS[@]}" "$ARCHIVE_PATH" "$ROOT_DIR/scripts/install_tencent_host.sh" "$REMOTE_TARGET:$REMOTE_TMP/"
+scp "${SCP_OPTS[@]}" \
+  "$ARCHIVE_PATH" \
+  "$ROOT_DIR/scripts/install_ubuntu_offline.sh" \
+  "$ROOT_DIR/scripts/validate_production_env.py" \
+  "$REMOTE_TARGET:$REMOTE_TMP/"
 
 if [[ "$DEPLOY_USER" == "root" ]]; then
   REMOTE_INSTALL_PREFIX="bash"
@@ -36,7 +40,7 @@ else
   REMOTE_INSTALL_PREFIX="sudo bash"
 fi
 
-ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "$REMOTE_INSTALL_PREFIX '$REMOTE_TMP/install_tencent_host.sh' '$REMOTE_TMP/$ARCHIVE_NAME'"
+ssh "${SSH_OPTS[@]}" "$REMOTE_TARGET" "$REMOTE_INSTALL_PREFIX '$REMOTE_TMP/install_ubuntu_offline.sh' '$REMOTE_TMP/$ARCHIVE_NAME'"
 
 echo "[deploy] done: http://$DEPLOY_HOST/"
-echo "[deploy] update secrets in /etc/xdu-whisperbox.env if needed"
+echo "[deploy] production environment: /home/ubuntu/treehole/shared/config/backend.env"

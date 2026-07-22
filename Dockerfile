@@ -2,6 +2,7 @@
 FROM python:3.10-slim
 
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     BACKEND_HOST=0.0.0.0 \
     BACKEND_PORT=8080 \
     BACKEND_DB_FILE=/app/data/treehole.db \
@@ -13,24 +14,23 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+COPY backend/requirements-storage.txt /tmp/requirements-storage.txt
+RUN python3 -m pip install --no-cache-dir -r /tmp/requirements-storage.txt \
+    && rm -f /tmp/requirements-storage.txt \
+    && groupadd --system treehole \
+    && useradd --system --gid treehole --home-dir /app --shell /usr/sbin/nologin treehole
 
-# Install python dependencies
-COPY backend/requirements*.txt /app/
-RUN pip install --no-cache-dir -r backend/requirements-storage.txt 2>/dev/null \
-    || pip install --no-cache-dir boto3
+COPY --chown=treehole:treehole backend/server.py backend/_globals.py backend/object_storage.py backend/sql_repository.py /app/backend/
+COPY --chown=treehole:treehole backend/handlers/ /app/backend/handlers/
+COPY --chown=treehole:treehole backend/helpers/ /app/backend/helpers/
+COPY --chown=treehole:treehole backend/services/ /app/backend/services/
 
-# Copy backend code
-COPY backend/ /app/backend/
+RUN install -d -o treehole -g treehole /app/data /app/storage/objects
 
-# Create data and storage directories
-RUN mkdir -p /app/data /app/storage/objects
+USER treehole
 
-# Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD curl -f http://localhost:8080/api/channels || exit 1
+    CMD ["python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/channels', timeout=4).read()"]
 
 EXPOSE 8080
 

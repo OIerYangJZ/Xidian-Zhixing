@@ -320,12 +320,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         if _static_handler.handle_storage_get(self, path):
             return
 
-        if path == "/api/ai/models":
-            with DB_LOCK:
-                db = load_db()
-            _ai_handler.handle_ai_models(self, db)
-            return
-
         with DB_LOCK:
             db = load_db()
 
@@ -1155,7 +1149,7 @@ def main() -> None:
         _logger.info(
             f"Optional IDS callback origin configured: {getattr(_globals, 'BACKEND_XIDIAN_PUBLIC_ORIGIN')}",
         )
-    _logger.info(f"Admin account: {DEFAULT_ADMIN_USERNAME} / {DEFAULT_ADMIN_PASSWORD}")
+    _logger.info(f"Admin account: {DEFAULT_ADMIN_USERNAME}")
     if verify_code_debug_enabled():
         _logger.debug("Debug verify code enabled: 123456")
     server.serve_forever()

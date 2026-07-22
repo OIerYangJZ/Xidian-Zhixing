@@ -283,8 +283,4 @@ class TestEmailValidation:
         """测试验证码调试模式。"""
         from server import ALLOW_DEBUG_VERIFY_CODE, verify_code_debug_enabled
 
-        # 未配置 SMTP 且未启用调试时，应该启用调试模式
-        expected = ALLOW_DEBUG_VERIFY_CODE or not (
-            __import__("server", fromlist=["smtp_configured"]).smtp_configured()
-        )
-        assert verify_code_debug_enabled() == expected
+        assert verify_code_debug_enabled() == ALLOW_DEBUG_VERIFY_CODE

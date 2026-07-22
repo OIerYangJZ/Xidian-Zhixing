@@ -7,6 +7,8 @@ services:
     buildCommand: "python3 --version"
     startCommand: "BACKEND_HOST=0.0.0.0 BACKEND_PORT=$PORT python3 backend/server.py"
     envVars:
+      - key: BACKEND_ENV
+        value: production
       - key: BACKEND_ADMIN_USERNAME
         value: admin
       - key: BACKEND_ADMIN_PASSWORD
@@ -30,4 +32,6 @@ services:
       - key: BACKEND_ALLOW_DEBUG_VERIFY_CODE
         value: "false"
       - key: BACKEND_INCLUDE_DEBUG_CODE
+        value: "false"
+      - key: BACKEND_SEED_DEMO_DATA
         value: "false"

@@ -196,6 +196,7 @@ class TestRegisterOptionalNickname:
 
     def test_register_allows_empty_nickname(self, monkeypatch: pytest.MonkeyPatch):
         """昵称留空时，后端会自动生成默认昵称。"""
+        import _globals
         from handlers import _auth_handler
         from services._db_service import default_db
 
@@ -213,6 +214,7 @@ class TestRegisterOptionalNickname:
             },
         )
         monkeypatch.setattr(_auth_handler, "save_db", lambda _db: None)
+        monkeypatch.setattr(_globals, "ALLOW_DEBUG_VERIFY_CODE", True)
 
         _auth_handler.handle_register(handler, db)
 

@@ -1,0 +1,98 @@
+upstream treehole_backend {
+    server 127.0.0.1:8080;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__;
+    return 301 https://__DOMAIN__$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name __DOMAIN__;
+    server_tokens off;
+
+    ssl_certificate __CERTIFICATE__;
+    ssl_certificate_key __PRIVATE_KEY__;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    root /home/ubuntu/treehole/current/web;
+    index index.html;
+    client_max_body_size 20m;
+
+    access_log /var/log/nginx/treehole.access.log;
+    error_log  /var/log/nginx/treehole.error.log;
+
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    gzip on;
+    gzip_min_length 1024;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 6;
+    gzip_types text/plain text/css application/json application/javascript application/xml image/svg+xml application/wasm;
+
+    location = /index.html {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+
+    location = /flutter_service_worker.js {
+        expires -1;
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        try_files $uri =404;
+    }
+
+    location ~* ^/(?:main\.dart\.js|flutter(?:_bootstrap)?\.js|manifest\.json|version\.json|assets/(?:AssetManifest\.(?:bin|bin\.json|json)|FontManifest\.json))$ {
+        expires -1;
+        add_header Cache-Control "no-cache, must-revalidate";
+        try_files $uri =404;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location ~* \.(?:js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|wasm)$ {
+        expires 7d;
+        add_header Cache-Control "public, max-age=604800";
+        access_log off;
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass http://treehole_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Port $server_port;
+        proxy_connect_timeout 10s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+        proxy_request_buffering off;
+    }
+
+    location = /nginx-health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

@@ -5,9 +5,7 @@
 
 ## 启动
 
-```bash
-python3 backend/server.py
-```
+后端要求显式提供管理员密码；直接运行而未设置该变量会拒绝启动。
 
 推荐（显式环境变量）：
 
@@ -15,7 +13,7 @@ python3 backend/server.py
 BACKEND_HOST=0.0.0.0 \
 BACKEND_PORT=8080 \
 BACKEND_ADMIN_USERNAME=admin \
-BACKEND_ADMIN_PASSWORD=admin123456 \
+BACKEND_ADMIN_PASSWORD='<自行设置的本地密码>' \
 python3 backend/server.py
 ```
 
@@ -31,7 +29,8 @@ python3 backend/server.py
 - `BACKEND_WEB_ROOT`（默认 `<项目根目录>/build/web`，用于托管前端静态文件）
 - `BACKEND_OBJECT_STORAGE_BACKEND`（默认 `local`，可选 `s3` / `oss` / `s3_compat`）
 - `BACKEND_ADMIN_USERNAME`（默认 `admin`）
-- `BACKEND_ADMIN_PASSWORD`（默认 `admin123456`）
+- `BACKEND_ADMIN_PASSWORD`（必填；生产环境至少 12 位，且不得使用模板值）
+- `BACKEND_SEED_DEMO_DATA`（开发环境默认 `true`；生产环境必须为 `false`）
 - `BACKEND_SMTP_HOST`（SMTP 主机，启用真实邮箱验证码必填，QQ 可用 `smtp.qq.com`）
 - `BACKEND_SMTP_PORT`（默认 `465`，QQ 常用 `465`）
 - `BACKEND_SMTP_USERNAME`（SMTP 登录账号）
@@ -91,49 +90,58 @@ BACKEND_HOST=0.0.0.0 BACKEND_PORT=8080 ./scripts/run_backend_beta.sh
 - Render 免费实例会休眠并存在冷启动。
 - 免费实例本地磁盘非持久化，SQLite/本地对象存储只适合内测演示。
 
-## 腾讯云试用机部署（CVM / Lighthouse）
+## Ubuntu 22.04 x86-64 离线部署
 
-仓库已内置腾讯云部署脚本：
+仓库已内置适配 `/home/ubuntu/treehole` 的离线部署脚本：
 
 - `scripts/package_release.sh`
-- `scripts/deploy_tencent.sh`
-- `scripts/install_tencent_host.sh`
+- `scripts/prepare_offline_wheels.sh`
+- `scripts/prepare_offline_debs_ubuntu2204.sh`
+- `scripts/install_offline_debs.sh`
+- `scripts/install_ubuntu_offline.sh`
 - `deploy/tencent/backend.env.example`
 - `deploy/tencent/xdu-whisperbox.service`
 - `deploy/tencent/nginx-xdu-whisperbox.conf`
 
-本机直接执行：
+在本地 Flutter 构建机生成 Web 和 release 归档：
 
 ```bash
-DEPLOY_HOST=<server-ip> \
-DEPLOY_USER=root \
-DEPLOY_SSH_KEY=~/.ssh/tencent-cloud.pem \
-./scripts/deploy_tencent.sh
+FLUTTER_BIN=/path/to/flutter ./scripts/package_release.sh
 ```
 
-部署脚本会完成：
+在联网的 Ubuntu 22.04 x86-64 构建机准备目标架构离线依赖：
 
-- 本地打包当前代码与 `build/web`
-- 上传到腾讯云实例
-- 安装 `nginx`、`python3`
-- 部署为 `/opt/xdu-whisperbox/current`
-- 注册并启动 `xdu-whisperbox.service`
+```bash
+sudo ./scripts/prepare_offline_debs_ubuntu2204.sh
+./scripts/prepare_offline_wheels.sh
+```
+
+通过 WinSCP/SFTP 上传 release、deb、wheel 目录，以及
+`install_offline_debs.sh`、`install_ubuntu_offline.sh`、
+`validate_production_env.py` 后，服务器离线执行：
+
+```bash
+sudo ./scripts/install_offline_debs.sh /home/ubuntu/treehole/offline/ubuntu2204-amd64-debs
+sudo ./scripts/install_ubuntu_offline.sh /path/to/treehole-release.tar.gz
+```
+
+首次运行安装脚本会创建受保护的环境模板并停止；填写模板后重新执行安装脚本。部署目录为 `/home/ubuntu/treehole`，服务名为 `treehole.service`。
 
 部署后请检查服务器环境变量文件：
 
 ```bash
-sudo sed -n '1,200p' /etc/xdu-whisperbox.env
+sudoedit /home/ubuntu/treehole/shared/config/backend.env
 ```
 
 普通学生邮箱登录不依赖统一认证回调。部署时重点确认：
 
-1. `/etc/xdu-whisperbox.env` 中已正确填写 `BACKEND_SMTP_*`
+1. `/home/ubuntu/treehole/shared/config/backend.env` 中已正确填写 `BACKEND_SMTP_*`
 2. Nginx `server_name` 与 HTTPS 证书已配置完成
 3. 移动端正式构建时使用：
 
 ```bash
 flutter build apk --release \
-  --dart-define=MOBILE_API_BASE_URL=https://www.seediantreehole.cn/api
+  --dart-define=MOBILE_API_BASE_URL=https://<正式域名>/api
 ```
 
 重点修改：
@@ -146,8 +154,8 @@ flutter build apk --release \
 应用修改：
 
 ```bash
-sudo systemctl restart xdu-whisperbox
-sudo systemctl status xdu-whisperbox
+sudo systemctl restart treehole
+sudo systemctl status treehole
 curl http://127.0.0.1:8080/api/channels
 ```
 
@@ -156,11 +164,12 @@ curl http://127.0.0.1:8080/api/channels
 - 当前模板默认 `Nginx -> 127.0.0.1:8080 -> Python backend`
 - 当前模板不包含“中国大陆以外拦截”能力；该限制建议在腾讯云边界产品或上层网关实现
 
-## 默认测试账号
+## 账号初始化
 
 - 普通用户：使用 `学号 + 西电统一身份认证密码` 登录；首次成功登录会自动创建本地树洞账号并按学号映射老用户
-- 管理员：`admin / admin123456`（首次初始化；独立账号体系，不复用用户密码）
+- 管理员用户名和密码由 `BACKEND_ADMIN_USERNAME`、`BACKEND_ADMIN_PASSWORD` 显式提供；不存在生产默认密码。
 - 管理员密码在数据库中以 PBKDF2-SHA256 哈希存储（兼容旧明文自动迁移）
+- 生产环境不会创建演示用户、演示帖子、评论或私信数据。
 
 ## 真实邮箱验证码配置
 
@@ -299,7 +308,7 @@ Content-Type: application/json
 - 图片风控：
   - 同一用户重复上传同哈希图片会被标记为风险（`status=risk`），进入审核流
 
-## 迁移到 MySQL / PostgreSQL
+## 历史 JSON 到 MySQL / PostgreSQL 的离线迁移工具
 
 ### 1) 安装依赖
 
@@ -333,10 +342,17 @@ python3 backend/migrate_json_to_sql.py \
 - MySQL: `backend/sql/schema_mysql.sql`
 - 索引已覆盖：帖子流、评论、举报、私信申请、会话、审计日志等高频查询。
 
-> 注意：当前 `backend/server.py` 运行时已使用 SQLite（`backend/data/treehole.db`）。
-> 上述脚本用于把历史 `db.json` 数据迁移到 MySQL/PostgreSQL。
+> 注意：当前 `backend/server.py` 运行时只支持 SQLite。上述脚本和 schema 是历史 `db.json` 的离线迁移工具，不代表在线服务可切换数据库，也不进入生产发布包。
 
 ## 更新日志
+
+### 2026-07-17
+
+- 生产环境强制设置管理员凭据，禁止演示数据和调试验证码。
+- 邮件服务未配置时验证码接口明确返回不可用，不再隐式使用固定验证码。
+- AI 模型列表改为仅接受 POST 请求体，API Key 不再支持放入 URL 查询参数。
+- 修复 Flutter Web 构建、release 白名单打包及 Ubuntu 22.04 x86-64 离线部署流程。
+- 生产 Web 默认同源 `/api`；移动端和小程序必须显式注入正式 HTTPS API 地址。
 
 ### 2026-03-07
 
@@ -344,7 +360,7 @@ python3 backend/migrate_json_to_sql.py \
 - 新增非 `/api` 请求的 SPA 回退逻辑（回退 `index.html`）
 - 新增内测部署脚本：`scripts/build_web_beta.sh`、`scripts/run_backend_beta.sh`
 - 认证体验优化：注册自动从邮箱前缀推导学号，登录支持学号标识
-- 邮件服务未配置时启用内测验证码兜底（`123456`）
+- 当时曾加入邮件未配置时的内测验证码逻辑；该逻辑已在 2026-07-17 移除
 - 私信申请列表返回并展示申请状态（待处理/已同意/已拒绝）
 - 用户资料收藏数改为按可见收藏帖子计算，和收藏列表一致
 - 验证码发送失败时新增“邮箱不存在/不可达”识别提示

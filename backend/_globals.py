@@ -53,7 +53,7 @@ def smtp_configured() -> bool:
 
 
 def verify_code_debug_enabled() -> bool:
-    return ALLOW_DEBUG_VERIFY_CODE or not smtp_configured()
+    return ALLOW_DEBUG_VERIFY_CODE
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +65,7 @@ DEFAULT_TAGS: list[str] = []
 DEFAULT_SETTINGS: dict[str, Any] = {}
 DEFAULT_SENSITIVE_WORDS: list[str] = []
 SEED_POSTS: list[dict[str, Any]] = []
+SEED_DEMO_DATA: bool = True
 
 DEMO_USER_ID: str = "u1"
 DEMO_USER_EMAIL: str = "demo@stu.xidian.edu.cn"
@@ -77,7 +78,7 @@ PASSWORD_SALT_BYTES: int = 16
 ADMIN_USERNAME_SETTING_KEY: str = "adminUsername"
 ADMIN_PASSWORD_HASH_SETTING_KEY: str = "adminPasswordHash"
 DEFAULT_ADMIN_USERNAME: str = "admin"
-DEFAULT_ADMIN_PASSWORD: str = "admin123456"
+DEFAULT_ADMIN_PASSWORD: str = ""
 ADMIN_ROLE_PRIMARY: str = "primary"
 ADMIN_ROLE_SECONDARY: str = "secondary"
 USER_LEVEL_ONE: int = 1
@@ -115,13 +116,42 @@ def configure() -> None:
         OBJECT_STORAGE_DIR, WEB_ROOT_DIR, DB_LOCK, REPOSITORY, OBJECT_STORAGE, \
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, \
         SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_SSL, SMTP_USE_STARTTLS, \
-        BACKEND_XIDIAN_PUBLIC_ORIGIN, \
+        BACKEND_XIDIAN_PUBLIC_ORIGIN, DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
         DEFAULT_CHANNELS, DEFAULT_TAGS, DEFAULT_SETTINGS, \
-        DEFAULT_SENSITIVE_WORDS, SEED_POSTS, \
+        DEFAULT_SENSITIVE_WORDS, SEED_POSTS, SEED_DEMO_DATA, \
         PIN_DURATION_OPTIONS, RATE_LIMIT_WINDOWS_SECONDS, IP_RATE_LIMITS, \
         ALLOWED_IMAGE_TYPES, \
         _smtp_host, _smtp_port, _smtp_from_email
+
+    runtime_env = os.environ.get("BACKEND_ENV", "development").strip().lower()
+    configured_admin_username = os.environ.get("BACKEND_ADMIN_USERNAME", "").strip()
+    configured_admin_password = os.environ.get("BACKEND_ADMIN_PASSWORD", "").strip()
+    unsafe_admin_passwords = {
+        "admin123456",
+        "change-me-now",
+        "replace-me",
+        "changeme",
+    }
+    if not configured_admin_password:
+        raise RuntimeError("BACKEND_ADMIN_PASSWORD is required")
+    if configured_admin_password.lower() in unsafe_admin_passwords:
+        raise RuntimeError("BACKEND_ADMIN_PASSWORD must not use a known placeholder or default value")
+    if runtime_env == "production":
+        if not configured_admin_username:
+            raise RuntimeError("BACKEND_ADMIN_USERNAME is required in production")
+        if len(configured_admin_password) < 12:
+            raise RuntimeError(
+                "BACKEND_ADMIN_PASSWORD must contain at least 12 characters in production"
+            )
+        if os.environ.get("BACKEND_SEED_DEMO_DATA", "false").strip().lower() in {"1", "true", "yes", "on"}:
+            raise RuntimeError("BACKEND_SEED_DEMO_DATA must be false in production")
+    DEFAULT_ADMIN_USERNAME = configured_admin_username or "admin"
+    DEFAULT_ADMIN_PASSWORD = configured_admin_password
+    SEED_DEMO_DATA = os.environ.get(
+        "BACKEND_SEED_DEMO_DATA",
+        "false" if runtime_env == "production" else "true",
+    ).strip().lower() in {"1", "true", "yes", "on"}
 
     ROOT_DIR = Path(__file__).resolve().parent
     DATA_DIR = ROOT_DIR / "data"
@@ -217,8 +247,15 @@ def configure() -> None:
     _smtp_port = SMTP_PORT
     _smtp_from_email = SMTP_FROM_EMAIL
 
+    if runtime_env == "production":
+        smtp_values = (SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL)
+        if any(not value or value.upper().startswith("REPLACE_WITH_") for value in smtp_values):
+            raise RuntimeError("Complete BACKEND_SMTP_* configuration is required in production")
+
     ALLOW_DEBUG_VERIFY_CODE = os.environ.get("BACKEND_ALLOW_DEBUG_VERIFY_CODE", "").strip().lower() in {"1", "true", "yes", "on"}
     INCLUDE_DEBUG_CODE_IN_RESPONSE = os.environ.get("BACKEND_INCLUDE_DEBUG_CODE", "").strip().lower() in {"1", "true", "yes", "on"}
+    if runtime_env == "production" and (ALLOW_DEBUG_VERIFY_CODE or INCLUDE_DEBUG_CODE_IN_RESPONSE):
+        raise RuntimeError("Verification debug flags must be disabled in production")
 
 # Expose runtime state via module-level names for convenient access
 # (these are set by configure())
@@ -402,7 +439,7 @@ __all__ = [
     "configure", "smtp_configured", "verify_code_debug_enabled",
     "ALLOW_DEBUG_VERIFY_CODE", "INCLUDE_DEBUG_CODE_IN_RESPONSE",
     "DEFAULT_CHANNELS", "DEFAULT_TAGS", "DEFAULT_SETTINGS",
-    "DEFAULT_SENSITIVE_WORDS", "SEED_POSTS",
+    "DEFAULT_SENSITIVE_WORDS", "SEED_POSTS", "SEED_DEMO_DATA",
     "DEMO_USER_ID", "DEMO_USER_EMAIL", "DEMO_USER_PASSWORD",
     "PASSWORD_HASH_SCHEME", "PASSWORD_HASH_ITERATIONS", "PASSWORD_SALT_BYTES",
     "ADMIN_USERNAME_SETTING_KEY", "ADMIN_PASSWORD_HASH_SETTING_KEY",

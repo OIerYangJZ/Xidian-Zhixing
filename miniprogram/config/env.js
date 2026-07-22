@@ -28,7 +28,7 @@ const CONFIG = {
   },
   prod: {
     name: 'prod',
-    baseUrl: 'https://radio.xidian.edu.cn',
+    baseUrl: LOCAL_CONFIG.prodBaseUrl,
   }
 };
 
@@ -96,7 +96,11 @@ const resolveConfig = () => {
     throw new Error(`未知小程序环境：${ENV}`);
   }
   if (!config.baseUrl) {
-    throw new Error('小程序本地后端地址未配置：请先运行 start_backend.bat 生成 miniprogram/config/env.local.js');
+    throw new Error(
+      ENV === 'prod'
+        ? '小程序生产 API 地址未配置：请在 env.local.js 中设置 prodBaseUrl'
+        : '小程序本地后端地址未配置：请先运行 start_backend.bat 生成 miniprogram/config/env.local.js'
+    );
   }
   return config;
 };
