@@ -1,125 +1,47 @@
-import { fetchAiModels, getAiConfig, saveAiConfig } from '../../../api/ai';
+import { fetchAiModels, getAiConfig } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   data: {
-    form: {
-      apiKey: '',
-      baseUrl: '',
-      model: '',
-      knowledgeBase: '',
-      includePosts: true
-    },
+    configured: false,
+    model: '',
     models: [],
-    modelIndex: -1,
-    loadingModels: false,
-    saving: false
+    modelsText: '',
+    loading: false,
+    statusText: '正在读取服务器 AI 状态'
   },
 
   onShow() {
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
-    applyThemeAndLanguage(this);
-    this.loadConfig();
+    this.refresh();
   },
 
-  loadConfig() {
-    const config = getAiConfig();
-    const models = Array.isArray(config.models) ? config.models : [];
-    const modelIndex = models.findIndex((item) => item === config.model);
+  async refresh() {
+    const cached = getAiConfig();
     this.setData({
-      form: {
-        apiKey: config.apiKey || '',
-        baseUrl: config.baseUrl || '',
-        model: config.model || '',
-        knowledgeBase: config.knowledgeBase || '',
-        includePosts: config.includePosts !== false
-      },
-      models,
-      modelIndex: modelIndex < 0 ? 0 : modelIndex
-    }, () => {
-      if (config.apiKey && config.baseUrl && models.length === 0) {
-        this.loadModels();
-      }
+      configured: Boolean(cached.configured),
+      model: cached.model || '',
+      models: cached.models || [],
+      modelsText: (cached.models || []).join('、'),
+      statusText: cached.configured ? '服务器 AI 已启用' : '服务器 AI 尚未配置'
     });
-  },
-
-  onInput(event) {
-    const key = event.currentTarget.dataset.key;
-    if (!key) return;
-    this.setData({ [`form.${key}`]: event.detail.value });
-  },
-
-  onIncludePostsChange(event) {
-    this.setData({ 'form.includePosts': Boolean(event.detail.value) });
-  },
-
-  async loadModels() {
-    const apiKey = this.data.form.apiKey.trim();
-    const baseUrl = this.data.form.baseUrl.trim();
-    if (!apiKey || !baseUrl) {
-      wx.showToast({ title: '请先填写 Key 和 URL', icon: 'none' });
-      return;
-    }
-    if (this.data.loadingModels) return;
-
-    this.setData({ loadingModels: true });
-    wx.showLoading({ title: '拉取模型中' });
+    if (this.data.loading) return;
+    this.setData({ loading: true });
     try {
-      const models = await fetchAiModels({ apiKey, baseUrl });
-      const model = models.includes(this.data.form.model)
-        ? this.data.form.model
-        : (models[0] || '');
-      saveAiConfig({
-        ...this.data.form,
-        apiKey,
-        baseUrl,
-        model,
-        models
-      });
+      const status = await fetchAiModels();
       this.setData({
-        models,
-        modelIndex: Math.max(0, models.findIndex((item) => item === model)),
-        'form.model': model
+        configured: Boolean(status.configured),
+        model: status.model || '',
+        models: status.models || [],
+        modelsText: (status.models || []).join('、'),
+        statusText: status.configured ? '服务器 AI 已启用' : '服务器 AI 尚未配置'
       });
-      wx.hideLoading();
-      wx.showToast({ title: models.length ? '已更新模型' : '未找到模型', icon: 'none' });
     } catch (error) {
-      wx.hideLoading();
-      wx.showToast({ title: '拉取失败', icon: 'none' });
+      this.setData({ configured: false, statusText: '无法读取服务器 AI 状态' });
     } finally {
-      this.setData({ loadingModels: false });
+      this.setData({ loading: false });
     }
-  },
-
-  onModelChange(event) {
-    const index = Number(event.detail.value);
-    const model = this.data.models[index] || '';
-    this.setData({
-      modelIndex: index,
-      'form.model': model
-    });
-  },
-
-  saveConfig() {
-    if (this.data.saving) return;
-    const apiKey = this.data.form.apiKey.trim();
-    const baseUrl = this.data.form.baseUrl.trim();
-    const model = this.data.form.model.trim();
-    if (!apiKey || !baseUrl || !model) {
-      wx.showToast({ title: '请补全 Key、URL 和模型', icon: 'none' });
-      return;
-    }
-    this.setData({ saving: true });
-    saveAiConfig({
-      ...this.data.form,
-      apiKey,
-      baseUrl,
-      model,
-      models: this.data.models
-    });
-    wx.showToast({ title: '已保存', icon: 'success' });
-    this.setData({ saving: false });
   }
 });

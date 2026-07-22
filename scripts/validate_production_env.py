@@ -8,6 +8,7 @@ from pathlib import Path
 
 PLACEHOLDER_MARKERS = (
     "REPLACE_WITH_",
+    "REPLACE-WITH-",
     "CHANGE_ME",
     "CHANGEME",
     "YOUR_",
@@ -99,6 +100,14 @@ def validate(values: dict[str, str]) -> list[str]:
     public_origin = values.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip()
     if public_origin and not public_origin.startswith("https://"):
         errors.append("BACKEND_XIDIAN_PUBLIC_ORIGIN must use HTTPS when configured")
+
+    ai_base_url = values.get("BACKEND_AI_BASE_URL", "").strip()
+    ai_api_key = values.get("BACKEND_AI_API_KEY", "").strip()
+    if ai_base_url or ai_api_key:
+        if not ai_base_url.startswith("https://"):
+            errors.append("BACKEND_AI_BASE_URL must use HTTPS when AI is enabled")
+        require("BACKEND_AI_API_KEY")
+        require("BACKEND_AI_MODEL")
     return errors
 
 

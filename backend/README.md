@@ -24,6 +24,10 @@ python3 backend/server.py
 - `BACKEND_HOST`（默认 `0.0.0.0`）
 - `BACKEND_PORT`（默认 `8080`）
 - `BACKEND_XIDIAN_PUBLIC_ORIGIN`（可选，仅在启用统一认证回调桥接时填写；普通学生邮箱登录可留空）
+- `BACKEND_AI_BASE_URL`（服务器端 OpenAI 兼容接口地址；不得下发到客户端）
+- `BACKEND_AI_API_KEY`（服务器端模型密钥；不得写入小程序、Flutter 或请求体）
+- `BACKEND_AI_MODEL`（默认 `gpt-4o-mini`）
+- `BACKEND_AI_EMBEDDING_MODEL`（可选，预留给服务端语义向量模型）
 - `BACKEND_DB_FILE`（默认 `backend/data/treehole.db`）
 - `BACKEND_STORAGE_DIR`（默认 `backend/storage/objects`）
 - `BACKEND_WEB_ROOT`（默认 `<项目根目录>/build/web`，用于托管前端静态文件）
@@ -41,6 +45,23 @@ python3 backend/server.py
 - `BACKEND_SMTP_USE_STARTTLS`（默认 `false`，QQ 推荐 `false`）
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE`（默认 `false`，设置为 `true` 后允许 `123456` 调试码）
 - `BACKEND_INCLUDE_DEBUG_CODE`（默认 `false`，设置为 `true` 后接口响应会返回 `debugCode`）
+
+## 私有校园 RAG
+
+校园知识库和审核通过的公开帖子共用服务器端索引。关键词检索使用持久化倒排索引和 BM25 风格排序，回答返回来源 URL、来源类型、时间和可跳转引用。帖子删除、转私密、编辑或撤销审核后，索引签名会在下一次检索时自动更新。
+
+管理员可通过小程序管理端的“系统 → 知识库”录入、查看、改名、删除资料并重建索引。用户端只读取服务器 AI 状态，不保存 API Key、模型地址或知识库文本。
+
+采集西电官方公开资料：
+
+```bash
+pip install -r backend/requirements-rag.txt
+BACKEND_ADMIN_PASSWORD='<本地维护密码>' \
+python scripts/crawl_xidian_rag.py --max-pages 1200 --workers 12 --timeout 12
+```
+
+采集报告保存于 `backend/data/xidian_crawl_report.json`，包含成功页面数、失败页面数、文档数、切片数、索引数量和失败 URL 明细。采集范围限制为 `*.xidian.edu.cn`，支持 HTML 与可提取文本的 PDF。
+`requirements-rag.txt` 中的 `pypdf` 只用于离线采集 PDF；在线 RAG 检索本身使用 Python 标准库，不需要在生产 API venv 中安装 `pypdf`。
 
 当 `BACKEND_OBJECT_STORAGE_BACKEND=s3`（或 `oss` / `s3_compat`）时，额外支持：
 
@@ -350,7 +371,7 @@ python3 backend/migrate_json_to_sql.py \
 
 - 生产环境强制设置管理员凭据，禁止演示数据和调试验证码。
 - 邮件服务未配置时验证码接口明确返回不可用，不再隐式使用固定验证码。
-- AI 模型列表改为仅接受 POST 请求体，API Key 不再支持放入 URL 查询参数。
+- AI Provider 配置改为仅由服务器环境变量持有；客户端通过 GET 读取可用状态，不再提交 API Key 或模型地址。
 - 修复 Flutter Web 构建、release 白名单打包及 Ubuntu 22.04 x86-64 离线部署流程。
 - 生产 Web 默认同源 `/api`；移动端和小程序必须显式注入正式 HTTPS API 地址。
 

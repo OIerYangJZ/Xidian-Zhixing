@@ -35,3 +35,11 @@ services:
         value: "false"
       - key: BACKEND_SEED_DEMO_DATA
         value: "false"
+      - key: BACKEND_AI_BASE_URL
+        sync: false
+      - key: BACKEND_AI_API_KEY
+        sync: false
+      - key: BACKEND_AI_MODEL
+        value: gpt-4o-mini
+      - key: BACKEND_AI_EMBEDDING_MODEL
+        sync: false

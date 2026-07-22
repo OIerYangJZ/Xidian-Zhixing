@@ -198,10 +198,33 @@
       <view wx:if="{{systemType === 'knowledge'}}" class="admin-card form-card">
         <view class="form-label">名称</view>
         <input class="form-input" value="{{knowledgeForm.name}}" data-key="name" bindinput="onKnowledgeInput" />
+        <view class="form-label">来源 URL</view>
+        <input class="form-input" value="{{knowledgeForm.sourceUrl}}" data-key="sourceUrl" bindinput="onKnowledgeInput" />
         <view class="form-label">内容</view>
         <textarea class="form-textarea large" value="{{knowledgeForm.content}}" data-key="content" bindinput="onKnowledgeInput" maxlength="-1"></textarea>
         <button class="full-button" bindtap="saveKnowledgeSource">保存知识</button>
         <button class="full-button secondary" bindtap="reindexKnowledge">重建索引</button>
+      </view>
+      <view wx:if="{{systemType === 'knowledge'}}" class="admin-card">
+        <view class="section-head">
+          <view class="section-title">现有来源</view>
+          <view class="card-meta">知识 {{knowledgeIndex.knowledgeCount || 0}} · 帖子 {{knowledgeIndex.postCount || 0}}</view>
+        </view>
+        <view wx:if="{{loading}}" class="empty compact">加载中...</view>
+        <view wx:elif="{{!knowledgeSources.length}}" class="empty compact">暂无知识来源</view>
+        <view wx:else>
+          <view wx:for="{{knowledgeSources}}" wx:key="id" class="knowledge-source-row">
+            <view class="card-head">
+              <view class="card-title knowledge-source-title">{{item.name}}</view>
+              <view class="status-pill">{{item.authority || item.sourceType}}</view>
+            </view>
+            <view class="card-meta">文档 {{item.documentCount}} · 切片 {{item.chunkCount}} · {{item.sourceUrl}}</view>
+            <view class="action-row">
+              <button class="action-button" data-id="{{item.id}}" bindtap="editKnowledgeSource">改名</button>
+              <button class="action-button danger" data-id="{{item.id}}" bindtap="removeKnowledgeSource">删除</button>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
   </view>

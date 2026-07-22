@@ -19,9 +19,11 @@ SAFE_ARCHIVE_VERSION="$(printf '%s' "$ARCHIVE_VERSION" | tr -c 'A-Za-z0-9._+-' '
 ARCHIVE_PATH="$DIST_DIR/treehole-${SAFE_ARCHIVE_VERSION}.tar.gz"
 WEB_DIR="$ROOT_DIR/build/web"
 
-if [ "${FORCE_BUILD:-0}" = "1" ] || [ ! -f "$WEB_DIR/index.html" ]; then
-  echo "[package] building Flutter Web first"
+if [ "${SKIP_WEB_BUILD:-0}" != "1" ]; then
+  echo "[package] rebuilding Flutter Web for this release"
   FLUTTER_BIN="$FLUTTER_BIN" bash "$SCRIPT_DIR/build_web_production.sh"
+else
+  echo "[package] SKIP_WEB_BUILD=1: using the existing explicitly prebuilt Web directory"
 fi
 
 if [ ! -f "$WEB_DIR/index.html" ] || [ ! -f "$WEB_DIR/main.dart.js" ]; then
@@ -40,7 +42,7 @@ install -d \
   "$STAGING_DIR/scripts" \
   "$STAGING_DIR/release-meta"
 
-for file in server.py _globals.py object_storage.py sql_repository.py requirements-storage.txt; do
+for file in server.py _globals.py object_storage.py rag_service.py sql_repository.py requirements-storage.txt; do
   install -m 0644 "$ROOT_DIR/backend/$file" "$STAGING_DIR/backend/$file"
 done
 

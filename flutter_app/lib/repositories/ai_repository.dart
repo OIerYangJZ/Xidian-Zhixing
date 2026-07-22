@@ -8,47 +8,46 @@ class AiRepository {
 
   Future<AiChatResponse> sendMessage({
     required String content,
-    required String apiKey,
-    required String baseUrl,
-    required String model,
-    required String knowledgeBase,
-    required bool includePosts,
     required List<AiMessage> messages,
   }) async {
     final dynamic response = await _apiClient.post(
       '/ai/chat',
       body: <String, dynamic>{
         'content': content,
-        'apiKey': apiKey,
-        'baseUrl': baseUrl,
-        'model': model,
-        'knowledgeBase': knowledgeBase,
-        'includePosts': includePosts,
         'messages': messages
-            .map((AiMessage item) => <String, String>{
-                  'role': item.role,
-                  'content': item.content,
-                })
+            .map(
+              (AiMessage item) => <String, String>{
+                'role': item.role,
+                'content': item.content,
+              },
+            )
             .toList(),
       },
     );
     return AiChatResponse.fromJson(extractMap(response));
   }
 
-  Future<List<String>> fetchModels({
-    required String apiKey,
-    required String baseUrl,
-  }) async {
-    final dynamic response = await _apiClient.post(
-      '/ai/models',
-      body: <String, dynamic>{'apiKey': apiKey, 'baseUrl': baseUrl},
-    );
+  Future<AiServerStatus> fetchStatus() async {
+    final dynamic response = await _apiClient.get('/ai/models');
     final Map<String, dynamic> map = extractMap(response);
-    return asList(map['models'])
+    final List<String> models = asList(map['models'])
         .map((dynamic item) => item.toString().trim())
         .where((String item) => item.isNotEmpty)
         .toList();
+    return AiServerStatus(
+      model: readString(map, <String>['currentModel']) ?? '',
+      models: models,
+    );
   }
+}
+
+class AiServerStatus {
+  const AiServerStatus({required this.model, required this.models});
+
+  final String model;
+  final List<String> models;
+
+  bool get configured => model.trim().isNotEmpty;
 }
 
 class AiMessage {
@@ -64,27 +63,22 @@ class AiMessage {
 }
 
 class AiReference {
-  const AiReference({
-    required this.type,
-    required this.title,
-  });
+  const AiReference({required this.type, required this.title});
 
   final String type;
   final String title;
 
   factory AiReference.fromJson(Map<String, dynamic> json) {
     return AiReference(
-      type: readString(json, <String>['type', 'targetType', 'sourceType']) ?? '',
+      type:
+          readString(json, <String>['type', 'targetType', 'sourceType']) ?? '',
       title: readString(json, <String>['title']) ?? '',
     );
   }
 }
 
 class AiChatResponse {
-  const AiChatResponse({
-    required this.answer,
-    required this.references,
-  });
+  const AiChatResponse({required this.answer, required this.references});
 
   final String answer;
   final List<AiReference> references;

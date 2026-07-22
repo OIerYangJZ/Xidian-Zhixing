@@ -320,6 +320,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         if _static_handler.handle_storage_get(self, path):
             return
 
+        if path == "/api/ai/models":
+            with DB_LOCK:
+                db = load_db()
+            _ai_handler.handle_ai_models(self, db)
+            return
+
         with DB_LOCK:
             db = load_db()
 
@@ -553,6 +559,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/config":
                 _admin_handler.handle_admin_config(self, db)
                 return
+            if path == "/api/admin/ai/knowledge-sources":
+                _radio_handler.handle_admin_list_knowledge_sources(self, db)
+                return
             if path == "/api/admin/releases/android":
                 _admin_handler.handle_admin_android_release(self, db)
                 return
@@ -680,12 +689,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 body.get("phone", ""),
                 body.get("smsCode", ""),
             ))
-            return
-
-        if path == "/api/ai/models":
-            with DB_LOCK:
-                db = load_db()
-            _ai_handler.handle_ai_models(self, db)
             return
 
         if path == "/api/ai/chat":
@@ -1063,6 +1066,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_update_section(self, db, match_section.group(1))
                 return
 
+            match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
+            if match_knowledge_source:
+                _radio_handler.handle_admin_update_knowledge_source(self, db, match_knowledge_source.group(1))
+                return
+
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_delete(self, path: str) -> None:
@@ -1119,6 +1127,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_del_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
             if match_del_tag:
                 _admin_handler.handle_admin_delete_tag(self, db, unquote(match_del_tag.group(1)))
+                return
+
+            match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
+            if match_knowledge_source:
+                _radio_handler.handle_admin_delete_knowledge_source(self, db, match_knowledge_source.group(1))
                 return
 
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")

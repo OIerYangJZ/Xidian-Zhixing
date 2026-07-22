@@ -20,7 +20,7 @@ RUN python3 -m pip install --no-cache-dir -r /tmp/requirements-storage.txt \
     && groupadd --system treehole \
     && useradd --system --gid treehole --home-dir /app --shell /usr/sbin/nologin treehole
 
-COPY --chown=treehole:treehole backend/server.py backend/_globals.py backend/object_storage.py backend/sql_repository.py /app/backend/
+COPY --chown=treehole:treehole backend/server.py backend/_globals.py backend/object_storage.py backend/rag_service.py backend/sql_repository.py /app/backend/
 COPY --chown=treehole:treehole backend/handlers/ /app/backend/handlers/
 COPY --chown=treehole:treehole backend/helpers/ /app/backend/helpers/
 COPY --chown=treehole:treehole backend/services/ /app/backend/services/

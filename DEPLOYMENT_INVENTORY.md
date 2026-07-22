@@ -1,6 +1,6 @@
 # SeeRadio 校园树洞部署清单、修复结果与离线部署规划
 
-审计与修复日期：2026-07-17
+初始审计与修复日期：2026-07-17；私有校园 RAG 整合复核：2026-07-22
 
 目标环境：Ubuntu 22.04 x86-64，4 vCPU，8 GB 内存，100 GB 磁盘
 
@@ -14,6 +14,7 @@
 - 服务器实际只需运行 Python 后端和 Nginx，并持久化 SQLite 与对象文件；App 和小程序不在服务器运行。
 - Flutter Web 是纯静态构建，不需要 Node.js 服务端。仓库没有 `package.json` 或 Node 锁文件。
 - 推荐使用 `systemd + Nginx + Python 3.10 venv`。Docker 仅作为可选方案，离线服务器不得现场构建或拉取镜像。
+- 已整合私有校园 RAG：服务端保存 AI Provider 配置，SQLite 持久化校园知识、倒排索引、抓取记录和检索日志；Flutter 与小程序不再持有 AI API Key。
 - 生产域名、DNS、TLS 证书和真实凭据仍待外部信息；其余已确认的构建、打包、离线依赖、路径、配置和安全默认值问题已修复。
 
 | 原问题 | 当前状态 |
@@ -25,10 +26,12 @@
 | 部署配置固定旧域名和 `/opt/xdu-whisperbox` | 已修复；运行路径统一为 `/home/ubuntu/treehole`，HTTP 配置不猜测域名 |
 | systemd `ProtectHome=true` 阻断目标目录 | 已修复为 `ProtectHome=read-only`，只开放 shared 数据和对象目录写入 |
 | 默认管理员密码、生产演示数据、无 SMTP 时固定验证码 | 已修复；生产启动强校验，禁止调试标志和演示数据，缺少 SMTP 时验证码接口返回不可用 |
-| API Key 可放在 URL 查询参数 | 已修复；AI 模型查询只接受 POST 请求体 |
+| API Key 曾由客户端提交 | 已修复；AI Provider 地址、Key 和模型只从服务器环境变量读取，客户端仅通过 GET 查询可用状态 |
 | Web/App/小程序硬编码旧生产地址 | 已修复；Web 使用同源 `/api`，App 构建和小程序本地配置必须显式注入正式 HTTPS 地址 |
 | 数据导入/迁移异常被静默忽略 | 已修复；现在记录错误并中止，不再以不完整数据继续启动 |
 | 离线依赖和安装流程缺失 | 已修复；新增目标架构 wheels/deb 准备、校验、安装、环境校验和回滚脚本 |
+| RAG 整合后 Docker/release 未包含 `rag_service.py` | 已修复；Dockerfile 和 release 运行时白名单均显式包含该模块 |
+| 旧 Web 产物可能被 release 重用 | 已修复；正式打包默认先重建 Flutter Web，只有显式 `SKIP_WEB_BUILD=1` 才使用外部已验证预构建目录 |
 
 ## 1. 项目架构图
 
@@ -42,7 +45,7 @@ flowchart LR
     B["Python ThreadingHTTPServer\n127.0.0.1:8080"]
     D["SQLite treehole.db"]
     O["本地对象存储 objects/"]
-    X["可选外部服务\nSMTP / 校园服务 / AI / S3"]
+    X["可选外部服务\nSMTP / 校园服务 / 服务端 AI Provider / S3"]
 
     W -->|HTTPS| N
     A -->|HTTPS /api| N
@@ -80,7 +83,7 @@ flowchart LR
 | `backend/helpers/` | 后端共享库 | HTTP、认证、邮件、限流、校园服务适配 | 是 |
 | `backend/services/` | 后端共享库 | 业务和数据库状态服务 | 是 |
 | `backend/sql/` | 数据库工具 | 历史 JSON 到 MySQL/PostgreSQL 的非完整迁移 schema | 否 |
-| `backend/data/` | 本地用户数据 | SQLite、WAL、SHM | 禁止随 release 上传；服务器单独建立 shared 数据目录 |
+| `backend/data/` | 本地数据和工具输出 | SQLite、WAL、SHM；跟踪的 `xidian_crawl_report.json` 为采集报告 | 整个目录禁止随 release 上传；服务器单独建立 shared 数据目录 |
 | `backend/storage/` | 本地对象数据 | 上传对象 | 禁止随 release 上传；服务器单独建立 shared 对象目录 |
 | `backend/tests/` | 测试 | pytest 测试 | 否 |
 | `deploy/production/` | 部署配置 | 环境模板、容器 Nginx、HTTPS 模板、缓存片段 | 选定文件需要 |
@@ -100,12 +103,12 @@ flowchart LR
 
 | 组件 | 技术栈 | 包管理器/锁文件 | 启动命令 | 构建命令 | 输出 |
 |---|---|---|---|---|---|
-| 共用后端 | Python 3，`ThreadingHTTPServer`，SQLite | pip；`requirements-storage.txt`、`requirements-test.txt`；外部 DB 工具另用 `requirements-db.txt` | 显式设置管理员密码后运行 `python3 backend/server.py`；生产由 systemd 启动 | 无编译 | Python 源码；运行时创建 DB/对象目录 |
+| 共用后端 | Python 3，`ThreadingHTTPServer`，SQLite；标准库实现 BM25 风格私有 RAG | pip；在线运行用 `requirements-storage.txt`，采集 PDF 工具用 `requirements-rag.txt`，测试用 `requirements-test.txt`；外部 DB 工具另用 `requirements-db.txt` | 显式设置管理员密码后运行 `python3 backend/server.py`；生产由 systemd 启动 | 在线服务无编译；校园抓取是单独维护任务 | Python 源码；运行时创建 DB/对象目录及 RAG 状态 |
 | Flutter Web | Flutter/Dart | Flutter pub，`pubspec.yaml`、`pubspec.lock` | `cd flutter_app && flutter run -d chrome` | `FLUTTER_BIN=/path/to/flutter bash scripts/build_web_production.sh` | 根目录 `build/web/`；Flutter 原始输出 `flutter_app/build/web/` |
 | Android App | Flutter、Gradle 8.14、AGP 8.11.1、Kotlin 2.2.20、JDK 17 | Flutter pub + Gradle | `cd flutter_app && flutter run` | `flutter build apk --release --dart-define=MOBILE_API_BASE_URL=https://<域名>/api` | `flutter_app/build/app/outputs/` |
 | iOS App | Flutter、Xcode、CocoaPods | Flutter pub + CocoaPods | `cd flutter_app && flutter run` | `flutter build ipa --release --dart-define=MOBILE_API_BASE_URL=https://<域名>/api` | `flutter_app/build/ios/` 及 Xcode 归档 |
 | 微信小程序 | 原生 JS/WXML/WXSS/JSON | 无 npm/yarn/pnpm 清单 | 微信开发者工具导入 `miniprogram/` | 微信开发者工具预览/上传 | 微信平台管理，无服务器产物 |
-| 数据库 | SQLite 在线 Repository | Python 标准库 `sqlite3` | 随后端启动 | 启动时 `CREATE TABLE IF NOT EXISTS` 和补列 | `BACKEND_DB_FILE` 指定文件 |
+| 数据库 | SQLite 在线 Repository；RAG 索引和日志保存在 radio state | Python 标准库 `sqlite3` | 随后端启动 | 启动时建表/补列，并初始化知识库、`ragIndex`、抓取与检索日志键 | `BACKEND_DB_FILE` 指定文件 |
 | 发布 | Bash、Python 校验器、Nginx、systemd | 无额外包管理器 | systemd/Nginx | `bash scripts/package_release.sh` | `dist/treehole-<version>.tar.gz` |
 
 Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件的纯静态站点；服务器不需要 Node.js、Flutter SDK 或 Dart SDK。
@@ -125,6 +128,8 @@ Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件
 | 生产 env 模板 | `deploy/tencent/backend.env.example`、`deploy/production/.env.example` | 均为占位模板，不含真实凭据 |
 | 兼容 env 文件 | `deploy/tencent/xdu-whisperbox.env` | 仅保留兼容模板并明确禁止填真实秘密；release 白名单不包含它 |
 | SQLite schema 演进 | `backend/sql_repository.py` | 当前在线服务唯一有效 schema 和补列逻辑 |
+| RAG 在线模块 | `backend/rag_service.py` | Python 标准库倒排索引和 BM25 风格检索；属于 API 必需运行时文件 |
+| RAG 采集工具 | `scripts/crawl_xidian_rag.py`、`backend/requirements-rag.txt` | 联网维护工具；`pypdf` 只用于采集 PDF，不是在线 API 依赖 |
 | 历史外部 DB schema | `backend/sql/schema_mysql.sql`、`schema_postgresql.sql` | 只供历史 JSON 迁移评估，不覆盖当前完整在线模型，不进入 release |
 | 历史迁移脚本 | `backend/migrate_json_to_sql.py` | JSON 到 MySQL/PostgreSQL；不是在线后端切换方案 |
 | Render | `render.yaml` | 公网云平台草案；不用于本次离线 Ubuntu 部署 |
@@ -139,6 +144,7 @@ Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件
 4. 本地对象持久化目录：`shared/storage/objects/`；若明确改用 S3/OSS，则改为相应凭据和网络策略。
 5. 受保护环境文件：`shared/config/backend.env`，权限 `0640 root:treehole`。
 6. 离线 Python venv：`shared/venv/`，必须在目标 Linux 上从目标 wheels 创建。
+7. RAG 在线模块和 SQLite 中的知识/RAG 状态。启用生成式回答时，还需服务器持有 `BACKEND_AI_BASE_URL`、`BACKEND_AI_API_KEY`、`BACKEND_AI_MODEL` 并能访问该 HTTPS Provider；全部留空时 AI 接口明确不可用，但其他业务可启动。
 
 ### 5.2 推荐目录结构
 
@@ -174,7 +180,7 @@ Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件
 
 | 内容 | 目标/用途 |
 |---|---|
-| `dist/treehole-<version>.tar.gz` | 后端运行源码、Web 静态产物、部署模板和受控运维脚本 |
+| `dist/treehole-<version>.tar.gz` | 后端运行源码（含 `rag_service.py`）、Web 静态产物、部署模板和受控运维脚本 |
 | `offline/wheels-cp310-manylinux-x86_64/` 及 `SHA256SUMS` | Python 3.10 Linux x86-64 离线安装 |
 | `offline/ubuntu2204-amd64-debs/` 及 `SHA256SUMS` | 缺失系统包的离线安装；需与目标 Ubuntu 22.04 包状态匹配 |
 | `scripts/install_offline_debs.sh` | 在目标机校验并安装 deb |
@@ -188,6 +194,7 @@ Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件
 - `.git/`、`.venv/`、`.pytest_cache/`、IDE 文件、`.DS_Store`、项目内部说明。
 - `backend/tests/`、`backend/requirements-test.txt`、`flutter_app/test/`。
 - `backend/data/`、`backend/storage/`、任何 `*.db`、`*.db-wal`、`*.db-shm`。
+- `backend/data/xidian_crawl_report.json` 是联网采集报告和失败 URL 明细，不是在线运行时输入，也不得随 release 上传。
 - 所有 `__pycache__/`、`*.pyc`、Flutter `.dart_tool/`、Gradle/CocoaPods 缓存。
 - `flutter_app/`、`miniprogram/` 源码；服务器只需已经构建的 `web/`。
 - `miniprogram/config/env.local.js`、`project.private.config.json`。
@@ -216,6 +223,7 @@ release 脚本目前只复制后端运行时白名单、`web/`、选定部署配
 - Ubuntu 22.04 amd64 的 deb 和全部传递依赖。
 - 如选 Docker，完整镜像必须在联网环境构建为 `linux/amd64`，再 `docker save`/SFTP/`docker load`。
 - 没有 manylinux wheel 的 Python 包必须在兼容 Ubuntu 22.04 x86-64 构建机编译 wheel。
+- `pypdf` 是纯 Python 的联网采集工具依赖；只有在独立采集环境需要解析 PDF 时才准备，不进入生产 API venv。
 
 不能从 macOS ARM 复制到服务器：`.venv/`、Pillow/psycopg 等本机 wheel 或已安装扩展、`*.dylib`、macOS 可执行文件、CPython 3.14 字节码、Flutter/Gradle/CocoaPods 缓存，以及未指定 `linux/amd64` 的本地 Docker 镜像。
 
@@ -230,7 +238,7 @@ release 脚本目前只复制后端运行时白名单、`web/`、选定部署配
 | 数据库密码 | 未发现实际密码 | 当前在线服务为 SQLite；README 和模板中的外部 DB 连接仅是示例 |
 | JWT 密钥 | 未发现 | 当前认证使用数据库 session token，不使用 JWT；因此 SQLite 备份本身包含会话敏感性 |
 | 微信 AppSecret | 未发现 | `miniprogram/project.config.json` 仅有公开 AppID；未发现 AppSecret |
-| 第三方 API Key | 未发现仓库内实际 Key；存在用户端保存/后端转发能力 | `flutter_app/lib/features/ai/ai_page.dart`、`miniprogram/api/ai.js`、`backend/handlers/_ai_handler.py`；已禁止 Key 放 URL，仍必须全程 HTTPS 且不得记录请求体 |
+| 第三方 API Key | 未发现仓库内实际 Key；已改为服务器持有 | `backend/_globals.py`、`backend/handlers/_ai_handler.py` 和 env 模板定义服务端配置；Flutter 与小程序只保存模型可用状态，不再接收、保存或上传 Key。生产校验拒绝明文占位值并要求 Provider 使用 HTTPS |
 | App 签名证书 | 未发现实际证书 | `flutter_app/android/key.properties.example` 是模板，`android/keystore/` 仅有 `.gitkeep`；未发现 JKS、keystore、p12、provisioning profile |
 | 私钥 | 未发现 | 未发现 PEM 私钥头或私钥文件；TLS 私钥必须独立放服务器证书目录 |
 | 云存储凭据 | 未发现实际凭据 | `deploy/production/.env.example` 和 `backend/object_storage.py` 只有配置入口 |
@@ -242,7 +250,9 @@ release 脚本目前只复制后端运行时白名单、`web/`、选定部署配
 | 日志 | 当前未发现应用日志进入 release | Git 历史曾有后端日志路径；公开历史前应单独做 Git 历史秘密扫描 |
 | 缓存/构建残留 | 本机存在但已忽略且 release 排除 | Python `__pycache__`、Flutter `.dart_tool/`/`build/`、`.pytest_cache/`、`dist/` |
 | 调试验证码 | 生产已封闭 | `backend/_globals.py` 和 `_auth_handler.py`：生产拒绝调试开关；无 SMTP 且未显式开发调试时返回 503 |
-| 演示数据 | 生产已封闭 | `backend/services/_db_service.py`：生产 `BACKEND_SEED_DEMO_DATA=false` 时新库为空 |
+| 演示数据 | 生产已封闭 | `backend/services/_db_service.py`：生产 `BACKEND_SEED_DEMO_DATA=false` 时不创建演示用户、帖子、评论、私信或会话；RAG 所需的精选校园知识结构仍会初始化 |
+| RAG 采集报告 | 存在跟踪文件，但不含 API Key | `backend/data/xidian_crawl_report.json` 含抓取统计、成功/失败 URL 和错误信息；按工具输出处理并由 release 白名单排除 |
+| AI/RAG 查询日志 | 已最小化 | `backend/handlers/_ai_handler.py` 只保存查询长度、检索来源键、开关和时间，不保存原始问题文本或用户 ID；这些元数据仍位于 SQLite 备份范围内 |
 
 当前 SQLite 使用过 WAL 文件。若未来决定迁移本地数据，不能在后端写入期间只复制主 `.db`；应停止写入后 checkpoint/backup，或使用 SQLite 在线备份 API 获取一致快照。
 
@@ -252,7 +262,8 @@ release 脚本目前只复制后端运行时白名单、`web/`、选定部署配
 
 - Ubuntu 22.04 默认目标 Python 应为 CPython 3.10；本地验证环境为 macOS ARM/CPython 3.14，不能复制其 venv。
 - `requirements-storage.txt` 包含 `requests`、Pillow、`boto3`。Pillow 有平台原生扩展；其余依赖也应统一从目标 wheel 包安装，避免混用平台文件。
-- 服务器无法访问公网时，SMTP、校园认证/校园服务、用户自定义 AI 服务、S3/OSS 同样不可用，除非服务器有相应内网路由或精确出站白名单。离线安装成功不代表这些业务上游可达。
+- 在线 RAG 检索本身只用 Python 标准库；`requirements-rag.txt` 的 `pypdf` 只用于联网采集 PDF。
+- 服务器无法访问公网时，SMTP、校园认证/校园服务、服务端 AI Provider、S3/OSS 同样不可用，除非服务器有相应内网路由或精确出站白名单。离线安装成功不代表这些业务上游可达；没有 AI 出站访问时仍可检索索引，但不能生成模型回答。
 - `prepare_offline_debs_ubuntu2204.sh` 必须在联网的 Ubuntu 22.04 amd64 主机运行。目标机若已有部分不同版本包，仍需在上线前用同版本快照做一次隔离环境安装演练。
 
 ### 8.2 推荐部署方式
@@ -275,7 +286,7 @@ Docker 备选方式必须预先 `docker save` 后端 `linux/amd64` 镜像和 Ngi
 
 1. 正式域名、DNS 解析、生效时间、TLS 证书链/私钥路径及续期方式。
 2. 目标服务器现有软件和包版本清单；目前不能确定是否需要完整 deb 集合或仅补少量包。
-3. 服务器对 SMTP、校园服务、AI Provider、S3/OSS 的出站网络策略。服务器完全无公网时，这些功能会不可用。
+3. 服务器对 SMTP、校园服务、服务端 AI Provider、S3/OSS 的出站网络策略。服务器完全无公网时，这些功能会不可用。
 4. 正式 SMTP 服务、发件地址和授权方式。
 5. 对象存储最终选型：本地磁盘还是 S3/OSS；对应容量、生命周期和备份要求。
 6. 当前本地 SQLite 是测试数据还是需迁移的正式数据；本轮没有读取或输出字段值，也没有修改它。
@@ -283,6 +294,8 @@ Docker 备选方式必须预先 `docker save` 后端 `linux/amd64` 镜像和 Ngi
 8. 预计并发、峰值请求、图片增长量和日志保留要求；用于容量与压测标准。
 9. Android/iOS 签名与分发主体、微信小程序合法域名备案和发布主体。
 10. 最终选择原生 systemd 还是离线 Docker；本报告推荐原生 systemd。
+11. 正式 AI Provider、模型、额度和数据合规策略，以及是否允许校园问题/检索片段发送给第三方模型。
+12. 正式 RAG 知识来源：只使用代码内置的精选资料，还是在联网维护环境预抓取；抓取所得知识不得通过混入含用户数据的 SQLite 来部署。
 
 ## 10. 下一阶段具体操作计划
 
@@ -291,8 +304,9 @@ Docker 备选方式必须预先 `docker save` 后端 `linux/amd64` 镜像和 Ngi
 1. 在联网 Ubuntu 22.04 amd64 构建机生成并冻结 wheels/deb 离线包。
 2. 建立同版本断网虚拟机，完整演练安装、环境校验、空库启动、文件上传、重启、回滚与恢复。
 3. 确认本地 SQLite 是否迁移；若迁移，单独制定一致性备份和脱敏验收，不混入 release。
-4. 确认 SMTP、校园服务和对象存储出站地址/端口，形成最小白名单。
+4. 确认 SMTP、校园服务、服务端 AI Provider 和对象存储出站地址/端口，形成最小白名单。
 5. 确定备份策略并验证 SQLite 与对象目录成对恢复。
+6. 在独立联网维护环境验证校园抓取；审查来源、失败 URL、版权和数据质量，再通过明确的数据导入流程交付知识库，不能覆盖生产用户数据库。
 
 ### 域名与证书到位后
 
@@ -301,21 +315,21 @@ Docker 备选方式必须预先 `docker save` 后端 `linux/amd64` 镜像和 Ngi
 3. 从干净 Git 提交重新构建 Web 和 release，记录版本和独立 SHA-256。
 4. 使用正式域名重建 Android/iOS App，并更新小程序被忽略的本地生产配置及微信合法域名。
 5. 在维护窗口执行 SFTP 上传、hash 校验、离线安装；运行 `nginx -t`、systemd 状态和 `/api/health` 检查。
-6. 执行 API、注册邮件、上传、登录、管理端、小程序/App 的端到端验收，再开放公网流量。
+6. 执行 API、注册邮件、上传、登录、RAG 引用、服务端 AI、管理端、小程序/App 的端到端验收，再开放公网流量。
 7. 立即做首次备份与恢复抽查，记录上线版本、配置校验结果和回滚点。
 
-## 11. 本机验证记录
+## 11. 2026-07-22 RAG 整合后的本机验证记录
 
 - `git diff --check`：通过。
 - 所有 Bash 脚本 `bash -n`：通过。
 - 修改的 Python 文件 `py_compile`：通过。
-- 后端 pytest：101 项通过。
+- 后端 pytest：106 项通过，其中包括 5 项 RAG 测试。
 - Flutter `analyze`：无问题。
 - Flutter 测试：87 项通过。
-- Flutter Web production 构建：通过，生成约 32 MB 静态产物。
-- release 白名单打包：通过，生成约 11 MB 本地验证归档；因当前修复尚未提交，验证时显式使用 `ALLOW_DIRTY_RELEASE=1`，正式打包默认拒绝 dirty worktree。
-- release 路径安全、成员类型和 SHA-256 清单验证：通过。
 - 开发 Compose 和离线生产 Compose `docker compose config`：通过。
-- 本机生产配置冒烟测试：`/api/health` 返回健康；新 SQLite 中用户、帖子、评论、会话计数均为 0。
+- 生产环境及可选 AI Provider 配置校验：通过；空 AI 配置可禁用功能，HTTPS Provider + 非占位 Key 可通过，占位 Key 会被拒绝。
+- Flutter Web production 构建：本轮未执行；现有忽略目录中的旧产物早于 RAG 整合，不得用于发布。正式打包脚本现在默认强制重建 Web。
+- release 生成及归档验证：按本轮要求未执行、未生成发布包。
+- 本机生产配置冒烟测试：本轮未重复启动服务；106 项后端测试已覆盖新 RAG 初始化、检索、隐私过滤、索引刷新和服务端 Provider 所有权。
 - Docker 镜像实际构建：未执行；本机 Docker daemon 未运行，且镜像构建需要联网。上线前必须在联网 `linux/amd64` 构建机验证，或采用推荐的原生 systemd 路线。
 - Nginx 实际 `nginx -t`：本机未安装 Nginx；需在 Ubuntu 22.04 断网演练机和目标机切换前各执行一次。

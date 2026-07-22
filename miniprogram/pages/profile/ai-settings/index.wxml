@@ -1,38 +1,25 @@
 <view class="page ai-settings-page {{themeClass}}">
   <view class="section">
-    <view class="section-title">OpenAI 兼容接口</view>
-    <view class="field">
-      <view class="label">API URL</view>
-      <input class="input" placeholder="https://api.openai.com/v1" value="{{form.baseUrl}}" data-key="baseUrl" bindinput="onInput" />
+    <view class="section-title">AI 服务</view>
+    <view class="switch-row">
+      <text>运行状态</text>
+      <text>{{statusText}}</text>
     </view>
-    <view class="field">
-      <view class="label">API Key</view>
-      <input class="input" password placeholder="sk-..." value="{{form.apiKey}}" data-key="apiKey" bindinput="onInput" />
+    <view class="field" wx:if="{{configured}}">
+      <view class="label">当前模型</view>
+      <view class="picker-value">{{model}}</view>
     </view>
-    <button class="secondary-button" loading="{{loadingModels}}" bindtap="loadModels">拉取可用模型</button>
-    <view class="field">
-      <view class="label">模型</view>
-      <picker mode="selector" range="{{models}}" value="{{modelIndex}}" bindchange="onModelChange">
-        <view class="picker-value">{{form.model || '请先拉取模型列表'}}</view>
-      </picker>
+    <view class="field" wx:if="{{configured && models.length}}">
+      <view class="label">服务器可用模型</view>
+      <view class="picker-value">{{modelsText}}</view>
     </view>
   </view>
 
   <view class="section">
-    <view class="section-title">知识库</view>
-    <view class="switch-row">
-      <text>检索公开帖子</text>
-      <switch checked="{{form.includePosts}}" bindchange="onIncludePostsChange" color="#155E75" />
-    </view>
-    <textarea
-      class="knowledge-input"
-      maxlength="-1"
-      placeholder="填写学校基础资料"
-      value="{{form.knowledgeBase}}"
-      data-key="knowledgeBase"
-      bindinput="onInput"
-    ></textarea>
+    <view class="section-title">知识检索</view>
+    <view class="switch-row"><text>校园知识库</text><text>服务器统一维护</text></view>
+    <view class="switch-row"><text>论坛公开帖子</text><text>自动检索</text></view>
   </view>
 
-  <button class="save-button" loading="{{saving}}" bindtap="saveConfig">保存设置</button>
+  <button class="save-button" loading="{{loading}}" bindtap="refresh">刷新状态</button>
 </view>

@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler
 from typing import Any
 
 from helpers import json_error, now_iso, read_json_body, send_json
+from rag_service import citations, rebuild_rag_index, retrieve
 from services import (
     add_audit_log,
     auth_admin,
@@ -655,25 +656,7 @@ def handle_rebuild_hot_topics(handler: BaseHTTPRequestHandler, db: dict[str, Any
 
 
 def _search_items(db: dict[str, Any], query_text: str) -> list[dict[str, Any]]:
-    terms = [term for term in re.findall(r"[\w\u4e00-\u9fff]{2,}", query_text.lower()) if term]
-    rows: list[tuple[int, dict[str, Any]]] = []
-
-    def score(text: str) -> int:
-        haystack = text.lower()
-        return sum(1 + len(term) for term in terms if term in haystack)
-
-    for post in list_posts(db, sort_by="latest"):
-        text = f"{post.get('title', '')} {post.get('content', '')} {post.get('channel', '')} {' '.join(post.get('tags', []))}"
-        value = score(text)
-        if value > 0:
-            rows.append((value, _serialize_source_ref(post, "post")))
-    for chunk in db.get("knowledgeChunks", []):
-        text = f"{chunk.get('title', '')} {chunk.get('content', '')}"
-        value = score(text)
-        if value > 0:
-            rows.append((value, _serialize_source_ref(chunk, "knowledge")))
-    rows.sort(key=lambda item: item[0], reverse=True)
-    return [item[1] for item in rows[:12]]
+    return citations(retrieve(db, query_text, include_posts=True, limit=12))
 
 
 def handle_ai_search(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -739,7 +722,7 @@ def handle_admin_knowledge_source(handler: BaseHTTPRequestHandler, db: dict[str,
         return
     body = read_json_body(handler)
     name = _clean(body.get("name"), 80)
-    content = _clean(body.get("content"), 8000)
+    content = _clean(body.get("content"), 12000)
     if not name:
         json_error(handler, HTTPStatus.BAD_REQUEST, "知识来源名称不能为空")
         return
@@ -747,38 +730,161 @@ def handle_admin_knowledge_source(handler: BaseHTTPRequestHandler, db: dict[str,
         "id": next_id(db, "knowledgeSource", "ks"),
         "name": name,
         "sourceType": _clean(body.get("sourceType") or "other", 40),
+        "authority": _clean(body.get("authority") or "curated", 24),
+        "sourceUrl": _clean(body.get("sourceUrl"), 1000),
+        "status": "published",
         "createdAt": now_iso(),
+        "updatedAt": now_iso(),
     }
     document = {
         "id": next_id(db, "knowledgeDocument", "kd"),
         "sourceId": source["id"],
         "title": name,
         "content": content,
+        "sourceUrl": source.get("sourceUrl", ""),
+        "status": "published",
         "createdAt": now_iso(),
+        "updatedAt": now_iso(),
     }
     db.setdefault("knowledgeSources", []).append(source)
     db.setdefault("knowledgeDocuments", []).append(document)
     if content:
-        for index, chunk in enumerate(re.findall(r".{1,500}", content), start=1):
+        for index, chunk in enumerate(re.findall(r".{1,700}(?:\s|$)", content), start=1):
             db.setdefault("knowledgeChunks", []).append({
                 "id": next_id(db, "knowledgeChunk", "kc"),
                 "sourceId": source["id"],
                 "documentId": document["id"],
                 "title": f"{name} {index}",
                 "content": chunk,
+                "sourceUrl": source.get("sourceUrl", ""),
+                "authority": source.get("authority", "curated"),
+                "status": "published",
                 "createdAt": now_iso(),
+                "updatedAt": now_iso(),
             })
     add_audit_log(db, str(admin.get("adminId", "")), "create_knowledge_source", name)
+    index = rebuild_rag_index(db)
     save_db(db)
-    send_json(handler, HTTPStatus.CREATED, {"data": source})
+    send_json(handler, HTTPStatus.CREATED, {"data": {**source, "documentId": document["id"], "chunkCount": len([row for row in db.get("knowledgeChunks", []) if row.get("documentId") == document["id"]]), "indexCount": index.get("documentCount", 0)}})
+
+
+def handle_admin_list_knowledge_sources(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
+    if _require_admin(handler, db) is None:
+        return
+    documents = db.get("knowledgeDocuments", [])
+    chunks = db.get("knowledgeChunks", [])
+    rows = []
+    for source in db.get("knowledgeSources", []):
+        source_id = str(source.get("id", ""))
+        source_documents = [row for row in documents if str(row.get("sourceId", "")) == source_id]
+        source_document_ids = {str(row.get("id", "")) for row in source_documents}
+        source_chunks = [row for row in chunks if str(row.get("documentId", "")) in source_document_ids]
+        rows.append({
+            **source,
+            "documentCount": len(source_documents),
+            "chunkCount": len(source_chunks),
+            "contentLength": sum(len(str(row.get("content", ""))) for row in source_documents),
+        })
+    rows.sort(key=lambda item: str(item.get("updatedAt") or item.get("createdAt") or ""), reverse=True)
+    raw_index = db.get("ragIndex", {}) if isinstance(db.get("ragIndex", {}), dict) else {}
+    index_summary = {
+        "version": raw_index.get("version", 0),
+        "updatedAt": raw_index.get("updatedAt", ""),
+        "documentCount": raw_index.get("documentCount", 0),
+        "knowledgeCount": raw_index.get("knowledgeCount", 0),
+        "postCount": raw_index.get("postCount", 0),
+    }
+    send_json(handler, HTTPStatus.OK, {"data": {"items": rows, "index": index_summary}})
+
+
+def _replace_source_chunks(db: dict[str, Any], source: dict[str, Any], document: dict[str, Any]) -> int:
+    document_id = str(document.get("id", ""))
+    db["knowledgeChunks"] = [
+        row for row in db.get("knowledgeChunks", [])
+        if str(row.get("documentId", "")) != document_id
+    ]
+    content = str(document.get("content", ""))
+    count = 0
+    for index, chunk in enumerate(re.findall(r".{1,700}(?:\s|$)", content), start=1):
+        db.setdefault("knowledgeChunks", []).append({
+            "id": next_id(db, "knowledgeChunk", "kc"),
+            "sourceId": source["id"],
+            "documentId": document_id,
+            "title": f"{document.get('title') or source.get('name')} {index}",
+            "content": chunk,
+            "sourceUrl": source.get("sourceUrl", ""),
+            "authority": source.get("authority", "curated"),
+            "status": source.get("status", "published"),
+            "createdAt": now_iso(),
+            "updatedAt": now_iso(),
+        })
+        count += 1
+    return count
+
+
+def handle_admin_update_knowledge_source(handler: BaseHTTPRequestHandler, db: dict[str, Any], source_id: str) -> None:
+    admin = _require_admin(handler, db)
+    if admin is None:
+        return
+    source = next((row for row in db.get("knowledgeSources", []) if str(row.get("id")) == source_id), None)
+    if source is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "知识来源不存在")
+        return
+    body = read_json_body(handler)
+    for key, limit in (("name", 80), ("sourceType", 40), ("authority", 24), ("sourceUrl", 1000), ("status", 24)):
+        if key in body:
+            source[key] = _clean(body.get(key), limit)
+    source["updatedAt"] = now_iso()
+    source_documents = [row for row in db.get("knowledgeDocuments", []) if str(row.get("sourceId")) == source_id]
+    document = source_documents[0] if source_documents else None
+    if "content" in body:
+        if document is None:
+            document = {
+                "id": next_id(db, "knowledgeDocument", "kd"),
+                "sourceId": source_id,
+                "createdAt": now_iso(),
+            }
+            db.setdefault("knowledgeDocuments", []).append(document)
+        document.update({
+            "title": source.get("name", "校园资料"),
+            "content": _clean(body.get("content"), 12000),
+            "sourceUrl": source.get("sourceUrl", ""),
+            "status": source.get("status", "published"),
+            "updatedAt": now_iso(),
+        })
+        _replace_source_chunks(db, source, document)
+    index = rebuild_rag_index(db)
+    add_audit_log(db, str(admin.get("adminId", "")), "update_knowledge_source", source_id)
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": {**source, "indexCount": index.get("documentCount", 0)}})
+
+
+def handle_admin_delete_knowledge_source(handler: BaseHTTPRequestHandler, db: dict[str, Any], source_id: str) -> None:
+    admin = _require_admin(handler, db)
+    if admin is None:
+        return
+    source = next((row for row in db.get("knowledgeSources", []) if str(row.get("id")) == source_id), None)
+    if source is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "知识来源不存在")
+        return
+    document_ids = {
+        str(row.get("id")) for row in db.get("knowledgeDocuments", [])
+        if str(row.get("sourceId")) == source_id
+    }
+    db["knowledgeSources"] = [row for row in db.get("knowledgeSources", []) if str(row.get("id")) != source_id]
+    db["knowledgeDocuments"] = [row for row in db.get("knowledgeDocuments", []) if str(row.get("sourceId")) != source_id]
+    db["knowledgeChunks"] = [row for row in db.get("knowledgeChunks", []) if str(row.get("documentId")) not in document_ids]
+    rebuild_rag_index(db)
+    add_audit_log(db, str(admin.get("adminId", "")), "delete_knowledge_source", source_id)
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "id": source_id}})
 
 
 def handle_admin_reindex(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     admin = _require_admin(handler, db)
     if admin is None:
         return
-    chunks = []
-    db["knowledgeChunks"] = chunks
-    add_audit_log(db, str(admin.get("adminId", "")), "reindex_knowledge", str(len(chunks)))
+    index = rebuild_rag_index(db)
+    add_audit_log(db, str(admin.get("adminId", "")), "reindex_knowledge", str(index.get("documentCount", 0)))
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "chunkCount": len(chunks)}})
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "documentCount": index.get("documentCount", 0), "knowledgeCount": index.get("knowledgeCount", 0), "postCount": index.get("postCount", 0), "updatedAt": index.get("updatedAt", "")}})
