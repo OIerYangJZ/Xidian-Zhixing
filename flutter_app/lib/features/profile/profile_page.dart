@@ -4,6 +4,8 @@ import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -13,6 +15,7 @@ import '../../features/legal/report_guidelines_page.dart';
 import '../auth/login_page.dart';
 import '../auth/reset_password_page.dart';
 import 'emoji_settings_page.dart';
+import 'settings_page.dart';
 import '../me/my_comments_page.dart';
 import '../me/my_favorites_page.dart';
 import '../me/my_posts_page.dart';
@@ -58,7 +61,11 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppStatePanel(
+        icon: Icons.person_outline_rounded,
+        title: '正在加载个人资料',
+        message: '正在同步账号、内容和隐私设置。',
+      );
     }
 
     final UserProfile profile =
@@ -86,368 +93,406 @@ class ProfilePageState extends State<ProfilePage> {
     final UserLevelRequestSummary? levelUpgradeRequest =
         profile.levelUpgradeRequest;
 
-    return ListView(
-      padding: const EdgeInsets.all(12),
-      children: <Widget>[
-        if (_error != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Text(_error!, style: const TextStyle(color: Colors.red)),
-          ),
-        _buildProfileHero(profile),
-        const SizedBox(height: 10),
-        Card(
-          child: Column(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.workspace_premium_outlined),
-                title: const Text('账号等级'),
-                subtitle: Text(
-                  profile.isLevelOneUser
-                      ? '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长'
-                      : levelUpgradeRequest == null
-                      ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
-                      : _levelUpgradeSubtitle(levelUpgradeRequest),
-                ),
-                trailing: Text(
-                  profile.userLevelLabel,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 880),
+        child: ListView(
+          padding: AppLayout.pagePadding(context),
+          children: <Widget>[
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: AppInlineMessage(
+                  title: '资料未完全同步',
+                  message: _error!,
+                  tone: AppMessageTone.error,
+                  action: TextButton(
+                    onPressed: _saving ? null : _loadProfile,
+                    child: const Text('重试'),
+                  ),
                 ),
               ),
-              if (!profile.isLevelOneUser)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.tonalIcon(
-                      onPressed:
-                          _saving || levelUpgradeRequest?.status == 'pending'
-                          ? null
-                          : _promptLevelUpgradeRequest,
-                      icon: const Icon(Icons.arrow_circle_up_outlined),
-                      label: Text(
-                        levelUpgradeRequest?.status == 'pending'
-                            ? '申请审核中'
-                            : '申请成为一级用户',
-                      ),
+            _buildProfileHero(profile),
+            const SizedBox(height: 10),
+            Card(
+              child: Column(
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.workspace_premium_outlined),
+                    title: const Text('账号等级'),
+                    subtitle: Text(
+                      profile.isLevelOneUser
+                          ? '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长'
+                          : levelUpgradeRequest == null
+                          ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
+                          : _levelUpgradeSubtitle(levelUpgradeRequest),
+                    ),
+                    trailing: Text(
+                      profile.userLevelLabel,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  '个人信息',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _nicknameController,
-                  enabled: !_saving,
-                  decoration: const InputDecoration(
-                    labelText: '用户昵称',
-                    prefixIcon: Icon(Icons.badge_outlined),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _avatarUrlController,
-                  enabled: !_saving,
-                  decoration: const InputDecoration(
-                    labelText: '头像 URL',
-                    hintText: 'https://...',
-                    prefixIcon: Icon(Icons.image_outlined),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _saving ? null : _pickAndUploadAvatar,
-                    icon: const Icon(Icons.file_upload_outlined),
-                    label: const Text('选择图片并上传头像'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _bioController,
-                  enabled: !_saving,
-                  maxLines: 2,
-                  maxLength: 100,
-                  decoration: const InputDecoration(
-                    labelText: '个性签名',
-                    hintText: '介绍一下自己吧',
-                    prefixIcon: Icon(Icons.edit_note_outlined),
-                    alignLabelWithHint: true,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  initialValue: _gender,
-                  decoration: const InputDecoration(
-                    labelText: '性别',
-                    prefixIcon: Icon(Icons.wc_outlined),
-                  ),
-                  items: const <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(value: '', child: Text('不显示')),
-                    DropdownMenuItem<String>(value: '男', child: Text('男')),
-                    DropdownMenuItem<String>(value: '女', child: Text('女')),
-                  ],
-                  onChanged: _saving
-                      ? null
-                      : (String? value) {
-                          setState(() {
-                            _gender = value ?? '';
-                          });
-                        },
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: _backgroundUrlController,
-                  enabled: !_saving,
-                  decoration: const InputDecoration(
-                    labelText: '主页背景图 URL',
-                    hintText: 'https://...',
-                    prefixIcon: Icon(Icons.wallpaper_outlined),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _saving ? null : _pickAndUploadBackgroundImage,
-                    icon: const Icon(Icons.landscape_outlined),
-                    label: const Text('选择图片并上传背景图'),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: _saving ? null : _saveProfile,
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text(_saving ? '保存中...' : '保存资料'),
-                  ),
-                ),
-              ],
+                  if (!profile.isLevelOneUser)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          onPressed:
+                              _saving ||
+                                  levelUpgradeRequest?.status == 'pending'
+                              ? null
+                              : _promptLevelUpgradeRequest,
+                          icon: const Icon(Icons.arrow_circle_up_outlined),
+                          label: Text(
+                            levelUpgradeRequest?.status == 'pending'
+                                ? '申请审核中'
+                                : '申请成为一级用户',
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Card(
-          child: Column(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.article_outlined),
-                title: const Text('我的帖子'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const MyPostsPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.comment_bank_outlined),
-                title: const Text('我的评论'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const MyCommentsPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.flag_outlined),
-                title: const Text('我的举报'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const MyReportsPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bookmark_outline),
-                title: const Text('我的收藏'),
-                subtitle: Text('当前收藏帖子：${profile.favoriteCount}'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const MyFavoritesPage(),
-                    ),
-                  );
-                  if (!mounted) {
-                    return;
-                  }
-                  await _loadProfile();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: const Text('修改登录密码'),
-                subtitle: const Text('通过学生邮箱验证码重置密码'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ResetPasswordPage(
-                        initialEmail: profile.email,
-                        lockEmail: profile.email.isNotEmpty,
+            const SizedBox(height: 10),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      '个人信息',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.delete_outline),
-                title: const Text('注销账号申请'),
-                subtitle: Text(
-                  cancellationRequest == null
-                      ? '提交后将进入管理员后台审核，通过后账号才会注销'
-                      : _accountCancellationSubtitle(cancellationRequest),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _nicknameController,
+                      enabled: !_saving,
+                      decoration: const InputDecoration(
+                        labelText: '用户昵称',
+                        prefixIcon: Icon(Icons.badge_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _avatarUrlController,
+                      enabled: !_saving,
+                      decoration: const InputDecoration(
+                        labelText: '头像 URL',
+                        hintText: 'https://...',
+                        prefixIcon: Icon(Icons.image_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _saving ? null : _pickAndUploadAvatar,
+                        icon: const Icon(Icons.file_upload_outlined),
+                        label: const Text('选择图片并上传头像'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _bioController,
+                      enabled: !_saving,
+                      maxLines: 2,
+                      maxLength: 100,
+                      decoration: const InputDecoration(
+                        labelText: '个性签名',
+                        hintText: '介绍一下自己吧',
+                        prefixIcon: Icon(Icons.edit_note_outlined),
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      initialValue: _gender,
+                      decoration: const InputDecoration(
+                        labelText: '性别',
+                        prefixIcon: Icon(Icons.wc_outlined),
+                      ),
+                      items: const <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(value: '', child: Text('不显示')),
+                        DropdownMenuItem<String>(value: '男', child: Text('男')),
+                        DropdownMenuItem<String>(value: '女', child: Text('女')),
+                      ],
+                      onChanged: _saving
+                          ? null
+                          : (String? value) {
+                              setState(() {
+                                _gender = value ?? '';
+                              });
+                            },
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _backgroundUrlController,
+                      enabled: !_saving,
+                      decoration: const InputDecoration(
+                        labelText: '主页背景图 URL',
+                        hintText: 'https://...',
+                        prefixIcon: Icon(Icons.wallpaper_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _saving
+                            ? null
+                            : _pickAndUploadBackgroundImage,
+                        icon: const Icon(Icons.landscape_outlined),
+                        label: const Text('选择图片并上传背景图'),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _saving ? null : _saveProfile,
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(_saving ? '保存中...' : '保存资料'),
+                      ),
+                    ),
+                  ],
                 ),
-                onTap: _saving || cancellationRequest?.status == 'pending'
-                    ? null
-                    : _promptAccountCancellationRequest,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              child: Column(
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.article_outlined),
+                    title: const Text('我的帖子'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MyPostsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.comment_bank_outlined),
+                    title: const Text('我的评论'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MyCommentsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.flag_outlined),
+                    title: const Text('我的举报'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MyReportsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.bookmark_outline),
+                    title: const Text('我的收藏'),
+                    subtitle: Text('当前收藏帖子：${profile.favoriteCount}'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const MyFavoritesPage(),
+                        ),
+                      );
+                      if (!mounted) {
+                        return;
+                      }
+                      await _loadProfile();
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.lock_outline),
+                    title: const Text('修改登录密码'),
+                    subtitle: const Text('通过学生邮箱验证码重置密码'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ResetPasswordPage(
+                            initialEmail: profile.email,
+                            lockEmail: profile.email.isNotEmpty,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.delete_outline),
+                    title: const Text('注销账号申请'),
+                    subtitle: Text(
+                      cancellationRequest == null
+                          ? '提交后将进入管理员后台审核，通过后账号才会注销'
+                          : _accountCancellationSubtitle(cancellationRequest),
+                    ),
+                    onTap: _saving || cancellationRequest?.status == 'pending'
+                        ? null
+                        : _promptAccountCancellationRequest,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Card(
+              child: Column(
+                children: <Widget>[
+                  SwitchListTile(
+                    title: const Text('允许陌生人私信'),
+                    subtitle: const Text('关闭后，其他人无法通过你的公开主页或帖子给你发起私信'),
+                    value: profile.allowStrangerDm,
+                    onChanged: _saving
+                        ? null
+                        : (bool value) {
+                            _updatePrivacy(
+                              allowStrangerDm: value,
+                              showContactable: profile.showContactable,
+                            );
+                          },
+                  ),
+                  SwitchListTile(
+                    title: const Text('显示“可联系”状态'),
+                    value: profile.showContactable,
+                    onChanged: _saving
+                        ? null
+                        : (bool value) {
+                            _updatePrivacy(
+                              allowStrangerDm: profile.allowStrangerDm,
+                              showContactable: value,
+                            );
+                          },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.block_outlined),
+                    title: const Text('黑名单管理'),
+                    onTap: () => _toast('黑名单管理页下一步接入。'),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.emoji_emotions_outlined),
+                    title: const Text('表情设置'),
+                    subtitle: const Text('配置常用表情和输入面板开关'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const EmojiSettingsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.settings_outlined),
+                    title: const Text('网页端设置'),
+                    subtitle: const Text('界面偏好、协议与内测状态'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const SettingsPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.logout),
+                    title: const Text('退出登录'),
+                    onTap: _saving ? null : _logout,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Card(
+              child: Column(
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.description_outlined),
+                    title: const Text('用户协议'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const TermsOfServicePage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.shield_outlined),
+                    title: const Text('隐私政策'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const PrivacyPolicyPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.groups_outlined),
+                    title: const Text('社区规范'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const CommunityGuidelinesPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.flag_outlined),
+                    title: const Text('举报说明'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ReportGuidelinesPage(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Center(
+              child: Column(
+                children: <Widget>[
+                  Text(
+                    '西电知行 v${AppConfig.appVersion}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '校园社区内测项目 · 非西电官方应用',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        Card(
-          child: Column(
-            children: <Widget>[
-              SwitchListTile(
-                title: const Text('允许陌生人私信'),
-                subtitle: const Text('关闭后，其他人无法通过你的公开主页或帖子给你发起私信'),
-                value: profile.allowStrangerDm,
-                onChanged: _saving
-                    ? null
-                    : (bool value) {
-                        _updatePrivacy(
-                          allowStrangerDm: value,
-                          showContactable: profile.showContactable,
-                        );
-                      },
-              ),
-              SwitchListTile(
-                title: const Text('显示“可联系”状态'),
-                value: profile.showContactable,
-                onChanged: _saving
-                    ? null
-                    : (bool value) {
-                        _updatePrivacy(
-                          allowStrangerDm: profile.allowStrangerDm,
-                          showContactable: value,
-                        );
-                      },
-              ),
-              ListTile(
-                leading: const Icon(Icons.block_outlined),
-                title: const Text('黑名单管理'),
-                onTap: () => _toast('黑名单管理页下一步接入。'),
-              ),
-              ListTile(
-                leading: const Icon(Icons.emoji_emotions_outlined),
-                title: const Text('表情设置'),
-                subtitle: const Text('配置常用表情和输入面板开关'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const EmojiSettingsPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('退出登录'),
-                onTap: _saving ? null : _logout,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Card(
-          child: Column(
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.description_outlined),
-                title: const Text('用户协议'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const TermsOfServicePage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.shield_outlined),
-                title: const Text('隐私政策'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const PrivacyPolicyPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.groups_outlined),
-                title: const Text('社区规范'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const CommunityGuidelinesPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.flag_outlined),
-                title: const Text('举报说明'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const ReportGuidelinesPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        Center(
-          child: Text(
-            '西电树洞 v${AppConfig.appVersion}',
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

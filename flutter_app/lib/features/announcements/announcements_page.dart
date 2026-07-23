@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/announcement_item.dart';
 
 class AnnouncementsPage extends ConsumerStatefulWidget {
@@ -61,72 +63,98 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const AppStatePanel(
+        icon: Icons.campaign_outlined,
+        title: '正在加载公告',
+        message: '正在同步最新校园信息。',
+      );
     }
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
-        children: <Widget>[
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 880),
+        child: RefreshIndicator(
+          onRefresh: _load,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              100,
             ),
-          if ((_dailySummary?.summary ?? '').trim().isNotEmpty) ...<Widget>[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: SharedColors.softRed.withValues(alpha: 0.5),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    _dailySummary!.title.trim().isEmpty
-                        ? '每日公告摘要'
-                        : _dailySummary!.title,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
+            children: <Widget>[
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: AppInlineMessage(
+                    title: '公告加载失败',
+                    message: _error!,
+                    tone: AppMessageTone.error,
+                    action: TextButton(
+                      onPressed: _load,
+                      child: const Text('重试'),
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(_dailySummary!.summary),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-          ],
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: <Widget>[
-                _FilterChip(
-                  label: '全部',
-                  active: _activeType.isEmpty,
-                  onTap: () => _selectType(''),
                 ),
-                for (final String type in _filters.types)
-                  _FilterChip(
-                    label: type,
-                    active: _activeType == type,
-                    onTap: () => _selectType(type),
+              if ((_dailySummary?.summary ?? '').trim().isNotEmpty) ...<Widget>[
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: SharedColors.softRed.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
                   ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _dailySummary!.title.trim().isEmpty
+                            ? '每日公告摘要'
+                            : _dailySummary!.title,
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(_dailySummary!.summary),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
               ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (_announcements.isEmpty)
-            const SizedBox(
-              height: 260,
-              child: Center(child: Text('暂无公告')),
-            )
-          else
-            for (final AnnouncementItem item in _announcements)
-              _AnnouncementCard(
-                item: item,
-                onTap: () => _openDetail(item.id),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: <Widget>[
+                    _FilterChip(
+                      label: '全部',
+                      active: _activeType.isEmpty,
+                      onTap: () => _selectType(''),
+                    ),
+                    for (final String type in _filters.types)
+                      _FilterChip(
+                        label: type,
+                        active: _activeType == type,
+                        onTap: () => _selectType(type),
+                      ),
+                  ],
+                ),
               ),
-        ],
+              const SizedBox(height: 14),
+              if (_announcements.isEmpty)
+                const SizedBox(
+                  height: 320,
+                  child: AppStatePanel(
+                    icon: Icons.notifications_none_rounded,
+                    title: '暂无公告',
+                    message: '新的校园信息会在这里出现。',
+                  ),
+                )
+              else
+                for (final AnnouncementItem item in _announcements)
+                  _AnnouncementCard(
+                    item: item,
+                    onTap: () => _openDetail(item.id),
+                  ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -143,9 +171,7 @@ class _AnnouncementsPageState extends ConsumerState<AnnouncementsPage> {
 
   Future<void> _openDetail(String id) async {
     await Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => AnnouncementDetailPage(id: id),
-      ),
+      MaterialPageRoute<void>(builder: (_) => AnnouncementDetailPage(id: id)),
     );
   }
 }
@@ -203,36 +229,36 @@ class _AnnouncementDetailPageState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : item == null
-                  ? const SizedBox.shrink()
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(18, 14, 18, 80),
-                      children: <Widget>[
-                        Text(
-                          item.title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          '${item.publisher} · ${_dateText(item.publishedAt)}',
-                          style: TextStyle(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.58),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          item.content,
-                          style: const TextStyle(fontSize: 15, height: 1.75),
-                        ),
-                      ],
-                    ),
+          ? Center(
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+            )
+          : item == null
+          ? const SizedBox.shrink()
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(18, 14, 18, 80),
+              children: <Widget>[
+                Text(
+                  item.title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '${item.publisher} · ${_dateText(item.publishedAt)}',
+                  style: TextStyle(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.58),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  item.content,
+                  style: const TextStyle(fontSize: 15, height: 1.75),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -264,10 +290,7 @@ class _FilterChip extends StatelessWidget {
 }
 
 class _AnnouncementCard extends StatelessWidget {
-  const _AnnouncementCard({
-    required this.item,
-    required this.onTap,
-  });
+  const _AnnouncementCard({required this.item, required this.onTap});
 
   final AnnouncementItem item;
   final VoidCallback onTap;
@@ -301,7 +324,10 @@ class _AnnouncementCard extends StatelessWidget {
                 if (item.isImportant) ...<Widget>[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(999),
@@ -326,7 +352,9 @@ class _AnnouncementCard extends StatelessWidget {
                 maxLines: 3,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.72),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.72),
                   height: 1.5,
                 ),
               ),

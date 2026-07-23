@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
-import '../../core/theme/shared_colors.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/async_page_state.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
@@ -45,85 +46,150 @@ class _FeedPageState extends ConsumerState<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final FeedState state = ref.watch(feedControllerProvider);
-    return AsyncPageState(
-      loading: state.loading,
-      error: state.error,
-      onRetry: () => ref.read(feedControllerProvider.notifier).loadInitial(),
-      child: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(feedControllerProvider.notifier).refreshPosts(),
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (ScrollNotification notification) {
-            if (notification.metrics.extentAfter < 320) {
-              ref.read(feedControllerProvider.notifier).loadMoreIfNeeded();
-            }
-            return false;
-          },
-          child: ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-            itemBuilder: (BuildContext context, int index) {
-              if (state.posts.isEmpty) {
-                return const _FeedEmptyState();
-              }
-              if (index == state.posts.length) {
-                return state.loadingMore
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 18),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : const SizedBox.shrink();
-              }
-              final PostItem post = state.posts[index];
-              return PostCard(
-                post: post,
-                onTap: () async {
-                  final PostItem? updated = await openPostDetailPage(
-                    context,
-                    post: post,
-                  );
-                  if (updated == null || !mounted) {
-                    return;
-                  }
-                  ref.read(feedControllerProvider.notifier).replacePost(updated);
-                },
-                onLike: () async {
-                  try {
-                    await ref
-                        .read(feedControllerProvider.notifier)
-                        .toggleLike(post);
-                  } catch (error) {
-                    if (!mounted) {
-                      return;
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('操作失败：$error')),
-                    );
-                  }
-                },
-                onFavorite: () async {
-                  try {
-                    await ref
-                        .read(feedControllerProvider.notifier)
-                        .toggleFavorite(post);
-                  } catch (error) {
-                    if (!mounted) {
-                      return;
-                    }
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('操作失败：$error')),
-                    );
-                  }
-                },
-              );
-            },
-            separatorBuilder: (_, __) => const Divider(
-              height: 1,
-              color: SharedColors.divider,
-            ),
-            itemCount: state.posts.isEmpty
-                ? 1
-                : state.posts.length + (state.loadingMore ? 1 : 0),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppLayout.readingMaxWidth),
+        child: AsyncPageState(
+          loading: state.loading,
+          loadingLabel: '正在读取帖子',
+          error: state.error,
+          onRetry: () =>
+              ref.read(feedControllerProvider.notifier).loadInitial(),
+          child: Column(
+            children: <Widget>[
+              _FeedToolbar(
+                channel: state.selectedChannel,
+                sort: state.sort,
+                onFilter: () => FeedPage.openFilterSheet(context, ref),
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () =>
+                      ref.read(feedControllerProvider.notifier).refreshPosts(),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (ScrollNotification notification) {
+                      if (notification.metrics.extentAfter < 320) {
+                        ref
+                            .read(feedControllerProvider.notifier)
+                            .loadMoreIfNeeded();
+                      }
+                      return false;
+                    },
+                    child: ListView.separated(
+                      key: const Key('feed-list'),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.xs,
+                        AppSpacing.md,
+                        120,
+                      ),
+                      itemBuilder: (BuildContext context, int index) {
+                        if (state.posts.isEmpty) {
+                          return const _FeedEmptyState();
+                        }
+                        if (index == state.posts.length) {
+                          return state.loadingMore
+                              ? const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    vertical: AppSpacing.lg,
+                                  ),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                )
+                              : const SizedBox.shrink();
+                        }
+                        final PostItem post = state.posts[index];
+                        return PostCard(
+                          post: post,
+                          onTap: () async {
+                            final PostItem? updated = await openPostDetailPage(
+                              context,
+                              post: post,
+                            );
+                            if (updated == null || !mounted) {
+                              return;
+                            }
+                            ref
+                                .read(feedControllerProvider.notifier)
+                                .replacePost(updated);
+                          },
+                          onLike: () => _toggleLike(post),
+                          onFavorite: () => _toggleFavorite(post),
+                        );
+                      },
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: AppSpacing.sm),
+                      itemCount: state.posts.isEmpty
+                          ? 1
+                          : state.posts.length + (state.loadingMore ? 1 : 0),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _toggleLike(PostItem post) async {
+    try {
+      await ref.read(feedControllerProvider.notifier).toggleLike(post);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
+    }
+  }
+
+  Future<void> _toggleFavorite(PostItem post) async {
+    try {
+      await ref.read(feedControllerProvider.notifier).toggleFavorite(post);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
+    }
+  }
+}
+
+class _FeedToolbar extends StatelessWidget {
+  const _FeedToolbar({
+    required this.channel,
+    required this.sort,
+    required this.onFilter,
+  });
+
+  final String channel;
+  final PostSort sort;
+  final VoidCallback onFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final String sortLabel = sort == PostSort.latest ? '最新' : '热度';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.md,
+        AppSpacing.xs,
+      ),
+      child: AppSectionHeader(
+        title: channel.isEmpty ? '帖子流' : channel,
+        subtitle: '$sortLabel排序 · 下拉可刷新内容',
+        trailing: OutlinedButton.icon(
+          key: const Key('feed-filter-button'),
+          onPressed: onFilter,
+          icon: const Icon(Icons.tune_rounded, size: 18),
+          label: const Text('筛选'),
         ),
       ),
     );
@@ -147,7 +213,9 @@ class _FeedFilterSheet extends ConsumerWidget {
           label: '最新',
           selected: state.sort == PostSort.latest,
           onTap: () {
-            ref.read(feedControllerProvider.notifier).switchSort(PostSort.latest);
+            ref
+                .read(feedControllerProvider.notifier)
+                .switchSort(PostSort.latest);
             Navigator.of(context).pop();
           },
         ),
@@ -187,7 +255,9 @@ class _FilterSectionTitle extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.56),
+          color: Theme.of(
+            context,
+          ).colorScheme.onSurface.withValues(alpha: 0.56),
           fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
@@ -214,7 +284,10 @@ class _FilterItem extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
       title: Text(label),
       trailing: selected
-          ? Icon(Icons.check_rounded, color: Theme.of(context).colorScheme.primary)
+          ? Icon(
+              Icons.check_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            )
           : null,
       onTap: onTap,
     );
@@ -228,36 +301,11 @@ class _FeedEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 360,
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(22),
-              ),
-              child: Icon(
-                Icons.forum_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '这里还没有声音',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              '第一枚印章，等你盖下。',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.56),
-              ),
-            ),
-          ],
-        ),
+      child: const AppStatePanel(
+        key: Key('feed-empty-state'),
+        icon: Icons.forum_outlined,
+        title: '这里还没有帖子',
+        message: '可以切换分区，或发布第一条内容。',
       ),
     );
   }

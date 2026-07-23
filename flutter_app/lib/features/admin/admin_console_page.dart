@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/admin_models.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/admin_repository.dart';
@@ -150,7 +152,19 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('管理员后台工作台'),
+        title: const Row(
+          children: <Widget>[
+            Icon(Icons.shield_outlined, size: 22),
+            SizedBox(width: AppSpacing.xs),
+            Expanded(
+              child: Text(
+                '西电知行 · 管理工作台',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         actions: <Widget>[
           IconButton(
             onPressed: _actionBusy ? null : _loadAll,
@@ -172,7 +186,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       body: ColoredBox(
         color: Theme.of(context).scaffoldBackgroundColor,
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const AppStatePanel(
+                icon: Icons.admin_panel_settings_outlined,
+                title: '正在加载管理数据',
+                message: '正在汇总举报、审核与账号状态。',
+              )
             : (_isPrimaryAdmin
                   ? _buildPrimaryConsole()
                   : _buildSecondaryConsole()),
@@ -188,7 +206,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              child: AppInlineMessage(
+                title: '后台数据未完全加载',
+                message: _error!,
+                tone: AppMessageTone.error,
+                action: TextButton(
+                  onPressed: _actionBusy ? null : _loadAll,
+                  child: const Text('重试'),
+                ),
+              ),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
@@ -255,7 +281,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              child: AppInlineMessage(
+                title: '后台数据未完全加载',
+                message: _error!,
+                tone: AppMessageTone.error,
+                action: TextButton(
+                  onPressed: _actionBusy ? null : _loadAll,
+                  child: const Text('重试'),
+                ),
+              ),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),

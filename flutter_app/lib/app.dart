@@ -5,6 +5,7 @@ import 'core/auth/auth_store.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
+import 'features/common/access_state_page.dart';
 import 'features/legal/privacy_policy_page.dart';
 import 'features/legal/community_guidelines_page.dart';
 import 'features/legal/report_guidelines_page.dart';
@@ -17,12 +18,16 @@ class XduTreeholeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: '西电树洞',
+      title: '西电知行',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       onGenerateRoute: _onGenerateRoute,
+      onUnknownRoute: (RouteSettings settings) => MaterialPageRoute<void>(
+        builder: (_) => const AccessStatePage.notFound(),
+        settings: settings,
+      ),
     );
   }
 

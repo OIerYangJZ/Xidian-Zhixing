@@ -3,13 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 
 import '../core/config/app_config.dart';
+import '../core/theme/design_tokens.dart';
 
 class ImageGallery extends StatelessWidget {
-  const ImageGallery({
-    super.key,
-    required this.images,
-    this.onRemove,
-  });
+  const ImageGallery({super.key, required this.images, this.onRemove});
 
   final List<String> images;
   final void Function(int index)? onRemove;
@@ -26,25 +23,32 @@ class ImageGallery extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           '图片（${images.length}）',
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-            fontSize: 14,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
         ),
         const SizedBox(height: 8),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 8,
-            mainAxisSpacing: 8,
-          ),
-          itemCount: images.length,
-          itemBuilder: (BuildContext context, int index) {
-            return _ImageTile(
-              imageUrl: images[index],
-              onTap: () => _showImageViewer(context, index),
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final int columnCount = constraints.maxWidth < 420
+                ? 2
+                : constraints.maxWidth >= 700
+                ? 4
+                : 3;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columnCount,
+                crossAxisSpacing: AppSpacing.xs,
+                mainAxisSpacing: AppSpacing.xs,
+              ),
+              itemCount: images.length,
+              itemBuilder: (BuildContext context, int index) {
+                return _ImageTile(
+                  imageUrl: images[index],
+                  onTap: () => _showImageViewer(context, index),
+                  onRemove: onRemove == null ? null : () => onRemove!(index),
+                );
+              },
             );
           },
         ),
@@ -60,10 +64,7 @@ class ImageGallery extends StatelessWidget {
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
-            child: _ImageViewerPage(
-              images: images,
-              initialIndex: initialIndex,
-            ),
+            child: _ImageViewerPage(images: images, initialIndex: initialIndex),
           );
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -78,10 +79,12 @@ class _ImageTile extends StatefulWidget {
   const _ImageTile({
     required this.imageUrl,
     required this.onTap,
+    this.onRemove,
   });
 
   final String imageUrl;
   final VoidCallback onTap;
+  final VoidCallback? onRemove;
 
   @override
   State<_ImageTile> createState() => _ImageTileState();
@@ -90,11 +93,33 @@ class _ImageTile extends StatefulWidget {
 class _ImageTileState extends State<_ImageTile> {
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: _buildImage(),
+    return Semantics(
+      button: true,
+      label: '打开图片预览',
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          Material(
+            clipBehavior: Clip.antiAlias,
+            borderRadius: BorderRadius.circular(AppRadii.medium),
+            child: InkWell(onTap: widget.onTap, child: _buildImage()),
+          ),
+          if (widget.onRemove != null)
+            Positioned(
+              top: 6,
+              right: 6,
+              child: IconButton.filled(
+                tooltip: '移除图片',
+                onPressed: widget.onRemove,
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(36, 36),
+                  backgroundColor: Colors.black.withValues(alpha: 0.64),
+                  foregroundColor: Colors.white,
+                ),
+                icon: const Icon(Icons.close_rounded, size: 18),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -108,10 +133,7 @@ class _ImageTileState extends State<_ImageTile> {
           children: <Widget>[
             Icon(Icons.broken_image_outlined, color: Colors.black38, size: 32),
             SizedBox(height: 4),
-            Text(
-              '加载失败',
-              style: TextStyle(color: Colors.black45, fontSize: 10),
-            ),
+            Text('加载失败', style: TextStyle(color: Colors.black45, fontSize: 10)),
           ],
         ),
       ),
@@ -137,10 +159,10 @@ class _ImageTileState extends State<_ImageTile> {
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,
-            errorBuilder: (BuildContext context, Object error,
-                StackTrace? stackTrace) {
-              return errorPlaceholder;
-            },
+            errorBuilder:
+                (BuildContext context, Object error, StackTrace? stackTrace) {
+                  return errorPlaceholder;
+                },
           );
         } catch (_) {
           return errorPlaceholder;
@@ -154,23 +176,24 @@ class _ImageTileState extends State<_ImageTile> {
       fit: BoxFit.cover,
       width: double.infinity,
       height: double.infinity,
-      loadingBuilder: (BuildContext context, Widget child,
-          ImageChunkEvent? loadingProgress) {
-        return loadingProgress == null ? child : loadingPlaceholder;
-      },
+      loadingBuilder:
+          (
+            BuildContext context,
+            Widget child,
+            ImageChunkEvent? loadingProgress,
+          ) {
+            return loadingProgress == null ? child : loadingPlaceholder;
+          },
       errorBuilder:
           (BuildContext context, Object error, StackTrace? stackTrace) {
-        return errorPlaceholder;
-      },
+            return errorPlaceholder;
+          },
     );
   }
 }
 
 class _ImageViewerPage extends StatefulWidget {
-  const _ImageViewerPage({
-    required this.images,
-    required this.initialIndex,
-  });
+  const _ImageViewerPage({required this.images, required this.initialIndex});
 
   final List<String> images;
   final int initialIndex;
@@ -228,30 +251,37 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
             right: 0,
             child: SafeArea(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.black45,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Icon(Icons.close, color: Colors.white, size: 24),
+                    IconButton.filled(
+                      tooltip: '关闭图片预览',
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black45,
+                        foregroundColor: Colors.white,
                       ),
+                      icon: const Icon(Icons.close_rounded),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black45,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${_currentIndex + 1} / ${widget.images.length}',
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 40),
@@ -260,6 +290,47 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
               ),
             ),
           ),
+          if (widget.images.length > 1 && _currentIndex > 0)
+            Positioned(
+              left: AppSpacing.md,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton.filled(
+                  tooltip: '上一张',
+                  onPressed: () => _pageController.previousPage(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black45,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.chevron_left_rounded),
+                ),
+              ),
+            ),
+          if (widget.images.length > 1 &&
+              _currentIndex < widget.images.length - 1)
+            Positioned(
+              right: AppSpacing.md,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton.filled(
+                  tooltip: '下一张',
+                  onPressed: () => _pageController.nextPage(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOut,
+                  ),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black45,
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.chevron_right_rounded),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -283,14 +354,12 @@ class _ViewerImageState extends State<_ViewerImage> {
       children: <Widget>[
         Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
         SizedBox(height: 16),
-        Text(
-          '图片加载失败',
-          style: TextStyle(color: Colors.white54),
-        ),
+        Text('图片加载失败', style: TextStyle(color: Colors.white54)),
       ],
     );
-    const Widget loadingPlaceholder =
-        CircularProgressIndicator(color: Colors.white);
+    const Widget loadingPlaceholder = CircularProgressIndicator(
+      color: Colors.white,
+    );
 
     if (widget.imageUrl.startsWith('data:')) {
       final int commaIndex = widget.imageUrl.indexOf(',');
@@ -300,10 +369,10 @@ class _ViewerImageState extends State<_ViewerImage> {
           return Image.memory(
             base64Decode(base64Data),
             fit: BoxFit.contain,
-            errorBuilder: (BuildContext context, Object error,
-                StackTrace? stackTrace) {
-              return errorPlaceholder;
-            },
+            errorBuilder:
+                (BuildContext context, Object error, StackTrace? stackTrace) {
+                  return errorPlaceholder;
+                },
           );
         } catch (_) {
           return errorPlaceholder;
@@ -315,14 +384,18 @@ class _ViewerImageState extends State<_ViewerImage> {
     return Image.network(
       resolvedUrl,
       fit: BoxFit.contain,
-      loadingBuilder: (BuildContext context, Widget child,
-          ImageChunkEvent? loadingProgress) {
-        return loadingProgress == null ? child : loadingPlaceholder;
-      },
+      loadingBuilder:
+          (
+            BuildContext context,
+            Widget child,
+            ImageChunkEvent? loadingProgress,
+          ) {
+            return loadingProgress == null ? child : loadingPlaceholder;
+          },
       errorBuilder:
           (BuildContext context, Object error, StackTrace? stackTrace) {
-        return errorPlaceholder;
-      },
+            return errorPlaceholder;
+          },
     );
   }
 }

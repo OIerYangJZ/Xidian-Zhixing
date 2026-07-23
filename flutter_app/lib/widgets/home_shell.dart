@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_store.dart';
 import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
+import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
@@ -16,6 +17,7 @@ import '../features/notifications/notification_center_page.dart';
 import '../features/notifications/notifications_controller.dart';
 import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
+import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
@@ -47,7 +49,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
-    final bool wide = MediaQuery.sizeOf(context).width >= 900;
+    final double width = MediaQuery.sizeOf(context).width;
+    final bool desktop = width >= AppBreakpoints.medium;
+    final bool expandedRail = width >= AppBreakpoints.expanded;
     final NotificationsState notificationsState = ref.watch(
       notificationsControllerProvider,
     );
@@ -55,7 +59,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
     final Widget content = Center(
       child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: wide ? 1180 : double.infinity),
+        constraints: const BoxConstraints(maxWidth: AppLayout.pageMaxWidth),
         child: _pageForIndex(_currentIndex),
       ),
     );
@@ -64,22 +68,23 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         toolbarHeight: 64,
-        titleSpacing: wide ? 24 : 16,
+        titleSpacing: desktop ? 24 : 12,
         title: Row(
           children: <Widget>[
             _avatarButton(),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    _destinations[_currentIndex].label,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    desktop
+                        ? '西电知行 · ${_destinations[_currentIndex].label}'
+                        : _destinations[_currentIndex].label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -123,32 +128,42 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               child: const Icon(Icons.notifications_none_rounded),
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.xs),
         ],
       ),
-      body: wide
+      body: desktop
           ? Row(
               children: <Widget>[
                 _DesktopRail(
                   currentIndex: _currentIndex,
                   destinations: _destinations,
                   onSelect: _selectTab,
+                  extended: expandedRail,
                 ),
                 Expanded(child: content),
               ],
             )
           : content,
       floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: _openCreatePost,
-              tooltip: '发帖',
-              child: const Icon(Icons.add_rounded),
-            )
+          ? (desktop
+                ? FloatingActionButton.extended(
+                    key: const Key('create-post-fab'),
+                    onPressed: _openCreatePost,
+                    tooltip: '发布帖子',
+                    icon: const Icon(Icons.edit_outlined),
+                    label: const Text('发布帖子'),
+                  )
+                : FloatingActionButton(
+                    key: const Key('create-post-fab'),
+                    onPressed: _openCreatePost,
+                    tooltip: '发帖',
+                    child: const Icon(Icons.add_rounded),
+                  ))
           : null,
-      bottomNavigationBar: wide
+      bottomNavigationBar: desktop
           ? null
           : NavigationBar(
-              height: 70,
+              key: const Key('mobile-primary-navigation'),
               selectedIndex: _currentIndex,
               onDestinationSelected: _selectTab,
               destinations: _destinations
@@ -286,8 +301,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
             children: <Widget>[
               ListTile(
-                leading: const Icon(Icons.person_outline_rounded),
-                title: const Text('个人中心'),
+                leading: const Icon(Icons.manage_accounts_outlined),
+                title: const Text('个人资料与设置'),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -296,7 +311,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                       builder: (_) => Scaffold(
                         appBar: PreferredSize(
                           preferredSize: const Size.fromHeight(56),
-                          child: AppBar(title: const Text('个人中心')),
+                          child: AppBar(title: const Text('个人资料与设置')),
                         ),
                         body: const ProfilePage(),
                       ),
@@ -313,6 +328,19 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   Navigator.of(context).push(
                     MaterialPageRoute<void>(
                       builder: (_) => const MessagesPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('设置'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsPage(),
                     ),
                   );
                 },
@@ -350,16 +378,19 @@ class _DesktopRail extends StatelessWidget {
     required this.currentIndex,
     required this.destinations,
     required this.onSelect,
+    required this.extended,
   });
 
   final int currentIndex;
   final List<_ShellDestination> destinations;
   final ValueChanged<int> onSelect;
+  final bool extended;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 92,
+      key: const Key('desktop-primary-navigation'),
+      width: extended ? 220 : 92,
       padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -371,11 +402,43 @@ class _DesktopRail extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
+          if (extended) ...<Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppRadii.small),
+                    ),
+                    child: Icon(
+                      Icons.forum_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      '西电知行',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           for (int index = 0; index < destinations.length; index++) ...<Widget>[
             _RailItem(
               destination: destinations[index],
               selected: currentIndex == index,
               onTap: () => onSelect(index),
+              extended: extended,
             ),
             const SizedBox(height: 8),
           ],
@@ -390,11 +453,13 @@ class _RailItem extends StatelessWidget {
     required this.destination,
     required this.selected,
     required this.onTap,
+    required this.extended,
   });
 
   final _ShellDestination destination;
   final bool selected;
   final VoidCallback onTap;
+  final bool extended;
 
   @override
   Widget build(BuildContext context) {
@@ -407,28 +472,66 @@ class _RailItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Container(
-          height: 64,
+          height: 58,
+          padding: EdgeInsets.symmetric(
+            horizontal: extended ? AppSpacing.sm : 0,
+          ),
           decoration: BoxDecoration(
             color: selected
                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Icon(destination.icon, color: color, size: 22),
-              const SizedBox(height: 4),
-              Text(
-                destination.label,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 12,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+          child: extended
+              ? Row(
+                  children: <Widget>[
+                    Icon(destination.icon, color: color, size: 22),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            destination.label,
+                            style: TextStyle(
+                              color: color,
+                              fontWeight: selected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            destination.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: color.withValues(alpha: 0.68),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(destination.icon, color: color, size: 21),
+                    const SizedBox(height: 3),
+                    Text(
+                      destination.label,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 12,
+                        fontWeight: selected
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

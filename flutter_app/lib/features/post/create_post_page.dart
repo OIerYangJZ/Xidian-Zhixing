@@ -8,7 +8,9 @@ import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/async_page_state.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
@@ -80,384 +82,441 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         : null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('发布树洞')),
-      body: AsyncPageState(
-        loading: state.loadingChannels,
-        loadingLabel: '加载频道中...',
-        error: state.error,
-        onRetry: () =>
-            ref.read(createPostControllerProvider.notifier).loadChannels(),
-        child: ListView(
-          padding: const EdgeInsets.all(12),
-          children: <Widget>[
-            if (isBusy)
-              _ProgressCard(
-                text: _pastingMarkdownImages
-                    ? '上传粘贴图片中...'
-                    : _pickingImages
-                    ? '读取图片中...'
-                    : (state.progressText ?? '提交中...'),
-              ),
-            Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Shortcuts(
-                    shortcuts: const <ShortcutActivator, Intent>{
-                      SingleActivator(LogicalKeyboardKey.tab):
-                          DoNothingAndStopPropagationIntent(),
-                      SingleActivator(LogicalKeyboardKey.tab, shift: true):
-                          DoNothingAndStopPropagationIntent(),
-                    },
-                    child: TextFormField(
-                      controller: _titleController,
-                      maxLength: 60,
-                      decoration: const InputDecoration(
-                        labelText: '标题',
-                        hintText: '一句话概括你的问题或诉求',
-                      ),
-                      validator: (String? value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return '请输入标题';
-                        }
-                        if (value.trim().length < 4) {
-                          return '标题至少 4 个字';
-                        }
-                        return null;
-                      },
-                    ),
+      appBar: AppBar(title: const Text('发布帖子')),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppLayout.readingMaxWidth,
+          ),
+          child: AsyncPageState(
+            loading: state.loadingChannels,
+            loadingLabel: '正在准备发布表单',
+            error: state.error,
+            onRetry: () =>
+                ref.read(createPostControllerProvider.notifier).loadChannels(),
+            child: ListView(
+              key: const Key('create-post-form-scroll'),
+              padding: AppLayout.pagePadding(context),
+              children: <Widget>[
+                if (isBusy)
+                  _ProgressCard(
+                    text: _pastingMarkdownImages
+                        ? '上传粘贴图片中...'
+                        : _pickingImages
+                        ? '读取图片中...'
+                        : (state.progressText ?? '提交中...'),
                   ),
-                  const SizedBox(height: 10),
-                  SwitchListTile(
-                    value: _useMarkdown,
-                    onChanged: isBusy ? null : _handleMarkdownToggle,
-                    title: const Text('使用 Markdown 编辑'),
-                    subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
-                    contentPadding: EdgeInsets.zero,
+                if (isBusy) const SizedBox(height: AppSpacing.sm),
+                AppSurfaceCard(
+                  padding: EdgeInsets.all(
+                    AppBreakpoints.isCompact(context)
+                        ? AppSpacing.md
+                        : AppSpacing.lg,
                   ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    key: ValueKey<String>(
-                      _useMarkdown ? 'markdown-editor' : 'plain-editor',
-                    ),
-                    controller: _contentController,
-                    focusNode: _contentFocusNode,
-                    keyboardType: TextInputType.multiline,
-                    textInputAction: TextInputAction.newline,
-                    minLines: 6,
-                    maxLines: 10,
-                    maxLength: _useMarkdown ? null : _plainTextMaxLength,
-                    maxLengthEnforcement: _useMarkdown
-                        ? null
-                        : MaxLengthEnforcement.enforced,
-                    autocorrect: !_useMarkdown,
-                    enableSuggestions: !_useMarkdown,
-                    enableIMEPersonalizedLearning: !_useMarkdown,
-                    smartDashesType: _useMarkdown
-                        ? SmartDashesType.disabled
-                        : SmartDashesType.enabled,
-                    smartQuotesType: _useMarkdown
-                        ? SmartQuotesType.disabled
-                        : SmartQuotesType.enabled,
-                    spellCheckConfiguration: _useMarkdown
-                        ? const SpellCheckConfiguration.disabled()
-                        : null,
-                    decoration: InputDecoration(
-                      alignLabelWithHint: true,
-                      labelText: _useMarkdown ? 'Markdown 源码' : '正文',
-                      hintText: _useMarkdown
-                          ? '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```'
-                          : '描述越完整，越容易获得帮助',
-                      helperText: _useMarkdown
-                          ? 'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。'
-                          : '纯文本模式最多 3000 字。切换模式会清空当前正文。',
-                      helperMaxLines: 2,
-                    ),
-                    validator: (String? value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return '请输入正文';
-                      }
-                      if (value.trim().length < 8) {
-                        return '正文至少 8 个字';
-                      }
-                      if (!_useMarkdown && value.length > _plainTextMaxLength) {
-                        return '纯文本正文最多 $_plainTextMaxLength 字';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 4),
-                  EmojiAssistantBar(
-                    controller: _contentController,
-                    compact: true,
-                  ),
-                  if (_useMarkdown) ...<Widget>[
-                    const SizedBox(height: 10),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const AppSectionHeader(
+                          title: '分享一条校园内容',
+                          subtitle: '清楚的标题和上下文，更容易获得有效回应。',
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            '实时预览',
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w700),
+                        const SizedBox(height: AppSpacing.md),
+                        Shortcuts(
+                          shortcuts: const <ShortcutActivator, Intent>{
+                            SingleActivator(LogicalKeyboardKey.tab):
+                                DoNothingAndStopPropagationIntent(),
+                            SingleActivator(
+                              LogicalKeyboardKey.tab,
+                              shift: true,
+                            ): DoNothingAndStopPropagationIntent(),
+                          },
+                          child: TextFormField(
+                            key: const Key('create-post-title'),
+                            controller: _titleController,
+                            maxLength: 60,
+                            decoration: const InputDecoration(
+                              labelText: '标题',
+                              hintText: '一句话概括你的问题或诉求',
+                            ),
+                            validator: (String? value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return '请输入标题';
+                              }
+                              if (value.trim().length < 4) {
+                                return '标题至少 4 个字';
+                              }
+                              return null;
+                            },
                           ),
+                        ),
+                        const SizedBox(height: 10),
+                        SwitchListTile(
+                          value: _useMarkdown,
+                          onChanged: isBusy ? null : _handleMarkdownToggle,
+                          title: const Text('使用 Markdown 编辑'),
+                          subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          key: ValueKey<String>(
+                            _useMarkdown
+                                ? 'create-post-markdown-editor'
+                                : 'create-post-plain-editor',
+                          ),
+                          controller: _contentController,
+                          focusNode: _contentFocusNode,
+                          keyboardType: TextInputType.multiline,
+                          textInputAction: TextInputAction.newline,
+                          minLines: 6,
+                          maxLines: 10,
+                          maxLength: _useMarkdown ? null : _plainTextMaxLength,
+                          maxLengthEnforcement: _useMarkdown
+                              ? null
+                              : MaxLengthEnforcement.enforced,
+                          autocorrect: !_useMarkdown,
+                          enableSuggestions: !_useMarkdown,
+                          enableIMEPersonalizedLearning: !_useMarkdown,
+                          smartDashesType: _useMarkdown
+                              ? SmartDashesType.disabled
+                              : SmartDashesType.enabled,
+                          smartQuotesType: _useMarkdown
+                              ? SmartQuotesType.disabled
+                              : SmartQuotesType.enabled,
+                          spellCheckConfiguration: _useMarkdown
+                              ? const SpellCheckConfiguration.disabled()
+                              : null,
+                          decoration: InputDecoration(
+                            alignLabelWithHint: true,
+                            labelText: _useMarkdown ? 'Markdown 源码' : '正文',
+                            hintText: _useMarkdown
+                                ? '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```'
+                                : '描述越完整，越容易获得帮助',
+                            helperText: _useMarkdown
+                                ? 'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。'
+                                : '纯文本模式最多 3000 字。切换模式会清空当前正文。',
+                            helperMaxLines: 2,
+                          ),
+                          validator: (String? value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return '请输入正文';
+                            }
+                            if (value.trim().length < 8) {
+                              return '正文至少 8 个字';
+                            }
+                            if (!_useMarkdown &&
+                                value.length > _plainTextMaxLength) {
+                              return '纯文本正文最多 $_plainTextMaxLength 字';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        EmojiAssistantBar(
+                          controller: _contentController,
+                          compact: true,
+                        ),
+                        if (_useMarkdown) ...<Widget>[
                           const SizedBox(height: 10),
-                          ValueListenableBuilder<TextEditingValue>(
-                            valueListenable: _contentController,
-                            builder:
-                                (
-                                  BuildContext context,
-                                  TextEditingValue value,
-                                  Widget? child,
-                                ) {
-                                  final String source = value.text.trim();
-                                  if (source.isEmpty) {
-                                    return Text(
-                                      '输入 Markdown 源码后，这里会显示渲染效果。',
-                                      style: TextStyle(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.58),
-                                      ),
-                                    );
-                                  }
-                                  return PostContentBody(
-                                    content: '',
-                                    contentFormat: 'markdown',
-                                    markdownSource: source,
-                                    selectable: false,
-                                  );
-                                },
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outlineVariant
+                                    .withValues(alpha: 0.6),
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  '实时预览',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 10),
+                                ValueListenableBuilder<TextEditingValue>(
+                                  valueListenable: _contentController,
+                                  builder:
+                                      (
+                                        BuildContext context,
+                                        TextEditingValue value,
+                                        Widget? child,
+                                      ) {
+                                        final String source = value.text.trim();
+                                        if (source.isEmpty) {
+                                          return Text(
+                                            '输入 Markdown 源码后，这里会显示渲染效果。',
+                                            style: TextStyle(
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.58),
+                                            ),
+                                          );
+                                        }
+                                        return PostContentBody(
+                                          content: '',
+                                          contentFormat: 'markdown',
+                                          markdownSource: source,
+                                          selectable: false,
+                                        );
+                                      },
+                                ),
+                              ],
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 10),
-                  if (hasChannels)
-                    DropdownButtonFormField<String>(
-                      initialValue: selectedChannel,
-                      decoration: const InputDecoration(labelText: '频道'),
-                      items: channels
-                          .map(
-                            (String channel) => DropdownMenuItem<String>(
-                              value: channel,
-                              child: Text(channel),
+                        const SizedBox(height: 10),
+                        if (hasChannels)
+                          DropdownButtonFormField<String>(
+                            initialValue: selectedChannel,
+                            decoration: const InputDecoration(labelText: '频道'),
+                            items: channels
+                                .map(
+                                  (String channel) => DropdownMenuItem<String>(
+                                    value: channel,
+                                    child: Text(channel),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: isBusy
+                                ? null
+                                : (String? value) {
+                                    if (value == null) {
+                                      return;
+                                    }
+                                    setState(() {
+                                      _selectedChannel = value;
+                                    });
+                                  },
+                          )
+                        else
+                          const _EmptyChannelCard(),
+                        const SizedBox(height: 10),
+                        DropdownButtonFormField<PostStatus>(
+                          initialValue: _status,
+                          decoration: const InputDecoration(labelText: '状态'),
+                          items: PostStatus.values
+                              .map(
+                                (PostStatus status) =>
+                                    DropdownMenuItem<PostStatus>(
+                                      value: status,
+                                      child: Text(status.label),
+                                    ),
+                              )
+                              .toList(),
+                          onChanged: isBusy
+                              ? null
+                              : (PostStatus? value) {
+                                  if (value == null) {
+                                    return;
+                                  }
+                                  setState(() {
+                                    _status = value;
+                                  });
+                                },
+                        ),
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _tagsController,
+                          decoration: const InputDecoration(
+                            labelText: '标签（可选）',
+                            hintText: '例如：北校区, 学习, 周末',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          value: _useAnonymousAlias,
+                          onChanged: isBusy
+                              ? null
+                              : (bool value) {
+                                  setState(() {
+                                    _useAnonymousAlias = value;
+                                  });
+                                },
+                          title: const Text('本帖使用匿名身份'),
+                          subtitle: const Text('仅影响当前帖子，不影响你的账号昵称'),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        if (_useAnonymousAlias) ...<Widget>[
+                          TextFormField(
+                            controller: _anonymousAliasController,
+                            decoration: const InputDecoration(
+                              labelText: '匿名昵称（可选）',
+                              hintText: '例如：热心同学',
+                            ),
+                            validator: (String? value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return null;
+                              }
+                              if (value.trim().length > 24) {
+                                return '匿名昵称最长 24 个字符';
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          initialValue: _privateOnly ? 'private' : 'public',
+                          decoration: const InputDecoration(labelText: '可见范围'),
+                          items: const <DropdownMenuItem<String>>[
+                            DropdownMenuItem<String>(
+                              value: 'public',
+                              child: Text('所有人可见'),
+                            ),
+                            DropdownMenuItem<String>(
+                              value: 'private',
+                              child: Text('仅自己可见'),
+                            ),
+                          ],
+                          onChanged: isBusy
+                              ? null
+                              : (String? value) {
+                                  setState(() {
+                                    _privateOnly = value == 'private';
+                                  });
+                                },
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _privateOnly
+                              ? '仅你自己能在“我的帖子”里看到这条内容。'
+                              : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withValues(alpha: 0.58),
+                          ),
+                        ),
+                        if (state.isLevelOneUser) ...<Widget>[
+                          const SizedBox(height: 8),
+                          DropdownButtonFormField<int?>(
+                            initialValue: _selectedPinDurationMinutes,
+                            decoration: InputDecoration(
+                              labelText: '发帖后立即置顶（可选）',
+                              helperText: '当前身份：${state.userLevelLabel}',
+                            ),
+                            items: const <DropdownMenuItem<int?>>[
+                              DropdownMenuItem<int?>(
+                                value: null,
+                                child: Text('不置顶'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 30,
+                                child: Text('30 分钟'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 60,
+                                child: Text('1 小时'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 120,
+                                child: Text('2 小时'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 180,
+                                child: Text('3 小时'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 1440,
+                                child: Text('1 天'),
+                              ),
+                              DropdownMenuItem<int?>(
+                                value: 4320,
+                                child: Text('3 天'),
+                              ),
+                            ],
+                            onChanged: isBusy
+                                ? null
+                                : (int? value) {
+                                    setState(() {
+                                      _selectedPinDurationMinutes = value;
+                                    });
+                                  },
+                          ),
+                        ],
+                        const Divider(height: 28),
+                        Row(
+                          children: <Widget>[
+                            Text(
+                              '图片（${_pickedImages.length}/9）',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const Spacer(),
+                            OutlinedButton.icon(
+                              onPressed: isBusy ? null : _pickImages,
+                              icon: const Icon(
+                                Icons.add_photo_alternate_outlined,
+                              ),
+                              label: const Text('选择图片'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        if (_pickedImages.isEmpty)
+                          Text(
+                            '未选择图片。支持 jpg/png/webp/gif。',
+                            style: TextStyle(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withValues(alpha: 0.58),
                             ),
                           )
-                          .toList(),
-                      onChanged: isBusy
-                          ? null
-                          : (String? value) {
-                              if (value == null) {
-                                return;
-                              }
-                              setState(() {
-                                _selectedChannel = value;
-                              });
-                            },
-                    )
-                  else
-                    const _EmptyChannelCard(),
-                  const SizedBox(height: 10),
-                  DropdownButtonFormField<PostStatus>(
-                    initialValue: _status,
-                    decoration: const InputDecoration(labelText: '状态'),
-                    items: PostStatus.values
-                        .map(
-                          (PostStatus status) => DropdownMenuItem<PostStatus>(
-                            value: status,
-                            child: Text(status.label),
+                        else
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _pickedImages
+                                .asMap()
+                                .entries
+                                .map(
+                                  (MapEntry<int, PickedImageData> entry) =>
+                                      _PickedImageCard(
+                                        image: entry.value,
+                                        onRemove: isBusy
+                                            ? null
+                                            : () {
+                                                setState(() {
+                                                  _pickedImages.removeAt(
+                                                    entry.key,
+                                                  );
+                                                });
+                                              },
+                                      ),
+                                )
+                                .toList(),
                           ),
-                        )
-                        .toList(),
-                    onChanged: isBusy
-                        ? null
-                        : (PostStatus? value) {
-                            if (value == null) {
-                              return;
-                            }
-                            setState(() {
-                              _status = value;
-                            });
-                          },
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: _tagsController,
-                    decoration: const InputDecoration(
-                      labelText: '标签（可选）',
-                      hintText: '例如：北校区, 学习, 周末',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  SwitchListTile(
-                    value: _useAnonymousAlias,
-                    onChanged: isBusy
-                        ? null
-                        : (bool value) {
-                            setState(() {
-                              _useAnonymousAlias = value;
-                            });
-                          },
-                    title: const Text('本帖使用匿名身份'),
-                    subtitle: const Text('仅影响当前帖子，不影响你的账号昵称'),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                  if (_useAnonymousAlias) ...<Widget>[
-                    TextFormField(
-                      controller: _anonymousAliasController,
-                      decoration: const InputDecoration(
-                        labelText: '匿名昵称（可选）',
-                        hintText: '例如：热心同学',
-                      ),
-                      validator: (String? value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return null;
-                        }
-                        if (value.trim().length > 24) {
-                          return '匿名昵称最长 24 个字符';
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    initialValue: _privateOnly ? 'private' : 'public',
-                    decoration: const InputDecoration(labelText: '可见范围'),
-                    items: const <DropdownMenuItem<String>>[
-                      DropdownMenuItem<String>(
-                        value: 'public',
-                        child: Text('所有人可见'),
-                      ),
-                      DropdownMenuItem<String>(
-                        value: 'private',
-                        child: Text('仅自己可见'),
-                      ),
-                    ],
-                    onChanged: isBusy
-                        ? null
-                        : (String? value) {
-                            setState(() {
-                              _privateOnly = value == 'private';
-                            });
-                          },
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _privateOnly
-                        ? '仅你自己能在“我的帖子”里看到这条内容。'
-                        : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.58),
-                    ),
-                  ),
-                  if (state.isLevelOneUser) ...<Widget>[
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<int?>(
-                      initialValue: _selectedPinDurationMinutes,
-                      decoration: InputDecoration(
-                        labelText: '发帖后立即置顶（可选）',
-                        helperText: '当前身份：${state.userLevelLabel}',
-                      ),
-                      items: const <DropdownMenuItem<int?>>[
-                        DropdownMenuItem<int?>(value: null, child: Text('不置顶')),
-                        DropdownMenuItem<int?>(value: 30, child: Text('30 分钟')),
-                        DropdownMenuItem<int?>(value: 60, child: Text('1 小时')),
-                        DropdownMenuItem<int?>(value: 120, child: Text('2 小时')),
-                        DropdownMenuItem<int?>(value: 180, child: Text('3 小时')),
-                        DropdownMenuItem<int?>(value: 1440, child: Text('1 天')),
-                        DropdownMenuItem<int?>(value: 4320, child: Text('3 天')),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            key: const Key('create-post-submit'),
+                            onPressed: isBusy || selectedChannel == null
+                                ? null
+                                : () => _submit(selectedChannel),
+                            icon: const Icon(Icons.send_rounded),
+                            label: Text(state.submitting ? '发布中...' : '发布帖子'),
+                          ),
+                        ),
                       ],
-                      onChanged: isBusy
-                          ? null
-                          : (int? value) {
-                              setState(() {
-                                _selectedPinDurationMinutes = value;
-                              });
-                            },
-                    ),
-                  ],
-                  const Divider(height: 28),
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        '图片（${_pickedImages.length}/9）',
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                      const Spacer(),
-                      OutlinedButton.icon(
-                        onPressed: isBusy ? null : _pickImages,
-                        icon: const Icon(Icons.add_photo_alternate_outlined),
-                        label: const Text('选择图片'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (_pickedImages.isEmpty)
-                    Text(
-                      '未选择图片。支持 jpg/png/webp/gif。',
-                      style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.58),
-                      ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _pickedImages
-                          .asMap()
-                          .entries
-                          .map(
-                            (MapEntry<int, PickedImageData> entry) =>
-                                _PickedImageCard(
-                                  image: entry.value,
-                                  onRemove: isBusy
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            _pickedImages.removeAt(entry.key);
-                                          });
-                                        },
-                                ),
-                          )
-                          .toList(),
-                    ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: isBusy || selectedChannel == null
-                          ? null
-                          : () => _submit(selectedChannel),
-                      icon: const Icon(Icons.send_rounded),
-                      label: Text(state.submitting ? '发布中...' : '发布帖子'),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 import '../../features/legal/terms_of_service_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
@@ -40,267 +42,274 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('注册账号')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: <Widget>[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: AppPageFrame(
+        maxWidth: AppLayout.formMaxWidth,
+        padding: AppLayout.pagePadding(context),
+        child: ListView(
+          padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+          children: <Widget>[
+            AppSurfaceCard(
+              padding: EdgeInsets.all(
+                AppBreakpoints.isCompact(context)
+                    ? AppSpacing.md
+                    : AppSpacing.xl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text(
+                    '创建西电知行账号',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '注册后需完成学生邮箱验证码认证。',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  const AppInlineMessage(
+                    title: '项目组内测',
+                    message: '仅白名单学生邮箱可完成注册；学校一站式登录尚未启用。',
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  TextField(
+                    key: const Key('register-email'),
+                    controller: _emailController,
+                    onChanged: (_) {
+                      setState(() {});
+                    },
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: '校园邮箱',
+                      hintText: 'example@stu.xidian.edu.cn',
+                      prefixIcon: Icon(Icons.school_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: '密码',
+                      hintText: '至少 6 位',
+                      prefixIcon: Icon(Icons.lock_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      labelText: '确认密码',
+                      prefixIcon: Icon(Icons.lock_reset_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _nicknameController,
+                    decoration: const InputDecoration(
+                      labelText: '用户昵称（可选）',
+                      hintText: '留空将自动生成',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      _buildStudentIdHint(_emailController.text.trim()),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
                     children: <Widget>[
-                      Text(
-                        '创建西电树洞账号',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.1),
+                        child: _selectedAvatar == null
+                            ? const Icon(
+                                Icons.person_outline,
+                                color: Color(0xFF5B6B88),
+                              )
+                            : ClipOval(
+                                child: Image.network(
+                                  _selectedAvatar!.previewDataUrl,
+                                  width: 48,
+                                  height: 48,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) {
+                                    return const Icon(
+                                      Icons.image_not_supported_outlined,
+                                    );
+                                  },
+                                ),
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Text('头像（可选）'),
+                            Text(
+                              _selectedAvatar == null
+                                  ? '未选择图片'
+                                  : _selectedAvatar!.fileName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.58),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text('注册后需完成邮箱验证码认证。'),
-                      const SizedBox(height: 14),
-                      TextField(
-                        controller: _emailController,
-                        onChanged: (_) {
-                          setState(() {});
-                        },
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: '校园邮箱',
-                          hintText: 'example@stu.xidian.edu.cn',
-                          prefixIcon: Icon(Icons.school_outlined),
-                        ),
+                      OutlinedButton.icon(
+                        onPressed: _isBusy ? null : _pickAvatar,
+                        icon: const Icon(Icons.upload_file_outlined),
+                        label: const Text('上传'),
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: '密码',
-                          hintText: '至少 6 位',
-                          prefixIcon: Icon(Icons.lock_outline),
-                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: <Widget>[
+                      Checkbox(
+                        value: _agreeTerms,
+                        onChanged: _isBusy
+                            ? null
+                            : (bool? value) {
+                                setState(() {
+                                  _agreeTerms = value ?? false;
+                                });
+                              },
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _confirmPasswordController,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: '确认密码',
-                          prefixIcon: Icon(Icons.lock_reset_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _nicknameController,
-                        decoration: const InputDecoration(
-                          labelText: '用户昵称（可选）',
-                          hintText: '留空将自动生成',
-                          prefixIcon: Icon(Icons.badge_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          _buildStudentIdHint(_emailController.text.trim()),
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: <Widget>[
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
-                            child: _selectedAvatar == null
-                                ? const Icon(
-                                    Icons.person_outline,
-                                    color: Color(0xFF5B6B88),
-                                  )
-                                : ClipOval(
-                                    child: Image.network(
-                                      _selectedAvatar!.previewDataUrl,
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) {
-                                        return const Icon(
-                                          Icons.image_not_supported_outlined,
-                                        );
-                                      },
-                                    ),
-                                  ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                const Text('头像（可选）'),
-                                Text(
-                                  _selectedAvatar == null
-                                      ? '未选择图片'
-                                      : _selectedAvatar!.fileName,
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _isBusy
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _agreeTerms = !_agreeTerms;
+                                  });
+                                },
+                          child: Text.rich(
+                            TextSpan(
+                              children: <InlineSpan>[
+                                const TextSpan(text: '我已阅读并同意'),
+                                TextSpan(
+                                  text: '《用户协议》',
                                   style: TextStyle(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurface
-                                        .withValues(alpha: 0.58),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const TextSpan(text: '与'),
+                                TextSpan(
+                                  text: '《社区规范》',
+                                  style: TextStyle(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: _isBusy ? null : _pickAvatar,
-                            icon: const Icon(Icons.upload_file_outlined),
-                            label: const Text('上传'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: <Widget>[
-                          Checkbox(
-                            value: _agreeTerms,
-                            onChanged: _isBusy
-                                ? null
-                                : (bool? value) {
-                                    setState(() {
-                                      _agreeTerms = value ?? false;
-                                    });
-                                  },
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: _isBusy
-                                  ? null
-                                  : () {
-                                      setState(() {
-                                        _agreeTerms = !_agreeTerms;
-                                      });
-                                    },
-                              child: Text.rich(
-                                TextSpan(
-                                  children: <InlineSpan>[
-                                    const TextSpan(text: '我已阅读并同意'),
-                                    TextSpan(
-                                      text: '《用户协议》',
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const TextSpan(text: '与'),
-                                    TextSpan(
-                                      text: '《社区规范》',
-                                      style: TextStyle(
-                                        color: Theme.of(
-                                          context,
-                                        ).colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const _TermsRoute(),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: const Text(
-                              '《用户协议》',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                          const Text(' · ', style: TextStyle(fontSize: 12)),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => const _GuidelinesRoute(),
-                                ),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            child: const Text(
-                              '《社区规范》',
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_errorText != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: Text(
-                            _errorText!,
-                            style: const TextStyle(color: Colors.red),
-                          ),
                         ),
-                      FilledButton.tonalIcon(
-                        onPressed: _isBusy ? null : _sendCode,
-                        icon: const Icon(Icons.mark_email_read_outlined),
-                        label: const Text('先发送验证码'),
-                      ),
-                      const SizedBox(height: 10),
-                      FilledButton.icon(
-                        onPressed: _isBusy ? null : _register,
-                        icon: _isBusy
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.app_registration_rounded),
-                        label: Text(_isBusy ? '提交中...' : '注册并去认证'),
                       ),
                     ],
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const _TermsRoute(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          '《用户协议》',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      const Text(' · ', style: TextStyle(fontSize: 12)),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const _GuidelinesRoute(),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          '《社区规范》',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: AppInlineMessage(
+                        key: const Key('register-error'),
+                        message: _errorText!,
+                        tone: AppMessageTone.error,
+                      ),
+                    ),
+                  FilledButton.tonalIcon(
+                    onPressed: _isBusy ? null : _sendCode,
+                    icon: const Icon(Icons.mark_email_read_outlined),
+                    label: const Text('先发送验证码'),
+                  ),
+                  const SizedBox(height: 10),
+                  FilledButton.icon(
+                    key: const Key('register-submit'),
+                    onPressed: _isBusy ? null : _register,
+                    icon: _isBusy
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.app_registration_rounded),
+                    label: Text(_isBusy ? '提交中...' : '注册并去认证'),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,0 +1,243 @@
+import 'package:flutter/material.dart';
+
+import '../theme/design_tokens.dart';
+
+class AppPageFrame extends StatelessWidget {
+  const AppPageFrame({
+    super.key,
+    required this.child,
+    this.maxWidth = AppLayout.contentMaxWidth,
+    this.padding,
+    this.alignment = Alignment.topCenter,
+  });
+
+  final Widget child;
+  final double maxWidth;
+  final EdgeInsets? padding;
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: alignment,
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        child: Padding(
+          padding: padding ?? AppLayout.pagePadding(context),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class AppSurfaceCard extends StatelessWidget {
+  const AppSurfaceCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(AppSpacing.md),
+    this.highlighted = false,
+  });
+
+  final Widget child;
+  final EdgeInsets padding;
+  final bool highlighted;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadii.large),
+        border: Border.all(
+          color: highlighted
+              ? theme.colorScheme.primary.withValues(alpha: 0.24)
+              : theme.dividerColor,
+        ),
+        boxShadow: AppElevation.soft(theme.colorScheme.shadow),
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
+}
+
+class AppSectionHeader extends StatelessWidget {
+  const AppSectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(title, style: Theme.of(context).textTheme.titleLarge),
+              if (subtitle != null) ...<Widget>[
+                const SizedBox(height: AppSpacing.xxs),
+                Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ],
+          ),
+        ),
+        if (trailing != null) ...<Widget>[
+          const SizedBox(width: AppSpacing.sm),
+          trailing!,
+        ],
+      ],
+    );
+  }
+}
+
+enum AppMessageTone { info, success, warning, error }
+
+class AppInlineMessage extends StatelessWidget {
+  const AppInlineMessage({
+    super.key,
+    required this.message,
+    this.title,
+    this.tone = AppMessageTone.info,
+    this.action,
+  });
+
+  final String message;
+  final String? title;
+  final AppMessageTone tone;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = switch (tone) {
+      AppMessageTone.info => Theme.of(context).colorScheme.primary,
+      AppMessageTone.success => const Color(0xFF2D7255),
+      AppMessageTone.warning => const Color(0xFF986615),
+      AppMessageTone.error => Theme.of(context).colorScheme.error,
+    };
+    final IconData icon = switch (tone) {
+      AppMessageTone.info => Icons.info_outline_rounded,
+      AppMessageTone.success => Icons.check_circle_outline_rounded,
+      AppMessageTone.warning => Icons.warning_amber_rounded,
+      AppMessageTone.error => Icons.error_outline_rounded,
+    };
+
+    return Semantics(
+      liveRegion: tone == AppMessageTone.error,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppRadii.medium),
+          border: Border.all(color: color.withValues(alpha: 0.24)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  if (title != null)
+                    Text(
+                      title!,
+                      style: TextStyle(
+                        color: color,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  if (title != null) const SizedBox(height: AppSpacing.xxs),
+                  Text(message, style: TextStyle(color: color, height: 1.45)),
+                ],
+              ),
+            ),
+            if (action != null) ...<Widget>[
+              const SizedBox(width: AppSpacing.xs),
+              action!,
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AppStatePanel extends StatelessWidget {
+  const AppStatePanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.action,
+    this.compact = false,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final Widget? action;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: Padding(
+          padding: EdgeInsets.all(compact ? AppSpacing.md : AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Container(
+                width: compact ? 52 : 68,
+                height: compact ? 52 : 68,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.09),
+                  borderRadius: BorderRadius.circular(
+                    compact ? AppRadii.medium : AppRadii.large,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  color: theme.colorScheme.primary,
+                  size: compact ? 26 : 32,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              if (action != null) ...<Widget>[
+                const SizedBox(height: AppSpacing.md),
+                action!,
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

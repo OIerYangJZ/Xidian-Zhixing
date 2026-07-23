@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_theme.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 import 'admin_portal_page.dart';
 
@@ -26,64 +29,127 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('管理员后台登录')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 420),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Text(
-                    '管理员入口',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
+    final ThemeData adminTheme = AppTheme.adminTheme(
+      Theme.of(context).brightness,
+    );
+    return Theme(
+      data: adminTheme,
+      child: Builder(
+        builder: (BuildContext context) {
+          return Scaffold(
+            appBar: AppBar(title: const Text('管理员后台')),
+            body: AppPageFrame(
+              maxWidth: 480,
+              alignment: Alignment.center,
+              child: SingleChildScrollView(
+                child: AppSurfaceCard(
+                  highlighted: true,
+                  padding: EdgeInsets.all(
+                    AppBreakpoints.isCompact(context)
+                        ? AppSpacing.lg
+                        : AppSpacing.xl,
+                  ),
+                  child: AutofillGroup(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Container(
+                          width: 52,
+                          height: 52,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.medium,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.shield_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('管理员账号与普通用户账号独立，请使用管理员专用账号登录。'),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _usernameController,
-                    decoration: const InputDecoration(
-                      labelText: '管理员账号',
-                      prefixIcon: Icon(Icons.admin_panel_settings_outlined),
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          '管理工作台登录',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          '管理员账号与普通用户账号完全独立。',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        const AppInlineMessage(
+                          title: '受限入口',
+                          message: '仅授权项目成员可进入；请勿在共享设备保存管理员凭据。',
+                          tone: AppMessageTone.warning,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TextField(
+                          key: const Key('admin-username'),
+                          controller: _usernameController,
+                          enabled: !_submitting,
+                          autofillHints: const <String>[AutofillHints.username],
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                            labelText: '管理员账号',
+                            prefixIcon: Icon(
+                              Icons.admin_panel_settings_outlined,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextField(
+                          key: const Key('admin-password'),
+                          controller: _passwordController,
+                          enabled: !_submitting,
+                          autofillHints: const <String>[AutofillHints.password],
+                          obscureText: true,
+                          onSubmitted: (_) => _login(),
+                          decoration: const InputDecoration(
+                            labelText: '管理员密码',
+                            prefixIcon: Icon(Icons.lock_outline),
+                          ),
+                        ),
+                        if (_error != null) ...<Widget>[
+                          const SizedBox(height: AppSpacing.sm),
+                          AppInlineMessage(
+                            key: const Key('admin-login-error'),
+                            message: _error!,
+                            tone: AppMessageTone.error,
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.md),
+                        FilledButton.icon(
+                          key: const Key('admin-login-submit'),
+                          onPressed: _submitting ? null : _login,
+                          icon: _submitting
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.login),
+                          label: Text(_submitting ? '正在验证' : '登录管理工作台'),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: '管理员密码',
-                      prefixIcon: Icon(Icons.lock_outline),
-                    ),
-                  ),
-                  if (_error != null) ...<Widget>[
-                    const SizedBox(height: 10),
-                    Text(_error!, style: const TextStyle(color: Colors.red)),
-                  ],
-                  const SizedBox(height: 14),
-                  FilledButton.icon(
-                    onPressed: _submitting ? null : _login,
-                    icon: _submitting
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.login),
-                    label: Text(_submitting ? '登录中...' : '登录管理员后台'),
-                  ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

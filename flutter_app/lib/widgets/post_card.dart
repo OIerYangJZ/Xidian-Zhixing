@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/theme/shared_colors.dart';
+import '../core/theme/design_tokens.dart';
 import '../models/post_item.dart';
 
 class PostCard extends StatelessWidget {
@@ -21,107 +21,105 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.56);
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            _Avatar(post: post),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          post.authorAlias.isEmpty ? '匿名用户' : post.authorAlias,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 14,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _Avatar(post: post),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            post.authorAlias.isEmpty
+                                ? '匿名用户'
+                                : post.authorAlias,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          _relativeTime(post.createdAt),
+                          style: TextStyle(color: muted, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    _PostMeta(post: post),
+                    if (post.title.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        post.title.trim(),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                    if (post.content.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        post.content.trim(),
+                        maxLines: post.imageUrls.isEmpty ? 4 : 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.82,
                           ),
                         ),
                       ),
-                      Text(
-                        _relativeTime(post.createdAt),
-                        style: TextStyle(color: muted, fontSize: 12),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: muted,
-                          shape: BoxShape.circle,
+                    ],
+                    if (post.imageUrls.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      _ImageStrip(urls: post.imageUrls),
+                    ],
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: <Widget>[
+                        _Action(
+                          icon: post.isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          value: post.likeCount,
+                          active: post.isLiked,
+                          onTap: onLike,
                         ),
-                      ),
-                    ],
-                  ),
-                  if (post.title.trim().isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 8),
-                    Text(
-                      post.title.trim(),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1.35,
-                        fontWeight: FontWeight.w800,
-                        color: SharedColors.textPrimary,
-                      ),
+                        const SizedBox(width: AppSpacing.lg),
+                        _Action(
+                          icon: Icons.mode_comment_outlined,
+                          value: post.commentCount,
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        _Action(
+                          icon: post.isFavorited
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
+                          value: post.favoriteCount,
+                          active: post.isFavorited,
+                          onTap: onFavorite,
+                        ),
+                      ],
                     ),
                   ],
-                  if (post.content.trim().isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 6),
-                    Text(
-                      post.content.trim(),
-                      maxLines: post.imageUrls.isEmpty ? 4 : 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        height: 1.55,
-                        color: theme.colorScheme.onSurface.withValues(alpha: 0.82),
-                      ),
-                    ),
-                  ],
-                  if (post.imageUrls.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 10),
-                    _ImageStrip(urls: post.imageUrls),
-                  ],
-                  const SizedBox(height: 12),
-                  Row(
-                    children: <Widget>[
-                      _Action(
-                        icon: post.isLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        value: post.likeCount,
-                        active: post.isLiked,
-                        onTap: onLike,
-                      ),
-                      const SizedBox(width: 24),
-                      _Action(
-                        icon: Icons.mode_comment_outlined,
-                        value: post.commentCount,
-                      ),
-                      const SizedBox(width: 24),
-                      _Action(
-                        icon: post.isFavorited
-                            ? Icons.bookmark_rounded
-                            : Icons.bookmark_border_rounded,
-                        value: post.favoriteCount,
-                        active: post.isFavorited,
-                        onTap: onFavorite,
-                      ),
-                    ],
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -145,6 +143,72 @@ class PostCard extends StatelessWidget {
   }
 }
 
+class _PostMeta extends StatelessWidget {
+  const _PostMeta({required this.post});
+
+  final PostItem post;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final List<String> tags = post.tags
+        .where((String tag) => tag.trim().isNotEmpty)
+        .take(2)
+        .toList(growable: false);
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      children: <Widget>[
+        _MetaPill(
+          label: post.channel.trim().isEmpty ? '未分类' : post.channel.trim(),
+          color: theme.colorScheme.primary,
+        ),
+        if (post.isPinned)
+          _MetaPill(label: '置顶', color: theme.colorScheme.secondary),
+        if (post.status != PostStatus.ongoing)
+          _MetaPill(
+            label: post.status.label,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        for (final String tag in tags)
+          _MetaPill(
+            label: '#${tag.trim()}',
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+      ],
+    );
+  }
+}
+
+class _MetaPill extends StatelessWidget {
+  const _MetaPill({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 180),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadii.pill),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+}
+
 class _Avatar extends StatelessWidget {
   const _Avatar({required this.post});
 
@@ -152,8 +216,9 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String label =
-        post.authorAlias.trim().isEmpty ? '匿' : post.authorAlias.trim().characters.first;
+    final String label = post.authorAlias.trim().isEmpty
+        ? '匿'
+        : post.authorAlias.trim().characters.first;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),

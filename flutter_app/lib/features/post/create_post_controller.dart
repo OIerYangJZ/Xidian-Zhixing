@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
-import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 
 class CreatePostState {
@@ -74,9 +73,10 @@ class CreatePostController extends StateNotifier<CreatePostState> {
   Future<void> loadChannels() async {
     state = state.copyWith(loadingChannels: true, clearError: true);
     try {
-      final List<String> channels =
-          await _ref.read(postRepositoryProvider).fetchChannels();
-      final profile = await AppRepositories.users.fetchProfile();
+      final List<String> channels = await _ref
+          .read(postRepositoryProvider)
+          .fetchChannels();
+      final profile = await _ref.read(userRepositoryProvider).fetchProfile();
       state = state.copyWith(
         channels: channels,
         loadingChannels: false,
@@ -86,10 +86,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         clearError: true,
       );
     } catch (error) {
-      state = state.copyWith(
-        loadingChannels: false,
-        error: '加载频道失败：$error',
-      );
+      state = state.copyWith(loadingChannels: false, error: '加载频道失败：$error');
     }
   }
 
@@ -121,37 +118,39 @@ class CreatePostController extends StateNotifier<CreatePostState> {
           progressText: '上传图片 ${i + 1}/${uploadPayloads.length}...',
         );
         final UploadPayload payload = uploadPayloads[i];
-        final UploadedImageItem uploaded =
-            await _ref.read(postRepositoryProvider).uploadImage(
-                  fileName: payload.fileName,
-                  contentType: payload.contentType,
-                  dataBase64: payload.dataBase64,
-                );
+        final UploadedImageItem uploaded = await _ref
+            .read(postRepositoryProvider)
+            .uploadImage(
+              fileName: payload.fileName,
+              contentType: payload.contentType,
+              dataBase64: payload.dataBase64,
+            );
         uploadedIds.add(uploaded.id);
         uploadedUrls.add(uploaded.url);
       }
 
       state = state.copyWith(progressText: '提交帖子中...');
-      final PostItem created =
-          await _ref.read(postRepositoryProvider).createPost(
-                CreatePostInput(
-                  title: title,
-                  content: content,
-                  contentFormat: useMarkdown ? 'markdown' : 'plain',
-                  markdownSource: useMarkdown ? content : null,
-                  channel: channel,
-                  tags: tags,
-                  allowComment: true,
-                  allowDm: !useAnonymousAlias,
-                  privateOnly: privateOnly,
-                  status: status,
-                  hasImage: uploadedIds.isNotEmpty,
-                  pinDurationMinutes: pinDurationMinutes,
-                  imageUploadIds: uploadedIds,
-                  useAnonymousAlias: useAnonymousAlias,
-                  anonymousAlias: anonymousAlias,
-                ),
-              );
+      final PostItem created = await _ref
+          .read(postRepositoryProvider)
+          .createPost(
+            CreatePostInput(
+              title: title,
+              content: content,
+              contentFormat: useMarkdown ? 'markdown' : 'plain',
+              markdownSource: useMarkdown ? content : null,
+              channel: channel,
+              tags: tags,
+              allowComment: true,
+              allowDm: !useAnonymousAlias,
+              privateOnly: privateOnly,
+              status: status,
+              hasImage: uploadedIds.isNotEmpty,
+              pinDurationMinutes: pinDurationMinutes,
+              imageUploadIds: uploadedIds,
+              useAnonymousAlias: useAnonymousAlias,
+              anonymousAlias: anonymousAlias,
+            ),
+          );
 
       state = state.copyWith(
         submitting: false,
@@ -179,5 +178,5 @@ class CreatePostController extends StateNotifier<CreatePostState> {
 
 final createPostControllerProvider =
     StateNotifierProvider.autoDispose<CreatePostController, CreatePostState>(
-  (Ref ref) => CreatePostController(ref),
-);
+      (Ref ref) => CreatePostController(ref),
+    );

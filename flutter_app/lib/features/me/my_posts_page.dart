@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../widgets/post_card.dart';
@@ -30,105 +32,136 @@ class _MyPostsPageState extends State<MyPostsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('我的帖子')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.only(top: 8, bottom: 20),
-              children: <Widget>[
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppLayout.readingMaxWidth,
+          ),
+          child: _loading
+              ? const AppStatePanel(
+                  icon: Icons.article_outlined,
+                  title: '正在加载我的帖子',
+                  message: '正在同步发布记录和审核状态。',
+                )
+              : ListView(
+                  padding: const EdgeInsets.only(
+                    top: AppSpacing.xs,
+                    bottom: AppSpacing.xl,
                   ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  child: Text(
-                    _userLevel == 1
-                        ? '当前身份：$_userLevelLabel，可直接为自己的帖子设置置顶时长。'
-                        : '当前身份：$_userLevelLabel，发帖后如需置顶，请提交管理员审核。',
-                    style: TextStyle(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.58),
-                    ),
-                  ),
-                ),
-                ..._posts.map(
-                  (PostItem post) => Column(
-                    children: <Widget>[
-                      PostCard(
-                        post: post,
-                        onTap: () async {
-                          final PostItem? updated = await openPostDetailPage(
-                            context,
-                            post: post,
-                          );
-                          if (updated == null || !mounted) {
-                            return;
-                          }
-                          setState(() {
-                            _posts = _posts
-                                .map(
-                                  (PostItem item) =>
-                                      item.id == updated.id ? updated : item,
-                                )
-                                .toList(growable: false);
-                          });
-                        },
-                      ),
+                  children: <Widget>[
+                    if (_error != null)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: <Widget>[
-                            OutlinedButton(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _updateStatus(post),
-                              child: const Text('更新状态'),
-                            ),
-                            FilledButton.tonalIcon(
-                              onPressed:
-                                  _actionBusy ||
-                                      (_userLevel != 1 && post.isPinned)
-                                  ? null
-                                  : () => _handlePin(post),
-                              icon: const Icon(Icons.push_pin_outlined),
-                              label: Text(
-                                _userLevel == 1
-                                    ? (post.isPinned ? '重新置顶' : '置顶帖子')
-                                    : (post.isPinned ? '已置顶' : '申请置顶'),
-                              ),
-                            ),
-                            FilledButton.tonal(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _delete(post),
-                              child: const Text('删除'),
-                            ),
-                          ],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: AppInlineMessage(
+                          title: '帖子加载失败',
+                          message: _error!,
+                          tone: AppMessageTone.error,
+                          action: TextButton(
+                            onPressed: _actionBusy ? null : _loadData,
+                            child: const Text('重试'),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: Text(
+                        _userLevel == 1
+                            ? '当前身份：$_userLevelLabel，可直接为自己的帖子设置置顶时长。'
+                            : '当前身份：$_userLevelLabel，发帖后如需置顶，请提交管理员审核。',
+                        style: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.58),
+                        ),
+                      ),
+                    ),
+                    ..._posts.map(
+                      (PostItem post) => Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.md,
+                              AppSpacing.xs,
+                              AppSpacing.md,
+                              0,
+                            ),
+                            child: PostCard(
+                              post: post,
+                              onTap: () async {
+                                final PostItem? updated =
+                                    await openPostDetailPage(
+                                      context,
+                                      post: post,
+                                    );
+                                if (updated == null || !mounted) {
+                                  return;
+                                }
+                                setState(() {
+                                  _posts = _posts
+                                      .map(
+                                        (PostItem item) => item.id == updated.id
+                                            ? updated
+                                            : item,
+                                      )
+                                      .toList(growable: false);
+                                });
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: <Widget>[
+                                OutlinedButton(
+                                  onPressed: _actionBusy
+                                      ? null
+                                      : () => _updateStatus(post),
+                                  child: const Text('更新状态'),
+                                ),
+                                FilledButton.tonalIcon(
+                                  onPressed:
+                                      _actionBusy ||
+                                          (_userLevel != 1 && post.isPinned)
+                                      ? null
+                                      : () => _handlePin(post),
+                                  icon: const Icon(Icons.push_pin_outlined),
+                                  label: Text(
+                                    _userLevel == 1
+                                        ? (post.isPinned ? '重新置顶' : '置顶帖子')
+                                        : (post.isPinned ? '已置顶' : '申请置顶'),
+                                  ),
+                                ),
+                                FilledButton.tonal(
+                                  onPressed: _actionBusy
+                                      ? null
+                                      : () => _delete(post),
+                                  child: const Text('删除'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_posts.isEmpty)
+                      const AppStatePanel(
+                        key: Key('my-posts-empty-state'),
+                        icon: Icons.post_add_outlined,
+                        title: '你还没有发布帖子',
+                        message: '回到帖子流，使用发布按钮分享第一条内容。',
+                      ),
+                  ],
                 ),
-                if (_posts.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('你还没有发布帖子。')),
-                  ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 
@@ -198,6 +231,28 @@ class _MyPostsPageState extends State<MyPostsPage> {
   }
 
   Future<void> _delete(PostItem post) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('删除这条帖子？'),
+          content: const Text('删除后无法恢复，相关内容将不再展示。'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('确认删除'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
     setState(() {
       _actionBusy = true;
     });
