@@ -1,310 +1,173 @@
-# 西电知行网页端内测部署报告
+# 西电知行网页端内测发布报告
 
 报告日期：2026-07-23
-正式地址：`https://zhixing.xidian.edu.cn`
 
-## 0. 结论
+正式域名：`https://zhixing.xidian.edu.cn`
 
-代码、生产配置、正式 Web 构建和本机端到端验收已经完成；正式域名当前也能返回网页和健康检查。
+发布范围：Flutter Web 网页端 UI、响应式布局与交互体验
 
-但本轮**没有完成服务器上的新版本替换**。当前会话没有生产服务器 SSH 主机、用户、密钥或已配置的部署环境变量，也没有服务器证书文件的真实路径和项目组生产测试账号。不能安全上传发布包、修改 Nginx 或写入生产数据库，因此不得宣称新版本已经上线。
+## 0. 最终状态
 
-现网检查证明服务器仍在运行旧版本：
+**本地代码、测试和生产发布包已经完成，等待用户手动部署到学校服务器。**
 
-- `GET https://zhixing.xidian.edu.cn/` 返回 200；
-- `GET https://zhixing.xidian.edu.cn/api/health` 返回 200，数据库、SMTP、对象存储均报告正常；
-- `/auth/login` 刷新返回 200，SPA 回退正常；
-- 现网静态文件 `Last-Modified` 为 2026-07-22；
-- 现网 API 对任意 Origin 仍返回 `Access-Control-Allow-Origin: *`；
-- 现网 HTTPS 响应未看到 HSTS；
-- 本轮新代码已改为精确 CORS 白名单，但尚未部署到服务器。
+本轮没有连接学校服务器，没有上传文件，没有切换服务器 `current` 软链接，也没有执行服务器上的 systemd、Nginx 或数据库操作。因此本报告不宣称新版已经上线。
 
-因此当前状态是：**现网站点可访问，但本轮加固版本尚未正式发布，完整生产内测验收仍被服务器权限和测试账号阻塞。**
+学校一站式认证继续保持关闭；登录和注册页明确标注项目组内测、仅白名单账号可用、一站式登录尚未启用以及“非西电官方应用”。本轮没有加入学校 Logo、校徽或官方授权表述。
 
-## 1. 项目架构
+## 1. 安全加固基线
 
-| 部分 | 技术栈 | 说明 |
-|---|---|---|
-| 网页端 | Flutter Web / Dart | `flutter_app/`；正式构建输出到 `build/web/` |
-| Android/iOS | Flutter | 与网页端共享模型、Repository 和网络层 |
-| 微信小程序 | 原生微信小程序 | `miniprogram/` |
-| 后端 | Python 3 `ThreadingHTTPServer` | `backend/server.py`，无 Node 服务 |
-| 数据库 | SQLite | 在线 Repository 为 SQLite；MySQL/PostgreSQL schema 仅供迁移评估 |
-| 上传存储 | 本地对象目录或 S3 兼容存储 | 当前生产模板默认本地目录 |
-| 反向代理 | Nginx | 静态文件、HTTPS、SPA 回退、`/api/` 代理 |
-| 进程管理 | systemd | `treehole.service`；未引入 PM2 |
-| 日志 | Python JSON 日志 + journald；Nginx 文件日志 | journald 负责后端日志轮转 |
+UI 修改前先审查了原有 Git diff、`PRODUCTION_DEPLOYMENT.md` 和本报告的旧版本。生产加固变更已单独提交，未被 UI 改版覆盖或回退。
 
-生产请求链路：
+- 加固基线提交：`10715e1`（`security: preserve private beta production hardening`）
+- UI 功能提交：`24373b0`（`feat(web): redesign responsive campus community UI`）
+- 最终发布源提交：`__RELEASE_COMMIT__`
+- 最终报告元数据提交：`__FINAL_METADATA_COMMIT__`
 
-`浏览器 -> HTTPS Nginx -> /api/ 代理到 127.0.0.1:8080 -> Python -> SQLite/对象存储`
+保留的生产安全边界包括：
 
-网页端生产 API 地址统一为同源 `/api`，没有在业务页面中散落正式域名。App 与小程序保留显式构建/本地配置入口。
-
-### 地址、端口和密钥审计
-
-- 生产端口只使用 Nginx 80/443 和回环后端 8080。
-- `127.0.0.1:8080` 出现在 Nginx upstream、systemd、健康检查、Docker 健康检查和本地测试中，均属于服务器内部或开发用途。
-- `0.0.0.0:8080` 只用于容器或本地开发监听；systemd 生产配置强制覆盖为 `127.0.0.1`。
-- Flutter 的 `127.0.0.1:8080`、Android 模拟器的 `10.0.2.2:8080`，以及小程序的 `localhost:8080`/示例 LAN 地址只用于开发模式；Flutter Web release 固定注入 `/api`。
-- `example.com`、`smtp.example.com`、`s3.example.com` 和 `192.0.2.10` 只存在于测试、注释或示例模板中；未发现实际测试域名或临时生产域名。
-- 正式域名只写在部署环境模板的来源白名单和文档中，没有散落到业务请求代码。
-- Git 跟踪文件中未发现私钥头、OpenAI/GitHub/AWS 常见真实 Token 前缀或 JWT 字符串；发现的密码、SMTP、AI 和 S3 字段均为空值或明确占位符。
-- 本地 SQLite、WAL/SHM、上传目录、`.env`、证书、私钥、日志、`build/` 和 `dist/` 均被 Git 忽略。
-
-## 2. 启动、构建和配置
-
-### 当前命令
-
-- 后端开发启动：`bash scripts/start_backend.sh`
-- 后端直接启动：`python3 backend/server.py`
-- Flutter Web 正式构建：`FLUTTER_BIN=/path/to/flutter bash scripts/build_web_production.sh`
-- 发布包：`FLUTTER_BIN=/path/to/flutter bash scripts/package_release.sh`
-- systemd 启动：`sudo systemctl enable --now treehole`
-- 健康检查：`bash scripts/health_check.sh`
-
-### 生产环境文件
-
-- 根模板：`.env.production.example`
-- 部署模板：`deploy/tencent/backend.env.example`
-- 服务器真实文件：`/home/ubuntu/treehole/shared/config/backend.env`
-
-关键生产变量：
-
-- `BACKEND_CORS_ALLOWED_ORIGINS=https://zhixing.xidian.edu.cn`
-- `BACKEND_AUTH_ALLOWED_EMAILS=<项目组学生邮箱列表>`
-- `BACKEND_ENABLE_XIDIAN_AUTH=false`
-- `BACKEND_MAX_REQUEST_BODY_MB=20`
-- `BACKEND_DB_FILE=/home/ubuntu/treehole/shared/data/treehole.db`
-- `BACKEND_STORAGE_DIR=/home/ubuntu/treehole/shared/storage/objects`
-- `BACKEND_WEB_ROOT=/home/ubuntu/treehole/current/web`
-
-真实管理员密码、SMTP 授权码、AI/S3 密钥和测试成员邮箱不得提交到 Git。项目不使用 JWT；登录态使用不可预测会话 Token，并持久化在 SQLite。
-
-## 3. 修改过的文件
-
-### 新增
-
-- `.env.example`
-- `.env.production.example`
-- `PRODUCTION_DEPLOYMENT.md`
-- `DEPLOYMENT_REPORT.md`
-
-### 修改
-
-- `.gitignore`
-- `backend/_globals.py`
-- `backend/helpers/_http_helpers.py`
-- `backend/helpers/__init__.py`
-- `backend/handlers/_auth_handler.py`
-- `backend/handlers/_admin_handler.py`
-- `backend/server.py`
-- `backend/services/_db_service.py`
-- `backend/services/_user_service.py`
-- `backend/tests/test_admin.py`
-- `backend/tests/test_auth.py`
-- `backend/tests/test_database_initialization.py`
-- `scripts/validate_production_env.py`
-- `deploy/production/.env.example`
-- `deploy/production/nginx-cache.conf`
-- `deploy/tencent/backend.env.example`
-- `deploy/tencent/xdu-whisperbox.env`
-- `flutter_app/lib/features/auth/login_page.dart`
-- `flutter_app/lib/mobile/features/auth/login_page.dart`
-- `flutter_app/lib/mobile/features/auth/register_page.dart`
-
-主要变化：
-
-- API CORS 从无条件 `*` 改为精确来源白名单；
-- 生产环境强制要求项目组测试邮箱白名单；
-- 注册、验证码、登录和既有会话均受白名单限制；
-- 学校统一身份认证接口层保留，但默认明确禁用；
-- 请求体统一限制为 20 MB，图片业务限制仍为 5 MB；
-- 后端日志改为 JSON，异常包含堆栈；
-- 增加 SIGTERM/SIGINT 优雅关闭；
-- 修正健康检查中对象存储永远报告成功的问题；
-- 修复专用管理员处理举报时触发 SQLite 外键 500 的问题；
-- 登录和注册页明确显示“项目组内测白名单”；
-- 扩展生产环境校验和敏感环境文件忽略规则。
-
-## 4. 生产启动、停止、重启和日志
-
-```bash
-sudo systemctl enable --now treehole
-sudo systemctl status treehole --no-pager -l
-sudo systemctl stop treehole
-sudo systemctl restart treehole
-sudo journalctl -u treehole -n 200 --no-pager
-sudo journalctl -u treehole -f
-sudo journalctl -u treehole --since today
-```
-
-Nginx：
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-sudo tail -n 200 /var/log/nginx/treehole.error.log
-sudo tail -n 200 /var/log/nginx/treehole.access.log
-```
-
-## 5. 数据库迁移、备份和恢复
-
-SQLite 初始化已经验证为原子操作；已有数据库不会因为零用户或缺少新元数据标记而被当作全新数据库重置。`reset_db.py` 是破坏性工具，不属于生产启动流程。
-
-生产数据：
-
-- `/home/ubuntu/treehole/shared/data/treehole.db`
-- `/home/ubuntu/treehole/shared/storage/objects/`
-
-一致性备份：
-
-```bash
-sudo systemctl stop treehole
-sudo tar -C /home/ubuntu/treehole \
-  -czf /home/ubuntu/treehole/backups/treehole-$(date -u +%Y%m%dT%H%M%SZ).tar.gz \
-  shared/data shared/storage
-sudo systemctl start treehole
-sudo systemctl is-active treehole
-```
-
-恢复时先把当前目录移动到带时间戳的保留位置，再解压经过校验的备份，修正属主后启动。完整步骤见 `PRODUCTION_DEPLOYMENT.md`。本轮未删除、清空或覆盖任何现有数据库和上传文件。
-
-## 6. Nginx
-
-仓库模板：
-
-`deploy/production/nginx-treehole-https.conf.template`
-
-服务器目标：
-
-`/etc/nginx/sites-available/treehole.conf`
-
-静态根目录：
-
-`/home/ubuntu/treehole/current/web`
-
-模板已覆盖：
-
-- HTTP 到 HTTPS；
-- TLS 1.2/1.3；
-- HSTS 和常用安全头；
-- `/api/` 反向代理；
-- `client_max_body_size 20m`；
-- Flutter SPA 刷新回退；
-- HTML、Service Worker 和入口清单不缓存；
-- 其他静态资源缓存；
-- Nginx 访问与错误日志。
-
-服务器当前证书路径未知，本轮没有猜测或改写现有证书配置。
-
-## 7. 构建和自动化测试结果
-
-### 通过
-
-- Python 语法编译检查通过；
-- 后端 pytest：`115 passed`；
-- Flutter analyze：`No issues found`；
-- Flutter test：`87 tests passed`；
-- Flutter Web release 构建通过；
-- 构建输出：`build/web/`；
-- 发布归档路径和 SHA-256 清单验证通过；
-- 验证归档：`dist/treehole-0.1.0+21+fd5c01e.tar.gz`，约 11 MB；
-- 生产环境校验器：填入测试值的临时配置通过，模板占位符被正确拒绝；
-- `git diff --check` 通过。
-
-归档是基于未提交工作区生成的本机验证包，只能用于验证，不应直接作为正式发布包。正式部署前应先审查并提交预期变更，再从干净工作区重新构建。
-
-### 本机真实 HTTP 端到端验收
-
-所有数据均写入系统临时目录中的独立 SQLite 和上传目录，没有触碰仓库现有数据库：
-
-| 验收项 | 结果 |
-|---|---|
-| 首页 | 通过 |
-| SPA 路由刷新 | 通过 |
-| 创建白名单测试账号 | 通过 |
-| 非白名单账号注册 | 403，通过 |
-| 登录状态保持 | 通过 |
-| 退出登录 | 通过 |
-| 帖子列表 | 通过 |
-| 发布帖子 | 通过 |
-| 帖子详情 | 通过 |
-| 评论 | 通过 |
-| 删除本人评论和帖子 | 通过 |
-| 上传 PNG 图片并绑定帖子 | 通过 |
-| 错误请求提示 | 400，通过 |
-| 未登录受限接口 | 401，通过 |
-| 管理端登录 | 通过 |
-| 举报列表和处理 | 通过 |
-| 精确 CORS 来源 | 正式来源 200，未列入来源 403 |
-| 统一认证关闭 | 503 且明确提示尚未启用 |
-| SIGTERM 优雅关闭 | 通过，进程正常退出并输出 JSON 停止日志 |
-| 服务重启后数据和会话仍存在 | 通过 |
-
-## 8. 正式域名检查
-
-2026-07-23 的无副作用现网检查：
-
-| 项目 | 结果 |
-|---|---|
-| HTTP 跳 HTTPS | 302，通过 |
-| HTTPS 首页 | 200，通过 |
-| `/auth/login` 刷新 | 200，通过 |
-| `/api/health` GET | 200；database/smtp/storage 均为 ok |
-| 未登录发布 | 401，通过 |
-| 桌面浏览器首屏 | 登录页可正常显示，无 Flutter Debug banner |
-| 静态资源缓存 | HTML 不缓存；入口 JS 当前也不缓存 |
-| CORS | 不通过；任意 Origin 都返回 `*` |
-| HSTS | 当前响应未发现 |
-| 新构建版本 | 未部署；现网静态文件时间仍为 2026-07-22 |
-
-## 9. 尚未完成的问题和阻塞项
-
-1. 未提供 SSH 主机、用户、密钥或 `DEPLOY_HOST/DEPLOY_USER`，无法上传新发布包和执行 systemd/Nginx 操作。
-2. 未提供服务器现有 TLS 证书和私钥路径，无法安全渲染并替换 HTTPS Nginx 配置。
-3. 未提供项目组生产测试邮箱白名单、生产管理员账号或可用测试账号，不能在正式数据库执行注册、发帖、评论、上传、举报和审核。
-4. 手机尺寸浏览器自动化的视口覆盖没有生效，正式站点手机首屏未完成可靠截图验收；Flutter 代码和桌面浏览器已通过，仍需真机或可控移动视口复测。
-5. “无网络/接口异常提示”已有 `ApiClient` 超时和网络错误转换，并被 Flutter 单元测试覆盖，但本轮没有在正式站点断网状态下完成可视化手工验收。
-6. 现网仍有开放 CORS 和缺少 HSTS 的问题，必须部署本轮配置后再次核验。
-7. systemd 自动启动、journald 轮转和 Nginx `nginx -t` 只能在目标 Ubuntu 服务器上最终确认；本机 macOS 无 systemd/Nginx。
-
-## 10. 回滚方法
-
-应用版本回滚：
-
-```bash
-sudo DEPLOY_DIR=/home/ubuntu/treehole SERVICE_NAME=treehole \
-  bash /home/ubuntu/treehole/current/scripts/rollback.sh --list
-sudo DEPLOY_DIR=/home/ubuntu/treehole SERVICE_NAME=treehole \
-  bash /home/ubuntu/treehole/current/scripts/rollback.sh
-```
-
-该脚本切换 `current` 软链接并重启服务；启动失败时会尝试恢复原版本。`shared/data`、`shared/storage` 和真实环境文件不随应用版本回滚。
-
-Nginx 回滚应在替换前保存旧配置：
-
-```bash
-sudo cp -a /etc/nginx/sites-available/treehole.conf \
-  /etc/nginx/sites-available/treehole.conf.before-zhixing-release
-```
-
-若新配置验证失败，恢复备份后运行：
-
-```bash
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-数据库恢复必须使用第 5 节的已验证备份，并先保留当前数据副本；不要直接删除生产数据库。
-
-## 11. 完成正式上线所需的下一步
-
-提供以下信息后才能继续完成服务器发布和正式账号验收：
-
-- 可用的 SSH 主机、用户、端口和密钥方式；
-- 服务器现有证书与私钥的绝对路径；
+- 精确 CORS 来源白名单；
 - 项目组测试邮箱白名单；
-- 一个普通测试账号和一个管理员测试账号，或允许在生产环境创建专用测试账号。
+- 学校一站式认证默认关闭；
+- 请求体和图片大小限制；
+- JSON 日志、异常堆栈与优雅关闭；
+- 数据库初始化事务与外键完整性检查；
+- 健康检查、生产配置校验和发布归档校验。
 
-随后应从干净工作区重新构建，先备份 shared 数据和 Nginx 配置，再发布、执行完整生产验收，并复查 CORS、HSTS、缓存、日志、自动启动和重启持久化。
+本轮 UI 提交未修改后端 API、SQLite schema、Token/会话机制、邮箱白名单、CORS、systemd、Nginx、上传协议、管理员审核逻辑、学校一站式接口、Android、iOS 或微信小程序界面。
+
+## 2. 敏感文件检查
+
+Git 跟踪文件、待提交变更和最终发布归档均检查了以下内容：
+
+- 真实 `.env` 或 `backend.env`；
+- 密码、Token、常见云密钥和私钥头；
+- SQLite、WAL、SHM；
+- 上传文件和运行时 storage；
+- 证书、私钥和 keystore；
+- 运行日志、缓存、字节码。
+
+检查结果：未发现误提交或误打包的真实敏感文件。仓库中的 `.env.example`、`.env.production.example` 和 `deploy/**/.env.example` 仅为占位模板。
+
+## 3. UI 设计与页面范围
+
+设计系统集中在：
+
+- `flutter_app/lib/core/theme/design_tokens.dart`
+- `flutter_app/lib/core/theme/shared_colors.dart`
+- `flutter_app/lib/core/theme/app_theme.dart`
+- `flutter_app/lib/core/widgets/app_surfaces.dart`
+- `flutter_app/lib/core/widgets/async_page_state.dart`
+
+统一内容包括颜色、字体层级、8px 间距、圆角、阴影、按钮高度、输入框、卡片、Toast、Dialog、加载/空数据/错误状态和响应式断点。
+
+已改版或统一的页面与组件：
+
+- 登录、注册；
+- 首页框架、帖子流、帖子卡片、帖子详情；
+- 发布帖子、评论区、图片选择/预览/移除；
+- 个人主页、公开主页、我的帖子、设置；
+- 我的举报、举报详情和举报入口；
+- 管理员登录、管理入口和管理控制台；
+- 公告；
+- 404、无权限、加载、空数据和错误状态。
+
+管理员入口使用独立的深色管理主题，与普通用户界面保持清晰区分。
+
+## 4. 响应式验收
+
+自动化 Widget 测试和本地浏览器检查覆盖：
+
+| 宽度 | 结果 |
+|---:|---|
+| 360px | 通过 |
+| 390px | 通过 |
+| 768px | 通过 |
+| 1280px | 通过 |
+| 1440px | 通过 |
+
+验收结果：
+
+- 未观察到横向滚动；
+- 手机端使用底部导航和单手可达发布入口；
+- 桌面端使用 NavigationRail，宽屏可扩展但正文限制为阅读宽度；
+- 长标题、长用户名和标签可换行或截断；
+- 帖子详情、评论和表单在 360px 可操作；
+- Dialog 和状态页在小屏幕内保持可见；
+- 图片网格按断点切换列数并保持比例；
+- 页面最大宽度和侧栏宽度受设计 Token 统一约束。
+
+## 5. 功能保持与本地端到端验收
+
+本轮没有删除原有业务功能。自动化测试继续覆盖登录、注册、白名单、会话恢复、发帖、图片上传、评论、删除本人内容、举报、管理员审核、退出登录、一站式登录关闭、API 错误和网络错误。
+
+本地浏览器验收使用系统临时目录中的独立 SQLite 与上传目录，结束后已停止服务并删除临时数据。已人工走查：
+
+- 登录和会话进入首页；
+- 390px 与 1280px 导航；
+- 发布帖子并收到成功反馈；
+- 帖子详情；
+- 发布评论并刷新评论列表；
+- 举报入口、原因选择与表单；
+- 360px 帖子详情布局。
+
+本地临时测试账号、帖子、评论和举报数据均未进入仓库或生产服务器。
+
+## 6. 自动化测试
+
+| 检查 | 结果 |
+|---|---|
+| `flutter analyze` | `No issues found` |
+| `flutter test` | `100 tests passed` |
+| 后端 `pytest` | `115 passed` |
+| Flutter Web release build | 通过 |
+| `git diff --check` | 通过 |
+| 发布归档内容校验 | 通过 |
+| 敏感文件/密钥模式扫描 | 通过 |
+
+新增 Widget 测试重点覆盖响应式断点、移动/桌面导航、登录状态恢复、加载/空数据/错误状态、404、发布必填校验、按钮禁用和提交加载状态。
+
+## 7. 构建和发布物
+
+- Flutter 版本：`0.1.0+22`
+- 构建目录：`build/web/`
+- 发布源 Git 提交：`__RELEASE_COMMIT__`
+- 发布归档：`__RELEASE_ARCHIVE__`
+- SHA-256：`__RELEASE_SHA256__`
+
+发布包包含后端运行代码、Flutter Web 静态文件、生产配置模板、健康检查/回滚/校验脚本和 `release-meta/version.json`。不包含 SQLite、上传目录、真实环境文件、密钥、日志、证书或私钥。
+
+## 8. 人工部署入口
+
+完整人工部署步骤见 `MANUAL_DEPLOYMENT.md`。文档使用占位变量，不假设 SSH 主机、用户名、端口、证书路径、私钥路径、管理员密码、测试账号或服务器绝对路径。
+
+部署前必须先在学校服务器确认实际的：
+
+- 部署根目录和当前软链接；
+- systemd 服务名、服务用户与组；
+- Nginx 主配置或站点配置路径；
+- SQLite、上传目录和真实环境文件路径；
+- 堡垒机和目标机的 SSH 连接参数。
+
+## 9. 未解决问题
+
+1. 新版尚未由用户部署到学校服务器。
+2. 服务器上的备份、解压、权限、软链接切换、systemd 重启、`nginx -t` 和 reload 尚未执行。
+3. 正式域名上的新版版本号、CORS、HSTS、缓存策略、健康检查和核心业务流程尚待部署后验收。
+4. 学校一站式认证仍未审批完成，必须继续保持 `BACKEND_ENABLE_XIDIAN_AUTH=false`。
+5. 当前为项目组少数成员内测，白名单和生产测试账号必须由用户在服务器私密配置中维护。
+
+## 10. 部署后的最低验收
+
+部署后应至少完成：
+
+- `release-meta/version.json` 与发布提交一致；
+- `/`、SPA 刷新路径和 `/api/health` 返回正常；
+- 正式 Origin 的 CORS 通过，未列入 Origin 被拒绝；
+- HTTPS 响应包含 HSTS；
+- 普通白名单账号登录、会话恢复、发帖、上传、评论、删除和举报；
+- 管理员登录、举报审核；
+- 一站式登录返回明确的未启用状态；
+- systemd 重启后数据库、上传文件和会话仍存在；
+- 回滚命令和上一版本目录可用。
+
+最终状态：**本地代码、测试和生产发布包已经完成，等待用户手动部署到学校服务器。**
