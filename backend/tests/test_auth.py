@@ -190,6 +190,35 @@ class TestEmailCodeAuth:
         assert email not in db["emailCodes"]
         assert payload["data"]["token"] in db["sessions"]
 
+    def test_verify_rejects_email_outside_private_beta_allowlist(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        import _globals
+        from handlers import _auth_handler
+        from services._db_service import default_db
+
+        email = "2500999@stu.xidian.edu.cn"
+        db = default_db()
+        handler = FakeJsonHandler()
+        monkeypatch.setattr(
+            _globals,
+            "AUTH_ALLOWED_EMAILS",
+            {"2500001@stu.xidian.edu.cn"},
+        )
+        monkeypatch.setattr(
+            _auth_handler,
+            "read_json_body",
+            lambda _handler: {"email": email, "code": "654321"},
+        )
+
+        _auth_handler.handle_verify(handler, db)
+
+        payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
+        assert handler.status_code == HTTPStatus.FORBIDDEN
+        assert payload["message"] == "当前仅向项目组测试账号开放"
+        assert all(user.get("email") != email for user in db["users"])
+
 
 class TestRegisterOptionalNickname:
     """测试注册时昵称可选。"""

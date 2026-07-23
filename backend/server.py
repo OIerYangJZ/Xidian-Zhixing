@@ -6,6 +6,8 @@ import logging
 import mimetypes
 import os
 import re
+import signal
+import threading
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -79,7 +81,9 @@ SMTP_USE_STARTTLS = _globals.SMTP_USE_STARTTLS
 # Re-export helpers for TreeholeHandler
 # ---------------------------------------------------------------------------
 from helpers import (
+    RequestBodyTooLarge,
     read_json_body,
+    request_origin_allowed,
     send_json,
     json_error,
     send_binary,
@@ -138,11 +142,21 @@ def _configure_logging() -> None:
     if _logged_already:
         return
     _logged_already = True
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s | %(levelname)-8s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    class JsonFormatter(logging.Formatter):
+        def format(self, record: logging.LogRecord) -> str:
+            payload: dict[str, Any] = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "level": record.levelname,
+                "logger": record.name,
+                "message": record.getMessage(),
+            }
+            if record.exc_info:
+                payload["exception"] = self.formatException(record.exc_info)
+            return json.dumps(payload, ensure_ascii=False)
+
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
+    logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
     if verify_code_debug_enabled():
         _logger.setLevel(logging.DEBUG)
 
@@ -189,6 +203,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
     }
 
     def do_OPTIONS(self) -> None:  # noqa: N802
+        if not request_origin_allowed(self):
+            json_error(self, HTTPStatus.FORBIDDEN, "Origin not allowed")
+            return
         send_json(self, HTTPStatus.OK, {"message": "ok"})
 
     def do_GET(self) -> None:  # noqa: N802
@@ -211,6 +228,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             parsed = urlparse(self.path)
             path = parsed.path
             query = parse_qs(parsed.query)
+            if path.startswith("/api/auth/xidian/") and not _globals.ENABLE_XIDIAN_AUTH:
+                json_error(
+                    self,
+                    HTTPStatus.SERVICE_UNAVAILABLE,
+                    "学校统一身份认证尚未启用",
+                )
+                return
             if not path.startswith("/api"):
                 if method == "GET":
                     self._handle_web_get(path)
@@ -235,7 +259,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
 
             json_error(self, HTTPStatus.METHOD_NOT_ALLOWED, "Method not allowed")
-        except Exception as error:  # pragma: no cover
+        except RequestBodyTooLarge as error:
+            json_error(self, HTTPStatus.REQUEST_ENTITY_TOO_LARGE, str(error))
+        except Exception:  # pragma: no cover
             _logger.exception("Unhandled error in _handle")
             json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "Internal server error")
 
@@ -293,7 +319,15 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             except Exception:
                 pass
             try:
-                storage_ok = OBJECT_STORAGE.get_bytes("__health_check__") is not None or True
+                if getattr(OBJECT_STORAGE, "backend_name", "") == "local":
+                    storage_root = Path(getattr(OBJECT_STORAGE, "root_dir"))
+                    storage_ok = (
+                        storage_root.is_dir()
+                        and os.access(storage_root, os.R_OK | os.W_OK | os.X_OK)
+                    )
+                else:
+                    OBJECT_STORAGE.get_bytes("__health_check__")
+                    storage_ok = True
             except Exception:
                 pass
             status = "healthy" if (db_ok and storage_ok) else "degraded"
@@ -1144,6 +1178,17 @@ def main() -> None:
     port = int(os.environ.get("BACKEND_PORT", "8080"))
 
     server = ThreadingHTTPServer((host, port), TreeholeHandler)
+    shutdown_started = threading.Event()
+
+    def request_shutdown(signum: int, _frame: Any) -> None:
+        if shutdown_started.is_set():
+            return
+        shutdown_started.set()
+        _logger.info("Shutdown requested by signal %s", signum)
+        threading.Thread(target=server.shutdown, daemon=True).start()
+
+    signal.signal(signal.SIGTERM, request_shutdown)
+    signal.signal(signal.SIGINT, request_shutdown)
     _logger.info(f"XDU Treehole API is running at http://{host}:{port}/api")
     _logger.info(f"Web root: {WEB_ROOT_DIR}")
     if not WEB_ROOT_DIR.exists() or not (WEB_ROOT_DIR / "index.html").exists():
@@ -1165,7 +1210,11 @@ def main() -> None:
     _logger.info(f"Admin account: {DEFAULT_ADMIN_USERNAME}")
     if verify_code_debug_enabled():
         _logger.debug("Debug verify code enabled: 123456")
-    server.serve_forever()
+    try:
+        server.serve_forever()
+    finally:
+        server.server_close()
+        _logger.info("Server stopped")
 
 
 if __name__ == "__main__":

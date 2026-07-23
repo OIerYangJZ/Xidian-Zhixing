@@ -77,6 +77,16 @@ _WEB_RESULT_QUERY_KEY = "xidianAuthAttempt"
 _WEB_ATTEMPT_COOKIE_NAME = "xdu_whisper_xidian_attempt"
 
 
+def _require_private_beta_access(
+    handler: BaseHTTPRequestHandler,
+    email: str,
+) -> bool:
+    if _globals.is_auth_email_allowed(email):
+        return True
+    json_error(handler, HTTPStatus.FORBIDDEN, "当前仅向项目组测试账号开放")
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
@@ -356,6 +366,8 @@ def _upsert_user_from_xidian_identity(
     student_id: str,
     campus_email: str,
 ) -> dict[str, Any]:
+    if not _globals.is_auth_email_allowed(campus_email):
+        raise PermissionError("当前仅向项目组测试账号开放")
     user = find_user_by_student_id(db, student_id, include_deleted=True)
 
     if user is not None and user.get("deleted"):
@@ -544,6 +556,8 @@ def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
         login_email = str(user.get("email", "")).strip().lower()
     if not is_campus_email(login_email):
         json_error(handler, HTTPStatus.FORBIDDEN, _student_email_only_error())
+        return
+    if not _require_private_beta_access(handler, login_email):
         return
     if not login_student_id:
         login_student_id = str(user.get("studentId", "")).strip() or student_id_from_email(login_email)
@@ -863,6 +877,8 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
+    if not _require_private_beta_access(handler, email):
+        return
     if len(password) < 6:
         json_error(handler, HTTPStatus.BAD_REQUEST, "密码长度至少 6 位")
         return
@@ -1014,6 +1030,8 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
+    if not _require_private_beta_access(handler, email):
+        return
     if not is_valid_student_id(student_id):
         json_error(handler, HTTPStatus.BAD_REQUEST, "邮箱前缀不符合学号格式（需为 6-20 位字母或数字）")
         return
@@ -1117,6 +1135,8 @@ def handle_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> Non
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
+    if not _require_private_beta_access(handler, email):
+        return
 
     verification = _verification_code_or_error(handler)
     if verification is None:
@@ -1161,6 +1181,8 @@ def handle_password_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any
     email = str(body.get("email", "")).strip().lower()
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
+        return
+    if not _require_private_beta_access(handler, email):
         return
 
     user = find_user_by_email(db, email, include_deleted=True)

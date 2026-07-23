@@ -40,7 +40,12 @@ deploy/certs/
 .venv/
 .env
 .env.local
+.env.production
+.env.development
+.env.test
 .env.*.local
+!.env.example
+!.env.production.example
 miniprogram/config/env.local.js
 miniprogram/project.private.config.json
 __pycache__/

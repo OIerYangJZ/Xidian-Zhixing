@@ -175,7 +175,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                '仅支持 @stu.xidian.edu.cn 学生邮箱',
+                '项目组内测仅开放白名单学生邮箱',
                 style: TextStyle(fontSize: 13, color: colors.textSecondary),
                 textAlign: TextAlign.center,
               ),

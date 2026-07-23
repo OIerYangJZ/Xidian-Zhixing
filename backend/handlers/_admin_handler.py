@@ -734,7 +734,9 @@ def handle_admin_report_action(
 
     handled_at = now_iso()
     report["handledAt"] = handled_at
-    report["handledBy"] = str(admin.get("adminId", "")).strip()
+    # reports.handled_by references users; dedicated admin accounts live in a
+    # separate table, so only user-admin IDs can be stored in this column.
+    report["handledBy"] = str(admin.get("id", "")).strip()
     report["result"] = review_note
 
     action_map = {

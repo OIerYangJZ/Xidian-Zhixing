@@ -880,6 +880,13 @@ def create_notification(
         return None
     if not user_accepts_notification(target_user, notification_type):
         return None
+    normalized_actor_id = actor_id.strip()
+    if normalized_actor_id and find_user_by_id(
+        db,
+        normalized_actor_id,
+        include_deleted=True,
+    ) is None:
+        normalized_actor_id = ""
     row = {
         "id": next_id(db, "notification", "n"),
         "userId": user_id.strip(),
@@ -889,7 +896,7 @@ def create_notification(
         "relatedType": related_type.strip(),
         "relatedId": related_id.strip(),
         "postId": post_id.strip(),
-        "actorId": actor_id.strip(),
+        "actorId": normalized_actor_id,
         "actorAlias": actor_alias.strip(),
         "createdAt": now_iso(),
         "readAt": "",

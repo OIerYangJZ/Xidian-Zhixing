@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                           ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
-                    const Text('仅限西电学生，使用学生邮箱注册并登录。'),
+                    const Text('当前仅限项目组内测，白名单学生邮箱可注册并登录。'),
                     const SizedBox(height: 18),
                     TextField(
                       controller: _identifierController,
@@ -146,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '注册、验证码和密码找回仅支持 @stu.xidian.edu.cn 学生邮箱。',
+                      '内测仅开放白名单 @stu.xidian.edu.cn 学生邮箱。',
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(

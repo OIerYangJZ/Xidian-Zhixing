@@ -95,6 +95,10 @@ SMTP_FROM_NAME: str = "电台"
 SMTP_USE_SSL: bool = True
 SMTP_USE_STARTTLS: bool = False
 BACKEND_XIDIAN_PUBLIC_ORIGIN: str = ""
+ENABLE_XIDIAN_AUTH: bool = False
+CORS_ALLOWED_ORIGINS: set[str] = set()
+AUTH_ALLOWED_EMAILS: set[str] = set()
+MAX_REQUEST_BODY_BYTES: int = 20 * 1024 * 1024
 
 # AI provider configuration is server-only.  Never send these values to a
 # client or accept them from an AI request body.
@@ -123,7 +127,9 @@ def configure() -> None:
         OBJECT_STORAGE_DIR, WEB_ROOT_DIR, DB_LOCK, REPOSITORY, OBJECT_STORAGE, \
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, \
         SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_SSL, SMTP_USE_STARTTLS, \
-        BACKEND_XIDIAN_PUBLIC_ORIGIN, DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
+        BACKEND_XIDIAN_PUBLIC_ORIGIN, ENABLE_XIDIAN_AUTH, CORS_ALLOWED_ORIGINS, \
+        AUTH_ALLOWED_EMAILS, MAX_REQUEST_BODY_BYTES, \
+        DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
         DEFAULT_CHANNELS, DEFAULT_TAGS, DEFAULT_SETTINGS, \
@@ -276,6 +282,63 @@ def configure() -> None:
     SMTP_USE_SSL = os.environ.get("BACKEND_SMTP_USE_SSL", "true").strip().lower() in {"1", "true", "yes", "on"}
     SMTP_USE_STARTTLS = os.environ.get("BACKEND_SMTP_USE_STARTTLS", "false").strip().lower() in {"1", "true", "yes", "on"}
     BACKEND_XIDIAN_PUBLIC_ORIGIN = os.environ.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip().rstrip("/")
+    ENABLE_XIDIAN_AUTH = os.environ.get(
+        "BACKEND_ENABLE_XIDIAN_AUTH",
+        "false",
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    CORS_ALLOWED_ORIGINS.clear()
+    CORS_ALLOWED_ORIGINS.update(
+        origin.strip().rstrip("/")
+        for origin in os.environ.get("BACKEND_CORS_ALLOWED_ORIGINS", "").split(",")
+        if origin.strip()
+    )
+    AUTH_ALLOWED_EMAILS.clear()
+    AUTH_ALLOWED_EMAILS.update(
+        email.strip().lower()
+        for email in os.environ.get("BACKEND_AUTH_ALLOWED_EMAILS", "").split(",")
+        if email.strip()
+    )
+    try:
+        max_request_body_mb = int(
+            os.environ.get("BACKEND_MAX_REQUEST_BODY_MB", "20"),
+        )
+    except ValueError as error:
+        raise RuntimeError("BACKEND_MAX_REQUEST_BODY_MB must be an integer") from error
+    if not 1 <= max_request_body_mb <= 100:
+        raise RuntimeError("BACKEND_MAX_REQUEST_BODY_MB must be between 1 and 100")
+    MAX_REQUEST_BODY_BYTES = max_request_body_mb * 1024 * 1024
+
+    if runtime_env == "production":
+        if not CORS_ALLOWED_ORIGINS:
+            raise RuntimeError(
+                "BACKEND_CORS_ALLOWED_ORIGINS is required in production"
+            )
+        invalid_origins = [
+            origin
+            for origin in CORS_ALLOWED_ORIGINS
+            if not re.fullmatch(r"https://[^/?#]+", origin)
+        ]
+        if invalid_origins:
+            raise RuntimeError(
+                "BACKEND_CORS_ALLOWED_ORIGINS must contain HTTPS origins only"
+            )
+        if not AUTH_ALLOWED_EMAILS:
+            raise RuntimeError(
+                "BACKEND_AUTH_ALLOWED_EMAILS is required during private beta"
+            )
+        invalid_emails = [
+            email
+            for email in AUTH_ALLOWED_EMAILS
+            if not re.fullmatch(r"[A-Za-z0-9._%+-]+@stu\.xidian\.edu\.cn", email)
+        ]
+        if invalid_emails:
+            raise RuntimeError(
+                "BACKEND_AUTH_ALLOWED_EMAILS must contain student email addresses"
+            )
+        if ENABLE_XIDIAN_AUTH and not BACKEND_XIDIAN_PUBLIC_ORIGIN.startswith("https://"):
+            raise RuntimeError(
+                "BACKEND_XIDIAN_PUBLIC_ORIGIN is required when unified authentication is enabled"
+            )
     AI_BASE_URL = os.environ.get("BACKEND_AI_BASE_URL", os.environ.get("AI_BASE_URL", "")).strip().rstrip("/")
     AI_API_KEY = os.environ.get("BACKEND_AI_API_KEY", os.environ.get("AI_API_KEY", "")).strip()
     AI_MODEL = os.environ.get("BACKEND_AI_MODEL", os.environ.get("AI_MODEL", "gpt-4o-mini")).strip() or "gpt-4o-mini"
@@ -461,6 +524,13 @@ def get_image_max_bytes(db: dict[str, Any]) -> int:
     return max(1024 * 1024, mb * 1024 * 1024)
 
 
+def is_auth_email_allowed(email: str) -> bool:
+    """Return whether an account may access the current private beta."""
+    if not AUTH_ALLOWED_EMAILS:
+        return True
+    return email.strip().lower() in AUTH_ALLOWED_EMAILS
+
+
 def public_system_settings() -> dict[str, Any]:
     """Return public system settings. DEPRECATED: use services.public_system_settings(db)."""
     return {
@@ -495,6 +565,9 @@ __all__ = [
     "PIN_DURATION_OPTIONS",
     "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD",
     "SMTP_FROM_EMAIL", "SMTP_FROM_NAME", "SMTP_USE_SSL", "SMTP_USE_STARTTLS",
+    "BACKEND_XIDIAN_PUBLIC_ORIGIN", "ENABLE_XIDIAN_AUTH",
+    "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_EMAILS", "MAX_REQUEST_BODY_BYTES",
+    "is_auth_email_allowed",
     "PASSWORD_RESET_CODE_PREFIX",
     "RATE_LIMIT_WINDOWS_SECONDS", "IP_RATE_LIMITS", "ALLOWED_IMAGE_TYPES",
     "RATE_LIMIT_EVENT_MAX", "SPAM_REPEAT_REGEX",

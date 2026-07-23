@@ -100,6 +100,16 @@ class TestAuditLogging:
             assert "action" in log
             assert "createdAt" in log
 
+    def test_dedicated_admin_actor_is_kept_out_of_user_foreign_key(self):
+        from services._db_service import add_audit_log, default_db
+
+        db = default_db()
+        add_audit_log(db, "admin-primary", "handle_report", "处理举报 r1")
+
+        row = db["auditLogs"][-1]
+        assert row["actorId"] == ""
+        assert row["detail"].startswith("[actor=admin-primary]")
+
 
 class TestAccountCancellation:
     """测试账号注销功能。"""

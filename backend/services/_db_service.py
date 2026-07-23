@@ -28,12 +28,21 @@ def next_id(db: dict[str, Any], key: str, prefix: str) -> str:
 
 
 def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -> None:
+    normalized_actor_id = str(actor_id).strip()
+    actor_is_user = any(
+        str(user.get("id", "")).strip() == normalized_actor_id
+        for user in db.get("users", [])
+    )
+    normalized_detail = str(detail)
+    if normalized_actor_id and not actor_is_user:
+        normalized_detail = f"[actor={normalized_actor_id}] {normalized_detail}"
+        normalized_actor_id = ""
     db["auditLogs"].append(
         {
             "id": next_id(db, "audit", "a"),
-            "actorId": actor_id,
+            "actorId": normalized_actor_id,
             "action": action,
-            "detail": detail,
+            "detail": normalized_detail,
             "createdAt": now_iso(),
         }
     )
@@ -181,6 +190,10 @@ def auth_user(
     if not user_id:
         return None, token
     user = _find_user_by_id_unsafe(db, user_id)
+    if user is not None and not _globals.is_auth_email_allowed(
+        str(user.get("email", "")),
+    ):
+        return None, token
     return user, token
 
 

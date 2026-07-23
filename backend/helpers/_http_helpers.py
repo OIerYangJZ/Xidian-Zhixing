@@ -12,12 +12,51 @@ from typing import Any
 from helpers._datetime_helpers import now_iso
 
 
+class RequestBodyTooLarge(ValueError):
+    pass
+
+
+def _allowed_cors_origin(handler: BaseHTTPRequestHandler) -> str:
+    import _globals
+
+    origin = (handler.headers.get("Origin", "") or "").strip().rstrip("/")
+    if origin and origin in _globals.CORS_ALLOWED_ORIGINS:
+        return origin
+    return ""
+
+
+def request_origin_allowed(handler: BaseHTTPRequestHandler) -> bool:
+    origin = (handler.headers.get("Origin", "") or "").strip()
+    return not origin or bool(_allowed_cors_origin(handler))
+
+
+def _send_cors_headers(handler: BaseHTTPRequestHandler) -> None:
+    origin = _allowed_cors_origin(handler)
+    if origin:
+        handler.send_header("Access-Control-Allow-Origin", origin)
+        handler.send_header("Vary", "Origin")
+    handler.send_header(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PATCH, DELETE, OPTIONS",
+    )
+    handler.send_header(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, X-Client-Type",
+    )
+
+
 def read_json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+    import _globals
+
     length_str = handler.headers.get("Content-Length", "0")
     try:
         length = max(0, int(length_str))
     except ValueError:
         length = 0
+    if length > _globals.MAX_REQUEST_BODY_BYTES:
+        raise RequestBodyTooLarge(
+            f"request body exceeds {_globals.MAX_REQUEST_BODY_BYTES // (1024 * 1024)} MB",
+        )
     body = handler.rfile.read(length) if length > 0 else b""
     if not body:
         return {}
@@ -38,9 +77,7 @@ def send_json(
     body = json.dumps(data, ensure_ascii=False)
     handler.send_response(code)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
-    handler.send_header("Access-Control-Allow-Origin", "*")
-    handler.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
-    handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Client-Type")
+    _send_cors_headers(handler)
     if no_cache:
         handler.send_header("Cache-Control", "no-store")
     handler.send_header("Content-Length", str(len(body.encode("utf-8"))))
@@ -73,7 +110,7 @@ def send_binary(
     handler.send_response(code)
     handler.send_header("Content-Type", content_type)
     handler.send_header("Content-Length", str(len(data)))
-    handler.send_header("Access-Control-Allow-Origin", "*")
+    _send_cors_headers(handler)
     if filename:
         encoded_filename = filename.encode("utf-8")
         handler.send_header(
@@ -103,9 +140,7 @@ def send_static_file(
     handler.send_response(HTTPStatus.OK)
     handler.send_header("Content-Type", content_type)
     handler.send_header("Content-Length", str(len(data)))
-    handler.send_header("Access-Control-Allow-Origin", "*")
-    handler.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Client-Type")
-    handler.send_header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS")
+    _send_cors_headers(handler)
     # Beta deployment prefers freshness over caching to avoid stale Flutter bundles.
     handler.send_header("Cache-Control", "no-cache")
     handler.end_headers()

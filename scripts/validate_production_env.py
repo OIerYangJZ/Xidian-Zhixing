@@ -97,6 +97,49 @@ def validate(values: dict[str, str]) -> list[str]:
         if values.get(key, "").strip().lower() != "false":
             errors.append(f"{key} must be false in production")
 
+    cors_origins = [
+        item.strip().rstrip("/")
+        for item in values.get("BACKEND_CORS_ALLOWED_ORIGINS", "").split(",")
+        if item.strip()
+    ]
+    if not cors_origins:
+        errors.append("BACKEND_CORS_ALLOWED_ORIGINS is required")
+    for origin in cors_origins:
+        if not re.fullmatch(r"https://[^/?#]+", origin):
+            errors.append(
+                "BACKEND_CORS_ALLOWED_ORIGINS must contain HTTPS origins only",
+            )
+            break
+
+    allowed_emails = [
+        item.strip().lower()
+        for item in values.get("BACKEND_AUTH_ALLOWED_EMAILS", "").split(",")
+        if item.strip()
+    ]
+    if not allowed_emails:
+        errors.append("BACKEND_AUTH_ALLOWED_EMAILS is required during private beta")
+    for email in allowed_emails:
+        if is_placeholder(email) or not re.fullmatch(
+            r"[A-Za-z0-9._%+-]+@stu\.xidian\.edu\.cn",
+            email,
+        ):
+            errors.append(
+                "BACKEND_AUTH_ALLOWED_EMAILS must contain real student email addresses",
+            )
+            break
+
+    if values.get("BACKEND_ENABLE_XIDIAN_AUTH", "").strip().lower() != "false":
+        errors.append(
+            "BACKEND_ENABLE_XIDIAN_AUTH must be false until unified authentication is approved",
+        )
+
+    try:
+        max_request_mb = int(values.get("BACKEND_MAX_REQUEST_BODY_MB", ""))
+        if not 1 <= max_request_mb <= 100:
+            raise ValueError
+    except ValueError:
+        errors.append("BACKEND_MAX_REQUEST_BODY_MB must be an integer from 1 to 100")
+
     public_origin = values.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip()
     if public_origin and not public_origin.startswith("https://"):
         errors.append("BACKEND_XIDIAN_PUBLIC_ORIGIN must use HTTPS when configured")
