@@ -20,8 +20,7 @@ UI 修改前先审查了原有 Git diff、`PRODUCTION_DEPLOYMENT.md` 和本报�
 
 - 加固基线提交：`10715e1`（`security: preserve private beta production hardening`）
 - UI 功能提交：`24373b0`（`feat(web): redesign responsive campus community UI`）
-- 最终发布源提交：`__RELEASE_COMMIT__`
-- 最终报告元数据提交：`__FINAL_METADATA_COMMIT__`
+- 最终发布源提交：`00e6aa0`
 
 保留的生产安全边界包括：
 
@@ -130,9 +129,10 @@ Git 跟踪文件、待提交变更和最终发布归档均检查了以下内容�
 
 - Flutter 版本：`0.1.0+22`
 - 构建目录：`build/web/`
-- 发布源 Git 提交：`__RELEASE_COMMIT__`
-- 发布归档：`__RELEASE_ARCHIVE__`
-- SHA-256：`__RELEASE_SHA256__`
+- 发布源 Git 提交：`00e6aa0`
+- 发布归档：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz`
+- SHA-256：`3cbcce1414235b455e731afb00c8dfa296f9c115888749a330a122037db679a7`
+- SHA-256 文件：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz.sha256`
 
 发布包包含后端运行代码、Flutter Web 静态文件、生产配置模板、健康检查/回滚/校验脚本和 `release-meta/version.json`。不包含 SQLite、上传目录、真实环境文件、密钥、日志、证书或私钥。
 

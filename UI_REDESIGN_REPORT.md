@@ -93,10 +93,10 @@ Widget 测试覆盖 360px、390px、768px、1280px 和 1440px；本地浏览器�
 
 - 安全加固基线提交：`10715e1`
 - UI 改版提交：`24373b0`
-- 发布源提交：`__RELEASE_COMMIT__`
-- 最终报告元数据提交：`__FINAL_METADATA_COMMIT__`
-- 发布包：`__RELEASE_ARCHIVE__`
-- SHA-256：`__RELEASE_SHA256__`
+- 发布源提交：`00e6aa0`
+- 发布包：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz`
+- SHA-256：`3cbcce1414235b455e731afb00c8dfa296f9c115888749a330a122037db679a7`
+- SHA-256 文件：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz.sha256`
 - 人工部署入口：`MANUAL_DEPLOYMENT.md`
 
 ## 7. 未解决问题

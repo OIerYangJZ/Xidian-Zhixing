@@ -4,12 +4,13 @@
 
 正式域名：`https://zhixing.xidian.edu.cn`
 
-发布源 Git 提交：`__RELEASE_COMMIT__`
+发布源 Git 提交：`00e6aa0`
 
 ## 1. 本地发布物
 
-- 本地路径：`__RELEASE_ARCHIVE__`
-- SHA-256：`__RELEASE_SHA256__`
+- 本地路径：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz`
+- SHA-256：`3cbcce1414235b455e731afb00c8dfa296f9c115888749a330a122037db679a7`
+- SHA-256 文件：`/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz.sha256`
 
 发布包不包含 SQLite、上传文件、真实 `backend.env`、密钥、日志、证书或私钥。
 
@@ -32,9 +33,9 @@ export NGINX_SITE_CONFIG='__FILL_NGINX_SITE_CONFIG_PATH__'
 export APP_USER='__FILL_APPLICATION_USER__'
 export APP_GROUP='__FILL_APPLICATION_GROUP__'
 
-export RELEASE_ARCHIVE_LOCAL='__RELEASE_ARCHIVE__'
+export RELEASE_ARCHIVE_LOCAL='/Users/yangjinsey/Desktop/SeeRadio/dist/treehole-0.1.0+22+00e6aa0-20260723T061241Z.tar.gz'
 export RELEASE_ARCHIVE_REMOTE='__FILL_REMOTE_UPLOAD_PATH__'
-export RELEASE_SHA256='__RELEASE_SHA256__'
+export RELEASE_SHA256='3cbcce1414235b455e731afb00c8dfa296f9c115888749a330a122037db679a7'
 ```
 
 这些变量必须由用户填写；不要把真实密码、Token、证书或私钥放进命令历史、Git 或本发布包。
