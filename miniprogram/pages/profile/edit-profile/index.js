@@ -8,6 +8,7 @@ import { avatarInitial } from '../../../utils/format';
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     saving: false,
     uploadingAvatar: false,
     uploadingBackground: false,
@@ -33,7 +34,7 @@ Page({
   },
 
   async loadProfile() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const response = await getUserInfo();
       const profile = response.data || {};
@@ -52,10 +53,14 @@ Page({
         avatarPreview: profile.avatarUrl || '',
         backgroundPreview: profile.backgroundImageUrl || '',
         avatarInitial: avatarInitial(nickname || '匿'),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '个人资料加载失败，请重试'
+      });
     }
   },
 
@@ -112,6 +117,11 @@ Page({
         try {
           const uploadRes = await uploadBackgroundImage(tempPath);
           this.setData({ backgroundPreview: uploadRes.url || '' });
+        } catch (error) {
+          wx.showToast({
+            title: (error && error.data && error.data.message) || '背景图片上传失败',
+            icon: 'none'
+          });
         } finally {
           wx.hideLoading();
           this.setData({ uploadingBackground: false });

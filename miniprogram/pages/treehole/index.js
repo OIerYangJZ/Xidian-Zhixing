@@ -33,7 +33,8 @@ Page({
     touchStartY: 0,
     navTop: 0,
     navHeight: 48,
-    userInfo: null
+    userInfo: null,
+    errorMessage: ''
   },
 
   onLoad() {
@@ -41,9 +42,17 @@ Page({
     this.loadPostLayout();
     setTimeout(async () => {
       if (!requireLoginPage()) return;
-      await this.loadUserInfo();
-      this.loadSections();
-      this.fetchPosts();
+      try {
+        await Promise.all([this.loadUserInfo(), this.loadSections()]);
+        await this.fetchPosts();
+      } catch (error) {
+        this.setData({
+          loading: false,
+          errorMessage: (error && error.data && error.data.message)
+            || (error && error.message)
+            || '页面加载失败，请重试'
+        });
+      }
     }, 0);
   },
 
@@ -144,9 +153,18 @@ Page({
       page: 1,
       posts: [],
       hasMore: true,
-      loading: false
+      loading: false,
+      errorMessage: ''
     }, () => {
       Promise.all([this.loadSections(), this.fetchPosts()])
+        .catch((error) => {
+          console.error('[treehole refresh failed]', error);
+          this.setData({
+            errorMessage: (error && error.data && error.data.message)
+              || (error && error.message)
+              || '刷新失败，请重试'
+          });
+        })
         .finally(() => {
           if (options.stopPageRefresh) wx.stopPullDownRefresh();
           this.setData({ refreshTriggered: false });
@@ -173,7 +191,7 @@ Page({
       params.sectionType = this.data.activeSection.sectionType;
     }
 
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const res = await getPosts(params);
       const currentUserId = String((this.data.userInfo && this.data.userInfo.id) || '').trim();
@@ -191,9 +209,14 @@ Page({
         hasMore: res.data && res.data.hasMore !== undefined ? res.data.hasMore : newPosts.length >= this.data.limit,
         loading: false
       });
-      this.hydrateFeedImages();
+      await this.hydrateFeedImages();
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '帖子加载失败，请重试'
+      });
     }
   },
 
@@ -208,6 +231,12 @@ Page({
 
   onReachBottom() {
     this.fetchPosts();
+  },
+
+  retryFeed() {
+    this.setData({ page: 1, posts: [], hasMore: true, errorMessage: '' }, () => {
+      this.fetchPosts();
+    });
   },
 
   onScroll(event) {

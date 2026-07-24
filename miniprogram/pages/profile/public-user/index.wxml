@@ -1,5 +1,9 @@
 <view class="page public-page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!profile}}" class="empty">用户不存在</view>
   <view wx:else>
     <view class="profile-head">

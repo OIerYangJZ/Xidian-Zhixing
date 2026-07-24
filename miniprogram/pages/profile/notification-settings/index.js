@@ -15,6 +15,7 @@ const PREF_KEYS = [
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     prefs: {
       notifyComment: true,
       notifyReply: true,
@@ -32,7 +33,7 @@ Page({
   },
 
   async loadProfile() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const response = await getUserInfo();
       const profile = response.data || {};
@@ -40,9 +41,12 @@ Page({
       PREF_KEYS.forEach((key) => {
         prefs[key] = profile[key] !== false;
       });
-      this.setData({ prefs, loading: false });
+      this.setData({ prefs, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '通知设置加载失败，请重试'
+      });
     }
   },
 

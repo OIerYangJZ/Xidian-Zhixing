@@ -1,5 +1,6 @@
 <view class="page security-page mobile-list-page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadProfile">{{errorMessage}} · 点击重试</view>
   <view wx:else>
     <view class="mobile-tile-card">
       <view class="mobile-tile" bindtap="goResetPassword">

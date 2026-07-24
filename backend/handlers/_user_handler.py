@@ -77,7 +77,7 @@ def handle_get_me(
     }
     favorite_count = sum(
         1
-        for post in list_posts(db)
+        for post in list_posts(db, viewer_user_id=uid)
         if str(post.get("id", "")) in favorite_post_ids
     )
 
@@ -192,34 +192,105 @@ def handle_update_me(
         return
 
     body = read_json_body(handler)
-    new_nickname = sanitize_alias(str(body.get("nickname", "")), fallback="")
-    new_avatar = normalize_avatar_url(str(body.get("avatarUrl", "")))
-    new_background_image = normalize_media_url(str(body.get("backgroundImageUrl", "")))
-    new_bio = str(body.get("bio", "")).strip()
-    new_gender = str(body.get("gender", "")).strip()
-    new_college = re.sub(r"\s+", "", str(body.get("college", "")).strip())[:80]
-    new_major = re.sub(r"\s+", "", str(body.get("major", "")).strip())[:80]
+    profile_keys = {
+        "nickname",
+        "avatarUrl",
+        "backgroundImageUrl",
+        "bio",
+        "gender",
+        "college",
+        "major",
+    }
+    if not any(key in body for key in profile_keys):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少可更新的个人资料字段")
+        return
+    new_nickname = (
+        sanitize_alias(str(body.get("nickname", "")), fallback="")
+        if "nickname" in body
+        else None
+    )
+    new_avatar = (
+        normalize_avatar_url(str(body.get("avatarUrl", "")))
+        if "avatarUrl" in body
+        else None
+    )
+    new_background_image = (
+        normalize_media_url(str(body.get("backgroundImageUrl", "")))
+        if "backgroundImageUrl" in body
+        else None
+    )
+    new_bio = str(body.get("bio", "")).strip() if "bio" in body else None
+    new_gender = str(body.get("gender", "")).strip() if "gender" in body else None
+    new_college = (
+        re.sub(r"\s+", "", str(body.get("college", "")).strip())[:80]
+        if "college" in body
+        else None
+    )
+    new_major = (
+        re.sub(r"\s+", "", str(body.get("major", "")).strip())[:80]
+        if "major" in body
+        else None
+    )
 
-    if len(new_bio) > 100:
+    if new_bio is not None and len(new_bio) > 100:
         json_error(handler, HTTPStatus.BAD_REQUEST, "个性签名不能超过 100 个字符")
         return
-    if new_gender not in {"", "男", "女"}:
+    if new_gender is not None and new_gender not in {"", "男", "女"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "性别仅支持：男、女")
         return
+    if (
+        new_background_image is not None
+        and new_background_image
+        and new_background_image
+        != normalize_media_url(str(user.get("backgroundImageUrl", "")).strip())
+    ):
+        matching_upload = next(
+            (
+                upload
+                for upload in db.get("mediaUploads", [])
+                if normalize_media_url(str(upload.get("url", "")).strip())
+                == new_background_image
+                and not upload.get("deleted")
+            ),
+            None,
+        )
+        if matching_upload is None:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "背景图片不是有效的已上传图片")
+            return
+        if (
+            str(matching_upload.get("uploaderId", "")).strip()
+            != str(user.get("id", "")).strip()
+        ):
+            json_error(handler, HTTPStatus.FORBIDDEN, "不能使用其他用户上传的背景图片")
+            return
+        if str(matching_upload.get("postId", "")).strip():
+            json_error(handler, HTTPStatus.BAD_REQUEST, "帖子图片不能用作个人背景")
+            return
+        upload_status = (
+            str(matching_upload.get("status", "")).strip().lower()
+        )
+        if upload_status != "approved":
+            json_error(handler, HTTPStatus.BAD_REQUEST, "背景图片尚未通过审核")
+            return
 
-    if new_nickname and new_nickname != user_nickname(user):
+    if new_nickname is not None and new_nickname and new_nickname != user_nickname(user):
         user["nickname"] = new_nickname
         user["alias"] = new_nickname
         add_audit_log(db, user["id"], "update_nickname", f"更新昵称为 {new_nickname}")
 
-    if new_avatar:
+    if new_avatar is not None and new_avatar:
         user["avatarUrl"] = new_avatar
 
-    user["bio"] = new_bio
-    user["gender"] = new_gender
-    user["college"] = new_college
-    user["major"] = new_major
-    user["backgroundImageUrl"] = new_background_image
+    if new_bio is not None:
+        user["bio"] = new_bio
+    if new_gender is not None:
+        user["gender"] = new_gender
+    if new_college is not None:
+        user["college"] = new_college
+    if new_major is not None:
+        user["major"] = new_major
+    if new_background_image is not None:
+        user["backgroundImageUrl"] = new_background_image
 
     add_audit_log(db, user["id"], "update_profile", "更新个人资料")
     save_db(db)
@@ -251,14 +322,19 @@ def handle_update_privacy(
         return
 
     body = read_json_body(handler)
-    user["allowStrangerDm"] = normalize_optional_bool(
-        body.get("allowStrangerDm"),
-        default=True,
-    )
-    user["showContactable"] = normalize_optional_bool(
-        body.get("showContactable"),
-        default=True,
-    )
+    if not any(key in body for key in ("allowStrangerDm", "showContactable")):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少隐私设置字段")
+        return
+    if "allowStrangerDm" in body:
+        user["allowStrangerDm"] = normalize_optional_bool(
+            body.get("allowStrangerDm"),
+            default=bool(user.get("allowStrangerDm", True)),
+        )
+    if "showContactable" in body:
+        user["showContactable"] = normalize_optional_bool(
+            body.get("showContactable"),
+            default=bool(user.get("showContactable", True)),
+        )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
@@ -302,30 +378,23 @@ def handle_update_notification_preferences(
         return
 
     body = read_json_body(handler)
-    user["notifyComment"] = normalize_optional_bool(
-        body.get("notifyComment"),
-        default=True,
+    preference_keys = (
+        "notifyComment",
+        "notifyReply",
+        "notifyLike",
+        "notifyFavorite",
+        "notifyReportResult",
+        "notifySystem",
     )
-    user["notifyReply"] = normalize_optional_bool(
-        body.get("notifyReply"),
-        default=True,
-    )
-    user["notifyLike"] = normalize_optional_bool(
-        body.get("notifyLike"),
-        default=True,
-    )
-    user["notifyFavorite"] = normalize_optional_bool(
-        body.get("notifyFavorite"),
-        default=True,
-    )
-    user["notifyReportResult"] = normalize_optional_bool(
-        body.get("notifyReportResult"),
-        default=True,
-    )
-    user["notifySystem"] = normalize_optional_bool(
-        body.get("notifySystem"),
-        default=True,
-    )
+    if not any(key in body for key in preference_keys):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少通知设置字段")
+        return
+    for key in preference_keys:
+        if key in body:
+            user[key] = normalize_optional_bool(
+                body.get(key),
+                default=bool(user.get(key, True)),
+            )
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
@@ -553,4 +622,3 @@ def handle_unblock_user_globally(
     add_audit_log(db, user["id"], "unblock_user", f"解除屏蔽用户 {target_user_id}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"blocked": False}})
-

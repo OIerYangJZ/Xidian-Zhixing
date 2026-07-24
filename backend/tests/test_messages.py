@@ -207,7 +207,7 @@ class TestMessageQueries:
 class TestDirectMessagePrivacyRules:
     """测试直接私信入口与发送阶段的隐私规则。"""
 
-    def test_direct_entry_ignores_contact_visibility_and_dm_privacy(self):
+    def test_direct_entry_respects_contact_visibility_and_dm_privacy(self):
         from server import default_db
         from services._user_service import can_request_dm_to_user
 
@@ -222,13 +222,13 @@ class TestDirectMessagePrivacyRules:
         }
         db["users"].extend([viewer, target])
 
-        assert can_request_dm_to_user(
+        assert not can_request_dm_to_user(
             db,
             viewer_user_id=viewer["id"],
             target_user_id=target["id"],
         )
 
-    def test_post_author_message_entry_ignores_dm_privacy(self):
+    def test_post_author_message_entry_respects_dm_privacy(self):
         from server import default_db
         from services._db_service import serialize_post
 
@@ -261,7 +261,7 @@ class TestDirectMessagePrivacyRules:
 
         serialized = serialize_post(db, post, viewer_user_id=viewer["id"])
 
-        assert serialized["canMessageAuthor"] is True
+        assert serialized["canMessageAuthor"] is False
 
     def test_send_message_rejects_when_peer_closed_dm(self, monkeypatch: pytest.MonkeyPatch):
         import io

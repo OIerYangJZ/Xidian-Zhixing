@@ -13,6 +13,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from typing import Any
+from urllib.parse import parse_qs, urljoin, urlsplit
 
 
 IDS_LOGIN_URL = "https://ids.xidian.edu.cn/authserver/login"
@@ -550,6 +551,59 @@ def _build_campus_email(student_id: str, *, email_hint: str = "") -> str:
     return f"{student_id}@stu.xidian.edu.cn"
 
 
+def _validated_service_ticket_redirect(response: Any, service_url: str) -> str:
+    location = str(getattr(response, "headers", {}).get("Location", "") or "").strip()
+    if not location:
+        raise XidianAuthUnavailableError("统一认证未返回目标系统跳转地址")
+
+    response_url = str(getattr(response, "url", "") or IDS_LOGIN_URL)
+    redirect_url = urljoin(response_url, location)
+    expected = urlsplit(service_url)
+    actual = urlsplit(redirect_url)
+    if (
+        actual.scheme.lower() != expected.scheme.lower()
+        or actual.netloc.lower() != expected.netloc.lower()
+        or actual.path.rstrip("/") != expected.path.rstrip("/")
+    ):
+        raise XidianAuthUnavailableError("统一认证返回了非目标系统跳转")
+
+    tickets = [
+        value.strip()
+        for value in parse_qs(actual.query, keep_blank_values=True).get("ticket", [])
+        if value.strip()
+    ]
+    if not tickets:
+        raise XidianAuthUnavailableError("统一认证未返回有效服务票据")
+    return redirect_url
+
+
+def _service_ticket_from_redirect(redirect_url: str) -> str:
+    tickets = [
+        value.strip()
+        for value in parse_qs(
+            urlsplit(redirect_url).query,
+            keep_blank_values=True,
+        ).get("ticket", [])
+        if value.strip()
+    ]
+    if not tickets:
+        raise XidianAuthUnavailableError("统一认证未返回有效服务票据")
+    return tickets[0]
+
+
+def _validate_password_login_redirect(
+    response: Any,
+    *,
+    requested_student_id: str,
+) -> XidianAuthResult:
+    redirect_url = _validated_service_ticket_redirect(response, EHALL_SERVICE_URL)
+    ticket = _service_ticket_from_redirect(redirect_url)
+    result = validate_xidian_service_ticket(ticket, EHALL_SERVICE_URL)
+    if result.student_id.strip().lower() != requested_student_id.strip().lower():
+        raise XidianAuthPasswordError("统一认证返回的账号与登录学号不一致")
+    return result
+
+
 def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = "") -> XidianAuthResult:
     requests = _import_requests()
     session = requests.Session()
@@ -568,9 +622,9 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
     if response.status_code == 401:
         raise XidianAuthPasswordError(_parse_password_error_message(response.text))
     if response.status_code in (301, 302):
-        return XidianAuthResult(
-            student_id=student_id,
-            campus_email=_build_campus_email(student_id, email_hint=email_hint),
+        return _validate_password_login_redirect(
+            response,
+            requested_student_id=student_id,
         )
 
     if response.status_code != 200:
@@ -592,9 +646,9 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
         raise XidianAuthUnavailableError("统一认证登录请求失败，请稍后重试") from exc
 
     if response.status_code in (301, 302):
-        return XidianAuthResult(
-            student_id=student_id,
-            campus_email=_build_campus_email(student_id, email_hint=email_hint),
+        return _validate_password_login_redirect(
+            response,
+            requested_student_id=student_id,
         )
 
     if response.status_code == 401:
@@ -617,9 +671,9 @@ def login_via_xidian_ids(student_id: str, password: str, *, email_hint: str = ""
         except requests.RequestException as exc:
             raise XidianAuthUnavailableError("统一认证登录续跳失败，请稍后重试") from exc
         if response.status_code in (301, 302):
-            return XidianAuthResult(
-                student_id=student_id,
-                campus_email=_build_campus_email(student_id, email_hint=email_hint),
+            return _validate_password_login_redirect(
+                response,
+                requested_student_id=student_id,
             )
         if response.status_code == 401:
             raise XidianAuthPasswordError(_parse_password_error_message(response.text))

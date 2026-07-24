@@ -16,6 +16,10 @@ class RequestBodyTooLarge(ValueError):
     pass
 
 
+class InvalidJsonBody(ValueError):
+    pass
+
+
 def _allowed_cors_origin(handler: BaseHTTPRequestHandler) -> str:
     import _globals
 
@@ -41,8 +45,9 @@ def _send_cors_headers(handler: BaseHTTPRequestHandler) -> None:
     )
     handler.send_header(
         "Access-Control-Allow-Headers",
-        "Content-Type, Authorization, X-Client-Type",
+        "Content-Type, Authorization, X-Client-Type, X-Request-ID",
     )
+    handler.send_header("Access-Control-Expose-Headers", "X-Request-ID")
 
 
 def read_json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
@@ -61,9 +66,12 @@ def read_json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     if not body:
         return {}
     try:
-        return json.loads(body.decode("utf-8"))
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return {}
+        parsed = json.loads(body.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as error:
+        raise InvalidJsonBody("请求体不是有效的 JSON") from error
+    if not isinstance(parsed, dict):
+        raise InvalidJsonBody("JSON 请求体必须是对象")
+    return parsed
 
 
 def send_json(
@@ -77,6 +85,9 @@ def send_json(
     body = json.dumps(data, ensure_ascii=False)
     handler.send_response(code)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
+    request_id = str(getattr(handler, "request_id", "") or "").strip()
+    if request_id:
+        handler.send_header("X-Request-ID", request_id)
     _send_cors_headers(handler)
     if no_cache:
         handler.send_header("Cache-Control", "no-store")

@@ -1029,7 +1029,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             ? null
                             : () => _promptAndHandleReport(
                                 reportId: report.id,
-                                action: 'delete_content',
+                                action: 'delete',
                                 actionLabel: '删除内容',
                                 defaultResult: '内容已删除',
                               ),
@@ -1040,7 +1040,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             ? null
                             : () => _promptAndHandleReport(
                                 reportId: report.id,
-                                action: 'warn_user',
+                                action: 'warn',
                                 actionLabel: '警告用户',
                                 defaultResult: '已警告用户',
                               ),
@@ -1051,7 +1051,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             ? null
                             : () => _promptAndHandleReport(
                                 reportId: report.id,
-                                action: 'ban_user',
+                                action: 'ban',
                                 actionLabel: '封禁用户',
                                 defaultResult: '已封禁用户',
                               ),
@@ -1062,7 +1062,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                             ? null
                             : () => _promptAndHandleReport(
                                 reportId: report.id,
-                                action: 'mark_misreport',
+                                action: 'misreport',
                                 actionLabel: '标记误报',
                                 defaultResult: '标记为误报',
                               ),

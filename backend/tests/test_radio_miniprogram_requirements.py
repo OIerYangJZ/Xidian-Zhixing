@@ -385,10 +385,17 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
 
     assert handler.status_code == 401
 
+    def fake_fetch_ids(identifier, password, **_kwargs):
+        assert not server.DB_LOCK.locked()
+        return (
+            identifier,
+            {"semesterCode": "2026-1", "courseSchedules": [], "examSchedules": []},
+        )
+
     monkeypatch.setattr(
         server._campus_auth,
-        "login_ids",
-        lambda identifier, password, **_kwargs: {"system": "ids", "studentId": identifier, "message": "ok"},
+        "fetch_ids_academic_data",
+        fake_fetch_ids,
     )
     monkeypatch.setattr(server, "save_db", lambda _db: None)
     authed_handler = FakeHandler(body={"identifier": "2300000000", "password": "secret-pass"})
@@ -421,6 +428,35 @@ def test_xidian_password_login_returns_campus_auth_result_without_token(monkeypa
     assert payload["status"] == "authenticated"
     assert payload["studentId"] == "2300000000"
     assert payload["email"] == "2300000000@stu.xidian.edu.cn"
+
+
+def test_xidian_password_network_handler_runs_outside_database_lock(
+    monkeypatch,
+) -> None:
+    import server
+
+    monkeypatch.setattr(server, "load_db", make_db)
+
+    def fake_handler(handler, db) -> None:
+        assert not server.DB_LOCK.locked()
+        server.send_json(
+            handler,
+            200,
+            {"data": {"system": "ids", "status": "authenticated"}},
+        )
+
+    monkeypatch.setattr(
+        server._auth_handler,
+        "handle_xidian_password_login",
+        fake_handler,
+    )
+    handler = FakeHandler(
+        body={"identifier": "2300000000", "password": "secret-pass"},
+    )
+
+    server.TreeholeHandler._handle_post(handler, "/api/auth/xidian/password")
+
+    assert handler.status_code == 200
 
 
 def test_xidian_slider_solver_uses_signed_tracks_and_expanded_delta(monkeypatch) -> None:
@@ -467,7 +503,13 @@ def test_xidian_ids_password_post_keeps_service_param(monkeypatch) -> None:
     class FakeRedirect:
         status_code = 302
         text = ""
-        headers = {"Location": "https://ehall.xidian.edu.cn/new/index.html"}
+        headers = {
+            "Location": (
+                "https://ehall.xidian.edu.cn/login"
+                "?service=https://ehall.xidian.edu.cn/new/index.html"
+                "&ticket=ST-test"
+            )
+        }
 
     class FakeSession:
         def __init__(self) -> None:
@@ -491,6 +533,14 @@ def test_xidian_ids_password_post_keeps_service_param(monkeypatch) -> None:
     monkeypatch.setattr(xidian_auth, "_import_requests", lambda: FakeRequests())
     monkeypatch.setattr(xidian_auth, "_encrypt_ids_password", lambda password, key: "encrypted")
     monkeypatch.setattr(xidian_auth, "_solve_slider_captcha", lambda _session: None)
+    monkeypatch.setattr(
+        xidian_auth,
+        "validate_xidian_service_ticket",
+        lambda ticket, service_url: xidian_auth.XidianAuthResult(
+            student_id="2300000000",
+            campus_email="2300000000@stu.xidian.edu.cn",
+        ),
+    )
 
     result = xidian_auth.login_via_xidian_ids("2300000000", "secret-pass")
 
@@ -573,3 +623,81 @@ def test_college_section_post_requires_matching_user_college() -> None:
 
     assert handler.status_code == 403
     assert "只能在本学院分区发帖" in handler.payload()["message"]
+
+
+def test_miniprogram_does_not_persist_or_replay_campus_passwords() -> None:
+    miniprogram_dir = backend_dir.parent / "miniprogram"
+    campus_auth_source = (miniprogram_dir / "utils" / "campus_auth.js").read_text()
+    app_source = (miniprogram_dir / "app.js").read_text()
+    auth_center_source = (
+        miniprogram_dir / "pages" / "campus" / "auth-center" / "index.js"
+    ).read_text()
+
+    assert "setStorageSync(CAMPUS_AUTH_SECRET_KEY" not in campus_auth_source
+    assert "getCampusAuthSecrets" not in app_source
+    assert "loginCampusIds" not in app_source
+    assert "saveCampusAuthSecret" not in auth_center_source
+
+
+def test_miniprogram_logout_clears_account_scoped_campus_state() -> None:
+    miniprogram_dir = backend_dir.parent / "miniprogram"
+    auth_guard_source = (miniprogram_dir / "utils" / "auth_guard.js").read_text()
+    settings_source = (
+        miniprogram_dir / "pages" / "profile" / "settings" / "index.js"
+    ).read_text()
+    account_security_source = (
+        miniprogram_dir
+        / "pages"
+        / "profile"
+        / "account-security"
+        / "index.js"
+    ).read_text()
+
+    assert "clearCampusAuthSession();" in auth_guard_source
+    assert "clearLocalSession();" in settings_source
+    assert "clearLocalSession();" in account_security_source
+
+
+def test_miniprogram_campus_api_rejects_malformed_success_responses() -> None:
+    miniprogram_dir = backend_dir.parent / "miniprogram"
+    source = (miniprogram_dir / "api" / "campus.js").read_text()
+
+    assert "requireAuthResponse" in source
+    assert "result.data.status !== 'authenticated'" in source
+    assert "今日课表响应 items 不是数组" in source
+    assert "'校园网验证码'," in source
+    assert "['attemptId', 'imageBase64', 'imageContentType']" in source
+    assert "'宿舍水机验证码'," in source
+    assert "['sessionId', 'imageBase64', 'imageContentType']" in source
+
+
+def test_miniprogram_failed_lists_offer_retry_instead_of_empty_state() -> None:
+    miniprogram_dir = backend_dir.parent / "miniprogram"
+    pages = [
+        ("pages/treehole/index.wxml", "retryFeed"),
+        ("pages/campus/post-detail/index.wxml", "retryLoadDetail"),
+        ("pages/campus/tag-posts/index.wxml", "retryLoad"),
+        ("pages/profile/notifications/index.wxml", "retryLoad"),
+        ("pages/profile/conversations/index.wxml", "retryLoad"),
+        ("pages/profile/chat/index.wxml", "retryLoadMessages"),
+        ("pages/profile/my-comments/index.wxml", "retryLoad"),
+        ("pages/profile/my-posts/index.wxml", "retryLoad"),
+        ("pages/profile/favorites/index.wxml", "retryLoad"),
+        ("pages/profile/public-user/index.wxml", "retryLoad"),
+        ("pages/profile/social-list/index.wxml", "retryLoad"),
+        ("pages/profile/my-reports/index.wxml", "loadData"),
+        ("pages/profile/report-detail/index.wxml", "loadDetail"),
+        ("pages/profile/account-security/index.wxml", "loadProfile"),
+        ("pages/profile/privacy/index.wxml", "loadProfile"),
+        ("pages/profile/notification-settings/index.wxml", "loadProfile"),
+        ("pages/profile/privacy/blocklist/index.wxml", "loadBlocks"),
+        ("pages/profile/edit-profile/index.wxml", "loadProfile"),
+        ("pages/profile/settings/index.wxml", "fetchUserInfo"),
+        ("pages/campus/search/index.wxml", "search"),
+        ("pages/admin/index.wxml", "loadActiveTab"),
+    ]
+
+    for relative_path, retry_handler in pages:
+        source = (miniprogram_dir / relative_path).read_text()
+        assert "errorMessage" in source
+        assert retry_handler in source

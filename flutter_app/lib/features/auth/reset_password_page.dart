@@ -192,7 +192,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       _setError('邮箱格式不符合校内认证要求。');
       return;
     }
-    if (code.length != 6) {
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(code)) {
       _setError('请输入 6 位验证码。');
       return;
     }

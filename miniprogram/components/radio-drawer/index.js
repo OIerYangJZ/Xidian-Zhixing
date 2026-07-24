@@ -13,7 +13,8 @@ Component({
   data: {
     profile: null,
     conversations: [],
-    avatarInitial: '电'
+    avatarInitial: '电',
+    errorMessage: ''
   },
 
   observers: {
@@ -24,16 +25,29 @@ Component({
 
   methods: {
     async loadDrawerData() {
-      const [profileResponse, conversations] = await Promise.all([
-        getUserInfo(),
-        getConversations()
-      ]);
-      const profile = profileResponse.data || {};
-      this.setData({
-        profile,
-        conversations: conversations.slice(0, 4),
-        avatarInitial: avatarInitial(profile.nickname || profile.alias || profile.email || '电台')
-      });
+      this.setData({ errorMessage: '' });
+      try {
+        const [profileResponse, conversations] = await Promise.all([
+          getUserInfo(),
+          getConversations()
+        ]);
+        const profile = profileResponse.data || {};
+        this.setData({
+          profile,
+          conversations: conversations.slice(0, 4),
+          avatarInitial: avatarInitial(profile.nickname || profile.alias || profile.email || '电台')
+        });
+      } catch (error) {
+        this.setData({
+          errorMessage: (error && error.data && error.data.message)
+            || (error && error.message)
+            || '抽屉信息加载失败，请重试'
+        });
+      }
+    },
+
+    retryLoad() {
+      this.loadDrawerData();
     },
 
     close() {

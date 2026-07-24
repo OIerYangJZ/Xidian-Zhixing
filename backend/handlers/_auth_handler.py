@@ -18,11 +18,14 @@ Authentication & user session endpoints:
 from __future__ import annotations
 
 import html
+import hmac
+import logging
 import secrets
 import threading
 import time
+from copy import deepcopy
 from datetime import timedelta
-from typing import Any
+from typing import Any, Callable
 from urllib.parse import urlencode, urlsplit, urlunsplit, parse_qsl
 
 from http import HTTPStatus
@@ -30,6 +33,9 @@ from http.server import BaseHTTPRequestHandler
 
 import _globals
 from helpers import (
+    check_ip_rate_limit,
+    consume_rate_limit,
+    get_client_ip,
     decode_base64_payload,
     is_campus_email,
     is_password_hashed,
@@ -46,6 +52,7 @@ from helpers import (
     json_error,
     read_json_body,
     send_json,
+    send_rate_limit_error,
     send_verification_email,
     send_password_reset_email,
     verification_send_error_message,
@@ -66,6 +73,7 @@ from services import (
     auth_user as auth_user_helper,
     find_user_by_email,
     find_user_by_student_id,
+    load_db,
     save_db,
     user_nickname,
 )
@@ -75,6 +83,10 @@ _XIDIAN_AUTH_ATTEMPTS: dict[str, dict[str, Any]] = {}
 _ATTEMPT_TTL_SECONDS = 10 * 60
 _WEB_RESULT_QUERY_KEY = "xidianAuthAttempt"
 _WEB_ATTEMPT_COOKIE_NAME = "xdu_whisper_xidian_attempt"
+_EMAIL_VERIFICATION_PURPOSE = "email_verification"
+_PASSWORD_RESET_PURPOSE = "password_reset"
+_MAX_VERIFICATION_ATTEMPTS = 5
+logger = logging.getLogger("xduwhisperbox.auth")
 
 
 def _require_private_beta_access(
@@ -85,6 +97,41 @@ def _require_private_beta_access(
         return True
     json_error(handler, HTTPStatus.FORBIDDEN, "当前仅向项目组测试账号开放")
     return False
+
+
+def _consume_auth_rate_limit(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    *,
+    subject: str,
+    action: str,
+    setting_key: str,
+    action_text: str,
+) -> bool:
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, action)
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text=action_text,
+            retry_after_seconds=ip_retry_after,
+        )
+        return False
+
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=f"auth::{subject.strip().lower()}",
+        action=action,
+        setting_key=setting_key,
+        default_limit=int(_globals.DEFAULT_SETTINGS[setting_key]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text=action_text,
+            retry_after_seconds=retry_after,
+        )
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +153,162 @@ def _default_user_nickname(student_id: str) -> str:
 
 
 def _password_reset_code_key(email: str) -> str:
-    return f"{_globals.PASSWORD_RESET_CODE_PREFIX}{email.lower().strip()}"
+    return (
+        f"{_globals.PASSWORD_RESET_CODE_PREFIX}"
+        f"{_globals.normalize_auth_email(email)}"
+    )
+
+
+def _verification_code_key(email: str, purpose: str) -> str:
+    normalized_email = _globals.normalize_auth_email(email)
+    if purpose == _PASSWORD_RESET_PURPOSE:
+        return _password_reset_code_key(normalized_email)
+    return normalized_email
+
+
+def _masked_email(email: str) -> str:
+    normalized = _globals.normalize_auth_email(email)
+    local, separator, domain = normalized.partition("@")
+    if not separator:
+        return "***"
+    if len(local) <= 2:
+        masked_local = f"{local[:1]}***"
+    else:
+        masked_local = f"{local[:2]}***{local[-1:]}"
+    return f"{masked_local}@{domain}"
+
+
+def _log_verification(
+    handler: BaseHTTPRequestHandler,
+    *,
+    email: str,
+    purpose: str,
+    result: str,
+    status: HTTPStatus | int,
+    record: dict[str, Any] | None = None,
+    found: bool,
+) -> None:
+    row = record or {}
+    try:
+        attempts = max(0, int(row.get("attempts", 0) or 0))
+    except (TypeError, ValueError):
+        attempts = 0
+    logger.info(
+        "email verification result",
+        extra={
+            "structured": {
+                "event": "email_verification",
+                "requestId": str(
+                    getattr(handler, "request_id", "") or ""
+                ).strip(),
+                "emailMasked": _masked_email(email),
+                "purpose": purpose,
+                "recordFound": found,
+                "recordId": str(row.get("recordId", "")).strip(),
+                "createdAt": str(row.get("createdAt", "")).strip(),
+                "expiresAt": str(row.get("expiresAt", "")).strip(),
+                "used": bool(str(row.get("usedAt", "")).strip()),
+                "attempts": attempts,
+                "result": result,
+                "httpStatus": int(status),
+            }
+        },
+    )
+
+
+def _new_verification_record(*, code: str, purpose: str) -> dict[str, Any]:
+    created_at = now_utc()
+    return {
+        "code": str(code).strip(),
+        "expiresAt": (created_at + timedelta(minutes=10)).isoformat(),
+        "createdAt": created_at.isoformat(),
+        "recordId": secrets.token_hex(8),
+        "purpose": purpose,
+        "attempts": 0,
+        "usedAt": "",
+    }
+
+
+def _verification_record_is_active(
+    record: Any,
+    *,
+    purpose: str,
+) -> bool:
+    if not isinstance(record, dict):
+        return False
+    if (str(record.get("purpose", "")).strip() or purpose) != purpose:
+        return False
+    if str(record.get("usedAt", "")).strip():
+        return False
+    try:
+        attempts = max(0, int(record.get("attempts", 0) or 0))
+    except (TypeError, ValueError):
+        attempts = 0
+    if attempts >= _MAX_VERIFICATION_ATTEMPTS:
+        return False
+    expires_at = parse_iso(str(record.get("expiresAt", "")).strip())
+    return expires_at is not None and now_utc() <= expires_at
+
+
+def _issue_verification_code(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    *,
+    email: str,
+    purpose: str,
+    send_email: Callable[[str, str], None],
+) -> tuple[dict[str, Any], bool] | None:
+    verification = _verification_code_or_error(handler)
+    if verification is None:
+        return None
+    code, smtp_enabled = verification
+    normalized_email = _globals.normalize_auth_email(email)
+    key = _verification_code_key(normalized_email, purpose)
+    previous = db.setdefault("emailCodes", {}).get(key)
+    record = _new_verification_record(code=code, purpose=purpose)
+
+    # Commit the exact code before asking SMTP to deliver it.  A 200 response
+    # is therefore impossible unless the durable record already exists.
+    db["emailCodes"][key] = record
+    save_db(db)
+
+    if smtp_enabled:
+        try:
+            send_email(normalized_email, str(record["code"]))
+        except Exception as error:
+            current = db.get("emailCodes", {}).get(key)
+            if isinstance(current, dict) and current.get("recordId") == record["recordId"]:
+                if previous is None:
+                    db["emailCodes"].pop(key, None)
+                else:
+                    db["emailCodes"][key] = previous
+                save_db(db)
+            _log_verification(
+                handler,
+                email=normalized_email,
+                purpose=purpose,
+                result="mail_send_failed",
+                status=HTTPStatus.SERVICE_UNAVAILABLE,
+                record=record,
+                found=True,
+            )
+            json_error(
+                handler,
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                verification_send_error_message(error),
+            )
+            return None
+
+    _log_verification(
+        handler,
+        email=normalized_email,
+        purpose=purpose,
+        result="issued",
+        status=HTTPStatus.OK,
+        record=record,
+        found=True,
+    )
+    return record, smtp_enabled
 
 
 def _student_email_only_error() -> str:
@@ -126,7 +328,9 @@ def _verification_response_data(
         "studentId": student_id,
     }
     if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
-        payload["debugCode"] = str((code_store or {}).get("code", "")).strip() or "123456"
+        debug_code = str((code_store or {}).get("code", "")).strip()
+        if debug_code:
+            payload["debugCode"] = debug_code
     return payload
 
 
@@ -458,6 +662,30 @@ def _issue_auth_payload(
     }
 
 
+def _issue_auth_payload_with_lock(
+    db: dict[str, Any] | None,
+    *,
+    student_id: str,
+    campus_email: str,
+) -> dict[str, Any]:
+    if db is not None:
+        return _issue_auth_payload(
+            db,
+            student_id=student_id,
+            campus_email=campus_email,
+        )
+    lock = _globals.DB_LOCK
+    if lock is None:
+        raise RuntimeError("数据库锁尚未初始化")
+    with lock:
+        latest_db = load_db()
+        return _issue_auth_payload(
+            latest_db,
+            student_id=student_id,
+            campus_email=campus_email,
+        )
+
+
 # ---------------------------------------------------------------------------
 # Public handler functions
 # ---------------------------------------------------------------------------
@@ -473,7 +701,7 @@ def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, 
     student_id = identifier
     email_hint = ""
     if "@" in identifier:
-        email_hint = identifier.lower()
+        email_hint = _globals.normalize_auth_email(identifier)
         if not is_campus_email(email_hint):
             json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
             return
@@ -484,6 +712,15 @@ def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, 
         return
     if not password:
         json_error(handler, HTTPStatus.BAD_REQUEST, "统一认证密码不能为空")
+        return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=student_id,
+        action="auth_login",
+        setting_key="authLoginRateLimit",
+        action_text="统一认证登录",
+    ):
         return
 
     try:
@@ -529,7 +766,7 @@ def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     user: dict[str, Any] | None = None
 
     if "@" in identifier:
-        login_email = identifier.lower()
+        login_email = _globals.normalize_auth_email(identifier)
         if not is_campus_email(login_email):
             json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
             return
@@ -546,11 +783,20 @@ def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not password:
         json_error(handler, HTTPStatus.BAD_REQUEST, "密码不能为空")
         return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=login_email or login_student_id,
+        action="auth_login",
+        setting_key="authLoginRateLimit",
+        action_text="登录",
+    ):
+        return
     if user is not None and user.get("deleted"):
         json_error(handler, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
         return
     if user is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号或密码错误")
         return
     if not login_email:
         login_email = str(user.get("email", "")).strip().lower()
@@ -577,31 +823,33 @@ def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
 
     if not bool(user.get("verified", False)):
         code_store = db.get("emailCodes", {}).get(login_email)
-        if not code_store:
-            verification = _verification_code_or_error(handler)
-            if verification is None:
+        if not _verification_record_is_active(
+            code_store,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+        ):
+            if not _consume_auth_rate_limit(
+                handler,
+                db,
+                subject=login_email,
+                action="verification_send",
+                setting_key="verificationSendRateLimit",
+                action_text="发送验证码",
+            ):
                 return
-            code, smtp_enabled = verification
-            if smtp_enabled:
-                try:
-                    send_verification_email(
-                        to_email=login_email,
-                        code=code,
-                        expires_in_minutes=10,
-                    )
-                except Exception as error:
-                    json_error(
-                        handler,
-                        HTTPStatus.SERVICE_UNAVAILABLE,
-                        verification_send_error_message(error),
-                    )
-                    return
-            code_store = {
-                "code": code,
-                "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
-            }
-            db["emailCodes"][login_email] = code_store
-        save_db(db)
+            issued = _issue_verification_code(
+                handler,
+                db,
+                email=login_email,
+                purpose=_EMAIL_VERIFICATION_PURPOSE,
+                send_email=lambda address, value: send_verification_email(
+                    to_email=address,
+                    code=value,
+                    expires_in_minutes=10,
+                ),
+            )
+            if issued is None:
+                return
+            code_store, _ = issued
         send_json(
             handler,
             HTTPStatus.OK,
@@ -635,6 +883,15 @@ def handle_xidian_auth_create_session(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
 ) -> None:
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=f"xidian-session::{get_client_ip(handler)}",
+        action="auth_login",
+        setting_key="authLoginRateLimit",
+        action_text="发起统一认证",
+    ):
+        return
     body = read_json_body(handler)
     platform = str(body.get("platform", "web")).strip().lower() or "web"
     next_path = _sanitize_next_path(str(body.get("nextPath", "/")).strip() or "/")
@@ -722,7 +979,7 @@ def handle_xidian_auth_start(
 
 def handle_xidian_auth_callback(
     handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
+    db: dict[str, Any] | None,
     query: dict[str, list[str]],
 ) -> None:
     attempt_id = _query_value(query, "attempt")
@@ -757,7 +1014,7 @@ def handle_xidian_auth_callback(
             else _web_callback_service_url(handler)
         )
         result = validate_xidian_service_ticket(ticket, service_url)
-        auth_payload = _issue_auth_payload(
+        auth_payload = _issue_auth_payload_with_lock(
             db,
             student_id=result.student_id,
             campus_email=result.campus_email,
@@ -832,7 +1089,7 @@ def handle_xidian_auth_callback(
 
 def handle_xidian_mobile_callback(
     handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
+    db: dict[str, Any] | None,
     query: dict[str, list[str]],
 ) -> None:
     ticket = _query_value(query, "ticket")
@@ -845,7 +1102,7 @@ def handle_xidian_mobile_callback(
             ticket,
             _current_request_service_url(handler, exclude_keys={"ticket"}),
         )
-        auth_payload = _issue_auth_payload(
+        auth_payload = _issue_auth_payload_with_lock(
             db,
             student_id=result.student_id,
             campus_email=result.campus_email,
@@ -865,7 +1122,7 @@ def handle_xidian_mobile_callback(
 
 def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     body = read_json_body(handler)
-    email = str(body.get("email", "")).strip().lower()
+    email = _globals.normalize_auth_email(body.get("email", ""))
     password = str(body.get("password", "")).strip()
     student_id = student_id_from_email(email)
     nickname = sanitize_alias(str(body.get("nickname", "")), fallback="") or _default_user_nickname(student_id)
@@ -885,6 +1142,15 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
     if not is_valid_student_id(student_id):
         json_error(handler, HTTPStatus.BAD_REQUEST, "邮箱前缀不符合学号格式（需为 6-20 位字母或数字）")
         return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=email,
+        action="verification_send",
+        setting_key="verificationSendRateLimit",
+        action_text="发送验证码",
+    ):
+        return
 
     user = find_user_by_email(db, email, include_deleted=True)
     if user is not None and user.get("deleted"):
@@ -898,6 +1164,7 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
         json_error(handler, HTTPStatus.CONFLICT, "该学号已绑定其他账号")
         return
 
+    registration_snapshot = deepcopy(db)
     uploaded_avatar_key = ""
     if avatar_data_base64:
         try:
@@ -912,9 +1179,10 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
         if detected_content_type is None:
             json_error(handler, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
             return
+        if avatar_content_type and avatar_content_type != detected_content_type:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "声明的头像格式与实际内容不一致")
+            return
         content_type = detected_content_type
-        if avatar_content_type and avatar_content_type in _globals.ALLOWED_IMAGE_TYPES:
-            content_type = avatar_content_type
         max_bytes = _globals.get_image_max_bytes(db)
         if len(avatar_bytes) > max_bytes:
             json_error(
@@ -976,33 +1244,64 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
         user["studentId"] = student_id
         user["avatarUrl"] = avatar_url
 
-    verification = _verification_code_or_error(handler)
-    if verification is None:
-        return
-    code, smtp_enabled = verification
-    if smtp_enabled:
-        try:
-            send_verification_email(to_email=email, code=code, expires_in_minutes=10)
-        except Exception as error:
-            json_error(
-                handler,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                verification_send_error_message(error),
-            )
+    existing_code_store = db.get("emailCodes", {}).get(
+        _verification_code_key(email, _EMAIL_VERIFICATION_PURPOSE),
+    )
+    if _verification_record_is_active(
+        existing_code_store,
+        purpose=_EMAIL_VERIFICATION_PURPOSE,
+    ):
+        code_store = existing_code_store
+        smtp_enabled = _globals.smtp_configured()
+        save_db(db)
+    else:
+        issued = _issue_verification_code(
+            handler,
+            db,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            send_email=lambda address, value: send_verification_email(
+                to_email=address,
+                code=value,
+                expires_in_minutes=10,
+            ),
+        )
+        if issued is None:
+            db.clear()
+            db.update(registration_snapshot)
+            save_db(db)
+            if uploaded_avatar_key:
+                try:
+                    _globals.OBJECT_STORAGE.delete(uploaded_avatar_key)
+                except Exception:
+                    logger.exception(
+                        "failed to remove avatar after registration rollback",
+                    )
             return
-
-    code_store = {
-        "code": code,
-        "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
-    }
-    db["emailCodes"][email] = code_store
-    save_db(db)
+        code_store, smtp_enabled = issued
 
     if old_avatar_key and uploaded_avatar_key and old_avatar_key != uploaded_avatar_key:
         try:
             _globals.OBJECT_STORAGE.delete(old_avatar_key)
         except Exception:
-            pass
+            cleanup_failed = False
+            try:
+                _globals.OBJECT_STORAGE.delete(uploaded_avatar_key)
+            except Exception:
+                cleanup_failed = True
+                logger.exception(
+                    "failed to remove new avatar after old avatar deletion failure",
+                )
+            db.clear()
+            db.update(registration_snapshot)
+            save_db(db)
+            message = (
+                "旧头像删除失败且新头像回滚删除失败，注册资料未更新"
+                if cleanup_failed
+                else "旧头像存储删除失败，注册资料未更新"
+            )
+            json_error(handler, HTTPStatus.BAD_GATEWAY, message)
+            return
 
     send_json(
         handler,
@@ -1022,8 +1321,9 @@ def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None
 
 def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     body = read_json_body(handler)
-    email = str(body.get("email", "")).strip().lower()
-    code = str(body.get("code", "")).strip()
+    email = _globals.normalize_auth_email(body.get("email", ""))
+    raw_code = body.get("code", "")
+    code = raw_code.strip() if isinstance(raw_code, str) else ""
     password = str(body.get("password", "")).strip()
     student_id = student_id_from_email(email)
 
@@ -1035,21 +1335,134 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not is_valid_student_id(student_id):
         json_error(handler, HTTPStatus.BAD_REQUEST, "邮箱前缀不符合学号格式（需为 6-20 位字母或数字）")
         return
-    if len(code) != 6:
+    if len(code) != 6 or not code.isascii() or not code.isdigit():
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="mismatch",
+            status=HTTPStatus.BAD_REQUEST,
+            found=False,
+        )
         json_error(handler, HTTPStatus.BAD_REQUEST, "验证码格式错误")
         return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=email,
+        action="verification_check",
+        setting_key="verificationCheckRateLimit",
+        action_text="校验验证码",
+    ):
+        return
 
-    code_row = db.get("emailCodes", {}).get(email)
-    if not code_row:
+    key = _verification_code_key(email, _EMAIL_VERIFICATION_PURPOSE)
+    code_row = db.get("emailCodes", {}).get(key)
+    if not isinstance(code_row, dict):
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="no_record",
+            status=HTTPStatus.BAD_REQUEST,
+            found=False,
+        )
         json_error(handler, HTTPStatus.BAD_REQUEST, "请先发送验证码")
         return
-    if code_row.get("code") != code and not (_globals.verify_code_debug_enabled() and code == "123456"):
-        json_error(handler, HTTPStatus.BAD_REQUEST, "验证码错误")
+
+    if (
+        str(code_row.get("purpose", "")).strip()
+        or _EMAIL_VERIFICATION_PURPOSE
+    ) != _EMAIL_VERIFICATION_PURPOSE:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="no_record",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请重新发送验证码")
+        return
+
+    if str(code_row.get("usedAt", "")).strip():
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="used",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
+        json_error(handler, HTTPStatus.BAD_REQUEST, "验证码已失效，请重新发送")
         return
 
     expires_at = parse_iso(str(code_row.get("expiresAt", "")))
     if expires_at is None or now_utc() > expires_at:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="expired",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
         json_error(handler, HTTPStatus.BAD_REQUEST, "验证码已过期")
+        return
+
+    try:
+        attempts = max(0, int(code_row.get("attempts", 0) or 0))
+    except (TypeError, ValueError):
+        attempts = 0
+    if attempts >= _MAX_VERIFICATION_ATTEMPTS:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="too_many_attempts",
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            record=code_row,
+            found=True,
+        )
+        json_error(
+            handler,
+            HTTPStatus.TOO_MANY_REQUESTS,
+            "验证码尝试次数过多，请重新发送",
+        )
+        return
+
+    stored_code = str(code_row.get("code", "")).strip()
+    code_matches = hmac.compare_digest(stored_code, code)
+    if not code_matches and not (
+        _globals.verify_code_debug_enabled() and code == "123456"
+    ):
+        code_row["attempts"] = attempts + 1
+        save_db(db)
+        too_many = int(code_row["attempts"]) >= _MAX_VERIFICATION_ATTEMPTS
+        status = (
+            HTTPStatus.TOO_MANY_REQUESTS
+            if too_many
+            else HTTPStatus.BAD_REQUEST
+        )
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_EMAIL_VERIFICATION_PURPOSE,
+            result="too_many_attempts" if too_many else "mismatch",
+            status=status,
+            record=code_row,
+            found=True,
+        )
+        json_error(
+            handler,
+            status,
+            "验证码尝试次数过多，请重新发送"
+            if too_many
+            else "验证码错误",
+        )
         return
 
     user = find_user_by_email(db, email, include_deleted=True)
@@ -1100,14 +1513,26 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     user["studentId"] = str(user.get("studentId", "")).strip() or student_id
     user["avatarUrl"] = normalize_avatar_url(str(user.get("avatarUrl", "")))
 
-    db["emailCodes"].pop(email, None)
+    code_row["code"] = ""
+    code_row["usedAt"] = now_iso()
     token = secrets.token_urlsafe(24)
     db["sessions"][token] = user["id"]
     save_db(db)
+    _log_verification(
+        handler,
+        email=email,
+        purpose=_EMAIL_VERIFICATION_PURPOSE,
+        result="success",
+        status=HTTPStatus.OK,
+        record=code_row,
+        found=True,
+    )
     send_json(
         handler,
         HTTPStatus.OK,
         {
+            "success": True,
+            "message": "邮箱验证成功",
             "data": {
                 "token": token,
                 "verified": True,
@@ -1131,41 +1556,57 @@ def handle_logout(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
 
 def handle_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     body = read_json_body(handler)
-    email = str(body.get("email", "")).strip().lower()
+    email = _globals.normalize_auth_email(body.get("email", ""))
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
     if not _require_private_beta_access(handler, email):
         return
-
-    verification = _verification_code_or_error(handler)
-    if verification is None:
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=email,
+        action="verification_send",
+        setting_key="verificationSendRateLimit",
+        action_text="发送验证码",
+    ):
         return
-    code, smtp_enabled = verification
-    if smtp_enabled:
-        try:
-            send_verification_email(to_email=email, code=code, expires_in_minutes=10)
-        except Exception as error:
-            json_error(
-                handler,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                verification_send_error_message(error),
-            )
-            return
 
-    code_store = {
-        "code": code,
-        "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
-    }
-    db["emailCodes"][email] = code_store
-    save_db(db)
+    existing_user = find_user_by_email(db, email, include_deleted=True)
+    if existing_user is not None and (
+        existing_user.get("verified") or existing_user.get("deleted")
+    ):
+        send_json(
+            handler,
+            HTTPStatus.OK,
+            {
+                "message": "如果该邮箱可以接收验证码，邮件将很快送达",
+                "data": {"email": email, "expiresInSeconds": 600},
+            },
+        )
+        return
+
+    issued = _issue_verification_code(
+        handler,
+        db,
+        email=email,
+        purpose=_EMAIL_VERIFICATION_PURPOSE,
+        send_email=lambda address, value: send_verification_email(
+            to_email=address,
+            code=value,
+            expires_in_minutes=10,
+        ),
+    )
+    if issued is None:
+        return
+    code_store, smtp_enabled = issued
 
     data: dict[str, Any] = {
         "email": email,
         "expiresInSeconds": 600,
     }
     if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
-        data["debugCode"] = code
+        data["debugCode"] = str(code_store["code"])
     send_json(
         handler,
         HTTPStatus.OK,
@@ -1178,52 +1619,55 @@ def handle_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> Non
 
 def handle_password_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     body = read_json_body(handler)
-    email = str(body.get("email", "")).strip().lower()
+    email = _globals.normalize_auth_email(body.get("email", ""))
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
     if not _require_private_beta_access(handler, email):
         return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=email,
+        action="verification_send",
+        setting_key="verificationSendRateLimit",
+        action_text="发送验证码",
+    ):
+        return
 
     user = find_user_by_email(db, email, include_deleted=True)
-    if user is not None and user.get("deleted"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
-        return
-    if user is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
+    if user is None or user.get("deleted"):
+        send_json(
+            handler,
+            HTTPStatus.OK,
+            {
+                "message": "如果账号存在，重置验证码将很快送达",
+                "data": {"email": email, "expiresInSeconds": 600},
+            },
+        )
         return
 
-    verification = _verification_code_or_error(handler)
-    if verification is None:
+    issued = _issue_verification_code(
+        handler,
+        db,
+        email=email,
+        purpose=_PASSWORD_RESET_PURPOSE,
+        send_email=lambda address, value: send_password_reset_email(
+            to_email=address,
+            code=value,
+            expires_in_minutes=10,
+        ),
+    )
+    if issued is None:
         return
-    code, smtp_enabled = verification
-    if smtp_enabled:
-        try:
-            send_password_reset_email(
-                to_email=email,
-                code=code,
-                expires_in_minutes=10,
-            )
-        except Exception as error:
-            json_error(
-                handler,
-                HTTPStatus.SERVICE_UNAVAILABLE,
-                verification_send_error_message(error),
-            )
-            return
-
-    db["emailCodes"][_password_reset_code_key(email)] = {
-        "code": code,
-        "expiresAt": (now_utc() + timedelta(minutes=10)).isoformat(),
-    }
-    save_db(db)
+    code_store, smtp_enabled = issued
 
     data: dict[str, Any] = {
         "email": email,
         "expiresInSeconds": 600,
     }
     if _globals.INCLUDE_DEBUG_CODE_IN_RESPONSE:
-        data["debugCode"] = code
+        data["debugCode"] = str(code_store["code"])
     send_json(
         handler,
         HTTPStatus.OK,
@@ -1236,18 +1680,28 @@ def handle_password_send_code(handler: BaseHTTPRequestHandler, db: dict[str, Any
 
 def handle_password_reset(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     body = read_json_body(handler)
-    email = str(body.get("email", "")).strip().lower()
-    code = str(body.get("code", "")).strip()
+    email = _globals.normalize_auth_email(body.get("email", ""))
+    raw_code = body.get("code", "")
+    code = raw_code.strip() if isinstance(raw_code, str) else ""
     new_password = str(body.get("newPassword", "")).strip()
 
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
         return
-    if len(code) != 6:
+    if len(code) != 6 or not code.isascii() or not code.isdigit():
         json_error(handler, HTTPStatus.BAD_REQUEST, "验证码格式错误")
         return
     if len(new_password) < 6:
         json_error(handler, HTTPStatus.BAD_REQUEST, "新密码长度至少 6 位")
+        return
+    if not _consume_auth_rate_limit(
+        handler,
+        db,
+        subject=email,
+        action="password_reset",
+        setting_key="passwordResetRateLimit",
+        action_text="重置密码",
+    ):
         return
 
     user = find_user_by_email(db, email, include_deleted=True)
@@ -1258,21 +1712,127 @@ def handle_password_reset(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -
         json_error(handler, HTTPStatus.NOT_FOUND, "账号不存在，请先注册")
         return
 
-    code_row = db.get("emailCodes", {}).get(_password_reset_code_key(email))
-    if not code_row:
+    key = _verification_code_key(email, _PASSWORD_RESET_PURPOSE)
+    code_row = db.get("emailCodes", {}).get(key)
+    if not isinstance(code_row, dict):
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="no_record",
+            status=HTTPStatus.BAD_REQUEST,
+            found=False,
+        )
         json_error(handler, HTTPStatus.BAD_REQUEST, "请先发送重置验证码")
         return
-    if code_row.get("code") != code and not (_globals.verify_code_debug_enabled() and code == "123456"):
-        json_error(handler, HTTPStatus.BAD_REQUEST, "验证码错误")
+    if (
+        str(code_row.get("purpose", "")).strip()
+        or _PASSWORD_RESET_PURPOSE
+    ) != _PASSWORD_RESET_PURPOSE:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="no_record",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请重新发送重置验证码")
+        return
+    if str(code_row.get("usedAt", "")).strip():
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="used",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
+        json_error(handler, HTTPStatus.BAD_REQUEST, "验证码已失效，请重新发送")
         return
 
     expires_at = parse_iso(str(code_row.get("expiresAt", "")))
     if expires_at is None or now_utc() > expires_at:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="expired",
+            status=HTTPStatus.BAD_REQUEST,
+            record=code_row,
+            found=True,
+        )
         json_error(handler, HTTPStatus.BAD_REQUEST, "验证码已过期")
         return
 
+    try:
+        attempts = max(0, int(code_row.get("attempts", 0) or 0))
+    except (TypeError, ValueError):
+        attempts = 0
+    stored_code = str(code_row.get("code", "")).strip()
+    code_matches = hmac.compare_digest(stored_code, code)
+    if attempts >= _MAX_VERIFICATION_ATTEMPTS:
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="too_many_attempts",
+            status=HTTPStatus.TOO_MANY_REQUESTS,
+            record=code_row,
+            found=True,
+        )
+        json_error(
+            handler,
+            HTTPStatus.TOO_MANY_REQUESTS,
+            "验证码尝试次数过多，请重新发送",
+        )
+        return
+    if not code_matches and not (
+        _globals.verify_code_debug_enabled() and code == "123456"
+    ):
+        code_row["attempts"] = attempts + 1
+        save_db(db)
+        too_many = int(code_row["attempts"]) >= _MAX_VERIFICATION_ATTEMPTS
+        status = (
+            HTTPStatus.TOO_MANY_REQUESTS
+            if too_many
+            else HTTPStatus.BAD_REQUEST
+        )
+        _log_verification(
+            handler,
+            email=email,
+            purpose=_PASSWORD_RESET_PURPOSE,
+            result="too_many_attempts" if too_many else "mismatch",
+            status=status,
+            record=code_row,
+            found=True,
+        )
+        json_error(
+            handler,
+            status,
+            "验证码尝试次数过多，请重新发送"
+            if too_many
+            else "验证码错误",
+        )
+        return
+
     user["password"] = hash_password(new_password)
-    db["emailCodes"].pop(_password_reset_code_key(email), None)
+    code_row["code"] = ""
+    code_row["usedAt"] = now_iso()
+    for token, session_user_id in list(db.get("sessions", {}).items()):
+        if session_user_id == user["id"]:
+            db["sessions"].pop(token, None)
     add_audit_log(db, user["id"], "reset_password_by_email", f"邮箱重置密码 {email}")
     save_db(db)
+    _log_verification(
+        handler,
+        email=email,
+        purpose=_PASSWORD_RESET_PURPOSE,
+        result="success",
+        status=HTTPStatus.OK,
+        record=code_row,
+        found=True,
+    )
     send_json(handler, HTTPStatus.OK, {"message": "密码重置成功", "data": {"ok": True}})

@@ -11,7 +11,8 @@ class AdminReviewListPage extends ConsumerStatefulWidget {
   const AdminReviewListPage({super.key});
 
   @override
-  ConsumerState<AdminReviewListPage> createState() => _AdminReviewListPageState();
+  ConsumerState<AdminReviewListPage> createState() =>
+      _AdminReviewListPageState();
 }
 
 class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
@@ -21,6 +22,7 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
   List<AdminReviewItem> _items = [];
   bool _isLoading = true;
   bool _isActionBusy = false;
+  String? _loadError;
 
   AdminRepository get _repo => ref.read(adminRepositoryProvider);
 
@@ -37,7 +39,10 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
   }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final items = await _repo.fetchReviews(
         type: _type,
@@ -51,8 +56,10 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
-      _showToast('加载失败: $e');
+      setState(() {
+        _isLoading = false;
+        _loadError = '加载失败: $e';
+      });
     }
   }
 
@@ -92,14 +99,25 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Expanded(
                       child: SegmentedButton<String>(
                         segments: const [
-                          ButtonSegment(value: 'post', label: Text('帖子'), icon: Icon(Icons.article_outlined)),
-                          ButtonSegment(value: 'comment', label: Text('评论'), icon: Icon(Icons.comment_outlined)),
+                          ButtonSegment(
+                            value: 'post',
+                            label: Text('帖子'),
+                            icon: Icon(Icons.article_outlined),
+                          ),
+                          ButtonSegment(
+                            value: 'comment',
+                            label: Text('评论'),
+                            icon: Icon(Icons.comment_outlined),
+                          ),
                         ],
                         selected: {_type},
                         onSelectionChanged: (val) {
@@ -136,7 +154,9 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
                     prefixIcon: const Icon(Icons.search, size: 20),
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                   onSubmitted: (_) => _load(),
                 ),
@@ -147,6 +167,8 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _loadError != null
+          ? _AdminLoadError(message: _loadError!, onRetry: _load)
           : RefreshIndicator(
               onRefresh: _load,
               child: _items.isEmpty
@@ -175,7 +197,10 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
                 Expanded(
                   child: Text(
                     item.title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
                 _buildStatusChip(item.reviewStatus),
@@ -198,9 +223,18 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('作者: ${item.authorNickname} (${item.authorAlias})', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-                  Text('账号: ${item.authorEmail} · 学号: ${item.authorStudentId}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
-                  Text('时间: ${item.createdAt}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                  Text(
+                    '作者: ${item.authorNickname} (${item.authorAlias})',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                  ),
+                  Text(
+                    '账号: ${item.authorEmail} · 学号: ${item.authorStudentId}',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                  ),
+                  Text(
+                    '时间: ${item.createdAt}',
+                    style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                  ),
                 ],
               ),
             ),
@@ -209,22 +243,37 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
               spacing: 8,
               children: [
                 FilledButton.tonal(
-                  onPressed: _isActionBusy ? null : () => _handleAction(item, 'approve'),
+                  onPressed: _isActionBusy
+                      ? null
+                      : () => _handleAction(item, 'approve'),
                   child: const Text('通过'),
                 ),
                 OutlinedButton(
-                  onPressed: _isActionBusy ? null : () => _handleAction(item, 'reject'),
-                  style: OutlinedButton.styleFrom(foregroundColor: MobileTheme.error),
+                  onPressed: _isActionBusy
+                      ? null
+                      : () => _handleAction(item, 'reject'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MobileTheme.error,
+                  ),
                   child: const Text('驳回'),
                 ),
                 OutlinedButton(
-                  onPressed: _isActionBusy ? null : () => _handleAction(item, 'risk'),
-                  style: OutlinedButton.styleFrom(foregroundColor: MobileTheme.warning),
+                  onPressed: _isActionBusy
+                      ? null
+                      : () => _handleAction(item, 'risk'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: MobileTheme.warning,
+                  ),
                   child: const Text('风险'),
                 ),
                 IconButton(
-                  onPressed: _isActionBusy ? null : () => _handleAction(item, 'delete'),
-                  icon: const Icon(Icons.delete_outline, color: MobileTheme.error),
+                  onPressed: _isActionBusy
+                      ? null
+                      : () => _handleAction(item, 'delete'),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: MobileTheme.error,
+                  ),
                 ),
               ],
             ),
@@ -237,9 +286,16 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
   Widget _buildStatusChip(String status) {
     Color color = Colors.grey;
     String label = '未知';
-    if (status == 'pending') { color = Colors.orange; label = '待审核'; }
-    else if (status == 'approved') { color = Colors.green; label = '通过'; }
-    else if (status == 'rejected') { color = Colors.red; label = '驳回'; }
+    if (status == 'pending') {
+      color = Colors.orange;
+      label = '待审核';
+    } else if (status == 'approved') {
+      color = Colors.green;
+      label = '通过';
+    } else if (status == 'rejected') {
+      color = Colors.red;
+      label = '驳回';
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -248,7 +304,37 @@ class _AdminReviewListPageState extends ConsumerState<AdminReviewListPage> {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminLoadError extends StatelessWidget {
+  const _AdminLoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 42),
+          const SizedBox(height: 10),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          TextButton(onPressed: onRetry, child: const Text('重试')),
+        ],
+      ),
     );
   }
 }

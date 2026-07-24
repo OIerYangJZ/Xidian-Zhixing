@@ -11,11 +11,7 @@ import {
 } from '../../../api/campus';
 import { getUserInfo } from '../../../api/auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
-import {
-  CAMPUS_AUTH_STATE_KEY,
-  removeCampusAuthSecret,
-  saveCampusAuthSecret
-} from '../../../utils/campus_auth';
+import { CAMPUS_AUTH_STATE_KEY } from '../../../utils/campus_auth';
 
 const SYSTEMS = [
   {
@@ -153,7 +149,7 @@ Page({
     });
   },
 
-  persistAuthState(systemId, result, secret = null) {
+  persistAuthState(systemId, result) {
     const current = wx.getStorageSync(CAMPUS_AUTH_STATE_KEY) || {};
     const state = {
       system: systemId,
@@ -166,7 +162,6 @@ Page({
       [systemId]: state
     };
     wx.setStorageSync(CAMPUS_AUTH_STATE_KEY, next);
-    if (secret) saveCampusAuthSecret(systemId, secret);
     this.setData({
       authStates: next,
       activeState: next[this.data.activeSystem] || null,
@@ -237,8 +232,8 @@ Page({
     return true;
   },
 
-  showResult(systemId, result, secret = null) {
-    this.persistAuthState(systemId, result || {}, secret);
+  showResult(systemId, result) {
+    this.persistAuthState(systemId, result || {});
     if (systemId === 'ids') {
       wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
     }
@@ -274,10 +269,7 @@ Page({
     try {
       const response = await action(studentId, password);
       wx.hideLoading();
-      this.showResult(activeSystem, response.data || response || {}, {
-        identifier: studentId,
-        password
-      });
+      this.showResult(activeSystem, response.data || response || {});
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -323,10 +315,7 @@ Page({
     try {
       const response = await loginCampusSchoolnet(schoolnetAttemptId, studentId, password, schoolnetCaptcha);
       wx.hideLoading();
-      this.showResult('schoolnet', response.data || response || {}, {
-        identifier: studentId,
-        password
-      });
+      this.showResult('schoolnet', response.data || response || {});
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -390,9 +379,7 @@ Page({
     try {
       const response = await loginDormWater(dormWaterPhone, dormWaterSmsCode);
       wx.hideLoading();
-      this.showResult('dormWater', response.data || response || {}, {
-        phone: dormWaterPhone
-      });
+      this.showResult('dormWater', response.data || response || {});
     } catch (error) {
       wx.hideLoading();
       console.error(error);
@@ -407,7 +394,6 @@ Page({
     const states = wx.getStorageSync(CAMPUS_AUTH_STATE_KEY) || {};
     delete states[activeSystem];
     wx.setStorageSync(CAMPUS_AUTH_STATE_KEY, states);
-    removeCampusAuthSecret(activeSystem);
     this.setData({
       authStates: states,
       activeState: states[activeSystem] || null,

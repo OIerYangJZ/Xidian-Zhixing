@@ -16,6 +16,7 @@ Page({
     todayScheduleDate: '',
     lastScheduleUpdatedAt: 0,
     userInfo: null,
+    errorMessage: '',
     touchStartX: 0,
     touchStartY: 0
   },
@@ -46,43 +47,64 @@ Page({
   },
 
   async loadData() {
-    const [servicesResponse, todaySchedulesResponse] = await Promise.all([
-      getCampusServices(),
-      getTodaySchedules()
-    ]);
-    const services = servicesResponse.data || servicesResponse || [];
-    const scheduleData = todaySchedulesResponse.data || todaySchedulesResponse;
-    const todaySchedules = Array.isArray(scheduleData.items) ? scheduleData.items : [];
-    const usableServices = services.filter((service) => {
-      const actions = Array.isArray(service.actions) ? service.actions : [];
-      return service.groupId !== 'account' && actions.some((action) => action && action.type !== 'notice');
-    });
-    const groups = [];
-    usableServices.forEach((service) => {
-      let group = groups.find((item) => item.id === service.groupId);
-      if (!group) {
-        group = { id: service.groupId, name: service.groupName, items: [] };
-        groups.push(group);
-      }
-      group.items.push(service);
-    });
-    this.setData({
-      services: usableServices,
-      groupedServices: groups,
-      todaySchedules,
-      todayScheduleDate: scheduleData.date
-    });
+    this.setData({ errorMessage: '' });
+    try {
+      const [servicesResponse, todaySchedulesResponse] = await Promise.all([
+        getCampusServices(),
+        getTodaySchedules()
+      ]);
+      const services = servicesResponse.data;
+      const scheduleData = todaySchedulesResponse.data;
+      const usableServices = services.filter((service) => {
+        const actions = Array.isArray(service.actions) ? service.actions : [];
+        return service.groupId !== 'account' && actions.some((action) => action && action.type !== 'notice');
+      });
+      const groups = [];
+      usableServices.forEach((service) => {
+        let group = groups.find((item) => item.id === service.groupId);
+        if (!group) {
+          group = { id: service.groupId, name: service.groupName, items: [] };
+          groups.push(group);
+        }
+        group.items.push(service);
+      });
+      this.setData({
+        services: usableServices,
+        groupedServices: groups,
+        todaySchedules: scheduleData.items,
+        todayScheduleDate: scheduleData.date
+      });
+    } catch (error) {
+      this.setData({
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '校园服务加载失败，请重试'
+      });
+    }
   },
 
   async loadUserInfo() {
-    const response = await getUserInfo();
-    const user = response.data || {};
-    this.setData({
-      userInfo: {
-        ...user,
-        avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
-      }
-    });
+    try {
+      const response = await getUserInfo();
+      const user = response.data || {};
+      this.setData({
+        userInfo: {
+          ...user,
+          avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
+        }
+      });
+    } catch (error) {
+      this.setData({
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '用户信息加载失败，请重试'
+      });
+    }
+  },
+
+  retryLoad() {
+    this.loadUserInfo();
+    this.loadData();
   },
 
   openDrawer() {

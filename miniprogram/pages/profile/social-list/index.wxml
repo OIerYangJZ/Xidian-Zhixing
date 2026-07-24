@@ -1,5 +1,9 @@
 <view class="page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!users.length}}" class="empty">暂无数据</view>
   <view wx:else>
     <view class="user-row" wx:for="{{users}}" wx:key="id">

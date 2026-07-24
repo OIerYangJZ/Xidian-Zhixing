@@ -330,7 +330,8 @@ Page({
     maps: [],
     navTop: 44,
     navHeight: 32,
-    loading: true
+    loading: true,
+    errorMessage: ''
   },
 
   onLoad(options) {
@@ -351,7 +352,7 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const detailResponse = await getCampusServiceDetail(this.data.id);
       const service = detailResponse.data || detailResponse || {};
@@ -385,9 +386,17 @@ Page({
         loading: false
       });
     } catch (error) {
-      console.error(error);
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '校园服务加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   async reloadCalendar() {

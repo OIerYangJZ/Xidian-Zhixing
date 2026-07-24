@@ -1,7 +1,7 @@
 import { formatTime, truncate } from '../../utils/format';
 import { getUserInfo } from '../../api/auth';
 import { requireLoginPage } from '../../utils/auth_guard';
-import { fetchAiModels, getAiConfig } from '../../api/ai';
+import { fetchAiModels } from '../../api/ai';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
 
@@ -10,13 +10,15 @@ Page({
     history: [],
     configured: false,
     currentModel: '',
-    subtitleText: '请先配置 OpenAI 兼容接口',
+    subtitleText: '正在读取服务器 AI 状态',
+    configError: '',
     drawerOpen: false,
     touchStartX: 0,
     touchStartY: 0,
     navTop: 0,
     navHeight: 48,
-    userInfo: null
+    userInfo: null,
+    userErrorMessage: ''
   },
 
   onLoad() {
@@ -48,7 +50,6 @@ Page({
   },
 
   async loadHistory() {
-    const config = getAiConfig();
     const rows = (wx.getStorageSync('aiHistory') || []).slice(0, 5).map((item) => ({
       id: item.createdAt || item.question,
       title: truncate(item.question, 28),
@@ -57,33 +58,55 @@ Page({
     }));
     this.setData({
       history: rows,
-      configured: Boolean(config.configured && config.model),
-      currentModel: config.model || '',
-      subtitleText: config.configured && config.model
-        ? `当前模型：${config.model}`
-        : 'AI 服务由服务器统一提供'
+      configured: false,
+      currentModel: '',
+      subtitleText: '正在读取服务器 AI 状态',
+      configError: ''
     });
     try {
       const status = await fetchAiModels();
       this.setData({
         configured: Boolean(status.configured),
         currentModel: status.model || '',
-        subtitleText: status.configured ? `当前模型：${status.model}` : '服务器 AI 尚未配置'
+        subtitleText: status.configured ? `当前模型：${status.model}` : '服务器 AI 尚未配置',
+        configError: ''
       });
     } catch (error) {
-      this.setData({ configured: false, currentModel: '', subtitleText: '服务器 AI 尚未配置' });
+      this.setData({
+        configured: false,
+        currentModel: '',
+        subtitleText: '服务器 AI 状态加载失败',
+        configError: 'AI 状态加载失败，请重试'
+      });
     }
   },
 
   async loadUserInfo() {
-    const response = await getUserInfo();
-    const user = response.data || {};
-    this.setData({
-      userInfo: {
-        ...user,
-        avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
-      }
-    });
+    this.setData({ userErrorMessage: '' });
+    try {
+      const response = await getUserInfo();
+      const user = response.data || {};
+      this.setData({
+        userInfo: {
+          ...user,
+          avatarInitial: avatarInitial(user.nickname || user.alias || user.email)
+        }
+      });
+    } catch (error) {
+      this.setData({
+        userErrorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '用户信息加载失败，请重试'
+      });
+    }
+  },
+
+  retryLoadUserInfo() {
+    this.loadUserInfo();
+  },
+
+  retryLoadAiStatus() {
+    this.loadHistory();
   },
 
   startNewChat() {

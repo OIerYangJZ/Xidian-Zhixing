@@ -42,6 +42,7 @@ Admin & moderation endpoints:
 """
 from __future__ import annotations
 
+import copy
 import os
 import re
 import secrets
@@ -51,9 +52,15 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 
 import _globals
+from object_storage import (
+    StorageObjectBackup,
+    delete_objects_with_backups,
+    restore_object_backups,
+)
 from helpers import (
     calc_sha256_hex,
     hash_password,
+    is_today_iso,
     is_password_hashed,
     json_error,
     now_iso,
@@ -67,6 +74,7 @@ from services import (
     add_audit_log,
     auth_admin,
     auth_user as auth_user_helper,
+    ban_user_account,
     build_admin_account_rows,
     build_admin_appeal_rows,
     build_admin_post_pin_request_rows,
@@ -74,6 +82,7 @@ from services import (
     build_admin_review_rows,
     build_admin_user_level_request_rows,
     build_admin_user_rows,
+    apply_admin_review_action,
     build_export_payload,
     build_overview,
     cancel_user_account,
@@ -86,6 +95,7 @@ from services import (
     normalize_admin_role,
     next_id,
     normalize_user_level,
+    parse_pin_duration_minutes,
     post_counts,
     recalc_post_has_image,
     restore_user_account,
@@ -97,6 +107,16 @@ from services import (
     target_owner,
     user_level_label,
 )
+
+
+def _rollback_db_and_storage(
+    db: dict[str, Any],
+    db_snapshot: dict[str, Any],
+    storage_backups: list[StorageObjectBackup],
+) -> None:
+    db.clear()
+    db.update(db_snapshot)
+    restore_object_backups(_globals.OBJECT_STORAGE, storage_backups)
 
 
 def _require_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
@@ -499,6 +519,115 @@ def handle_admin_config(
     )
 
 
+def _serialize_announcement(row: dict[str, Any]) -> dict[str, Any]:
+    created_at = str(row.get("publishedAt", row.get("createdAt", ""))).strip()
+    return {
+        "id": str(row.get("id", "")).strip(),
+        "title": str(row.get("title", "")).strip(),
+        "content": str(row.get("content", "")).strip(),
+        "summary": str(row.get("summary", "")).strip(),
+        "aiSummary": str(row.get("aiSummary", "")).strip(),
+        "publishedAt": created_at,
+        "createdAt": str(row.get("createdAt", created_at)).strip(),
+        "publisher": str(row.get("publisher", "SeeRadio")).strip(),
+        "sourceName": str(row.get("sourceName", "系统公告")).strip(),
+        "type": str(row.get("type", "系统公告")).strip(),
+        "isImportant": bool(row.get("isImportant", False)),
+        "originalUrl": str(row.get("originalUrl", "")).strip(),
+        "createdBy": str(row.get("createdBy", "")).strip(),
+        "timeText": created_at,
+    }
+
+
+def _published_announcements(db: dict[str, Any]) -> list[dict[str, Any]]:
+    rows = [
+        _serialize_announcement(row)
+        for row in db.get("announcements", [])
+        if isinstance(row, dict) and not row.get("deleted")
+    ]
+    rows.sort(
+        key=lambda row: (row.get("publishedAt", ""), row.get("id", "")),
+        reverse=True,
+    )
+    return rows
+
+
+def handle_public_announcements(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    query: dict[str, list[str]],
+) -> None:
+    announcement_type = str((query.get("type") or [""])[0]).strip()
+    rows = _published_announcements(db)
+    if announcement_type:
+        rows = [row for row in rows if row.get("type") == announcement_type]
+    send_json(handler, HTTPStatus.OK, {"data": rows})
+
+
+def handle_public_announcement_detail(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    announcement_id: str,
+) -> None:
+    row = next(
+        (
+            item
+            for item in _published_announcements(db)
+            if item.get("id") == announcement_id
+        ),
+        None,
+    )
+    if row is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "公告不存在")
+        return
+    send_json(handler, HTTPStatus.OK, {"data": row})
+
+
+def handle_public_announcement_filters(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    types = sorted(
+        {
+            str(row.get("type", "")).strip()
+            for row in _published_announcements(db)
+            if str(row.get("type", "")).strip()
+        }
+    )
+    send_json(handler, HTTPStatus.OK, {"data": {"types": types}})
+
+
+def handle_public_announcement_daily_summary(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    today_rows = [
+        row
+        for row in _published_announcements(db)
+        if is_today_iso(str(row.get("publishedAt", "")))
+    ]
+    summary = (
+        "；".join(str(row.get("title", "")).strip() for row in today_rows)
+        if today_rows
+        else "今日暂无新公告"
+    )
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": {"title": "今日公告摘要", "summary": summary}},
+    )
+
+
+def handle_admin_announcements(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    admin = _require_admin(handler, db)
+    if admin is None:
+        return
+    send_json(handler, HTTPStatus.OK, {"data": _published_announcements(db)})
+
+
 def handle_admin_android_release(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -526,6 +655,53 @@ def handle_public_android_release(
 # ===========================================================================
 # POST handlers
 # ===========================================================================
+
+
+def handle_admin_publish_announcement(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    admin = _require_primary_admin(handler, db)
+    if admin is None:
+        return
+
+    body = read_json_body(handler)
+    title = str(body.get("title", "")).strip()
+    content = str(body.get("content", "")).strip()
+    announcement_type = str(body.get("type", "系统公告")).strip() or "系统公告"
+    if not title:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "公告标题不能为空")
+        return
+    if not content:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "公告内容不能为空")
+        return
+
+    created_at = now_iso()
+    row = {
+        "id": next_id(db, "announcement", "ann"),
+        "title": title,
+        "content": content,
+        "summary": content[:120],
+        "aiSummary": "",
+        "publishedAt": created_at,
+        "createdAt": created_at,
+        "publisher": "SeeRadio",
+        "sourceName": "系统公告",
+        "type": announcement_type,
+        "isImportant": parse_bool(body.get("isImportant", False)) is True,
+        "originalUrl": "",
+        "createdBy": str(admin.get("username", "")).strip(),
+        "deleted": False,
+    }
+    db.setdefault("announcements", []).append(row)
+    add_audit_log(
+        db,
+        str(admin.get("adminId", "")),
+        "publish_announcement",
+        f"发布公告 {row['id']}",
+    )
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": _serialize_announcement(row)})
 
 
 def handle_admin_change_password(
@@ -629,6 +805,13 @@ def handle_admin_upload_android_release(
         json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "安装包上传失败，请稍后重试")
         return
 
+    db_snapshot = copy.deepcopy(db)
+    previous_release = get_android_release(db)
+    previous_object_key = (
+        str(previous_release.get("objectKey", "")).strip()
+        if previous_release
+        else ""
+    )
     release = set_android_release(
         db,
         {
@@ -653,7 +836,32 @@ def handle_admin_upload_android_release(
         "publish_android_release",
         f"发布 Android 安装包 {release['versionName']} ({release['versionCode']})",
     )
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        db.clear()
+        db.update(db_snapshot)
+        try:
+            _globals.OBJECT_STORAGE.delete(stored.key)
+        except Exception as cleanup_error:
+            raise RuntimeError(
+                "安装包记录保存失败，且新安装包清理失败"
+            ) from cleanup_error
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "安装包发布记录保存失败")
+        return
+    if previous_object_key and previous_object_key != stored.key:
+        try:
+            delete_objects_with_backups(
+                _globals.OBJECT_STORAGE,
+                [previous_object_key],
+            )
+        except Exception:
+            db.clear()
+            db.update(db_snapshot)
+            save_db(db)
+            _globals.OBJECT_STORAGE.delete(stored.key)
+            json_error(handler, HTTPStatus.BAD_GATEWAY, "旧安装包清理失败，发布已回滚")
+            return
     send_json(handler, HTTPStatus.OK, {"data": release})
 
 
@@ -672,20 +880,33 @@ def handle_admin_review_batch(
         json_error(handler, HTTPStatus.BAD_REQUEST, "缺少待处理项目")
         return
 
-    from services import apply_admin_review_action
+    db_snapshot = copy.deepcopy(db)
+    storage_backups: list[StorageObjectBackup] = []
     results = []
     for item in items:
         target_type = str(item.get("type", "")).strip().lower()
         target_id = str(item.get("id", "")).strip()
         action = str(item.get("action", "")).strip().lower()
         try:
-            apply_admin_review_action(db, target_type=target_type, target_id=target_id, action=action)
+            storage_backups.extend(
+                apply_admin_review_action(
+                    db,
+                    target_type=target_type,
+                    target_id=target_id,
+                    action=action,
+                )
+            )
             results.append({"id": target_id, "ok": True})
-        except (ValueError, LookupError) as e:
+        except (ValueError, LookupError, RuntimeError) as e:
             results.append({"id": target_id, "ok": False, "error": str(e)})
 
     add_audit_log(db, admin.get("adminId", "-"), "batch_review", f"批量审核 {len(items)} 个项目")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "审核结果保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"results": results}})
 
 
@@ -701,15 +922,28 @@ def handle_admin_single_review(
     if admin is None:
         return
 
+    db_snapshot = copy.deepcopy(db)
     try:
-        from services import apply_admin_review_action
-        apply_admin_review_action(db, target_type=target_type, target_id=target_id, action=action)
+        storage_backups = apply_admin_review_action(
+            db,
+            target_type=target_type,
+            target_id=target_id,
+            action=action,
+        )
     except (ValueError, LookupError) as e:
         json_error(handler, HTTPStatus.BAD_REQUEST, str(e))
         return
+    except RuntimeError as error:
+        json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
+        return
 
     add_audit_log(db, admin.get("adminId", "-"), f"review_{action}", f"{target_type} {target_id} -> {action}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "审核结果保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
@@ -724,20 +958,22 @@ def handle_admin_report_action(
         return
 
     body = read_json_body(handler)
-    action = str(body.get("action", "")).strip().lower()
+    requested_action = str(body.get("action", "")).strip().lower()
+    action = {
+        "delete_content": "delete",
+        "warn_user": "warn",
+        "ban_user": "ban",
+        "mark_misreport": "misreport",
+    }.get(requested_action, requested_action)
     review_note = str(body.get("reviewNote", body.get("result", body.get("note", body.get("reason", ""))))).strip()
 
     report = next((r for r in db["reports"] if r.get("id") == report_id), None)
     if report is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "举报不存在")
         return
-
-    handled_at = now_iso()
-    report["handledAt"] = handled_at
-    # reports.handled_by references users; dedicated admin accounts live in a
-    # separate table, so only user-admin IDs can be stored in this column.
-    report["handledBy"] = str(admin.get("id", "")).strip()
-    report["result"] = review_note
+    if str(report.get("status", "pending")).strip().lower() != "pending":
+        json_error(handler, HTTPStatus.CONFLICT, "举报已处理，不能重复操作")
+        return
 
     action_map = {
         "resolve": "已处理",
@@ -747,9 +983,7 @@ def handle_admin_report_action(
         "misreport": "恶意举报",
     }
     if action in action_map:
-        report["status"] = "misreport" if action == "misreport" else "resolved"
-    elif action == "misreport":
-        report["status"] = "misreport"
+        next_status = "misreport" if action == "misreport" else "resolved"
     else:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
         return
@@ -759,15 +993,37 @@ def handle_admin_report_action(
     owner = target_owner(db, target_id)
     owner_id = str(owner.get("authorId", "")).strip() if owner else ""
 
+    db_snapshot = copy.deepcopy(db)
+    storage_backups: list[StorageObjectBackup] = []
+    if action == "delete":
+        try:
+            storage_backups = apply_admin_review_action(
+                db,
+                target_type=target_type,
+                target_id=target_id,
+                action="delete",
+            )
+        except (ValueError, LookupError) as error:
+            json_error(handler, HTTPStatus.BAD_REQUEST, str(error))
+            return
+        except RuntimeError as error:
+            json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
+            return
+
+    report["handledAt"] = now_iso()
+    # reports.handled_by references users; dedicated admin accounts live in a
+    # separate table, so only user-admin IDs can be stored in this column.
+    report["handledBy"] = str(admin.get("id", "")).strip()
+    report["result"] = review_note
+    report["status"] = next_status
+
     if owner_id and action in {"delete", "warn", "ban"}:
         notif_title = "内容处理通知"
         notif_content = f"您发布的内容因「{review_note}」被处理，请注意社区规范。"
         if action == "ban":
             target_user = find_user_by_id(db, owner_id)
             if target_user:
-                target_user["banned"] = True
-                target_user["verified"] = False
-                cancel_user_account(db, target_user, actor_id=admin.get("adminId", "-"), detail=f"因举报封禁 {owner_id}")
+                ban_user_account(db, target_user)
         
         notif_post_id = ""
         if target_type == "post":
@@ -791,7 +1047,12 @@ def handle_admin_report_action(
         )
 
     add_audit_log(db, admin.get("adminId", "-"), f"handle_report_{action}", f"处理举报 {report_id}: {action}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "举报处理结果保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
@@ -808,6 +1069,9 @@ def handle_admin_post_pin_request_action(
     body = read_json_body(handler)
     action = str(body.get("action", "")).strip().lower()
     review_note = str(body.get("reviewNote", body.get("result", body.get("note", body.get("reason", ""))))).strip()
+    if action not in {"approve", "reject"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
+        return
 
     req = next((r for r in db.get("postPinRequests", []) if r.get("id") == request_id), None)
     if req is None:
@@ -819,6 +1083,13 @@ def handle_admin_post_pin_request_action(
     if req.get("status") != "pending":
         json_error(handler, HTTPStatus.BAD_REQUEST, "申请已被处理")
         return
+    duration_minutes = parse_pin_duration_minutes(req.get("durationMinutes"))
+    if action == "approve" and duration_minutes is None:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "置顶时长无效")
+        return
+    if action == "approve" and (post is None or post.get("deleted")):
+        json_error(handler, HTTPStatus.NOT_FOUND, "目标帖子不存在或已被删除")
+        return
 
     req["status"] = action == "approve" and "approved" or "rejected"
     req["handledAt"] = now_iso()
@@ -829,7 +1100,7 @@ def handle_admin_post_pin_request_action(
         from services import apply_post_pin
         apply_post_pin(
             post,
-            duration_minutes=int(req.get("durationMinutes", 1440)),
+            duration_minutes=duration_minutes,
         )
 
     owner_id = str(post.get("authorId", "")) if post else ""
@@ -867,6 +1138,9 @@ def handle_admin_user_level_request_action(
     body = read_json_body(handler)
     action = str(body.get("action", "")).strip().lower()
     review_note = str(body.get("reviewNote", body.get("result", body.get("note", body.get("reason", ""))))).strip()
+    if action not in {"approve", "reject"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
+        return
 
     req = next((r for r in db.get("userLevelRequests", []) if r.get("id") == request_id), None)
     if req is None:
@@ -878,6 +1152,9 @@ def handle_admin_user_level_request_action(
 
     if req.get("status") != "pending":
         json_error(handler, HTTPStatus.BAD_REQUEST, "申请已被处理")
+        return
+    if action == "approve" and target_user is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "目标用户不存在或不可用")
         return
 
     req["status"] = action == "approve" and "approved" or "rejected"
@@ -988,7 +1265,7 @@ def handle_admin_user_action(
     user_id: str,
 ) -> None:
     """POST /api/admin/users/<id>/action"""
-    admin = _require_admin(handler, db)
+    admin = _require_primary_admin(handler, db)
     if admin is None:
         return
 
@@ -1001,6 +1278,8 @@ def handle_admin_user_action(
         json_error(handler, HTTPStatus.NOT_FOUND, "用户不存在")
         return
 
+    db_snapshot = copy.deepcopy(db)
+    storage_backups: list[StorageObjectBackup] = []
     if action == "mute":
         target_user["muted"] = True
         add_audit_log(db, admin.get("adminId", "-"), "mute_user", f"禁言用户 {user_id}: {review_note}")
@@ -1008,17 +1287,22 @@ def handle_admin_user_action(
         target_user["muted"] = False
         add_audit_log(db, admin.get("adminId", "-"), "unmute_user", f"解除禁言用户 {user_id}")
     elif action == "ban":
-        target_user["banned"] = True
-        target_user["verified"] = False
-        cancel_user_account(db, target_user, actor_id=admin.get("adminId", "-"), detail=f"管理员封禁 {review_note}")
+        ban_user_account(db, target_user)
         add_audit_log(db, admin.get("adminId", "-"), "ban_user", f"封禁用户 {user_id}: {review_note}")
     elif action == "unban":
         target_user["banned"] = False
-        target_user["deleted"] = False
-        restore_user_account(db, target_user)
         add_audit_log(db, admin.get("adminId", "-"), "unban_user", f"解封用户 {user_id}")
     elif action == "cancel":
-        cancel_user_account(db, target_user, actor_id=admin.get("adminId", "-"), detail=f"管理员注销账号 {review_note}")
+        try:
+            storage_backups = cancel_user_account(
+                db,
+                target_user,
+                actor_id=admin.get("adminId", "-"),
+                detail=f"管理员注销账号 {review_note}",
+            )
+        except RuntimeError as error:
+            json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
+            return
         add_audit_log(db, admin.get("adminId", "-"), "cancel_user_account", f"注销用户 {user_id}: {review_note}")
     elif action == "restore":
         restore_user_account(db, target_user)
@@ -1036,7 +1320,12 @@ def handle_admin_user_action(
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的动作")
         return
 
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "用户操作保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
@@ -1053,6 +1342,9 @@ def handle_admin_appeal_action(
     body = read_json_body(handler)
     action = str(body.get("action", "")).strip().lower()
     review_note = str(body.get("reviewNote", body.get("result", body.get("note", body.get("reason", ""))))).strip()
+    if action not in {"approve", "approve_restore", "reject", "close"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
+        return
 
     appeal = next((a for a in db.get("appeals", []) if a.get("id") == appeal_id), None)
     if appeal is None:
@@ -1065,11 +1357,24 @@ def handle_admin_appeal_action(
     if appeal.get("status") != "pending":
         json_error(handler, HTTPStatus.BAD_REQUEST, "申诉已被处理")
         return
+    if (
+        action == "approve_restore"
+        and str(appeal.get("appealType", "")).strip() != "account_restore"
+    ):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "该申诉不支持恢复账号")
+        return
+    if action in {"approve", "approve_restore"} and target_user is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "申诉账号不存在")
+        return
 
-    appeal["status"] = action == "approve" and "approved" or "rejected"
+    appeal["status"] = (
+        "approved"
+        if action in {"approve", "approve_restore"}
+        else ("closed" if action == "close" else "rejected")
+    )
     appeal["handledAt"] = now_iso()
     appeal["handledBy"] = str(admin.get("adminId", "")).strip()
-    appeal["result"] = review_note
+    appeal["adminNote"] = review_note
 
     if action == "approve_restore" or (action == "approve" and appeal.get("appealType") == "account_restore"):
         if target_user:
@@ -1101,6 +1406,9 @@ def handle_admin_cancellation_action(
 
     body = read_json_body(handler)
     action = str(body.get("action", "")).strip().lower()
+    if action not in {"approve", "reject"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
+        return
 
     req = next((r for r in db.get("accountCancellationRequests", []) if r.get("id") == request_id), None)
     if req is None:
@@ -1113,13 +1421,29 @@ def handle_admin_cancellation_action(
     if req.get("status") != "pending":
         json_error(handler, HTTPStatus.BAD_REQUEST, "申请已被处理")
         return
+    if action == "approve" and target_user is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "注销账号不存在")
+        return
+
+    db_snapshot = copy.deepcopy(db)
+    storage_backups: list[StorageObjectBackup] = []
+    if action == "approve" and target_user:
+        try:
+            storage_backups = cancel_user_account(
+                db,
+                target_user,
+                actor_id=admin.get("adminId", "-"),
+                detail="账号注销申请通过",
+            )
+        except RuntimeError as error:
+            json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
+            return
 
     req["status"] = action == "approve" and "approved" or "rejected"
     req["handledAt"] = now_iso()
     req["handledBy"] = str(admin.get("adminId", "")).strip()
 
     if action == "approve" and target_user:
-        cancel_user_account(db, target_user, actor_id=admin.get("adminId", "-"), detail="账号注销申请通过")
         sync_cancellation_requests_after_admin_cancel(
             db,
             user_id=user_id,
@@ -1128,7 +1452,12 @@ def handle_admin_cancellation_action(
         )
         add_audit_log(db, admin.get("adminId", "-"), "approve_cancellation", f"通过账号注销申请 {user_id}")
 
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "注销申请处理保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
@@ -1160,29 +1489,44 @@ def handle_admin_image_review(
     if action not in action_map:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的审核动作")
         return
+    current_status = str(upload.get("status", "approved")).strip().lower()
+    if upload.get("deleted") or current_status in {"rejected", "deleted"}:
+        json_error(handler, HTTPStatus.CONFLICT, "图片已被移除，不能再次审核")
+        return
 
+    post_id = str(upload.get("postId", "")).strip()
+    storage_backups: list[StorageObjectBackup] = []
+    if action in {"reject", "delete"}:
+        object_key = str(upload.get("objectKey", "")).strip()
+        try:
+            if object_key:
+                storage_backups = delete_objects_with_backups(
+                    _globals.OBJECT_STORAGE,
+                    [object_key],
+                )
+        except Exception:
+            json_error(handler, HTTPStatus.BAD_GATEWAY, "图片存储删除失败，审核状态未变更")
+            return
+
+    db_snapshot = copy.deepcopy(db)
     new_status = action_map[action]
     upload["status"] = new_status
+    if action == "delete":
+        upload["deleted"] = True
     upload["reviewedBy"] = str(admin.get("adminId", "")).strip()
     upload["reviewedAt"] = now_iso()
     upload["reviewNote"] = review_note
-
-    post_id = str(upload.get("postId", "")).strip()
-    if action in {"reject", "delete"}:
-        try:
-            object_key = str(upload.get("objectKey", "")).strip()
-            if object_key:
-                _globals.OBJECT_STORAGE.delete(object_key)
-        except Exception:
-            pass
-        if post_id:
-            recalc_post_has_image(db, post_id)
 
     if post_id:
         recalc_post_has_image(db, post_id)
 
     add_audit_log(db, admin.get("adminId", "-"), f"image_review_{action}", f"审核图片 {upload_id}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        _rollback_db_and_storage(db, db_snapshot, storage_backups)
+        json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "图片审核结果保存失败，已回滚")
+        return
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 

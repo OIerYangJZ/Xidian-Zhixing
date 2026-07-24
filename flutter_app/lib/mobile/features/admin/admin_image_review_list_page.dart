@@ -20,6 +20,7 @@ class _AdminImageReviewListPageState
   List<AdminImageReviewItem> _items = [];
   bool _isLoading = true;
   bool _isActionBusy = false;
+  String? _loadError;
 
   AdminRepository get _repo => ref.read(adminRepositoryProvider);
 
@@ -30,7 +31,10 @@ class _AdminImageReviewListPageState
   }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final items = await _repo.fetchImageReviews(status: _status);
       if (!mounted) return;
@@ -40,8 +44,10 @@ class _AdminImageReviewListPageState
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
-      _showToast('加载失败: $e');
+      setState(() {
+        _isLoading = false;
+        _loadError = '加载失败: $e';
+      });
     }
   }
 
@@ -127,6 +133,8 @@ class _AdminImageReviewListPageState
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _loadError != null
+          ? _AdminLoadError(message: _loadError!, onRetry: _load)
           : RefreshIndicator(
               onRefresh: _load,
               child: _items.isEmpty
@@ -260,6 +268,29 @@ class _AdminImageReviewListPageState
           fontSize: 9,
           fontWeight: FontWeight.bold,
         ),
+      ),
+    );
+  }
+}
+
+class _AdminLoadError extends StatelessWidget {
+  const _AdminLoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 42),
+          const SizedBox(height: 10),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          TextButton(onPressed: onRetry, child: const Text('重试')),
+        ],
       ),
     );
   }

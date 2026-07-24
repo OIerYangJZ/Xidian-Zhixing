@@ -6,7 +6,8 @@ Page({
   data: {
     loading: true,
     items: [],
-    unreadCount: 0
+    unreadCount: 0,
+    errorMessage: ''
   },
 
   onShow() {
@@ -21,13 +22,22 @@ Page({
 
   async loadData() {
     if (!requireLoginPage()) return;
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const data = await getNotifications();
       this.setData({ items: data.items, unreadCount: data.unreadCount, loading: false });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '通知加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   async markAllRead() {
@@ -43,7 +53,11 @@ Page({
     const item = this.data.items[index];
     if (!item) return;
     if (!item.isRead) {
-      markNotificationRead(item.id).catch(() => {});
+      try {
+        await markNotificationRead(item.id);
+      } catch (error) {
+        return;
+      }
       const items = this.data.items.slice();
       items[index] = { ...item, isRead: true };
       this.setData({ items, unreadCount: Math.max(0, this.data.unreadCount - 1) });

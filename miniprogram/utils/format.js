@@ -1,10 +1,30 @@
 import { baseUrl } from '../config/env';
 
-export const getData = (response, fallback = null) => {
-  if (response && Object.prototype.hasOwnProperty.call(response, 'data')) {
-    return response.data;
+const isRecord = (value) => {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+};
+
+export const responseContractError = (message = '服务器响应格式错误') => {
+  const error = new Error(message);
+  error.data = { message };
+  return error;
+};
+
+export const getData = (response, expectedShape = null) => {
+  if (!isRecord(response) || !Object.prototype.hasOwnProperty.call(response, 'data')) {
+    throw responseContractError('服务器响应缺少 data 字段');
   }
-  return response || fallback;
+  const data = response.data;
+  if (Array.isArray(expectedShape) && !Array.isArray(data)) {
+    throw responseContractError('服务器响应 data 不是数组');
+  }
+  if (isRecord(expectedShape) && !isRecord(data)) {
+    throw responseContractError('服务器响应 data 不是对象');
+  }
+  if (data === null || data === undefined) {
+    throw responseContractError('服务器响应 data 为空');
+  }
+  return data;
 };
 
 export const toArray = (value) => {
@@ -99,7 +119,23 @@ const statusLabel = (status) => {
   return '进行中';
 };
 
+const normalizeCount = (raw, field, label) => {
+  const value = raw[field];
+  if (value === undefined || value === null) return 0;
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) {
+    throw responseContractError(`${label} ${field} 无效`);
+  }
+  return value;
+};
+
 export const normalizePost = (raw = {}) => {
+  if (!isRecord(raw)) {
+    throw responseContractError('帖子数据格式错误');
+  }
+  const id = String(raw.id || raw.postId || '').trim();
+  if (!id) {
+    throw responseContractError('帖子数据缺少 ID');
+  }
   const title = String(raw.title || '').trim();
   const content = String(raw.content || '').trim();
   const tags = toArray(raw.tags).map((item) => String(item || '').trim()).filter(Boolean);
@@ -115,7 +151,7 @@ export const normalizePost = (raw = {}) => {
   const sectionName = String(raw.sectionName || '').trim();
   return {
     ...raw,
-    id: String(raw.id || raw.postId || ''),
+    id,
     title,
     titleSegments: inlineTagSegments(title),
     displayTitle,
@@ -134,10 +170,10 @@ export const normalizePost = (raw = {}) => {
     isAnonymous,
     createdAt: raw.createdAt || '',
     timeText: formatTime(raw.createdAt),
-    likeCount: Number(raw.likeCount || 0),
-    commentCount: Number(raw.commentCount || 0),
-    favoriteCount: Number(raw.favoriteCount || 0),
-    viewCount: Number(raw.viewCount || 0),
+    likeCount: normalizeCount(raw, 'likeCount', '帖子数据'),
+    commentCount: normalizeCount(raw, 'commentCount', '帖子数据'),
+    favoriteCount: normalizeCount(raw, 'favoriteCount', '帖子数据'),
+    viewCount: normalizeCount(raw, 'viewCount', '帖子数据'),
     liked: Boolean(raw.liked || raw.isLiked),
     favorited: Boolean(raw.favorited || raw.isFavorited),
     isPinned: Boolean(raw.isPinned),
@@ -148,25 +184,39 @@ export const normalizePost = (raw = {}) => {
 };
 
 export const normalizeComment = (raw = {}) => {
+  if (!isRecord(raw)) {
+    throw responseContractError('评论数据格式错误');
+  }
+  const id = String(raw.id || raw.commentId || '').trim();
+  if (!id) {
+    throw responseContractError('评论数据缺少 ID');
+  }
   const authorAlias = String(raw.authorAlias || raw.authorName || '匿名同学');
   return {
     ...raw,
-    id: String(raw.id || raw.commentId || ''),
+    id,
     content: String(raw.content || ''),
     authorAlias,
     authorInitial: avatarInitial(authorAlias),
     authorAvatarUrl: resolveUrl(raw.authorAvatarUrl || raw.authorAvatar || ''),
     timeText: formatTime(raw.createdAt),
-    likeCount: Number(raw.likeCount || 0),
+    likeCount: normalizeCount(raw, 'likeCount', '评论数据'),
     liked: Boolean(raw.liked || raw.isLiked),
     parentId: String(raw.parentId || '')
   };
 };
 
 export const normalizeNotification = (raw = {}) => {
+  if (!isRecord(raw)) {
+    throw responseContractError('通知数据格式错误');
+  }
+  const id = String(raw.id || '').trim();
+  if (!id) {
+    throw responseContractError('通知数据缺少 ID');
+  }
   return {
     ...raw,
-    id: String(raw.id || ''),
+    id,
     title: String(raw.title || '通知'),
     content: String(raw.content || ''),
     type: String(raw.type || raw.notificationType || ''),

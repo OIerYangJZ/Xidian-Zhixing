@@ -1,5 +1,9 @@
 <view class="page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!comments.length}}" class="empty">暂无评论</view>
   <view wx:else>
     <view class="comment-card" wx:for="{{comments}}" wx:key="id">

@@ -6,6 +6,7 @@ Re-exports all service functions from sub-modules for convenient imports.
 from services._db_service import (
     add_audit_log,
     admin_role_label,
+    apply_admin_review_action,
     auth_admin,
     auth_user,
     build_admin_account_rows,
@@ -49,6 +50,7 @@ from services._user_service import (
     appeal_status_label,
     appeal_type_label,
     apply_post_pin,
+    ban_user_account,
     build_follow_user_item,
     cancel_user_account,
     can_request_dm_to_user,
@@ -108,6 +110,7 @@ from services._user_service import (
 __all__ = [
     # db service
     "add_audit_log",
+    "apply_admin_review_action",
     "default_db",
     "ensure_db",
     "load_db",
@@ -154,6 +157,7 @@ __all__ = [
     "appeal_status_label",
     "appeal_type_label",
     "apply_post_pin",
+    "ban_user_account",
     "build_follow_user_item",
     "can_request_dm_to_user",
     "can_request_dm_from_post",

@@ -6,6 +6,7 @@ from typing import Any
 import _globals
 from helpers._auth_helpers import normalize_avatar_url, normalize_media_url, sanitize_alias
 from helpers._datetime_helpers import now_iso, now_utc, parse_iso
+from object_storage import StorageObjectBackup, delete_objects_with_backups
 from services._db_service import next_id
 
 
@@ -123,6 +124,8 @@ def effective_post_allow_dm(db: dict[str, Any], post: dict[str, Any]) -> bool:
     if is_post_anonymous(db, post):
         return False
     if is_post_private(post):
+        return False
+    if not bool(post.get("allowDm", False)):
         return False
     author_id = str(post.get("authorId", "")).strip()
     if not author_id:
@@ -305,6 +308,10 @@ def can_request_dm_to_user(
     target_user = find_user_by_id(db, target)
     if viewer_user is None or target_user is None:
         return False
+    if not bool(target_user.get("showContactable", True)):
+        return False
+    if not bool(target_user.get("allowStrangerDm", True)):
+        return False
     if is_user_blocked(db, viewer, target):
         return False
     if is_user_blocked(db, target, viewer):
@@ -341,6 +348,9 @@ def serialize_public_user_profile(
             if not post.get("deleted")
             and str(post.get("authorId", "")).strip() == target_user_id
             and not is_post_anonymous(db, post)
+            and not is_post_private(post)
+            and str(post.get("reviewStatus", "approved")).strip().lower()
+            in {"approved", "resolved"}
         ),
         "followingCount": count_following(db, target_user_id),
         "followerCount": count_followers(db, target_user_id),
@@ -1182,6 +1192,17 @@ def restore_user_account(
     user["muted"] = False
 
 
+def ban_user_account(
+    db: dict[str, Any],
+    user: dict[str, Any],
+) -> None:
+    user_id = str(user.get("id", "")).strip()
+    user["banned"] = True
+    for token, session_user_id in list(db.get("sessions", {}).items()):
+        if session_user_id == user_id:
+            db["sessions"].pop(token, None)
+
+
 def sync_cancellation_requests_after_admin_cancel(
     db: dict[str, Any],
     *,
@@ -1207,8 +1228,31 @@ def cancel_user_account(
     *,
     actor_id: str,
     detail: str,
-) -> None:
+) -> list[StorageObjectBackup]:
     user_id = str(user.get("id", "")).strip()
+    storage_keys: list[str] = []
+    avatar_url = str(user.get("avatarUrl", ""))
+    marker = "/api/storage/"
+    avatar_marker_index = avatar_url.find(marker)
+    if avatar_marker_index >= 0:
+        avatar_key = avatar_url[avatar_marker_index + len(marker):].strip().lstrip("/")
+        if avatar_key:
+            storage_keys.append(avatar_key)
+    for upload in db.get("mediaUploads", []):
+        if upload.get("uploaderId") != user_id or upload.get("deleted"):
+            continue
+        object_key = str(upload.get("objectKey", "")).strip()
+        if object_key and object_key not in storage_keys:
+            storage_keys.append(object_key)
+
+    try:
+        storage_backups = delete_objects_with_backups(
+            _globals.OBJECT_STORAGE,
+            storage_keys,
+        )
+    except Exception as error:
+        raise RuntimeError("账号媒体文件删除失败，账号未注销") from error
+
     user["deleted"] = True
 
     email = str(user.get("email", "")).strip().lower()
@@ -1246,18 +1290,6 @@ def cancel_user_account(
         if row.get("userId") != user_id and row.get("actorId") != user_id
     ]
 
-    avatar_key = ""
-    avatar_url = user.get("avatarUrl", "")
-    if avatar_url:
-        marker = "/api/storage/"
-        idx = avatar_url.find(marker)
-        if idx >= 0:
-            avatar_key = avatar_url[idx + len(marker):].strip().lstrip("/")
-    if avatar_key:
-        try:
-            _globals.OBJECT_STORAGE.delete(avatar_key)
-        except Exception:
-            pass
     user["avatarUrl"] = ""
 
     affected_post_ids: set[str] = set()
@@ -1268,18 +1300,13 @@ def cancel_user_account(
         post_id = str(upload.get("postId", "")).strip()
         if post_id:
             affected_post_ids.add(post_id)
-        object_key = str(upload.get("objectKey", "")).strip()
-        if object_key:
-            try:
-                _globals.OBJECT_STORAGE.delete(object_key)
-            except Exception:
-                pass
 
     for post_id in affected_post_ids:
         recalc_post_has_image(db, post_id)
 
     from services._db_service import add_audit_log
     add_audit_log(db, actor_id, "cancel_account", detail)
+    return storage_backups
 
 
 def recalc_post_has_image(db: dict[str, Any], post_id: str) -> bool:

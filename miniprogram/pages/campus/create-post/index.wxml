@@ -14,6 +14,10 @@
   </view>
 
   <view class="create-content" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view wx:if="{{loadErrorMessage}}" class="section-rule-tip">
+      <view>{{loadErrorMessage}}</view>
+      <button bindtap="retryLoadInitialData">重新加载</button>
+    </view>
     <view class="compact-selector">
       <view class="compact-selector-row" bindtap="toggleSectionSelector">
         <text class="compact-selector-label">分区</text>

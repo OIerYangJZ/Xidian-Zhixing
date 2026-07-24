@@ -1,7 +1,5 @@
-import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
-import '../core/network/api_exception.dart';
 import '../core/network/json_utils.dart';
 import '../models/follow_user_item.dart';
 import '../models/my_comment_item.dart';
@@ -43,7 +41,7 @@ class UserRepository {
     required bool notifyFavorite,
     required bool notifyReportResult,
     required bool notifySystem,
-  }) async {
+  }) {
     final Map<String, dynamic> body = <String, dynamic>{
       'notifyComment': notifyComment,
       'notifyReply': notifyReply,
@@ -53,53 +51,7 @@ class UserRepository {
       'notifySystem': notifySystem,
     };
 
-    try {
-      await _apiClient.patch(ApiEndpoints.notificationPreferences, body: body);
-      return;
-    } on ApiException catch (error) {
-      final int? statusCode = error.statusCode;
-      if (statusCode != 404 && statusCode != 405) {
-        rethrow;
-      }
-    }
-
-    await _updateNotificationPreferencesFallback(body);
-  }
-
-  Future<void> _updateNotificationPreferencesFallback(
-    Map<String, dynamic> body,
-  ) async {
-    final List<Future<dynamic> Function()> attempts =
-        <Future<dynamic> Function()>[
-          () =>
-              _apiClient.post(ApiEndpoints.notificationPreferences, body: body),
-          () => _apiClient.patch(
-            ApiEndpoints.notificationPreferencesLegacy,
-            body: body,
-          ),
-          () => _apiClient.post(
-            ApiEndpoints.notificationPreferencesLegacy,
-            body: body,
-          ),
-        ];
-
-    ApiException? lastApiError;
-    for (final attempt in attempts) {
-      try {
-        await attempt();
-        return;
-      } on ApiException catch (error) {
-        lastApiError = error;
-        final int? statusCode = error.statusCode;
-        if (statusCode != 404 && statusCode != 405) {
-          rethrow;
-        }
-      }
-    }
-
-    if (lastApiError != null) {
-      throw lastApiError;
-    }
+    return _apiClient.patch(ApiEndpoints.notificationPreferences, body: body);
   }
 
   Future<void> updateProfile({
@@ -143,7 +95,11 @@ class UserRepository {
       },
     );
     final Map<String, dynamic> map = extractMap(response);
-    return (map['avatarUrl'] ?? '').toString();
+    final String avatarUrl = (map['avatarUrl'] ?? '').toString().trim();
+    if (avatarUrl.isEmpty) {
+      throw const FormatException('头像上传响应缺少 avatarUrl');
+    }
+    return avatarUrl;
   }
 
   Future<String> uploadBackgroundImage({
@@ -160,25 +116,32 @@ class UserRepository {
       },
     );
     final Map<String, dynamic> map = extractMap(response);
-    return (map['url'] ?? '').toString();
+    final String status = (map['status'] ?? '').toString().trim().toLowerCase();
+    if (status != 'approved') {
+      final String moderationReason = (map['moderationReason'] ?? '')
+          .toString()
+          .trim();
+      throw FormatException(
+        moderationReason.isEmpty ? '背景图片尚未通过审核' : moderationReason,
+      );
+    }
+    final String url = (map['url'] ?? '').toString().trim();
+    if (url.isEmpty) {
+      throw const FormatException('背景图片上传响应缺少 url');
+    }
+    return url;
   }
 
   Future<List<MyCommentItem>> fetchMyComments() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myComments);
-      final List<dynamic> list = extractList(response);
-      final List<MyCommentItem> items = list
-          .map((dynamic item) => MyCommentItem.fromJson(asMap(item)))
-          .where((MyCommentItem item) => item.id.isNotEmpty)
-          .toList();
-      if (items.isNotEmpty || !AppConfig.enableMockFallback) {
-        return items;
-      }
-    } catch (_) {
-      return <MyCommentItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myComments);
+    final List<dynamic> list = extractList(response);
+    final List<MyCommentItem> items = list
+        .map((dynamic item) => MyCommentItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((MyCommentItem item) => item.id.isEmpty)) {
+      throw const FormatException('我的评论列表包含无效记录');
     }
-
-    return <MyCommentItem>[];
+    return items;
   }
 
   Future<void> deleteMyComment(String commentId) {
@@ -186,53 +149,26 @@ class UserRepository {
   }
 
   Future<List<ReportItem>> fetchMyReports() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myReports);
-      final List<dynamic> list = extractList(response);
-      final List<ReportItem> items = list
-          .map((dynamic item) => ReportItem.fromJson(asMap(item)))
-          .where((ReportItem item) => item.id.isNotEmpty)
-          .toList();
-      if (items.isNotEmpty || !AppConfig.enableMockFallback) {
-        return items;
-      }
-    } catch (_) {
-      return <ReportItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myReports);
+    final List<dynamic> list = extractList(response);
+    final List<ReportItem> items = list
+        .map((dynamic item) => ReportItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((ReportItem item) => item.id.isEmpty)) {
+      throw const FormatException('举报列表包含无效记录');
     }
-
-    return <ReportItem>[];
+    return items;
   }
 
   Future<ReportItem> fetchMyReportDetail(String reportId) async {
-    try {
-      final dynamic response = await _apiClient.get(
-        ApiEndpoints.reportById(reportId),
-      );
-      final Map<String, dynamic> map = extractMap(response);
-      if (map.isNotEmpty) {
-        return ReportItem.fromJson(map);
-      }
-    } catch (_) {
-      // ignore and fallback
-    }
-
-    final List<ReportItem> rows = await fetchMyReports();
-    return rows.firstWhere(
-      (ReportItem item) => item.id == reportId,
-      orElse: () => ReportItem(
-        id: reportId,
-        target: '-',
-        targetType: '',
-        targetId: '',
-        targetTitle: '',
-        reason: '-',
-        description: '',
-        status: '-',
-        result: '',
-        createdAt: '',
-        handledAt: '',
-      ),
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.reportById(reportId),
     );
+    final Map<String, dynamic> map = extractMap(response);
+    if (map.isEmpty) {
+      throw const FormatException('举报详情响应缺少数据');
+    }
+    return ReportItem.fromJson(map);
   }
 
   Future<void> submitAccountCancellationRequest({String? reason}) {
@@ -254,42 +190,39 @@ class UserRepository {
   }
 
   Future<List<FollowUserItem>> fetchFollowing() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myFollowing);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
-          .where((FollowUserItem item) => item.userId.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return <FollowUserItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myFollowing);
+    final List<dynamic> list = extractList(response);
+    final List<FollowUserItem> items = list
+        .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
+      throw const FormatException('关注列表包含无效记录');
     }
+    return items;
   }
 
   Future<List<FollowUserItem>> fetchFollowers() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myFollowers);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
-          .where((FollowUserItem item) => item.userId.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return <FollowUserItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myFollowers);
+    final List<dynamic> list = extractList(response);
+    final List<FollowUserItem> items = list
+        .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
+      throw const FormatException('粉丝列表包含无效记录');
     }
+    return items;
   }
 
   Future<List<FollowUserItem>> fetchFriends() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myFriends);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
-          .where((FollowUserItem item) => item.userId.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return <FollowUserItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myFriends);
+    final List<dynamic> list = extractList(response);
+    final List<FollowUserItem> items = list
+        .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
+      throw const FormatException('好友列表包含无效记录');
     }
+    return items;
   }
 
   Future<List<PublicUserProfile>> searchUsers(String keyword) async {
@@ -302,10 +235,13 @@ class UserRepository {
       queryParameters: <String, dynamic>{'keyword': normalized},
     );
     final List<dynamic> list = extractList(response);
-    return list
+    final List<PublicUserProfile> items = list
         .map((dynamic item) => PublicUserProfile.fromJson(asMap(item)))
-        .where((PublicUserProfile item) => item.id.isNotEmpty)
         .toList();
+    if (items.any((PublicUserProfile item) => item.id.isEmpty)) {
+      throw const FormatException('用户搜索结果包含无效记录');
+    }
+    return items;
   }
 
   Future<void> followUser(String userId) {

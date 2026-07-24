@@ -31,6 +31,9 @@ class _AppUpdateBootstrapState extends ConsumerState<AppUpdateBootstrap> {
 
   Future<void> _runStartupCheck() async {
     final controller = ref.read(appUpdateProvider);
+    if (!controller.supportsInAppUpdate) {
+      return;
+    }
     await controller.checkForUpdates(clearError: true);
     if (!mounted || !controller.consumeStartupPrompt()) {
       return;

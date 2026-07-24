@@ -6,6 +6,10 @@ import os
 from typing import Any
 
 import _globals
+from object_storage import (
+    StorageObjectBackup,
+    delete_objects_with_backups,
+)
 from helpers._auth_helpers import (
     hash_password,
     is_password_hashed,
@@ -254,7 +258,7 @@ def build_authenticated_admin(account: dict[str, Any]) -> dict[str, Any]:
 
 
 def build_authenticated_user_admin(user: dict[str, Any]) -> dict[str, Any]:
-    role = _globals.ADMIN_ROLE_PRIMARY
+    role = _globals.ADMIN_ROLE_SECONDARY
     nickname = str(
         user.get("nickname")
         or user.get("alias")
@@ -268,7 +272,7 @@ def build_authenticated_user_admin(user: dict[str, Any]) -> dict[str, Any]:
         "username": nickname,
         "role": role,
         "roleLabel": admin_role_label(role),
-        "isPrimary": True,
+        "isPrimary": False,
         "isAdmin": True,
         "fromUserAccount": True,
     }
@@ -799,6 +803,76 @@ def target_owner(db: dict[str, Any], post_id: str) -> dict[str, Any] | None:
     return None
 
 
+def apply_admin_review_action(
+    db: dict[str, Any],
+    *,
+    target_type: str,
+    target_id: str,
+    action: str,
+) -> list[StorageObjectBackup]:
+    normalized_type = target_type.strip().lower()
+    normalized_action = action.strip().lower()
+    if normalized_type not in {"post", "comment"}:
+        raise ValueError("无效的审核内容类型")
+    if normalized_action not in {"approve", "reject", "delete", "risk"}:
+        raise ValueError("无效的审核动作")
+
+    collection_name = "posts" if normalized_type == "post" else "comments"
+    target = next(
+        (
+            row
+            for row in db.get(collection_name, [])
+            if str(row.get("id", "")).strip() == target_id.strip()
+        ),
+        None,
+    )
+    if target is None:
+        raise LookupError("审核内容不存在")
+    if target.get("deleted"):
+        raise ValueError("内容已删除，不能再次审核")
+
+    storage_backups: list[StorageObjectBackup] = []
+    if normalized_action == "delete" and normalized_type == "post":
+        uploads = [
+            upload
+            for upload in db.get("mediaUploads", [])
+            if str(upload.get("postId", "")).strip() == target_id.strip()
+            and not upload.get("deleted")
+        ]
+        object_keys = [
+            str(upload.get("objectKey", "")).strip()
+            for upload in uploads
+            if str(upload.get("objectKey", "")).strip()
+        ]
+        try:
+            storage_backups = delete_objects_with_backups(
+                _globals.OBJECT_STORAGE,
+                object_keys,
+            )
+        except Exception as error:
+            raise RuntimeError("帖子图片存储删除失败，内容状态未变更") from error
+
+    if normalized_action == "approve":
+        target["reviewStatus"] = "approved"
+        target["riskMarked"] = False
+    elif normalized_action == "reject":
+        target["reviewStatus"] = "rejected"
+    elif normalized_action == "risk":
+        target["reviewStatus"] = "pending"
+        target["riskMarked"] = True
+    else:
+        target["deleted"] = True
+        target["reviewStatus"] = "rejected"
+        if normalized_type == "post":
+            for upload in db.get("mediaUploads", []):
+                if (
+                    str(upload.get("postId", "")).strip() == target_id.strip()
+                    and not upload.get("deleted")
+                ):
+                    upload["deleted"] = True
+    return storage_backups
+
+
 # ---------------------------------------------------------------------------
 # List helpers used by post / comment handlers
 # ---------------------------------------------------------------------------
@@ -818,6 +892,12 @@ def list_posts(
     posts = []
     for post in db.get("posts", []):
         if post.get("deleted"):
+            continue
+        if (
+            str(post.get("visibility", "public")).strip().lower() == "private"
+            and str(post.get("authorId", "")).strip()
+            != str(viewer_user_id).strip()
+        ):
             continue
         if not include_rejected and post.get("reviewStatus") not in ("approved", "resolved"):
             continue
@@ -845,6 +925,15 @@ def list_posts(
             for comment in db.get("comments", [])
             if not comment.get("deleted")
             and str(comment.get("postId", "")).strip() == post_id
+            and (
+                (
+                    str(comment.get("reviewStatus", "approved")).strip().lower()
+                    or "approved"
+                )
+                in {"approved", "resolved"}
+                or str(comment.get("userId", "")).strip()
+                == str(viewer_user_id).strip()
+            )
         )
         post["favoriteCount"] = sum(
             1
@@ -870,8 +959,16 @@ def list_comments(
             continue
         if comment.get("deleted"):
             continue
-        status = str(comment.get("reviewStatus", "")).strip().lower()
-        if status == "rejected":
+        status = (
+            str(comment.get("reviewStatus", "approved")).strip().lower()
+            or "approved"
+        )
+        is_owner = (
+            bool(str(viewer_user_id).strip())
+            and str(comment.get("userId", "")).strip()
+            == str(viewer_user_id).strip()
+        )
+        if status not in {"approved", "resolved"} and not is_owner:
             continue
         comments.append(comment)
     comments.sort(key=lambda x: str(x.get("createdAt", "") or ""))
@@ -1251,7 +1348,19 @@ def serialize_post(
     comment_count = sum(
         1
         for comment in db.get("comments", [])
-        if not comment.get("deleted") and str(comment.get("postId", "")).strip() == post_id
+        if not comment.get("deleted")
+        and str(comment.get("postId", "")).strip() == post_id
+        and (
+            (
+                str(comment.get("reviewStatus", "approved")).strip().lower()
+                or "approved"
+            )
+            in {"approved", "resolved"}
+            or (
+                viewer_user_id
+                and str(comment.get("userId", "")).strip() == viewer_user_id
+            )
+        )
     )
     like_count = sum(
         1
@@ -1285,6 +1394,8 @@ def serialize_post(
     for upload in db.get("mediaUploads", []):
         if str(upload.get("postId", "")).strip() != post_id:
             continue
+        if upload.get("deleted"):
+            continue
         status = str(upload.get("status", "")).strip().lower()
         if status not in {"", "approved"} and not include_unapproved_images:
             continue
@@ -1311,6 +1422,7 @@ def serialize_post(
     can_message_author = bool(
         can_view_author_profile
         and viewer_user_id != author_id
+        and effective_post_allow_dm(db, post)
         and can_request_dm_to_user(
             db,
             viewer_user_id=viewer_user_id,
@@ -1332,7 +1444,7 @@ def serialize_post(
         "authorUserId": author_id if can_view_author_profile else "",
         "createdAt": post.get("createdAt", ""),
         "updatedAt": post.get("updatedAt", ""),
-        "hasImage": bool(post.get("hasImage", False)) or bool(image_urls),
+        "hasImage": bool(image_urls),
         "imageUrls": image_urls,
         "uploadedImageIds": uploaded_image_ids,
         "commentCount": comment_count,
@@ -1538,6 +1650,7 @@ RADIO_STATE_KEYS = [
     "aiCitations",
     "dailySummaries",
     "moderationTasks",
+    "announcements",
 ]
 
 
@@ -2965,12 +3078,101 @@ def migrate_db(db: dict[str, Any]) -> bool:
     ):
         db["accountCancellationRequests"] = []
         changed = True
+    users_by_id = {
+        str(user.get("id", "")).strip(): user
+        for user in db.get("users", [])
+        if str(user.get("id", "")).strip()
+    }
+    for appeal in db.get("appeals", []):
+        user = users_by_id.get(str(appeal.get("userId", "")).strip())
+        defaults = {
+            "userEmail": str(
+                appeal.get("email")
+                or (user or {}).get("email", "")
+            ).strip().lower(),
+            "studentId": str((user or {}).get("studentId", "")).strip(),
+            "userNickname": str(
+                (user or {}).get("nickname")
+                or (user or {}).get("alias", "")
+            ).strip(),
+            "targetType": "account",
+            "targetId": str(appeal.get("userId", "")).strip(),
+            "title": str(appeal.get("appealType", "other")).strip(),
+            "adminNote": str(
+                appeal.get("adminNote", appeal.get("result", ""))
+            ).strip(),
+        }
+        for key, value in defaults.items():
+            if not str(appeal.get(key, "")).strip() and value:
+                appeal[key] = value
+                changed = True
+    for request in db.get("accountCancellationRequests", []):
+        user = users_by_id.get(str(request.get("userId", "")).strip())
+        defaults = {
+            "userEmail": str(
+                request.get("email")
+                or (user or {}).get("email", "")
+            ).strip().lower(),
+            "studentId": str((user or {}).get("studentId", "")).strip(),
+            "userNickname": str(
+                (user or {}).get("nickname")
+                or (user or {}).get("alias", "")
+            ).strip(),
+            "avatarUrl": str((user or {}).get("avatarUrl", "")).strip(),
+            "reviewNote": str(
+                request.get("reviewNote", request.get("result", ""))
+            ).strip(),
+        }
+        for key, value in defaults.items():
+            if not str(request.get(key, "")).strip() and value:
+                request[key] = value
+                changed = True
     if "mediaUploads" not in db:
         db["mediaUploads"] = []
         changed = True
     if "emailCodes" not in db or not isinstance(db.get("emailCodes"), dict):
         db["emailCodes"] = {}
         changed = True
+    else:
+        normalized_email_codes: dict[str, dict[str, Any]] = {}
+        for raw_key, raw_record in db["emailCodes"].items():
+            if not isinstance(raw_record, dict):
+                changed = True
+                continue
+            raw_key_text = str(raw_key).strip()
+            if raw_key_text.lower().startswith(_globals.PASSWORD_RESET_CODE_PREFIX):
+                reset_email = _globals.normalize_auth_email(
+                    raw_key_text[len(_globals.PASSWORD_RESET_CODE_PREFIX):],
+                )
+                key = f"{_globals.PASSWORD_RESET_CODE_PREFIX}{reset_email}"
+            else:
+                key = _globals.normalize_auth_email(raw_key_text)
+            if not key:
+                changed = True
+                continue
+            inferred_purpose = (
+                "password_reset"
+                if key.startswith(_globals.PASSWORD_RESET_CODE_PREFIX)
+                else "email_verification"
+            )
+            try:
+                attempts = max(0, int(raw_record.get("attempts", 0) or 0))
+            except (TypeError, ValueError):
+                attempts = 0
+            normalized_record = {
+                "code": str(raw_record.get("code", "")).strip(),
+                "expiresAt": str(raw_record.get("expiresAt", "")).strip(),
+                "createdAt": str(raw_record.get("createdAt", "")).strip(),
+                "recordId": str(raw_record.get("recordId", "")).strip(),
+                "purpose": inferred_purpose,
+                "attempts": attempts,
+                "usedAt": str(raw_record.get("usedAt", "")).strip(),
+            }
+            normalized_email_codes[key] = normalized_record
+            if key != raw_key or normalized_record != raw_record:
+                changed = True
+        if normalized_email_codes != db["emailCodes"]:
+            db["emailCodes"] = normalized_email_codes
 
     for feedback in db.get("feedbacks", []):
         if "category" not in feedback:
@@ -3145,6 +3347,25 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if k not in comment:
                 comment[k] = v
                 changed = True
+
+    comments_by_id = {
+        str(comment.get("id", "")).strip(): comment
+        for comment in db.get("comments", [])
+        if str(comment.get("id", "")).strip()
+    }
+    for comment in db.get("comments", []):
+        parent_id = str(comment.get("parentId", "")).strip()
+        if not parent_id:
+            continue
+        parent = comments_by_id.get(parent_id)
+        if (
+            parent is None
+            or parent.get("deleted")
+            or str(parent.get("postId", "")).strip()
+            != str(comment.get("postId", "")).strip()
+        ):
+            comment["parentId"] = ""
+            changed = True
 
     for notification in db.get("notifications", []):
         for k, v in {

@@ -187,6 +187,8 @@ class SqliteTreeholeRepository:
               bio TEXT NOT NULL DEFAULT '',
               gender TEXT NOT NULL DEFAULT '',
               background_image_url TEXT NOT NULL DEFAULT '',
+              college TEXT NOT NULL DEFAULT '',
+              major TEXT NOT NULL DEFAULT '',
               user_level INTEGER NOT NULL DEFAULT 2,
               verified INTEGER NOT NULL DEFAULT 0,
               verified_at TEXT NULL,
@@ -216,7 +218,11 @@ class SqliteTreeholeRepository:
               email TEXT PRIMARY KEY,
               code TEXT NOT NULL,
               expires_at TEXT NOT NULL,
-              created_at TEXT NOT NULL
+              created_at TEXT NOT NULL,
+              record_id TEXT NOT NULL DEFAULT '',
+              purpose TEXT NOT NULL DEFAULT 'email_verification',
+              attempts INTEGER NOT NULL DEFAULT 0,
+              used_at TEXT NULL
             );
 
             CREATE TABLE IF NOT EXISTS channels (
@@ -316,11 +322,38 @@ class SqliteTreeholeRepository:
               like_count INTEGER NOT NULL DEFAULT 0,
               review_status TEXT NOT NULL DEFAULT 'pending',
               risk_marked INTEGER NOT NULL DEFAULT 0,
+              is_anonymous INTEGER NOT NULL DEFAULT 1,
               parent_id TEXT NULL,
               FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
               FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL,
               FOREIGN KEY(parent_id) REFERENCES comments(id) ON DELETE SET NULL
             );
+
+            CREATE TRIGGER IF NOT EXISTS comments_parent_same_post
+            BEFORE UPDATE OF parent_id ON comments
+            WHEN NEW.parent_id IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1
+                FROM comments AS parent
+                WHERE parent.id = NEW.parent_id
+                  AND parent.post_id = NEW.post_id
+              )
+            BEGIN
+              SELECT RAISE(ABORT, 'comment parent must belong to the same post');
+            END;
+
+            CREATE TRIGGER IF NOT EXISTS comments_parent_same_post_insert
+            BEFORE INSERT ON comments
+            WHEN NEW.parent_id IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1
+                FROM comments AS parent
+                WHERE parent.id = NEW.parent_id
+                  AND parent.post_id = NEW.post_id
+              )
+            BEGIN
+              SELECT RAISE(ABORT, 'comment parent must belong to the same post');
+            END;
 
             CREATE TABLE IF NOT EXISTS likes (
               user_id TEXT NOT NULL,
@@ -619,6 +652,8 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "users", "bio", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "gender", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "background_image_url", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "college", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(conn, "users", "major", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "notify_comment", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_reply", "INTEGER NOT NULL DEFAULT 1")
         self._ensure_column(conn, "users", "notify_like", "INTEGER NOT NULL DEFAULT 1")
@@ -639,6 +674,25 @@ class SqliteTreeholeRepository:
         self._ensure_column(conn, "posts", "publisher_type", "TEXT NOT NULL DEFAULT 'user'")
         self._ensure_column(conn, "posts", "publisher_club_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "posts", "share_count", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "comments", "is_anonymous", "INTEGER NOT NULL DEFAULT 1")
+        self._ensure_column(conn, "email_codes", "record_id", "TEXT NOT NULL DEFAULT ''")
+        self._ensure_column(
+            conn,
+            "email_codes",
+            "purpose",
+            "TEXT NOT NULL DEFAULT 'email_verification'",
+        )
+        self._ensure_column(conn, "email_codes", "attempts", "INTEGER NOT NULL DEFAULT 0")
+        self._ensure_column(conn, "email_codes", "used_at", "TEXT NULL")
+        self._ensure_email_code_text_column(conn)
+        conn.execute(
+            """
+            UPDATE email_codes
+            SET purpose = 'password_reset'
+            WHERE LOWER(TRIM(email)) LIKE 'reset::%'
+              AND purpose != 'password_reset'
+            """
+        )
         self._ensure_column(conn, "dm_requests", "from_user_id", "TEXT NULL")
         self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")
@@ -664,6 +718,54 @@ class SqliteTreeholeRepository:
         }
         if column_name not in existing:
             conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {ddl}")
+
+    def _ensure_email_code_text_column(self, conn: sqlite3.Connection) -> None:
+        columns = {
+            str(row["name"]): str(row["type"] or "").strip().upper()
+            for row in conn.execute("PRAGMA table_info(email_codes)")
+        }
+        if columns.get("code") == "TEXT":
+            return
+        conn.execute("ALTER TABLE email_codes RENAME TO email_codes_legacy_type")
+        conn.execute(
+            """
+            CREATE TABLE email_codes (
+              email TEXT PRIMARY KEY,
+              code TEXT NOT NULL,
+              expires_at TEXT NOT NULL,
+              created_at TEXT NOT NULL,
+              record_id TEXT NOT NULL DEFAULT '',
+              purpose TEXT NOT NULL DEFAULT 'email_verification',
+              attempts INTEGER NOT NULL DEFAULT 0,
+              used_at TEXT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO email_codes (
+              email, code, expires_at, created_at,
+              record_id, purpose, attempts, used_at
+            )
+            SELECT
+              LOWER(TRIM(email)),
+              CAST(code AS TEXT),
+              expires_at,
+              created_at,
+              CASE
+                WHEN TRIM(record_id) = '' THEN LOWER(HEX(RANDOMBLOB(8)))
+                ELSE record_id
+              END,
+              CASE
+                WHEN email LIKE 'reset::%' THEN 'password_reset'
+                ELSE purpose
+              END,
+              attempts,
+              used_at
+            FROM email_codes_legacy_type
+            """
+        )
+        conn.execute("DROP TABLE email_codes_legacy_type")
 
     def _mark_initialized(self, conn: sqlite3.Connection) -> None:
         conn.execute(
@@ -711,6 +813,7 @@ class SqliteTreeholeRepository:
         for row in conn.execute(
             """
             SELECT id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
+                   college, major,
                    user_level, verified, verified_at,
                    allow_stranger_dm, show_contactable,
                    notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
@@ -732,6 +835,8 @@ class SqliteTreeholeRepository:
                     "bio": _to_str(row["bio"]),
                     "gender": _to_str(row["gender"]),
                     "backgroundImageUrl": _to_str(row["background_image_url"]),
+                    "college": _to_str(row["college"]),
+                    "major": _to_str(row["major"]),
                     "userLevel": _to_int(row["user_level"], 2),
                     "verified": _to_bool(row["verified"]),
                     "verifiedAt": _to_str(row["verified_at"]),
@@ -754,8 +859,26 @@ class SqliteTreeholeRepository:
         for row in conn.execute("SELECT token, user_id FROM sessions ORDER BY created_at, token"):
             db["sessions"][row["token"]] = row["user_id"]
 
-        for row in conn.execute("SELECT email, code, expires_at FROM email_codes ORDER BY created_at, email"):
-            db["emailCodes"][row["email"]] = {"code": row["code"], "expiresAt": row["expires_at"]}
+        for row in conn.execute(
+            """
+            SELECT email, code, expires_at, created_at,
+                   record_id, purpose, attempts, used_at
+            FROM email_codes
+            ORDER BY created_at, email
+            """
+        ):
+            normalized_email = _to_str(row["email"]).strip().lower()
+            if not normalized_email:
+                continue
+            db["emailCodes"][normalized_email] = {
+                "code": _to_str(row["code"]).strip(),
+                "expiresAt": _to_str(row["expires_at"]),
+                "createdAt": _to_str(row["created_at"]),
+                "recordId": _to_str(row["record_id"]),
+                "purpose": _to_str(row["purpose"]) or "email_verification",
+                "attempts": _to_int(row["attempts"]),
+                "usedAt": _to_str(row["used_at"]),
+            }
 
         db["channels"] = [row["name"] for row in conn.execute("SELECT name FROM channels ORDER BY sort_order, name")]
         db["tags"] = [row["name"] for row in conn.execute("SELECT name FROM tags ORDER BY sort_order, name")]
@@ -798,6 +921,7 @@ class SqliteTreeholeRepository:
                 "aiCitations",
                 "dailySummaries",
                 "moderationTasks",
+                "announcements",
             ):
                 value = radio_state.get(key)
                 if key == "ragIndex":
@@ -890,7 +1014,7 @@ class SqliteTreeholeRepository:
         for row in conn.execute(
             """
             SELECT id, post_id, user_id, author_alias, content, created_at, deleted,
-                   like_count, review_status, risk_marked, parent_id
+                   like_count, review_status, risk_marked, is_anonymous, parent_id
             FROM comments
             ORDER BY created_at DESC, id DESC
             """
@@ -907,6 +1031,7 @@ class SqliteTreeholeRepository:
                     "likeCount": _to_int(row["like_count"]),
                     "reviewStatus": row["review_status"],
                     "riskMarked": _to_bool(row["risk_marked"]),
+                    "isAnonymous": _to_bool(row["is_anonymous"]),
                     "parentId": _to_str(row["parent_id"]),
                 }
             )
@@ -1290,11 +1415,12 @@ class SqliteTreeholeRepository:
                     """
                     INSERT INTO users (
                       id, email, password, alias, nickname, student_id, avatar_url, bio, gender, background_image_url,
+                      college, major,
                       user_level, verified, verified_at,
                       allow_stranger_dm, show_contactable,
                       notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
                       created_at, deleted, is_admin, banned, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1307,6 +1433,8 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("bio")),
                         _to_str(row.get("gender")),
                         _to_str(row.get("backgroundImageUrl")),
+                        _to_str(row.get("college")),
+                        _to_str(row.get("major")),
                         _to_int(row.get("userLevel"), 2),
                         _to_bool_int(row.get("verified")),
                         _to_str(row.get("verifiedAt")) or None,
@@ -1344,14 +1472,30 @@ class SqliteTreeholeRepository:
                     if not email_str:
                         continue
                     if isinstance(row, dict):
-                        code = _to_str(row.get("code")).strip() or "000000"
-                        expires_at = _to_str(row.get("expiresAt")) or created_now
+                        code = _to_str(row.get("code")).strip()
+                        expires_at = _to_str(row.get("expiresAt"))
+                        used_at = _to_str(row.get("usedAt")).strip()
                     else:
-                        code = "000000"
-                        expires_at = created_now
+                        continue
+                    if (not code and not used_at) or not expires_at:
+                        continue
                     conn.execute(
-                        "INSERT INTO email_codes (email, code, expires_at, created_at) VALUES (?, ?, ?, ?)",
-                        (email_str, code, expires_at, created_now),
+                        """
+                        INSERT INTO email_codes (
+                          email, code, expires_at, created_at,
+                          record_id, purpose, attempts, used_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        """,
+                        (
+                            email_str,
+                            code,
+                            expires_at,
+                            _to_str(row.get("createdAt")) or created_now,
+                            _to_str(row.get("recordId")),
+                            _to_str(row.get("purpose")) or "email_verification",
+                            max(0, _to_int(row.get("attempts"))),
+                            used_at or None,
+                        ),
                     )
 
             for index, name in enumerate(db.get("channels", []), start=1):
@@ -1402,6 +1546,7 @@ class SqliteTreeholeRepository:
                 "aiCitations": db.get("aiCitations", []),
                 "dailySummaries": db.get("dailySummaries", []),
                 "moderationTasks": db.get("moderationTasks", []),
+                "announcements": db.get("announcements", []),
             }
             if isinstance(settings, dict):
                 for key, value in settings.items():
@@ -1553,8 +1698,8 @@ class SqliteTreeholeRepository:
                     """
                     INSERT INTO comments (
                       id, post_id, user_id, author_alias, content, created_at, deleted,
-                      like_count, review_status, risk_marked, parent_id
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      like_count, review_status, risk_marked, is_anonymous, parent_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         comment_id,
@@ -1567,6 +1712,7 @@ class SqliteTreeholeRepository:
                         _to_int(comment.get("likeCount"), 0),
                         _to_str(comment.get("reviewStatus"), "pending"),
                         _to_bool_int(comment.get("riskMarked")),
+                        _to_bool_int(comment.get("isAnonymous", True)),
                         None,
                     ),
                 )

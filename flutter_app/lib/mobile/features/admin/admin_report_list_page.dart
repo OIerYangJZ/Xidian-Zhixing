@@ -11,7 +11,8 @@ class AdminReportListPage extends ConsumerStatefulWidget {
   const AdminReportListPage({super.key});
 
   @override
-  ConsumerState<AdminReportListPage> createState() => _AdminReportListPageState();
+  ConsumerState<AdminReportListPage> createState() =>
+      _AdminReportListPageState();
 }
 
 class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
@@ -20,6 +21,7 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
   List<AdminReportEntry> _items = [];
   bool _isLoading = true;
   bool _isActionBusy = false;
+  String? _loadError;
 
   AdminRepository get _repo => ref.read(adminRepositoryProvider);
 
@@ -36,7 +38,10 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
   }
 
   Future<void> _load() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final items = await _repo.fetchReports(
         status: _status,
@@ -49,12 +54,18 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isLoading = false);
-      _showToast('加载失败: $e');
+      setState(() {
+        _isLoading = false;
+        _loadError = '加载失败: $e';
+      });
     }
   }
 
-  Future<void> _handleAction(AdminReportEntry report, String action, String label) async {
+  Future<void> _handleAction(
+    AdminReportEntry report,
+    String action,
+    String label,
+  ) async {
     final resultController = TextEditingController(text: '已处理: $label');
     final bool? confirmed = await showDialog<bool>(
       context: context,
@@ -65,8 +76,14 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
           decoration: const InputDecoration(labelText: '处理结果说明'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('确认')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('确认'),
+          ),
         ],
       ),
     );
@@ -117,7 +134,9 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
                       prefixIcon: const Icon(Icons.search, size: 20),
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onSubmitted: (_) => _load(),
                   ),
@@ -145,6 +164,8 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
+          : _loadError != null
+          ? _AdminLoadError(message: _loadError!, onRetry: _load)
           : RefreshIndicator(
               onRefresh: _load,
               child: _items.isEmpty
@@ -173,28 +194,53 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
                 Expanded(
                   child: Text(
                     '举报 #${item.id}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
                 _buildStatusChip(item.status),
               ],
             ),
             const SizedBox(height: 12),
-            Text('目标: ${item.targetType}:${item.targetId}', style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(
+              '目标: ${item.targetType}:${item.targetId}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 4),
-            Text('原因: ${item.reason}', style: TextStyle(color: MobileTheme.error, fontWeight: FontWeight.w500)),
+            Text(
+              '原因: ${item.reason}',
+              style: TextStyle(
+                color: MobileTheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             if (item.description.isNotEmpty) ...[
               const SizedBox(height: 4),
-              Text('说明: ${item.description}', style: TextStyle(color: colors.textPrimary)),
+              Text(
+                '说明: ${item.description}',
+                style: TextStyle(color: colors.textPrimary),
+              ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.person_outline, size: 14, color: colors.textSecondary),
+                Icon(
+                  Icons.person_outline,
+                  size: 14,
+                  color: colors.textSecondary,
+                ),
                 const SizedBox(width: 4),
-                Text('举报人: ${item.reporterAlias}', style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                Text(
+                  '举报人: ${item.reporterAlias}',
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                ),
                 const Spacer(),
-                Text(item.createdAt, style: TextStyle(fontSize: 12, color: colors.textSecondary)),
+                Text(
+                  item.createdAt,
+                  style: TextStyle(fontSize: 12, color: colors.textSecondary),
+                ),
               ],
             ),
             if (item.result.isNotEmpty) ...[
@@ -202,8 +248,17 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: colors.background, borderRadius: BorderRadius.circular(8)),
-                child: Text('结果: ${item.result}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                decoration: BoxDecoration(
+                  color: colors.background,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '结果: ${item.result}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ],
             if (item.status == 'pending') ...[
@@ -213,16 +268,24 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
                 runSpacing: 8,
                 children: [
                   FilledButton.tonal(
-                    onPressed: _isActionBusy ? null : () => _handleAction(item, 'delete_content', '删除内容'),
+                    onPressed: _isActionBusy
+                        ? null
+                        : () => _handleAction(item, 'delete', '删除内容'),
                     child: const Text('删除内容'),
                   ),
                   OutlinedButton(
-                    onPressed: _isActionBusy ? null : () => _handleAction(item, 'ban_user', '封禁用户'),
-                    style: OutlinedButton.styleFrom(foregroundColor: MobileTheme.error),
+                    onPressed: _isActionBusy
+                        ? null
+                        : () => _handleAction(item, 'ban', '封禁用户'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: MobileTheme.error,
+                    ),
                     child: const Text('封禁用户'),
                   ),
                   OutlinedButton(
-                    onPressed: _isActionBusy ? null : () => _handleAction(item, 'mark_misreport', '标记误报'),
+                    onPressed: _isActionBusy
+                        ? null
+                        : () => _handleAction(item, 'misreport', '标记误报'),
                     child: const Text('标记误报'),
                   ),
                 ],
@@ -237,9 +300,16 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
   Widget _buildStatusChip(String status) {
     Color color = Colors.grey;
     String label = status;
-    if (status == 'pending') { color = Colors.orange; label = '待处理'; }
-    else if (status == 'resolved') { color = Colors.green; label = '已处理'; }
-    else if (status == 'closed') { color = Colors.blueGrey; label = '已关闭'; }
+    if (status == 'pending') {
+      color = Colors.orange;
+      label = '待处理';
+    } else if (status == 'resolved') {
+      color = Colors.green;
+      label = '已处理';
+    } else if (status == 'closed') {
+      color = Colors.blueGrey;
+      label = '已关闭';
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -248,7 +318,37 @@ class _AdminReportListPageState extends ConsumerState<AdminReportListPage> {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class _AdminLoadError extends StatelessWidget {
+  const _AdminLoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.error_outline, size: 42),
+          const SizedBox(height: 10),
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 10),
+          TextButton(onPressed: onRetry, child: const Text('重试')),
+        ],
+      ),
     );
   }
 }

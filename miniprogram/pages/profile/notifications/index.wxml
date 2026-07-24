@@ -5,6 +5,10 @@
   </view>
 
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!items.length}}" class="empty">暂无通知</view>
   <view wx:else>
     <view class="notice {{item.isRead ? 'read' : ''}}" wx:for="{{items}}" wx:key="id" data-index="{{index}}" bindtap="openItem">

@@ -14,35 +14,64 @@ Page({
     description: '',
     contact: '',
     applications: [],
-    themeClass: ''
+    themeClass: '',
+    loading: true,
+    errorMessage: '',
+    submitting: false
   },
   async onLoad() {
-    this.loadApplications();
+    await this.loadApplications();
   },
   onShow() {
     applyThemeAndLanguage(this);
   },
   async loadApplications() {
-    const applications = await getMyClubApplications();
-    this.setData({
-      applications: applications.map((item) => ({
-        ...item,
-        statusText: statusText(item.status)
-      }))
-    });
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const applications = await getMyClubApplications();
+      this.setData({
+        applications: applications.map((item) => ({
+          ...item,
+          statusText: statusText(item.status)
+        })),
+        loading: false
+      });
+    } catch (error) {
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '申请记录加载失败，请重试'
+      });
+    }
+  },
+  retryLoad() {
+    this.loadApplications();
   },
   onInput(event) {
     this.setData({ [event.currentTarget.dataset.field]: event.detail.value });
   },
   async submit() {
-    await submitClubApplication({
-      name: this.data.name,
-      category: this.data.category,
-      description: this.data.description,
-      contact: this.data.contact
-    });
-    wx.showToast({ title: '已提交', icon: 'success' });
-    this.setData({ name: '', category: '', description: '', contact: '' });
-    this.loadApplications();
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+    try {
+      await submitClubApplication({
+        name: this.data.name,
+        category: this.data.category,
+        description: this.data.description,
+        contact: this.data.contact
+      });
+      wx.showToast({ title: '已提交', icon: 'success' });
+      this.setData({ name: '', category: '', description: '', contact: '' });
+      await this.loadApplications();
+    } catch (error) {
+      this.setData({
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '社团申请提交失败，请重试'
+      });
+    } finally {
+      this.setData({ submitting: false });
+    }
   }
 });

@@ -90,12 +90,11 @@ def is_valid_student_id(student_id: str) -> bool:
 
 
 def is_campus_email(email: str) -> bool:
-    lower = email.lower().strip()
-    return lower.endswith("@stu.xidian.edu.cn")
+    return _globals.normalize_auth_email(email).endswith("@stu.xidian.edu.cn")
 
 
 def student_id_from_email(email: str) -> str:
-    local = email.strip().split("@", 1)[0]
+    local = _globals.normalize_auth_email(email).split("@", 1)[0]
     return local.strip()
 
 
@@ -190,8 +189,8 @@ def parse_list(value: Any) -> list[str]:
 
 
 def random_code() -> str:
-    import random
-    return "".join(random.choice("0123456789") for _ in range(6))
+    import secrets
+    return "".join(secrets.choice("0123456789") for _ in range(6))
 
 
 # Re-export password constants from _globals for the helpers/__init__.py barrel export

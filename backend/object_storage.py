@@ -15,6 +15,13 @@ class StoredObject:
     size_bytes: int
 
 
+@dataclass(frozen=True)
+class StorageObjectBackup:
+    key: str
+    data: bytes
+    content_type: str
+
+
 class ObjectStorage(Protocol):
     backend_name: str
 
@@ -25,6 +32,9 @@ class ObjectStorage(Protocol):
         raise NotImplementedError
 
     def delete(self, key: str) -> None:
+        raise NotImplementedError
+
+    def restore_bytes(self, *, key: str, data: bytes, content_type: str) -> None:
         raise NotImplementedError
 
     def describe(self) -> str:
@@ -66,12 +76,17 @@ class LocalObjectStorage:
             path.unlink()
             self._cleanup_empty_parents(path.parent)
 
+    def restore_bytes(self, *, key: str, data: bytes, content_type: str) -> None:
+        path = self._safe_path_from_key(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
     def _safe_path_from_key(self, key: str) -> Path:
         cleaned = key.strip().replace("\\", "/")
         if cleaned.startswith("/") or ".." in cleaned.split("/"):
             raise ValueError("Invalid object key")
         full = (self.root_dir / cleaned).resolve()
-        if not str(full).startswith(str(self.root_dir.resolve())):
+        if not full.is_relative_to(self.root_dir.resolve()):
             raise ValueError("Invalid object key")
         return full
 
@@ -185,6 +200,17 @@ class S3ObjectStorage:
             return
         self._client.delete_object(Bucket=self.bucket, Key=clean_key)
 
+    def restore_bytes(self, *, key: str, data: bytes, content_type: str) -> None:
+        clean_key = key.strip().strip("/")
+        if not clean_key:
+            raise ValueError("Invalid object key")
+        self._client.put_object(
+            Bucket=self.bucket,
+            Key=clean_key,
+            Body=data,
+            ContentType=content_type or "application/octet-stream",
+        )
+
     def describe(self) -> str:
         details = [
             f"bucket={self.bucket}",
@@ -245,6 +271,63 @@ def build_object_storage_from_env(
     raise RuntimeError(
         "Unsupported BACKEND_OBJECT_STORAGE_BACKEND. Expected local|s3|oss|s3_compat"
     )
+
+
+def restore_object_backups(
+    storage: ObjectStorage,
+    backups: list[StorageObjectBackup],
+) -> None:
+    failures: list[str] = []
+    for backup in backups:
+        try:
+            storage.restore_bytes(
+                key=backup.key,
+                data=backup.data,
+                content_type=backup.content_type,
+            )
+        except Exception:
+            failures.append(backup.key)
+    if failures:
+        raise RuntimeError(
+            f"对象存储恢复失败：{', '.join(failures)}"
+        )
+
+
+def delete_objects_with_backups(
+    storage: ObjectStorage,
+    keys: list[str],
+) -> list[StorageObjectBackup]:
+    normalized_keys = list(
+        dict.fromkeys(key.strip() for key in keys if key.strip())
+    )
+    backups: list[StorageObjectBackup] = []
+    for key in normalized_keys:
+        result = storage.get_bytes(key)
+        if result is None:
+            continue
+        data, content_type = result
+        backups.append(
+            StorageObjectBackup(
+                key=key,
+                data=data,
+                content_type=content_type,
+            )
+        )
+
+    deleted_backups: list[StorageObjectBackup] = []
+    try:
+        for backup in backups:
+            storage.delete(backup.key)
+            deleted_backups.append(backup)
+    except Exception as delete_error:
+        try:
+            restore_object_backups(storage, deleted_backups)
+        except Exception as restore_error:
+            raise RuntimeError(
+                "对象存储删除失败，且已删除对象恢复失败"
+            ) from restore_error
+        raise delete_error
+    return backups
 
 
 def _is_not_found_error(error: Exception) -> bool:

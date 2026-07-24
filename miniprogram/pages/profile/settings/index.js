@@ -1,5 +1,5 @@
 import { getUserInfo, logout } from '../../../api/auth';
-import { requireLoginPage } from '../../../utils/auth_guard';
+import { clearLocalSession, requireLoginPage } from '../../../utils/auth_guard';
 import { avatarInitial } from '../../../utils/format';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
@@ -7,7 +7,8 @@ Page({
   data: {
     loading: false,
     loggingOut: false,
-    userInfo: null
+    userInfo: null,
+    errorMessage: ''
   },
 
   onShow() {
@@ -18,15 +19,21 @@ Page({
   },
 
   async fetchUserInfo() {
-    const res = await getUserInfo();
-    if (res && res.data) {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const res = await getUserInfo();
       const nickname = res.data.nickname || res.data.alias || '';
       this.setData({
         userInfo: {
           ...res.data,
           avatarInitial: avatarInitial(nickname)
-        }
+        },
+        errorMessage: ''
       });
+    } catch (error) {
+      this.setData({ errorMessage: '设置页资料加载失败，请重试' });
+    } finally {
+      this.setData({ loading: false });
     }
   },
 
@@ -54,14 +61,16 @@ Page({
     wx.showLoading({ title: isEn ? 'Logging out...' : '退出中' });
     try {
       await logout();
-      wx.removeStorageSync('token');
-      wx.hideLoading();
+      clearLocalSession();
       wx.reLaunch({ url: '/pages/profile/index' });
     } catch (error) {
-      wx.removeStorageSync('token');
+      wx.showToast({
+        title: isEn ? 'Logout failed' : '退出失败，请重试',
+        icon: 'none'
+      });
+    } finally {
       wx.hideLoading();
-      wx.reLaunch({ url: '/pages/profile/index' });
+      this.setData({ loggingOut: false });
     }
-    this.setData({ loggingOut: false });
   }
 });

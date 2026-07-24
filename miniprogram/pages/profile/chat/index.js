@@ -27,6 +27,7 @@ Page({
     messageItems: [],
     content: '',
     loading: true,
+    errorMessage: '',
     sending: false,
     blockedByMe: false,
     replyToId: '',
@@ -77,7 +78,7 @@ Page({
   },
 
   async loadMessages() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const messages = await getConversationMessages(this.data.conversationId);
       this.setData({
@@ -87,8 +88,17 @@ Page({
       });
       this.scrollToBottom();
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '消息加载失败，请重试'
+      });
     }
+  },
+
+  retryLoadMessages() {
+    this.loadMessages();
   },
 
   buildMessageItems(messages) {

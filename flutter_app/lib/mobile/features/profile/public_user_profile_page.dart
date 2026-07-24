@@ -6,6 +6,7 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
+import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/models/public_user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import '../home/post_card.dart';
@@ -27,6 +28,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   bool _loadingPosts = true;
   bool _isFollowing = false;
   bool _followLoading = false;
+  bool _profileNotFound = false;
+  String? _profileError;
+  String? _postsError;
 
   @override
   void initState() {
@@ -38,6 +42,14 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     final userRepo = ref.read(userRepositoryProvider);
     final postRepo = ref.read(postRepositoryProvider);
 
+    setState(() {
+      _loadingProfile = true;
+      _loadingPosts = true;
+      _profileNotFound = false;
+      _profileError = null;
+      _postsError = null;
+    });
+
     try {
       final profile = await userRepo.fetchUserProfile(widget.userId);
       if (!mounted) return;
@@ -46,9 +58,19 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
         _isFollowing = profile.isFollowing;
         _loadingProfile = false;
       });
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadingProfile = false;
+        _profileNotFound = error.statusCode == 404;
+        _profileError = error.statusCode == 404 ? null : '个人主页加载失败，请重试';
+      });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loadingProfile = false);
+      setState(() {
+        _loadingProfile = false;
+        _profileError = '个人主页加载失败，请重试';
+      });
     }
 
     try {
@@ -60,7 +82,10 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
       });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _loadingPosts = false);
+      setState(() {
+        _loadingPosts = false;
+        _postsError = '帖子加载失败，请重试';
+      });
     }
   }
 
@@ -144,7 +169,12 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
           ),
         ),
         body: Center(
-          child: Text('用户不存在', style: TextStyle(color: colors.textSecondary)),
+          child: _profileNotFound
+              ? Text('用户不存在', style: TextStyle(color: colors.textSecondary))
+              : _LoadError(
+                  message: _profileError ?? '个人主页加载失败，请重试',
+                  onRetry: _load,
+                ),
         ),
       );
     }
@@ -290,6 +320,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                   color: MobileTheme.primaryOf(context),
                 ),
               )
+            : _postsError != null
+            ? _LoadError(message: _postsError!, onRetry: _load)
             : _posts.isEmpty
             ? Center(
                 child: Column(
@@ -328,12 +360,39 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                           await repo.likePost(post.id);
                         }
                         _load();
-                      } catch (_) {}
+                      } catch (_) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('点赞操作失败，请重试')),
+                        );
+                      }
                     },
                   );
                 },
               ),
       ),
+    );
+  }
+}
+
+class _LoadError extends StatelessWidget {
+  const _LoadError({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.error_outline, size: 42, color: colors.textTertiary),
+        const SizedBox(height: 10),
+        Text(message, style: TextStyle(color: colors.textSecondary)),
+        const SizedBox(height: 10),
+        TextButton(onPressed: onRetry, child: const Text('重试')),
+      ],
     );
   }
 }

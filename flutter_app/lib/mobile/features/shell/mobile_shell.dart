@@ -122,9 +122,7 @@ class _MobileShellState extends ConsumerState<MobileShell>
       return;
     }
     _didPrefetchUnread = true;
-    try {
-      await ref.read(messagesControllerProvider.notifier).loadInitial();
-    } catch (_) {}
+    await ref.read(messagesControllerProvider.notifier).loadInitial();
   }
 
   void _onNavVisibilityChanged() {
@@ -186,8 +184,6 @@ class _MobileShellState extends ConsumerState<MobileShell>
   void _exitApp() {
     if (Platform.isAndroid) {
       SystemNavigator.pop();
-    } else {
-      exit(0);
     }
   }
 
@@ -302,6 +298,8 @@ class _MobileShellState extends ConsumerState<MobileShell>
 
         // go_router 仍有可弹出的页面时，交给路由器处理。
         if (context.canPop()) return false;
+
+        if (!Platform.isAndroid) return false;
 
         // 否则由 Shell 接管，执行自定义返回逻辑。
         _handleBackPress(branchForCallback);

@@ -6,6 +6,7 @@ import logging
 import mimetypes
 import os
 import re
+import secrets
 import signal
 import threading
 from datetime import datetime, timezone
@@ -81,6 +82,7 @@ SMTP_USE_STARTTLS = _globals.SMTP_USE_STARTTLS
 # Re-export helpers for TreeholeHandler
 # ---------------------------------------------------------------------------
 from helpers import (
+    InvalidJsonBody,
     RequestBodyTooLarge,
     read_json_body,
     request_origin_allowed,
@@ -152,6 +154,9 @@ def _configure_logging() -> None:
             }
             if record.exc_info:
                 payload["exception"] = self.formatException(record.exc_info)
+            structured = getattr(record, "structured", None)
+            if isinstance(structured, dict):
+                payload.update(structured)
             return json.dumps(payload, ensure_ascii=False)
 
     handler = logging.StreamHandler()
@@ -224,6 +229,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         _logger.info(format, *args)
 
     def _handle(self, method: str) -> None:
+        supplied_request_id = (
+            self.headers.get("X-Request-ID", "") or ""
+        ).strip()
+        self.request_id = (
+            supplied_request_id[:64]
+            if supplied_request_id
+            else secrets.token_hex(12)
+        )
         try:
             parsed = urlparse(self.path)
             path = parsed.path
@@ -261,6 +274,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.METHOD_NOT_ALLOWED, "Method not allowed")
         except RequestBodyTooLarge as error:
             json_error(self, HTTPStatus.REQUEST_ENTITY_TOO_LARGE, str(error))
+        except InvalidJsonBody as error:
+            json_error(self, HTTPStatus.BAD_REQUEST, str(error))
         except Exception:  # pragma: no cover
             _logger.exception("Unhandled error in _handle")
             json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "Internal server error")
@@ -351,13 +366,24 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             return
 
         # Object storage
-        if _static_handler.handle_storage_get(self, path):
+        if path.startswith("/api/storage/"):
+            with DB_LOCK:
+                storage_db = load_db()
+            if _static_handler.handle_storage_get(self, path, storage_db):
+                return
+            json_error(self, HTTPStatus.NOT_FOUND, "存储对象不存在")
             return
 
         if path == "/api/ai/models":
             with DB_LOCK:
                 db = load_db()
             _ai_handler.handle_ai_models(self, db)
+            return
+        if path == "/api/auth/xidian/callback":
+            _auth_handler.handle_xidian_auth_callback(self, None, query)
+            return
+        if path == "/api/auth/xidian/mobile/callback":
+            _auth_handler.handle_xidian_mobile_callback(self, None, query)
             return
 
         with DB_LOCK:
@@ -442,6 +468,25 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _notification_handler.handle_get_notifications(self, db)
                 return
 
+            # Announcements
+            if path == "/api/announcements":
+                _admin_handler.handle_public_announcements(self, db, query)
+                return
+            if path == "/api/announcements/filters":
+                _admin_handler.handle_public_announcement_filters(self, db)
+                return
+            if path == "/api/announcements/daily-summary":
+                _admin_handler.handle_public_announcement_daily_summary(self, db)
+                return
+            _announcement_match = re.fullmatch(r"/api/announcements/([^/]+)", path)
+            if _announcement_match:
+                _admin_handler.handle_public_announcement_detail(
+                    self,
+                    db,
+                    _announcement_match.group(1),
+                )
+                return
+
             # Posts
             if path == "/api/posts":
                 _post_handler.handle_get_posts(self, db, query)
@@ -523,13 +568,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _user_handler.handle_search_users(self, db, query)
                 return
 
-            if path == "/api/auth/xidian/callback":
-                _auth_handler.handle_xidian_auth_callback(self, db, query)
-                return
-            if path == "/api/auth/xidian/mobile/callback":
-                _auth_handler.handle_xidian_mobile_callback(self, db, query)
-                return
-
             _xidian_auth_session_match = re.fullmatch(r"/api/auth/xidian/session/([^/]+)", path)
             if _xidian_auth_session_match:
                 _auth_handler.handle_xidian_auth_get_session(self, db, _xidian_auth_session_match.group(1))
@@ -593,6 +631,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/config":
                 _admin_handler.handle_admin_config(self, db)
                 return
+            if path == "/api/admin/announcements":
+                _admin_handler.handle_admin_announcements(self, db)
+                return
             if path == "/api/admin/ai/knowledge-sources":
                 _radio_handler.handle_admin_list_knowledge_sources(self, db)
                 return
@@ -617,6 +658,28 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if user.get("banned"):
                 json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
                 return None
+            ip_allowed, ip_retry_after = check_ip_rate_limit(self, "campus_auth")
+            if not ip_allowed:
+                send_rate_limit_error(
+                    self,
+                    action_text="校园系统认证",
+                    retry_after_seconds=ip_retry_after,
+                )
+                return None
+            allowed, retry_after = consume_rate_limit(
+                db,
+                user_id=str(user.get("id", "")).strip(),
+                action="campus_auth",
+                setting_key="campusAuthRateLimit",
+                default_limit=_globals.DEFAULT_SETTINGS["campusAuthRateLimit"],
+            )
+            if not allowed:
+                send_rate_limit_error(
+                    self,
+                    action_text="校园系统认证",
+                    retry_after_seconds=retry_after,
+                )
+                return None
             return user
 
         def send_campus_auth_result(fn: Any) -> None:
@@ -631,7 +694,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         if path == "/api/auth/xidian/password":
             with DB_LOCK:
                 db = load_db()
-                _auth_handler.handle_xidian_password_login(self, db)
+            _auth_handler.handle_xidian_password_login(self, db)
             return
         if path == "/api/campus/auth/ids":
             user = require_campus_auth_user()
@@ -639,15 +702,24 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
             body = read_json_body(self)
             try:
+                student_id, synced = _campus_auth.fetch_ids_academic_data(
+                    body.get("identifier", body.get("studentId", "")),
+                    body.get("password", ""),
+                    owner_user_id=str(user.get("id", "")),
+                )
                 with DB_LOCK:
                     db = load_db()
-                    data = _campus_auth.login_ids(
-                        body.get("identifier", body.get("studentId", "")),
-                        body.get("password", ""),
+                    sync_counts = _campus_auth.apply_ids_academic_data(
+                        db,
                         owner_user_id=str(user.get("id", "")),
-                        db=db,
+                        synced=synced,
                     )
                     save_db(db)
+                data = _campus_auth.build_ids_login_result(
+                    student_id=student_id,
+                    synced=synced,
+                    sync_counts=sync_counts,
+                )
             except Exception as error:
                 status, message = _campus_auth.map_campus_auth_error(error)
                 json_error(self, HTTPStatus(status), message)
@@ -744,6 +816,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/admin/admin-accounts":
                 _admin_handler.handle_admin_create_account(self, db)
+                return
+            if path == "/api/admin/announcements":
+                _admin_handler.handle_admin_publish_announcement(self, db)
                 return
 
             if path == "/api/sections":
@@ -1209,7 +1284,7 @@ def main() -> None:
         )
     _logger.info(f"Admin account: {DEFAULT_ADMIN_USERNAME}")
     if verify_code_debug_enabled():
-        _logger.debug("Debug verify code enabled: 123456")
+        _logger.debug("Debug verify code mode enabled")
     try:
         server.serve_forever()
     finally:

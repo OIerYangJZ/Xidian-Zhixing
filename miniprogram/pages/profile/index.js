@@ -73,6 +73,10 @@ Page({
     loadingPosts: true,
     loadingFavorites: true,
     loadingComments: true,
+    profileError: '',
+    postsError: '',
+    favoritesError: '',
+    commentsError: '',
     showFollowSheet: false,
     followSheetTitle: '',
     followSheetUsers: [],
@@ -88,7 +92,9 @@ Page({
     applyThemeAndLanguage(this);
     this.initCustomNav();
     if (!requireLoginPage()) return;
-    this.loadInitialData();
+    this.loadInitialData().catch((error) => {
+      console.error('[profile initial load failed]', error);
+    });
   },
 
   onShow() {
@@ -99,7 +105,9 @@ Page({
       this._didInitialShow = true;
       return;
     }
-    this.refreshProfile();
+    this.refreshProfile().catch((error) => {
+      console.error('[profile refresh failed]', error);
+    });
   },
 
   initCustomNav() {
@@ -120,7 +128,11 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.refreshAll().finally(() => wx.stopPullDownRefresh());
+    this.refreshAll()
+      .catch((error) => {
+        console.error('[profile pull refresh failed]', error);
+      })
+      .finally(() => wx.stopPullDownRefresh());
   },
 
   onPageScroll(event) {
@@ -129,10 +141,12 @@ Page({
   },
 
   loadInitialData() {
-    this.refreshProfile();
-    this.loadPosts();
-    this.loadFavorites();
-    this.loadComments();
+    return Promise.all([
+      this.refreshProfile(),
+      this.loadPosts(),
+      this.loadFavorites(),
+      this.loadComments()
+    ]);
   },
 
   refreshAll() {
@@ -145,38 +159,53 @@ Page({
   },
 
   async refreshProfile() {
-    this.setData({ loadingProfile: true });
-    const [profileResponse, followers, following] = await Promise.all([
-      getUserInfo(),
-      getFollowers(),
-      getFollowing()
-    ]);
-    this.setData({
-      userInfo: buildProfile(profileResponse.data),
-      followers: followers.map(buildFollowUser),
-      following: following.map(buildFollowUser),
-      loadingProfile: false
-    });
+    this.setData({ loadingProfile: true, profileError: '' });
+    try {
+      const [profileResponse, followers, following] = await Promise.all([
+        getUserInfo(),
+        getFollowers(),
+        getFollowing()
+      ]);
+      this.setData({
+        userInfo: buildProfile(profileResponse.data),
+        followers: followers.map(buildFollowUser),
+        following: following.map(buildFollowUser)
+      });
+    } catch (error) {
+      this.setData({ profileError: '个人资料或关注数据加载失败，请重试' });
+    } finally {
+      this.setData({ loadingProfile: false });
+    }
   },
 
   async loadPosts() {
-    this.setData({ loadingPosts: true });
-    const posts = await getMyPosts();
-    this.setData({
-      posts: posts.map((post) => attachDisplayImages(buildPost(post))),
-      loadingPosts: false
-    });
-    this.hydrateProfileImages('posts');
+    this.setData({ loadingPosts: true, postsError: '' });
+    try {
+      const posts = await getMyPosts();
+      this.setData({
+        posts: posts.map((post) => attachDisplayImages(buildPost(post)))
+      });
+      await this.hydrateProfileImages('posts');
+    } catch (error) {
+      this.setData({ postsError: '帖子加载失败，请重试' });
+    } finally {
+      this.setData({ loadingPosts: false });
+    }
   },
 
   async loadFavorites() {
-    this.setData({ loadingFavorites: true });
-    const posts = await getFavoritePosts();
-    this.setData({
-      favoritePosts: posts.map((post) => attachDisplayImages(buildPost(post))),
-      loadingFavorites: false
-    });
-    this.hydrateProfileImages('favoritePosts');
+    this.setData({ loadingFavorites: true, favoritesError: '' });
+    try {
+      const posts = await getFavoritePosts();
+      this.setData({
+        favoritePosts: posts.map((post) => attachDisplayImages(buildPost(post)))
+      });
+      await this.hydrateProfileImages('favoritePosts');
+    } catch (error) {
+      this.setData({ favoritesError: '收藏加载失败，请重试' });
+    } finally {
+      this.setData({ loadingFavorites: false });
+    }
   },
 
   async hydrateProfileImages(key) {
@@ -189,19 +218,24 @@ Page({
   },
 
   async loadComments() {
-    this.setData({ loadingComments: true });
-    const comments = await getMyComments();
-    this.setData({
-      comments: comments.map((item = {}) => ({
-        ...item,
-        id: String(item.id || item.commentId || ''),
-        postId: String(item.postId || ''),
-        postTitle: item.postTitle || '原帖',
-        content: item.content || '',
-        timeText: item.timeText || ''
-      })),
-      loadingComments: false
-    });
+    this.setData({ loadingComments: true, commentsError: '' });
+    try {
+      const comments = await getMyComments();
+      this.setData({
+        comments: comments.map((item = {}) => ({
+          ...item,
+          id: String(item.id || item.commentId || ''),
+          postId: String(item.postId || ''),
+          postTitle: item.postTitle || '原帖',
+          content: item.content || '',
+          timeText: item.timeText || ''
+        }))
+      });
+    } catch (error) {
+      this.setData({ commentsError: '评论动态加载失败，请重试' });
+    } finally {
+      this.setData({ loadingComments: false });
+    }
   },
 
   switchProfileTab(event) {
@@ -227,6 +261,10 @@ Page({
   },
 
   openFollowSheet(event) {
+    if (this.data.profileError) {
+      wx.showToast({ title: '关注数据尚未加载，请先重试', icon: 'none' });
+      return;
+    }
     const type = event.currentTarget.dataset.type;
     const users = type === 'following' ? this.data.following : this.data.followers;
     const title = type === 'following' ? '关注' : '粉丝';

@@ -198,6 +198,108 @@ def test_existing_database_without_marker_is_preserved(tmp_path: Path) -> None:
     assert [post["id"] for post in recovered["posts"]] == ["p1"]
 
 
+def test_email_code_survives_repository_restart_with_leading_zero(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _globals
+    from services._db_service import default_db
+
+    monkeypatch.setattr(_globals, "SEED_DEMO_DATA", False)
+    email = "2500020@stu.xidian.edu.cn"
+    state = default_db()
+    state["emailCodes"][email] = {
+        "code": "012345",
+        "expiresAt": "2099-07-23T08:10:00+00:00",
+        "createdAt": "2099-07-23T08:00:00+00:00",
+        "recordId": "restart-record",
+        "purpose": "email_verification",
+        "attempts": 0,
+        "usedAt": "",
+    }
+    db_file = tmp_path / "verification-restart.db"
+    SqliteTreeholeRepository(db_file).initialize(lambda: state)
+
+    restarted = SqliteTreeholeRepository(db_file).load_state()
+
+    assert restarted["emailCodes"][email]["code"] == "012345"
+    assert isinstance(restarted["emailCodes"][email]["code"], str)
+    assert restarted["emailCodes"][email]["purpose"] == "email_verification"
+
+
+def test_legacy_integer_code_column_is_migrated_to_text(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _globals
+    from services._db_service import default_db
+
+    monkeypatch.setattr(_globals, "SEED_DEMO_DATA", False)
+    db_file = tmp_path / "legacy-code-type.db"
+    repository = SqliteTreeholeRepository(db_file)
+    repository.initialize(default_db)
+    with sqlite3.connect(db_file) as conn:
+        conn.execute("ALTER TABLE email_codes RENAME TO email_codes_text")
+        conn.execute(
+            """
+            CREATE TABLE email_codes (
+              email TEXT PRIMARY KEY,
+              code INTEGER NOT NULL,
+              expires_at TEXT NOT NULL,
+              created_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            INSERT INTO email_codes (email, code, expires_at, created_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                "2500021@stu.xidian.edu.cn",
+                123456,
+                "2099-07-23T08:10:00+00:00",
+                "2099-07-23T08:00:00+00:00",
+            ),
+        )
+        conn.execute("DROP TABLE email_codes_text")
+        conn.commit()
+
+    repository.initialize(default_db)
+    with sqlite3.connect(db_file) as conn:
+        declared_type = next(
+            row[2]
+            for row in conn.execute("PRAGMA table_info(email_codes)")
+            if row[1] == "code"
+        )
+    state = repository.load_state()
+    state["emailCodes"]["2500021@stu.xidian.edu.cn"]["code"] = "012345"
+    repository.save_state(state)
+    restarted = SqliteTreeholeRepository(db_file).load_state()
+
+    assert declared_type.upper() == "TEXT"
+    assert restarted["emailCodes"]["2500021@stu.xidian.edu.cn"]["code"] == "012345"
+
+
+def test_load_migration_is_idempotent_after_repository_round_trip(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _globals
+    from services._db_service import default_db, migrate_db
+
+    monkeypatch.setattr(_globals, "SEED_DEMO_DATA", False)
+    repository = SqliteTreeholeRepository(tmp_path / "idempotent-migration.db")
+    repository.initialize(default_db)
+    first = repository.load_state()
+    if migrate_db(first):
+        repository.save_state(first)
+
+    second = repository.load_state()
+
+    assert migrate_db(second) is False
+
+
 def test_server_binds_production_loopback_port_8080(tmp_path: Path) -> None:
     db_file = tmp_path / "server.db"
     process = subprocess.Popen(

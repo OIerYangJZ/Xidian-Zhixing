@@ -1,18 +1,32 @@
 import request from '../utils/request';
-import { getData, normalizeNotification, toArray } from '../utils/format';
+import {
+  getData,
+  normalizeNotification,
+  responseContractError
+} from '../utils/format';
 
 export const getNotifications = async () => {
   const response = await request.get('/api/notifications');
   const data = getData(response, {});
+  if (!Array.isArray(data.items)) {
+    throw responseContractError('通知列表响应 items 不是数组');
+  }
+  if (typeof data.unreadCount !== 'number' || !Number.isInteger(data.unreadCount) || data.unreadCount < 0) {
+    throw responseContractError('通知列表响应 unreadCount 无效');
+  }
   return {
-    items: toArray(data.items).map(normalizeNotification),
-    unreadCount: Number(data.unreadCount || 0)
+    items: data.items.map(normalizeNotification),
+    unreadCount: data.unreadCount
   };
 };
 
 export const markAllNotificationsRead = async () => {
   const response = await request.post('/api/notifications/read-all', {});
-  return getData(response, {});
+  const data = getData(response, {});
+  if (data.ok !== true) {
+    throw responseContractError('全部已读响应未确认成功');
+  }
+  return data;
 };
 
 export const markNotificationRead = async (notificationId) => {

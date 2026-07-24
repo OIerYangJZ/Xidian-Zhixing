@@ -1,10 +1,39 @@
 import request from '../utils/request';
-import { getData, normalizeComment, normalizePost, toArray } from '../utils/format';
+import {
+  getData,
+  normalizeComment,
+  normalizePost,
+  responseContractError,
+  toArray
+} from '../utils/format';
+
+const requireBooleanField = (data, field, label) => {
+  if (typeof data[field] !== 'boolean') {
+    throw responseContractError(`${label}响应缺少 ${field}`);
+  }
+};
+
+const requireNumberField = (data, field, label) => {
+  if (typeof data[field] !== 'number' || !Number.isFinite(data[field])) {
+    throw responseContractError(`${label}响应缺少有效的 ${field}`);
+  }
+};
+
+const requireOk = (data, label) => {
+  if (data.ok !== true) {
+    throw responseContractError(`${label}响应未确认成功`);
+  }
+};
 
 export const getPosts = async (params = {}) => {
   const response = await request.get('/api/posts', params);
-  const payload = getData(response, []);
-  const rows = Array.isArray(payload) ? payload : toArray(payload.items);
+  const payload = getData(response);
+  const rows = Array.isArray(payload)
+    ? payload
+    : (payload && Array.isArray(payload.items) ? payload.items : null);
+  if (!rows) {
+    throw responseContractError('帖子列表响应格式错误');
+  }
   return rows.map(normalizePost);
 };
 
@@ -30,32 +59,50 @@ export const createComment = async (postId, payload) => {
 
 export const togglePostLike = async (postId) => {
   const response = await request.post(`/api/posts/${postId}/like`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireBooleanField(data, 'liked', '帖子点赞');
+  return data;
 };
 
 export const toggleCommentLike = async (commentId) => {
   const response = await request.post(`/api/comments/${commentId}/like`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireBooleanField(data, 'liked', '评论点赞');
+  return data;
 };
 
 export const favoritePost = async (postId) => {
   const response = await request.post(`/api/posts/${postId}/favorite`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireBooleanField(data, 'favorited', '帖子收藏');
+  requireNumberField(data, 'favoriteCount', '帖子收藏');
+  return data;
 };
 
 export const unfavoritePost = async (postId) => {
   const response = await request.delete(`/api/posts/${postId}/favorite`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireOk(data, '取消收藏');
+  requireNumberField(data, 'favoriteCount', '取消收藏');
+  return data;
 };
 
 export const incrementPostView = async (postId) => {
   const response = await request.post(`/api/posts/${postId}/view`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireOk(data, '浏览计数');
+  requireNumberField(data, 'viewCount', '浏览计数');
+  return data;
 };
 
 export const reportTarget = async (payload) => {
   const response = await request.post('/api/reports', payload);
-  return getData(response, {});
+  const data = getData(response, {});
+  requireOk(data, '举报');
+  if (typeof data.id !== 'string' || !data.id.trim()) {
+    throw responseContractError('举报响应缺少 ID');
+  }
+  return data;
 };
 
 export const getFavoritePosts = async () => {
@@ -70,10 +117,14 @@ export const updatePost = async (postId, payload) => {
 
 export const deletePost = async (postId) => {
   const response = await request.delete(`/api/posts/${postId}`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireOk(data, '删除帖子');
+  return data;
 };
 
 export const deleteComment = async (commentId) => {
   const response = await request.delete(`/api/comments/${commentId}`, {});
-  return getData(response, {});
+  const data = getData(response, {});
+  requireOk(data, '删除评论');
+  return data;
 };

@@ -13,6 +13,10 @@
   </view>
 
   <scroll-view scroll-y class="campus-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view wx:if="{{errorMessage}}" class="today-empty">
+      <view>{{errorMessage}}</view>
+      <button bindtap="retryLoad">重新加载</button>
+    </view>
     <view class="ids-card" bindtap="openIdsLogin">
       <view class="ids-mark"></view>
       <view class="ids-body">

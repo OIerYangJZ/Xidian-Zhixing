@@ -9,6 +9,7 @@ import 'core/navigation/app_router.dart';
 import 'core/state/app_settings_store.dart';
 import 'core/state/mobile_providers.dart';
 import 'core/theme/mobile_theme.dart';
+import 'features/update/app_update_bootstrap.dart';
 
 Future<void> prepareMobileApp() async {
   await AppSettingsStore.instance.init();
@@ -49,6 +50,8 @@ class XduTreeholeMobileApp extends ConsumerWidget {
       ],
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: appRouter,
+      builder: (context, child) =>
+          AppUpdateBootstrap(child: child ?? const SizedBox.shrink()),
     );
   }
 }

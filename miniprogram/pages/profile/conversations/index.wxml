@@ -7,6 +7,10 @@
   </view>
 
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!conversations.length}}" class="empty">暂无会话</view>
   <view wx:else class="conversation-list">
     <view class="conversation-shell" wx:for="{{conversations}}" wx:key="id">

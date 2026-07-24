@@ -13,6 +13,10 @@
     </view>
 
     <view class="drawer-main">
+      <view wx:if="{{errorMessage}}" class="drawer-empty-message">
+        <view>{{errorMessage}}</view>
+        <button bindtap="retryLoad">重新加载</button>
+      </view>
       <view class="message-section-head">
         <view class="drawer-symbol message-symbol"></view>
         <view class="drawer-row-body">

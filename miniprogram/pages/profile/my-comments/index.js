@@ -6,7 +6,8 @@ import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 Page({
   data: {
     loading: true,
-    comments: []
+    comments: [],
+    errorMessage: ''
   },
 
   onShow() {
@@ -20,13 +21,22 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const comments = await getMyComments();
       this.setData({ comments, loading: false });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '评论加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   openPost(event) {

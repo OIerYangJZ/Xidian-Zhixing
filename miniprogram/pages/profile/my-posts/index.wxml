@@ -1,5 +1,9 @@
 <view class="page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view wx:elif="{{!posts.length}}" class="empty">暂无发布</view>
   <view wx:else>
     <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">

@@ -2,9 +2,25 @@ import { getClubs } from '../../api/clubs';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 
 Page({
-  data: { clubs: [], themeClass: '' },
+  data: { clubs: [], themeClass: '', loading: true, errorMessage: '' },
   async onLoad() {
-    this.setData({ clubs: await getClubs() });
+    await this.loadClubs();
+  },
+  async loadClubs() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      this.setData({ clubs: await getClubs(), loading: false });
+    } catch (error) {
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '社团列表加载失败，请重试'
+      });
+    }
+  },
+  retryLoad() {
+    this.loadClubs();
   },
   onShow() {
     applyThemeAndLanguage(this);

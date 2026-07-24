@@ -112,7 +112,11 @@
   </scroll-view>
 
   <view class="loading-state detail-loading" wx:if="{{loading}}" style="padding-top: {{navTop + navHeight + 8}}px;">正在寻找声音...</view>
-  <view class="empty-state detail-empty" wx:if="{{!loading && !post}}" style="padding-top: {{navTop + navHeight + 8}}px;">帖子不存在或已被删除</view>
+  <view class="empty-state detail-empty" wx:if="{{!loading && errorMessage && !post}}" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoadDetail">重新加载</button>
+  </view>
+  <view class="empty-state detail-empty" wx:elif="{{!loading && !post}}" style="padding-top: {{navTop + navHeight + 8}}px;">帖子不存在或已被删除</view>
 
   <view class="emoji-panel" wx:if="{{!loading && post && showEmojiPanel}}">
     <text wx:for="{{emojis}}" wx:key="*this" data-emoji="{{item}}" bindtap="insertEmoji">{{item}}</text>

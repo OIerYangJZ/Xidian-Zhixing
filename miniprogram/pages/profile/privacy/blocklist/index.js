@@ -5,7 +5,8 @@ import { applyThemeAndLanguage } from '../../../../utils/theme_i18n';
 Page({
   data: {
     loading: true,
-    blocks: []
+    blocks: [],
+    errorMessage: ''
   },
 
   onShow() {
@@ -15,12 +16,15 @@ Page({
   },
 
   async loadBlocks() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const blocks = await getBlocks();
-      this.setData({ blocks, loading: false });
+      this.setData({ blocks, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '黑名单加载失败，请重试'
+      });
     }
   },
 

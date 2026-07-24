@@ -125,6 +125,7 @@ Page({
     requestStatus: 'pending',
     systemType: 'config',
     loading: true,
+    errorMessage: '',
     admin: null,
     noPermission: false,
     overview: null,
@@ -164,13 +165,22 @@ Page({
   },
 
   async bootstrap() {
-    this.setData({ loading: true, noPermission: false });
+    this.setData({
+      loading: true,
+      noPermission: false,
+      errorMessage: ''
+    });
     try {
       const admin = await getCurrentAdmin();
       this.setData({ admin });
       await this.loadActiveTab();
     } catch (error) {
-      this.setData({ loading: false, noPermission: true });
+      const forbidden = Number(error && error.statusCode) === 403;
+      this.setData({
+        loading: false,
+        noPermission: forbidden,
+        errorMessage: forbidden ? '' : '管理员身份校验失败，请重试'
+      });
     }
   },
 
@@ -217,7 +227,7 @@ Page({
   },
 
   async loadOverview() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const overview = await getAdminOverview();
       const overviewCards = [
@@ -228,14 +238,14 @@ Page({
         { label: '举报', value: overview.pendingReportCount || overview.pendingReports || 0 },
         { label: '图片', value: overview.pendingImageCount || overview.pendingImages || 0 }
       ];
-      this.setData({ overview, overviewCards, loading: false });
+      this.setData({ overview, overviewCards, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '概览加载失败，请重试' });
     }
   },
 
   async loadReviews() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const rows = await getAdminReviews({
         type: this.data.reviewType,
@@ -246,15 +256,16 @@ Page({
           ...item,
           statusText: reviewLabel(item.reviewStatus)
         })),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '审核列表加载失败，请重试' });
     }
   },
 
   async loadReports() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const reports = await getAdminReports({ status: this.data.reportStatus });
       this.setData({
@@ -263,15 +274,16 @@ Page({
           statusText: reviewLabel(item.status),
           displayTitle: item.targetTitle || item.title || item.targetId || item.id
         })),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '举报列表加载失败，请重试' });
     }
   },
 
   async loadImages() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const images = await getAdminImages();
       this.setData({
@@ -279,15 +291,16 @@ Page({
           ...item,
           statusText: reviewLabel(item.status)
         })),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '图片列表加载失败，请重试' });
     }
   },
 
   async loadUsers() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const users = await getAdminUsers();
       this.setData({
@@ -296,15 +309,16 @@ Page({
           statusText: item.deleted ? '已注销' : item.banned ? '已封禁' : item.muted ? '已禁言' : '正常',
           displayName: item.alias || item.nickname || item.email || item.studentId || item.id
         })),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '用户列表加载失败，请重试' });
     }
   },
 
   async loadRequests() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const status = this.data.requestStatus;
       let rows = [];
@@ -313,9 +327,13 @@ Page({
       if (this.data.requestType === 'cancel') rows = await getCancellationRequests({ status });
       if (this.data.requestType === 'appeal') rows = await getAdminAppeals({ status });
       if (this.data.requestType === 'club') rows = await getClubApplications({ status: status === 'all' ? '' : status });
-      this.setData({ requestRows: buildRequestRows(rows), loading: false });
+      this.setData({
+        requestRows: buildRequestRows(rows),
+        loading: false,
+        errorMessage: ''
+      });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '申请列表加载失败，请重试' });
     }
   },
 
@@ -328,44 +346,47 @@ Page({
   },
 
   async loadConfig() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const config = await getAdminConfig();
       this.setData({
         sensitiveWordsText: (config.sensitiveWords || []).join('\n'),
         rateRulesText: JSON.stringify(config.rateLimitRules || {}, null, 2),
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '系统配置加载失败，请重试' });
     }
   },
 
   async loadChannelsTags() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const data = await getChannelsTags();
       this.setData({
         channels: data.channels || [],
         tags: data.tags || [],
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '频道与标签加载失败，请重试' });
     }
   },
 
   async loadKnowledgeSources() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const data = await getKnowledgeSources();
       this.setData({
         knowledgeSources: data.items || [],
         knowledgeIndex: data.index || {},
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '知识库加载失败，请重试' });
     }
   },
 

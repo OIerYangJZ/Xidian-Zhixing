@@ -10,7 +10,6 @@ import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
-import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/models/my_comment_item.dart';
 import 'package:xdu_treehole_web/models/follow_user_item.dart';
 import '../../core/state/mobile_providers.dart';
@@ -34,6 +33,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   UserProfile? _profile;
   List<FollowUserItem> _followers = [];
   List<FollowUserItem> _following = [];
+  bool _profileLoading = true;
+  bool _followLoading = true;
+  String? _profileError;
+  String? _followError;
 
   @override
   void initState() {
@@ -63,6 +66,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   }
 
   Future<void> _loadProfile() async {
+    setState(() {
+      _profileLoading = true;
+      _profileError = null;
+    });
     try {
       final repo = ref.read(userRepositoryProvider);
       final profile = await repo.fetchProfile();
@@ -70,17 +77,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
       if (!mounted) return;
       setState(() {
         _profile = profile;
+        _profileLoading = false;
       });
-    } catch (_) {
-      // 使用缓存的 currentUser
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _profile = AuthStore.instance.currentUser;
+        _profileLoading = false;
+        _profileError = error.toString().replaceAll('Exception: ', '');
       });
     }
   }
 
   Future<void> _loadFollowData() async {
+    setState(() {
+      _followLoading = true;
+      _followError = null;
+    });
     try {
       final repo = ref.read(userRepositoryProvider);
       final results = await Future.wait([
@@ -91,8 +103,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
       setState(() {
         _followers = results[0];
         _following = results[1];
+        _followLoading = false;
       });
-    } catch (_) {}
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _followLoading = false;
+        _followError = error.toString().replaceAll('Exception: ', '');
+      });
+    }
   }
 
   void _showFollowSheet(String title, List<FollowUserItem> users) {
@@ -111,10 +130,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
-    final user = _profile ?? AuthStore.instance.currentUser;
-    final backgroundImageUrl = AppConfig.resolveUrl(
-      user?.backgroundImageUrl ?? '',
-    );
+    if (_profileLoading) {
+      return Scaffold(
+        backgroundColor: colors.background,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: MobileTheme.primaryOf(context),
+          ),
+        ),
+      );
+    }
+    if (_profile == null) {
+      return Scaffold(
+        backgroundColor: colors.background,
+        body: _LoadErrorHint(
+          message: _profileError ?? '个人资料加载失败',
+          onRetry: _loadProfile,
+        ),
+      );
+    }
+    final user = _profile!;
+    final backgroundImageUrl = AppConfig.resolveUrl(user.backgroundImageUrl);
     final bool hasBackgroundImage = backgroundImageUrl.isNotEmpty;
     final bool isLightMode = Theme.of(context).brightness == Brightness.light;
     final Color profilePrimaryTextColor = isLightMode
@@ -199,8 +235,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                     ),
                                   ),
                                   child: AvatarWidget(
-                                    avatarUrl: user?.avatarUrl,
-                                    nickname: user?.nickname ?? '匿',
+                                    avatarUrl: user.avatarUrl,
+                                    nickname: user.nickname,
                                     radius: 36,
                                   ),
                                 ),
@@ -288,7 +324,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
                               child: Text(
-                                user?.nickname ?? '匿名同学',
+                                user.nickname,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -296,7 +332,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 ),
                               ),
                             ),
-                            if (user?.bio != null && user!.bio.isNotEmpty)
+                            if (user.bio.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
@@ -312,7 +348,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                   ),
                                 ),
                               ),
-                            if (user?.gender != null && user!.gender.isNotEmpty)
+                            if (user.gender.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.fromLTRB(
                                   16,
@@ -346,18 +382,34 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 children: [
                                   _StatChip(
                                     label: '粉丝',
-                                    value: '${_followers.length}',
-                                    onTap: () =>
-                                        _showFollowSheet('粉丝', _followers),
+                                    value:
+                                        _followLoading || _followError != null
+                                        ? '--'
+                                        : '${_followers.length}',
+                                    onTap:
+                                        _followLoading || _followError != null
+                                        ? null
+                                        : () => _showFollowSheet(
+                                            '粉丝',
+                                            _followers,
+                                          ),
                                     primaryColor: profilePrimaryTextColor,
                                     secondaryColor: profileSecondaryTextColor,
                                   ),
                                   const SizedBox(width: 20),
                                   _StatChip(
                                     label: '关注',
-                                    value: '${_following.length}',
-                                    onTap: () =>
-                                        _showFollowSheet('关注', _following),
+                                    value:
+                                        _followLoading || _followError != null
+                                        ? '--'
+                                        : '${_following.length}',
+                                    onTap:
+                                        _followLoading || _followError != null
+                                        ? null
+                                        : () => _showFollowSheet(
+                                            '关注',
+                                            _following,
+                                          ),
                                     primaryColor: profilePrimaryTextColor,
                                     secondaryColor: profileSecondaryTextColor,
                                   ),
@@ -374,14 +426,15 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                       borderRadius: BorderRadius.circular(4),
                                       border: hasBackgroundImage
                                           ? Border.all(
-                                              color: colors.accent
-                                                  .withValues(alpha: 0.3),
+                                              color: colors.accent.withValues(
+                                                alpha: 0.3,
+                                              ),
                                               width: 0.6,
                                             )
                                           : null,
-                                      ),
+                                    ),
                                     child: Text(
-                                      user?.userLevelLabel ?? 'Lv.1',
+                                      user.userLevelLabel,
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.w600,
@@ -392,6 +445,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                 ],
                               ),
                             ),
+                            if (_followError != null)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  16,
+                                  0,
+                                  16,
+                                  10,
+                                ),
+                                child: TextButton.icon(
+                                  onPressed: _loadFollowData,
+                                  icon: const Icon(Icons.refresh, size: 16),
+                                  label: const Text('关注数据加载失败，重试'),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -646,6 +713,7 @@ class _MyPostsTab extends ConsumerStatefulWidget {
 class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
   List<PostItem> _posts = [];
   bool _loading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -654,6 +722,12 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
   }
 
   Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _errorMessage = null;
+      });
+    }
     try {
       final posts = await ref.read(postRepositoryProvider).fetchMyPosts();
       if (!mounted) return;
@@ -661,9 +735,12 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
         _posts = posts;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _errorMessage = error.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
@@ -673,6 +750,9 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
       return Center(
         child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
+    }
+    if (_errorMessage != null) {
+      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
     }
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
@@ -694,7 +774,12 @@ class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
                 await repo.likePost(post.id);
               }
               _load();
-            } catch (_) {}
+            } catch (_) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('点赞操作失败，请重试')));
+            }
           },
         );
       },
@@ -711,6 +796,7 @@ class _MyFavoritesTab extends ConsumerStatefulWidget {
 class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
   List<PostItem> _posts = [];
   bool _loading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -719,6 +805,12 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
   }
 
   Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _errorMessage = null;
+      });
+    }
     try {
       final posts = await ref.read(postRepositoryProvider).fetchFavoritePosts();
       if (!mounted) return;
@@ -726,9 +818,12 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
         _posts = posts;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _errorMessage = error.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
@@ -738,6 +833,9 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
       return Center(
         child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
+    }
+    if (_errorMessage != null) {
+      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
     }
     if (_posts.isEmpty) {
       return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
@@ -759,7 +857,12 @@ class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
                 await repo.likePost(post.id);
               }
               _load();
-            } catch (_) {}
+            } catch (_) {
+              if (!mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('点赞操作失败，请重试')));
+            }
           },
         );
       },
@@ -776,6 +879,7 @@ class _MyActivitiesTab extends ConsumerStatefulWidget {
 class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
   List<MyCommentItem> _comments = [];
   bool _loading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -784,6 +888,12 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
   }
 
   Future<void> _load() async {
+    if (mounted) {
+      setState(() {
+        _loading = true;
+        _errorMessage = null;
+      });
+    }
     try {
       final comments = await ref.read(userRepositoryProvider).fetchMyComments();
       if (!mounted) return;
@@ -791,78 +901,26 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
         _comments = comments;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _errorMessage = error.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
   Future<void> _openCommentDetail(MyCommentItem comment) async {
-    String postId = comment.postId.trim();
-    if (postId.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('正在定位原帖...'),
-            duration: Duration(milliseconds: 900),
-          ),
-        );
-      }
-      postId = await _resolvePostIdByCommentId(comment.id);
-    }
-
-    if (!mounted) return;
+    final String postId = comment.postId.trim();
     if (postId.isEmpty) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('无法定位到原帖，帖子可能已删除或无访问权限')));
+      ).showSnackBar(const SnackBar(content: Text('评论数据缺少原帖标识，无法打开')));
       return;
     }
     context.push(
       '/post/${Uri.encodeComponent(postId)}?commentId=${Uri.encodeComponent(comment.id)}',
     );
-  }
-
-  Future<String> _resolvePostIdByCommentId(String commentId) async {
-    final String targetCommentId = commentId.trim();
-    if (targetCommentId.isEmpty) {
-      return '';
-    }
-
-    final postRepo = ref.read(postRepositoryProvider);
-    final List<PostItem> candidates = <PostItem>[];
-    try {
-      candidates.addAll(await postRepo.fetchMyPosts());
-    } catch (_) {}
-    try {
-      candidates.addAll(await postRepo.fetchFavoritePosts());
-    } catch (_) {}
-    try {
-      candidates.addAll(await postRepo.fetchPosts());
-    } catch (_) {}
-
-    final Set<String> seenPostIds = <String>{};
-    final List<String> orderedPostIds = <String>[];
-    for (final PostItem post in candidates) {
-      final String postId = post.id.trim();
-      if (postId.isEmpty || !seenPostIds.add(postId)) {
-        continue;
-      }
-      orderedPostIds.add(postId);
-      if (orderedPostIds.length >= 200) {
-        break;
-      }
-    }
-
-    for (final String postId in orderedPostIds) {
-      try {
-        final List<CommentItem> comments = await postRepo.fetchComments(postId);
-        if (comments.any((CommentItem c) => c.id.trim() == targetCommentId)) {
-          return postId;
-        }
-      } catch (_) {}
-    }
-    return '';
   }
 
   @override
@@ -872,6 +930,9 @@ class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
       return Center(
         child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
       );
+    }
+    if (_errorMessage != null) {
+      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
     }
     if (_comments.isEmpty) {
       return _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
@@ -937,6 +998,37 @@ class _EmptyHint extends StatelessWidget {
               text,
               style: TextStyle(fontSize: 14, color: colors.textTertiary),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoadErrorHint extends StatelessWidget {
+  const _LoadErrorHint({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = MobileColors.of(context);
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, size: 44, color: colors.textSecondary),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: colors.textSecondary),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(onPressed: onRetry, child: const Text('重试')),
           ],
         ),
       ),

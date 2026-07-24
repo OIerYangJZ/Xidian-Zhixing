@@ -56,6 +56,11 @@ def verify_code_debug_enabled() -> bool:
     return ALLOW_DEBUG_VERIFY_CODE
 
 
+def normalize_auth_email(value: str | None) -> str:
+    """Canonical email representation for auth, allowlists, and persistence."""
+    return str(value or "").strip().lower()
+
+
 # ---------------------------------------------------------------------------
 # Config constants (set by configure())
 # ---------------------------------------------------------------------------
@@ -204,6 +209,12 @@ def configure() -> None:
         "imageMaxMB": 5,
         "reportRateLimit": 10,
         "dmRequestRateLimit": 20,
+        "authLoginRateLimit": 10,
+        "verificationSendRateLimit": 3,
+        "verificationCheckRateLimit": 10,
+        "passwordResetRateLimit": 5,
+        "appealRateLimit": 5,
+        "campusAuthRateLimit": 20,
     })
     DEFAULT_SENSITIVE_WORDS[:] = ["引流", "广告", "辱骂", "诈骗"]
 
@@ -258,6 +269,12 @@ def configure() -> None:
     RATE_LIMIT_WINDOWS_SECONDS.update({
         "post": 3600, "comment": 3600, "message": 3600,
         "report": 3600, "dm_request": 3600, "upload": 3600,
+        "auth_login": 900,
+        "verification_send": 600,
+        "verification_check": 600,
+        "password_reset": 600,
+        "appeal": 3600,
+        "campus_auth": 900,
     })
     IP_RATE_LIMITS.clear()
     IP_RATE_LIMITS.update({
@@ -265,6 +282,12 @@ def configure() -> None:
         "comment": {"limit": 40, "window": 3600},
         "message": {"limit": 60, "window": 3600},
         "upload": {"limit": 30, "window": 3600},
+        "auth_login": {"limit": 30, "window": 900},
+        "verification_send": {"limit": 10, "window": 3600},
+        "verification_check": {"limit": 30, "window": 600},
+        "password_reset": {"limit": 15, "window": 600},
+        "appeal": {"limit": 15, "window": 3600},
+        "campus_auth": {"limit": 40, "window": 900},
     })
 
     ALLOWED_IMAGE_TYPES.clear()
@@ -294,7 +317,7 @@ def configure() -> None:
     )
     AUTH_ALLOWED_EMAILS.clear()
     AUTH_ALLOWED_EMAILS.update(
-        email.strip().lower()
+        normalize_auth_email(email)
         for email in os.environ.get("BACKEND_AUTH_ALLOWED_EMAILS", "").split(",")
         if email.strip()
     )
@@ -528,7 +551,7 @@ def is_auth_email_allowed(email: str) -> bool:
     """Return whether an account may access the current private beta."""
     if not AUTH_ALLOWED_EMAILS:
         return True
-    return email.strip().lower() in AUTH_ALLOWED_EMAILS
+    return normalize_auth_email(email) in AUTH_ALLOWED_EMAILS
 
 
 def public_system_settings() -> dict[str, Any]:
@@ -553,6 +576,7 @@ __all__ = [
     "ROOT_DIR", "DATA_DIR", "LEGACY_DB_FILE", "SQL_DB_FILE",
     "OBJECT_STORAGE_DIR", "WEB_ROOT_DIR",
     "configure", "smtp_configured", "verify_code_debug_enabled",
+    "normalize_auth_email",
     "ALLOW_DEBUG_VERIFY_CODE", "INCLUDE_DEBUG_CODE_IN_RESPONSE",
     "DEFAULT_CHANNELS", "DEFAULT_TAGS", "DEFAULT_SETTINGS",
     "DEFAULT_SENSITIVE_WORDS", "SEED_POSTS", "SEED_DEMO_DATA",

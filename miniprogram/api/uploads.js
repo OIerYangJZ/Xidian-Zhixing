@@ -1,5 +1,5 @@
 import request from '../utils/request';
-import { getData, resolveUrl } from '../utils/format';
+import { getData, resolveUrl, responseContractError } from '../utils/format';
 
 const IMAGE_TYPES = {
   jpg: 'image/jpeg',
@@ -53,10 +53,14 @@ export const uploadPostImage = async (filePath, options = {}) => {
     ...options,
     url: '/api/uploads/images'
   });
-  return {
+  const result = {
     ...upload,
     url: resolveUrl(upload.url)
   };
+  if (!String(result.id || '').trim()) {
+    throw responseContractError('图片上传响应缺少 ID');
+  }
+  return result;
 };
 
 export const uploadAvatarImage = async (filePath, options = {}) => {
@@ -64,10 +68,14 @@ export const uploadAvatarImage = async (filePath, options = {}) => {
     ...options,
     url: '/api/users/avatar'
   });
-  return {
+  const result = {
     ...upload,
     avatarUrl: resolveUrl(upload.avatarUrl)
   };
+  if (!result.avatarUrl) {
+    throw responseContractError('头像上传响应缺少地址');
+  }
+  return result;
 };
 
 export const uploadBackgroundImage = async (filePath, options = {}) => {
@@ -75,8 +83,18 @@ export const uploadBackgroundImage = async (filePath, options = {}) => {
     ...options,
     url: '/api/uploads/images'
   });
-  return {
+  const status = String(upload.status || '').trim().toLowerCase();
+  if (status !== 'approved') {
+    throw responseContractError(
+      String(upload.moderationReason || '').trim() || '背景图片尚未通过审核'
+    );
+  }
+  const result = {
     ...upload,
     url: resolveUrl(upload.url)
   };
+  if (!result.url) {
+    throw responseContractError('背景图片上传响应缺少地址');
+  }
+  return result;
 };

@@ -24,9 +24,12 @@ def parse_iso(value: str | None) -> datetime | None:
     if not value:
         return None
     try:
-        return datetime.fromisoformat(value)
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def is_today_iso(value: str | None) -> bool:

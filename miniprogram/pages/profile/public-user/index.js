@@ -12,7 +12,8 @@ Page({
     userId: '',
     profile: null,
     posts: [],
-    loading: true
+    loading: true,
+    errorMessage: ''
   },
 
   onLoad(options) {
@@ -23,7 +24,7 @@ Page({
   },
 
   async loadProfile() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const [profile, posts] = await Promise.all([
         getPublicUser(this.data.userId),
@@ -32,8 +33,17 @@ Page({
       wx.setNavigationBarTitle({ title: profile.nickname || profile.alias || '主页' });
       this.setData({ profile, posts, loading: false });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '主页加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadProfile();
   },
 
   async toggleFollow() {

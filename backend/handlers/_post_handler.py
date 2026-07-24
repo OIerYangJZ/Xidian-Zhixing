@@ -25,6 +25,7 @@ Post, comment, report, favorite, like, and appeal endpoints:
 """
 from __future__ import annotations
 
+import copy
 import re
 from typing import Any
 
@@ -32,6 +33,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 
 import _globals
+from object_storage import delete_objects_with_backups, restore_object_backups
 from helpers import (
     assess_text_risk,
     check_ip_rate_limit,
@@ -44,6 +46,7 @@ from helpers import (
     sanitize_alias,
     send_rate_limit_error,
     send_json,
+    verify_password,
 )
 from services import (
     add_audit_log,
@@ -89,10 +92,24 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
 
 
 def _can_view_post(post: dict[str, Any], viewer_user_id: str) -> bool:
-    if not is_post_private(post):
-        return True
     author_id = str(post.get("authorId", "")).strip()
-    return bool(viewer_user_id and viewer_user_id == author_id)
+    is_owner = bool(viewer_user_id and viewer_user_id == author_id)
+    review_status = (
+        str(post.get("reviewStatus", "approved")).strip().lower() or "approved"
+    )
+    if review_status not in {"approved", "resolved"}:
+        return is_owner
+    return not is_post_private(post) or is_owner
+
+
+def _can_interact_with_post(post: dict[str, Any], viewer_user_id: str) -> bool:
+    review_status = (
+        str(post.get("reviewStatus", "approved")).strip().lower() or "approved"
+    )
+    return review_status in {"approved", "resolved"} and _can_view_post(
+        post,
+        viewer_user_id,
+    )
 
 
 def _normalize_post_content_format(value: Any) -> str:
@@ -234,9 +251,11 @@ def handle_get_posts(
     channel = (query.get("channel", [""])[0] or "").strip()
 
     filtered_posts = []
-    for post in list_posts(db, sort_by=sort_by):
-        if not _can_view_post(post, viewer_user_id):
-            continue
+    for post in list_posts(
+        db,
+        sort_by=sort_by,
+        viewer_user_id=viewer_user_id,
+    ):
         if status and str(post.get("status", "")).lower() != status:
             continue
         if has_image is not None and bool(post.get("hasImage", False)) != has_image:
@@ -303,7 +322,15 @@ def handle_get_posts_mine(
     if user is None:
         return
 
-    rows = [p for p in list_posts(db, include_rejected=True) if p.get("authorId") == user["id"]]
+    rows = [
+        p
+        for p in list_posts(
+            db,
+            include_rejected=True,
+            viewer_user_id=user["id"],
+        )
+        if p.get("authorId") == user["id"]
+    ]
     send_json(
         handler,
         HTTPStatus.OK,
@@ -327,8 +354,9 @@ def handle_get_posts_favorites(
 
     fav_post_ids = {f["postId"] for f in db["favorites"] if f.get("userId") == user["id"]}
     rows = [
-        p for p in list_posts(db)
-        if p.get("id") in fav_post_ids and _can_view_post(p, user["id"])
+        p
+        for p in list_posts(db, viewer_user_id=user["id"])
+        if p.get("id") in fav_post_ids
     ]
     send_json(
         handler,
@@ -777,13 +805,6 @@ def handle_create_post(
     db["posts"].append(post)
     for upload in picked_uploads:
         upload["postId"] = post["id"]
-        upload_status = str(upload.get("status", "approved")).strip().lower()
-        if upload_status != "rejected":
-            upload["status"] = "approved"
-            upload["moderationReason"] = ""
-            if not str(upload.get("reviewNote", "")).strip():
-                upload["reviewNote"] = "发帖时自动通过"
-            upload["reviewedAt"] = post["createdAt"]
     recalc_post_has_image(db, post["id"])
     add_audit_log(db, user["id"], "create_post", f"发布帖子 {post['id']}")
     save_db(db)
@@ -821,7 +842,7 @@ def handle_create_comment(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
-    if not _can_view_post(post, user["id"]):
+    if not _can_interact_with_post(post, user["id"]):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
     if not post.get("allowComment", True):
@@ -833,6 +854,30 @@ def handle_create_comment(
     if not comment_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容不能为空")
         return
+    parent_id = str(body.get("parentId", body.get("replyToId", ""))).strip()
+    if parent_id:
+        parent_comment = next(
+            (
+                comment
+                for comment in db.get("comments", [])
+                if str(comment.get("id", "")).strip() == parent_id
+                and not comment.get("deleted")
+            ),
+            None,
+        )
+        if parent_comment is None:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "回复的评论不存在或已被删除")
+            return
+        if str(parent_comment.get("postId", "")).strip() != post_id:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "不能回复其他帖子的评论")
+            return
+        parent_status = (
+            str(parent_comment.get("reviewStatus", "approved")).strip().lower()
+            or "approved"
+        )
+        if parent_status not in {"approved", "resolved"}:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "回复的评论尚未通过审核")
+            return
 
     allowed, retry_after = consume_rate_limit(
         db,
@@ -881,7 +926,7 @@ def handle_create_comment(
         "reviewStatus": "pending" if risk_marked else "approved",
         "riskMarked": risk_marked,
         "isAnonymous": False,
-        "parentId": str(body.get("parentId", body.get("replyToId", ""))).strip(),
+        "parentId": parent_id,
     }
     if risk_marked:
         from handlers._radio_handler import add_moderation_task
@@ -897,7 +942,11 @@ def handle_create_comment(
     db["comments"].append(comment)
 
     post_author_id = str(post.get("authorId", "")).strip()
-    if post_author_id and post_author_id != user["id"]:
+    if (
+        not risk_marked
+        and post_author_id
+        and post_author_id != user["id"]
+    ):
         create_notification(
             db,
             user_id=post_author_id,
@@ -933,7 +982,7 @@ def handle_toggle_like(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
-    if not _can_view_post(post, user["id"]):
+    if not _can_interact_with_post(post, user["id"]):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
@@ -989,6 +1038,29 @@ def handle_toggle_comment_like(
     if comment is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "评论不存在或已被删除")
         return
+    post = next(
+        (
+            row
+            for row in db.get("posts", [])
+            if str(row.get("id", "")).strip()
+            == str(comment.get("postId", "")).strip()
+            and not row.get("deleted")
+        ),
+        None,
+    )
+    if post is None or not _can_interact_with_post(
+        post,
+        str(user.get("id", "")),
+    ):
+        json_error(handler, HTTPStatus.NOT_FOUND, "评论不存在或已被删除")
+        return
+    comment_status = (
+        str(comment.get("reviewStatus", "approved")).strip().lower()
+        or "approved"
+    )
+    if comment_status not in {"approved", "resolved"}:
+        json_error(handler, HTTPStatus.NOT_FOUND, "评论不存在或已被删除")
+        return
 
     existing = next(
         (x for x in db["likes"]
@@ -1041,7 +1113,7 @@ def handle_toggle_favorite(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
-    if not _can_view_post(post, user["id"]):
+    if not _can_interact_with_post(post, user["id"]):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
@@ -1102,7 +1174,7 @@ def handle_increment_view(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
-    if not _can_view_post(post, viewer_user_id):
+    if not _can_interact_with_post(post, viewer_user_id):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
@@ -1134,7 +1206,10 @@ def handle_pin_request(
         return
 
     body = read_json_body(handler)
-    duration_minutes = int(body.get("durationMinutes", 1440))
+    duration_minutes = parse_pin_duration_minutes(body.get("durationMinutes", 1440))
+    if duration_minutes is None:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请选择有效的置顶时长")
+        return
     reason = str(body.get("reason", "")).strip()
 
     if is_level_one_user(user):
@@ -1304,6 +1379,7 @@ def handle_submit_appeal(
     email = str(body.get("email", "")).strip().lower()
     appeal_type = str(body.get("appealType", "")).strip().lower()
     content = str(body.get("content", "")).strip()
+    password = str(body.get("password", "")).strip()
 
     if not is_campus_email(email):
         json_error(handler, HTTPStatus.BAD_REQUEST, "仅支持西电学生邮箱（@stu.xidian.edu.cn）")
@@ -1314,24 +1390,78 @@ def handle_submit_appeal(
     if not content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "申诉内容不能为空")
         return
+    if len(content) > 4000:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "申诉内容不能超过 4000 字")
+        return
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "appeal")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="提交申诉",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=f"appeal::{email}",
+        action="appeal",
+        setting_key="appealRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["appealRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="提交申诉",
+            retry_after_seconds=retry_after,
+        )
+        return
 
     user = find_user_by_email(db, email, include_deleted=True)
-    if user is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "账号不存在")
+    session_user, _ = auth_user_helper(handler, db)
+    session_matches = bool(
+        user
+        and session_user
+        and str(session_user.get("id", "")).strip()
+        == str(user.get("id", "")).strip()
+    )
+    password_matches = bool(
+        user
+        and password
+        and verify_password(str(user.get("password", "")), password)
+    )
+    if user is None or not (session_matches or password_matches):
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号凭证无效")
         return
-    if not user.get("deleted"):
-        if latest_pending_appeal_for_user(db, str(user.get("id", ""))) is not None:
-            json_error(handler, HTTPStatus.CONFLICT, "该账号已有待处理的申诉")
-            return
+    if appeal_type == "account_restore" and not user.get("deleted"):
+        json_error(handler, HTTPStatus.CONFLICT, "账号当前未注销，无需恢复")
+        return
+    if appeal_type != "account_restore" and user.get("deleted"):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "已注销账号只能提交账号恢复申诉")
+        return
+    if latest_pending_appeal_for_user(db, str(user.get("id", ""))) is not None:
+        json_error(handler, HTTPStatus.CONFLICT, "该账号已有待处理的申诉")
+        return
+
+    appeal_titles = {
+        "account_restore": "账号恢复申诉",
+        "ban_revoke": "解除封禁申诉",
+        "wrong_punishment": "处罚异议申诉",
+        "account_cancel_reject": "注销处理异议",
+    }
 
     appeal = {
         "id": next_id(db, "appeal", "ap"),
         "userId": str(user.get("id", "")),
-        "email": email,
+        "userEmail": email,
+        "studentId": str(user.get("studentId", "")).strip(),
+        "userNickname": user_nickname(user),
         "appealType": appeal_type,
+        "targetType": "account",
+        "targetId": str(user.get("id", "")),
+        "title": appeal_titles[appeal_type],
         "content": content,
         "status": "pending",
-        "result": "",
+        "adminNote": "",
         "createdAt": now_iso(),
         "handledAt": "",
         "handledBy": "",
@@ -1370,11 +1500,13 @@ def handle_update_post(
 
     body = read_json_body(handler)
     new_status = str(body.get("status", "")).strip().lower()
-    if new_status in {"ongoing", "open", "resolved", "closed"}:
-        post["status"] = "ongoing" if new_status == "open" else new_status
-        post["updatedAt"] = now_iso()
-        add_audit_log(db, user["id"], "update_post_status", f"更新帖子状态为 {new_status}")
-        save_db(db)
+    if new_status not in {"ongoing", "open", "resolved", "closed"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的帖子状态")
+        return
+    post["status"] = "ongoing" if new_status == "open" else new_status
+    post["updatedAt"] = now_iso()
+    add_audit_log(db, user["id"], "update_post_status", f"更新帖子状态为 {new_status}")
+    save_db(db)
 
     send_json(handler, HTTPStatus.OK, {"data": serialize_post(db, post, viewer_user_id=user["id"])})
 
@@ -1405,12 +1537,37 @@ def handle_delete_post(
         json_error(handler, HTTPStatus.FORBIDDEN, "只能删除自己的帖子")
         return
 
+    uploads = [
+        upload
+        for upload in db.get("mediaUploads", [])
+        if upload.get("postId") == post_id and not upload.get("deleted")
+    ]
+    object_keys = [
+        str(upload.get("objectKey", "")).strip()
+        for upload in uploads
+        if str(upload.get("objectKey", "")).strip()
+    ]
+    try:
+        storage_backups = delete_objects_with_backups(
+            _globals.OBJECT_STORAGE,
+            object_keys,
+        )
+    except Exception:
+        json_error(handler, HTTPStatus.BAD_GATEWAY, "帖子图片存储删除失败，帖子未删除")
+        return
+
+    db_snapshot = copy.deepcopy(db)
     post["deleted"] = True
-    for upload in db.get("mediaUploads", []):
-        if upload.get("postId") == post_id and not upload.get("deleted"):
-            upload["deleted"] = True
+    for upload in uploads:
+        upload["deleted"] = True
     add_audit_log(db, user["id"], "delete_post", f"删除帖子 {post_id}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        db.clear()
+        db.update(db_snapshot)
+        restore_object_backups(_globals.OBJECT_STORAGE, storage_backups)
+        raise
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 

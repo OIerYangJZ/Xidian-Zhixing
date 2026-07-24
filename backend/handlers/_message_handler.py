@@ -88,6 +88,11 @@ def _resolve_post_dm_target(
     )
     if post is None:
         return None, "", "帖子不存在"
+    review_status = (
+        str(post.get("reviewStatus", "approved")).strip().lower() or "approved"
+    )
+    if review_status not in {"approved", "resolved"}:
+        return None, "", "帖子不存在"
     author_id = str(post.get("authorId", "")).strip()
     if target_user_id and target_user_id != author_id:
         return None, "", "帖子作者与私信目标不一致"
@@ -177,9 +182,6 @@ def handle_send_request(
         if error_message:
             status = HTTPStatus.BAD_REQUEST if error_message == "帖子作者与私信目标不一致" else HTTPStatus.NOT_FOUND
             json_error(handler, status, error_message)
-            return
-        if str(post.get("reviewStatus", "approved")).lower() == "rejected":
-            json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在")
             return
         if is_post_anonymous(db, post):
             json_error(handler, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
@@ -523,6 +525,28 @@ def handle_direct_conversation(
         )
         return
 
+    if post is not None:
+        if str(post.get("reviewStatus", "approved")).strip().lower() not in {
+            "approved",
+            "resolved",
+        }:
+            json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在")
+            return
+        if not can_request_dm_from_post(
+            db,
+            viewer_user_id=str(user.get("id", "")),
+            post=post,
+        ):
+            json_error(handler, HTTPStatus.FORBIDDEN, "该帖子未开放私信")
+            return
+    elif not can_request_dm_to_user(
+        db,
+        viewer_user_id=str(user.get("id", "")),
+        target_user_id=target_user_id,
+    ):
+        json_error(handler, HTTPStatus.FORBIDDEN, "对方未开放陌生人联系入口")
+        return
+
     sync_conversation_pair(
         db,
         left_user_id=user["id"],
@@ -584,7 +608,7 @@ def handle_get_messages(
         return
 
     peer_user_id = str(conv.get("peerUserId", "")).strip()
-    if is_user_blocked(db, user["id"], peer_user_id):
+    if is_user_blocked(db, peer_user_id, user["id"]):
         json_error(handler, HTTPStatus.FORBIDDEN, "对方已将你屏蔽，无法查看消息")
         return
 

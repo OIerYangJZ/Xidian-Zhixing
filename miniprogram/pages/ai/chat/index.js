@@ -1,4 +1,4 @@
-import { fetchAiModels, getAiConfig, sendAiMessage } from '../../../api/ai';
+import { fetchAiModels, sendAiMessage } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { openAppTarget } from '../../../utils/navigation';
@@ -41,7 +41,9 @@ Page({
     isSending: false,
     scrollTop: 0,
     configured: false,
-    currentModel: ''
+    currentModel: '',
+    configLoading: true,
+    configError: ''
   },
 
   onLoad(options) {
@@ -61,21 +63,29 @@ Page({
       });
     }
     if (!requireLoginPage()) return;
-    this.refreshConfigState();
-    if (this.data.inputVal) {
-      this._autoSendQueued = true;
-      setTimeout(() => this.sendMessage(), 0);
-    }
+    this._initializingConfig = true;
+    this.refreshConfigState()
+      .then(() => {
+        if (this.data.inputVal && this.data.configured) {
+          this._autoSendQueued = true;
+          this.sendMessage();
+        }
+      })
+      .finally(() => {
+        this._initializingConfig = false;
+      });
   },
 
   onShow() {
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
-    this.refreshConfigState();
-    if (this.data.inputVal && this.data.messages.length === 1 && !this.data.isSending && !this._autoSendQueued) {
-      this._autoSendQueued = true;
-      setTimeout(() => this.sendMessage(), 0);
-    }
+    if (this._initializingConfig) return;
+    this.refreshConfigState().then(() => {
+      if (this.data.inputVal && this.data.messages.length === 1 && !this.data.isSending && !this._autoSendQueued && this.data.configured) {
+        this._autoSendQueued = true;
+        this.sendMessage();
+      }
+    });
   },
 
   onInput(e) {
@@ -83,16 +93,27 @@ Page({
   },
 
   async refreshConfigState() {
-    const config = getAiConfig();
     this.setData({
-      configured: Boolean(config.configured && config.model),
-      currentModel: config.model || ''
+      configured: false,
+      currentModel: '',
+      configLoading: true,
+      configError: ''
     });
     try {
       const status = await fetchAiModels();
-      this.setData({ configured: Boolean(status.configured), currentModel: status.model || '' });
+      this.setData({
+        configured: Boolean(status.configured),
+        currentModel: status.model || '',
+        configLoading: false,
+        configError: ''
+      });
     } catch (error) {
-      this.setData({ configured: false, currentModel: '' });
+      this.setData({
+        configured: false,
+        currentModel: '',
+        configLoading: false,
+        configError: 'AI 状态加载失败，请重试'
+      });
     }
   },
 
@@ -103,6 +124,14 @@ Page({
   async sendMessage() {
     const text = this.data.inputVal.trim();
     if (!text || this.data.isSending) return;
+    if (this.data.configLoading) {
+      wx.showToast({ title: '正在读取 AI 状态', icon: 'none' });
+      return;
+    }
+    if (this.data.configError) {
+      wx.showToast({ title: 'AI 状态加载失败，请先重试', icon: 'none' });
+      return;
+    }
     if (!this.data.configured) {
       wx.showToast({ title: '服务器 AI 尚未配置', icon: 'none' });
       this.goSettings();
@@ -130,19 +159,30 @@ Page({
       const res = await sendAiMessage(text, { messages: historyMessages });
       const reply = normalizeAiReply(res);
       const references = normalizeReferences(res);
-      if (reply) {
-        const replyMsg = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: reply,
-          references
-        };
-        this.setData({
-          messages: [...this.data.messages, replyMsg]
-        }, this.scrollToBottom);
-        saveAiHistory(text, reply, references);
+      if (!reply) {
+        throw new Error('AI 响应缺少回复内容');
       }
+      const replyMsg = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: reply,
+        references
+      };
+      this.setData({
+        messages: [...this.data.messages, replyMsg]
+      }, this.scrollToBottom);
+      saveAiHistory(text, reply, references);
     } catch (err) {
+      this.setData({
+        messages: [
+          ...this.data.messages,
+          {
+            id: `error-${Date.now()}`,
+            role: 'assistant',
+            content: '本次请求失败，请稍后重试。'
+          }
+        ]
+      }, this.scrollToBottom);
       wx.showToast({ title: 'AI 请求失败，请检查设置', icon: 'none' });
     } finally {
       this.setData({ isSending: false });

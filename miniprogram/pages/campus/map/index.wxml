@@ -7,6 +7,10 @@
   </view>
 
   <view wx:if="{{loading}}" class="loading-state">正在加载地图索引</view>
+  <view wx:elif="{{errorMessage}}" class="loading-state">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
 
   <block wx:else>
     <view class="map-group" wx:for="{{maps}}" wx:key="id">

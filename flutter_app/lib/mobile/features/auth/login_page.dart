@@ -61,7 +61,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         try {
           final profile = await ref.read(userRepositoryProvider).fetchProfile();
           AuthStore.instance.setCurrentUser(profile);
-        } catch (_) {}
+        } catch (error) {
+          if (!mounted) return;
+          _showError(
+            '登录成功，但个人资料加载失败：'
+            '${error.toString().replaceAll('Exception: ', '')}',
+          );
+          return;
+        }
         if (!mounted) {
           return;
         }
@@ -130,7 +137,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   alignment: Alignment.center,
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.8), width: 1.5),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        width: 1.5,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     alignment: Alignment.center,

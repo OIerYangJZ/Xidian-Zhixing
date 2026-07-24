@@ -13,6 +13,7 @@ import 'package:xdu_treehole_web/core/state/app_providers.dart';
 import 'package:xdu_treehole_web/core/theme/app_theme.dart';
 import 'package:xdu_treehole_web/core/widgets/async_page_state.dart';
 import 'package:xdu_treehole_web/features/auth/login_page.dart';
+import 'package:xdu_treehole_web/features/auth/verify_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
@@ -225,6 +226,25 @@ void main() {
       expect(submit.onPressed, isNull);
       expect(find.text('发布中...'), findsWidgets);
     });
+
+    testWidgets(
+      'verification input keeps leading zero without numeric conversion',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          _app(const VerifyPage(campusEmail: 'student@stu.xidian.edu.cn')),
+        );
+
+        await tester.enterText(
+          find.byKey(const Key('verification-code-input')),
+          '012345',
+        );
+
+        final TextField field = tester.widget<TextField>(
+          find.byKey(const Key('verification-code-input')),
+        );
+        expect(field.controller!.text, '012345');
+      },
+    );
 
     test('saved login token restores authenticated state', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{

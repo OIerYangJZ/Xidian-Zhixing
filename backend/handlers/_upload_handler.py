@@ -7,6 +7,7 @@ Image upload and avatar endpoints:
 """
 from __future__ import annotations
 
+import copy
 import re
 from typing import Any
 
@@ -54,11 +55,12 @@ def moderate_image_upload(
         return "rejected", f"图片超出大小限制（最大 {max_bytes // (1024 * 1024)}MB）"
     lowered_name = file_name.lower()
     hit_words = [
-        word for word in db.get("sensitiveWords", [])
-        if str(word).strip() and str(word) in lowered_name
+        str(word).strip()
+        for word in db.get("sensitiveWords", [])
+        if str(word).strip() and str(word).strip().lower() in lowered_name
     ]
     if hit_words:
-        return "approved", ""
+        return "risk", f"文件名命中敏感词：{','.join(hit_words[:3])}"
     return "approved", ""
 
 
@@ -90,6 +92,24 @@ def handle_upload_image(
     content_type = str(body.get("contentType", "")).strip().lower()
     post_id = str(body.get("postId", "")).strip()
 
+    target_post: dict[str, Any] | None = None
+    if post_id:
+        target_post = next(
+            (
+                post
+                for post in db.get("posts", [])
+                if str(post.get("id", "")).strip() == post_id
+                and not post.get("deleted")
+            ),
+            None,
+        )
+        if target_post is None:
+            json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
+            return
+        if str(target_post.get("authorId", "")).strip() != str(user.get("id", "")).strip():
+            json_error(handler, HTTPStatus.FORBIDDEN, "只能向自己的帖子上传图片")
+            return
+
     if not image_data_base64:
         json_error(handler, HTTPStatus.BAD_REQUEST, "图片数据不能为空")
         return
@@ -109,9 +129,10 @@ def handle_upload_image(
         json_error(handler, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
         return
 
+    if content_type and content_type != detected_content_type:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "声明的图片格式与实际内容不一致")
+        return
     ct = detected_content_type
-    if content_type and content_type in _globals.ALLOWED_IMAGE_TYPES:
-        ct = content_type
 
     max_bytes = _globals.get_image_max_bytes(db)
     if len(image_bytes) > max_bytes:
@@ -181,18 +202,29 @@ def handle_upload_image(
         "uploaderId": user["id"],
         "deleted": False,
     }
+    db_snapshot = copy.deepcopy(db)
     db["mediaUploads"].append(upload)
 
     if post_id:
-        post = next((p for p in db["posts"] if p.get("id") == post_id), None)
-        if post is not None and not post.get("deleted"):
-            post.setdefault("imageIds", [])
-            post["imageIds"].append(upload["id"])
+        if target_post is not None:
+            target_post.setdefault("imageIds", [])
+            target_post["imageIds"].append(upload["id"])
             if moderation_status == "approved":
-                post["hasImage"] = True
+                target_post["hasImage"] = True
 
     add_audit_log(db, user["id"], "upload_image", f"上传图片 {upload['id']}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        db.clear()
+        db.update(db_snapshot)
+        try:
+            _globals.OBJECT_STORAGE.delete(stored.key)
+        except Exception as cleanup_error:
+            raise RuntimeError(
+                "图片记录保存失败，且新上传对象清理失败"
+            ) from cleanup_error
+        raise
 
     send_json(
         handler,
@@ -246,9 +278,10 @@ def handle_upload_avatar(
         json_error(handler, HTTPStatus.BAD_REQUEST, "仅支持 jpg/png/webp/gif 图片")
         return
 
+    if content_type and content_type != detected_content_type:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "声明的头像格式与实际内容不一致")
+        return
     ct = detected_content_type
-    if content_type and content_type in _globals.ALLOWED_IMAGE_TYPES:
-        ct = content_type
 
     max_bytes = _globals.get_image_max_bytes(db)
     if len(avatar_bytes) > max_bytes:
@@ -271,15 +304,40 @@ def handle_upload_avatar(
 
     old_avatar_url = normalize_avatar_url(str(user.get("avatarUrl", "")))
     old_key = extract_local_object_key_from_url(old_avatar_url) if old_avatar_url else ""
+    audit_count = len(db.get("auditLogs", []))
     user["avatarUrl"] = stored.url
     add_audit_log(db, user["id"], "upload_avatar", f"更换头像 {stored.key}")
-    save_db(db)
+    try:
+        save_db(db)
+    except Exception:
+        user["avatarUrl"] = old_avatar_url
+        del db["auditLogs"][audit_count:]
+        try:
+            _globals.OBJECT_STORAGE.delete(stored.key)
+        except Exception as cleanup_error:
+            raise RuntimeError(
+                "头像数据库保存失败，且新头像存储回滚删除失败",
+            ) from cleanup_error
+        raise
 
     if old_key and old_key != stored.key:
         try:
             _globals.OBJECT_STORAGE.delete(old_key)
         except Exception:
-            pass
+            user["avatarUrl"] = old_avatar_url
+            del db["auditLogs"][audit_count:]
+            save_db(db)
+            try:
+                _globals.OBJECT_STORAGE.delete(stored.key)
+            except Exception:
+                json_error(
+                    handler,
+                    HTTPStatus.BAD_GATEWAY,
+                    "旧头像删除失败且新头像回滚删除失败，头像未更新",
+                )
+                return
+            json_error(handler, HTTPStatus.BAD_GATEWAY, "旧头像存储删除失败，头像未更新")
+            return
 
     send_json(
         handler,

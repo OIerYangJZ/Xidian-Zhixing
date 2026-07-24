@@ -81,6 +81,7 @@ Page({
     emojis: EMOJIS,
     showEmojiPanel: false,
     loading: true,
+    errorMessage: '',
     commentContent: '',
     canSendComment: false,
     replyToId: '',
@@ -137,7 +138,7 @@ Page({
   },
 
   async loadDetail() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const [post, comments] = await Promise.all([
         getPost(this.data.postId),
@@ -150,10 +151,19 @@ Page({
         comments: buildCommentRows(comments, this.data.targetCommentId),
         loading: false
       });
-      this.hydratePostImages();
+      await this.hydratePostImages();
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '帖子加载失败，请重试'
+      });
     }
+  },
+
+  retryLoadDetail() {
+    this.loadDetail();
   },
 
   async hydratePostImages() {
@@ -199,7 +209,7 @@ Page({
           ...post,
           favorited: Boolean(result.favorited),
           isFavorited: Boolean(result.favorited),
-          favoriteCount: Number(result.favoriteCount || post.favoriteCount)
+          favoriteCount: result.favoriteCount
         }
       });
     } catch (error) {

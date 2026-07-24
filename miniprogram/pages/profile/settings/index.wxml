@@ -1,5 +1,6 @@
 <view class="page settings-list-page mobile-list-page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty" bindtap="fetchUserInfo">{{errorMessage}} · 点击重试</view>
   <view wx:else>
     <view wx:if="{{userInfo}}" class="mobile-user-card">
       <image wx:if="{{userInfo.avatarUrl}}" class="mobile-user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>

@@ -1,3 +1,5 @@
+import { clearCampusAuthSession } from './campus_auth';
+
 const LOGIN_PAGE = '/pages/profile/auth/index';
 
 const TABBAR_PAGES = [
@@ -38,6 +40,11 @@ export const hasLogin = () => {
   return Boolean(wx.getStorageSync('token'));
 };
 
+export const clearLocalSession = () => {
+  wx.removeStorageSync('token');
+  clearCampusAuthSession();
+};
+
 export const requireLoginPage = () => {
   if (hasLogin()) return true;
   if (!isLoginRoute()) {
@@ -53,7 +60,7 @@ export const requireLoginPage = () => {
 };
 
 export const clearLoginAndRedirect = () => {
-  wx.removeStorageSync('token');
+  clearLocalSession();
   if (!isLoginRoute()) {
     withNavLock(() => {
       wx.reLaunch({ url: LOGIN_PAGE });

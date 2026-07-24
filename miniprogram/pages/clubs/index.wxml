@@ -1,5 +1,10 @@
 <view class="page club-page {{themeClass}}">
   <button class="apply-btn" bindtap="apply">申请社团分区</button>
+  <view wx:if="{{loading}}">加载中...</view>
+  <view wx:elif="{{errorMessage}}">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view class="club-row" wx:for="{{clubs}}" wx:key="id" data-id="{{item.id}}" bindtap="openDetail">
     <view class="club-name">{{item.name}}</view>
     <view class="club-desc">{{item.description}}</view>

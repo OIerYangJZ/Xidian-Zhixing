@@ -1,5 +1,21 @@
 import request from '../utils/request';
-import { resolveUrl } from '../utils/format';
+import {
+  getData,
+  resolveUrl,
+  responseContractError
+} from '../utils/format';
+
+const requireAuthData = (response, { allowNeedVerify = false } = {}) => {
+  const data = getData(response, {});
+  const token = String(data.token || data.accessToken || '').trim();
+  if (token) {
+    return response;
+  }
+  if (allowNeedVerify && data.needVerify === true) {
+    return response;
+  }
+  throw responseContractError('认证响应缺少登录凭据');
+};
 
 const normalizeUser = (user = {}) => {
   return {
@@ -14,8 +30,9 @@ const normalizeUser = (user = {}) => {
  * @param {string} identifier - 学号或邮箱
  * @param {string} password - 密码
  */
-export const login = (identifier, password) => {
-  return request.post('/api/auth/login', { identifier, password });
+export const login = async (identifier, password) => {
+  const response = await request.post('/api/auth/login', { identifier, password });
+  return requireAuthData(response, { allowNeedVerify: true });
 };
 
 /**
@@ -42,8 +59,9 @@ export const register = (data) => {
 /**
  * 邮箱验证码验证
  */
-export const verifyEmail = (email, code, password = '') => {
-  return request.post('/api/auth/verify', { email, code, password });
+export const verifyEmail = async (email, code, password = '') => {
+  const response = await request.post('/api/auth/verify', { email, code, password });
+  return requireAuthData(response);
 };
 
 /**
@@ -53,7 +71,7 @@ export const getUserInfo = async () => {
   const response = await request.get('/api/users/me');
   return {
     ...response,
-    data: normalizeUser(response.data || {})
+    data: normalizeUser(getData(response, {}))
   };
 };
 

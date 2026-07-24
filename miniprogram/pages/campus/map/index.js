@@ -22,7 +22,8 @@ Page({
     maps: [],
     places: [],
     officialUrl: '',
-    loading: true
+    loading: true,
+    errorMessage: ''
   },
 
   async onLoad() {
@@ -34,7 +35,7 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const response = await getCampusMaps();
       const maps = response.data || response || [];
@@ -46,9 +47,17 @@ Page({
         loading: false
       });
     } catch (error) {
-      console.error(error);
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '地图索引加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   openOfficialMap() {

@@ -16,7 +16,8 @@ Page({
   data: {
     type: 'friends',
     loading: true,
-    users: []
+    users: [],
+    errorMessage: ''
   },
 
   onLoad(options) {
@@ -28,7 +29,7 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const users = this.data.type === 'following'
         ? await getFollowing()
@@ -37,8 +38,17 @@ Page({
           : await getFriends();
       this.setData({ users, loading: false });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '关系列表加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   openUser(event) {

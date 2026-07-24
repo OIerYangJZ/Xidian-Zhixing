@@ -37,8 +37,14 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
 
     try {
       await ref.read(authRepositoryProvider).logout();
-    } catch (_) {}
-    AuthStore.instance.clear();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('退出失败：$error')));
+      }
+      return;
+    }
     if (!mounted) return;
     context.go('/auth/login');
   }

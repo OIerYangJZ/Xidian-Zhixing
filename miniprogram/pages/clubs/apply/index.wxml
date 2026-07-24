@@ -7,8 +7,13 @@
   <textarea class="app-textarea" value="{{description}}" data-field="description" bindinput="onInput" placeholder="说明社团情况、负责人身份和分区用途" />
   <view class="field-label">联系方式</view>
   <input class="app-input" value="{{contact}}" data-field="contact" bindinput="onInput" placeholder="邮箱或微信" />
-  <button class="submit-btn" bindtap="submit">提交申请</button>
+  <button class="submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交申请</button>
   <view class="history-title">我的申请</view>
+  <view wx:if="{{loading}}">加载中...</view>
+  <view wx:elif="{{errorMessage}}">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   <view class="history-row" wx:for="{{applications}}" wx:key="id">
     <view class="history-name">{{item.name}}</view>
     <view class="history-status {{item.status}}">{{item.statusText}}</view>

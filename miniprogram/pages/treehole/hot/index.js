@@ -3,15 +3,41 @@ import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
 Page({
   data: {
     topics: [],
-    summary: ''
+    summary: '',
+    loading: true,
+    errorMessage: ''
   },
   async onLoad() {
-    const topics = await getHotTopics();
-    this.setData({ topics });
+    await this.loadTopics();
+  },
+  async loadTopics() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const topics = await getHotTopics();
+      this.setData({ topics, loading: false });
+    } catch (error) {
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '热榜加载失败，请重试'
+      });
+    }
+  },
+  retryLoad() {
+    this.loadTopics();
   },
   async summarize() {
-    const result = await getHotTopicSummary();
-    this.setData({ summary: result.answer || '' });
+    try {
+      const result = await getHotTopicSummary();
+      this.setData({ summary: result.answer || '' });
+    } catch (error) {
+      this.setData({
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '热榜总结失败，请重试'
+      });
+    }
   },
   openPost(event) {
     const postId = event.currentTarget.dataset.postId;

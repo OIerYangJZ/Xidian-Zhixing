@@ -52,7 +52,12 @@
     </view>
 
     <view class="loading-state" wx:if="{{loading}}">正在寻找声音...</view>
-    <view class="tag-empty" wx:if="{{!loading && posts.length === 0}}">
+    <view class="tag-empty" wx:if="{{!loading && errorMessage && posts.length === 0}}">
+      <view class="tag-empty-title">加载失败</view>
+      <view class="tag-empty-desc">{{errorMessage}}</view>
+      <button bindtap="retryLoad">重新加载</button>
+    </view>
+    <view class="tag-empty" wx:elif="{{!loading && posts.length === 0}}">
       <view class="tag-empty-title">还没有这个标签的帖子</view>
       <view class="tag-empty-desc">#{{tag}}</view>
     </view>

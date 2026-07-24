@@ -23,7 +23,8 @@ Page({
     themeClass: '',
     navTop: 0,
     navHeight: 32,
-    currentUserId: ''
+    currentUserId: '',
+    errorMessage: ''
   },
 
   async onLoad(options) {
@@ -32,9 +33,18 @@ Page({
     const tag = decodeURIComponent(options.tag || '').replace(/^#+/, '').trim();
     this.setData({ tag });
     if (!requireLoginPage()) return;
-    await this.loadUserInfo();
-    if (tag) this.loadPosts();
-    if (!tag) this.setData({ loading: false });
+    try {
+      await this.loadUserInfo();
+      if (tag) await this.loadPosts();
+      if (!tag) this.setData({ loading: false });
+    } catch (error) {
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '标签页面加载失败，请重试'
+      });
+    }
   },
 
   onShow() {
@@ -57,7 +67,7 @@ Page({
   },
 
   async loadPosts() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const posts = await getPosts({
         keyword: this.data.tag,
@@ -77,10 +87,20 @@ Page({
         posts: filteredPosts,
         total: filteredPosts.length
       });
-      this.hydrateFeedImages();
+      await this.hydrateFeedImages();
+    } catch (error) {
+      this.setData({
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '标签帖子加载失败，请重试'
+      });
     } finally {
       this.setData({ loading: false });
     }
+  },
+
+  retryLoad() {
+    this.loadPosts();
   },
 
   async hydrateFeedImages() {

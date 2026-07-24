@@ -139,6 +139,7 @@ Page({
     visibilitySelectorOpen: false,
 
     images: [],
+    loadErrorMessage: '',
     isUploading: false,
     isPublishing: false
   },
@@ -147,9 +148,7 @@ Page({
     this.initCustomNav();
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
-    this.loadSections();
-    this.loadClubs();
-    this.loadUserLevel();
+    this.loadInitialData();
   },
 
   onShow() {
@@ -180,6 +179,28 @@ Page({
       }
     });
     this.setData({ sections: dedupedSections, sectionIndex: -1, loading: false });
+  },
+
+  async loadInitialData() {
+    this.setData({ loadErrorMessage: '' });
+    try {
+      await Promise.all([
+        this.loadSections(),
+        this.loadClubs(),
+        this.loadUserLevel()
+      ]);
+    } catch (error) {
+      this.setData({
+        loading: false,
+        loadErrorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '发布配置加载失败，请重试'
+      });
+    }
+  },
+
+  retryLoadInitialData() {
+    this.loadInitialData();
   },
 
   async loadClubs() {
@@ -448,7 +469,12 @@ Page({
         }))
       ];
       this.setData({ images: nextImages });
-      this.uploadPendingImages();
+      this.uploadPendingImages().catch((error) => {
+        wx.showToast({
+          title: (error && error.data && error.data.message) || '图片上传失败',
+          icon: 'none'
+        });
+      });
     };
 
     if (wx.chooseMedia) {
@@ -518,6 +544,7 @@ Page({
     } catch (error) {
       const resetImages = images.map((item) => ({ ...item, uploading: false }));
       this.setData({ images: resetImages });
+      throw error;
     } finally {
       this.setData({ isUploading: false });
     }
@@ -570,7 +597,10 @@ Page({
         payload.anonymousAlias = anonymousAlias;
       }
 
-      await createPost(payload);
+      const createdPost = await createPost(payload);
+      if (!createdPost.id) {
+        throw new Error('发布响应缺少帖子 ID');
+      }
       wx.hideLoading();
       const isCampus = payload.sectionType === 'college';
       wx.showToast({ title: isCampus ? '已发布到校园' : '已悄悄放进树洞', icon: 'success' });

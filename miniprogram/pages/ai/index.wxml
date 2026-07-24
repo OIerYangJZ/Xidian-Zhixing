@@ -7,11 +7,19 @@
     </view>
     <view>
       <view class="ai-title">AI 助手</view>
-      <view class="ai-subtitle">学习、生活、校园问题都可以问</view>
+      <view class="ai-subtitle">{{subtitleText}}</view>
     </view>
   </view>
   
   <view class="ai-action-bar" style="margin-top: {{navTop + navHeight + 8}}px;">
+    <view wx:if="{{userErrorMessage}}" class="empty-state-desc">
+      {{userErrorMessage}}
+      <button bindtap="retryLoadUserInfo">重新加载</button>
+    </view>
+    <view wx:if="{{configError}}" class="empty-state-desc">
+      {{configError}}
+      <button bindtap="retryLoadAiStatus">重新加载</button>
+    </view>
     <button class="new-chat-btn" bindtap="startNewChat">
       <text class="icon">+</text>
       <text>发起新对话</text>

@@ -1,12 +1,13 @@
 import { getUserInfo, resetPassword, sendPasswordResetCode } from '../../../api/auth';
 import { submitCancellationRequest, submitLevelUpgradeRequest } from '../../../api/user';
 import { logout } from '../../../api/auth';
-import { requireLoginPage } from '../../../utils/auth_guard';
+import { clearLocalSession, requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   data: {
     loading: true,
+    errorMessage: '',
     profile: null,
     levelUpgradeSubtitle: '',
     cancellationSubtitle: '',
@@ -22,7 +23,7 @@ Page({
   },
 
   async loadProfile() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const response = await getUserInfo();
       const profile = response.data || {};
@@ -33,11 +34,15 @@ Page({
           : '当前为二级用户，可申请升级为一级用户',
         cancellationSubtitle: profile.accountCancellationRequest
           ? `${profile.accountCancellationRequest.statusLabel || '申请中'} · ${profile.accountCancellationRequest.createdAt || ''}`
-          : '永久注销此账号及所有关联数据',
-        loading: false
+          : '停用账号并进入可申诉恢复状态',
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '账号安全信息加载失败，请重试'
+      });
     }
   },
 
@@ -114,8 +119,11 @@ Page({
   async handleLogout() {
     try {
       await logout();
-    } catch (error) {}
-    wx.removeStorageSync('token');
+    } catch (error) {
+      wx.showToast({ title: '退出失败，请重试', icon: 'none' });
+      return;
+    }
+    clearLocalSession();
     wx.reLaunch({ url: '/pages/profile/index' });
   }
 });

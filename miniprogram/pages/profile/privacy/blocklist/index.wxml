@@ -1,5 +1,6 @@
 <view class="page blocklist-page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadBlocks">{{errorMessage}} · 点击重试</view>
   <view wx:elif="{{!blocks.length}}" class="empty-state">
     <view class="empty-icon">🚫</view>
     <view class="empty-text">你的黑名单是空的</view>

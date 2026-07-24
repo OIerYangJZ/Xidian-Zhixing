@@ -47,6 +47,7 @@ from helpers._rate_limit import (
     send_rate_limit_error,
 )
 from helpers._http_helpers import (
+    InvalidJsonBody,
     RequestBodyTooLarge,
     json_error,
     read_json_body,
@@ -99,6 +100,7 @@ __all__ = [
     "get_setting_int",
     "send_rate_limit_error",
     # http helpers
+    "InvalidJsonBody",
     "RequestBodyTooLarge",
     "json_error",
     "read_json_body",

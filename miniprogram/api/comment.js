@@ -1,5 +1,5 @@
 import request from '../utils/request';
-import { getData, normalizeComment, toArray } from '../utils/format';
+import { getData, normalizeComment, responseContractError } from '../utils/format';
 
 const normalizeLegacyComment = (raw = {}) => {
   const comment = normalizeComment(raw);
@@ -11,8 +11,13 @@ const normalizeLegacyComment = (raw = {}) => {
 };
 
 const normalizeLegacyCommentListResponse = (response) => {
-  const payload = getData(response, {});
-  const rows = Array.isArray(payload) ? payload : toArray(payload.items);
+  const payload = getData(response);
+  const rows = Array.isArray(payload)
+    ? payload
+    : (payload && Array.isArray(payload.items) ? payload.items : null);
+  if (!rows) {
+    throw responseContractError('评论列表响应格式错误');
+  }
   return {
     ...response,
     data: {

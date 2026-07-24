@@ -19,6 +19,8 @@ class AppUpdateController extends ChangeNotifier {
   int _currentVersionCode = 0;
   int? _startupPromptedVersionCode;
 
+  bool get supportsInAppUpdate =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
   bool get initialized => _initialized;
   bool get checking => _checking;
   String? get error => _error;
@@ -58,6 +60,11 @@ class AppUpdateController extends ChangeNotifier {
 
   Future<bool> checkForUpdates({bool clearError = true}) async {
     await ensureInitialized();
+    if (!supportsInAppUpdate) {
+      _latestRelease = null;
+      _error = null;
+      return false;
+    }
     if (_checking) {
       return hasUpdate;
     }

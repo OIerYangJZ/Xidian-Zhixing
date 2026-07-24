@@ -44,9 +44,9 @@ class _AboutPageState extends ConsumerState<AboutPage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -75,13 +75,19 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: MobileTheme.primaryOf(context).withValues(alpha: 0.3),
+                        color: MobileTheme.primaryOf(
+                          context,
+                        ).withValues(alpha: 0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.wb_sunny_rounded, size: 50, color: Colors.white),
+                  child: const Icon(
+                    Icons.wb_sunny_rounded,
+                    size: 50,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 const Text(
@@ -101,34 +107,35 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             ),
           ),
           const SizedBox(height: 40),
-          _buildTileCard([
-            _buildListTile(
-              icon: Icons.download_outlined,
-              title: '下载 Android 客户端',
-              subtitle: '检查并下载最新安装包',
-              onTap: _handleCheckUpdate,
-            ),
-            _buildListTile(
-              icon: updateController.hasUpdate
-                  ? Icons.system_update_alt_rounded
-                  : Icons.system_update_alt_outlined,
-              title: '检查更新',
-              subtitle: _updateSubtitle(updateController),
-              trailing: updateController.checking
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: MobileTheme.primaryOf(context),
-                      ),
-                    )
-                  : updateController.hasUpdate
-                      ? const _UpdateBadge(label: '有新版本')
-                      : null,
-              onTap: updateController.checking ? null : _handleCheckUpdate,
-            ),
-          ]),
+          if (updateController.supportsInAppUpdate)
+            _buildTileCard([
+              _buildListTile(
+                icon: Icons.download_outlined,
+                title: '下载 Android 客户端',
+                subtitle: '检查并下载最新安装包',
+                onTap: _handleCheckUpdate,
+              ),
+              _buildListTile(
+                icon: updateController.hasUpdate
+                    ? Icons.system_update_alt_rounded
+                    : Icons.system_update_alt_outlined,
+                title: '检查更新',
+                subtitle: _updateSubtitle(updateController),
+                trailing: updateController.checking
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: MobileTheme.primaryOf(context),
+                        ),
+                      )
+                    : updateController.hasUpdate
+                    ? const _UpdateBadge(label: '有新版本')
+                    : null,
+                onTap: updateController.checking ? null : _handleCheckUpdate,
+              ),
+            ]),
           _buildTileCard([
             _buildListTile(
               icon: Icons.description_outlined,

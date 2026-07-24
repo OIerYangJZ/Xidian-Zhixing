@@ -1,5 +1,5 @@
 import request from '../utils/request';
-import { getData, normalizePost, toArray } from '../utils/format';
+import { getData, normalizePost, responseContractError } from '../utils/format';
 
 const normalizeLegacyPost = (raw = {}) => {
   const post = normalizePost(raw);
@@ -13,8 +13,13 @@ const normalizeLegacyPost = (raw = {}) => {
 };
 
 const normalizeLegacyPostListResponse = (response) => {
-  const payload = getData(response, {});
-  const rows = Array.isArray(payload) ? payload : toArray(payload.items);
+  const payload = getData(response);
+  const rows = Array.isArray(payload)
+    ? payload
+    : (payload && Array.isArray(payload.items) ? payload.items : null);
+  if (!rows) {
+    throw responseContractError('帖子列表响应格式错误');
+  }
   return {
     ...response,
     data: {

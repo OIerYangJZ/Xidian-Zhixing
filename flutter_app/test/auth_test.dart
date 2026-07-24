@@ -177,8 +177,9 @@ void main() {
       test('发送验证码成功返回 debug code', () async {
         authRepository = AuthRepository(ApiClient(httpClient: mockClient));
 
-        final debugCode =
-            await authRepository.sendEmailCode('test@example.com');
+        final debugCode = await authRepository.sendEmailCode(
+          'test@example.com',
+        );
 
         expect(debugCode, equals('123456'));
       });
@@ -200,13 +201,55 @@ void main() {
       test('错误验证码抛出异常', () async {
         authRepository = AuthRepository(ApiClient(httpClient: mockClient));
 
-        expect(
+        await expectLater(
           () => authRepository.verifyEmail(
             email: 'test@example.com',
             code: 'wrong_code',
           ),
-          throwsA(isA<ApiException>()),
+          throwsA(
+            isA<ApiException>().having(
+              (ApiException error) => error.message,
+              'message',
+              '验证码错误',
+            ),
+          ),
         );
+      });
+
+      test('保留前导零、规范化邮箱并识别嵌套成功响应', () async {
+        late Map<String, dynamic> submitted;
+        final MockClient contractClient = MockClient((
+          http.Request request,
+        ) async {
+          submitted = jsonDecode(request.body) as Map<String, dynamic>;
+          return http.Response(
+            jsonEncode(<String, dynamic>{
+              'success': true,
+              'message': '邮箱验证成功',
+              'data': <String, dynamic>{
+                'token': 'leading_zero_token',
+                'verified': true,
+                'email': 'student@stu.xidian.edu.cn',
+              },
+            }),
+            200,
+            headers: <String, String>{
+              'content-type': 'application/json; charset=utf-8',
+            },
+          );
+        });
+        authRepository = AuthRepository(ApiClient(httpClient: contractClient));
+
+        final AuthLoginResult result = await authRepository.verifyEmail(
+          email: '  Student@STU.XIDIAN.EDU.CN  ',
+          code: '012345',
+        );
+
+        expect(submitted['email'], 'student@stu.xidian.edu.cn');
+        expect(submitted['code'], '012345');
+        expect(submitted['code'], isA<String>());
+        expect(result.verified, isTrue);
+        expect(result.token, 'leading_zero_token');
       });
     });
 
@@ -214,10 +257,7 @@ void main() {
       test('登出成功', () async {
         authRepository = AuthRepository(ApiClient(httpClient: mockClient));
 
-        await expectLater(
-          authRepository.logout(),
-          completes,
-        );
+        await expectLater(authRepository.logout(), completes);
       });
     });
   });

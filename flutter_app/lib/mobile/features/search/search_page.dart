@@ -30,6 +30,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
   SearchTab _currentTab = SearchTab.posts;
   bool _isSearching = false;
   bool _hasSearched = false;
+  String? _searchError;
   List<PostItem> _postResults = <PostItem>[];
   List<PublicUserProfile> _userResults = <PublicUserProfile>[];
 
@@ -44,6 +45,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
               ? SearchTab.posts
               : SearchTab.users;
           _hasSearched = false;
+          _searchError = null;
           _postResults = <PostItem>[];
           _userResults = <PublicUserProfile>[];
           _searchController.clear();
@@ -69,6 +71,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
     setState(() {
       _isSearching = true;
       _hasSearched = true;
+      _searchError = null;
+      _postResults = <PostItem>[];
+      _userResults = <PublicUserProfile>[];
     });
 
     try {
@@ -93,9 +98,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('搜索失败，请稍后重试')));
+        setState(() {
+          _searchError = '搜索失败，请稍后重试';
+        });
       }
     } finally {
       if (mounted) {
@@ -164,6 +169,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
                           _searchController.clear();
                           setState(() {
                             _hasSearched = false;
+                            _searchError = null;
                             _postResults = <PostItem>[];
                             _userResults = <PublicUserProfile>[];
                           });
@@ -204,6 +210,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
   }
 
   Widget _buildPostResults() {
+    if (_searchError != null) {
+      return _buildSearchError();
+    }
     if (!_hasSearched && _searchController.text.trim().isEmpty) {
       return Center(
         child: Text(
@@ -234,6 +243,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
   }
 
   Widget _buildUserResult() {
+    if (_searchError != null) {
+      return _buildSearchError();
+    }
     if (!_hasSearched && _searchController.text.trim().isEmpty) {
       return Center(
         child: Text(
@@ -304,6 +316,22 @@ class _SearchPageState extends ConsumerState<SearchPage>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSearchError() {
+    final colors = MobileColors.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.error_outline, size: 42, color: colors.textTertiary),
+          const SizedBox(height: 10),
+          Text(_searchError!, style: TextStyle(color: colors.textSecondary)),
+          const SizedBox(height: 10),
+          TextButton(onPressed: _handleSearch, child: const Text('重试')),
+        ],
+      ),
     );
   }
 }

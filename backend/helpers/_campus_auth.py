@@ -15,6 +15,7 @@ from html.parser import HTMLParser
 from typing import Any
 from urllib.parse import parse_qs, urljoin, urlsplit
 
+from helpers._auth_helpers import detect_image_type
 from helpers._xidian_auth import (
     IDS_HEADERS,
     IDS_LOGIN_URL,
@@ -29,6 +30,7 @@ from helpers._xidian_auth import (
     _parse_password_error_message,
     _requests_timeout,
     _solve_slider_captcha,
+    _validated_service_ticket_redirect,
     login_via_xidian_ids,
 )
 
@@ -242,7 +244,7 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
     if response.status_code == 401:
         raise XidianAuthPasswordError(_parse_password_error_message(response.text))
     if response.status_code in (301, 302):
-        return session, response.headers.get("Location", "")
+        return session, _validated_service_ticket_redirect(response, target_url)
     if response.status_code != 200:
         raise XidianAuthUnavailableError(f"统一认证服务异常（状态码 {response.status_code}）")
 
@@ -261,7 +263,7 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
         raise XidianAuthUnavailableError("统一认证登录请求失败，请稍后重试") from exc
 
     if response.status_code in (301, 302):
-        return session, response.headers.get("Location", "")
+        return session, _validated_service_ticket_redirect(response, target_url)
     if response.status_code == 401:
         raise XidianAuthPasswordError(_parse_password_error_message(response.text))
     error_message = _extract_login_error_message(response.text)
@@ -280,7 +282,7 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
         except requests.RequestException as exc:
             raise XidianAuthUnavailableError("统一认证登录续跳失败，请稍后重试") from exc
         if response.status_code in (301, 302):
-            return session, response.headers.get("Location", "")
+            return session, _validated_service_ticket_redirect(response, target_url)
         if response.status_code == 401:
             raise XidianAuthPasswordError(_parse_password_error_message(response.text))
         error_message = _extract_login_error_message(response.text)
@@ -699,7 +701,12 @@ def apply_ids_academic_data(db: dict[str, Any], *, owner_user_id: str, synced: d
     return counts
 
 
-def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: dict[str, Any] | None = None) -> dict[str, Any]:
+def fetch_ids_academic_data(
+    identifier: str,
+    password: str,
+    *,
+    owner_user_id: str = "",
+) -> tuple[str, dict[str, Any]]:
     student_id = _require_identifier(identifier)
     password = _require_password(password, "统一认证密码")
     session, location = _login_ids_for_service(student_id, password, EHALL_HOME_SERVICE_URL)
@@ -710,9 +717,15 @@ def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: di
         password=password,
         owner_user_id=owner_user_id or student_id,
     )
-    sync_counts = {"courseSchedules": 0, "examSchedules": 0}
-    if db is not None and owner_user_id:
-        sync_counts = apply_ids_academic_data(db, owner_user_id=owner_user_id, synced=synced)
+    return student_id, synced
+
+
+def build_ids_login_result(
+    *,
+    student_id: str,
+    synced: dict[str, Any],
+    sync_counts: dict[str, int],
+) -> dict[str, Any]:
     return {
         "system": "ids",
         "status": "authenticated",
@@ -727,6 +740,22 @@ def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: di
     }
 
 
+def login_ids(identifier: str, password: str, *, owner_user_id: str = "", db: dict[str, Any] | None = None) -> dict[str, Any]:
+    student_id, synced = fetch_ids_academic_data(
+        identifier,
+        password,
+        owner_user_id=owner_user_id,
+    )
+    sync_counts = {"courseSchedules": 0, "examSchedules": 0}
+    if db is not None and owner_user_id:
+        sync_counts = apply_ids_academic_data(db, owner_user_id=owner_user_id, synced=synced)
+    return build_ids_login_result(
+        student_id=student_id,
+        synced=synced,
+        sync_counts=sync_counts,
+    )
+
+
 def login_payment(identifier: str, password: str) -> dict[str, Any]:
     student_id = _require_identifier(identifier)
     session, location = _login_ids_for_service(
@@ -736,6 +765,8 @@ def login_payment(identifier: str, password: str) -> dict[str, Any]:
     )
     final_url = _follow_redirects(session, location)
     query = parse_qs(urlsplit(final_url).query)
+    if not query.get("code"):
+        raise CampusAuthError("缴费/水电系统未返回有效授权码")
     return {
         "system": "payment",
         "status": "authenticated",
@@ -795,12 +826,44 @@ def login_physics(identifier: str, password: str) -> dict[str, Any]:
             else ""
         )
         raise CampusAuthCredentialError(message or "物理实验账号或密码错误")
+    redirect_location = str(response.headers.get("Location", "") or "").strip()
+    redirect_url = urljoin(PHYSICS_LOGIN_URL, redirect_location)
+    redirect_parts = urlsplit(redirect_url)
+    expected_parts = urlsplit(PHYSICS_SELECT_URL)
+    if (
+        not redirect_location
+        or redirect_parts.netloc.lower() != expected_parts.netloc.lower()
+        or not redirect_parts.path.lower().startswith("/phyews/student/")
+    ):
+        raise CampusAuthError("物理实验系统未返回有效的学生端跳转")
 
     try:
         select_response = session.get(PHYSICS_SELECT_URL, timeout=_requests_timeout())
+        select_response.raise_for_status()
         select_text = _decode_response_text(select_response, "gb18030")
     except requests.RequestException as exc:
         raise CampusAuthError("物理实验系统登录后数据页访问失败") from exc
+    if re.search(
+        r"""name=["']login1\$StuLoginID["']""",
+        select_text,
+        flags=re.I,
+    ):
+        raise CampusAuthCredentialError("物理实验登录状态未生效")
+    select_url = str(getattr(select_response, "url", "") or PHYSICS_SELECT_URL)
+    select_parts = urlsplit(select_url)
+    if (
+        select_parts.netloc.lower() != expected_parts.netloc.lower()
+        or select_parts.path.rstrip("/").lower()
+        != expected_parts.path.rstrip("/").lower()
+    ):
+        raise CampusAuthError("物理实验系统数据页地址异常")
+    authenticated_markers = (
+        r'id=["\']Orders(?:_ctl\d+)?["\']',
+        r'href=["\'][^"\']*(?:logout|exit)[^"\']*["\']',
+        r"(?:实验项目|实验预约|选择实验|退出系统|注销)",
+    )
+    if not any(re.search(pattern, select_text, flags=re.I) for pattern in authenticated_markers):
+        raise CampusAuthError("物理实验系统未返回可验证的登录后页面")
     experiment_count = len(re.findall(r'id=["\']Orders_ctl\d+["\']', select_text, flags=re.I))
     return {
         "system": "physics",
@@ -849,6 +912,10 @@ def login_sport(identifier: str, password: str) -> dict[str, Any]:
         )
     except requests.RequestException as exc:
         raise CampusAuthError("无法连接体育系统") from exc
+    try:
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("体育系统登录请求失败") from exc
     data = _json_response(response)
     return_code = str(data.get("returnCode", ""))
     if return_code != "200":
@@ -857,6 +924,8 @@ def login_sport(identifier: str, password: str) -> dict[str, Any]:
             raise CampusAuthCredentialError(message)
         raise CampusAuthError(message)
     payload_data = data.get("data") if isinstance(data.get("data"), dict) else {}
+    if not str(payload_data.get("token", "")).strip():
+        raise CampusAuthError("体育系统未返回有效登录凭证")
     return {
         "system": "sport",
         "status": "authenticated",
@@ -979,6 +1048,10 @@ def login_schoolnet(attempt_id: str, identifier: str, password: str, captcha: st
         )
     except requests.RequestException as exc:
         raise CampusAuthError("校园网登录预校验失败") from exc
+    try:
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("校园网登录预校验失败") from exc
     data = _json_response(response)
     if not data.get("success"):
         message = str(data.get("message") or "校园网账号、密码或验证码错误")
@@ -993,22 +1066,57 @@ def login_schoolnet(attempt_id: str, identifier: str, password: str, captcha: st
         "LoginForm[verifyCode]": captcha,
     }
     try:
-        attempt.session.post(
+        login_response = attempt.session.post(
             f"{SCHOOLNET_BASE_URL}/",
             data=login_payload,
             headers=headers,
             timeout=_requests_timeout(),
         )
+        login_response.raise_for_status()
         home_response = attempt.session.get(f"{SCHOOLNET_BASE_URL}/home", timeout=_requests_timeout())
+        home_response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("校园网登录后查询失败") from exc
+    home_url = str(getattr(home_response, "url", "") or "").lower()
+    home_page = str(home_response.text or "")
+    if (
+        "/login" in home_url
+        or re.search(
+            r"""<input[^>]+name=["']LoginForm\[username\]["']""",
+            home_page,
+            flags=re.I,
+        )
+    ):
+        raise CampusAuthCredentialError("校园网账号、密码或验证码错误")
+    home_parts = urlsplit(home_url)
+    expected_home_parts = urlsplit(f"{SCHOOLNET_BASE_URL}/home")
+    if (
+        home_parts.netloc.lower() != expected_home_parts.netloc.lower()
+        or home_parts.path.rstrip("/").lower()
+        != expected_home_parts.path.rstrip("/").lower()
+    ):
+        raise CampusAuthError("校园网登录后页面地址异常")
+    usage = _parse_schoolnet_usage(home_page)
+    usage_summary = usage.get("summary") if isinstance(usage.get("summary"), dict) else {}
+    has_usage_data = any(str(value or "").strip() for value in usage_summary.values()) or bool(
+        usage.get("onlineDevices")
+    )
+    authenticated_markers = (
+        r'href=["\'][^"\']*(?:site/)?logout[^"\']*["\']',
+        r"(?:退出登录|注销登录|在线设备|已用流量|剩余流量|套餐余额)",
+    )
+    if not has_usage_data and not any(
+        re.search(pattern, home_page, flags=re.I)
+        for pattern in authenticated_markers
+    ):
+        raise CampusAuthError("校园网未返回可验证的登录后页面")
     with _SCHOOLNET_LOCK:
         _SCHOOLNET_ATTEMPTS.pop(attempt_id, None)
     return {
         "system": "schoolnet",
         "status": "authenticated",
         "studentId": student_id,
-        "usage": _parse_schoolnet_usage(home_response.text),
+        "usage": usage,
         "message": "校园网自服务登录通过",
     }
 
@@ -1034,6 +1142,8 @@ def create_dorm_water_captcha() -> dict[str, Any]:
         response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机验证码获取失败") from exc
+    if detect_image_type(bytes(response.content)) is None:
+        raise CampusAuthError("宿舍水机验证码响应不是有效图片")
     return {
         "sessionId": session_id,
         "imageBase64": base64.b64encode(response.content).decode("ascii"),
@@ -1061,6 +1171,10 @@ def send_dorm_water_sms(session_id: str, phone: str, image_code: str) -> dict[st
         )
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机短信发送失败") from exc
+    try:
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("宿舍水机短信发送失败") from exc
     data = _json_response(response)
     if data.get("code") != 0:
         raise CampusAuthInputError(str(data.get("msg") or "宿舍水机短信发送失败"))
@@ -1086,11 +1200,17 @@ def login_dorm_water(phone: str, sms_code: str) -> dict[str, Any]:
         )
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机登录失败") from exc
+    try:
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise CampusAuthError("宿舍水机登录失败") from exc
     data = _json_response(response)
     if data.get("code") != 0:
         raise CampusAuthCredentialError(str(data.get("msg") or "宿舍水机登录失败"))
     payload = data.get("data") if isinstance(data.get("data"), dict) else {}
     account = payload.get("al") if isinstance(payload.get("al"), dict) else {}
+    if not str(account.get("token", "")).strip():
+        raise CampusAuthCredentialError("宿舍水机未返回有效登录凭证")
     return {
         "system": "dormWater",
         "status": "authenticated",

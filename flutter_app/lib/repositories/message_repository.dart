@@ -11,16 +11,15 @@ class MessageRepository {
   final ApiClient _apiClient;
 
   Future<List<DmRequestItem>> fetchDmRequests() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.dmRequests);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => DmRequestItem.fromJson(asMap(item)))
-          .where((DmRequestItem item) => item.id.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return <DmRequestItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.dmRequests);
+    final List<dynamic> list = extractList(response);
+    final List<DmRequestItem> items = list
+        .map((dynamic item) => DmRequestItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((DmRequestItem item) => item.id.isEmpty)) {
+      throw const FormatException('私信申请列表包含无效记录');
     }
+    return items;
   }
 
   Future<void> handleDmRequest({
@@ -55,16 +54,15 @@ class MessageRepository {
   }
 
   Future<List<ConversationItem>> fetchConversations() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.conversations);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => ConversationItem.fromJson(asMap(item)))
-          .where((ConversationItem item) => item.id.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return <ConversationItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.conversations);
+    final List<dynamic> list = extractList(response);
+    final List<ConversationItem> items = list
+        .map((dynamic item) => ConversationItem.fromJson(asMap(item)))
+        .toList();
+    if (items.any((ConversationItem item) => item.id.isEmpty)) {
+      throw const FormatException('会话列表包含无效记录');
     }
+    return items;
   }
 
   Future<List<DirectMessageItem>> fetchConversationMessages(
@@ -74,10 +72,13 @@ class MessageRepository {
       ApiEndpoints.dmConversationMessages(conversationId),
     );
     final List<dynamic> list = extractList(response);
-    return list
+    final List<DirectMessageItem> items = list
         .map((dynamic item) => DirectMessageItem.fromJson(asMap(item)))
-        .where((DirectMessageItem item) => item.id.isNotEmpty)
         .toList();
+    if (items.any((DirectMessageItem item) => item.id.isEmpty)) {
+      throw const FormatException('消息列表包含无效记录');
+    }
+    return items;
   }
 
   Future<DirectMessageItem> sendConversationMessage({
@@ -93,7 +94,11 @@ class MessageRepository {
       },
     );
     final Map<String, dynamic> map = extractMap(response);
-    return DirectMessageItem.fromJson(map);
+    final DirectMessageItem item = DirectMessageItem.fromJson(map);
+    if (item.id.isEmpty) {
+      throw const FormatException('发送消息响应缺少消息数据');
+    }
+    return item;
   }
 
   Future<void> deleteConversation(String conversationId) {
@@ -131,7 +136,10 @@ class MessageRepository {
     return ConversationItem.fromJson(data);
   }
 
-  Future<void> recallMessage({required String conversationId, required String messageId}) {
+  Future<void> recallMessage({
+    required String conversationId,
+    required String messageId,
+  }) {
     return _apiClient.delete(
       ApiEndpoints.dmMessageRecall(messageId),
       queryParameters: {'conversationId': conversationId},

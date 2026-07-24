@@ -1,10 +1,8 @@
 import 'dart:math' as math;
 
-import '../core/config/app_config.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
-import '../core/utils/markdown_utils.dart';
 import '../models/comment_item.dart';
 import '../models/post_item.dart';
 import '../models/uploaded_image_item.dart';
@@ -12,21 +10,6 @@ import '../models/uploaded_image_item.dart';
 enum PostSort { latest, hot, likes }
 
 enum CommentSort { latest, hot }
-
-const List<String> _defaultChannels = <String>[
-  '综合',
-  '找对象',
-  '找搭子',
-  '交友扩列',
-  '吐槽日常',
-  '八卦吃瓜',
-  '求助问答',
-  '失物招领',
-  '二手交易',
-  '学习交流',
-  '活动拼车',
-  '其他',
-];
 
 extension PostSortCodec on PostSort {
   String get apiValue {
@@ -281,30 +264,19 @@ class PostRepository {
   final ApiClient _apiClient;
 
   Future<List<String>> fetchChannels() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.channels);
-      final List<dynamic> list = extractList(response);
-      final List<String> channels = list
-          .map((dynamic item) {
-            if (item is String) {
-              return item.trim();
-            }
-            final Map<String, dynamic> map = asMap(item);
-            return readString(map, <String>['name', 'title', 'channelName']) ??
-                '';
-          })
-          .where((String name) => name.isNotEmpty)
-          .toSet()
-          .toList();
-
-      if (channels.isNotEmpty) {
-        return channels;
+    final dynamic response = await _apiClient.get(ApiEndpoints.channels);
+    final List<dynamic> list = extractList(response);
+    final List<String> channels = list.map((dynamic item) {
+      if (item is String) {
+        return item.trim();
       }
-    } catch (_) {
-      // ignore and fallback
+      final Map<String, dynamic> map = asMap(item);
+      return readString(map, <String>['name', 'title', 'channelName']) ?? '';
+    }).toList();
+    if (channels.any((String name) => name.isEmpty)) {
+      throw const FormatException('频道列表包含无效记录');
     }
-
-    return _defaultChannels;
+    return channels.toSet().toList();
   }
 
   Future<List<PostItem>> fetchPosts({
@@ -325,24 +297,18 @@ class PostRepository {
       'sort': sort.apiValue,
     };
 
-    try {
-      final dynamic response = await _apiClient.get(
-        ApiEndpoints.posts,
-        queryParameters: query,
-      );
-      final List<dynamic> list = extractList(response);
-      final List<PostItem> posts = list
-          .map((dynamic item) => PostItem.fromJson(asMap(item)))
-          .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
-          .toList();
-      if (posts.isNotEmpty || !AppConfig.enableMockFallback) {
-        return sortPostsForView(posts, sort: sort);
-      }
-    } catch (_) {
-      return <PostItem>[];
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.posts,
+      queryParameters: query,
+    );
+    final List<dynamic> list = extractList(response);
+    final List<PostItem> posts = list
+        .map((dynamic item) => PostItem.fromJson(asMap(item)))
+        .toList();
+    if (posts.any((PostItem post) => post.id.isEmpty)) {
+      throw const FormatException('帖子列表包含无效记录');
     }
-
-    return <PostItem>[];
+    return sortPostsForView(posts, sort: sort);
   }
 
   Future<PostItem> fetchPostDetail(String postId) async {
@@ -351,9 +317,12 @@ class PostRepository {
     );
     final Map<String, dynamic> map = extractMap(response);
     if (map.isNotEmpty) {
-      return PostItem.fromJson(map);
+      final PostItem post = PostItem.fromJson(map);
+      if (post.id.isNotEmpty) {
+        return post;
+      }
     }
-    throw Exception('帖子详情加载失败：服务端未返回有效数据');
+    throw const FormatException('帖子详情响应缺少有效帖子数据');
   }
 
   Future<PostItem> createPost(CreatePostInput input) async {
@@ -364,41 +333,13 @@ class PostRepository {
 
     final Map<String, dynamic> map = extractMap(response);
     if (map.isNotEmpty) {
-      return PostItem.fromJson(map);
+      final PostItem post = PostItem.fromJson(map);
+      if (post.id.isNotEmpty) {
+        return post;
+      }
     }
 
-    return PostItem(
-      id: 'local-${DateTime.now().millisecondsSinceEpoch}',
-      title: input.title,
-      content: input.contentFormat.trim().toLowerCase() == 'markdown'
-          ? (markdownToPlainText(
-                  input.markdownSource ?? input.content,
-                ).trim().isEmpty
-                ? input.content
-                : markdownToPlainText(input.markdownSource ?? input.content))
-          : input.content,
-      contentFormat: input.contentFormat,
-      markdownSource: input.markdownSource ?? '',
-      channel: input.channel,
-      tags: input.tags,
-      authorAlias: input.useAnonymousAlias
-          ? ((input.anonymousAlias ?? '').trim().isNotEmpty
-                ? input.anonymousAlias!.trim()
-                : '匿名同学')
-          : '我的昵称',
-      isAnonymous: input.useAnonymousAlias,
-      createdAt: DateTime.now(),
-      hasImage: input.hasImage || input.imageUploadIds.isNotEmpty,
-      commentCount: 0,
-      likeCount: 0,
-      favoriteCount: 0,
-      status: input.status,
-      allowComment: input.allowComment,
-      allowDm: input.useAnonymousAlias ? false : input.allowDm,
-      isPrivate: input.privateOnly,
-      isPinned: (input.pinDurationMinutes ?? 0) > 0,
-      pinDurationMinutes: input.pinDurationMinutes ?? 0,
-    );
+    throw const FormatException('创建帖子响应缺少帖子数据');
   }
 
   Future<UploadedImageItem> uploadImage({
@@ -416,54 +357,44 @@ class PostRepository {
     );
     final Map<String, dynamic> data = extractMap(response);
     if (data.isNotEmpty) {
-      return UploadedImageItem.fromJson(data);
+      final UploadedImageItem item = UploadedImageItem.fromJson(data);
+      if (item.id.isNotEmpty) {
+        return item;
+      }
     }
-    throw Exception('图片上传失败：服务端未返回有效数据');
+    throw const FormatException('图片上传响应缺少有效图片数据');
   }
 
   Future<List<UploadedImageItem>> fetchMyUploads() async {
     final dynamic response = await _apiClient.get(ApiEndpoints.myUploads);
     final List<dynamic> rows = extractList(response);
-    return rows
+    final List<UploadedImageItem> items = rows
         .map((dynamic item) => UploadedImageItem.fromJson(asMap(item)))
-        .where((UploadedImageItem item) => item.id.isNotEmpty)
         .toList();
+    if (items.any((UploadedImageItem item) => item.id.isEmpty)) {
+      throw const FormatException('上传图片列表包含无效记录');
+    }
+    return items;
   }
 
   Future<List<CommentItem>> fetchComments(
     String postId, {
     CommentSort sort = CommentSort.latest,
   }) async {
-    try {
-      final dynamic response = await _apiClient.get(
-        ApiEndpoints.postComments(postId),
-        queryParameters: <String, dynamic>{'sort': sort.apiValue},
-      );
-      final List<dynamic> list = extractList(response);
-      final List<CommentItem> comments = <CommentItem>[];
-      for (final dynamic item in list) {
-        final Map<String, dynamic> row = asMap(item);
-        if (row.isEmpty) {
-          continue;
-        }
-        try {
-          final CommentItem comment = CommentItem.fromJson(row);
-          if (comment.id.isEmpty || comment.content.isEmpty) {
-            continue;
-          }
-          comments.add(comment);
-        } catch (_) {
-          continue;
-        }
-      }
-      if (comments.isNotEmpty || !AppConfig.enableMockFallback) {
-        return sortCommentsForView(comments, sort: sort);
-      }
-    } catch (_) {
-      return <CommentItem>[];
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.postComments(postId),
+      queryParameters: <String, dynamic>{'sort': sort.apiValue},
+    );
+    final List<dynamic> list = extractList(response);
+    final List<CommentItem> comments = list
+        .map((dynamic item) => CommentItem.fromJson(asMap(item)))
+        .toList();
+    if (comments.any(
+      (CommentItem comment) => comment.id.isEmpty || comment.content.isEmpty,
+    )) {
+      throw const FormatException('评论列表包含无效记录');
     }
-
-    return <CommentItem>[];
+    return sortCommentsForView(comments, sort: sort);
   }
 
   Future<void> createComment({
@@ -513,7 +444,7 @@ class PostRepository {
       ApiEndpoints.postFavorite(postId),
       body: const <String, dynamic>{},
     );
-    return _parseFavoriteActionResult(response, fallbackFavorited: true);
+    return _parseFavoriteActionResult(response);
   }
 
   Future<FavoriteActionResult> unfavoritePost(String postId) async {
@@ -521,7 +452,7 @@ class PostRepository {
       ApiEndpoints.postUnfavorite(postId),
       body: const <String, dynamic>{},
     );
-    return _parseFavoriteActionResult(response, fallbackFavorited: false);
+    return _parseFavoriteActionResult(response);
   }
 
   Future<void> report({
@@ -543,46 +474,43 @@ class PostRepository {
   }
 
   Future<List<PostItem>> fetchFavoritePosts() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.favoritePosts);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => PostItem.fromJson(asMap(item)))
-          .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return const <PostItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.favoritePosts);
+    final List<dynamic> list = extractList(response);
+    final List<PostItem> posts = list
+        .map((dynamic item) => PostItem.fromJson(asMap(item)))
+        .toList();
+    if (posts.any((PostItem post) => post.id.isEmpty)) {
+      throw const FormatException('收藏帖子列表包含无效记录');
     }
+    return posts;
   }
 
   Future<List<PostItem>> fetchUserPosts(String userId) async {
-    try {
-      final Map<String, dynamic> query = {'authorId': userId};
-      final dynamic response = await _apiClient.get(
-        ApiEndpoints.posts,
-        queryParameters: query,
-      );
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => PostItem.fromJson(asMap(item)))
-          .where((PostItem post) => post.id.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return const <PostItem>[];
+    final Map<String, dynamic> query = {'authorId': userId};
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.posts,
+      queryParameters: query,
+    );
+    final List<dynamic> list = extractList(response);
+    final List<PostItem> posts = list
+        .map((dynamic item) => PostItem.fromJson(asMap(item)))
+        .toList();
+    if (posts.any((PostItem post) => post.id.isEmpty)) {
+      throw const FormatException('用户帖子列表包含无效记录');
     }
+    return posts;
   }
 
   Future<List<PostItem>> fetchMyPosts() async {
-    try {
-      final dynamic response = await _apiClient.get(ApiEndpoints.myPosts);
-      final List<dynamic> list = extractList(response);
-      return list
-          .map((dynamic item) => PostItem.fromJson(asMap(item)))
-          .where((PostItem post) => post.id.isNotEmpty || post.title.isNotEmpty)
-          .toList();
-    } catch (_) {
-      return const <PostItem>[];
+    final dynamic response = await _apiClient.get(ApiEndpoints.myPosts);
+    final List<dynamic> list = extractList(response);
+    final List<PostItem> posts = list
+        .map((dynamic item) => PostItem.fromJson(asMap(item)))
+        .toList();
+    if (posts.any((PostItem post) => post.id.isEmpty)) {
+      throw const FormatException('我的帖子列表包含无效记录');
     }
+    return posts;
   }
 
   Future<void> updateMyPostStatus({
@@ -600,17 +528,16 @@ class PostRepository {
   }
 
   Future<int?> incrementView(String postId) async {
-    try {
-      final dynamic response = await _apiClient.post(
-        ApiEndpoints.postView(postId),
-        body: const <String, dynamic>{},
-      );
-      final Map<String, dynamic> map = extractMap(response);
-      return readInt(map, <String>['viewCount']);
-    } catch (_) {
-      // 阅读量计数失败不影响主流程，静默忽略
-      return null;
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.postView(postId),
+      body: const <String, dynamic>{},
+    );
+    final Map<String, dynamic> map = extractMap(response);
+    final int? viewCount = readInt(map, <String>['viewCount']);
+    if (viewCount == null) {
+      throw const FormatException('阅读量响应缺少 viewCount');
     }
+    return viewCount;
   }
 
   Future<PinPostActionResult> submitPinRequest({
@@ -626,26 +553,31 @@ class PostRepository {
       },
     );
     final Map<String, dynamic> map = extractMap(response);
-    final String mode = (readString(map, <String>['mode']) ?? 'pending').trim();
+    final String mode = (readString(map, <String>['mode']) ?? '').trim();
+    if (mode != 'direct' && mode != 'pending') {
+      throw const FormatException('置顶申请响应包含无效 mode');
+    }
     final Map<String, dynamic> postMap = asMap(map['post']);
+    if (mode == 'direct' && postMap.isEmpty) {
+      throw const FormatException('直接置顶响应缺少帖子数据');
+    }
     return PinPostActionResult(
-      mode: mode.isEmpty ? 'pending' : mode,
+      mode: mode,
       post: postMap.isEmpty ? null : PostItem.fromJson(postMap),
     );
   }
 
-  FavoriteActionResult _parseFavoriteActionResult(
-    dynamic response, {
-    required bool fallbackFavorited,
-  }) {
+  FavoriteActionResult _parseFavoriteActionResult(dynamic response) {
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      return FavoriteActionResult(favorited: fallbackFavorited);
+      throw const FormatException('收藏操作响应缺少数据');
+    }
+    final bool? favorited = readBool(map, <String>['favorited', 'isFavorited']);
+    if (favorited == null) {
+      throw const FormatException('收藏操作响应缺少 favorited 状态');
     }
     return FavoriteActionResult(
-      favorited:
-          readBool(map, <String>['favorited', 'isFavorited']) ??
-          fallbackFavorited,
+      favorited: favorited,
       favoriteCount: readInt(map, <String>['favoriteCount', 'collectCount']),
     );
   }

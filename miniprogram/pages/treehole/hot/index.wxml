@@ -9,8 +9,13 @@
     </view>
   </view>
   <view class="summary-card" wx:if="{{summary}}">{{summary}}</view>
+  <view class="empty-state" wx:if="{{loading}}">加载中...</view>
+  <view class="empty-state" wx:elif="{{errorMessage}}">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
   
-  <view class="hot-row" wx:for="{{topics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="openPost">
+  <view class="hot-row" wx:if="{{!loading && !errorMessage}}" wx:for="{{topics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="openPost">
     <view class="hot-rank {{item.rank <= 3 ? 'rank-seal-solid' : 'rank-seal-empty'}}">{{item.rank}}</view>
     <view class="hot-body">
       <view class="hot-name">
@@ -21,5 +26,5 @@
       <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
     </view>
   </view>
-  <view class="empty-state" wx:if="{{topics.length === 0}}">暂无热榜内容</view>
+  <view class="empty-state" wx:if="{{!loading && !errorMessage && topics.length === 0}}">暂无热榜内容</view>
 </view>

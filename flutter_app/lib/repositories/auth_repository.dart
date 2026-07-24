@@ -50,6 +50,8 @@ class AuthRepository {
 
   final ApiClient _apiClient;
 
+  static String _normalizeEmail(String email) => email.trim().toLowerCase();
+
   Future<void> register({
     required String email,
     required String password,
@@ -63,7 +65,7 @@ class AuthRepository {
       ApiEndpoints.register,
       auth: false,
       body: <String, dynamic>{
-        'email': email,
+        'email': _normalizeEmail(email),
         'password': password,
         if (nickname.trim().isNotEmpty) 'nickname': nickname.trim(),
         if (avatarUrl != null && avatarUrl.trim().isNotEmpty)
@@ -82,7 +84,7 @@ class AuthRepository {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.sendEmailCode,
       auth: false,
-      body: <String, dynamic>{'email': email},
+      body: <String, dynamic>{'email': _normalizeEmail(email)},
     );
     final Map<String, dynamic> data = extractMap(response);
     return readString(data, <String>['debugCode']);
@@ -145,8 +147,8 @@ class AuthRepository {
     String? password,
   }) async {
     final Map<String, dynamic> body = <String, dynamic>{
-      'email': email,
-      'code': code,
+      'email': _normalizeEmail(email),
+      'code': code.trim(),
     };
     if (password != null && password.trim().isNotEmpty) {
       body['password'] = password.trim();
@@ -158,13 +160,12 @@ class AuthRepository {
       body: body,
     );
 
-    final AuthLoginResult result = _parseAuthResult(
-      response,
-      forceVerified: true,
-    );
-    if (result.token != null && result.token!.isNotEmpty) {
-      await AuthStore.instance.saveToken(result.token!);
+    final AuthLoginResult result = _parseAuthResult(response);
+    final String token = result.token?.trim() ?? '';
+    if (!result.verified || token.isEmpty) {
+      throw const FormatException('邮箱验证响应缺少有效登录凭据');
     }
+    await AuthStore.instance.saveToken(token);
     return result;
   }
 
@@ -172,7 +173,7 @@ class AuthRepository {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.resendCode,
       auth: false,
-      body: <String, dynamic>{'email': email},
+      body: <String, dynamic>{'email': _normalizeEmail(email)},
     );
     final Map<String, dynamic> data = extractMap(response);
     return readString(data, <String>['debugCode']);
@@ -182,7 +183,7 @@ class AuthRepository {
     await _apiClient.post(
       ApiEndpoints.passwordResetSendCode,
       auth: false,
-      body: <String, dynamic>{'email': email},
+      body: <String, dynamic>{'email': _normalizeEmail(email)},
     );
   }
 
@@ -195,22 +196,15 @@ class AuthRepository {
       ApiEndpoints.passwordReset,
       auth: false,
       body: <String, dynamic>{
-        'email': email,
-        'code': code,
+        'email': _normalizeEmail(email),
+        'code': code.trim(),
         'newPassword': newPassword,
       },
     );
   }
 
   Future<void> logout() async {
-    try {
-      await _apiClient.post(
-        ApiEndpoints.logout,
-        body: const <String, dynamic>{},
-      );
-    } catch (_) {
-      // 后端不可达时也允许本地退出。
-    }
+    await _apiClient.post(ApiEndpoints.logout, body: const <String, dynamic>{});
     await AuthStore.instance.clear();
   }
 
@@ -222,10 +216,7 @@ class AuthRepository {
     return AuthStore.instance.saveToken(token);
   }
 
-  AuthLoginResult _parseAuthResult(
-    dynamic response, {
-    bool forceVerified = false,
-  }) {
+  AuthLoginResult _parseAuthResult(dynamic response) {
     final Map<String, dynamic> root = asMap(response);
     final Map<String, dynamic> data = extractMap(response);
 
@@ -257,9 +248,6 @@ class AuthRepository {
         readBool(root, <String>['verified', 'isVerified']) ??
         false;
 
-    if (forceVerified) {
-      verified = true;
-    }
     if (needsVerify) {
       verified = false;
     }

@@ -1,4 +1,5 @@
 import { sendCode, verifyEmail } from '../../../api/auth';
+import { clearCampusAuthSession } from '../../../utils/campus_auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 const EMAIL_SUFFIX = '@stu.xidian.edu.cn';
@@ -72,13 +73,16 @@ Page({
     wx.showLoading({ title: '验证中' });
     try {
       const res = await verifyEmail(email, code);
-      wx.hideLoading();
-      if (res && res.data && res.data.token) {
-        wx.setStorageSync('token', res.data.token);
-        wx.showToast({ title: '已登录', icon: 'success' });
-        setTimeout(() => wx.switchTab({ url: '/pages/treehole/index' }), 700);
-      }
+      clearCampusAuthSession();
+      wx.setStorageSync('token', res.data.token);
+      wx.showToast({ title: '已登录', icon: 'success' });
+      setTimeout(() => wx.switchTab({ url: '/pages/treehole/index' }), 700);
     } catch (error) {
+      wx.showToast({
+        title: (error && error.data && error.data.message) || '验证码错误或已过期',
+        icon: 'none'
+      });
+    } finally {
       wx.hideLoading();
       this.setData({ verifying: false });
     }

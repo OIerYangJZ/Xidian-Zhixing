@@ -12,7 +12,9 @@
       >{{item.label}}</view>
     </scroll-view>
 
-    <view wx:if="{{activeTab === 'overview'}}" class="admin-body">
+    <view wx:if="{{errorMessage}}" class="empty" bindtap="loadActiveTab">{{errorMessage}} · 点击重试</view>
+
+    <view wx:if="{{!errorMessage && activeTab === 'overview'}}" class="admin-body">
       <view wx:if="{{loading}}" class="empty compact">加载中...</view>
       <view wx:else class="metric-grid">
         <view wx:for="{{overviewCards}}" wx:key="label" class="metric-card">
@@ -22,7 +24,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'reviews'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'reviews'}}" class="admin-body">
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{reviewTypes}}" wx:key="key" class="filter-chip {{reviewType === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setReviewType">{{item.label}}</view>
       </scroll-view>
@@ -51,7 +53,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'reports'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'reports'}}" class="admin-body">
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{reportStatuses}}" wx:key="key" class="filter-chip {{reportStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setReportStatus">{{item.label}}</view>
       </scroll-view>
@@ -78,7 +80,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'images'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'images'}}" class="admin-body">
       <view wx:if="{{loading}}" class="empty compact">加载中...</view>
       <view wx:elif="{{!images.length}}" class="empty compact">暂无图片</view>
       <view wx:else>
@@ -100,7 +102,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'users'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'users'}}" class="admin-body">
       <view wx:if="{{loading}}" class="empty compact">加载中...</view>
       <view wx:elif="{{!users.length}}" class="empty compact">暂无用户</view>
       <view wx:else>
@@ -130,7 +132,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'requests'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'requests'}}" class="admin-body">
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{requestTypes}}" wx:key="key" class="filter-chip {{requestType === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setRequestType">{{item.label}}</view>
       </scroll-view>
@@ -157,7 +159,7 @@
       </view>
     </view>
 
-    <view wx:if="{{activeTab === 'system'}}" class="admin-body">
+    <view wx:if="{{!errorMessage && activeTab === 'system'}}" class="admin-body">
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{systemTypes}}" wx:key="key" class="filter-chip {{systemType === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setSystemType">{{item.label}}</view>
       </scroll-view>

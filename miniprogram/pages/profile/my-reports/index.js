@@ -12,7 +12,8 @@ const STATUS_TEXT = {
 Page({
   data: {
     loading: true,
-    reports: []
+    reports: [],
+    errorMessage: ''
   },
 
   onShow() {
@@ -26,15 +27,18 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const reports = (await getMyReports()).map((item) => ({
         ...item,
         statusText: STATUS_TEXT[item.status] || item.status || '待处理'
       }));
-      this.setData({ reports, loading: false });
+      this.setData({ reports, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '举报记录加载失败，请重试'
+      });
     }
   },
 

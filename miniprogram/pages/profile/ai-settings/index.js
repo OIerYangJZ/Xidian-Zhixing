@@ -1,4 +1,4 @@
-import { fetchAiModels, getAiConfig } from '../../../api/ai';
+import { fetchAiModels } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
@@ -19,16 +19,15 @@ Page({
   },
 
   async refresh() {
-    const cached = getAiConfig();
-    this.setData({
-      configured: Boolean(cached.configured),
-      model: cached.model || '',
-      models: cached.models || [],
-      modelsText: (cached.models || []).join('、'),
-      statusText: cached.configured ? '服务器 AI 已启用' : '服务器 AI 尚未配置'
-    });
     if (this.data.loading) return;
-    this.setData({ loading: true });
+    this.setData({
+      loading: true,
+      configured: false,
+      model: '',
+      models: [],
+      modelsText: '',
+      statusText: '正在读取服务器 AI 状态'
+    });
     try {
       const status = await fetchAiModels();
       this.setData({

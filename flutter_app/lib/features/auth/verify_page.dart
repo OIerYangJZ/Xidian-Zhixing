@@ -6,11 +6,7 @@ import '../../repositories/auth_repository.dart';
 import '../../widgets/home_shell.dart';
 
 class VerifyPage extends StatefulWidget {
-  const VerifyPage({
-    super.key,
-    required this.campusEmail,
-    this.password,
-  });
+  const VerifyPage({super.key, required this.campusEmail, this.password});
 
   final String campusEmail;
   final String? password;
@@ -49,8 +45,8 @@ class _VerifyPageState extends State<VerifyPage> {
                     Text(
                       '认证说明',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text('前台不会公开你的真实身份，后台仅用于安全审查与追责。'),
@@ -58,6 +54,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     Text('认证邮箱：${widget.campusEmail}'),
                     const SizedBox(height: 12),
                     TextField(
+                      key: const Key('verification-code-input'),
                       controller: _codeController,
                       keyboardType: TextInputType.number,
                       maxLength: 6,
@@ -95,7 +92,8 @@ class _VerifyPageState extends State<VerifyPage> {
   }
 
   Future<void> _submit() async {
-    if (_codeController.text.trim().length != 6) {
+    final String code = _codeController.text.trim();
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(code)) {
       setState(() {
         _errorText = '请输入 6 位验证码。';
       });
@@ -110,7 +108,7 @@ class _VerifyPageState extends State<VerifyPage> {
     try {
       final AuthLoginResult result = await AppRepositories.auth.verifyEmail(
         email: widget.campusEmail,
-        code: _codeController.text.trim(),
+        code: code,
         password: widget.password,
       );
 
@@ -153,9 +151,9 @@ class _VerifyPageState extends State<VerifyPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('验证码已重新发送。')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('验证码已重新发送。')));
     } on ApiException catch (error) {
       _showError(error.message);
     } catch (error) {

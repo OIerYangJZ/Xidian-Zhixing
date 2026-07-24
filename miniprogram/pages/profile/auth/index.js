@@ -1,4 +1,5 @@
 import { login } from '../../../api/auth';
+import { clearCampusAuthSession } from '../../../utils/campus_auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -41,8 +42,8 @@ Page({
     wx.showLoading({ title: '登录中' });
     try {
       const res = await login(identifier, password);
-      wx.hideLoading();
       if (res && res.data && res.data.token) {
+        clearCampusAuthSession();
         wx.setStorageSync('token', res.data.token);
         wx.showToast({ title: '登录成功', icon: 'success' });
         setTimeout(() => {
@@ -65,13 +66,13 @@ Page({
         });
       }
     } catch (err) {
-      wx.hideLoading();
       console.error(err);
       wx.showToast({
         title: (err && err.data && err.data.message) || '登录失败，请检查账号和密码',
         icon: 'none'
       });
     } finally {
+      wx.hideLoading();
       this.setData({ submitting: false });
     }
   },

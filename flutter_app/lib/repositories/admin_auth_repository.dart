@@ -18,16 +18,11 @@ class AdminAuthRepository {
       response = await _apiClient.post(
         ApiEndpoints.adminLogin,
         auth: false,
-        body: <String, dynamic>{
-          'username': username,
-          'password': password,
-        },
+        body: <String, dynamic>{'username': username, 'password': password},
       );
     } on ApiException catch (error) {
       if (error.statusCode == 404) {
-        throw Exception(
-          '管理员登录接口不存在（404）。请重启后端并确认使用最新 backend/server.py。',
-        );
+        throw Exception('管理员登录接口不存在（404）。请重启后端并确认使用最新 backend/server.py。');
       }
       rethrow;
     }
@@ -41,14 +36,10 @@ class AdminAuthRepository {
   }
 
   Future<void> logout() async {
-    try {
-      await _apiClient.post(
-        ApiEndpoints.adminLogout,
-        body: const <String, dynamic>{},
-      );
-    } catch (_) {
-      // 后端不可达时也允许本地退出
-    }
+    await _apiClient.post(
+      ApiEndpoints.adminLogout,
+      body: const <String, dynamic>{},
+    );
     await AdminAuthStore.instance.clear();
   }
 

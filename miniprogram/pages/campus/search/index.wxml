@@ -31,10 +31,13 @@
   </view>
 
   <view wx:if="{{loading}}" class="empty">搜索中...</view>
+  <view wx:elif="{{activeType !== 'hot' && errorMessage}}" class="empty" bindtap="search">{{errorMessage}} · 点击重试</view>
   <view wx:elif="{{searched && activeType === 'posts' && !posts.length}}" class="empty">没有找到相关帖子</view>
   <view wx:elif="{{searched && activeType === 'users' && !users.length}}" class="empty">没有找到相关用户</view>
 
   <view wx:if="{{activeType === 'hot' && !loading}}">
+    <view wx:if="{{hotErrorMessage}}" class="empty" bindtap="loadHotTopics">{{hotErrorMessage}} · 点击重试</view>
+    <block wx:else>
     <view class="hot-tools">
       <view class="hot-title">热榜</view>
       <view class="hot-summary-btn" bindtap="summarizeHotTopics">AI 总结</view>
@@ -49,9 +52,10 @@
       </view>
     </view>
     <view class="empty" wx:if="{{!hotTopics.length}}">暂无热榜内容</view>
+    </block>
   </view>
 
-  <view wx:if="{{activeType === 'posts' && !loading}}">
+  <view wx:if="{{activeType === 'posts' && !loading && !errorMessage}}">
     <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
       <view class="feed-avatar">{{item.authorInitial}}</view>
       <view class="feed-body">
@@ -94,7 +98,7 @@
     </view>
   </view>
 
-  <view wx:if="{{activeType === 'users' && !loading}}">
+  <view wx:if="{{activeType === 'users' && !loading && !errorMessage}}">
     <view class="user-card" wx:for="{{users}}" wx:key="id" data-id="{{item.id}}" bindtap="goUserDetail">
       <view class="user-avatar {{item.avatarUrl ? 'has-image' : 'fallback'}}">
         <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>

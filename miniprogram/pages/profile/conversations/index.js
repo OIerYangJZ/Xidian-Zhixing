@@ -7,7 +7,8 @@ const REVEAL_WIDTH_RPX = 128;
 Page({
   data: {
     loading: true,
-    conversations: []
+    conversations: [],
+    errorMessage: ''
   },
 
   onShow() {
@@ -22,7 +23,7 @@ Page({
   },
 
   async loadData() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const conversations = await getConversations();
       const normalized = conversations.map(item => ({
@@ -32,8 +33,17 @@ Page({
       }));
       this.setData({ conversations: normalized, loading: false });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '会话加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadData();
   },
 
   openChat(event) {

@@ -12,6 +12,10 @@
   </view>
 
   <view wx:if="{{loading}}" class="loading-state">正在加载</view>
+  <view wx:elif="{{errorMessage}}" class="loading-state">
+    <view>{{errorMessage}}</view>
+    <button bindtap="retryLoad">重新加载</button>
+  </view>
 
   <block wx:elif="{{service}}">
     <view class="detail-head" wx:if="{{false}}">

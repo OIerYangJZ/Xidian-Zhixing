@@ -1,5 +1,4 @@
-import { loginCampusIds } from './api/campus';
-import { getCampusAuthSecrets } from './utils/campus_auth';
+import { clearLegacyCampusAuthSecrets } from './utils/campus_auth';
 
 App({
   globalData: {
@@ -12,23 +11,8 @@ App({
   onLaunch() {
     const token = wx.getStorageSync('token');
     this.globalData.hasToken = Boolean(token);
+    clearLegacyCampusAuthSecrets();
     this.initSystemInfo();
-    if (token) this.refreshCampusSchedules();
-  },
-
-  async refreshCampusSchedules() {
-    const secrets = getCampusAuthSecrets();
-    const ids = secrets.ids || {};
-    if (!ids.identifier || !ids.password) return;
-    try {
-      await loginCampusIds(ids.identifier, ids.password, {
-        silentErrorToast: true,
-        keepSessionOnUnauthorized: true
-      });
-      wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
-    } catch (error) {
-      console.error('[campus schedule refresh failed]', error);
-    }
   },
 
   initSystemInfo() {

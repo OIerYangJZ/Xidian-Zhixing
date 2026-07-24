@@ -1,5 +1,6 @@
 <view class="page report-page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadDetail">{{errorMessage}}{{reportId ? ' · 点击重试' : ''}}</view>
   <view wx:elif="{{!report}}" class="empty">举报记录不存在</view>
   <view wx:else>
     <view class="section">

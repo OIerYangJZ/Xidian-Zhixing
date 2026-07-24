@@ -229,7 +229,11 @@ def handle_get_section_posts(
     viewer_user_id = str(viewer.get("id", "")) if viewer else ""
     rows = [
         serialize_post(db, post, viewer_user_id=viewer_user_id)
-        for post in list_posts(db, sort_by=(query.get("sort", ["latest"])[0] or "latest"))
+        for post in list_posts(
+            db,
+            sort_by=(query.get("sort", ["latest"])[0] or "latest"),
+            viewer_user_id=viewer_user_id,
+        )
         if str(post.get("sectionId", "")) == section_id or str(post.get("sectionType", "")) == section_id
     ]
     send_json(handler, HTTPStatus.OK, {"data": rows})
@@ -298,10 +302,16 @@ def handle_get_club(handler: BaseHTTPRequestHandler, db: dict[str, Any], club_id
     if club is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "社团不存在")
         return
+    viewer, _ = auth_user_helper(handler, db)
+    viewer_user_id = str(viewer.get("id", "")).strip() if viewer else ""
     members = [row for row in db.get("clubMembers", []) if str(row.get("clubId", "")) == club_id]
     posts = [
-        serialize_post(db, post, viewer_user_id="")
-        for post in list_posts(db, sort_by="latest")
+        serialize_post(db, post, viewer_user_id=viewer_user_id)
+        for post in list_posts(
+            db,
+            sort_by="latest",
+            viewer_user_id=viewer_user_id,
+        )
         if str(post.get("publisherClubId", "")) == club_id or str(post.get("sectionId", "")) == str(club.get("sectionId", ""))
     ]
     send_json(handler, HTTPStatus.OK, {"data": {**_serialize_club(club), "members": members, "posts": posts}})
@@ -384,6 +394,15 @@ def handle_admin_club_application_action(
     if action not in {"approve", "reject"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的审批动作")
         return
+    applicant = find_user_by_id(
+        db,
+        str(application.get("applicantUserId", "")).strip(),
+    )
+    if action == "approve" and (
+        applicant is None or applicant.get("banned")
+    ):
+        json_error(handler, HTTPStatus.NOT_FOUND, "申请人账号不存在或不可用")
+        return
     application["status"] = "approved" if action == "approve" else "rejected"
     application["reviewNote"] = _clean(body.get("reviewNote") or body.get("reason"), 300)
     application["handledAt"] = now_iso()
@@ -409,7 +428,7 @@ def handle_admin_club_application_action(
             "category": str(application.get("category", "")),
             "ownerUserId": str(application.get("applicantUserId", "")),
             "ownerName": str(application.get("applicantName", "")),
-            "sectionId": section["id"],
+            "sectionId": section["sectionId"],
             "status": "active",
             "createdAt": now_iso(),
         }
@@ -616,7 +635,14 @@ def _hot_score(db: dict[str, Any], post: dict[str, Any]) -> float:
 def rebuild_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
     day = now_iso()[:10]
     rows = []
-    for rank, post in enumerate(sorted(list_posts(db, sort_by="latest"), key=lambda item: _hot_score(db, item), reverse=True)[:50], start=1):
+    for rank, post in enumerate(
+        sorted(
+            list_posts(db, sort_by="latest", viewer_user_id=""),
+            key=lambda item: _hot_score(db, item),
+            reverse=True,
+        )[:50],
+        start=1,
+    ):
         item = {
             "id": f"hot-{day}-{post.get('id')}",
             "date": day,
@@ -636,11 +662,34 @@ def rebuild_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def _public_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
+    posts_by_id = {
+        str(post.get("id", "")).strip(): post
+        for post in db.get("posts", [])
+        if str(post.get("id", "")).strip()
+    }
+    rows: list[dict[str, Any]] = []
+    for row in db.get("hotTopics", []):
+        post = posts_by_id.get(str(row.get("postId", "")).strip())
+        if (
+            post is None
+            or post.get("deleted")
+            or str(post.get("visibility", "public")).strip().lower() == "private"
+            or str(post.get("reviewStatus", "approved")).strip().lower()
+            not in {"approved", "resolved"}
+        ):
+            continue
+        if row.get("reviewStatus") not in {"approved", "pending", "resolved"}:
+            continue
+        rows.append(row)
+    return rows
+
+
 def handle_get_hot_topics(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not db.get("hotTopics"):
         rebuild_hot_topics(db)
         save_db(db)
-    rows = [row for row in db.get("hotTopics", []) if row.get("reviewStatus") in {"approved", "pending", "resolved"}]
+    rows = _public_hot_topics(db)
     rows.sort(key=lambda item: (_safe_int(item.get("rank"), 0), str(item.get("createdAt", ""))))
     send_json(handler, HTTPStatus.OK, {"data": rows[:50]})
 
@@ -701,7 +750,10 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
 def handle_ai_hot_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not db.get("hotTopics"):
         rebuild_hot_topics(db)
-    topics = sorted(db.get("hotTopics", []), key=lambda item: _safe_int(item.get("rank"), 0))[:8]
+    topics = sorted(
+        _public_hot_topics(db),
+        key=lambda item: _safe_int(item.get("rank"), 0),
+    )[:8]
     answer = "热榜总结：" + "；".join(f"{item.get('rank')}. {item.get('title')}" for item in topics) if topics else "暂无热榜内容。"
     summary = {
         "id": next_id(db, "hotTopicSummary", "hts"),

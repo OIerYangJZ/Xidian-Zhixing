@@ -65,10 +65,8 @@ class _VerifyPageState extends ConsumerState<VerifyPage> {
       if (!mounted) return;
 
       if (result.verified) {
-        try {
-          final profile = await ref.read(userRepositoryProvider).fetchProfile();
-          AuthStore.instance.setCurrentUser(profile);
-        } catch (_) {}
+        final profile = await ref.read(userRepositoryProvider).fetchProfile();
+        AuthStore.instance.setCurrentUser(profile);
         ref.invalidate(feedControllerProvider);
         ref.invalidate(notificationsControllerProvider);
         ref.invalidate(messagesControllerProvider);

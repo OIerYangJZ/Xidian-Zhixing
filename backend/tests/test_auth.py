@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 import sys
+from datetime import datetime, timedelta, timezone
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,8 @@ class FakeJsonHandler:
         self.wfile = io.BytesIO()
         self.status_code = 0
         self.response_headers: list[tuple[str, str]] = []
+        self.request_id = "test-request-id"
+        self.client_address = ("127.0.0.1", 12345)
 
     def send_response(self, code: int) -> None:
         self.status_code = code
@@ -187,8 +190,362 @@ class TestEmailCodeAuth:
         assert payload["data"]["studentId"] == "2500001"
         assert created_user["verified"] is True
         assert created_user["nickname"] == "西电同学0001"
-        assert email not in db["emailCodes"]
+        assert db["emailCodes"][email]["code"] == ""
+        assert db["emailCodes"][email]["usedAt"]
         assert payload["data"]["token"] in db["sessions"]
+
+    @staticmethod
+    def _record(
+        code: str,
+        *,
+        purpose: str = "email_verification",
+        expires_at: datetime | None = None,
+        used_at: str = "",
+        attempts: int = 0,
+    ) -> dict[str, Any]:
+        created_at = datetime.now(timezone.utc)
+        return {
+            "code": code,
+            "createdAt": created_at.isoformat(),
+            "expiresAt": (
+                expires_at or created_at + timedelta(minutes=10)
+            ).isoformat(),
+            "recordId": "record-test",
+            "purpose": purpose,
+            "attempts": attempts,
+            "usedAt": used_at,
+        }
+
+    @staticmethod
+    def _verify(
+        monkeypatch: pytest.MonkeyPatch,
+        db: dict[str, Any],
+        *,
+        email: str,
+        code: Any,
+    ) -> tuple[FakeJsonHandler, dict[str, Any]]:
+        from handlers import _auth_handler
+
+        handler = FakeJsonHandler()
+        monkeypatch.setattr(
+            _auth_handler,
+            "read_json_body",
+            lambda _handler: {"email": email, "code": code},
+        )
+        monkeypatch.setattr(_auth_handler, "save_db", lambda _db: None)
+        _auth_handler.handle_verify(handler, db)
+        return handler, json.loads(handler.wfile.getvalue().decode("utf-8"))
+
+    def test_wrong_code_increments_attempts(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500010@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("654321")
+
+        handler, payload = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="111111",
+        )
+
+        assert handler.status_code == HTTPStatus.BAD_REQUEST
+        assert payload["message"] == "验证码错误"
+        assert db["emailCodes"][email]["attempts"] == 1
+
+    def test_fifth_wrong_code_requires_a_new_code(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500018@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("654321", attempts=4)
+
+        handler, payload = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="111111",
+        )
+
+        assert handler.status_code == HTTPStatus.TOO_MANY_REQUESTS
+        assert payload["message"] == "验证码尝试次数过多，请重新发送"
+
+    def test_leading_zero_code_stays_a_string_and_succeeds(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500011@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("012345")
+
+        handler, payload = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="012345",
+        )
+
+        assert handler.status_code == HTTPStatus.OK
+        assert payload["success"] is True
+
+    def test_numeric_json_code_is_rejected_instead_of_converted(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500019@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("12345")
+
+        handler, payload = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code=12345,
+        )
+
+        assert handler.status_code == HTTPStatus.BAD_REQUEST
+        assert payload["message"] == "验证码格式错误"
+
+    @pytest.mark.parametrize(
+        "submitted_email",
+        [
+            "  2500012@stu.xidian.edu.cn  ",
+            "2500012@STU.XIDIAN.EDU.CN",
+        ],
+    )
+    def test_email_normalization_is_shared_by_lookup(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        submitted_email: str,
+    ):
+        from services._db_service import default_db
+
+        normalized = "2500012@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][normalized] = self._record("234567")
+
+        handler, _ = self._verify(
+            monkeypatch,
+            db,
+            email=submitted_email,
+            code="234567",
+        )
+
+        assert handler.status_code == HTTPStatus.OK
+
+    def test_only_latest_resend_code_is_valid(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from handlers import _auth_handler
+        from services._db_service import default_db
+
+        email = "2500013@stu.xidian.edu.cn"
+        db = default_db()
+        generated = iter(("111111", "222222"))
+        monkeypatch.setattr(
+            _auth_handler,
+            "_verification_code_or_error",
+            lambda _handler: (next(generated), False),
+        )
+        monkeypatch.setattr(_auth_handler, "save_db", lambda _db: None)
+        monkeypatch.setattr(
+            _auth_handler,
+            "read_json_body",
+            lambda _handler: {"email": email},
+        )
+
+        _auth_handler.handle_send_code(FakeJsonHandler(), db)
+        _auth_handler.handle_send_code(FakeJsonHandler(), db)
+
+        old_handler, _ = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="111111",
+        )
+        new_handler, _ = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="222222",
+        )
+
+        assert old_handler.status_code == HTTPStatus.BAD_REQUEST
+        assert new_handler.status_code == HTTPStatus.OK
+
+    def test_resend_persists_record_before_smtp_delivery(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from handlers import _auth_handler
+        from services._db_service import default_db
+
+        email = "2500019@stu.xidian.edu.cn"
+        db = default_db()
+        events: list[str] = []
+        monkeypatch.setattr(
+            _auth_handler,
+            "_verification_code_or_error",
+            lambda _handler: ("012345", True),
+        )
+        monkeypatch.setattr(
+            _auth_handler,
+            "save_db",
+            lambda state: events.append(
+                str(state["emailCodes"][email]["code"]),
+            ),
+        )
+
+        def assert_committed_before_mail(
+            *,
+            to_email: str,
+            code: str,
+            expires_in_minutes: int,
+        ) -> None:
+            assert to_email == email
+            assert code == "012345"
+            assert expires_in_minutes == 10
+            assert events == ["012345"]
+
+        monkeypatch.setattr(
+            _auth_handler,
+            "send_verification_email",
+            assert_committed_before_mail,
+        )
+        monkeypatch.setattr(
+            _auth_handler,
+            "read_json_body",
+            lambda _handler: {"email": email},
+        )
+        handler = FakeJsonHandler()
+
+        _auth_handler.handle_send_code(handler, db)
+
+        assert handler.status_code == HTTPStatus.OK
+
+    def test_expiry_uses_utc_and_accepts_exact_boundary(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from handlers import _auth_handler
+        from services._db_service import default_db
+
+        email = "2500014@stu.xidian.edu.cn"
+        boundary = datetime(2026, 7, 23, 8, 10, tzinfo=timezone.utc)
+        monkeypatch.setattr(_auth_handler, "now_utc", lambda: boundary)
+
+        valid_db = default_db()
+        valid_db["emailCodes"][email] = self._record(
+            "345678",
+            expires_at=boundary,
+        )
+        valid_handler, _ = self._verify(
+            monkeypatch,
+            valid_db,
+            email=email,
+            code="345678",
+        )
+
+        expired_db = default_db()
+        expired_db["emailCodes"][email] = self._record(
+            "345678",
+            expires_at=boundary - timedelta(microseconds=1),
+        )
+        expired_handler, expired_payload = self._verify(
+            monkeypatch,
+            expired_db,
+            email=email,
+            code="345678",
+        )
+
+        assert valid_handler.status_code == HTTPStatus.OK
+        assert expired_handler.status_code == HTTPStatus.BAD_REQUEST
+        assert expired_payload["message"] == "验证码已过期"
+
+    def test_used_code_cannot_be_replayed(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500015@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("456789")
+
+        first, _ = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="456789",
+        )
+        second, payload = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="456789",
+        )
+
+        assert first.status_code == HTTPStatus.OK
+        assert second.status_code == HTTPStatus.BAD_REQUEST
+        assert payload["message"] == "验证码已失效，请重新发送"
+        assert len(db["sessions"]) == 1
+
+    def test_different_purpose_cannot_be_mixed(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        from services._db_service import default_db
+
+        email = "2500016@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record(
+            "567890",
+            purpose="password_reset",
+        )
+
+        handler, _ = self._verify(
+            monkeypatch,
+            db,
+            email=email,
+            code="567890",
+        )
+
+        assert handler.status_code == HTTPStatus.BAD_REQUEST
+
+    def test_structured_log_never_contains_plaintext_code(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        caplog: pytest.LogCaptureFixture,
+    ):
+        from services._db_service import default_db
+
+        email = "2500017@stu.xidian.edu.cn"
+        db = default_db()
+        db["emailCodes"][email] = self._record("678901")
+
+        with caplog.at_level("INFO", logger="xduwhisperbox.auth"):
+            self._verify(
+                monkeypatch,
+                db,
+                email=email,
+                code="000000",
+            )
+
+        assert "678901" not in caplog.text
+        assert "000000" not in caplog.text
+        assert caplog.records[-1].structured["result"] == "mismatch"
 
     def test_verify_rejects_email_outside_private_beta_allowlist(
         self,
@@ -357,6 +714,15 @@ class TestTimeUtilities:
         iso = now_iso()
         assert "T" in iso  # ISO 格式包含 T
         assert "Z" in iso or "+" in iso  # UTC 偏移
+
+    def test_parse_iso_normalizes_offsets_and_legacy_naive_values_to_utc(self):
+        from server import parse_iso
+
+        offset_value = parse_iso("2026-07-23T16:00:00+08:00")
+        naive_value = parse_iso("2026-07-23T08:00:00")
+
+        assert offset_value == datetime(2026, 7, 23, 8, 0, tzinfo=timezone.utc)
+        assert naive_value == datetime(2026, 7, 23, 8, 0, tzinfo=timezone.utc)
 
     def test_parse_iso(self):
         """测试 ISO 时间解析。"""

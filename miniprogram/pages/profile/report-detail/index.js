@@ -17,17 +17,25 @@ Page({
   data: {
     reportId: '',
     report: null,
-    loading: true
+    loading: true,
+    errorMessage: ''
   },
 
   onLoad(options) {
     if (!requireLoginPage()) return;
     this.setData({ reportId: options.id || '' });
-    if (this.data.reportId) this.loadDetail();
+    if (this.data.reportId) {
+      this.loadDetail();
+    } else {
+      this.setData({
+        loading: false,
+        errorMessage: '举报记录标识无效'
+      });
+    }
   },
 
   async loadDetail() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const report = await getReportDetail(this.data.reportId);
       this.setData({
@@ -35,10 +43,14 @@ Page({
           ...report,
           statusText: STATUS_TEXT[report.status] || report.status || '待处理'
         },
-        loading: false
+        loading: false,
+        errorMessage: ''
       });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: '举报详情加载失败，请重试'
+      });
     }
   },
 

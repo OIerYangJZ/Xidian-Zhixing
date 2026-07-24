@@ -12,13 +12,15 @@ class AccountSecurityPage extends ConsumerStatefulWidget {
   const AccountSecurityPage({super.key});
 
   @override
-  ConsumerState<AccountSecurityPage> createState() => _AccountSecurityPageState();
+  ConsumerState<AccountSecurityPage> createState() =>
+      _AccountSecurityPageState();
 }
 
 class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
   UserProfile? _profile;
   bool _loading = true;
   bool _saving = false;
+  String? _error;
 
   @override
   void initState() {
@@ -27,6 +29,10 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
   }
 
   Future<void> _loadProfile() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final profile = await ref.read(userRepositoryProvider).fetchProfile();
       if (!mounted) return;
@@ -34,9 +40,12 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
         _profile = profile;
         _loading = false;
       });
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _error = error.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
@@ -93,9 +102,9 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -112,6 +121,23 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
           ? Center(
               child: CircularProgressIndicator(
                 color: MobileTheme.primaryOf(context),
+              ),
+            )
+          : _profile == null
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 42,
+                    color: MobileTheme.error,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(_error ?? '账号信息加载失败'),
+                  const SizedBox(height: 10),
+                  TextButton(onPressed: _loadProfile, child: const Text('重试')),
+                ],
               ),
             )
           : ListView(
@@ -131,7 +157,8 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
                       subtitle: _levelUpgradeSubtitle(
                         _profile?.levelUpgradeRequest,
                       ),
-                      onTap: _saving ||
+                      onTap:
+                          _saving ||
                               _profile?.levelUpgradeRequest?.status == 'pending'
                           ? null
                           : _promptLevelUpgradeRequest,
@@ -142,7 +169,7 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
                   _buildListTile(
                     icon: Icons.no_accounts_outlined,
                     title: '注销账号',
-                    subtitle: '永久注销此账号及所有关联数据',
+                    subtitle: '停用账号并进入可申诉恢复状态',
                     titleColor: MobileTheme.error,
                     onTap: _showCancelAccountHint,
                   ),
@@ -203,7 +230,9 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('注销账号'),
-        content: const Text('账号注销后将永久删除所有数据，且无法恢复。\n\n确认要注销账号吗？'),
+        content: const Text(
+          '审核通过后账号将停用并退出所有会话；必要的账号与内容记录会按隐私政策保留，之后可提交申诉恢复。\n\n确认要申请注销吗？',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -314,7 +343,7 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
         builder: (ctx) => AlertDialog(
           title: const Text('申请已提交'),
           content: const Text(
-            '注销申请已提交给管理员审核。审核通过后，账号和所有数据将被永久删除。\n\n审核结果将通过邮件通知您。',
+            '注销申请已提交给管理员审核。审核通过后账号将停用并退出所有会话；必要记录按隐私政策保留，之后可提交申诉恢复。\n\n请在应用内查看审核结果。',
           ),
           actions: [
             TextButton(
@@ -335,8 +364,10 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
   Future<void> _logout() async {
     try {
       await ref.read(authRepositoryProvider).logout();
-    } catch (_) {}
-    AuthStore.instance.clear();
+    } catch (error) {
+      _showToast('退出失败：$error');
+      return;
+    }
     if (!mounted) return;
     context.go('/auth/login');
   }

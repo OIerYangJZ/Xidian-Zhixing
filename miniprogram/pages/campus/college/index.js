@@ -8,7 +8,8 @@ Page({
     colleges: [],
     activeCollege: '',
     posts: [],
-    loading: true
+    loading: true,
+    errorMessage: ''
   },
 
   onLoad(options) {
@@ -30,7 +31,7 @@ Page({
   },
 
   async loadCollege() {
-    this.setData({ loading: true });
+    this.setData({ loading: true, errorMessage: '' });
     try {
       const collegesRes = await getColleges();
       const colleges = ((collegesRes && collegesRes.data) || []).map((item) => item.name || item);
@@ -43,8 +44,17 @@ Page({
         loading: false
       });
     } catch (error) {
-      this.setData({ colleges: [], posts: [], loading: false });
+      this.setData({
+        loading: false,
+        errorMessage: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '学院内容加载失败，请重试'
+      });
     }
+  },
+
+  retryLoad() {
+    this.loadCollege();
   },
 
   onCollegeTap(event) {

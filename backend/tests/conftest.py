@@ -29,6 +29,21 @@ def temp_db_file(tmp_path: Path) -> Path:
     return db_file
 
 
+@pytest.fixture(autouse=True)
+def clear_rate_limit_state() -> Generator[None, None, None]:
+    import _globals
+
+    with _globals.RATE_LIMIT_LOCK:
+        _globals.RATE_LIMIT_EVENTS.clear()
+    with _globals.IP_RATE_LIMIT_LOCK:
+        _globals.IP_RATE_LIMIT_EVENTS.clear()
+    yield
+    with _globals.RATE_LIMIT_LOCK:
+        _globals.RATE_LIMIT_EVENTS.clear()
+    with _globals.IP_RATE_LIMIT_LOCK:
+        _globals.IP_RATE_LIMIT_EVENTS.clear()
+
+
 @pytest.fixture
 def temp_storage_dir(tmp_path: Path) -> Path:
     """创建临时存储目录。"""

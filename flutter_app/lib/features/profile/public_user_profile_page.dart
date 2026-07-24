@@ -110,55 +110,15 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
       _busy = true;
     });
     try {
-      // 优先尝试直接创建会话（微信模式）
-      try {
-        final conversation = await AppRepositories.messages
-            .createDirectConversation(profile.id);
-        if (!mounted) return;
-        await Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) =>
-                ChatPage(conversation: conversation, peerUserId: profile.id),
-          ),
-        );
-        return;
-      } catch (_) {
-        // 旧服务器不支持 createDirectConversation，fallback 到申请制
-      }
-      // Fallback：发起私信申请
-      final TextEditingController reasonController = TextEditingController();
-      final String? reason = await showDialog<String>(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('发送私信申请'),
-            content: TextField(
-              controller: reasonController,
-              maxLength: 120,
-              minLines: 2,
-              maxLines: 4,
-              decoration: const InputDecoration(hintText: '简单说明来意，便于对方决定是否通过'),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('取消'),
-              ),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.of(context).pop(reasonController.text.trim()),
-                child: const Text('发送申请'),
-              ),
-            ],
-          );
-        },
+      final conversation = await AppRepositories.messages
+          .createDirectConversation(profile.id);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              ChatPage(conversation: conversation, peerUserId: profile.id),
+        ),
       );
-      reasonController.dispose();
-      if (!mounted || reason == null) return;
-      await ref
-          .read(messageRepositoryProvider)
-          .createDmRequest(targetUserId: profile.id, reason: reason);
-      _feedback('私信申请已发送，请等待对方处理');
     } catch (error) {
       _feedback('无法发起私信：$error');
     } finally {

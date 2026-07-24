@@ -22,7 +22,9 @@ Page({
     hotSummary: '',
     history: [],
     searched: false,
-    loading: false
+    loading: false,
+    errorMessage: '',
+    hotErrorMessage: ''
   },
 
   onLoad(options) {
@@ -92,7 +94,13 @@ Page({
       wx.showToast({ title: '请输入用户关键词', icon: 'none' });
       return;
     }
-    this.setData({ loading: true, searched: true });
+    this.setData({
+      loading: true,
+      searched: true,
+      errorMessage: '',
+      posts: this.data.activeType === 'posts' ? [] : this.data.posts,
+      users: this.data.activeType === 'users' ? [] : this.data.users
+    });
     try {
       let posts = this.data.posts;
       let users = this.data.users;
@@ -108,9 +116,9 @@ Page({
         ? [keyword, ...this.data.history.filter((item) => item !== keyword)].slice(0, 8)
         : this.data.history;
       if (keyword) wx.setStorageSync('searchHistory', history);
-      this.setData({ posts, users, history, loading: false });
+      this.setData({ posts, users, history, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({ loading: false, errorMessage: '搜索失败，请重试' });
     }
   },
 
@@ -120,12 +128,19 @@ Page({
   },
 
   async loadHotTopics() {
-    this.setData({ loading: true, searched: false });
+    this.setData({
+      loading: true,
+      searched: false,
+      hotErrorMessage: ''
+    });
     try {
       const hotTopics = await getHotTopics();
-      this.setData({ hotTopics, loading: false });
+      this.setData({ hotTopics, loading: false, hotErrorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false });
+      this.setData({
+        loading: false,
+        hotErrorMessage: '热榜加载失败，请重试'
+      });
     }
   },
 

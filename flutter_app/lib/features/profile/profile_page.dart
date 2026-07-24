@@ -68,25 +68,20 @@ class ProfilePageState extends State<ProfilePage> {
       );
     }
 
-    final UserProfile profile =
-        _profile ??
-        UserProfile(
-          nickname: '匿名同学',
-          studentId: '',
-          avatarUrl: '',
-          email: '',
-          verified: false,
-          verifiedAt: '-',
-          allowStrangerDm: false,
-          showContactable: false,
-          favoriteCount: 0,
-          userLevel: 2,
-          userLevelLabel: '二级用户',
-          isLevelOneUser: false,
-          isAdmin: false,
-          levelUpgradeRequest: null,
-          accountCancellationRequest: null,
-        );
+    final UserProfile? loadedProfile = _profile;
+    if (loadedProfile == null) {
+      return AppStatePanel(
+        icon: Icons.error_outline,
+        title: '个人资料加载失败',
+        message: _error ?? '服务端未返回有效的个人资料',
+        action: FilledButton.tonalIcon(
+          onPressed: _loadProfile,
+          icon: const Icon(Icons.refresh),
+          label: const Text('重试'),
+        ),
+      );
+    }
+    final UserProfile profile = loadedProfile;
 
     final AccountCancellationRequestSummary? cancellationRequest =
         profile.accountCancellationRequest;
@@ -630,31 +625,6 @@ class ProfilePageState extends State<ProfilePage> {
     return CircleAvatar(radius: 30, child: Text(label));
   }
 
-  UserProfile _fallbackProfile() {
-    return UserProfile(
-      nickname: _nicknameController.text.trim().isEmpty
-          ? '匿名同学'
-          : _nicknameController.text.trim(),
-      studentId: '',
-      avatarUrl: _avatarUrlController.text.trim(),
-      email: '',
-      verified: false,
-      verifiedAt: '-',
-      allowStrangerDm: _profile?.allowStrangerDm ?? false,
-      showContactable: _profile?.showContactable ?? false,
-      favoriteCount: _profile?.favoriteCount ?? 0,
-      userLevel: _profile?.userLevel ?? 2,
-      userLevelLabel: _profile?.userLevelLabel ?? '二级用户',
-      isLevelOneUser: _profile?.isLevelOneUser ?? false,
-      isAdmin: _profile?.isAdmin ?? false,
-      levelUpgradeRequest: _profile?.levelUpgradeRequest,
-      accountCancellationRequest: _profile?.accountCancellationRequest,
-      bio: _bioController.text.trim(),
-      backgroundImageUrl: _backgroundUrlController.text.trim(),
-      gender: _gender,
-    );
-  }
-
   Future<void> _loadProfile() async {
     setState(() {
       _loading = true;
@@ -692,6 +662,11 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickAndUploadBackgroundImage() async {
+    final UserProfile? current = _profile;
+    if (current == null) {
+      _toast('个人资料尚未加载，无法上传背景图');
+      return;
+    }
     setState(() {
       _saving = true;
     });
@@ -717,7 +692,7 @@ class ProfilePageState extends State<ProfilePage> {
         _backgroundUrlController.text = backgroundUrl.trim();
       }
       setState(() {
-        _profile = (_profile ?? _fallbackProfile()).copyWith(
+        _profile = current.copyWith(
           backgroundImageUrl: _backgroundUrlController.text.trim(),
         );
       });
@@ -734,6 +709,11 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickAndUploadAvatar() async {
+    final UserProfile? current = _profile;
+    if (current == null) {
+      _toast('个人资料尚未加载，无法上传头像');
+      return;
+    }
     setState(() {
       _saving = true;
     });
@@ -758,7 +738,7 @@ class ProfilePageState extends State<ProfilePage> {
         _avatarUrlController.text = avatarUrl.trim();
       }
       setState(() {
-        _profile = (_profile ?? _fallbackProfile()).copyWith(
+        _profile = current.copyWith(
           avatarUrl: _avatarUrlController.text.trim(),
         );
       });
@@ -775,6 +755,11 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _saveProfile() async {
+    final UserProfile? current = _profile;
+    if (current == null) {
+      _toast('个人资料尚未加载，无法保存');
+      return;
+    }
     final String nickname = _nicknameController.text.trim();
     final String avatarUrl = _avatarUrlController.text.trim();
     final String bio = _bioController.text.trim();
@@ -795,7 +780,7 @@ class ProfilePageState extends State<ProfilePage> {
         backgroundImageUrl: backgroundImageUrl,
         gender: _gender,
       );
-      final UserProfile nextProfile = (_profile ?? _fallbackProfile()).copyWith(
+      final UserProfile nextProfile = current.copyWith(
         nickname: nextNickname,
         avatarUrl: avatarUrl,
         bio: bio,
@@ -825,6 +810,11 @@ class ProfilePageState extends State<ProfilePage> {
     required bool allowStrangerDm,
     required bool showContactable,
   }) async {
+    final UserProfile? current = _profile;
+    if (current == null) {
+      _toast('个人资料尚未加载，无法保存隐私设置');
+      return;
+    }
     setState(() {
       _saving = true;
     });
@@ -838,29 +828,10 @@ class ProfilePageState extends State<ProfilePage> {
         return;
       }
       setState(() {
-        _profile =
-            (_profile ??
-                    UserProfile(
-                      nickname: '匿名同学',
-                      studentId: '',
-                      avatarUrl: '',
-                      email: '',
-                      verified: false,
-                      verifiedAt: '-',
-                      allowStrangerDm: false,
-                      showContactable: false,
-                      favoriteCount: 0,
-                      userLevel: 2,
-                      userLevelLabel: '二级用户',
-                      isLevelOneUser: false,
-                      isAdmin: false,
-                      levelUpgradeRequest: null,
-                      accountCancellationRequest: null,
-                    ))
-                .copyWith(
-                  allowStrangerDm: allowStrangerDm,
-                  showContactable: showContactable,
-                );
+        _profile = current.copyWith(
+          allowStrangerDm: allowStrangerDm,
+          showContactable: showContactable,
+        );
       });
       _toast('隐私设置已更新');
     } catch (error) {

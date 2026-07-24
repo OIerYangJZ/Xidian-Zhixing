@@ -1,5 +1,6 @@
 <view class="page {{themeClass}}">
   <view wx:if="{{loading}}" class="empty">加载中...</view>
+  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadData">{{errorMessage}} · 点击重试</view>
   <view wx:elif="{{!reports.length}}" class="empty">暂无举报记录</view>
   <view wx:else>
     <view class="report-card" wx:for="{{reports}}" wx:key="id" data-index="{{index}}" bindtap="openTarget">

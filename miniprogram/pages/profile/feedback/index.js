@@ -11,6 +11,7 @@ Page({
     contact: '',
     records: [],
     loadingRecords: true,
+    recordsError: '',
     submitting: false
   },
 
@@ -21,7 +22,7 @@ Page({
   },
 
   async loadRecords() {
-    this.setData({ loadingRecords: true });
+    this.setData({ loadingRecords: true, recordsError: '' });
     try {
       const records = await getMyFeedbacks();
       this.setData({
@@ -30,10 +31,14 @@ Page({
           timeText: formatTime(item.createdAt),
           statusText: item.status === 'resolved' ? '已回复' : (item.status === 'closed' ? '已关闭' : '待处理')
         })),
-        loadingRecords: false
+        loadingRecords: false,
+        recordsError: ''
       });
     } catch (error) {
-      this.setData({ loadingRecords: false });
+      this.setData({
+        loadingRecords: false,
+        recordsError: '反馈记录加载失败，请重试'
+      });
     }
   },
 
