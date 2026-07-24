@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => '西电树洞';
+  String get appTitle => '西电知行';
 
   @override
   String get home => '首页';
@@ -24,7 +24,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get login => '登录';
 
   @override
-  String get loginTitle => '登录西电树洞';
+  String get loginTitle => '登录西电知行';
 
   @override
   String get username => '用户名';
@@ -145,7 +145,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   AppLocalizationsZhHant() : super('zh_Hant');
 
   @override
-  String get appTitle => '西電樹洞';
+  String get appTitle => '西电知行';
 
   @override
   String get home => '首頁';
@@ -160,7 +160,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get login => '登錄';
 
   @override
-  String get loginTitle => '登錄西電樹洞';
+  String get loginTitle => '登錄西电知行';
 
   @override
   String get username => '用戶名';

@@ -37,7 +37,7 @@ class XduTreeholeMobileApp extends ConsumerWidget {
     final settings = ref.watch(appSettingsProvider);
 
     return MaterialApp.router(
-      title: '西电树洞',
+      title: '西电知行',
       debugShowCheckedModeBanner: false,
       theme: MobileTheme.getThemeData(settings.themeKey),
       themeMode: ThemeMode.light,

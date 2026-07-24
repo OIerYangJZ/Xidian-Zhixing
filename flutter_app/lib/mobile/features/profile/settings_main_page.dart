@@ -190,7 +190,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
           const SizedBox(height: 20),
           Center(
             child: Text(
-              '西电树洞 See电',
+              '西电知行',
               style: TextStyle(
                 fontSize: 12,
                 color: colors.textTertiary.withValues(alpha: 0.6),

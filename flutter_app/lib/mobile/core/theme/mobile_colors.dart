@@ -47,24 +47,24 @@ class MobileColors extends ThemeExtension<MobileColors> {
   });
 
   // Shared state colors
-  static const Color _success = Color(0xFF4E7D66);
-  static const Color _warning = Color(0xFFB7791F);
-  static const Color _error = Color(0xFF9F1D1D);
+  static const Color _success = Color(0xFF4F725E);
+  static const Color _warning = Color(0xFF9A672A);
+  static const Color _error = Color(0xFF97382F);
 
   /// 朱砂赤配色（默认）
   static const light = MobileColors(
-    background: Color(0xFFFAF4EA),
-    surface: Color(0xFFFFFFFF),
-    cardBackground: Color(0xFFFFFFFF),
-    textPrimary: Color(0xFF2D2522),
-    textSecondary: Color(0xFF7B6F6A),
-    textTertiary: Color(0xFFA2948E),
-    divider: Color(0xFFE8DAD2),
-    primary: Color(0xFFB23A2E),
-    primaryDark: Color(0xFF7A1E1A),
-    accent: Color(0xFFD94A38),
-    seal: Color(0xFFC7352A),
-    softBackground: Color(0xFFF8E7E1),
+    background: Color(0xFFF6F2EA),
+    surface: Color(0xFFFFFCF7),
+    cardBackground: Color(0xFFFFFCF7),
+    textPrimary: Color(0xFF292522),
+    textSecondary: Color(0xFF716A64),
+    textTertiary: Color(0xFF978F88),
+    divider: Color(0xFFDED6CB),
+    primary: Color(0xFFA33A32),
+    primaryDark: Color(0xFF7D2924),
+    accent: Color(0xFFC46A50),
+    seal: Color(0xFFA33A32),
+    softBackground: Color(0xFFF0E5DF),
     success: _success,
     warning: _warning,
     error: _error,

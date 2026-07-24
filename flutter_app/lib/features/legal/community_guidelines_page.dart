@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/app_brand.dart';
 import '../../core/theme/shared_colors.dart';
 
 class CommunityGuidelinesPage extends StatelessWidget {
@@ -25,7 +26,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             icon: Icons.flag_outlined,
             iconColor: const Color(0xFF059669),
             content:
-                '西电树洞致力于打造一个健康、积极、友善的校园匿名社交平台。我们鼓励真实表达、理性讨论、相互尊重，让每一位西电学子都能在这里找到归属感。',
+                '${AppBrand.displayName}致力于打造一个健康、积极、友善的校园匿名社交平台。我们鼓励真实表达、理性讨论、相互尊重，让每一位西电学子都能在这里找到归属感。',
           ),
           const SizedBox(height: 16),
           _buildSection(
@@ -288,7 +289,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '西电树洞 · 校园匿名社交平台\n共建清朗网络空间，需要你我共同努力',
+              '${AppBrand.displayName} · 校园匿名社交平台\n共建清朗网络空间，需要你我共同努力',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(

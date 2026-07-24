@@ -6,10 +6,10 @@ import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
+import '../core/widgets/app_surfaces.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
 import '../features/ai/ai_page.dart';
-import '../features/announcements/announcements_page.dart';
 import '../features/campus/campus_page.dart';
 import '../features/feed/feed_page.dart';
 import '../features/messages/messages_page.dart';
@@ -36,7 +36,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     _ShellDestination('树洞', '校园里的声音', Icons.forum_outlined),
     _ShellDestination('校园', '服务、日程、地图', Icons.account_balance_outlined),
     _ShellDestination('AI', '学习与校园问答', Icons.auto_awesome_outlined),
-    _ShellDestination('公告', '重要消息', Icons.campaign_outlined),
   ];
 
   @override
@@ -67,24 +66,26 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        toolbarHeight: 64,
-        titleSpacing: desktop ? 24 : 12,
+        toolbarHeight: 68,
+        titleSpacing: desktop ? 30 : 16,
         title: Row(
           children: <Widget>[
-            _avatarButton(),
-            const SizedBox(width: AppSpacing.sm),
+            if (!desktop) ...<Widget>[
+              const AppSealMark(size: 32),
+              const SizedBox(width: AppSpacing.sm),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    desktop
-                        ? '西电知行 · ${_destinations[_currentIndex].label}'
-                        : _destinations[_currentIndex].label,
+                    _destinations[_currentIndex].label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: desktop
+                        ? Theme.of(context).textTheme.titleLarge
+                        : Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -103,13 +104,15 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           ],
         ),
         actions: <Widget>[
-          if (_currentIndex == 0)
+          if (_currentIndex == 0 && !desktop)
             IconButton(
               tooltip: '筛选',
               onPressed: _openFeedFilters,
               icon: const Icon(Icons.menu_rounded),
             ),
-          if (_currentIndex == 0)
+          if (desktop)
+            _DesktopSearchButton(onPressed: _openSearch)
+          else if (_currentIndex == 0)
             IconButton(
               tooltip: '搜索',
               onPressed: _openSearch,
@@ -128,7 +131,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               child: const Icon(Icons.notifications_none_rounded),
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
+          if (desktop && _currentIndex == 0) ...<Widget>[
+            const SizedBox(width: AppSpacing.xs),
+            FilledButton.icon(
+              key: const Key('create-post-top-action'),
+              onPressed: _openCreatePost,
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: const Text('发布心声'),
+            ),
+          ],
+          SizedBox(width: desktop ? AppSpacing.lg : AppSpacing.xs),
         ],
       ),
       body: desktop
@@ -139,6 +151,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   destinations: _destinations,
                   onSelect: _selectTab,
                   extended: expandedRail,
+                  onProfile: _openProfileSheet,
                 ),
                 Expanded(child: content),
               ],
@@ -146,18 +159,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           : content,
       floatingActionButton: _currentIndex == 0
           ? (desktop
-                ? FloatingActionButton.extended(
-                    key: const Key('create-post-fab'),
-                    onPressed: _openCreatePost,
-                    tooltip: '发布帖子',
-                    icon: const Icon(Icons.edit_outlined),
-                    label: const Text('发布帖子'),
-                  )
+                ? null
                 : FloatingActionButton(
                     key: const Key('create-post-fab'),
                     onPressed: _openCreatePost,
                     tooltip: '发帖',
-                    child: const Icon(Icons.add_rounded),
+                    child: const Icon(Icons.edit_outlined),
                   ))
           : null,
       bottomNavigationBar: desktop
@@ -188,8 +195,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
           return const CampusPage();
         case 2:
           return const AiPage();
-        case 3:
-          return const AnnouncementsPage();
         default:
           return const FeedPage();
       }
@@ -205,41 +210,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(icon, size: 18),
-    );
-  }
-
-  Widget _avatarButton() {
-    final user = AuthStore.instance.currentUser;
-    final String avatarUrl = user?.avatarUrl.trim() ?? '';
-    final String nickname = user?.nickname.trim() ?? '';
-    final String label = nickname.isEmpty ? '匿' : nickname.characters.first;
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: _openProfileSheet,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: SharedColors.softRed,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: avatarUrl.isEmpty
-            ? Center(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    color: SharedColors.deep,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              )
-            : Image.network(
-                avatarUrl,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Center(child: Text(label)),
-              ),
-      ),
     );
   }
 
@@ -379,19 +349,24 @@ class _DesktopRail extends StatelessWidget {
     required this.destinations,
     required this.onSelect,
     required this.extended,
+    required this.onProfile,
   });
 
   final int currentIndex;
   final List<_ShellDestination> destinations;
   final ValueChanged<int> onSelect;
   final bool extended;
+  final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthStore.instance.currentUser;
+    final String nickname = user?.nickname.trim() ?? '';
+    final String label = nickname.isEmpty ? '匿' : nickname.characters.first;
     return Container(
       key: const Key('desktop-primary-navigation'),
-      width: extended ? 220 : 92,
-      padding: const EdgeInsets.fromLTRB(12, 16, 12, 16),
+      width: extended ? AppLayout.sidebarWidth : 76,
+      padding: const EdgeInsets.fromLTRB(14, 20, 14, 16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
@@ -402,37 +377,32 @@ class _DesktopRail extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          if (extended) ...<Widget>[
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppRadii.small),
-                    ),
-                    child: Icon(
-                      Icons.forum_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 19,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      '西电知行',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+          Padding(
+            padding: EdgeInsets.fromLTRB(extended ? 8 : 4, 0, 4, 24),
+            child: extended
+                ? Row(
+                    children: <Widget>[
+                      const AppSealMark(size: 38),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              '知行',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            Text(
+                              '校园电台',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : const AppSealMark(size: 36),
+          ),
           for (int index = 0; index < destinations.length; index++) ...<Widget>[
             _RailItem(
               destination: destinations[index],
@@ -442,6 +412,67 @@ class _DesktopRail extends StatelessWidget {
             ),
             const SizedBox(height: 8),
           ],
+          const Spacer(),
+          Divider(color: Theme.of(context).dividerColor),
+          const SizedBox(height: AppSpacing.sm),
+          InkWell(
+            borderRadius: BorderRadius.circular(AppRadii.medium),
+            onTap: onProfile,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xs,
+                vertical: AppSpacing.xs,
+              ),
+              child: extended
+                  ? Row(
+                      children: <Widget>[
+                        Container(
+                          width: 34,
+                          height: 34,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: SharedColors.softRed,
+                            borderRadius: BorderRadius.circular(
+                              AppRadii.medium,
+                            ),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              color: SharedColors.deep,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                nickname.isEmpty ? '个人中心' : nickname,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                '资料与设置',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : Icon(
+                      Icons.person_outline,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+            ),
+          ),
         ],
       ),
     );
@@ -469,10 +500,10 @@ class _RailItem extends StatelessWidget {
     return Tooltip(
       message: destination.label,
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.medium),
         onTap: onTap,
         child: Container(
-          height: 58,
+          height: 46,
           padding: EdgeInsets.symmetric(
             horizontal: extended ? AppSpacing.sm : 0,
           ),
@@ -480,12 +511,12 @@ class _RailItem extends StatelessWidget {
             color: selected
                 ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadii.medium),
           ),
           child: extended
               ? Row(
                   children: <Widget>[
-                    Icon(destination.icon, color: color, size: 22),
+                    Icon(destination.icon, color: color, size: 20),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
@@ -496,9 +527,7 @@ class _RailItem extends StatelessWidget {
                             destination.label,
                             style: TextStyle(
                               color: color,
-                              fontWeight: selected
-                                  ? FontWeight.w800
-                                  : FontWeight.w600,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                           Text(
@@ -518,7 +547,7 @@ class _RailItem extends StatelessWidget {
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Icon(destination.icon, color: color, size: 21),
+                    Icon(destination.icon, color: color, size: 20),
                     const SizedBox(height: 3),
                     Text(
                       destination.label,
@@ -532,6 +561,37 @@ class _RailItem extends StatelessWidget {
                     ),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopSearchButton extends StatelessWidget {
+  const _DesktopSearchButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 232,
+      height: 40,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.search_rounded, size: 18),
+        label: const Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '搜索帖子、话题与公告',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
         ),
       ),
     );

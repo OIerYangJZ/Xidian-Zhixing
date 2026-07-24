@@ -31,6 +31,12 @@ class ThemeConfig {
 /// 移动端 iOS 风格主题
 /// 遵循极简、优雅的设计理念
 class MobileTheme {
+  static const String interfaceFontFamily = 'PingFang SC';
+  static const List<String> interfaceFontFamilyFallback = [
+    'Noto Sans CJK SC',
+    'Microsoft YaHei',
+    'sans-serif',
+  ];
   static const String brandFontFamily = 'Source Han Serif SC';
   static const List<String> brandFontFamilyFallback = [
     'Songti SC',
@@ -42,9 +48,9 @@ class MobileTheme {
   static const List<String> quoteFontFamilyFallback = brandFontFamilyFallback;
 
   // 共享状态色
-  static const Color _success = Color(0xFF4E7D66);
-  static const Color _warning = Color(0xFFB7791F);
-  static const Color _error = Color(0xFF9F1D1D);
+  static const Color _success = Color(0xFF4F725E);
+  static const Color _warning = Color(0xFF9A672A);
+  static const Color _error = Color(0xFF97382F);
 
   static const Color success = _success;
   static const Color warning = _warning;
@@ -53,12 +59,12 @@ class MobileTheme {
   /// 10 款主题配置
   static const Map<String, ThemeConfig> themes = {
     'zhushachi': ThemeConfig(
-      primary: Color(0xFFB23A2E),
-      primaryDark: Color(0xFF7A1E1A),
-      accent: Color(0xFFD94A38),
-      seal: Color(0xFFC7352A),
-      background: Color(0xFFFAF4EA),
-      softBackground: Color(0xFFF8E7E1),
+      primary: Color(0xFFA33A32),
+      primaryDark: Color(0xFF7D2924),
+      accent: Color(0xFFC46A50),
+      seal: Color(0xFFA33A32),
+      background: Color(0xFFF6F2EA),
+      softBackground: Color(0xFFF0E5DF),
       success: _success,
       warning: _warning,
       error: _error,
@@ -184,14 +190,14 @@ class MobileTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: brandFontFamily,
-      fontFamilyFallback: brandFontFamilyFallback,
+      fontFamily: interfaceFontFamily,
+      fontFamilyFallback: interfaceFontFamilyFallback,
       primaryColor: config.primary,
       scaffoldBackgroundColor: config.background,
       colorScheme: ColorScheme.light(
         primary: config.primary,
         secondary: config.accent,
-        surface: Colors.white,
+        surface: colors.surface,
         error: config.error,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
@@ -211,15 +217,15 @@ class MobileTheme {
           color: config.primaryDark,
           fontSize: 17,
           fontWeight: FontWeight.w600,
-          fontFamily: brandFontFamily,
-          fontFamilyFallback: brandFontFamilyFallback,
+          fontFamily: interfaceFontFamily,
+          fontFamilyFallback: interfaceFontFamilyFallback,
         ),
         iconTheme: IconThemeData(color: config.primary),
       ),
 
       // 底部导航栏 - CupertinoTabBar 风格
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: Colors.white,
+        backgroundColor: colors.surface,
         selectedItemColor: config.primary,
         unselectedItemColor: colors.textSecondary,
         type: BottomNavigationBarType.fixed,
@@ -235,19 +241,22 @@ class MobileTheme {
         ),
       ),
 
-      // 卡片样式 - 圆角卡片，轻阴影
+      // 卡片样式 - 低圆角、细边框、无浮层阴影
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: colors.cardBackground,
         surfaceTintColor: Colors.transparent,
-        elevation: 1,
+        elevation: 0,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: colors.divider),
+        ),
       ),
 
       // 输入框样式
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: colors.surface,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 14,

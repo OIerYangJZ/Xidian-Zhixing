@@ -109,7 +109,7 @@ class _ImageGalleryState extends State<ImageGallery> {
       await Gal.putImageBytes(
         response.bodyBytes,
         name: fileName,
-        album: '西电树洞',
+        album: '西电知行',
       );
       _showMessage('图片已保存到相册');
     } catch (_) {

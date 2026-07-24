@@ -42,28 +42,29 @@ class AppSpacing {
 class AppRadii {
   AppRadii._();
 
-  static const double small = 10;
-  static const double medium = 14;
-  static const double large = 20;
-  static const double hero = 28;
+  static const double small = 6;
+  static const double medium = 10;
+  static const double large = 12;
+  static const double hero = 16;
   static const double pill = 999;
 }
 
 class AppLayout {
   AppLayout._();
 
-  static const double pageMaxWidth = 1200;
-  static const double contentMaxWidth = 1040;
+  static const double pageMaxWidth = 1440;
+  static const double contentMaxWidth = 1280;
   static const double readingMaxWidth = 760;
   static const double formMaxWidth = 680;
   static const double authMaxWidth = 1080;
-  static const double sidebarWidth = 288;
+  static const double sidebarWidth = 216;
+  static const double asideWidth = 280;
 
   static EdgeInsets pagePadding(BuildContext context) {
     final double width = MediaQuery.sizeOf(context).width;
     if (width >= AppBreakpoints.expanded) {
       return const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
+        horizontal: 28,
         vertical: AppSpacing.lg,
       );
     }
@@ -85,9 +86,9 @@ class AppElevation {
 
   static List<BoxShadow> soft(Color color) => <BoxShadow>[
     BoxShadow(
-      color: color.withValues(alpha: 0.08),
-      blurRadius: 28,
-      offset: const Offset(0, 12),
+      color: color.withValues(alpha: 0.06),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
     ),
   ];
 }

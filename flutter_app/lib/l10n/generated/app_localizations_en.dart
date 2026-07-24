@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'XDU Treehole';
+  String get appTitle => '西电知行';
 
   @override
   String get home => 'Home';
@@ -24,7 +24,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Login';
 
   @override
-  String get loginTitle => 'Login to XDU Treehole';
+  String get loginTitle => 'Login to 西电知行';
 
   @override
   String get username => 'Username';

@@ -1229,7 +1229,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             constraints: const BoxConstraints(),
             onPressed: () {
               Clipboard.setData(
-                ClipboardData(text: '查看西电树洞帖子: ${widget.postId}'),
+                ClipboardData(text: '查看西电知行帖子：${widget.postId}'),
               );
               ScaffoldMessenger.of(
                 context,
@@ -1936,5 +1936,3 @@ class _ReportSheetState extends State<_ReportSheet> {
     );
   }
 }
-
-

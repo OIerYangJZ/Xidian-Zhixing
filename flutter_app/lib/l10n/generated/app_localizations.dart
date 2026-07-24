@@ -102,7 +102,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In zh, this message translates to:
-  /// **'西电树洞'**
+  /// **'西电知行'**
   String get appTitle;
 
   /// No description provided for @home.
@@ -132,7 +132,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginTitle.
   ///
   /// In zh, this message translates to:
-  /// **'登录西电树洞'**
+  /// **'登录西电知行'**
   String get loginTitle;
 
   /// No description provided for @username.

@@ -91,7 +91,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'See电',
+                  '西电知行',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 Text(

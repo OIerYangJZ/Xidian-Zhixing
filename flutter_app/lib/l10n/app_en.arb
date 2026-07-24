@@ -1,11 +1,11 @@
 {
   "@@locale": "en",
-  "appTitle": "XDU Treehole",
+  "appTitle": "西电知行",
   "home": "Home",
   "messages": "Messages",
   "profile": "Profile",
   "login": "Login",
-  "loginTitle": "Login to XDU Treehole",
+  "loginTitle": "Login to 西电知行",
   "username": "Username",
   "password": "Password",
   "loginButton": "Login",

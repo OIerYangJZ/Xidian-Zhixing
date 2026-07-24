@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/app_brand.dart';
+
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
 
@@ -21,7 +23,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             context,
             title: '引言',
             content:
-                '西电树洞（以下简称"我们"）非常重视用户的隐私和个人信息保护。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的信息。\n\n'
+                '${AppBrand.displayName}（以下简称"我们"）非常重视用户的隐私和个人信息保护。本隐私政策旨在向您说明我们如何收集、使用、存储和保护您的信息。\n\n'
                 '请您在使用我们的服务前，仔细阅读并了解本隐私政策。如果您不同意本隐私政策的任何内容，请停止使用我们的服务。',
           ),
           const SizedBox(height: 16),
@@ -256,7 +258,7 @@ class PrivacyPolicyPage extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '西电树洞 · 校园匿名社交平台\n我们致力于保护您的个人信息安全',
+              '${AppBrand.displayName} · 校园匿名社交平台\n我们致力于保护您的个人信息安全',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(

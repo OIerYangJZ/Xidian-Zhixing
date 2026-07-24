@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/app_brand.dart';
+
 class TermsOfServicePage extends StatelessWidget {
   const TermsOfServicePage({super.key});
 
@@ -21,7 +23,7 @@ class TermsOfServicePage extends StatelessWidget {
             context,
             title: '一、服务条款的确认和接受',
             content:
-                '欢迎使用西电树洞（以下简称"本平台"）。在使用本平台服务之前，请您仔细阅读本用户协议。\n\n'
+                '欢迎使用${AppBrand.displayName}（以下简称"本平台"）。在使用本平台服务之前，请您仔细阅读本用户协议。\n\n'
                 '您在使用本平台时，即表示您已阅读、理解并同意接受本协议的全部条款。如果您不同意本协议的任何内容，请停止使用本平台服务。\n\n'
                 '本平台有权随时修改本协议，修改后的协议一经公布即生效。如果您继续使用本平台服务，视为您接受修改后的协议。',
           ),
@@ -110,7 +112,7 @@ class TermsOfServicePage extends StatelessWidget {
                 '如您对本协议有任何疑问，请通过以下方式联系我们：\n\n'
                 '• 发送邮件至平台管理员邮箱\n'
                 '• 通过站内私信联系管理员\n\n'
-                '感谢您使用西电树洞！',
+                '感谢您使用${AppBrand.displayName}！',
           ),
           const SizedBox(height: 32),
           _buildFooter(context),
@@ -240,7 +242,7 @@ class TermsOfServicePage extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '西电树洞 · 校园匿名社交平台\n本协议解释权归平台管理团队所有',
+              '${AppBrand.displayName} · 校园匿名社交平台\n本协议解释权归平台管理团队所有',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(

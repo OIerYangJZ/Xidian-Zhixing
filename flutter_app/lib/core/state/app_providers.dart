@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/admin_repository.dart';
 import '../../repositories/ai_repository.dart';
-import '../../repositories/announcement_repository.dart';
 import '../../repositories/auth_repository.dart';
 import '../../repositories/campus_repository.dart';
 import '../../repositories/message_repository.dart';
@@ -35,10 +34,6 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((
 
 final campusRepositoryProvider = Provider<CampusRepository>((Ref ref) {
   return AppRepositories.campus;
-});
-
-final announcementRepositoryProvider = Provider<AnnouncementRepository>((Ref ref) {
-  return AppRepositories.announcements;
 });
 
 final aiRepositoryProvider = Provider<AiRepository>((Ref ref) {

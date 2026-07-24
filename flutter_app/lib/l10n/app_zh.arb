@@ -1,11 +1,11 @@
 {
   "@@locale": "zh",
-  "appTitle": "西电树洞",
+  "appTitle": "西电知行",
   "home": "首页",
   "messages": "消息",
   "profile": "我的",
   "login": "登录",
-  "loginTitle": "登录西电树洞",
+  "loginTitle": "登录西电知行",
   "username": "用户名",
   "password": "密码",
   "loginButton": "登录",

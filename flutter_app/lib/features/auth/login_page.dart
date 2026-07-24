@@ -56,18 +56,21 @@ class _LoginPageState extends State<LoginPage> {
                     maxWidth: AppLayout.authMaxWidth,
                   ),
                   child: desktop
-                      ? IntrinsicHeight(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              const Expanded(child: _LoginIntroPanel()),
-                              const SizedBox(width: AppSpacing.lg),
-                              SizedBox(
-                                width: 440,
-                                child: _buildLoginCard(context),
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Expanded(
+                              child: SizedBox(
+                                height: 620,
+                                child: _LoginIntroPanel(),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            SizedBox(
+                              width: 440,
+                              child: _buildLoginCard(context),
+                            ),
+                          ],
                         )
                       : ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 480),

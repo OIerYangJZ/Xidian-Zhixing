@@ -1,24 +1,24 @@
 page {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2D2522;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --state-success: #4E7D66;
-  --state-warning: #B7791F;
-  --state-danger: #9F1D1D;
+  --brand-primary: #A33A32;
+  --brand-deep: #7D2924;
+  --brand-bright: #C46A50;
+  --brand-seal: #A33A32;
+  --background-paper: #F6F2EA;
+  --background-softRed: #F0E5DF;
+  --text-primary: #292522;
+  --text-secondary: #716A64;
+  --border-default: #DED6CB;
+  --state-success: #4F725E;
+  --state-warning: #9A672A;
+  --state-danger: #97382F;
 
   --app-primary: var(--brand-primary);
   --app-primary-dark: var(--brand-deep);
   --app-accent: var(--brand-bright);
   --app-background: var(--background-paper);
-  --app-surface: #ffffff;
+  --app-surface: #FFFCF7;
   --app-surface-translucent: rgba(255, 255, 255, 0.72);
-  --app-card: #ffffff;
+  --app-card: #FFFCF7;
   --app-text-primary: var(--text-primary);
   --app-text-secondary: var(--text-secondary);
   --app-text-tertiary: #A2948E;
@@ -31,7 +31,7 @@ page {
   --app-accent-soft: var(--background-softRed);
 
   --font-serif: "Source Han Serif SC", "Source Han Serif CN", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
-  --font-sans: var(--font-serif);
+  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-quote: var(--font-serif);
 
   min-height: 100vh;
@@ -121,7 +121,7 @@ button::after {
   align-items: center;
   justify-content: center;
   height: 88rpx;
-  border-radius: 28rpx; /* button.radius.primary = 14px = 28rpx */
+  border-radius: 20rpx;
   background: var(--app-primary);
   color: #ffffff;
   font-size: 30rpx;
@@ -148,7 +148,7 @@ button::after {
   justify-content: center;
   height: 56rpx;
   padding: 0 20rpx;
-  border-radius: 28rpx;
+  border-radius: 12rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 25rpx;
@@ -168,7 +168,7 @@ button::after {
   width: 100%;
   padding: 0 24rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx; /* input.radius = 12px = 24rpx */
+  border-radius: 20rpx;
   background: var(--app-surface);
   color: var(--app-text-primary);
   font-size: 29rpx;
@@ -1063,21 +1063,21 @@ button::after {
 .theme-xingrenhuang,
 .theme-haiyanqing,
 .theme-mohui {
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --text-primary: #2D2522;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
+  --background-paper: #F6F2EA;
+  --background-softRed: #F0E5DF;
+  --brand-primary: #A33A32;
+  --brand-deep: #7D2924;
+  --brand-bright: #C46A50;
+  --brand-seal: #A33A32;
+  --text-primary: #292522;
+  --text-secondary: #716A64;
+  --border-default: #DED6CB;
   --app-primary: var(--brand-primary);
   --app-primary-dark: var(--brand-deep);
   --app-accent: var(--brand-bright);
-  --app-background: #ffffff;
-  --app-surface: #ffffff;
-  --app-card: #ffffff;
+  --app-background: var(--background-paper);
+  --app-surface: #FFFCF7;
+  --app-card: #FFFCF7;
   --app-text-primary: var(--text-primary);
   --app-text-secondary: var(--text-secondary);
   --app-text-tertiary: #A89F9B;
@@ -1123,4 +1123,3 @@ button::after {
   --app-primary-dark: #ffffff;
   --app-primary: #ffffff;
 }
-

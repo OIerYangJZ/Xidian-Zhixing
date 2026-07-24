@@ -5,7 +5,7 @@ class AcknowledgementsPage extends StatelessWidget {
 
   static const List<String> _thanks = <String>[
     '感谢所有参与测试、反馈与内容治理的同学。',
-    '感谢为西电树洞提供设计、产品、开发和运维支持的成员。',
+    '感谢为西电知行提供设计、产品、开发和运维支持的成员。',
     '感谢每一位提交 issue、建议和错误报告的用户。',
   ];
 
@@ -34,7 +34,7 @@ class AcknowledgementsPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '感谢每一位参与建设西电树洞的人',
+                  '感谢每一位参与建设西电知行的人',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),

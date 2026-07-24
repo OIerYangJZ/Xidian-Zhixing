@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/ai_repository.dart';
 
 class AiPage extends ConsumerStatefulWidget {
@@ -15,38 +17,163 @@ class AiPage extends ConsumerStatefulWidget {
 class _AiPageState extends ConsumerState<AiPage> {
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-      children: <Widget>[
-        FilledButton.icon(
-          onPressed: () {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute<void>(builder: (_) => const AiChatPage()));
-          },
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('发起新对话'),
-        ),
-        const SizedBox(height: 10),
-        OutlinedButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AiSettingsPage()),
-            );
-          },
-          child: const Text('AI 设置'),
-        ),
-        const SizedBox(height: 28),
-        Container(
-          height: 260,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SharedColors.divider),
+    return AppPageFrame(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bool expanded = constraints.maxWidth >= AppBreakpoints.medium;
+          return ListView(
+            padding: const EdgeInsets.only(bottom: 100),
+            children: <Widget>[
+              AppSectionHeader(
+                title: '校园 AI 助手',
+                subtitle: '基于校园知识库与审核通过的公开内容回答',
+                trailing: OutlinedButton.icon(
+                  onPressed: _openSettings,
+                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  label: const Text('设置'),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              if (expanded)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(
+                      flex: 3,
+                      child: _AiStartCard(onOpenChat: _openChat),
+                    ),
+                    const SizedBox(width: AppSpacing.lg),
+                    const Expanded(flex: 2, child: _AiPrinciplesCard()),
+                  ],
+                )
+              else
+                Column(
+                  children: <Widget>[
+                    _AiStartCard(onOpenChat: _openChat),
+                    const SizedBox(height: AppSpacing.lg),
+                    const _AiPrinciplesCard(),
+                  ],
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _openChat() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const AiChatPage()));
+  }
+
+  void _openSettings() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const AiSettingsPage()));
+  }
+}
+
+class _AiStartCard extends StatelessWidget {
+  const _AiStartCard({required this.onOpenChat});
+
+  final VoidCallback onOpenChat;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppSurfaceCard(
+      highlighted: true,
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          const AppSealMark(label: '问', size: 46),
+          const SizedBox(height: AppSpacing.lg),
+          Text('从一个校园问题开始', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            '进入对话后可询问办事流程、校园服务或公开社区内容。回答若引用资料，会在正文下方逐条列出来源。',
+            style: Theme.of(context).textTheme.bodyLarge,
           ),
-          child: const Text('还没有对话'),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.xl),
+          FilledButton.icon(
+            onPressed: onOpenChat,
+            icon: const Icon(Icons.arrow_forward_rounded),
+            label: const Text('发起新对话'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AiPrinciplesCard extends StatelessWidget {
+  const _AiPrinciplesCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const AppSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          AppSectionTitle(title: '回答原则'),
+          SizedBox(height: AppSpacing.sm),
+          _AiPrinciple(
+            icon: Icons.source_outlined,
+            title: '来源可核对',
+            message: '检索到的参考资料会和回答分开呈现。',
+          ),
+          _AiPrinciple(
+            icon: Icons.visibility_outlined,
+            title: '能力边界透明',
+            message: '服务器未配置时会明确提示，不生成替代回答。',
+          ),
+          _AiPrinciple(
+            icon: Icons.lock_outline_rounded,
+            title: '公开内容范围',
+            message: '论坛内容仅使用审核通过的公开帖子。',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AiPrinciple extends StatelessWidget {
+  const _AiPrinciple({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Icon(icon, size: 19, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(message, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -115,25 +242,38 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       body: Column(
         children: <Widget>[
           Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-              itemCount: _messages.length + (_sending ? 1 : 0),
-              itemBuilder: (BuildContext context, int index) {
-                if (index == _messages.length) {
-                  return const _MessageBubble(
-                    role: 'assistant',
-                    content: '...',
-                    references: <AiReference>[],
-                  );
-                }
-                final AiMessage message = _messages[index];
-                return _MessageBubble(
-                  role: message.role,
-                  content: message.content,
-                  references: message.references,
-                );
-              },
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: AppLayout.readingMaxWidth,
+                ),
+                child: _messages.isEmpty && !_sending
+                    ? const AppStatePanel(
+                        icon: Icons.auto_awesome_outlined,
+                        title: '开始一次可核对的问答',
+                        message: '回答中使用的校园资料会在下方标注来源。',
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                        itemCount: _messages.length + (_sending ? 1 : 0),
+                        itemBuilder: (BuildContext context, int index) {
+                          if (index == _messages.length) {
+                            return const _MessageBubble(
+                              role: 'assistant',
+                              content: '正在查找相关资料…',
+                              references: <AiReference>[],
+                            );
+                          }
+                          final AiMessage message = _messages[index];
+                          return _MessageBubble(
+                            role: message.role,
+                            content: message.content,
+                            references: message.references,
+                          );
+                        },
+                      ),
+              ),
             ),
           ),
           SafeArea(
@@ -340,7 +480,7 @@ class _MessageBubble extends StatelessWidget {
                 color: user
                     ? Theme.of(context).colorScheme.primary
                     : Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadii.large),
                 border: user ? null : Border.all(color: SharedColors.divider),
               ),
               child: Column(
@@ -355,16 +495,25 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   if (references.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 12),
-                    for (final AiReference ref in references)
-                      Text(
-                        '${ref.type} · ${ref.title}',
-                        style: TextStyle(
-                          color: user
-                              ? Colors.white.withValues(alpha: 0.82)
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.86),
-                          fontSize: 12,
+                    Text('参考来源', style: Theme.of(context).textTheme.labelLarge),
+                    const SizedBox(height: AppSpacing.xs),
+                    for (final MapEntry<int, AiReference> entry
+                        in references.asMap().entries)
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(color: SharedColors.divider),
+                          borderRadius: BorderRadius.circular(AppRadii.small),
+                        ),
+                        child: Text(
+                          '${entry.key + 1}. ${entry.value.type} · ${entry.value.title}',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                   ],
@@ -392,13 +541,13 @@ class _AiAvatar extends StatelessWidget {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadii.medium),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );

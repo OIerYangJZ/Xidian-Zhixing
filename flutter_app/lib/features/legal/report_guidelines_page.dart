@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/config/app_brand.dart';
 import '../../core/theme/shared_colors.dart';
 
 class ReportGuidelinesPage extends StatelessWidget {
@@ -25,7 +26,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             icon: Icons.help_outline,
             iconColor: Theme.of(context).colorScheme.primary,
             content:
-                '西电树洞是一个大家共同维护的社区。当您发现违规内容时，一键举报可以帮助我们快速处理，共同维护良好的社区环境。\n\n'
+                '${AppBrand.displayName}是一个大家共同维护的社区。当您发现违规内容时，一键举报可以帮助我们快速处理，共同维护良好的社区环境。\n\n'
                 '您的每一次举报都是对社区秩序的守护，感谢您的参与！',
           ),
           const SizedBox(height: 16),
@@ -303,7 +304,7 @@ class ReportGuidelinesPage extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              '西电树洞 · 校园匿名社交平台\n文明社区，你我共建。感谢您的每一次举报！',
+              '${AppBrand.displayName} · 校园匿名社交平台\n文明社区，你我共建。感谢您的每一次举报！',
               style: TextStyle(
                 fontSize: 12,
                 color: Theme.of(

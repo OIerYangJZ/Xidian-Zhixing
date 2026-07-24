@@ -71,41 +71,40 @@ class AppTheme {
 
     final TextTheme textTheme = TextTheme(
       displaySmall: TextStyle(
-        fontSize: 36,
-        height: 1.18,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.8,
+        fontSize: 32,
+        height: 1.25,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
         color: onSurface,
       ),
       headlineMedium: TextStyle(
-        fontSize: 28,
-        height: 1.24,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.4,
+        fontSize: 26,
+        height: 1.3,
+        fontWeight: FontWeight.w700,
         color: onSurface,
       ),
       headlineSmall: TextStyle(
         fontSize: 24,
-        height: 1.28,
-        fontWeight: FontWeight.w800,
+        height: 1.4,
+        fontWeight: FontWeight.w600,
         color: onSurface,
       ),
       titleLarge: TextStyle(
         fontSize: 20,
-        height: 1.35,
-        fontWeight: FontWeight.w800,
+        height: 1.5,
+        fontWeight: FontWeight.w600,
         color: onSurface,
       ),
       titleMedium: TextStyle(
         fontSize: 17,
-        height: 1.4,
-        fontWeight: FontWeight.w700,
+        height: 1.5,
+        fontWeight: FontWeight.w600,
         color: onSurface,
       ),
       titleSmall: TextStyle(
         fontSize: 15,
-        height: 1.4,
-        fontWeight: FontWeight.w700,
+        height: 1.5,
+        fontWeight: FontWeight.w600,
         color: onSurface,
       ),
       bodyLarge: TextStyle(
@@ -129,12 +128,12 @@ class AppTheme {
       labelLarge: const TextStyle(
         fontSize: 14,
         height: 1.2,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
       ),
       labelMedium: const TextStyle(
         fontSize: 12,
         height: 1.2,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
       ),
     );
 
@@ -162,8 +161,8 @@ class AppTheme {
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        toolbarHeight: 64,
-        backgroundColor: background.withValues(alpha: 0.96),
+        toolbarHeight: 68,
+        backgroundColor: surface.withValues(alpha: 0.96),
         foregroundColor: onSurface,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: textTheme.titleMedium,
@@ -177,16 +176,16 @@ class AppTheme {
         elevation: 0,
         color: surface,
         surfaceTintColor: Colors.transparent,
-        shadowColor: scheme.shadow.withValues(alpha: 0.08),
+        shadowColor: Colors.transparent,
       ),
       dividerTheme: DividerThemeData(color: divider, thickness: 1, space: 1),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.pill),
+          borderRadius: BorderRadius.circular(AppRadii.small),
         ),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
+          horizontal: AppSpacing.xs,
+          vertical: AppSpacing.xxs,
         ),
         selectedColor: scheme.primary.withValues(alpha: 0.14),
         backgroundColor: scheme.surface,
@@ -235,17 +234,17 @@ class AppTheme {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        elevation: 2,
-        focusElevation: 3,
-        hoverElevation: 3,
+        elevation: 1,
+        focusElevation: 1,
+        hoverElevation: 1,
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.large),
+          borderRadius: BorderRadius.circular(AppRadii.medium),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 72,
+        height: 66,
         backgroundColor: surface,
         indicatorColor: scheme.primary.withValues(alpha: 0.12),
         surfaceTintColor: Colors.transparent,
@@ -273,12 +272,12 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: brightness == Brightness.light
-            ? const Color(0xFFFBFBF9)
+            ? SharedColors.surface
             : Colors.white.withValues(alpha: 0.05),
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         floatingLabelStyle: TextStyle(
           color: scheme.primary,
-          fontWeight: FontWeight.w700,
+          fontWeight: FontWeight.w600,
         ),
         hintStyle: TextStyle(
           color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
@@ -297,7 +296,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.medium),
-          borderSide: BorderSide(color: scheme.primary, width: 1.6),
+          borderSide: BorderSide(color: scheme.primary, width: 1.4),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.medium),
@@ -305,7 +304,7 @@ class AppTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.medium),
-          borderSide: BorderSide(color: scheme.error, width: 1.6),
+          borderSide: BorderSide(color: scheme.error, width: 1.4),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,

@@ -37,11 +37,13 @@ class AppSurfaceCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.highlighted = false,
+    this.elevated = false,
   });
 
   final Widget child;
   final EdgeInsets padding;
   final bool highlighted;
+  final bool elevated;
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +57,109 @@ class AppSurfaceCard extends StatelessWidget {
               ? theme.colorScheme.primary.withValues(alpha: 0.24)
               : theme.dividerColor,
         ),
-        boxShadow: AppElevation.soft(theme.colorScheme.shadow),
+        boxShadow: elevated
+            ? AppElevation.soft(theme.colorScheme.shadow)
+            : const <BoxShadow>[],
       ),
       child: Padding(padding: padding, child: child),
+    );
+  }
+}
+
+class AppSealMark extends StatelessWidget {
+  const AppSealMark({super.key, this.label = '知', this.size = 38});
+
+  final String label;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = Theme.of(context).colorScheme.primary;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.025),
+        borderRadius: BorderRadius.circular(AppRadii.medium),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: size * 0.45,
+          fontWeight: FontWeight.w600,
+          height: 1,
+        ),
+      ),
+    );
+  }
+}
+
+class AppStatusTag extends StatelessWidget {
+  const AppStatusTag({
+    super.key,
+    required this.label,
+    this.color,
+    this.outlined = false,
+  });
+
+  final String label;
+  final Color? color;
+  final bool outlined;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color effectiveColor = color ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: outlined
+            ? Colors.transparent
+            : effectiveColor.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppRadii.small),
+        border: Border.all(
+          color: effectiveColor.withValues(alpha: outlined ? 0.72 : 0.18),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: effectiveColor,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          height: 1.1,
+        ),
+      ),
+    );
+  }
+}
+
+class AppSectionTitle extends StatelessWidget {
+  const AppSectionTitle({
+    super.key,
+    required this.title,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+        ),
+        if (actionLabel != null)
+          onAction == null
+              ? Text(actionLabel!, style: Theme.of(context).textTheme.bodySmall)
+              : TextButton(onPressed: onAction, child: Text(actionLabel!)),
+      ],
     );
   }
 }

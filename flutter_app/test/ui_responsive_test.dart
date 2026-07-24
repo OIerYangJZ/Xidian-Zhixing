@@ -18,7 +18,6 @@ import 'package:xdu_treehole_web/features/common/access_state_page.dart';
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
-import 'package:xdu_treehole_web/repositories/announcement_repository.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/home_shell.dart';
 import 'package:xdu_treehole_web/widgets/post_card.dart';
@@ -89,9 +88,6 @@ void main() {
       final ApiClient apiClient = _emptyApiClient();
       final List<Override> overrides = <Override>[
         postRepositoryProvider.overrideWithValue(PostRepository(apiClient)),
-        announcementRepositoryProvider.overrideWithValue(
-          AnnouncementRepository(apiClient),
-        ),
       ];
 
       _setViewport(tester, width: 390, height: 820);
@@ -116,6 +112,7 @@ void main() {
       );
       expect(find.byKey(const Key('mobile-primary-navigation')), findsNothing);
       expect(find.byKey(const Key('create-post-fab')), findsOneWidget);
+      expect(find.text('公告'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
@@ -283,9 +280,6 @@ ApiClient _emptyApiClient() {
       final Object response = switch (request.url.path) {
         '/api/channels' => <String>['综合', '求助问答'],
         '/api/posts' => <String, Object>{'posts': <Object>[]},
-        '/api/announcements/filters' => <String, Object>{'types': <Object>[]},
-        '/api/announcements/daily-summary' => <String, Object>{},
-        '/api/announcements' => <String, Object>{'items': <Object>[]},
         _ => <String, Object>{},
       };
       return http.Response(

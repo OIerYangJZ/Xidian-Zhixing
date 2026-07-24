@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
 import 'campus_auth_center_page.dart';
 import 'campus_service_detail_page.dart';
@@ -68,58 +70,67 @@ class _CampusPageState extends ConsumerState<CampusPage> {
       return const Center(child: CircularProgressIndicator());
     }
     final Map<String, List<CampusService>> groups = _groupServices(_services);
-    return RefreshIndicator(
-      onRefresh: _load,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 110),
-        children: <Widget>[
-          if (_error != null) _ErrorBanner(message: _error!, onRetry: _load),
-          _IdsCard(onTap: _openAuthCenter),
-          const SizedBox(height: 14),
-          _TodayCard(today: _today, onTap: _openScheduleSource),
-          const SizedBox(height: 18),
-          for (final MapEntry<String, List<CampusService>> entry
-              in groups.entries) ...<Widget>[
-            _SectionTitle(entry.key),
-            const SizedBox(height: 10),
-            LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                final int columns = constraints.maxWidth >= 900
-                    ? 6
-                    : constraints.maxWidth >= 640
-                        ? 4
-                        : 3;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.08,
-                  ),
-                  itemCount: entry.value.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final CampusService service = entry.value[index];
-                    return _ServiceTile(
-                      service: service,
-                      onTap: () => _openService(service),
-                    );
-                  },
-                );
-              },
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool expanded = constraints.maxWidth >= AppBreakpoints.expanded;
+        final Widget services = _ServicesGrid(
+          groups: groups,
+          expanded: expanded,
+          onOpen: _openService,
+        );
+        return RefreshIndicator(
+          onRefresh: _load,
+          child: ListView(
+            padding: EdgeInsets.fromLTRB(
+              expanded ? AppSpacing.xl : AppSpacing.md,
+              AppSpacing.md,
+              expanded ? AppSpacing.xl : AppSpacing.md,
+              110,
             ),
-            const SizedBox(height: 18),
-          ],
-        ],
-      ),
+            children: <Widget>[
+              if (_error != null)
+                _ErrorBanner(message: _error!, onRetry: _load),
+              if (expanded)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Expanded(child: services),
+                    const SizedBox(width: AppSpacing.xl),
+                    SizedBox(
+                      width: AppLayout.asideWidth,
+                      child: Column(
+                        children: <Widget>[
+                          _IdsCard(onTap: _openAuthCenter),
+                          const SizedBox(height: AppSpacing.md),
+                          _TodayCard(today: _today, onTap: _openScheduleSource),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              else ...<Widget>[
+                _IdsCard(onTap: _openAuthCenter),
+                const SizedBox(height: AppSpacing.md),
+                _TodayCard(today: _today, onTap: _openScheduleSource),
+                const SizedBox(height: AppSpacing.xl),
+                services,
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Map<String, List<CampusService>> _groupServices(List<CampusService> services) {
-    final Map<String, List<CampusService>> groups = <String, List<CampusService>>{};
+  Map<String, List<CampusService>> _groupServices(
+    List<CampusService> services,
+  ) {
+    final Map<String, List<CampusService>> groups =
+        <String, List<CampusService>>{};
     for (final CampusService service in services) {
-      final String name = service.groupName.trim().isEmpty ? '校园服务' : service.groupName;
+      final String name = service.groupName.trim().isEmpty
+          ? '校园服务'
+          : service.groupName;
       groups.putIfAbsent(name, () => <CampusService>[]).add(service);
     }
     return groups;
@@ -147,8 +158,9 @@ class _CampusPageState extends ConsumerState<CampusPage> {
   }
 
   Future<void> _openService(CampusService service) async {
-    final CampusAction? action =
-        service.actions.where((CampusAction item) => item.type != 'notice').firstOrNull;
+    final CampusAction? action = service.actions
+        .where((CampusAction item) => item.type != 'notice')
+        .firstOrNull;
     if (service.slug == 'map' ||
         service.slug == 'campus-map' ||
         action?.type == 'map') {
@@ -158,7 +170,10 @@ class _CampusPageState extends ConsumerState<CampusPage> {
     if ((service.groupId == 'quick' || service.kind == 'external') &&
         action?.type == 'external' &&
         (action?.url ?? '').trim().isNotEmpty) {
-      await launchUrl(Uri.parse(action!.url), mode: LaunchMode.externalApplication);
+      await launchUrl(
+        Uri.parse(action!.url),
+        mode: LaunchMode.externalApplication,
+      );
       return;
     }
     if (!mounted) {
@@ -179,6 +194,62 @@ class _CampusPageState extends ConsumerState<CampusPage> {
   }
 }
 
+class _ServicesGrid extends StatelessWidget {
+  const _ServicesGrid({
+    required this.groups,
+    required this.expanded,
+    required this.onOpen,
+  });
+
+  final Map<String, List<CampusService>> groups;
+  final bool expanded;
+  final ValueChanged<CampusService> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        const AppSectionHeader(title: '校园服务', subtitle: '课表、考试、实验与常用校园入口'),
+        const SizedBox(height: AppSpacing.lg),
+        for (final MapEntry<String, List<CampusService>> entry
+            in groups.entries) ...<Widget>[
+          AppSectionTitle(title: entry.key),
+          const SizedBox(height: AppSpacing.sm),
+          LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final int columns = constraints.maxWidth >= 820
+                  ? 4
+                  : constraints.maxWidth >= 520
+                  ? 3
+                  : 2;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: columns,
+                  crossAxisSpacing: AppSpacing.sm,
+                  mainAxisSpacing: AppSpacing.sm,
+                  childAspectRatio: expanded ? 1.28 : 1.08,
+                ),
+                itemCount: entry.value.length,
+                itemBuilder: (BuildContext context, int index) {
+                  final CampusService service = entry.value[index];
+                  return _ServiceTile(
+                    service: service,
+                    onTap: () => onOpen(service),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
+      ],
+    );
+  }
+}
+
 class _IdsCard extends StatelessWidget {
   const _IdsCard({required this.onTap});
 
@@ -187,13 +258,13 @@ class _IdsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.large),
           border: Border.all(color: SharedColors.divider),
         ),
         child: Row(
@@ -203,9 +274,13 @@ class _IdsCard extends StatelessWidget {
               height: 38,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(AppRadii.medium),
               ),
-              child: const Icon(Icons.key_rounded, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.key_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -214,7 +289,7 @@ class _IdsCard extends StatelessWidget {
                 children: <Widget>[
                   Text(
                     '西电统一认证',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(height: 4),
                   Text('管理统一认证、水电、物理实验等校园系统登录'),
@@ -230,10 +305,7 @@ class _IdsCard extends StatelessWidget {
 }
 
 class _TodayCard extends StatelessWidget {
-  const _TodayCard({
-    required this.today,
-    required this.onTap,
-  });
+  const _TodayCard({required this.today, required this.onTap});
 
   final CampusTodaySchedules today;
   final ValueChanged<CampusScheduleItem> onTap;
@@ -241,10 +313,10 @@ class _TodayCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.large),
         border: Border.all(color: SharedColors.divider),
       ),
       child: Column(
@@ -255,13 +327,15 @@ class _TodayCard extends StatelessWidget {
               const Expanded(
                 child: Text(
                   '今日日程',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),
               Text(
                 today.date,
                 style: TextStyle(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.56),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.56),
                 ),
               ),
             ],
@@ -271,15 +345,15 @@ class _TodayCard extends StatelessWidget {
             Text(
               '今天没有课表、考试或实验安排',
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.58),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.58),
               ),
             )
           else
             ...today.items.map(
-              (CampusScheduleItem item) => _TodayRow(
-                item: item,
-                onTap: () => onTap(item),
-              ),
+              (CampusScheduleItem item) =>
+                  _TodayRow(item: item, onTap: () => onTap(item)),
             ),
         ],
       ),
@@ -288,10 +362,7 @@ class _TodayCard extends StatelessWidget {
 }
 
 class _TodayRow extends StatelessWidget {
-  const _TodayRow({
-    required this.item,
-    required this.onTap,
-  });
+  const _TodayRow({required this.item, required this.onTap});
 
   final CampusScheduleItem item;
   final VoidCallback onTap;
@@ -309,7 +380,7 @@ class _TodayRow extends StatelessWidget {
               width: 96,
               child: Text(
                 item.timeRange,
-                style: const TextStyle(fontWeight: FontWeight.w800),
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
             Expanded(
@@ -320,7 +391,7 @@ class _TodayRow extends StatelessWidget {
                     item.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -328,10 +399,9 @@ class _TodayRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.56),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.56),
                       fontSize: 12,
                     ),
                   ),
@@ -342,15 +412,17 @@ class _TodayRow extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(999),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadii.small),
                 ),
                 child: Text(
                   '进行中',
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 12,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -361,25 +433,8 @@ class _TodayRow extends StatelessWidget {
   }
 }
 
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
-    );
-  }
-}
-
 class _ServiceTile extends StatelessWidget {
-  const _ServiceTile({
-    required this.service,
-    required this.onTap,
-  });
+  const _ServiceTile({required this.service, required this.onTap});
 
   final CampusService service;
   final VoidCallback onTap;
@@ -387,31 +442,61 @@ class _ServiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadii.large),
           border: Border.all(color: SharedColors.divider),
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(
-              _iconForService(service),
-              color: Theme.of(context).colorScheme.primary,
-              size: 24,
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 36,
+                  height: 36,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppRadii.medium),
+                  ),
+                  child: Icon(
+                    _iconForService(service),
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 20,
+                  ),
+                ),
+                const Spacer(),
+                AppStatusTag(
+                  label: service.authType.trim().isEmpty ? '可使用' : '需认证',
+                  color: service.authType.trim().isEmpty
+                      ? SharedColors.success
+                      : SharedColors.warning,
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               service.name,
-              textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w800),
+              style: const TextStyle(fontWeight: FontWeight.w600),
             ),
+            if (service.description.trim().isNotEmpty) ...<Widget>[
+              const SizedBox(height: AppSpacing.xxs),
+              Text(
+                service.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
           ],
         ),
       ),
@@ -421,20 +506,21 @@ class _ServiceTile extends StatelessWidget {
   IconData _iconForService(CampusService service) {
     final String text = '${service.slug} ${service.iconKey} ${service.name}';
     if (text.contains('map') || text.contains('地图')) return Icons.map_outlined;
-    if (text.contains('exam') || text.contains('考试')) return Icons.assignment_outlined;
-    if (text.contains('class') || text.contains('课表')) return Icons.calendar_month_outlined;
-    if (text.contains('library') || text.contains('图书')) return Icons.local_library_outlined;
-    if (text.contains('water') || text.contains('水')) return Icons.water_drop_outlined;
+    if (text.contains('exam') || text.contains('考试'))
+      return Icons.assignment_outlined;
+    if (text.contains('class') || text.contains('课表'))
+      return Icons.calendar_month_outlined;
+    if (text.contains('library') || text.contains('图书'))
+      return Icons.local_library_outlined;
+    if (text.contains('water') || text.contains('水'))
+      return Icons.water_drop_outlined;
     if (text.contains('实验')) return Icons.science_outlined;
     return Icons.apps_rounded;
   }
 }
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorBanner({required this.message, required this.onRetry});
 
   final String message;
   final VoidCallback onRetry;
@@ -450,7 +536,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          Expanded(child: Text(message, style: const TextStyle(color: Colors.red))),
+          Expanded(
+            child: Text(message, style: const TextStyle(color: Colors.red)),
+          ),
           TextButton(onPressed: onRetry, child: const Text('重试')),
         ],
       ),

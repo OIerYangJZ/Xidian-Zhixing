@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
-import '../../../core/theme/shared_colors.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -103,39 +102,32 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   @override
   Widget build(BuildContext context) {
+    final MobileColors colors = MobileColors.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: EdgeInsets.zero,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: SharedColors.divider, width: 0.5),
-          boxShadow: [
-            BoxShadow(
-              color: SharedColors.deep.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: colors.cardBackground,
+          border: Border(
+            top: widget.showTopDivider
+                ? BorderSide(color: colors.divider, width: 0.5)
+                : BorderSide.none,
+            bottom: BorderSide(color: colors.divider, width: 0.5),
+          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 左列：印章/普通头像
-                    _buildAvatar(),
-                    const SizedBox(width: 12),
-                    // 右列：内容
-                    Expanded(child: _buildContent()),
-                  ],
-                ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildAvatar(),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildContent()),
+                ],
               ),
             ),
           ),
@@ -405,7 +397,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.favorite,
             count: _likeCount,
             isActive: _isLiked,
-            activeColor: SharedColors.primary,
+            activeColor: colors.primary,
             onTap: _busy ? null : _handleLike,
           ),
           const SizedBox(width: 24),
@@ -414,7 +406,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             activeIcon: Icons.chat_bubble,
             count: widget.post.commentCount,
             isActive: false,
-            activeColor: SharedColors.primary,
+            activeColor: colors.primary,
             onTap: widget.onTap,
           ),
           const Spacer(),
@@ -450,7 +442,6 @@ class _PostCardState extends ConsumerState<PostCard> {
         : AppConfig.resolveUrl(imageUrl);
   }
 }
-
 
 class _ActionButton extends StatelessWidget {
   final IconData icon;
@@ -500,5 +491,3 @@ class _ActionButton extends StatelessWidget {
     );
   }
 }
-
-

@@ -145,7 +145,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     alignment: Alignment.center,
                     child: const Text(
-                      '西电\n电台',
+                      '西电\n知行',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -162,7 +162,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                '西电树洞',
+                '西电知行',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,

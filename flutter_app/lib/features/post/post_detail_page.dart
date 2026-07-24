@@ -88,30 +88,44 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         children: <Widget>[
                           Row(
                             children: <Widget>[
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(_post.channel),
+                              AppStatusTag(label: _post.channel),
+                              const SizedBox(width: AppSpacing.xs),
+                              AppStatusTag(
+                                label: _post.status.label,
+                                outlined: true,
                               ),
-                              const SizedBox(width: 8),
-                              Chip(label: Text(_post.status.label)),
                             ],
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: AppSpacing.md),
                           Text(
                             _post.title,
                             style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w800),
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.35,
+                                ),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: Text(
+                                  '${_post.isAnonymous ? '匿名身份' : _post.authorAlias} · ${_post.createdAt.toLocal()}',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              Text(
+                                '${_post.viewCount} 阅读',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(
+                              vertical: AppSpacing.lg,
+                            ),
+                            child: Divider(height: 1),
+                          ),
                           PostContentBody(
                             content: _post.content,
                             contentFormat: _post.contentFormat,
@@ -139,11 +153,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 .map((String tag) => Chip(label: Text('#$tag')))
                                 .toList(),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            '${_post.isAnonymous ? '匿名身份' : '作者'}：${_post.authorAlias}',
-                          ),
-                          Text('发布时间：${_post.createdAt.toLocal()}'),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 8,
