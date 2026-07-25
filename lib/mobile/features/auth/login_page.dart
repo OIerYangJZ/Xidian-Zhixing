@@ -233,7 +233,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 24),
 
               Text(
-                '密码仅用于登录验证，不会上传至云端。密码和一站式数据仅存储在本地，用于访问一站式功能，这部分数据不能同步到云端。',
+                '通过访问一站式平台在本地验证身份，密码不会上传至我们的服务器。所有一站式数据仅存储在本地，不可同步到云端。',
                 style: TextStyle(fontSize: 12, color: colors.textSecondary),
                 textAlign: TextAlign.center,
               ),
