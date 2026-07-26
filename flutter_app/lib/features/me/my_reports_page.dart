@@ -27,7 +27,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的举报')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
@@ -62,27 +62,24 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   padding: AppLayout.pagePadding(context),
                   itemBuilder: (BuildContext context, int index) {
                     final ReportItem row = _items[index];
-                    return Card(
-                      child: ListTile(
-                        title: Text('${row.target} · ${row.reason}'),
-                        subtitle: Text(
-                          row.result.trim().isNotEmpty
-                              ? '处理状态：${row.status} · ${row.result}'
-                              : '处理状态：${row.status}',
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute<void>(
-                              builder: (_) => ReportDetailPage(report: row),
-                            ),
-                          );
-                        },
+                    return ListTile(
+                      title: Text('${row.target} · ${row.reason}'),
+                      subtitle: Text(
+                        row.result.trim().isNotEmpty
+                            ? '处理状态：${row.status} · ${row.result}'
+                            : '处理状态：${row.status}',
                       ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ReportDetailPage(report: row),
+                          ),
+                        );
+                      },
                     );
                   },
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(height: AppSpacing.sm),
+                  separatorBuilder: (_, __) => const Divider(height: 1),
                 ),
         ),
       ),

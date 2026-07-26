@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/my_comment_item.dart';
 import '../../repositories/app_repositories.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../post/post_detail_page.dart';
 
 class MyCommentsPage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的评论')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(

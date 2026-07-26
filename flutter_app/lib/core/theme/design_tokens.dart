@@ -89,16 +89,26 @@ class AppElevation {
   static const List<BoxShadow> soft = <BoxShadow>[];
 }
 
-/// Shared geometry for continuous discussion threads. A reply keeps one rail
-/// and a short branch connector instead of introducing a card surface.
+/// Shared geometry for continuous discussion threads. Comment content stays
+/// aligned while the gutter renders the parent-child relationship as rails
+/// and connectors.
 class AppThread {
   AppThread._();
 
-  static const double indent = AppSpacing.lg;
   static const double railWidth = 2;
   static const double avatarDiameter = 36;
-  static const double connectorLength = AppSpacing.md;
+  static const int maxVisibleDepth = 3;
+  static const double levelOffset = AppSpacing.xs;
+  static const double contentGutter =
+      AppSpacing.lg + maxVisibleDepth * levelOffset;
   static const double connectorTop = AppSpacing.md + avatarDiameter / 2;
+
+  static int visibleDepth(int depth) {
+    if (depth < 1) return 0;
+    return depth > maxVisibleDepth ? maxVisibleDepth : depth;
+  }
+
+  static double railOffset(int level) => (level - 1) * levelOffset;
 }
 
 /// Shared interaction timing. Motion is only used to explain a state change.

@@ -20,6 +20,7 @@ import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/home_shell.dart';
 import 'package:xdu_treehole_web/widgets/post_card.dart';
@@ -178,6 +179,7 @@ void main() {
       WidgetTester tester,
     ) async {
       _setViewport(tester, width: 390, height: 820);
+      _setCreatePostCurrentUser();
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
@@ -207,6 +209,7 @@ void main() {
     testWidgets('create form disables submit while loading', (
       WidgetTester tester,
     ) async {
+      _setCreatePostCurrentUser();
       await tester.pumpWidget(
         ProviderScope(
           overrides: <Override>[
@@ -271,6 +274,30 @@ Widget _app(Widget home) {
     locale: const Locale('zh', 'CN'),
     home: home,
   );
+}
+
+void _setCreatePostCurrentUser() {
+  AuthStore.instance.setCurrentUser(
+    UserProfile(
+      userId: 'test-user',
+      nickname: '测试同学',
+      studentId: 'test-user',
+      avatarUrl: '',
+      email: 'test@stu.xidian.edu.cn',
+      verified: true,
+      verifiedAt: '',
+      allowStrangerDm: true,
+      showContactable: true,
+      favoriteCount: 0,
+      userLevel: 1,
+      userLevelLabel: '一级用户',
+      isLevelOneUser: true,
+      isAdmin: false,
+      levelUpgradeRequest: null,
+      accountCancellationRequest: null,
+    ),
+  );
+  addTearDown(() => AuthStore.instance.setCurrentUser(null));
 }
 
 void _setViewport(

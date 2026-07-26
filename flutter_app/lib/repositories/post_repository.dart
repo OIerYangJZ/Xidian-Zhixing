@@ -258,6 +258,31 @@ class PinPostActionResult {
   bool get isDirect => mode == 'direct';
 }
 
+class ForumSection {
+  const ForumSection({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.sortOrder,
+  });
+
+  final String id;
+  final String name;
+  final String type;
+  final int sortOrder;
+
+  factory ForumSection.fromJson(Map<String, dynamic> json) {
+    final String? id = readString(json, <String>['sectionId', 'id']);
+    final String? name = readString(json, <String>['sectionName', 'name']);
+    final String? type = readString(json, <String>['sectionType']);
+    final int? sortOrder = readInt(json, <String>['sortOrder']);
+    if (id == null || name == null || type == null || sortOrder == null) {
+      throw const FormatException('分区记录缺少必要字段');
+    }
+    return ForumSection(id: id, name: name, type: type, sortOrder: sortOrder);
+  }
+}
+
 class PostRepository {
   PostRepository(this._apiClient);
 
@@ -277,6 +302,23 @@ class PostRepository {
       throw const FormatException('频道列表包含无效记录');
     }
     return channels.toSet().toList();
+  }
+
+  Future<List<ForumSection>> fetchCollegeSections() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.sectionsTree);
+    final Map<String, dynamic> tree = extractMap(response);
+    final List<dynamic> colleges = asList(tree['colleges']);
+    final List<ForumSection> sections = colleges
+        .map((dynamic item) => ForumSection.fromJson(asMap(item)))
+        .toList();
+    if (sections.any((ForumSection section) => section.type != 'college')) {
+      throw const FormatException('学院分区接口返回了非学院记录');
+    }
+    sections.sort(
+      (ForumSection left, ForumSection right) =>
+          left.sortOrder.compareTo(right.sortOrder),
+    );
+    return sections;
   }
 
   Future<List<PostItem>> fetchPosts({
@@ -307,6 +349,26 @@ class PostRepository {
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
       throw const FormatException('帖子列表包含无效记录');
+    }
+    return sortPostsForView(posts, sort: sort);
+  }
+
+  Future<List<PostItem>> fetchSectionPosts({
+    required String sectionId,
+    PostSort sort = PostSort.latest,
+  }) async {
+    if (sectionId.trim().isEmpty) {
+      throw const FormatException('分区标识不能为空');
+    }
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.sectionPosts(sectionId.trim()),
+      queryParameters: <String, dynamic>{'sort': sort.apiValue},
+    );
+    final List<PostItem> posts = extractList(
+      response,
+    ).map((dynamic item) => PostItem.fromJson(asMap(item))).toList();
+    if (posts.any((PostItem post) => post.id.isEmpty)) {
+      throw const FormatException('学院分区帖子列表包含无效记录');
     }
     return sortPostsForView(posts, sort: sort);
   }

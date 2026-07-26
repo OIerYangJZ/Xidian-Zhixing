@@ -21,7 +21,7 @@ class AccessStatePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(forbidden ? '无权限' : '404')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: AppPageFrame(
         maxWidth: AppLayout.readingMaxWidth,
         alignment: Alignment.center,

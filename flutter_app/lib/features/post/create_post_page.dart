@@ -9,12 +9,16 @@ import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
+import '../../core/state/post_draft_store.dart';
+import '../../core/state/web_theme_store.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_input.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
+import '../../core/widgets/hashtag_text_editing_controller.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
@@ -44,10 +48,12 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
+  final HashtagTextEditingController _contentController =
+      HashtagTextEditingController();
   final TextEditingController _anonymousAliasController =
       TextEditingController();
   final FocusNode _contentFocusNode = FocusNode();
+  late final String _draftOwnerId;
 
   bool _useAnonymousAlias = false;
   bool _useMarkdown = false;
@@ -62,6 +68,7 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
   @override
   void initState() {
     super.initState();
+    _draftOwnerId = AuthStore.instance.currentUser!.userId.trim();
     _detachMarkdownPasteListener = registerMarkdownClipboardImageListener(
       focusNode: _contentFocusNode,
       onImagesPasted: _handleMarkdownImagesPasted,
@@ -69,6 +76,7 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
     Future<void>.microtask(
       () => ref.read(createPostControllerProvider.notifier).loadChannels(),
     );
+    Future<void>.microtask(_restoreDraft);
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => _contentFocusNode.requestFocus(),
     );
@@ -87,143 +95,193 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
   @override
   Widget build(BuildContext context) {
     final CreatePostState state = ref.watch(createPostControllerProvider);
-    final EditorialColors colors = EditorialColors.of(context);
+    final ThemeData composerTheme = AppTheme.darkThemeFor(
+      Localizations.localeOf(context),
+      preset: WebThemeStore.instance.preset,
+    );
+    final EditorialColors colors = composerTheme.extension<EditorialColors>()!;
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
     final bool compact = AppBreakpoints.isCompact(context);
 
-    return Material(
-      color: colors.surfaceRaised,
-      child: SafeArea(
-        child: Column(
-          children: <Widget>[
-            _ComposerHeader(
-              busy: isBusy,
-              onClose: () => Navigator.of(context).pop(false),
-            ),
-            Divider(color: colors.line, height: 1),
-            Expanded(
-              child: AsyncPageState(
-                loading: state.loadingChannels,
-                loadingLabel: '正在准备发布',
-                error: state.error,
-                onRetry: () => ref
-                    .read(createPostControllerProvider.notifier)
-                    .loadChannels(),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    key: const Key('create-post-form-scroll'),
-                    padding: EdgeInsets.fromLTRB(
-                      compact ? AppSpacing.md : AppSpacing.xl,
-                      AppSpacing.lg,
-                      compact ? AppSpacing.md : AppSpacing.xl,
-                      AppSpacing.xl,
-                    ),
-                    children: <Widget>[
-                      if (isBusy) ...<Widget>[
-                        _ComposerProgress(
-                          text: _pastingMarkdownImages
-                              ? '正在上传粘贴的图片'
-                              : _pickingImages
-                              ? '正在读取图片'
-                              : (state.progressText ?? '正在发布'),
+    return Theme(
+      data: composerTheme,
+      child: PopScope(
+        onPopInvokedWithResult: (bool didPop, Object? _) {
+          if (didPop) {
+            _saveDraft();
+          }
+        },
+        child: Material(
+          color: colors.composerSurface,
+          child: SafeArea(
+            child: Column(
+              children: <Widget>[
+                _ComposerHeader(busy: isBusy, onClose: _closeWithDraft),
+                Divider(color: colors.line, height: 1),
+                Expanded(
+                  child: AsyncPageState(
+                    loading: state.loadingChannels,
+                    loadingLabel: '正在准备发布',
+                    error: state.error,
+                    onRetry: () => ref
+                        .read(createPostControllerProvider.notifier)
+                        .loadChannels(),
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        key: const Key('create-post-form-scroll'),
+                        padding: EdgeInsets.fromLTRB(
+                          compact ? AppSpacing.md : AppSpacing.xl,
+                          AppSpacing.lg,
+                          compact ? AppSpacing.md : AppSpacing.xl,
+                          AppSpacing.xl,
                         ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
-                      _ComposerIdentity(
-                        nickname:
-                            AuthStore.instance.currentUser?.nickname.trim() ??
-                            '',
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _ThreadComposerFields(
-                        titleController: _titleController,
-                        contentController: _contentController,
-                        contentFocusNode: _contentFocusNode,
-                        useMarkdown: _useMarkdown,
-                        maxLength: _plainTextMaxLength,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(
                         children: <Widget>[
-                          Tooltip(
-                            message: '添加图片',
-                            child: IconButton(
-                              onPressed: isBusy ? null : _pickImages,
-                              icon: const Icon(Icons.image_outlined),
+                          if (isBusy) ...<Widget>[
+                            _ComposerProgress(
+                              text: _pastingMarkdownImages
+                                  ? '正在上传粘贴的图片'
+                                  : _pickingImages
+                                  ? '正在读取图片'
+                                  : (state.progressText ?? '正在发布'),
                             ),
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                          _ComposerIdentity(
+                            nickname:
+                                AuthStore.instance.currentUser?.nickname
+                                    .trim() ??
+                                '',
                           ),
-                          EmojiAssistantBar(
-                            controller: _contentController,
-                            compact: true,
+                          const SizedBox(height: AppSpacing.md),
+                          _ThreadComposerFields(
+                            titleController: _titleController,
+                            contentController: _contentController,
+                            contentFocusNode: _contentFocusNode,
+                            useMarkdown: _useMarkdown,
+                            maxLength: _plainTextMaxLength,
                           ),
-                          Tooltip(
-                            message: _useMarkdown ? '退出 Markdown' : 'Markdown',
-                            child: IconButton(
-                              onPressed: isBusy
-                                  ? null
-                                  : () => _handleMarkdownToggle(!_useMarkdown),
-                              color: _useMarkdown ? colors.primary : null,
-                              icon: const Icon(Icons.code_rounded),
+                          const SizedBox(height: AppSpacing.sm),
+                          Row(
+                            children: <Widget>[
+                              Tooltip(
+                                message: '添加图片',
+                                child: IconButton(
+                                  onPressed: isBusy ? null : _pickImages,
+                                  icon: const Icon(Icons.image_outlined),
+                                ),
+                              ),
+                              EmojiAssistantBar(
+                                controller: _contentController,
+                                compact: true,
+                              ),
+                              Tooltip(
+                                message: _useMarkdown
+                                    ? '退出 Markdown'
+                                    : 'Markdown',
+                                child: IconButton(
+                                  onPressed: isBusy
+                                      ? null
+                                      : () => _handleMarkdownToggle(
+                                          !_useMarkdown,
+                                        ),
+                                  color: _useMarkdown ? colors.primary : null,
+                                  icon: const Icon(Icons.code_rounded),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '${_pickedImages.length}/9',
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(color: colors.faintInk),
+                              ),
+                            ],
+                          ),
+                          if (_pickedImages.isNotEmpty) ...<Widget>[
+                            const SizedBox(height: AppSpacing.sm),
+                            _PickedImageStrip(
+                              images: _pickedImages,
+                              disabled: isBusy,
+                              onRemove: (int index) =>
+                                  setState(() => _pickedImages.removeAt(index)),
                             ),
+                          ],
+                          if (_useMarkdown) ...<Widget>[
+                            const SizedBox(height: AppSpacing.lg),
+                            _MarkdownPreview(controller: _contentController),
+                          ],
+                          const SizedBox(height: AppSpacing.lg),
+                          Divider(color: colors.line, height: 1),
+                          _ComposerOptionsToggle(
+                            expanded: _showOptions,
+                            onTap: isBusy
+                                ? null
+                                : () => setState(
+                                    () => _showOptions = !_showOptions,
+                                  ),
                           ),
-                          const Spacer(),
-                          Text(
-                            '${_pickedImages.length}/9',
-                            style: Theme.of(context).textTheme.labelMedium
-                                ?.copyWith(color: colors.faintInk),
-                          ),
+                          if (_showOptions)
+                            _PostOptions(
+                              isBusy: isBusy,
+                              useAnonymousAlias: _useAnonymousAlias,
+                              privateOnly: _privateOnly,
+                              anonymousAliasController:
+                                  _anonymousAliasController,
+                              onAnonymousChanged: (bool value) =>
+                                  setState(() => _useAnonymousAlias = value),
+                              onVisibilityChanged: (String? value) => setState(
+                                () => _privateOnly = value == 'private',
+                              ),
+                            ),
                         ],
                       ),
-                      if (_pickedImages.isNotEmpty) ...<Widget>[
-                        const SizedBox(height: AppSpacing.sm),
-                        _PickedImageStrip(
-                          images: _pickedImages,
-                          disabled: isBusy,
-                          onRemove: (int index) =>
-                              setState(() => _pickedImages.removeAt(index)),
-                        ),
-                      ],
-                      if (_useMarkdown) ...<Widget>[
-                        const SizedBox(height: AppSpacing.lg),
-                        _MarkdownPreview(controller: _contentController),
-                      ],
-                      const SizedBox(height: AppSpacing.lg),
-                      Divider(color: colors.line, height: 1),
-                      _ComposerOptionsToggle(
-                        expanded: _showOptions,
-                        onTap: isBusy
-                            ? null
-                            : () =>
-                                  setState(() => _showOptions = !_showOptions),
-                      ),
-                      if (_showOptions)
-                        _PostOptions(
-                          isBusy: isBusy,
-                          useAnonymousAlias: _useAnonymousAlias,
-                          privateOnly: _privateOnly,
-                          anonymousAliasController: _anonymousAliasController,
-                          onAnonymousChanged: (bool value) =>
-                              setState(() => _useAnonymousAlias = value),
-                          onVisibilityChanged: (String? value) =>
-                              setState(() => _privateOnly = value == 'private'),
-                        ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
+                Divider(color: colors.line, height: 1),
+                _ComposerFooter(
+                  isBusy: isBusy,
+                  onClose: _closeWithDraft,
+                  onSubmit: _submit,
+                ),
+              ],
             ),
-            Divider(color: colors.line, height: 1),
-            _ComposerFooter(
-              isBusy: isBusy,
-              onClose: () => Navigator.of(context).pop(false),
-              onSubmit: _submit,
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _restoreDraft() async {
+    final PostDraft? draft = await PostDraftStore.load(userId: _draftOwnerId);
+    if (!mounted || draft == null) return;
+    setState(() {
+      _titleController.text = draft.title;
+      _contentController.text = draft.content;
+      _anonymousAliasController.text = draft.anonymousAlias;
+      _useAnonymousAlias = draft.useAnonymousAlias;
+      _useMarkdown = draft.useMarkdown;
+      _privateOnly = draft.privateOnly;
+    });
+    _contentController.highlightHashtags = !draft.useMarkdown;
+  }
+
+  Future<void> _saveDraft() => PostDraftStore.save(
+    userId: _draftOwnerId,
+    draft: PostDraft(
+      title: _titleController.text,
+      content: _contentController.text,
+      anonymousAlias: _anonymousAliasController.text,
+      useAnonymousAlias: _useAnonymousAlias,
+      useMarkdown: _useMarkdown,
+      privateOnly: _privateOnly,
+    ),
+  );
+
+  Future<void> _closeWithDraft() async {
+    await _saveDraft();
+    if (mounted) Navigator.of(context).pop(false);
   }
 
   Future<void> _pickImages() async {
@@ -303,6 +361,7 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
         );
 
     if (!mounted || created == null) return;
+    await PostDraftStore.clear(userId: _draftOwnerId);
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('帖子已发布。')));
@@ -311,16 +370,10 @@ class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
 
   void _handleMarkdownToggle(bool value) {
     if (_useMarkdown == value) return;
+    _contentController.highlightHashtags = !value;
     setState(() {
       _useMarkdown = value;
-      _contentController.value = const TextEditingValue();
-      _markdownImageUploadIdsByUrl.clear();
     });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(value ? '已切换到 Markdown 编辑。' : '已切换到普通编辑。')),
-      );
   }
 
   Future<void> _handleMarkdownImagesPasted(List<PickedImageData> images) async {

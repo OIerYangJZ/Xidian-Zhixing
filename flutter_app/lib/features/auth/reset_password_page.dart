@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/network/api_exception.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_input.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 
 class ResetPasswordPage extends StatefulWidget {
@@ -45,104 +48,98 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('邮箱重置密码')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 520),
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: <Widget>[
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const Text(
-                        '使用注册邮箱找回密码',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    const Text(
+                      '使用注册邮箱找回密码',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
                       ),
-                      const SizedBox(height: 8),
-                      const Text('先发送验证码，再输入新密码完成修改。'),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _emailController,
-                        enabled: !_busy && !widget.lockEmail,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(
-                          labelText: '校园邮箱',
-                          hintText: 'example@stu.xidian.edu.cn',
-                          prefixIcon: Icon(Icons.school_outlined),
-                        ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('先发送验证码，再输入新密码完成修改。'),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _emailController,
+                      enabled: !_busy && !widget.lockEmail,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: AppInput.decoration(
+                        hintText: '校园邮箱',
+                        prefixIcon: const Icon(Icons.school_outlined),
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _codeController,
-                        enabled: !_busy,
-                        keyboardType: TextInputType.number,
-                        maxLength: 6,
-                        decoration: const InputDecoration(
-                          labelText: '邮箱验证码',
-                          hintText: '6 位数字',
-                          prefixIcon: Icon(Icons.verified_user_outlined),
-                        ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _codeController,
+                      enabled: !_busy,
+                      keyboardType: TextInputType.number,
+                      maxLength: 6,
+                      decoration: AppInput.decoration(
+                        hintText: '邮箱验证码',
+                        prefixIcon: const Icon(Icons.verified_user_outlined),
+                        counterMaxLength: 6,
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _newPasswordController,
-                        enabled: !_busy,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: '新密码',
-                          hintText: '至少 6 位',
-                          prefixIcon: Icon(Icons.lock_outline),
-                        ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _newPasswordController,
+                      enabled: !_busy,
+                      obscureText: true,
+                      decoration: AppInput.decoration(
+                        hintText: '新密码，至少 6 位',
+                        prefixIcon: const Icon(Icons.lock_outline),
                       ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _confirmPasswordController,
-                        enabled: !_busy,
-                        obscureText: true,
-                        decoration: const InputDecoration(
-                          labelText: '确认新密码',
-                          prefixIcon: Icon(Icons.lock_reset_outlined),
-                        ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _confirmPasswordController,
+                      enabled: !_busy,
+                      obscureText: true,
+                      decoration: AppInput.decoration(
+                        hintText: '确认新密码',
+                        prefixIcon: const Icon(Icons.lock_reset_outlined),
                       ),
-                      if (_error != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            _error!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
+                    ),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          _error!,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
                           ),
                         ),
-                      const SizedBox(height: 12),
-                      FilledButton.tonalIcon(
-                        onPressed: _busy ? null : _sendCode,
-                        icon: const Icon(Icons.mark_email_read_outlined),
-                        label: const Text('发送重置验证码'),
                       ),
-                      const SizedBox(height: 10),
-                      FilledButton.icon(
-                        onPressed: _busy ? null : _submitReset,
-                        icon: _busy
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.check_circle_outline),
-                        label: Text(_busy ? '提交中...' : '确认修改密码'),
-                      ),
-                    ],
-                  ),
+                    const SizedBox(height: 12),
+                    FilledButton.tonalIcon(
+                      onPressed: _busy ? null : _sendCode,
+                      icon: const Icon(Icons.mark_email_read_outlined),
+                      label: const Text('发送重置验证码'),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton.icon(
+                      onPressed: _busy ? null : _submitReset,
+                      icon: _busy
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.check_circle_outline),
+                      label: Text(_busy ? '提交中...' : '确认修改密码'),
+                    ),
+                  ],
                 ),
               ),
             ],

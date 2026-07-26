@@ -502,12 +502,7 @@ class _FeedFilterDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FeedState state = ref.watch(feedControllerProvider);
-    final List<String> academic = state.channels
-        .where(_isAcademicChannel)
-        .toList(growable: false);
-    final List<String> regular = state.channels
-        .where((String channel) => !_isAcademicChannel(channel))
-        .toList(growable: false);
+    final List<String> regular = state.channels;
     return ListView(
       shrinkWrap: true,
       padding: const EdgeInsets.fromLTRB(
@@ -527,28 +522,23 @@ class _FeedFilterDialog extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-        if (academic.isNotEmpty) ...<Widget>[
+        if (state.collegeSections.isNotEmpty) ...<Widget>[
           const SizedBox(height: AppSpacing.sm),
           const _FilterSectionTitle('学院分区'),
-          for (final String channel in academic)
+          for (final ForumSection section in state.collegeSections)
             _FilterItem(
-              label: channel,
-              selected: state.selectedChannel == channel,
+              label: section.name,
+              selected: state.selectedSectionId == section.id,
               onTap: () {
                 ref
                     .read(feedControllerProvider.notifier)
-                    .switchChannel(channel);
+                    .switchCollegeSection(section);
                 Navigator.of(context).pop();
               },
             ),
         ],
       ],
     );
-  }
-
-  static bool _isAcademicChannel(String channel) {
-    final String value = channel.trim();
-    return value.contains('学院') || value.contains('书院');
   }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/app_brand.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 
 class CommunityGuidelinesPage extends StatelessWidget {
   const CommunityGuidelinesPage({super.key});
@@ -13,7 +14,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text(_title)),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[

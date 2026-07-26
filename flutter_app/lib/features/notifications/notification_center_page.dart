@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/async_page_state.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/notification_item.dart';
 import '../../models/post_item.dart';
 import '../../models/report_item.dart';
@@ -39,9 +40,9 @@ class _NotificationCenterPageState
   Widget build(BuildContext context) {
     final NotificationsState state = ref.watch(notificationsControllerProvider);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('通知中心'),
-        actions: <Widget>[
+      appBar: AppPageTopActions(
+        leading: const BackButton(),
+        trailing: <Widget>[
           IconButton(
             onPressed: state.actionBusy || state.unreadCount == 0
                 ? null

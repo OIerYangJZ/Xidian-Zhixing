@@ -147,10 +147,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                 : ListView(
                     padding: const EdgeInsets.only(bottom: AppSpacing.xxxl),
                     children: <Widget>[
-                      _ProfileTopBar(
-                        nickname: profile?.nickname ?? '个人主页',
-                        onBack: () => Navigator.of(context).pop(),
-                      ),
+                      _ProfileTopBar(onBack: () => Navigator.of(context).pop()),
                       if (_error != null)
                         Padding(
                           padding: const EdgeInsets.all(AppSpacing.md),
@@ -207,33 +204,16 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
 enum _ProfileTab { threads, replies, media, reposts }
 
 class _ProfileTopBar extends StatelessWidget {
-  const _ProfileTopBar({required this.nickname, required this.onBack});
+  const _ProfileTopBar({required this.onBack});
 
-  final String nickname;
   final VoidCallback onBack;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 64,
-    child: Row(
-      children: <Widget>[
-        IconButton(
-          onPressed: onBack,
-          tooltip: '返回',
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Expanded(
-          child: Text(
-            nickname,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ),
-      ],
+  Widget build(BuildContext context) => AppPageTopActions(
+    leading: IconButton(
+      onPressed: onBack,
+      tooltip: '返回',
+      icon: const Icon(Icons.arrow_back_rounded),
     ),
   );
 }

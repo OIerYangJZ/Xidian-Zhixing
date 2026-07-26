@@ -33,6 +33,39 @@ class AppPageFrame extends StatelessWidget {
   }
 }
 
+/// Keeps route actions visible without adding a separate visual header.
+///
+/// Pages own the content canvas from edge to edge. A back or overflow action
+/// may occupy either top corner, while route labels belong in the page content.
+class AppPageTopActions extends StatelessWidget implements PreferredSizeWidget {
+  const AppPageTopActions({
+    super.key,
+    this.leading,
+    this.trailing = const <Widget>[],
+  });
+
+  final Widget? leading;
+  final List<Widget> trailing;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(56);
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: preferredSize.height,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+      child: Row(
+        children: <Widget>[
+          if (leading != null) leading!,
+          const Spacer(),
+          ...trailing,
+        ],
+      ),
+    ),
+  );
+}
+
 class AppSurfaceCard extends StatelessWidget {
   const AppSurfaceCard({
     super.key,
@@ -199,8 +232,8 @@ class AppSectionTitle extends StatelessWidget {
   }
 }
 
-/// A flat comment-tree item used by discussion pages. Root items are separated
-/// by a divider; replies inherit a vertical rail and a short branch connector.
+/// A continuous Reddit-style comment tree. The reply depth only changes the
+/// branch gutter, so author, content, and time columns remain aligned.
 class AppThreadBranch extends StatelessWidget {
   const AppThreadBranch({super.key, required this.depth, required this.child});
 
@@ -211,11 +244,10 @@ class AppThreadBranch extends StatelessWidget {
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
     final bool hasParent = depth > 0;
+    final int visibleDepth = AppThread.visibleDepth(depth);
+    final double connectorStart = AppThread.railOffset(visibleDepth);
     return Padding(
-      padding: EdgeInsets.only(
-        left: hasParent ? AppThread.indent : 0,
-        top: AppSpacing.sm,
-      ),
+      padding: EdgeInsets.only(top: hasParent ? AppSpacing.xs : 0),
       child: Stack(
         children: <Widget>[
           DecoratedBox(
@@ -224,27 +256,37 @@ class AppThreadBranch extends StatelessWidget {
                 top: hasParent
                     ? BorderSide.none
                     : BorderSide(color: colors.line),
-                left: hasParent
-                    ? BorderSide(color: colors.line, width: AppThread.railWidth)
-                    : BorderSide.none,
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                hasParent ? AppThread.indent : 0,
+              padding: const EdgeInsets.fromLTRB(
+                AppThread.contentGutter,
                 AppSpacing.md,
-                0,
-                AppSpacing.sm,
+                AppSpacing.lg,
+                AppSpacing.md,
               ),
               child: child,
             ),
           ),
           if (hasParent)
+            ...List<Widget>.generate(
+              visibleDepth,
+              (int index) => Positioned(
+                left: AppThread.railOffset(index + 1),
+                top: 0,
+                bottom: 0,
+                child: SizedBox(
+                  width: AppThread.railWidth,
+                  child: ColoredBox(color: colors.line),
+                ),
+              ),
+            ),
+          if (hasParent)
             Positioned(
-              left: 0,
+              left: connectorStart,
               top: AppThread.connectorTop,
               child: SizedBox(
-                width: AppThread.connectorLength,
+                width: AppThread.contentGutter - connectorStart,
                 height: AppThread.railWidth,
                 child: ColoredBox(color: colors.line),
               ),

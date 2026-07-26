@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
@@ -74,20 +74,15 @@ class _ChatPageState extends State<ChatPage> {
     final bool inputEnabled = !_sending && !blockedByMe && !blockedByPeer;
 
     return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: widget.peerUserId != null
-              ? () => _navigateToProfile(context, widget.peerUserId!)
-              : null,
-          child: Row(
-            children: <Widget>[
-              _buildAvatar(_conversation.avatarUrl, _conversation.name),
-              const SizedBox(width: 8),
-              Expanded(child: Text(_conversation.name)),
-            ],
-          ),
-        ),
-        actions: <Widget>[
+      appBar: AppPageTopActions(
+        leading: const BackButton(),
+        trailing: <Widget>[
+          if (widget.peerUserId != null)
+            IconButton(
+              onPressed: () => _navigateToProfile(context, widget.peerUserId!),
+              tooltip: '查看主页',
+              icon: const Icon(Icons.person_outline_rounded),
+            ),
           IconButton(
             onPressed: _loading ? null : _loadMessages,
             icon: const Icon(Icons.refresh),
@@ -201,7 +196,7 @@ class _ChatPageState extends State<ChatPage> {
                           minLines: 1,
                           maxLines: 4,
                           enabled: inputEnabled,
-                          decoration: InputDecoration(
+                          decoration: AppInput.inlineComposerDecoration(
                             hintText: blockedByPeer
                                 ? '对方已屏蔽你，暂时无法发送消息'
                                 : blockedByMe
@@ -852,34 +847,5 @@ class _ChatPageState extends State<ChatPage> {
         _error = '删除会话失败：$error';
       });
     }
-  }
-
-  Widget _buildAvatar(String avatarUrl, String name) {
-    final String resolved = AppConfig.resolveUrl(avatarUrl);
-    final String fallback = name.trim().isEmpty
-        ? '?'
-        : name.trim().substring(0, 1);
-    if (resolved.isNotEmpty) {
-      return CircleAvatar(
-        radius: 14,
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.primary.withValues(alpha: 0.1),
-        child: ClipOval(
-          child: Image.network(
-            resolved,
-            width: 28,
-            height: 28,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Text(fallback, style: const TextStyle(fontSize: 12)),
-          ),
-        ),
-      );
-    }
-    return CircleAvatar(
-      radius: 14,
-      child: Text(fallback, style: const TextStyle(fontSize: 12)),
-    );
   }
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/utils/app_date_format.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/comment_item.dart';
 import '../../models/post_item.dart';
@@ -57,234 +60,118 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
     final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('帖子详情'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: _actionBusy ? null : _openMoreActions,
-            tooltip: '更多操作',
-            icon: const Icon(Icons.more_horiz_rounded),
-          ),
-          const SizedBox(width: AppSpacing.xs),
-        ],
-      ),
-      body: AppPageFrame(
-        maxWidth: AppLayout.readingMaxWidth,
-        child: _loading
-            ? const AppStatePanel(
-                icon: Icons.hourglass_top_rounded,
-                title: '正在加载帖子',
-                message: '正在读取正文和评论。',
-              )
-            : ListView(
-                padding: EdgeInsets.zero,
+      backgroundColor: colors.page,
+      body: SafeArea(
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            return SizedBox(
+              width: constraints.maxWidth,
+              child: Column(
                 children: <Widget>[
-                  if (_error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: AppInlineMessage(
-                        title: '部分内容加载失败',
-                        message: _error!,
-                        tone: AppMessageTone.error,
-                        action: TextButton(
-                          onPressed: () => _loadDetail(),
-                          child: const Text('重试'),
-                        ),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: AppSpacing.xs,
-                      bottom: AppSpacing.lg,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            _PostAuthorAvatar(post: _post),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    _post.isAnonymous
-                                        ? '匿名同学'
-                                        : _post.authorAlias,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelLarge,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xxs),
-                                  Text(
-                                    '${_post.createdAt.toLocal()} · ${_post.viewCount} 阅读',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          _post.title,
-                          style: AppTypography.postContentStyle(
-                            Theme.of(context).textTheme.headlineSmall,
-                          ).copyWith(fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        PostContentBody(
-                          content: _post.content,
-                          contentFormat: _post.contentFormat,
-                          markdownSource: _post.markdownSource,
-                          onHashtagTap: _openHashtag,
-                        ),
-                        if (supplementaryImageUrls.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: AppSpacing.md),
-                          ImageGallery(images: supplementaryImageUrls),
-                        ],
-                        if (_post.hasImage && supplementaryImageUrls.isEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: AppSpacing.sm),
-                            child: Text(
-                              '图片暂时不可用，请稍后重试',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ),
-                        const SizedBox(height: AppSpacing.md),
-                        _PostDetailActionBar(
-                          likeCount: _post.likeCount,
-                          commentCount: _countComments(_comments),
-                          favoriteCount: _post.favoriteCount,
-                          liked: _post.isLiked,
-                          favorited: _post.isFavorited,
-                          enabled: !_actionBusy,
-                          onLike: _like,
-                          onComment: _focusComment,
-                          onFavorite: _toggleFavorite,
-                        ),
-                      ],
-                    ),
+                  _DetailPageHeader(
+                    onBack: () => Navigator.of(context).maybePop(),
+                    onMore: _actionBusy ? null : _openMoreActions,
                   ),
-                  Divider(height: 1, color: colors.line),
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.lg),
-                    child: Text(
-                      '评论 ${_countComments(_comments)}',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                  ),
-                  if (_comments.isEmpty)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                      child: AppStatePanel(
-                        key: Key('comments-empty-state'),
-                        icon: Icons.chat_bubble_outline_rounded,
-                        title: '还没有评论',
-                        message: '欢迎留下第一条友善、具体的回复。',
-                        compact: true,
-                      ),
-                    )
-                  else
-                    ..._comments.map(
-                      (CommentItem comment) => _CommentThreadTile(
-                        comment: comment,
-                        onReply: _actionBusy
-                            ? null
-                            : (CommentItem comment) =>
-                                  _prepareReply(comment: comment),
-                        onReport: _actionBusy
-                            ? null
-                            : (String commentId) => _reportComment(commentId),
-                        onOpenAuthor: _openCommentAuthor,
-                      ),
-                    ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Divider(height: 1, color: colors.line),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: AppSpacing.md,
-                      bottom: AppSpacing.xl,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        if (_replyToCommentId != null && _replyToAlias != null)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSpacing.sm,
-                            ),
-                            child: Row(
-                              children: <Widget>[
-                                Container(
-                                  width: 2,
-                                  height: 18,
-                                  color: colors.primary,
-                                ),
-                                const SizedBox(width: AppSpacing.xs),
-                                Expanded(
-                                  child: Text(
-                                    '回复 $_replyToAlias',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelMedium,
+                  Expanded(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : ScrollConfiguration(
+                            behavior: const _PostDetailScrollBehavior(),
+                            child: CustomScrollView(
+                              key: const Key('post-detail-scroll'),
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              slivers: <Widget>[
+                                if (_error != null)
+                                  SliverToBoxAdapter(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(
+                                        AppSpacing.md,
+                                      ),
+                                      child: AppInlineMessage(
+                                        title: '内容加载失败',
+                                        message: _error!,
+                                        tone: AppMessageTone.error,
+                                        action: TextButton(
+                                          onPressed: () => _loadDetail(),
+                                          child: const Text('重试'),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                SliverToBoxAdapter(
+                                  child: _PostThreadItem(
+                                    post: _post,
+                                    imageUrls: supplementaryImageUrls,
+                                    commentCount: _countComments(_comments),
+                                    actionBusy: _actionBusy,
+                                    onOpenAuthor: _openAuthorProfile,
+                                    onOpenHashtag: _openHashtag,
+                                    onLike: _like,
+                                    onComment: _focusComment,
+                                    onFavorite: _toggleFavorite,
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : () {
-                                          setState(() {
+                                SliverToBoxAdapter(
+                                  child: Divider(height: 1, color: colors.line),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: _InlineCommentComposer(
+                                    controller: _commentController,
+                                    focusNode: _commentFocusNode,
+                                    replyToAlias: _replyToAlias,
+                                    busy: _actionBusy,
+                                    onCancelReply: _replyToCommentId == null
+                                        ? null
+                                        : () => setState(() {
                                             _replyToCommentId = null;
                                             _replyToAlias = null;
-                                          });
-                                        },
-                                  icon: const Icon(
-                                    Icons.close_rounded,
-                                    size: 16,
+                                          }),
+                                    onSubmit: _submitComment,
                                   ),
-                                  tooltip: '取消回复',
+                                ),
+                                if (_comments.isEmpty)
+                                  const SliverFillRemaining(
+                                    hasScrollBody: false,
+                                    child: Center(
+                                      child: Text(
+                                        '暂无回复',
+                                        key: Key('comments-empty-state'),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (BuildContext context, int index) =>
+                                          _CommentThreadTile(
+                                            comment: _comments[index],
+                                            onReply: _actionBusy
+                                                ? null
+                                                : (CommentItem comment) =>
+                                                      _prepareReply(
+                                                        comment: comment,
+                                                      ),
+                                            onReport: _actionBusy
+                                                ? null
+                                                : _reportComment,
+                                            onOpenAuthor: _openCommentAuthor,
+                                          ),
+                                      childCount: _comments.length,
+                                    ),
+                                  ),
+                                const SliverToBoxAdapter(
+                                  child: SizedBox(height: AppSpacing.xxxl),
                                 ),
                               ],
                             ),
                           ),
-                        TextField(
-                          controller: _commentController,
-                          focusNode: _commentFocusNode,
-                          minLines: 2,
-                          maxLines: 4,
-                          style: AppTypography.postContentStyle(
-                            Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: _replyToCommentId == null
-                                ? '加入讨论'
-                                : '输入回复内容',
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          children: <Widget>[
-                            EmojiAssistantBar(
-                              controller: _commentController,
-                              compact: true,
-                            ),
-                            const Spacer(),
-                            FilledButton(
-                              onPressed: _actionBusy ? null : _submitComment,
-                              child: Text(_actionBusy ? '发送中…' : '发表评论'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -595,9 +482,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         maxLength: 200,
                         minLines: 2,
                         maxLines: 4,
-                        decoration: const InputDecoration(
-                          labelText: '补充说明（可选）',
-                          hintText: '请详细描述举报原因',
+                        decoration: AppInput.decoration(
+                          hintText: '补充说明（选填）',
+                          counterMaxLength: 200,
                         ),
                       ),
                     ],
@@ -784,10 +671,281 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 }
 
-class _PostAuthorAvatar extends StatelessWidget {
-  const _PostAuthorAvatar({required this.post});
+class _DetailPageHeader extends StatelessWidget {
+  const _DetailPageHeader({required this.onBack, required this.onMore});
+
+  final VoidCallback onBack;
+  final VoidCallback? onMore;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 56,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          IconButton(
+            onPressed: onBack,
+            tooltip: '返回',
+            icon: const Icon(Icons.arrow_back_rounded),
+          ),
+          IconButton(
+            onPressed: onMore,
+            tooltip: '更多操作',
+            icon: const Icon(Icons.more_horiz_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PostThreadItem extends StatelessWidget {
+  const _PostThreadItem({
+    required this.post,
+    required this.imageUrls,
+    required this.commentCount,
+    required this.actionBusy,
+    required this.onOpenAuthor,
+    required this.onOpenHashtag,
+    required this.onLike,
+    required this.onComment,
+    required this.onFavorite,
+  });
 
   final PostItem post;
+  final List<String> imageUrls;
+  final int commentCount;
+  final bool actionBusy;
+  final VoidCallback onOpenAuthor;
+  final ValueChanged<String> onOpenHashtag;
+  final VoidCallback onLike;
+  final VoidCallback onComment;
+  final VoidCallback onFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final EditorialColors colors = EditorialColors.of(context);
+    final bool canOpenAuthor =
+        post.canViewAuthorProfile && post.authorUserId.isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _PostAuthorAvatar(
+                post: post,
+                onTap: canOpenAuthor ? onOpenAuthor : null,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: canOpenAuthor ? onOpenAuthor : null,
+                        child: Text(
+                          post.isAnonymous ? '匿名同学' : post.authorAlias,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelLarge,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      AppDateFormat.threadDate(context, post.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colors.mutedInk,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (post.title.trim().isNotEmpty) ...<Widget>[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              post.title.trim(),
+              style: AppTypography.postContentStyle(
+                theme.textTheme.titleLarge,
+              ).copyWith(fontWeight: FontWeight.w600),
+            ),
+          ],
+          if (post.content.trim().isNotEmpty) ...<Widget>[
+            const SizedBox(height: AppSpacing.xs),
+            PostContentBody(
+              content: post.content,
+              contentFormat: post.contentFormat,
+              markdownSource: post.markdownSource,
+              onHashtagTap: onOpenHashtag,
+            ),
+          ],
+          if (imageUrls.isNotEmpty) ...<Widget>[
+            const SizedBox(height: AppSpacing.md),
+            ImageGallery(images: imageUrls),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          _PostDetailActionBar(
+            likeCount: post.likeCount,
+            commentCount: commentCount,
+            favoriteCount: post.favoriteCount,
+            liked: post.isLiked,
+            favorited: post.isFavorited,
+            enabled: !actionBusy,
+            onLike: onLike,
+            onComment: onComment,
+            onFavorite: onFavorite,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InlineCommentComposer extends StatelessWidget {
+  const _InlineCommentComposer({
+    required this.controller,
+    required this.focusNode,
+    required this.replyToAlias,
+    required this.busy,
+    required this.onCancelReply,
+    required this.onSubmit,
+  });
+
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final String? replyToAlias;
+  final bool busy;
+  final VoidCallback? onCancelReply;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    final String nickname =
+        AuthStore.instance.currentUser?.nickname.trim().isNotEmpty == true
+        ? AuthStore.instance.currentUser!.nickname.trim()
+        : '我';
+    final String avatarUrl = AppConfig.resolveUrl(
+      AuthStore.instance.currentUser?.avatarUrl ?? '',
+    );
+    final EditorialColors colors = EditorialColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.lg,
+        AppSpacing.md,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          _CurrentUserAvatar(nickname: nickname, avatarUrl: avatarUrl),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                if (replyToAlias != null) ...<Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          '回复 $replyToAlias',
+                          style: Theme.of(context).textTheme.labelMedium,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: busy ? null : onCancelReply,
+                        tooltip: '取消回复',
+                        icon: const Icon(Icons.close_rounded, size: 16),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                ],
+                TextField(
+                  controller: controller,
+                  focusNode: focusNode,
+                  minLines: 1,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.newline,
+                  style: AppTypography.postContentStyle(
+                    Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  decoration: AppInput.inlineComposerDecoration(
+                    hintText: replyToAlias == null ? '加入讨论…' : '输入回复内容',
+                    suffixIcon: IconButton(
+                      onPressed: busy ? null : onSubmit,
+                      tooltip: '发布回复',
+                      icon: Icon(
+                        Icons.arrow_upward_rounded,
+                        color: colors.primary,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxs),
+                EmojiAssistantBar(controller: controller, compact: true),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CurrentUserAvatar extends StatelessWidget {
+  const _CurrentUserAvatar({required this.nickname, required this.avatarUrl});
+
+  final String nickname;
+  final String avatarUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: colors.primarySubtle,
+      foregroundColor: colors.primary,
+      backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
+      child: avatarUrl.isEmpty
+          ? Text(
+              nickname.characters.first,
+              style: Theme.of(context).textTheme.labelMedium,
+            )
+          : null,
+    );
+  }
+}
+
+class _PostDetailScrollBehavior extends MaterialScrollBehavior {
+  const _PostDetailScrollBehavior();
+
+  @override
+  Widget buildScrollbar(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) => child;
+}
+
+class _PostAuthorAvatar extends StatelessWidget {
+  const _PostAuthorAvatar({required this.post, this.onTap});
+
+  final PostItem post;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -811,18 +969,19 @@ class _PostAuthorAvatar extends StatelessWidget {
         ).textTheme.labelLarge?.copyWith(color: colors.primary),
       ),
     );
-    if (post.isAnonymous || avatarUrl.isEmpty) {
-      return fallback;
-    }
-    return ClipOval(
-      child: Image.network(
-        avatarUrl,
-        width: 42,
-        height: 42,
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => fallback,
-      ),
-    );
+    final Widget avatar = post.isAnonymous || avatarUrl.isEmpty
+        ? fallback
+        : ClipOval(
+            child: Image.network(
+              avatarUrl,
+              width: 42,
+              height: 42,
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => fallback,
+            ),
+          );
+    if (onTap == null) return avatar;
+    return GestureDetector(onTap: onTap, child: avatar);
   }
 }
 
@@ -1022,109 +1181,179 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
     final ThemeData theme = Theme.of(context);
     final EditorialColors colors = EditorialColors.of(context);
 
-    return AppThreadBranch(
-      depth: widget.depth,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        AppThreadBranch(
+          depth: widget.depth,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              GestureDetector(
-                onTap: comment.authorUserId.isEmpty
-                    ? null
-                    : () => widget.onOpenAuthor(comment.authorUserId),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: colors.primarySubtle,
-                  foregroundColor: colors.primary,
-                  backgroundImage: avatarUrl.isEmpty
-                      ? null
-                      : NetworkImage(avatarUrl),
-                  child: avatarUrl.isEmpty ? Text(fallback) : null,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    GestureDetector(
-                      onTap: comment.authorUserId.isEmpty
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: comment.authorUserId.isEmpty
+                        ? null
+                        : () => widget.onOpenAuthor(comment.authorUserId),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundColor: colors.primarySubtle,
+                      foregroundColor: colors.primary,
+                      backgroundImage: avatarUrl.isEmpty
                           ? null
-                          : () => widget.onOpenAuthor(comment.authorUserId),
-                      child: Text(
-                        comment.authorAlias,
-                        style: theme.textTheme.labelLarge,
-                      ),
+                          : NetworkImage(avatarUrl),
+                      child: avatarUrl.isEmpty ? Text(fallback) : null,
                     ),
-                    const SizedBox(height: AppSpacing.xxs),
-                    Text(
-                      comment.createdAt.toLocal().toString(),
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            comment.content,
-            style: AppTypography.postContentStyle(theme.textTheme.bodyMedium),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Wrap(
-            spacing: AppSpacing.xxs,
-            children: <Widget>[
-              TextButton.icon(
-                onPressed: widget.onReply == null
-                    ? null
-                    : () => widget.onReply!(comment),
-                icon: const Icon(Icons.reply_outlined, size: 16),
-                label: const Text('回复'),
-              ),
-              TextButton.icon(
-                style: TextButton.styleFrom(
-                  foregroundColor: _isLiked ? colors.primary : colors.mutedInk,
-                ),
-                onPressed: _busy ? null : _toggleLike,
-                icon: Icon(
-                  _isLiked
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  size: 16,
-                ),
-                label: Text('$_likeCount'),
-              ),
-              TextButton.icon(
-                onPressed: widget.onReport == null
-                    ? null
-                    : () => widget.onReport!(comment.id),
-                icon: const Icon(Icons.flag_outlined, size: 16),
-                label: const Text('举报'),
-              ),
-              if (comment.effectiveReplyCount > 0)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm),
-                  child: Text(
-                    '${comment.effectiveReplyCount} 条回复',
-                    style: theme.textTheme.bodySmall,
                   ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: comment.authorUserId.isEmpty
+                                ? null
+                                : () =>
+                                      widget.onOpenAuthor(comment.authorUserId),
+                            child: Text(
+                              comment.authorAlias,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.labelLarge,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          AppDateFormat.threadDate(context, comment.createdAt),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.mutedInk,
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          tooltip: '更多操作',
+                          icon: Icon(
+                            Icons.more_horiz_rounded,
+                            size: 18,
+                            color: colors.mutedInk,
+                          ),
+                          onSelected: (String value) {
+                            if (value == 'report')
+                              widget.onReport?.call(comment.id);
+                          },
+                          itemBuilder: (BuildContext context) =>
+                              const <PopupMenuEntry<String>>[
+                                PopupMenuItem<String>(
+                                  value: 'report',
+                                  child: Text('举报'),
+                                ),
+                              ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                comment.content,
+                style: AppTypography.postContentStyle(
+                  theme.textTheme.bodyMedium,
                 ),
+              ),
+              const SizedBox(height: AppSpacing.xxs),
+              Row(
+                children: <Widget>[
+                  _CommentAction(
+                    icon: Icons.reply_outlined,
+                    onPressed: widget.onReply == null
+                        ? null
+                        : () => widget.onReply!(comment),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  _CommentAction(
+                    icon: _isLiked
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    onPressed: _busy ? null : _toggleLike,
+                    label: _likeCount == 0 ? null : '$_likeCount',
+                    active: _isLiked,
+                  ),
+                ],
+              ),
             ],
           ),
-          if (comment.replies.isNotEmpty)
-            ...comment.replies.map(
-              (CommentItem reply) => _CommentThreadTile(
-                comment: reply,
-                depth: widget.depth + 1,
-                onReply: widget.onReply,
-                onReport: widget.onReport,
-                onOpenAuthor: widget.onOpenAuthor,
-              ),
+        ),
+        if (comment.replies.isNotEmpty)
+          ...comment.replies.map(
+            (CommentItem reply) => _CommentThreadTile(
+              comment: reply,
+              depth: widget.depth + 1,
+              onReply: widget.onReply,
+              onReport: widget.onReport,
+              onOpenAuthor: widget.onOpenAuthor,
             ),
-        ],
+          ),
+      ],
+    );
+  }
+}
+
+class _CommentAction extends StatefulWidget {
+  const _CommentAction({
+    required this.icon,
+    required this.onPressed,
+    this.label,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final String? label;
+  final bool active;
+
+  @override
+  State<_CommentAction> createState() => _CommentActionState();
+}
+
+class _CommentActionState extends State<_CommentAction> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final Color color = widget.active ? colors.primary : colors.mutedInk;
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppRadii.pill),
+      onTap: widget.onPressed,
+      onHighlightChanged: (bool value) => setState(() => _pressed = value),
+      child: AnimatedScale(
+        duration: AppMotion.resolve(context, AppMotion.fast),
+        curve: AppMotion.emphasis,
+        scale: _pressed ? 0.9 : 1,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xxs,
+            vertical: AppSpacing.xxs,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Icon(widget.icon, size: 18, color: color),
+              if (widget.label != null) ...<Widget>[
+                const SizedBox(width: AppSpacing.xxs),
+                Text(
+                  widget.label!,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelMedium?.copyWith(color: color),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

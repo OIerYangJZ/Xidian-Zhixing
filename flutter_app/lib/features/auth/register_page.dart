@@ -5,6 +5,7 @@ import '../../core/media/picked_image_data.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -42,7 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('注册账号')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: AppPageFrame(
         maxWidth: AppLayout.formMaxWidth,
         padding: AppLayout.pagePadding(context),
@@ -77,38 +78,35 @@ class _RegisterPageState extends State<RegisterPage> {
                       setState(() {});
                     },
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: '校园邮箱',
-                      hintText: 'example@stu.xidian.edu.cn',
-                      prefixIcon: Icon(Icons.school_outlined),
+                    decoration: AppInput.decoration(
+                      hintText: '校园邮箱',
+                      prefixIcon: const Icon(Icons.school_outlined),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: '密码',
-                      hintText: '至少 6 位',
-                      prefixIcon: Icon(Icons.lock_outline),
+                    decoration: AppInput.decoration(
+                      hintText: '密码，至少 6 位',
+                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _confirmPasswordController,
                     obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: '确认密码',
-                      prefixIcon: Icon(Icons.lock_reset_outlined),
+                    decoration: AppInput.decoration(
+                      hintText: '确认密码',
+                      prefixIcon: const Icon(Icons.lock_reset_outlined),
                     ),
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: _nicknameController,
-                    decoration: const InputDecoration(
-                      labelText: '用户昵称（可选）',
-                      hintText: '留空将自动生成',
-                      prefixIcon: Icon(Icons.badge_outlined),
+                    decoration: AppInput.decoration(
+                      hintText: '用户昵称（选填）',
+                      prefixIcon: const Icon(Icons.badge_outlined),
                     ),
                   ),
                   const SizedBox(height: 10),

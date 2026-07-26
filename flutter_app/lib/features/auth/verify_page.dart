@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../core/network/api_exception.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_input.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/auth_repository.dart';
 import '../../widgets/home_shell.dart';
@@ -29,53 +32,51 @@ class _VerifyPageState extends State<VerifyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('校园身份认证')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 500),
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    Text('认证邮箱：${widget.campusEmail}'),
-                    const SizedBox(height: 12),
-                    TextField(
-                      key: const Key('verification-code-input'),
-                      controller: _codeController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 6,
-                      decoration: const InputDecoration(
-                        labelText: '邮箱验证码',
-                        hintText: '输入 6 位验证码',
-                        prefixIcon: Icon(Icons.verified_user_outlined),
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Text('认证邮箱：${widget.campusEmail}'),
+                  const SizedBox(height: 12),
+                  TextField(
+                    key: const Key('verification-code-input'),
+                    controller: _codeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    decoration: AppInput.decoration(
+                      hintText: '输入 6 位验证码',
+                      prefixIcon: const Icon(Icons.verified_user_outlined),
+                      counterMaxLength: 6,
                     ),
-                    if (_errorText != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Text(
-                          _errorText!,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
+                  ),
+                  if (_errorText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        _errorText!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
-                    FilledButton(
-                      onPressed: _isBusy ? null : _submit,
-                      child: Text(_isBusy ? '认证中...' : '完成认证并进入首页'),
                     ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: _isBusy ? null : _resend,
-                      child: const Text('重新发送验证码'),
-                    ),
-                  ],
-                ),
+                  FilledButton(
+                    onPressed: _isBusy ? null : _submit,
+                    child: Text(_isBusy ? '认证中...' : '完成认证并进入首页'),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _isBusy ? null : _resend,
+                    child: const Text('重新发送验证码'),
+                  ),
+                ],
               ),
             ),
           ),

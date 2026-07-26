@@ -29,7 +29,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的帖子')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(

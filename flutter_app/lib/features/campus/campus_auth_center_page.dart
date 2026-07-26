@@ -63,9 +63,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   @override
   void initState() {
     super.initState();
-    _activeSystem = _systems.any(
-      (_CampusSystem item) => item.id == widget.initialSystem,
-    )
+    _activeSystem =
+        _systems.any((_CampusSystem item) => item.id == widget.initialSystem)
         ? widget.initialSystem
         : 'ids';
     _identifierController.text =
@@ -88,7 +87,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('校园账号管理')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: AppPageFrame(
         maxWidth: AppLayout.readingMaxWidth,
         child: ListView(
@@ -116,9 +115,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                     Expanded(
                       child: Text(
                         '${state['studentId'] ?? ''} · ${state['updatedAt'] ?? ''}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.mutedInk,
-                        ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodySmall?.copyWith(color: colors.mutedInk),
                       ),
                     ),
                     TextButton(
@@ -276,10 +275,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     if (decoded is Map && mounted) {
       setState(() {
         _states = decoded.map(
-          (dynamic key, dynamic value) => MapEntry<String, dynamic>(
-            key.toString(),
-            value,
-          ),
+          (dynamic key, dynamic value) =>
+              MapEntry<String, dynamic>(key.toString(), value),
         );
       });
     }
@@ -439,11 +436,13 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      await ref.read(campusRepositoryProvider).sendDormWaterSms(
-        sessionId: _dormWaterSessionId,
-        phone: _phoneController.text.trim(),
-        imageCode: _dormWaterImageCodeController.text.trim(),
-      );
+      await ref
+          .read(campusRepositoryProvider)
+          .sendDormWaterSms(
+            sessionId: _dormWaterSessionId,
+            phone: _phoneController.text.trim(),
+            imageCode: _dormWaterImageCodeController.text.trim(),
+          );
       if (mounted) {
         ScaffoldMessenger.of(
           context,

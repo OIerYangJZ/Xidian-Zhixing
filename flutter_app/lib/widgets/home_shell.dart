@@ -78,10 +78,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       backgroundColor: EditorialColors.of(context).page,
       appBar: desktop
           ? null
-          : AppBar(
-              titleSpacing: AppSpacing.md,
-              title: _MobileTitle(destination: destinations[_currentIndex]),
-              actions: <Widget>[
+          : AppPageTopActions(
+              trailing: <Widget>[
                 IconButton(
                   onPressed: _openSearch,
                   tooltip: l10n.search,
@@ -200,6 +198,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       : Navigator.of(context);
 
   Future<void> _openCreatePost() async {
+    try {
+      final profile = await AppRepositories.users.fetchProfile();
+      AuthStore.instance.setCurrentUser(profile);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('暂时无法打开发布窗口，请稍后再试。')));
+      return;
+    }
+    if (!mounted) return;
     final bool? created = await showCreatePostComposer(
       _contentNavigator.context,
     );
@@ -267,21 +276,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       setPostIdOnUrl(null);
     }
   }
-}
-
-class _MobileTitle extends StatelessWidget {
-  const _MobileTitle({required this.destination});
-  final _ShellDestination destination;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      Text(destination.label, style: Theme.of(context).textTheme.titleMedium),
-      Text(destination.subtitle, style: Theme.of(context).textTheme.bodySmall),
-    ],
-  );
 }
 
 class _DesktopRail extends StatelessWidget {

@@ -38,7 +38,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         : _report.status;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('举报详情')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: AppLayout.formMaxWidth),
@@ -64,29 +64,27 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           ),
                         ),
                       ),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              '举报单号：${_report.id}',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            Text('举报对象：$targetLabel'),
-                            Text('举报原因：${_report.reason}'),
-                            if (_report.description.trim().isNotEmpty)
-                              Text('补充说明：${_report.description}'),
-                            Text('处理状态：$statusText'),
-                            if (_report.createdAt.trim().isNotEmpty)
-                              Text('提交时间：${_report.createdAt}'),
-                            if (_report.handledAt.trim().isNotEmpty)
-                              Text('处理时间：${_report.handledAt}'),
-                          ],
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            '举报单号：${_report.id}',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('举报对象：$targetLabel'),
+                          Text('举报原因：${_report.reason}'),
+                          if (_report.description.trim().isNotEmpty)
+                            Text('补充说明：${_report.description}'),
+                          Text('处理状态：$statusText'),
+                          if (_report.createdAt.trim().isNotEmpty)
+                            Text('提交时间：${_report.createdAt}'),
+                          if (_report.handledAt.trim().isNotEmpty)
+                            Text('处理时间：${_report.handledAt}'),
+                        ],
                       ),
                     ),
                     if (_canOpenTarget())

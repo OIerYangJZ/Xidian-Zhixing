@@ -13,7 +13,7 @@ class AppTypography {
   static const String chineseDisplay = 'STZhongsong';
   static const String chineseBody = 'Microsoft YaHei';
   static const String chineseAccent = 'STKaiti';
-  static const String chineseWordmark = 'STXingkai';
+  static const String chineseWordmark = 'SimSun';
   static const List<String> chineseDisplayFallback = <String>[
     '华文中宋',
     'STSong',
@@ -29,10 +29,9 @@ class AppTypography {
     '宋体',
   ];
   static const List<String> chineseWordmarkFallback = <String>[
-    '华文行楷',
-    'STXingkai',
-    'STKaiti',
-    'KaiTi',
+    '宋体',
+    'SimSun',
+    'STSong',
     'Microsoft YaHei',
   ];
 
@@ -117,17 +116,17 @@ class AppTypography {
     );
   }
 
-  /// Handwritten treatment reserved for the compact product wordmark.
+  /// Editorial treatment reserved for the product wordmark.
   static TextStyle wordmarkStyle(Locale locale, {required Color color}) =>
       TextStyle(
         fontFamily: isEnglish(locale) ? englishAccent : chineseWordmark,
         fontFamilyFallback: isEnglish(locale)
             ? englishDisplayFallback
             : chineseWordmarkFallback,
-        fontSize: 20,
+        fontSize: 24,
         color: color,
         height: 1.1,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w400,
       );
 
   static TextTheme textTheme(Locale locale, Color foreground) {

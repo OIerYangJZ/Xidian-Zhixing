@@ -32,6 +32,7 @@ class ApiEndpoints {
   static const String notificationsReadAll = '/notifications/read-all';
 
   static const String channels = '/channels';
+  static const String sectionsTree = '/sections/tree';
   static const String posts = '/posts';
   static const String myPosts = '/posts/mine';
   static const String favoritePosts = '/posts/favorites';
@@ -71,6 +72,8 @@ class ApiEndpoints {
   static const String androidReleaseLatest = '/releases/android/latest';
 
   static String postById(String postId) => '/posts/$postId';
+  static String sectionPosts(String sectionId) =>
+      '/sections/${Uri.encodeComponent(sectionId)}/posts';
   static String xidianAuthSessionById(String attemptId) =>
       '/auth/xidian/session/$attemptId';
   static String postComments(String postId) => '/posts/$postId/comments';

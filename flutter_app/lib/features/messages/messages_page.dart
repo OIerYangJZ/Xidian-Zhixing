@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/widgets/async_page_state.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/conversation_item.dart';
 import 'chat_page.dart';
 import 'messages_controller.dart';
@@ -32,25 +33,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
   @override
   Widget build(BuildContext context) {
     final MessagesState state = ref.watch(messagesControllerProvider);
-    final int unreadCount = state.conversations.fold<int>(
-      0,
-      (int sum, ConversationItem item) => sum + item.unreadCount,
-    );
 
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('会话'),
-            if (unreadCount > 0) ...[
-              const SizedBox(width: 6),
-              Badge(label: Text(unreadCount > 99 ? '99+' : '$unreadCount')),
-            ],
-          ],
-        ),
-        centerTitle: true,
-      ),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: AsyncPageState(
         loading: state.loading,
         error: state.error,

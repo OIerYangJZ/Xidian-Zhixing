@@ -7,6 +7,7 @@ import 'package:markdown/markdown.dart' as md;
 import '../core/config/app_config.dart';
 import '../core/theme/app_typography.dart';
 import '../core/theme/shared_colors.dart';
+import '../core/utils/hashtag_pattern.dart';
 
 /// Renders inline [#topic] references in the product's blue emphasis colour.
 /// Topics remain part of the author's text instead of becoming separate chips.
@@ -21,7 +22,7 @@ class HashtagText extends StatefulWidget {
     this.onHashtagTap,
   });
 
-  static final RegExp _hashtagPattern = RegExp(r'#[\w\u4e00-\u9fff-]+');
+  static final RegExp _hashtagPattern = AppHashtag.pattern;
 
   final String text;
   final TextStyle? style;
@@ -294,7 +295,7 @@ class _HashtagElementBuilder extends MarkdownElementBuilder {
 }
 
 class _HashtagSyntax extends md.InlineSyntax {
-  _HashtagSyntax() : super(r'#[\w\u4e00-\u9fff-]+');
+  _HashtagSyntax() : super(AppHashtag.expression);
 
   @override
   bool onMatch(md.InlineParser parser, Match match) {

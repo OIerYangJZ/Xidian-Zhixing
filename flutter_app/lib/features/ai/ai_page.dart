@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/ai_repository.dart';
 
@@ -33,6 +34,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   final ScrollController _scrollController = ScrollController();
   final List<AiMessage> _messages = <AiMessage>[];
   bool _sending = false;
+  bool _loadingConfig = true;
+  String? _configError;
   AiServerStatus _status = const AiServerStatus(model: '', models: <String>[]);
 
   @override
@@ -49,23 +52,33 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 
   Future<void> _loadConfig() async {
-    AiServerStatus status;
     try {
-      status = await ref.read(aiRepositoryProvider).fetchStatus();
+      final AiServerStatus status = await ref
+          .read(aiRepositoryProvider)
+          .fetchStatus();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _status = status;
+        _configError = status.configured ? null : '校园 AI 暂时不可用';
+        _loadingConfig = false;
+      });
     } catch (_) {
-      status = const AiServerStatus(model: '', models: <String>[]);
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _configError = '校园 AI 暂时不可用';
+        _loadingConfig = false;
+      });
     }
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _status = status;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool configured = _status.configured;
+    final bool configured =
+        !_loadingConfig && _configError == null && _status.configured;
     final Widget content = Column(
       children: <Widget>[
         Expanded(
@@ -74,7 +87,19 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               constraints: const BoxConstraints(
                 maxWidth: AppLayout.readingMaxWidth,
               ),
-              child: _messages.isEmpty && !_sending
+              child: _loadingConfig
+                  ? const Center(child: CircularProgressIndicator())
+                  : _configError != null
+                  ? AppStatePanel(
+                      icon: Icons.cloud_off_outlined,
+                      title: _configError!,
+                      message: '请稍后再试。',
+                      action: TextButton(
+                        onPressed: _loadConfig,
+                        child: const Text('重试'),
+                      ),
+                    )
+                  : _messages.isEmpty && !_sending
                   ? const AppStatePanel(
                       icon: Icons.auto_awesome_outlined,
                       title: '开始一次可核对的问答',
@@ -115,7 +140,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                     enabled: !_sending && configured,
                     minLines: 1,
                     maxLines: 4,
-                    decoration: InputDecoration(
+                    decoration: AppInput.inlineComposerDecoration(
                       hintText: configured ? '输入问题' : '暂时无法使用',
                     ),
                     onSubmitted: (_) => _send(),
@@ -136,7 +161,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       return content;
     }
     return Scaffold(
-      appBar: AppBar(title: const Text('校园 AI')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: content,
     );
   }

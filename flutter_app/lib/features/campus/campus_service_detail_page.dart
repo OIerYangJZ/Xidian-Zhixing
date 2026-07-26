@@ -113,25 +113,23 @@ class _CampusServiceDetailPageState
   Widget build(BuildContext context) {
     final CampusService? service = _service;
     return Scaffold(
-      appBar: AppBar(
-        title: _isClasstable(service)
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  IconButton(
-                    tooltip: '上一周',
-                    onPressed: () => _shiftWeek(-1),
-                    icon: const Icon(Icons.chevron_left_rounded),
-                  ),
-                  TextButton(onPressed: _pickWeek, child: Text(_weekTitle())),
-                  IconButton(
-                    tooltip: '下一周',
-                    onPressed: () => _shiftWeek(1),
-                    icon: const Icon(Icons.chevron_right_rounded),
-                  ),
-                ],
-              )
-            : Text(service?.name ?? '校园服务'),
+      appBar: AppPageTopActions(
+        leading: const BackButton(),
+        trailing: _isClasstable(service)
+            ? <Widget>[
+                IconButton(
+                  tooltip: '上一周',
+                  onPressed: () => _shiftWeek(-1),
+                  icon: const Icon(Icons.chevron_left_rounded),
+                ),
+                TextButton(onPressed: _pickWeek, child: Text(_weekTitle())),
+                IconButton(
+                  tooltip: '下一周',
+                  onPressed: () => _shiftWeek(1),
+                  icon: const Icon(Icons.chevron_right_rounded),
+                ),
+              ]
+            : const <Widget>[],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

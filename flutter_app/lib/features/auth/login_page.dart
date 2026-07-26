@@ -219,46 +219,28 @@ class _LoginManifesto extends StatelessWidget {
     final EditorialColors colors = EditorialColors.of(context);
     return ColoredBox(
       color: colors.darkPanel,
-      child: Stack(
-        children: <Widget>[
-          Positioned(
-            right: 0,
-            top: 0,
-            width: 168,
-            height: 168,
-            child: ColoredBox(color: colors.coral),
-          ),
-          Positioned(
-            right: 168,
-            top: 0,
-            width: 72,
-            height: 168,
-            child: ColoredBox(color: colors.apricot),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(56, 40, 56, 48),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const _Wordmark(onDark: true),
-                const Spacer(),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 660),
-                  child: Text(
-                    l10n.tagline,
-                    style: AppTypography.brandStyle(
-                      locale,
-                      color: colors.onDarkPanel,
-                      fontSize: locale.languageCode == 'en' ? 66 : 74,
-                      height: 1.05,
-                    ),
-                  ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(56, 40, 56, 48),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const _Wordmark(onDark: true),
+            const Spacer(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 660),
+              child: Text(
+                l10n.tagline,
+                style: AppTypography.brandStyle(
+                  locale,
+                  color: colors.onDarkPanel,
+                  fontSize: locale.languageCode == 'en' ? 66 : 74,
+                  height: 1.05,
                 ),
-                const Spacer(),
-              ],
+              ),
             ),
-          ),
-        ],
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
@@ -460,7 +442,7 @@ class _Wordmark extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        const AppBrandLogo(size: 30),
+        const AppBrandLogo(size: 36),
         const SizedBox(width: AppSpacing.sm),
         Text(
           AppLocalizations.of(context)!.appTitle,

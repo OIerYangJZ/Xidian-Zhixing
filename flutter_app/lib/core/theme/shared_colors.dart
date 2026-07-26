@@ -41,6 +41,7 @@ const EditorialColors _inkVermilionLight = EditorialColors(
   page: Color(0xFFFFFFFF),
   surface: Color(0xFFFFFFFF),
   surfaceRaised: Color(0xFFFFFFFF),
+  composerSurface: Color(0xFFF4F4F3),
   surfaceHover: Color(0xFFF4F4F1),
   ink: Color(0xFF191917),
   mutedInk: Color(0xFF6F706B),
@@ -66,6 +67,7 @@ const EditorialColors _inkVermilionDark = EditorialColors(
   page: Color(0xFF151513),
   surface: Color(0xFF1D1D1B),
   surfaceRaised: Color(0xFF252522),
+  composerSurface: Color(0xFF202020),
   surfaceHover: Color(0xFF302F2C),
   ink: Color(0xFFF5F5F0),
   mutedInk: Color(0xFFB7B8B1),
@@ -95,6 +97,7 @@ class EditorialColors extends ThemeExtension<EditorialColors> {
     required this.page,
     required this.surface,
     required this.surfaceRaised,
+    required this.composerSurface,
     required this.surfaceHover,
     required this.ink,
     required this.mutedInk,
@@ -119,6 +122,7 @@ class EditorialColors extends ThemeExtension<EditorialColors> {
   final Color page;
   final Color surface;
   final Color surfaceRaised;
+  final Color composerSurface;
   final Color surfaceHover;
   final Color ink;
   final Color mutedInk;
@@ -147,6 +151,7 @@ class EditorialColors extends ThemeExtension<EditorialColors> {
     Color? page,
     Color? surface,
     Color? surfaceRaised,
+    Color? composerSurface,
     Color? surfaceHover,
     Color? ink,
     Color? mutedInk,
@@ -170,6 +175,7 @@ class EditorialColors extends ThemeExtension<EditorialColors> {
     page: page ?? this.page,
     surface: surface ?? this.surface,
     surfaceRaised: surfaceRaised ?? this.surfaceRaised,
+    composerSurface: composerSurface ?? this.composerSurface,
     surfaceHover: surfaceHover ?? this.surfaceHover,
     ink: ink ?? this.ink,
     mutedInk: mutedInk ?? this.mutedInk,
@@ -200,6 +206,7 @@ class EditorialColors extends ThemeExtension<EditorialColors> {
       page: Color.lerp(page, other.page, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       surfaceRaised: Color.lerp(surfaceRaised, other.surfaceRaised, t)!,
+      composerSurface: Color.lerp(composerSurface, other.composerSurface, t)!,
       surfaceHover: Color.lerp(surfaceHover, other.surfaceHover, t)!,
       ink: Color.lerp(ink, other.ink, t)!,
       mutedInk: Color.lerp(mutedInk, other.mutedInk, t)!,

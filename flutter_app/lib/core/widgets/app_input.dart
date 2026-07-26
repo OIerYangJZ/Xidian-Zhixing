@@ -12,12 +12,14 @@ class AppInput {
 
   static InputDecoration decoration({
     required String hintText,
+    Widget? prefixIcon,
     Widget? suffixIcon,
     String? errorText,
     String? helperText,
     int? counterMaxLength,
   }) => InputDecoration(
     hintText: hintText,
+    prefixIcon: prefixIcon,
     suffixIcon: suffixIcon,
     errorText: errorText,
     helperText: helperText,
@@ -61,6 +63,30 @@ class AppInput {
               borderRadius: BorderRadius.circular(AppRadii.pill),
               borderSide: BorderSide(color: focusedBorderColor),
             ),
+    );
+  }
+
+  /// Compact one-line editor used for inline replies in social timelines.
+  static InputDecoration inlineComposerDecoration({
+    required String hintText,
+    Widget? suffixIcon,
+  }) {
+    final OutlineInputBorder border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppRadii.pill),
+      borderSide: BorderSide.none,
+    );
+    return InputDecoration(
+      hintText: hintText,
+      suffixIcon: suffixIcon,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      border: border,
+      enabledBorder: border,
+      disabledBorder: border,
+      focusedBorder: border,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/app_surfaces.dart';
 import '../favorites/favorites_page.dart';
 
 class MyFavoritesPage extends StatelessWidget {
@@ -8,7 +9,7 @@ class MyFavoritesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的收藏')),
+      appBar: const AppPageTopActions(leading: BackButton()),
       body: const FavoritesPage(),
     );
   }
