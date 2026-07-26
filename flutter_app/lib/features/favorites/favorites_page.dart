@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_input.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
@@ -93,13 +95,10 @@ class FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildHero(BuildContext context, int filteredCount) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
       ),
       child: Row(
         children: <Widget>[
@@ -136,21 +135,17 @@ class FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildToolbar(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
       ),
       child: Column(
         children: <Widget>[
           TextField(
             controller: _keywordController,
-            decoration: InputDecoration(
+            decoration: AppInput.searchDecoration(
               hintText: '搜索收藏帖子（标题/正文/标签）',
-              prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _keywordController.text.isEmpty
                   ? null
                   : IconButton(

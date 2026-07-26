@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_typography.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../models/post_item.dart';
+import 'post_content_body.dart';
 
 /// A continuous social-feed item. It intentionally has no card chrome: the
 /// reading rhythm comes from one consistent divider and generous spacing.
@@ -11,12 +13,23 @@ class PostCard extends StatefulWidget {
     super.key,
     required this.post,
     required this.onTap,
+    this.onOpenPost,
+    this.onAuthorTap,
+    this.onHashtagTap,
     this.onLike,
     this.onFavorite,
   });
 
   final PostItem post;
+
+  /// Opens the post detail when the feed item itself is selected.
   final VoidCallback onTap;
+  final VoidCallback? onOpenPost;
+
+  /// Opens the author's public profile. It is intentionally bound to the
+  /// avatar alone so the rest of the item keeps its post-detail behavior.
+  final VoidCallback? onAuthorTap;
+  final ValueChanged<String>? onHashtagTap;
   final VoidCallback? onLike;
   final VoidCallback? onFavorite;
 
@@ -55,7 +68,7 @@ class _PostCardState extends State<PostCard> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  _Avatar(post: post),
+                  _Avatar(post: post, onTap: widget.onAuthorTap),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Column(
@@ -88,30 +101,27 @@ class _PostCardState extends State<PostCard> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppSpacing.xs),
-                        _PostMeta(post: post),
                         if (post.title.trim().isNotEmpty) ...<Widget>[
                           const SizedBox(height: AppSpacing.sm),
                           Text(
                             post.title.trim(),
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              height: 1.42,
-                              color: colors.ink,
-                            ),
+                            style: AppTypography.postContentStyle(
+                              theme.textTheme.titleMedium,
+                            ).copyWith(height: 1.42, color: colors.ink),
                           ),
                         ],
                         if (post.content.trim().isNotEmpty) ...<Widget>[
                           const SizedBox(height: AppSpacing.xs),
-                          Text(
-                            post.content.trim(),
+                          HashtagText(
+                            text: post.content.trim(),
                             maxLines: post.imageUrls.isEmpty ? 4 : 3,
                             overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: colors.ink,
-                              height: 1.65,
-                            ),
+                            style: AppTypography.postContentStyle(
+                              theme.textTheme.bodyMedium,
+                            ).copyWith(color: colors.ink, height: 1.65),
+                            onHashtagTap: widget.onHashtagTap,
                           ),
                         ],
                         if (post.imageUrls.isNotEmpty) ...<Widget>[
@@ -133,6 +143,7 @@ class _PostCardState extends State<PostCard> {
                             _Action(
                               icon: Icons.mode_comment_outlined,
                               value: post.commentCount,
+                              onTap: widget.onOpenPost,
                             ),
                             const SizedBox(width: AppSpacing.lg),
                             _Action(
@@ -167,71 +178,19 @@ class _PostCardState extends State<PostCard> {
   }
 }
 
-class _PostMeta extends StatelessWidget {
-  const _PostMeta({required this.post});
-  final PostItem post;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final List<String> tags = post.tags
-        .where((String tag) => tag.trim().isNotEmpty)
-        .take(2)
-        .toList(growable: false);
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: <Widget>[
-        _MetaPill(
-          label: post.channel.trim().isEmpty ? '未分类' : post.channel.trim(),
-          color: colors.primary,
-        ),
-        if (post.isPinned) _MetaPill(label: '置顶', color: colors.apricot),
-        if (post.status != PostStatus.ongoing)
-          _MetaPill(label: post.status.label, color: colors.mutedInk),
-        for (final String tag in tags)
-          _MetaPill(label: '#${tag.trim()}', color: colors.mutedInk),
-      ],
-    );
-  }
-}
-
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.label, required this.color});
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(maxWidth: 180),
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.xs,
-      vertical: AppSpacing.xxs,
-    ),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(AppRadii.pill),
-    ),
-    child: Text(
-      label,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
-    ),
-  );
-}
-
 class _Avatar extends StatelessWidget {
-  const _Avatar({required this.post});
+  const _Avatar({required this.post, this.onTap});
   final PostItem post;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final String label = post.authorAlias.trim().isEmpty
         ? '匿'
         : post.authorAlias.trim().characters.first;
+    final Widget avatar;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
-      return ClipOval(
+      avatar = ClipOval(
         child: Image.network(
           post.authorAvatarUrl,
           width: 42,
@@ -240,8 +199,11 @@ class _Avatar extends StatelessWidget {
           errorBuilder: (_, __, ___) => _FallbackAvatar(label: label),
         ),
       );
+    } else {
+      avatar = _FallbackAvatar(label: post.isAnonymous ? '匿' : label);
     }
-    return _FallbackAvatar(label: post.isAnonymous ? '匿' : label);
+    if (onTap == null) return avatar;
+    return GestureDetector(onTap: onTap, child: avatar);
   }
 }
 

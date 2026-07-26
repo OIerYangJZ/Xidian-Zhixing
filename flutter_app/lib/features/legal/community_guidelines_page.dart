@@ -163,7 +163,6 @@ class CommunityGuidelinesPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: <Widget>[
@@ -219,9 +218,6 @@ class CommunityGuidelinesPage extends StatelessWidget {
             ? colors.danger.withValues(alpha: 0.08)
             : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: isWarning
-            ? Border.all(color: colors.danger.withValues(alpha: 0.2))
-            : Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,7 +273,6 @@ class CommunityGuidelinesPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.primarySubtle,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: <Widget>[

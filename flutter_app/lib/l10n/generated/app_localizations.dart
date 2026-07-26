@@ -122,18 +122,6 @@ abstract class AppLocalizations {
   /// **'一个为西电同学准备的克制、真诚、可持续讨论的校园社区。'**
   String get taglineSupporting;
 
-  /// No description provided for @internalBeta.
-  ///
-  /// In zh, this message translates to:
-  /// **'项目组内测'**
-  String get internalBeta;
-
-  /// No description provided for @unofficialNotice.
-  ///
-  /// In zh, this message translates to:
-  /// **'校园社区内测项目 · 非西电官方应用'**
-  String get unofficialNotice;
-
   /// No description provided for @home.
   ///
   /// In zh, this message translates to:
@@ -209,7 +197,7 @@ abstract class AppLocalizations {
   /// No description provided for @loginDescription.
   ///
   /// In zh, this message translates to:
-  /// **'使用项目组白名单中的学生账号登录。'**
+  /// **'使用学号或学生邮箱登录。'**
   String get loginDescription;
 
   /// No description provided for @studentIdentifier.
@@ -254,18 +242,6 @@ abstract class AppLocalizations {
   /// **'忘记密码'**
   String get forgotPassword;
 
-  /// No description provided for @betaAccessTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'内测访问说明'**
-  String get betaAccessTitle;
-
-  /// No description provided for @betaAccessMessage.
-  ///
-  /// In zh, this message translates to:
-  /// **'仅白名单 @stu.xidian.edu.cn 账号可使用；学校一站式登录尚未启用。'**
-  String get betaAccessMessage;
-
   /// No description provided for @adminLogin.
   ///
   /// In zh, this message translates to:
@@ -275,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @agreements.
   ///
   /// In zh, this message translates to:
-  /// **'用户协议 · 隐私政策 · 社区规范'**
+  /// **'用户协议'**
   String get agreements;
 
   /// No description provided for @identifierRequired.

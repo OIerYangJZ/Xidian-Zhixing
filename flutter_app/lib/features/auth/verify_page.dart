@@ -42,15 +42,6 @@ class _VerifyPageState extends State<VerifyPage> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(
-                      '认证说明',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('前台不会公开你的真实身份，后台仅用于安全审查与追责。'),
-                    const SizedBox(height: 12),
                     Text('认证邮箱：${widget.campusEmail}'),
                     const SizedBox(height: 12),
                     TextField(

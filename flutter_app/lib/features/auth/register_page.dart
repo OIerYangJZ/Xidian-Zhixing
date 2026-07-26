@@ -70,11 +70,6 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const AppInlineMessage(
-                    title: '项目组内测',
-                    message: '仅白名单学生邮箱可完成注册；学校一站式登录尚未启用。',
-                  ),
-                  const SizedBox(height: AppSpacing.md),
                   TextField(
                     key: const Key('register-email'),
                     controller: _emailController,

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
 
 class CampusServiceDetailPage extends ConsumerStatefulWidget {
@@ -209,27 +211,30 @@ class _CampusServiceDetailPageState
       25,
       (int index) => current.add(Duration(days: (index - 12) * 7)),
     );
-    final DateTime? selected = await showModalBottomSheet<DateTime>(
+    final DateTime? selected = await showAppDialog<DateTime>(
       context: context,
-      showDragHandle: true,
+      maxWidth: 480,
       builder: (BuildContext context) {
-        return ListView(
-          shrinkWrap: true,
-          children: <Widget>[
-            for (final DateTime week in weeks)
-              ListTile(
-                title: Text(
-                  '${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}',
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+          child: ListView(
+            shrinkWrap: true,
+            children: <Widget>[
+              for (final DateTime week in weeks)
+                ListTile(
+                  title: Text(
+                    '${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}',
+                  ),
+                  trailing: _ymd(week) == _ymd(_weekStart)
+                      ? Icon(
+                          Icons.check_rounded,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () => Navigator.of(context).pop(week),
                 ),
-                trailing: _ymd(week) == _ymd(_weekStart)
-                    ? Icon(
-                        Icons.check_rounded,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-                onTap: () => Navigator.of(context).pop(week),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -475,11 +480,6 @@ class _ScheduleCard extends StatelessWidget {
             ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
             : Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isExam
-              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.22)
-              : Theme.of(context).dividerColor,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,7 +542,6 @@ class _ExamList extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Theme.of(context).dividerColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -675,8 +674,8 @@ class _EmptyBlock extends StatelessWidget {
       height: 180,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(14),
+        color: Theme.of(context).colorScheme.surface,
       ),
       child: Text(text),
     );

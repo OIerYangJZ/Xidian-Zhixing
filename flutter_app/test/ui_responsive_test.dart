@@ -39,9 +39,9 @@ void main() {
         expect(tester.takeException(), isNull);
 
         if (width >= 960) {
-          expect(find.text('阅读优先'), findsOneWidget);
+          expect(find.text('让校园里的真实声音被听见'), findsOneWidget);
         } else {
-          expect(find.text('阅读优先'), findsNothing);
+          expect(find.text('让校园里的真实声音被听见'), findsNothing);
         }
       });
     }
@@ -185,7 +185,7 @@ void main() {
               (Ref ref) => _TestCreatePostController(ref),
             ),
           ],
-          child: _app(const CreatePostPage()),
+          child: _app(const CreatePostComposer()),
         ),
       );
       await tester.pump();
@@ -214,7 +214,7 @@ void main() {
               (Ref ref) => _TestCreatePostController(ref, submitting: true),
             ),
           ],
-          child: _app(const CreatePostPage()),
+          child: _app(const CreatePostComposer()),
         ),
       );
       await tester.pump();
@@ -223,7 +223,7 @@ void main() {
         find.byKey(const Key('create-post-submit')),
       );
       expect(submit.onPressed, isNull);
-      expect(find.text('发布中...'), findsWidgets);
+      expect(find.text('发布中…'), findsWidgets);
     });
 
     testWidgets(

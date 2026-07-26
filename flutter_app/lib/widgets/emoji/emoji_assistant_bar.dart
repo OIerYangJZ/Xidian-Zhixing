@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/emoji/emoji_catalog.dart';
 import '../../core/emoji/emoji_settings_store.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 
 class EmojiAssistantBar extends StatelessWidget {
   const EmojiAssistantBar({
@@ -28,7 +29,7 @@ class EmojiAssistantBar extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: compact
               ? IconButton(
-                  onPressed: () => showEmojiPickerSheet(
+                  onPressed: () => showEmojiPickerDialog(
                     context: context,
                     controller: controller,
                   ),
@@ -37,7 +38,7 @@ class EmojiAssistantBar extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                 )
               : OutlinedButton.icon(
-                  onPressed: () => showEmojiPickerSheet(
+                  onPressed: () => showEmojiPickerDialog(
                     context: context,
                     controller: controller,
                   ),
@@ -54,7 +55,7 @@ class EmojiAssistantBar extends StatelessWidget {
   }
 }
 
-Future<void> showEmojiPickerSheet({
+Future<void> showEmojiPickerDialog({
   required BuildContext context,
   required TextEditingController controller,
 }) async {
@@ -63,100 +64,98 @@ Future<void> showEmojiPickerSheet({
     return;
   }
 
-  await showModalBottomSheet<void>(
+  await showAppDialog<void>(
     context: context,
-    showDragHandle: true,
-    isScrollControlled: true,
+    maxWidth: 520,
+    maxHeight: 420,
     builder: (BuildContext context) {
-      return SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              const Text(
-                '选择表情',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              AnimatedBuilder(
-                animation: store,
-                builder: (BuildContext context, Widget? child) {
-                  final List<String> favorites = store.favorites;
-                  return Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: favorites
-                        .map(
-                          (String emoji) => InkWell(
-                            onTap: () => insertEmojiToController(
-                              controller: controller,
-                              emoji: emoji,
+      return Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            const Text(
+              '选择表情',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
+            AnimatedBuilder(
+              animation: store,
+              builder: (BuildContext context, Widget? child) {
+                final List<String> favorites = store.favorites;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: favorites
+                      .map(
+                        (String emoji) => InkWell(
+                          onTap: () => insertEmojiToController(
+                            controller: controller,
+                            emoji: emoji,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                emoji,
-                                style: const TextStyle(fontSize: 22),
-                              ),
+                            child: Text(
+                              emoji,
+                              style: const TextStyle(fontSize: 22),
                             ),
                           ),
-                        )
-                        .toList(),
+                        ),
+                      )
+                      .toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              height: 260,
+              child: GridView.builder(
+                itemCount: EmojiCatalog.all.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 8,
+                  mainAxisSpacing: 6,
+                  crossAxisSpacing: 6,
+                ),
+                itemBuilder: (BuildContext context, int index) {
+                  final String emoji = EmojiCatalog.all[index];
+                  final EditorialColors colors = EditorialColors.of(context);
+                  return Material(
+                    color: colors.surfaceRaised,
+                    borderRadius: BorderRadius.circular(8),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () => insertEmojiToController(
+                        controller: controller,
+                        emoji: emoji,
+                      ),
+                      child: Center(
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 22),
+                        ),
+                      ),
+                    ),
                   );
                 },
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                height: 260,
-                child: GridView.builder(
-                  itemCount: EmojiCatalog.all.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8,
-                    mainAxisSpacing: 6,
-                    crossAxisSpacing: 6,
-                  ),
-                  itemBuilder: (BuildContext context, int index) {
-                    final String emoji = EmojiCatalog.all[index];
-                    final EditorialColors colors = EditorialColors.of(context);
-                    return Material(
-                      color: colors.surfaceRaised,
-                      borderRadius: BorderRadius.circular(8),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(8),
-                        onTap: () => insertEmojiToController(
-                          controller: controller,
-                          emoji: emoji,
-                        ),
-                        child: Center(
-                          child: Text(
-                            emoji,
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: FilledButton.tonal(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('完成'),
               ),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: FilledButton.tonal(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('完成'),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     },

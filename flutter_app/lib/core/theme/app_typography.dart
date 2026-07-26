@@ -13,6 +13,7 @@ class AppTypography {
   static const String chineseDisplay = 'STZhongsong';
   static const String chineseBody = 'Microsoft YaHei';
   static const String chineseAccent = 'STKaiti';
+  static const String chineseWordmark = 'STXingkai';
   static const List<String> chineseDisplayFallback = <String>[
     '华文中宋',
     'STSong',
@@ -26,6 +27,13 @@ class AppTypography {
     '华文宋体',
     'SimSun',
     '宋体',
+  ];
+  static const List<String> chineseWordmarkFallback = <String>[
+    '华文行楷',
+    'STXingkai',
+    'STKaiti',
+    'KaiTi',
+    'Microsoft YaHei',
   ];
 
   static const String englishDisplay = 'Arial';
@@ -66,6 +74,17 @@ class AppTypography {
       ? const <String>['Times New Roman', 'serif']
       : chineseDisplayFallback;
 
+  /// The reading face for user-authored post content.
+  ///
+  /// This is kept separate from the product UI text theme: navigation and
+  /// controls stay concise, while titles, bodies, and replies share one
+  /// recognisable reading rhythm.
+  static TextStyle postContentStyle(TextStyle? base) =>
+      (base ?? const TextStyle()).copyWith(
+        fontFamily: chineseDisplay,
+        fontFamilyFallback: chineseDisplayFallback,
+      );
+
   static TextStyle brandStyle(
     Locale locale, {
     required double fontSize,
@@ -97,6 +116,19 @@ class AppTypography {
       fontWeight: fontWeight,
     );
   }
+
+  /// Handwritten treatment reserved for the compact product wordmark.
+  static TextStyle wordmarkStyle(Locale locale, {required Color color}) =>
+      TextStyle(
+        fontFamily: isEnglish(locale) ? englishAccent : chineseWordmark,
+        fontFamilyFallback: isEnglish(locale)
+            ? englishDisplayFallback
+            : chineseWordmarkFallback,
+        fontSize: 20,
+        color: color,
+        height: 1.1,
+        fontWeight: FontWeight.w500,
+      );
 
   static TextTheme textTheme(Locale locale, Color foreground) {
     TextStyle display({

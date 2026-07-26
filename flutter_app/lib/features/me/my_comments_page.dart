@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/my_comment_item.dart';
 import '../../repositories/app_repositories.dart';
+import '../post/post_detail_page.dart';
 
 class MyCommentsPage extends StatefulWidget {
   const MyCommentsPage({super.key});
@@ -33,7 +34,12 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemBuilder: (BuildContext context, int index) {
                 final MyCommentItem row = _items[index];
-                return Card(
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Theme.of(context).dividerColor),
+                    ),
+                  ),
                   child: ListTile(
                     title: Text(row.postTitle),
                     subtitle: Text('${row.content}\n${row.timeText}'),
@@ -42,11 +48,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                       spacing: 8,
                       children: <Widget>[
                         TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('原帖跳转下一步接入。')),
-                            );
-                          },
+                          onPressed: _actionBusy ? null : () => _openPost(row),
                           child: const Text('原帖'),
                         ),
                         TextButton(
@@ -97,6 +99,33 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       if (mounted) {
         setState(() {
           _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _openPost(MyCommentItem comment) async {
+    setState(() {
+      _actionBusy = true;
+    });
+    try {
+      final post = await AppRepositories.posts.fetchPostDetail(comment.postId);
+      if (!mounted) {
+        return;
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => PostDetailPage(post: post)),
+      );
+    } catch (error) {
+      if (mounted) {
+        setState(() {
+          _error = '打开原帖失败：$error';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _actionBusy = false;
         });
       }
     }

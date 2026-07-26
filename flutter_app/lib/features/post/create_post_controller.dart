@@ -8,10 +8,7 @@ import '../../repositories/post_repository.dart';
 class CreatePostState {
   const CreatePostState({
     this.channels = const <String>[],
-    this.loadingChannels = true,
-    this.userLevel = 2,
-    this.userLevelLabel = '二级用户',
-    this.isLevelOneUser = false,
+    this.loadingChannels = false,
     this.submitting = false,
     this.progressText,
     this.error,
@@ -19,9 +16,6 @@ class CreatePostState {
 
   final List<String> channels;
   final bool loadingChannels;
-  final int userLevel;
-  final String userLevelLabel;
-  final bool isLevelOneUser;
   final bool submitting;
   final String? progressText;
   final String? error;
@@ -29,9 +23,6 @@ class CreatePostState {
   CreatePostState copyWith({
     List<String>? channels,
     bool? loadingChannels,
-    int? userLevel,
-    String? userLevelLabel,
-    bool? isLevelOneUser,
     bool? submitting,
     String? progressText,
     String? error,
@@ -41,9 +32,6 @@ class CreatePostState {
     return CreatePostState(
       channels: channels ?? this.channels,
       loadingChannels: loadingChannels ?? this.loadingChannels,
-      userLevel: userLevel ?? this.userLevel,
-      userLevelLabel: userLevelLabel ?? this.userLevelLabel,
-      isLevelOneUser: isLevelOneUser ?? this.isLevelOneUser,
       submitting: submitting ?? this.submitting,
       progressText: clearProgress ? null : (progressText ?? this.progressText),
       error: clearError ? null : (error ?? this.error),
@@ -71,36 +59,16 @@ class CreatePostController extends StateNotifier<CreatePostState> {
   final Ref _ref;
 
   Future<void> loadChannels() async {
-    state = state.copyWith(loadingChannels: true, clearError: true);
-    try {
-      final List<String> channels = await _ref
-          .read(postRepositoryProvider)
-          .fetchChannels();
-      final profile = await _ref.read(userRepositoryProvider).fetchProfile();
-      state = state.copyWith(
-        channels: channels,
-        loadingChannels: false,
-        userLevel: profile.userLevel,
-        userLevelLabel: profile.userLevelLabel,
-        isLevelOneUser: profile.isLevelOneUser,
-        clearError: true,
-      );
-    } catch (error) {
-      state = state.copyWith(loadingChannels: false, error: '加载频道失败：$error');
-    }
+    state = state.copyWith(loadingChannels: false, clearError: true);
   }
 
   Future<PostItem?> submit({
     required String title,
     required String content,
     required bool useMarkdown,
-    required String channel,
-    required List<String> tags,
     required bool privateOnly,
-    required PostStatus status,
     required bool useAnonymousAlias,
     String? anonymousAlias,
-    int? pinDurationMinutes,
     required List<UploadPayload> uploadPayloads,
     List<String> preUploadedImageIds = const <String>[],
   }) async {
@@ -138,14 +106,13 @@ class CreatePostController extends StateNotifier<CreatePostState> {
               content: content,
               contentFormat: useMarkdown ? 'markdown' : 'plain',
               markdownSource: useMarkdown ? content : null,
-              channel: channel,
-              tags: tags,
+              channel: '',
+              tags: const <String>[],
               allowComment: true,
               allowDm: !useAnonymousAlias,
               privateOnly: privateOnly,
-              status: status,
+              status: PostStatus.ongoing,
               hasImage: uploadedIds.isNotEmpty,
-              pinDurationMinutes: pinDurationMinutes,
               imageUploadIds: uploadedIds,
               useAnonymousAlias: useAnonymousAlias,
               anonymousAlias: anonymousAlias,

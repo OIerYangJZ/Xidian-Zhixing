@@ -4,12 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/auth/auth_store.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
@@ -18,30 +21,38 @@ import '../../widgets/emoji/emoji_assistant_bar.dart';
 import '../../widgets/post_content_body.dart';
 import 'create_post_controller.dart';
 
-class CreatePostPage extends ConsumerStatefulWidget {
-  const CreatePostPage({super.key});
+/// Opens the post composer as one centred, interruptible writing surface.
+///
+/// Publishing never replaces the current feed route, so closing the composer
+/// returns the reader exactly to the place from which they started writing.
+Future<bool?> showCreatePostComposer(BuildContext context) =>
+    showAppDialog<bool>(
+      context: context,
+      maxWidth: 860,
+      builder: (BuildContext context) => const CreatePostComposer(),
+    );
+
+class CreatePostComposer extends ConsumerStatefulWidget {
+  const CreatePostComposer({super.key});
 
   @override
-  ConsumerState<CreatePostPage> createState() => _CreatePostPageState();
+  ConsumerState<CreatePostComposer> createState() => _CreatePostComposerState();
 }
 
-class _CreatePostPageState extends ConsumerState<CreatePostPage> {
+class _CreatePostComposerState extends ConsumerState<CreatePostComposer> {
   static const int _plainTextMaxLength = 3000;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _anonymousAliasController =
       TextEditingController();
   final FocusNode _contentFocusNode = FocusNode();
 
-  String? _selectedChannel;
-  PostStatus _status = PostStatus.ongoing;
   bool _useAnonymousAlias = false;
   bool _useMarkdown = false;
   bool _privateOnly = false;
-  int? _selectedPinDurationMinutes;
+  bool _showOptions = false;
   bool _pickingImages = false;
   bool _pastingMarkdownImages = false;
   MarkdownClipboardImageDetach? _detachMarkdownPasteListener;
@@ -58,6 +69,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     Future<void>.microtask(
       () => ref.read(createPostControllerProvider.notifier).loadChannels(),
     );
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _contentFocusNode.requestFocus(),
+    );
   }
 
   @override
@@ -65,7 +79,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     _detachMarkdownPasteListener?.call();
     _titleController.dispose();
     _contentController.dispose();
-    _tagsController.dispose();
     _anonymousAliasController.dispose();
     _contentFocusNode.dispose();
     super.dispose();
@@ -74,479 +87,154 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   @override
   Widget build(BuildContext context) {
     final CreatePostState state = ref.watch(createPostControllerProvider);
+    final EditorialColors colors = EditorialColors.of(context);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
-    final List<String> channels = state.channels;
-    final bool hasChannels = channels.isNotEmpty;
-    final String? selectedChannel = hasChannels
-        ? _deriveSelectedChannel(channels)
-        : null;
+    final bool compact = AppBreakpoints.isCompact(context);
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('发布帖子')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: AppLayout.readingMaxWidth,
-          ),
-          child: AsyncPageState(
-            loading: state.loadingChannels,
-            loadingLabel: '正在准备发布表单',
-            error: state.error,
-            onRetry: () =>
-                ref.read(createPostControllerProvider.notifier).loadChannels(),
-            child: ListView(
-              key: const Key('create-post-form-scroll'),
-              padding: AppLayout.pagePadding(context),
-              children: <Widget>[
-                if (isBusy)
-                  _ProgressCard(
-                    text: _pastingMarkdownImages
-                        ? '上传粘贴图片中...'
-                        : _pickingImages
-                        ? '读取图片中...'
-                        : (state.progressText ?? '提交中...'),
-                  ),
-                if (isBusy) const SizedBox(height: AppSpacing.sm),
-                AppSurfaceCard(
-                  padding: EdgeInsets.all(
-                    AppBreakpoints.isCompact(context)
-                        ? AppSpacing.md
-                        : AppSpacing.lg,
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        const AppSectionHeader(
-                          title: '分享一条校园内容',
-                          subtitle: '清楚的标题和上下文，更容易获得有效回应。',
+    return Material(
+      color: colors.surfaceRaised,
+      child: SafeArea(
+        child: Column(
+          children: <Widget>[
+            _ComposerHeader(
+              busy: isBusy,
+              onClose: () => Navigator.of(context).pop(false),
+            ),
+            Divider(color: colors.line, height: 1),
+            Expanded(
+              child: AsyncPageState(
+                loading: state.loadingChannels,
+                loadingLabel: '正在准备发布',
+                error: state.error,
+                onRetry: () => ref
+                    .read(createPostControllerProvider.notifier)
+                    .loadChannels(),
+                child: Form(
+                  key: _formKey,
+                  child: ListView(
+                    key: const Key('create-post-form-scroll'),
+                    padding: EdgeInsets.fromLTRB(
+                      compact ? AppSpacing.md : AppSpacing.xl,
+                      AppSpacing.lg,
+                      compact ? AppSpacing.md : AppSpacing.xl,
+                      AppSpacing.xl,
+                    ),
+                    children: <Widget>[
+                      if (isBusy) ...<Widget>[
+                        _ComposerProgress(
+                          text: _pastingMarkdownImages
+                              ? '正在上传粘贴的图片'
+                              : _pickingImages
+                              ? '正在读取图片'
+                              : (state.progressText ?? '正在发布'),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        Shortcuts(
-                          shortcuts: const <ShortcutActivator, Intent>{
-                            SingleActivator(LogicalKeyboardKey.tab):
-                                DoNothingAndStopPropagationIntent(),
-                            SingleActivator(
-                              LogicalKeyboardKey.tab,
-                              shift: true,
-                            ): DoNothingAndStopPropagationIntent(),
-                          },
-                          child: TextFormField(
-                            key: const Key('create-post-title'),
-                            controller: _titleController,
-                            maxLength: 60,
-                            decoration: const InputDecoration(
-                              labelText: '标题',
-                              hintText: '一句话概括你的问题或诉求',
-                            ),
-                            validator: (String? value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return '请输入标题';
-                              }
-                              if (value.trim().length < 4) {
-                                return '标题至少 4 个字';
-                              }
-                              return null;
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        SwitchListTile(
-                          value: _useMarkdown,
-                          onChanged: isBusy ? null : _handleMarkdownToggle,
-                          title: const Text('使用 Markdown 编辑'),
-                          subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          key: ValueKey<String>(
-                            _useMarkdown
-                                ? 'create-post-markdown-editor'
-                                : 'create-post-plain-editor',
-                          ),
-                          controller: _contentController,
-                          focusNode: _contentFocusNode,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          minLines: 6,
-                          maxLines: 10,
-                          maxLength: _useMarkdown ? null : _plainTextMaxLength,
-                          maxLengthEnforcement: _useMarkdown
-                              ? null
-                              : MaxLengthEnforcement.enforced,
-                          autocorrect: !_useMarkdown,
-                          enableSuggestions: !_useMarkdown,
-                          enableIMEPersonalizedLearning: !_useMarkdown,
-                          smartDashesType: _useMarkdown
-                              ? SmartDashesType.disabled
-                              : SmartDashesType.enabled,
-                          smartQuotesType: _useMarkdown
-                              ? SmartQuotesType.disabled
-                              : SmartQuotesType.enabled,
-                          spellCheckConfiguration: _useMarkdown
-                              ? const SpellCheckConfiguration.disabled()
-                              : null,
-                          decoration: InputDecoration(
-                            alignLabelWithHint: true,
-                            labelText: _useMarkdown ? 'Markdown 源码' : '正文',
-                            hintText: _useMarkdown
-                                ? '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```'
-                                : '描述越完整，越容易获得帮助',
-                            helperText: _useMarkdown
-                                ? 'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。'
-                                : '纯文本模式最多 3000 字。切换模式会清空当前正文。',
-                            helperMaxLines: 2,
-                          ),
-                          validator: (String? value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return '请输入正文';
-                            }
-                            if (value.trim().length < 8) {
-                              return '正文至少 8 个字';
-                            }
-                            if (!_useMarkdown &&
-                                value.length > _plainTextMaxLength) {
-                              return '纯文本正文最多 $_plainTextMaxLength 字';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        EmojiAssistantBar(
-                          controller: _contentController,
-                          compact: true,
-                        ),
-                        if (_useMarkdown) ...<Widget>[
-                          const SizedBox(height: 10),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outlineVariant
-                                    .withValues(alpha: 0.6),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  '实时预览',
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                                const SizedBox(height: 10),
-                                ValueListenableBuilder<TextEditingValue>(
-                                  valueListenable: _contentController,
-                                  builder:
-                                      (
-                                        BuildContext context,
-                                        TextEditingValue value,
-                                        Widget? child,
-                                      ) {
-                                        final String source = value.text.trim();
-                                        if (source.isEmpty) {
-                                          return Text(
-                                            '输入 Markdown 源码后，这里会显示渲染效果。',
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.58),
-                                            ),
-                                          );
-                                        }
-                                        return PostContentBody(
-                                          content: '',
-                                          contentFormat: 'markdown',
-                                          markdownSource: source,
-                                          selectable: false,
-                                        );
-                                      },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 10),
-                        if (hasChannels)
-                          DropdownButtonFormField<String>(
-                            initialValue: selectedChannel,
-                            decoration: const InputDecoration(labelText: '频道'),
-                            items: channels
-                                .map(
-                                  (String channel) => DropdownMenuItem<String>(
-                                    value: channel,
-                                    child: Text(channel),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: isBusy
-                                ? null
-                                : (String? value) {
-                                    if (value == null) {
-                                      return;
-                                    }
-                                    setState(() {
-                                      _selectedChannel = value;
-                                    });
-                                  },
-                          )
-                        else
-                          const _EmptyChannelCard(),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField<PostStatus>(
-                          initialValue: _status,
-                          decoration: const InputDecoration(labelText: '状态'),
-                          items: PostStatus.values
-                              .map(
-                                (PostStatus status) =>
-                                    DropdownMenuItem<PostStatus>(
-                                      value: status,
-                                      child: Text(status.label),
-                                    ),
-                              )
-                              .toList(),
-                          onChanged: isBusy
-                              ? null
-                              : (PostStatus? value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    _status = value;
-                                  });
-                                },
-                        ),
-                        const SizedBox(height: 10),
-                        TextFormField(
-                          controller: _tagsController,
-                          decoration: const InputDecoration(
-                            labelText: '标签（可选）',
-                            hintText: '例如：北校区, 学习, 周末',
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SwitchListTile(
-                          value: _useAnonymousAlias,
-                          onChanged: isBusy
-                              ? null
-                              : (bool value) {
-                                  setState(() {
-                                    _useAnonymousAlias = value;
-                                  });
-                                },
-                          title: const Text('本帖使用匿名身份'),
-                          subtitle: const Text('仅影响当前帖子，不影响你的账号昵称'),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        if (_useAnonymousAlias) ...<Widget>[
-                          TextFormField(
-                            controller: _anonymousAliasController,
-                            decoration: const InputDecoration(
-                              labelText: '匿名昵称（可选）',
-                              hintText: '例如：热心同学',
-                            ),
-                            validator: (String? value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return null;
-                              }
-                              if (value.trim().length > 24) {
-                                return '匿名昵称最长 24 个字符';
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: _privateOnly ? 'private' : 'public',
-                          decoration: const InputDecoration(labelText: '可见范围'),
-                          items: const <DropdownMenuItem<String>>[
-                            DropdownMenuItem<String>(
-                              value: 'public',
-                              child: Text('所有人可见'),
-                            ),
-                            DropdownMenuItem<String>(
-                              value: 'private',
-                              child: Text('仅自己可见'),
-                            ),
-                          ],
-                          onChanged: isBusy
-                              ? null
-                              : (String? value) {
-                                  setState(() {
-                                    _privateOnly = value == 'private';
-                                  });
-                                },
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _privateOnly
-                              ? '仅你自己能在“我的帖子”里看到这条内容。'
-                              : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.58),
-                          ),
-                        ),
-                        if (state.isLevelOneUser) ...<Widget>[
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<int?>(
-                            initialValue: _selectedPinDurationMinutes,
-                            decoration: InputDecoration(
-                              labelText: '发帖后立即置顶（可选）',
-                              helperText: '当前身份：${state.userLevelLabel}',
-                            ),
-                            items: const <DropdownMenuItem<int?>>[
-                              DropdownMenuItem<int?>(
-                                value: null,
-                                child: Text('不置顶'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 30,
-                                child: Text('30 分钟'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 60,
-                                child: Text('1 小时'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 120,
-                                child: Text('2 小时'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 180,
-                                child: Text('3 小时'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 1440,
-                                child: Text('1 天'),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 4320,
-                                child: Text('3 天'),
-                              ),
-                            ],
-                            onChanged: isBusy
-                                ? null
-                                : (int? value) {
-                                    setState(() {
-                                      _selectedPinDurationMinutes = value;
-                                    });
-                                  },
-                          ),
-                        ],
-                        const Divider(height: 28),
-                        Row(
-                          children: <Widget>[
-                            Text(
-                              '图片（${_pickedImages.length}/9）',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const Spacer(),
-                            OutlinedButton.icon(
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                      _ComposerIdentity(
+                        nickname:
+                            AuthStore.instance.currentUser?.nickname.trim() ??
+                            '',
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _ThreadComposerFields(
+                        titleController: _titleController,
+                        contentController: _contentController,
+                        contentFocusNode: _contentFocusNode,
+                        useMarkdown: _useMarkdown,
+                        maxLength: _plainTextMaxLength,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: <Widget>[
+                          Tooltip(
+                            message: '添加图片',
+                            child: IconButton(
                               onPressed: isBusy ? null : _pickImages,
-                              icon: const Icon(
-                                Icons.add_photo_alternate_outlined,
-                              ),
-                              label: const Text('选择图片'),
+                              icon: const Icon(Icons.image_outlined),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (_pickedImages.isEmpty)
+                          ),
+                          EmojiAssistantBar(
+                            controller: _contentController,
+                            compact: true,
+                          ),
+                          Tooltip(
+                            message: _useMarkdown ? '退出 Markdown' : 'Markdown',
+                            child: IconButton(
+                              onPressed: isBusy
+                                  ? null
+                                  : () => _handleMarkdownToggle(!_useMarkdown),
+                              color: _useMarkdown ? colors.primary : null,
+                              icon: const Icon(Icons.code_rounded),
+                            ),
+                          ),
+                          const Spacer(),
                           Text(
-                            '未选择图片。支持 jpg/png/webp/gif。',
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.58),
-                            ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _pickedImages
-                                .asMap()
-                                .entries
-                                .map(
-                                  (MapEntry<int, PickedImageData> entry) =>
-                                      _PickedImageCard(
-                                        image: entry.value,
-                                        onRemove: isBusy
-                                            ? null
-                                            : () {
-                                                setState(() {
-                                                  _pickedImages.removeAt(
-                                                    entry.key,
-                                                  );
-                                                });
-                                              },
-                                      ),
-                                )
-                                .toList(),
+                            '${_pickedImages.length}/9',
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(color: colors.faintInk),
                           ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.icon(
-                            key: const Key('create-post-submit'),
-                            onPressed: isBusy || selectedChannel == null
-                                ? null
-                                : () => _submit(selectedChannel),
-                            icon: const Icon(Icons.send_rounded),
-                            label: Text(state.submitting ? '发布中...' : '发布帖子'),
-                          ),
+                        ],
+                      ),
+                      if (_pickedImages.isNotEmpty) ...<Widget>[
+                        const SizedBox(height: AppSpacing.sm),
+                        _PickedImageStrip(
+                          images: _pickedImages,
+                          disabled: isBusy,
+                          onRemove: (int index) =>
+                              setState(() => _pickedImages.removeAt(index)),
                         ),
                       ],
-                    ),
+                      if (_useMarkdown) ...<Widget>[
+                        const SizedBox(height: AppSpacing.lg),
+                        _MarkdownPreview(controller: _contentController),
+                      ],
+                      const SizedBox(height: AppSpacing.lg),
+                      Divider(color: colors.line, height: 1),
+                      _ComposerOptionsToggle(
+                        expanded: _showOptions,
+                        onTap: isBusy
+                            ? null
+                            : () =>
+                                  setState(() => _showOptions = !_showOptions),
+                      ),
+                      if (_showOptions)
+                        _PostOptions(
+                          isBusy: isBusy,
+                          useAnonymousAlias: _useAnonymousAlias,
+                          privateOnly: _privateOnly,
+                          anonymousAliasController: _anonymousAliasController,
+                          onAnonymousChanged: (bool value) =>
+                              setState(() => _useAnonymousAlias = value),
+                          onVisibilityChanged: (String? value) =>
+                              setState(() => _privateOnly = value == 'private'),
+                        ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            Divider(color: colors.line, height: 1),
+            _ComposerFooter(
+              isBusy: isBusy,
+              onClose: () => Navigator.of(context).pop(false),
+              onSubmit: _submit,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  String _deriveSelectedChannel(List<String> channels) {
-    if (_selectedChannel != null && channels.contains(_selectedChannel)) {
-      return _selectedChannel!;
-    }
-    final String fallback = channels.first;
-    _selectedChannel = fallback;
-    return fallback;
-  }
-
   Future<void> _pickImages() async {
-    if (_pickingImages) {
-      return;
-    }
-    setState(() {
-      _pickingImages = true;
-    });
+    if (_pickingImages) return;
+    setState(() => _pickingImages = true);
 
     try {
       final List<PickedImageData> selected = await pickImageFiles(
         multiple: true,
       );
-      if (!mounted || selected.isEmpty) {
-        return;
-      }
+      if (!mounted || selected.isEmpty) return;
 
       const int maxImages = 9;
       final int remaining = maxImages - _pickedImages.length;
@@ -558,64 +246,35 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
 
       final List<PickedImageData> accepted = selected.take(remaining).toList();
-      setState(() {
-        _pickedImages.addAll(accepted);
-      });
+      setState(() => _pickedImages.addAll(accepted));
 
       if (selected.length > accepted.length) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+              '最多上传 9 张图片，未添加 ${selected.length - accepted.length} 张。',
             ),
           ),
         );
       }
-
-      // 检查是否有大文件
-      final List<PickedImageData> largeFiles = accepted
-          .where((PickedImageData img) => img.sizeBytes > 5 * 1024 * 1024)
-          .toList();
-      if (largeFiles.isNotEmpty && accepted.length == remaining) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。'),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('选择图片失败：$error')));
     } finally {
-      if (mounted) {
-        setState(() {
-          _pickingImages = false;
-        });
-      }
+      if (mounted) setState(() => _pickingImages = false);
     }
   }
 
-  Future<void> _submit(String selectedChannel) async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
 
     _pruneMarkdownImageMappings();
     final String rawContent = _contentController.text;
     final String submittedContent = _useMarkdown
         ? rawContent
         : rawContent.trim();
-    final List<String> tags = _tagsController.text
-        .split(RegExp(r'[,，\s\n]+'))
-        .map((String item) => item.trim())
-        .where((String item) => item.isNotEmpty)
-        .toSet()
-        .toList();
     final List<UploadPayload> uploadPayloads = _pickedImages
         .map(
           (PickedImageData image) => UploadPayload(
@@ -626,24 +285,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           ),
         )
         .toList();
-    final CreatePostState state = ref.read(createPostControllerProvider);
-
     final PostItem? created = await ref
         .read(createPostControllerProvider.notifier)
         .submit(
           title: _titleController.text.trim(),
           content: submittedContent,
           useMarkdown: _useMarkdown,
-          channel: selectedChannel,
-          tags: tags,
           privateOnly: _privateOnly,
-          status: _status,
           useAnonymousAlias: _useAnonymousAlias,
           anonymousAlias: _useAnonymousAlias
               ? _anonymousAliasController.text.trim()
-              : null,
-          pinDurationMinutes: state.isLevelOneUser
-              ? _selectedPinDurationMinutes
               : null,
           uploadPayloads: uploadPayloads,
           preUploadedImageIds: _useMarkdown
@@ -651,21 +302,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               : const <String>[],
         );
 
-    if (!mounted || created == null) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(created.isPinned ? '帖子发布成功，已置顶展示。' : '帖子发布成功，已立即展示。'),
-      ),
-    );
+    if (!mounted || created == null) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('帖子已发布。')));
     Navigator.of(context).pop(true);
   }
 
   void _handleMarkdownToggle(bool value) {
-    if (_useMarkdown == value) {
-      return;
-    }
+    if (_useMarkdown == value) return;
     setState(() {
       _useMarkdown = value;
       _contentController.value = const TextEditingValue();
@@ -674,18 +319,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        SnackBar(
-          content: Text(
-            value ? '已切换到 Markdown 编辑，当前正文已清空。' : '已切换到纯文本编辑，当前正文已清空。',
-          ),
-        ),
+        SnackBar(content: Text(value ? '已切换到 Markdown 编辑。' : '已切换到普通编辑。')),
       );
   }
 
   Future<void> _handleMarkdownImagesPasted(List<PickedImageData> images) async {
-    if (!_useMarkdown || !mounted || images.isEmpty) {
-      return;
-    }
+    if (!_useMarkdown || !mounted || images.isEmpty) return;
 
     _pruneMarkdownImageMappings();
     const int maxImages = 9;
@@ -700,14 +339,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
 
     final List<PickedImageData> accepted = images.take(remaining).toList();
-    if (accepted.isEmpty) {
-      return;
-    }
+    if (accepted.isEmpty) return;
 
-    setState(() {
-      _pastingMarkdownImages = true;
-    });
-
+    setState(() => _pastingMarkdownImages = true);
     try {
       final List<String> snippets = <String>[];
       for (final PickedImageData image in accepted) {
@@ -723,37 +357,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         _markdownImageUploadIdsByUrl[uploaded.url] = uploaded.id;
       }
       _insertMarkdownSnippet(snippets.join('\n\n'));
-
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('已插入 ${accepted.length} 张 Markdown 图片')),
-        );
-      if (images.length > accepted.length) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
-            ),
-          ),
-        );
-      }
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('粘贴图片失败：$error')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('粘贴图片失败：$error')));
     } finally {
-      if (mounted) {
-        setState(() {
-          _pastingMarkdownImages = false;
-        });
-      }
+      if (mounted) setState(() => _pastingMarkdownImages = false);
     }
   }
 
@@ -768,18 +378,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final String after = currentValue.text.substring(end);
 
     String inserted = snippet;
-    if (before.isNotEmpty && !before.endsWith('\n')) {
-      inserted = '\n\n$inserted';
-    }
-    if (after.isNotEmpty && !after.startsWith('\n')) {
-      inserted = '$inserted\n\n';
-    }
+    if (before.isNotEmpty && !before.endsWith('\n')) inserted = '\n\n$inserted';
+    if (after.isNotEmpty && !after.startsWith('\n')) inserted = '$inserted\n\n';
 
     final String nextText = '$before$inserted$after';
-    final int caretOffset = (before + inserted).length;
     _contentController.value = TextEditingValue(
       text: nextText,
-      selection: TextSelection.collapsed(offset: caretOffset),
+      selection: TextSelection.collapsed(offset: (before + inserted).length),
     );
   }
 
@@ -792,38 +397,245 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   String _deriveMarkdownImageAlt(String fileName) {
     final String trimmed = fileName.trim();
-    if (trimmed.isEmpty) {
-      return '图片';
-    }
+    if (trimmed.isEmpty) return '图片';
     final int dotIndex = trimmed.lastIndexOf('.');
     final String baseName = dotIndex > 0
         ? trimmed.substring(0, dotIndex)
         : trimmed;
-    final String sanitized = baseName.trim();
-    return sanitized.isEmpty ? '图片' : sanitized;
+    return baseName.trim().isEmpty ? '图片' : baseName.trim();
   }
 }
 
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.text});
+class _ComposerHeader extends StatelessWidget {
+  const _ComposerHeader({required this.busy, required this.onClose});
+
+  final bool busy;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 68,
+      child: Stack(
+        alignment: Alignment.center,
+        children: <Widget>[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: busy ? null : onClose,
+              child: const Text('取消'),
+            ),
+          ),
+          Text('发布帖子', style: Theme.of(context).textTheme.titleMedium),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComposerIdentity extends StatelessWidget {
+  const _ComposerIdentity({required this.nickname});
+
+  final String nickname;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final String initial = nickname.isEmpty ? '我' : nickname.characters.first;
+    return Row(
+      children: <Widget>[
+        CircleAvatar(
+          radius: 21,
+          backgroundColor: colors.primarySubtle,
+          foregroundColor: colors.primary,
+          child: Text(initial, style: Theme.of(context).textTheme.labelLarge),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Text(
+          nickname.isEmpty ? '我' : nickname,
+          style: Theme.of(context).textTheme.titleSmall,
+        ),
+      ],
+    );
+  }
+}
+
+class _ThreadComposerFields extends StatelessWidget {
+  const _ThreadComposerFields({
+    required this.titleController,
+    required this.contentController,
+    required this.contentFocusNode,
+    required this.useMarkdown,
+    required this.maxLength,
+  });
+
+  final TextEditingController titleController;
+  final TextEditingController contentController;
+  final FocusNode contentFocusNode;
+  final bool useMarkdown;
+  final int maxLength;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: const <ShortcutActivator, Intent>{
+        SingleActivator(LogicalKeyboardKey.tab):
+            DoNothingAndStopPropagationIntent(),
+        SingleActivator(LogicalKeyboardKey.tab, shift: true):
+            DoNothingAndStopPropagationIntent(),
+      },
+      child: Column(
+        children: <Widget>[
+          TextFormField(
+            key: const Key('create-post-title'),
+            controller: titleController,
+            maxLength: 60,
+            style: AppTypography.postContentStyle(
+              Theme.of(context).textTheme.titleMedium,
+            ),
+            decoration: AppInput.decoration(
+              hintText: '标题',
+              counterMaxLength: 60,
+            ),
+            validator: (String? value) {
+              if (value == null || value.trim().isEmpty) return '请输入标题';
+              if (value.trim().length < 4) return '标题至少 4 个字';
+              return null;
+            },
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          TextFormField(
+            key: ValueKey<String>(
+              useMarkdown
+                  ? 'create-post-markdown-editor'
+                  : 'create-post-plain-editor',
+            ),
+            controller: contentController,
+            focusNode: contentFocusNode,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            minLines: 7,
+            maxLines: 12,
+            maxLength: useMarkdown ? null : maxLength,
+            maxLengthEnforcement: useMarkdown
+                ? null
+                : MaxLengthEnforcement.enforced,
+            autocorrect: !useMarkdown,
+            enableSuggestions: !useMarkdown,
+            enableIMEPersonalizedLearning: !useMarkdown,
+            style: useMarkdown
+                ? null
+                : AppTypography.postContentStyle(
+                    Theme.of(context).textTheme.bodyLarge,
+                  ),
+            smartDashesType: useMarkdown
+                ? SmartDashesType.disabled
+                : SmartDashesType.enabled,
+            smartQuotesType: useMarkdown
+                ? SmartQuotesType.disabled
+                : SmartQuotesType.enabled,
+            spellCheckConfiguration: useMarkdown
+                ? const SpellCheckConfiguration.disabled()
+                : null,
+            decoration: AppInput.decoration(
+              hintText: useMarkdown ? '使用 Markdown 书写内容' : '说说新鲜事…',
+              counterMaxLength: useMarkdown ? null : maxLength,
+            ).copyWith(alignLabelWithHint: true),
+            validator: (String? value) {
+              if (value == null || value.trim().isEmpty) return '请输入正文';
+              if (value.trim().length < 8) return '正文至少 8 个字';
+              if (!useMarkdown && value.length > maxLength) {
+                return '正文最多 $maxLength 字';
+              }
+              return null;
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ComposerProgress extends StatelessWidget {
+  const _ComposerProgress({required this.text});
 
   final String text;
 
   @override
+  Widget build(BuildContext context) => Row(
+    children: <Widget>[
+      const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+      const SizedBox(width: AppSpacing.sm),
+      Text(text, style: Theme.of(context).textTheme.bodySmall),
+    ],
+  );
+}
+
+class _PickedImageStrip extends StatelessWidget {
+  const _PickedImageStrip({
+    required this.images,
+    required this.disabled,
+    required this.onRemove,
+  });
+
+  final List<PickedImageData> images;
+  final bool disabled;
+  final ValueChanged<int> onRemove;
+
+  @override
+  Widget build(BuildContext context) => Wrap(
+    spacing: AppSpacing.sm,
+    runSpacing: AppSpacing.sm,
+    children: images
+        .asMap()
+        .entries
+        .map(
+          (MapEntry<int, PickedImageData> entry) => _PickedImageTile(
+            image: entry.value,
+            onRemove: disabled ? null : () => onRemove(entry.key),
+          ),
+        )
+        .toList(growable: false),
+  );
+}
+
+class _PickedImageTile extends StatelessWidget {
+  const _PickedImageTile({required this.image, required this.onRemove});
+
+  final PickedImageData image;
+  final VoidCallback? onRemove;
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
+    final EditorialColors colors = EditorialColors.of(context);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadii.small),
+      child: SizedBox(
+        width: 112,
+        height: 112,
+        child: Stack(
+          fit: StackFit.expand,
           children: <Widget>[
-            const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2.2),
+            Image.memory(base64Decode(image.dataBase64), fit: BoxFit.cover),
+            Positioned(
+              top: AppSpacing.xxs,
+              right: AppSpacing.xxs,
+              child: IconButton(
+                onPressed: onRemove,
+                tooltip: '移除图片',
+                style: IconButton.styleFrom(
+                  minimumSize: const Size(30, 30),
+                  backgroundColor: colors.darkPanel.withValues(alpha: 0.76),
+                  foregroundColor: colors.onDarkPanel,
+                ),
+                iconSize: 16,
+                icon: const Icon(Icons.close_rounded),
+              ),
             ),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text)),
           ],
         ),
       ),
@@ -831,158 +643,136 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-class _EmptyChannelCard extends StatelessWidget {
-  const _EmptyChannelCard();
+class _MarkdownPreview extends StatelessWidget {
+  const _MarkdownPreview({required this.controller});
+
+  final TextEditingController controller;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
+    final EditorialColors colors = EditorialColors.of(context);
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
-        ),
+        color: colors.surface,
+        border: Border(top: BorderSide(color: colors.line)),
       ),
-      child: Row(
-        children: <Widget>[
-          Icon(
-            Icons.category_outlined,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(width: 10),
-          const Expanded(child: Text('暂无可用频道')),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.md),
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: controller,
+          builder:
+              (BuildContext context, TextEditingValue value, Widget? child) {
+                final String source = value.text.trim();
+                if (source.isEmpty) return const SizedBox.shrink();
+                return PostContentBody(
+                  content: '',
+                  contentFormat: 'markdown',
+                  markdownSource: source,
+                  selectable: false,
+                );
+              },
+        ),
       ),
     );
   }
 }
 
-class _PickedImageCard extends StatelessWidget {
-  const _PickedImageCard({required this.image, required this.onRemove});
+class _ComposerOptionsToggle extends StatelessWidget {
+  const _ComposerOptionsToggle({required this.expanded, required this.onTap});
 
-  final PickedImageData image;
-  final VoidCallback? onRemove;
+  final bool expanded;
+  final VoidCallback? onTap;
 
   @override
-  Widget build(BuildContext context) {
-    Widget preview;
-    try {
-      preview = Image.memory(
-        base64Decode(image.dataBase64),
-        fit: BoxFit.cover,
-        width: double.infinity,
-        height: 92,
-      );
-    } catch (_) {
-      preview = Container(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-        alignment: Alignment.center,
-        child: const Icon(Icons.broken_image_outlined),
-      );
-    }
+  Widget build(BuildContext context) => TextButton.icon(
+    onPressed: onTap,
+    icon: Icon(expanded ? Icons.expand_less_rounded : Icons.tune_rounded),
+    label: const Text('发布选项'),
+  );
+}
 
-    final String sizeStr = _formatFileSize(image.sizeBytes);
-    final bool isLargeFile = image.sizeBytes > 5 * 1024 * 1024;
-    final EditorialColors colors = EditorialColors.of(context);
+class _PostOptions extends StatelessWidget {
+  const _PostOptions({
+    required this.isBusy,
+    required this.useAnonymousAlias,
+    required this.privateOnly,
+    required this.anonymousAliasController,
+    required this.onAnonymousChanged,
+    required this.onVisibilityChanged,
+  });
 
-    return SizedBox(
-      width: 140,
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: Padding(
-          padding: const EdgeInsets.all(6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Stack(
-                  children: <Widget>[
-                    SizedBox(
-                      width: double.infinity,
-                      height: 92,
-                      child: preview,
-                    ),
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: Material(
-                        color: colors.darkPanel.withValues(alpha: 0.76),
-                        borderRadius: BorderRadius.circular(999),
-                        child: InkWell(
-                          onTap: onRemove,
-                          customBorder: const CircleBorder(),
-                          child: Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(
-                              Icons.close,
-                              size: 14,
-                              color: colors.onDarkPanel,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (isLargeFile)
-                      Positioned(
-                        bottom: 2,
-                        left: 2,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.warning,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            sizeStr,
-                            style: TextStyle(
-                              color: colors.onDarkPanel,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                image.fileName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 12),
-              ),
-              if (!isLargeFile)
-                Text(
-                  sizeStr,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.58),
-                  ),
-                ),
-            ],
-          ),
-        ),
+  final bool isBusy;
+  final bool useAnonymousAlias;
+  final bool privateOnly;
+  final TextEditingController anonymousAliasController;
+  final ValueChanged<bool> onAnonymousChanged;
+  final ValueChanged<String?> onVisibilityChanged;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: <Widget>[
+      SwitchListTile(
+        value: useAnonymousAlias,
+        onChanged: isBusy ? null : onAnonymousChanged,
+        title: const Text('匿名发布'),
+        contentPadding: EdgeInsets.zero,
       ),
-    );
-  }
+      if (useAnonymousAlias) ...<Widget>[
+        TextFormField(
+          controller: anonymousAliasController,
+          decoration: AppInput.decoration(hintText: '匿名昵称（可选）'),
+          validator: (String? value) {
+            if (value == null || value.trim().isEmpty) return null;
+            if (value.trim().length > 24) return '匿名昵称最长 24 个字符';
+            return null;
+          },
+        ),
+        const SizedBox(height: AppSpacing.sm),
+      ],
+      DropdownButtonFormField<String>(
+        initialValue: privateOnly ? 'private' : 'public',
+        decoration: AppInput.decoration(hintText: '可见范围'),
+        items: const <DropdownMenuItem<String>>[
+          DropdownMenuItem<String>(value: 'public', child: Text('所有人可见')),
+          DropdownMenuItem<String>(value: 'private', child: Text('仅自己可见')),
+        ],
+        onChanged: isBusy ? null : onVisibilityChanged,
+      ),
+      const SizedBox(height: AppSpacing.sm),
+    ],
+  );
+}
 
-  String _formatFileSize(int bytes) {
-    if (bytes < 1024) {
-      return '$bytes B';
-    } else if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
-    } else {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-  }
+class _ComposerFooter extends StatelessWidget {
+  const _ComposerFooter({
+    required this.isBusy,
+    required this.onClose,
+    required this.onSubmit,
+  });
+
+  final bool isBusy;
+  final VoidCallback onClose;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(
+      AppSpacing.lg,
+      AppSpacing.sm,
+      AppSpacing.lg,
+      AppSpacing.sm,
+    ),
+    child: Row(
+      children: <Widget>[
+        TextButton(onPressed: isBusy ? null : onClose, child: const Text('取消')),
+        const Spacer(),
+        FilledButton(
+          key: const Key('create-post-submit'),
+          onPressed: isBusy ? null : onSubmit,
+          child: Text(isBusy ? '发布中…' : '发布'),
+        ),
+      ],
+    ),
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_brand.dart';
 import '../theme/design_tokens.dart';
 import '../theme/shared_colors.dart';
 
@@ -53,13 +54,8 @@ class AppSurfaceCard extends StatelessWidget {
       duration: AppMotion.resolve(context, AppMotion.standard),
       curve: AppMotion.emphasis,
       decoration: BoxDecoration(
-        color: colors.surfaceRaised,
-        borderRadius: BorderRadius.circular(AppRadii.large),
-        border: Border.all(
-          color: highlighted
-              ? colors.primary.withValues(alpha: 0.28)
-              : colors.line,
-        ),
+        color: highlighted ? colors.primarySubtle : colors.surfaceRaised,
+        borderRadius: BorderRadius.circular(elevated ? AppRadii.large : 0),
         boxShadow: elevated ? AppElevation.soft : const <BoxShadow>[],
       ),
       child: Padding(padding: padding, child: child),
@@ -67,73 +63,110 @@ class AppSurfaceCard extends StatelessWidget {
   }
 }
 
-class AppSealMark extends StatelessWidget {
-  const AppSealMark({super.key, this.label = '知', this.size = 38});
+/// A flat interactive surface. It preserves the open page rhythm while making
+/// hover and tap state obvious on pointer-based devices.
+class AppHoverSurface extends StatefulWidget {
+  const AppHoverSurface({
+    super.key,
+    required this.child,
+    this.onTap,
+    this.radius = AppRadii.medium,
+  });
 
-  final String label;
-  final double size;
+  final Widget child;
+  final VoidCallback? onTap;
+  final double radius;
+
+  @override
+  State<AppHoverSurface> createState() => _AppHoverSurfaceState();
+}
+
+/// Opens the product's single, centred overlay surface.
+///
+/// Selection and action flows use this presentation across the web app so
+/// they never slide up from the bottom of the viewport.
+Future<T?> showAppDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  double maxWidth = 480,
+  double? maxHeight,
+  bool barrierDismissible = true,
+}) {
+  return showDialog<T>(
+    context: context,
+    barrierDismissible: barrierDismissible,
+    builder: (BuildContext dialogContext) {
+      final EditorialColors colors = EditorialColors.of(dialogContext);
+      final Size viewport = MediaQuery.sizeOf(dialogContext);
+      return Dialog(
+        backgroundColor: colors.surface.withValues(alpha: 0),
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(AppSpacing.lg),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: maxWidth,
+            maxHeight: maxHeight ?? viewport.height - AppSpacing.xl * 2,
+          ),
+          child: Material(
+            color: colors.surfaceRaised,
+            borderRadius: BorderRadius.circular(AppRadii.large),
+            clipBehavior: Clip.antiAlias,
+            child: builder(dialogContext),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _AppHoverSurfaceState extends State<AppHoverSurface> {
+  bool _hovered = false;
 
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
-    return AnimatedContainer(
-      duration: AppMotion.resolve(context, AppMotion.standard),
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: colors.primary,
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: colors.onDarkPanel,
-          fontSize: size * 0.45,
-          fontWeight: FontWeight.w600,
-          height: 1,
+    final BorderRadius borderRadius = BorderRadius.circular(widget.radius);
+    return MouseRegion(
+      cursor: widget.onTap == null
+          ? MouseCursor.defer
+          : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: AppMotion.resolve(context, AppMotion.fast),
+        curve: AppMotion.emphasis,
+        decoration: BoxDecoration(
+          color: _hovered ? colors.surfaceHover : colors.surfaceRaised,
+          borderRadius: borderRadius,
+        ),
+        child: Material(
+          color: colors.surface.withValues(alpha: 0),
+          child: InkWell(
+            onTap: widget.onTap,
+            borderRadius: borderRadius,
+            child: widget.child,
+          ),
         ),
       ),
     );
   }
 }
 
-class AppStatusTag extends StatelessWidget {
-  const AppStatusTag({
-    super.key,
-    required this.label,
-    this.color,
-    this.outlined = false,
-  });
+/// The single visual brand mark used by every user-facing entry point.
+class AppBrandLogo extends StatelessWidget {
+  const AppBrandLogo({super.key, this.size = 38});
 
-  final String label;
-  final Color? color;
-  final bool outlined;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final Color effectiveColor = color ?? colors.primary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-      decoration: BoxDecoration(
-        color: outlined
-            ? colors.surface.withValues(alpha: 0)
-            : effectiveColor.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadii.small),
-        border: Border.all(
-          color: effectiveColor.withValues(alpha: outlined ? 0.72 : 0.18),
-        ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: effectiveColor,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          height: 1.1,
-        ),
-      ),
+    return Image.asset(
+      AppBrand.logoAsset,
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+      semanticLabel: AppBrand.displayName,
     );
   }
 }
@@ -166,40 +199,58 @@ class AppSectionTitle extends StatelessWidget {
   }
 }
 
-class AppSectionHeader extends StatelessWidget {
-  const AppSectionHeader({
-    super.key,
-    required this.title,
-    this.subtitle,
-    this.trailing,
-  });
+/// A flat comment-tree item used by discussion pages. Root items are separated
+/// by a divider; replies inherit a vertical rail and a short branch connector.
+class AppThreadBranch extends StatelessWidget {
+  const AppThreadBranch({super.key, required this.depth, required this.child});
 
-  final String title;
-  final String? subtitle;
-  final Widget? trailing;
+  final int depth;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(title, style: Theme.of(context).textTheme.titleLarge),
-              if (subtitle != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.xxs),
-                Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
-              ],
-            ],
+    final EditorialColors colors = EditorialColors.of(context);
+    final bool hasParent = depth > 0;
+    return Padding(
+      padding: EdgeInsets.only(
+        left: hasParent ? AppThread.indent : 0,
+        top: AppSpacing.sm,
+      ),
+      child: Stack(
+        children: <Widget>[
+          DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(
+                top: hasParent
+                    ? BorderSide.none
+                    : BorderSide(color: colors.line),
+                left: hasParent
+                    ? BorderSide(color: colors.line, width: AppThread.railWidth)
+                    : BorderSide.none,
+              ),
+            ),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                hasParent ? AppThread.indent : 0,
+                AppSpacing.md,
+                0,
+                AppSpacing.sm,
+              ),
+              child: child,
+            ),
           ),
-        ),
-        if (trailing != null) ...<Widget>[
-          const SizedBox(width: AppSpacing.sm),
-          trailing!,
+          if (hasParent)
+            Positioned(
+              left: 0,
+              top: AppThread.connectorTop,
+              child: SizedBox(
+                width: AppThread.connectorLength,
+                height: AppThread.railWidth,
+                child: ColoredBox(color: colors.line),
+              ),
+            ),
         ],
-      ],
+      ),
     );
   }
 }
@@ -244,7 +295,6 @@ class AppInlineMessage extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(AppRadii.medium),
-          border: Border.all(color: color.withValues(alpha: 0.24)),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

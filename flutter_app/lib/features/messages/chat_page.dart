@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
 import '../../models/direct_message_item.dart';
@@ -252,48 +253,46 @@ class _ChatPageState extends State<ChatPage> {
 
   void _showMessageActions(BuildContext context, DirectMessageItem message) {
     final bool isMe = message.fromMe;
-    showModalBottomSheet(
+    showAppDialog<void>(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.content_copy),
+            title: const Text('复制'),
+            onTap: () => _handleMessageAction(
+              context,
+              _MessageAction.copy,
+              message,
+              sheetContext: ctx,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.reply_outlined),
+            title: const Text('回复'),
+            onTap: () => _handleMessageAction(
+              context,
+              _MessageAction.reply,
+              message,
+              sheetContext: ctx,
+            ),
+          ),
+          if (isMe && message.canRecall)
             ListTile(
-              leading: const Icon(Icons.content_copy),
-              title: const Text('复制'),
+              leading: Icon(
+                Icons.undo,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              title: const Text('撤回'),
               onTap: () => _handleMessageAction(
                 context,
-                _MessageAction.copy,
+                _MessageAction.recall,
                 message,
                 sheetContext: ctx,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.reply_outlined),
-              title: const Text('回复'),
-              onTap: () => _handleMessageAction(
-                context,
-                _MessageAction.reply,
-                message,
-                sheetContext: ctx,
-              ),
-            ),
-            if (isMe && message.canRecall)
-              ListTile(
-                leading: Icon(
-                  Icons.undo,
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                title: const Text('撤回'),
-                onTap: () => _handleMessageAction(
-                  context,
-                  _MessageAction.recall,
-                  message,
-                  sheetContext: ctx,
-                ),
-              ),
-          ],
-        ),
+        ],
       ),
     );
   }
@@ -340,11 +339,6 @@ class _ChatPageState extends State<ChatPage> {
                       ).colorScheme.primary.withValues(alpha: 0.12)
                     : Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -538,9 +532,6 @@ class _ChatPageState extends State<ChatPage> {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        ),
       ),
       child: Row(
         children: <Widget>[

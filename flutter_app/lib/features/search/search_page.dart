@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/post_item.dart';
 import '../../models/public_user_profile.dart';
@@ -56,102 +60,38 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget build(BuildContext context) {
     final SearchState state = ref.watch(searchControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('搜索')),
-      body: AsyncPageState(
-        loading: state.loading,
-        error: state.error,
-        onRetry: () =>
-            ref.read(searchControllerProvider.notifier).loadInitial(),
-        child: ListView(
-          padding: const EdgeInsets.all(12),
+      body: SafeArea(
+        child: Column(
           children: <Widget>[
-            TextField(
+            _SearchTopBar(
               controller: _queryController,
               autofocus: widget.autofocus,
-              decoration: const InputDecoration(
-                hintText: '输入关键词搜索帖子，或按昵称搜索用户',
-                prefixIcon: Icon(Icons.search),
-              ),
-              onSubmitted: (_) => _submitSearch(),
+              searching: state.searching,
+              onBack: () => Navigator.of(context).pop(),
+              onSubmit: _submitSearch,
             ),
-            const SizedBox(height: 10),
-            SegmentedButton<SearchResultTab>(
-              segments: <ButtonSegment<SearchResultTab>>[
-                ButtonSegment<SearchResultTab>(
-                  value: SearchResultTab.posts,
-                  label: Text('帖子 ${state.results.length}'),
-                  icon: const Icon(Icons.article_outlined),
-                ),
-                ButtonSegment<SearchResultTab>(
-                  value: SearchResultTab.users,
-                  label: Text('用户 ${state.userResults.length}'),
-                  icon: const Icon(Icons.person_search_outlined),
-                ),
-              ],
-              selected: <SearchResultTab>{state.selectedTab},
-              onSelectionChanged: (Set<SearchResultTab> value) {
-                ref
-                    .read(searchControllerProvider.notifier)
-                    .updateTab(value.first);
-              },
+            _SearchTabs(
+              selected: state.selectedTab,
+              postCount: state.results.length,
+              userCount: state.userResults.length,
+              onSelected: (SearchResultTab tab) =>
+                  ref.read(searchControllerProvider.notifier).updateTab(tab),
             ),
-            const SizedBox(height: 10),
-            if (state.selectedTab == SearchResultTab.posts) ...<Widget>[
-              _buildPostFilters(state),
-              const SizedBox(height: 10),
-              if (state.searching)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: LinearProgressIndicator(minHeight: 2),
-                ),
-              Text('共找到 ${state.results.length} 条帖子'),
-              const SizedBox(height: 6),
-              ...state.results.map(
-                (PostItem post) => PostCard(
-                  post: post,
-                  onTap: () async {
-                    final PostItem? updated = await openPostDetailPage(
-                      context,
-                      post: post,
-                    );
-                    if (updated == null || !mounted) {
-                      return;
-                    }
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .replaceResult(updated);
-                  },
+            Divider(height: 1, color: EditorialColors.of(context).line),
+            Expanded(
+              child: AsyncPageState(
+                loading: state.loading,
+                error: state.error,
+                onRetry: () =>
+                    ref.read(searchControllerProvider.notifier).loadInitial(),
+                child: _SearchResults(
+                  state: state,
+                  onSelectPost: _openPost,
+                  onSelectUser: _openUser,
+                  postFilters: _buildPostFilters(state),
                 ),
               ),
-              if (state.results.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('没有匹配帖子，换个关键词试试。')),
-                ),
-            ] else ...<Widget>[
-              _buildUserSearchActions(state),
-              const SizedBox(height: 10),
-              if (state.searching)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: LinearProgressIndicator(minHeight: 2),
-                ),
-              Text('共找到 ${state.userResults.length} 位用户'),
-              const SizedBox(height: 6),
-              if (state.keyword.trim().isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('输入昵称后即可搜索用户。')),
-                )
-              else ...<Widget>[
-                ...state.userResults.map(_buildUserCard),
-                if (state.userResults.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('没有找到匹配昵称的用户。')),
-                  ),
-              ],
-            ],
+            ),
           ],
         ),
       ),
@@ -159,176 +99,45 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   }
 
   Widget _buildPostFilters(SearchState state) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: <Widget>[
-        SizedBox(
-          width: 150,
-          child: DropdownButtonFormField<String>(
-            initialValue: state.selectedChannel,
-            decoration: const InputDecoration(
-              labelText: '频道',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            items: state.channels
-                .map(
-                  (String c) =>
-                      DropdownMenuItem<String>(value: c, child: Text(c)),
-                )
-                .toList(),
-            onChanged: state.searching
-                ? null
-                : (String? value) {
-                    if (value == null) {
-                      return;
-                    }
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .updateChannel(value);
-                  },
+    final notifier = ref.read(searchControllerProvider.notifier);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: <Widget>[
+          _SearchFilterMenu<String>(
+            label: '频道',
+            value: state.selectedChannel,
+            values: state.channels,
+            valueLabel: (String value) => value,
+            enabled: !state.searching,
+            onSelected: notifier.updateChannel,
           ),
-        ),
-        SizedBox(
-          width: 150,
-          child: DropdownButtonFormField<PostStatus?>(
-            initialValue: state.status,
-            decoration: const InputDecoration(
-              labelText: '状态',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            items: <DropdownMenuItem<PostStatus?>>[
-              const DropdownMenuItem<PostStatus?>(
-                value: null,
-                child: Text('全部状态'),
-              ),
-              ...PostStatus.values.map(
-                (PostStatus status) => DropdownMenuItem<PostStatus?>(
-                  value: status,
-                  child: Text(status.label),
-                ),
-              ),
-            ],
-            onChanged: state.searching
-                ? null
-                : (PostStatus? value) {
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .updateStatus(value);
-                  },
+          const SizedBox(width: AppSpacing.xxs),
+          _SearchFilterMenu<PostSort>(
+            label: '排序',
+            value: state.sort,
+            values: _webSorts,
+            valueLabel: (PostSort value) => value.label,
+            enabled: !state.searching,
+            onSelected: notifier.updateSort,
           ),
-        ),
-        SizedBox(
-          width: 180,
-          child: DropdownButtonFormField<PostSort>(
-            initialValue: state.sort,
-            decoration: const InputDecoration(
-              labelText: '排序',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            ),
-            items: _webSorts
-                .map(
-                  (PostSort value) => DropdownMenuItem<PostSort>(
-                    value: value,
-                    child: Text(value.label),
-                  ),
-                )
-                .toList(),
-            onChanged: state.searching
-                ? null
-                : (PostSort? value) {
-                    if (value == null) {
-                      return;
-                    }
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .updateSort(value);
-                  },
-          ),
-        ),
-        FilterChip(
-          label: const Text('仅看有图'),
-          selected: state.imageOnly,
-          onSelected: state.searching
-              ? null
-              : (bool selected) {
-                  ref
-                      .read(searchControllerProvider.notifier)
-                      .updateImageOnly(selected);
-                },
-        ),
-        FilterChip(
-          label: const Text('仅看可私信'),
-          selected: state.dmOnly,
-          onSelected: state.searching
-              ? null
-              : (bool selected) {
-                  ref
-                      .read(searchControllerProvider.notifier)
-                      .updateDmOnly(selected);
-                },
-        ),
-        FilledButton.icon(
-          onPressed: state.searching ? null : _submitSearch,
-          icon: const Icon(Icons.search),
-          label: const Text('搜索'),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _buildUserSearchActions(SearchState state) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: <Widget>[
-        const Chip(
-          avatar: Icon(Icons.person_search_outlined, size: 16),
-          label: Text('按昵称搜索用户'),
-        ),
-        FilledButton.icon(
-          onPressed: state.searching ? null : _submitSearch,
-          icon: const Icon(Icons.search),
-          label: const Text('搜索用户'),
-        ),
-      ],
-    );
+  Future<void> _openPost(PostItem post) async {
+    final PostItem? updated = await openPostDetailPage(context, post: post);
+    if (updated == null || !mounted) {
+      return;
+    }
+    ref.read(searchControllerProvider.notifier).replaceResult(updated);
   }
 
-  Widget _buildUserCard(PublicUserProfile profile) {
-    final String resolvedAvatar = AppConfig.resolveUrl(profile.avatarUrl);
-    final String fallback = profile.nickname.trim().isEmpty
-        ? '?'
-        : profile.nickname.trim().substring(0, 1);
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
-          backgroundImage: resolvedAvatar.isNotEmpty
-              ? NetworkImage(resolvedAvatar)
-              : null,
-          child: resolvedAvatar.isEmpty ? Text(fallback) : null,
-        ),
-        title: Text(profile.nickname),
-        subtitle: Text(
-          '${profile.userLevelLabel} · 帖子 ${profile.postCount} · 粉丝 ${profile.followerCount}',
-        ),
-        trailing: profile.isFollowing
-            ? const Chip(
-                label: Text('已关注'),
-                visualDensity: VisualDensity.compact,
-              )
-            : null,
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute<void>(
-              builder: (_) => PublicUserProfilePage(userId: profile.id),
-            ),
-          );
-        },
+  void _openUser(PublicUserProfile profile) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => PublicUserProfilePage(userId: profile.id),
       ),
     );
   }
@@ -339,4 +148,370 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         .setKeyword(_queryController.text.trim());
     return ref.read(searchControllerProvider.notifier).search();
   }
+}
+
+class _SearchTopBar extends StatelessWidget {
+  const _SearchTopBar({
+    required this.controller,
+    required this.autofocus,
+    required this.searching,
+    required this.onBack,
+    required this.onSubmit,
+  });
+
+  final TextEditingController controller;
+  final bool autofocus;
+  final bool searching;
+  final VoidCallback onBack;
+  final VoidCallback onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.center,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.sm,
+          ),
+          child: Row(
+            children: <Widget>[
+              IconButton(
+                onPressed: onBack,
+                tooltip: '返回',
+                icon: const Icon(Icons.arrow_back_rounded),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  autofocus: autofocus,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => onSubmit(),
+                  decoration: AppInput.searchDecoration(
+                    hintText: '搜索',
+                    suffixIcon: IconButton(
+                      onPressed: searching ? null : onSubmit,
+                      tooltip: '开始搜索',
+                      icon: const Icon(Icons.arrow_forward_rounded),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchTabs extends StatelessWidget {
+  const _SearchTabs({
+    required this.selected,
+    required this.postCount,
+    required this.userCount,
+    required this.onSelected,
+  });
+
+  final SearchResultTab selected;
+  final int postCount;
+  final int userCount;
+  final ValueChanged<SearchResultTab> onSelected;
+
+  @override
+  Widget build(BuildContext context) => Align(
+    alignment: Alignment.center,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: _SearchTab(
+              label: '帖子',
+              count: postCount,
+              selected: selected == SearchResultTab.posts,
+              onTap: () => onSelected(SearchResultTab.posts),
+            ),
+          ),
+          Expanded(
+            child: _SearchTab(
+              label: '用户',
+              count: userCount,
+              selected: selected == SearchResultTab.users,
+              onTap: () => onSelected(SearchResultTab.users),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _SearchTab extends StatelessWidget {
+  const _SearchTab({
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Material(
+      color: colors.surface.withValues(alpha: 0),
+      child: InkWell(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: AppMotion.resolve(context, AppMotion.standard),
+          curve: AppMotion.emphasis,
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: selected ? colors.primary : colors.surface,
+                width: 3,
+              ),
+            ),
+          ),
+          child: Text(
+            '$label $count',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: selected ? colors.ink : colors.mutedInk,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchResults extends StatelessWidget {
+  const _SearchResults({
+    required this.state,
+    required this.onSelectPost,
+    required this.onSelectUser,
+    required this.postFilters,
+  });
+
+  final SearchState state;
+  final ValueChanged<PostItem> onSelectPost;
+  final ValueChanged<PublicUserProfile> onSelectUser;
+  final Widget postFilters;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool postTab = state.selectedTab == SearchResultTab.posts;
+    final int count = postTab ? state.results.length : state.userResults.length;
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: AppLayout.contentMaxWidth),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.xxl,
+          ),
+          children: <Widget>[
+            if (postTab) ...<Widget>[
+              postFilters,
+              const SizedBox(height: AppSpacing.sm),
+            ],
+            if (state.searching)
+              const Padding(
+                padding: EdgeInsets.only(bottom: AppSpacing.sm),
+                child: LinearProgressIndicator(minHeight: 2),
+              ),
+            Text('$count 个结果', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: AppSpacing.xs),
+            if (postTab) ..._postResults(context) else ..._userResults(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _postResults(BuildContext context) {
+    if (state.results.isEmpty) {
+      return <Widget>[const _SearchEmptyState(message: '没有匹配帖子')];
+    }
+    return <Widget>[
+      for (int index = 0; index < state.results.length; index++) ...<Widget>[
+        PostCard(
+          post: state.results[index],
+          onTap: () => onSelectPost(state.results[index]),
+        ),
+        if (index != state.results.length - 1) const Divider(height: 1),
+      ],
+    ];
+  }
+
+  List<Widget> _userResults(BuildContext context) {
+    if (state.keyword.trim().isEmpty) {
+      return <Widget>[const _SearchEmptyState(message: '输入昵称后即可搜索用户')];
+    }
+    if (state.userResults.isEmpty) {
+      return <Widget>[const _SearchEmptyState(message: '没有匹配用户')];
+    }
+    return <Widget>[
+      for (
+        int index = 0;
+        index < state.userResults.length;
+        index++
+      ) ...<Widget>[
+        _UserSearchRow(
+          profile: state.userResults[index],
+          onTap: () => onSelectUser(state.userResults[index]),
+        ),
+        if (index != state.userResults.length - 1)
+          const Divider(height: 1, indent: 64),
+      ],
+    ];
+  }
+}
+
+class _SearchFilterMenu<T> extends StatelessWidget {
+  const _SearchFilterMenu({
+    required this.label,
+    required this.value,
+    required this.values,
+    required this.valueLabel,
+    required this.enabled,
+    required this.onSelected,
+  });
+
+  final String label;
+  final T value;
+  final List<T> values;
+  final String Function(T value) valueLabel;
+  final bool enabled;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return PopupMenuButton<T>(
+      enabled: enabled,
+      tooltip: label,
+      onSelected: onSelected,
+      itemBuilder: (BuildContext context) => values
+          .map(
+            (T item) =>
+                PopupMenuItem<T>(value: item, child: Text(valueLabel(item))),
+          )
+          .toList(growable: false),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              valueLabel(value),
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: enabled ? colors.ink : colors.faintInk,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xxs),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: enabled ? colors.mutedInk : colors.faintInk,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserSearchRow extends StatelessWidget {
+  const _UserSearchRow({required this.profile, required this.onTap});
+
+  final PublicUserProfile profile;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final String resolvedAvatar = AppConfig.resolveUrl(profile.avatarUrl);
+    final String fallback = profile.nickname.trim().isEmpty
+        ? '?'
+        : profile.nickname.trim().characters.first;
+    return AppHoverSurface(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        child: Row(
+          children: <Widget>[
+            CircleAvatar(
+              backgroundColor: colors.primarySubtle,
+              backgroundImage: resolvedAvatar.isEmpty
+                  ? null
+                  : NetworkImage(resolvedAvatar),
+              child: resolvedAvatar.isEmpty
+                  ? Text(fallback, style: TextStyle(color: colors.primary))
+                  : null,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    profile.nickname,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    '帖子 ${profile.postCount} · 粉丝 ${profile.followerCount}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            if (profile.isFollowing)
+              Text(
+                '已关注',
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: colors.primary),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SearchEmptyState extends StatelessWidget {
+  const _SearchEmptyState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
+    child: Center(
+      child: Text(message, style: Theme.of(context).textTheme.bodyMedium),
+    ),
+  );
 }

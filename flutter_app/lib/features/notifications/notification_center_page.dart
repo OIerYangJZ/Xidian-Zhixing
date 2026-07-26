@@ -84,7 +84,6 @@ class _NotificationCenterPageState
                     final NotificationItem item = state.items[index];
                     final EditorialColors colors = EditorialColors.of(context);
                     return InkWell(
-                      borderRadius: BorderRadius.circular(16),
                       onTap: () => _openNotification(item),
                       child: Ink(
                         padding: const EdgeInsets.all(14),
@@ -94,13 +93,10 @@ class _NotificationCenterPageState
                               : Theme.of(
                                   context,
                                 ).colorScheme.primary.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: item.isRead
-                                ? Theme.of(context).dividerColor
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withValues(alpha: 0.16),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Theme.of(context).dividerColor,
+                            ),
                           ),
                         ),
                         child: Row(

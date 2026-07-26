@@ -36,6 +36,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    - web/icons/Icon-192.png
   fonts:
     - family: STZhongsong
       fonts:

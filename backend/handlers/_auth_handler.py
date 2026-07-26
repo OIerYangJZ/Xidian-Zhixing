@@ -95,7 +95,7 @@ def _require_private_beta_access(
 ) -> bool:
     if _globals.is_auth_email_allowed(email):
         return True
-    json_error(handler, HTTPStatus.FORBIDDEN, "当前仅向项目组测试账号开放")
+    json_error(handler, HTTPStatus.FORBIDDEN, "当前账号暂未获得访问权限")
     return False
 
 
@@ -571,7 +571,7 @@ def _upsert_user_from_xidian_identity(
     campus_email: str,
 ) -> dict[str, Any]:
     if not _globals.is_auth_email_allowed(campus_email):
-        raise PermissionError("当前仅向项目组测试账号开放")
+        raise PermissionError("当前账号暂未获得访问权限")
     user = find_user_by_student_id(db, student_id, include_deleted=True)
 
     if user is not None and user.get("deleted"):

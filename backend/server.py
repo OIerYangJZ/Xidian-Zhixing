@@ -245,7 +245,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 json_error(
                     self,
                     HTTPStatus.SERVICE_UNAVAILABLE,
-                    "学校统一身份认证尚未启用",
+                    "校园统一身份认证暂不可用",
                 )
                 return
             if not path.startswith("/api"):

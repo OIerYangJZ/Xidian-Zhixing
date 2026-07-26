@@ -639,19 +639,12 @@ def handle_create_post(
     if content_format == "markdown":
         markdown_source = str(body.get("markdownSource", raw_content)).strip() or raw_content
         content = _markdown_to_plain_text(markdown_source) or markdown_source
-    legacy_channel = str(body.get("channel", "")).strip()
     section_type = str(body.get("sectionType", "")).strip().lower()
     section_id = str(body.get("sectionId", "")).strip()
     section_name = str(body.get("sectionName", "")).strip()
     publisher_type = str(body.get("publisherType", "user")).strip().lower() or "user"
     publisher_club_id = str(body.get("publisherClubId", body.get("clubId", ""))).strip()
-    raw_tags = body.get("tags", [])
-    tags = [str(tag).strip() for tag in raw_tags if str(tag).strip()] if isinstance(raw_tags, list) else []
-    for tag in _extract_inline_tags(title, raw_content):
-        if tag not in tags:
-            tags.append(tag)
-    if legacy_channel and legacy_channel != "综合" and legacy_channel not in tags:
-        tags.append(legacy_channel)
+    tags = _extract_inline_tags(raw_content)
     raw_image_ids = body.get("imageUploadIds") or body.get("imageIds") or []
     image_ids = [str(image_id).strip() for image_id in raw_image_ids if str(image_id).strip()] if isinstance(raw_image_ids, list) else []
     use_anonymous_alias = bool(body.get("useAnonymousAlias"))

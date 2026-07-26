@@ -124,7 +124,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                '项目组内测仅开放白名单学生邮箱注册',
+                '使用学生邮箱完成注册',
                 style: TextStyle(fontSize: 15, color: colors.textSecondary),
               ),
               const SizedBox(height: 28),

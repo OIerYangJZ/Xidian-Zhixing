@@ -7,6 +7,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
+import '../../core/widgets/app_input.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/admin_models.dart';
 import '../../repositories/app_repositories.dart';
@@ -701,11 +702,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 200,
                   child: TextField(
                     controller: _reviewKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '内容/用户/邮箱搜索',
-                      hintText: '回车搜索',
-                      prefixIcon: Icon(Icons.search, size: 20),
-                    ),
+                    decoration: AppInput.searchDecoration(hintText: '内容、用户或邮箱'),
                     onSubmitted: (_) => _loadReviews(),
                   ),
                 ),
@@ -1123,9 +1120,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 260,
                   child: TextField(
                     controller: _imageKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '图片搜索',
-                      hintText: '文件名 / 上传者 / 风险原因',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '文件名、上传者或风险原因',
                     ),
                     onSubmitted: (_) => _loadImageReviews(),
                   ),
@@ -1312,9 +1308,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 240,
                   child: TextField(
                     controller: _postPinKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '置顶申请搜索',
-                      hintText: '帖子 / 用户 / 邮箱 / 原因',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '帖子、用户、邮箱或原因',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -1500,9 +1495,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 240,
                   child: TextField(
                     controller: _userLevelKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '一级用户申请搜索',
-                      hintText: '用户 / 邮箱 / 学号 / 原因',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '用户、邮箱、学号或原因',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -1687,9 +1681,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 220,
                   child: TextField(
                     controller: _cancellationKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '申请搜索',
-                      hintText: '昵称 / 邮箱 / 学号 / 用户ID',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '昵称、邮箱、学号或用户 ID',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -1899,9 +1892,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 240,
                   child: TextField(
                     controller: _appealKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '申诉搜索',
-                      hintText: '邮箱 / 学号 / 标题 / 内容',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '邮箱、学号、标题或内容',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),
@@ -2131,9 +2123,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   width: 240,
                   child: TextField(
                     controller: _userKeywordController,
-                    decoration: const InputDecoration(
-                      labelText: '用户搜索',
-                      hintText: '昵称 / 邮箱 / 学号 / ID',
+                    decoration: AppInput.searchDecoration(
+                      hintText: '昵称、邮箱、学号或 ID',
                     ),
                     onChanged: (_) => setState(() {}),
                   ),

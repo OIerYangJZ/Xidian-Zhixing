@@ -4,9 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_store.dart';
 import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
-import '../core/state/app_locale_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
+import '../core/widgets/app_surfaces.dart';
 import '../features/ai/ai_page.dart';
 import '../features/campus/campus_page.dart';
 import '../features/feed/feed_page.dart';
@@ -14,7 +14,7 @@ import '../features/messages/messages_page.dart';
 import '../features/notifications/notification_center_page.dart';
 import '../features/notifications/notifications_controller.dart';
 import '../features/post/create_post_page.dart';
-import '../features/profile/profile_page.dart';
+import '../features/profile/public_user_profile_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
 import '../l10n/generated/app_localizations.dart';
@@ -31,7 +31,10 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   int _currentIndex = 0;
   bool _postUrlHandled = false;
+  bool _settingsOpen = false;
   final Map<int, Widget> _pageCache = <int, Widget>{};
+  final GlobalKey<NavigatorState> _contentNavigatorKey =
+      GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -99,18 +102,30 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       body: desktop
           ? Row(
               children: <Widget>[
-                _DesktopRail(
-                  currentIndex: _currentIndex,
-                  destinations: destinations,
-                  extended: expandedRail,
-                  unread: unread,
-                  onSelect: _selectTab,
-                  onCreate: _openCreatePost,
-                  onSearch: _openSearch,
-                  onNotifications: _openNotifications,
-                  onProfile: _openProfileSheet,
+                if (!_settingsOpen)
+                  _DesktopRail(
+                    currentIndex: _currentIndex,
+                    destinations: destinations,
+                    extended: expandedRail,
+                    unread: unread,
+                    onSelect: _selectTab,
+                    onCreate: _openCreatePost,
+                    onSearch: _openSearch,
+                    onNotifications: _openNotifications,
+                    onMessages: _openMessages,
+                    onSettings: _openSettings,
+                    onProfile: _openProfile,
+                  ),
+                Expanded(
+                  child: Navigator(
+                    key: _contentNavigatorKey,
+                    onGenerateRoute: (RouteSettings settings) =>
+                        MaterialPageRoute<void>(
+                          settings: settings,
+                          builder: (_) => content,
+                        ),
+                  ),
                 ),
-                Expanded(child: content),
               ],
             )
           : content,
@@ -155,13 +170,38 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   });
 
   void _selectTab(int index) {
+    if (AppBreakpoints.isDesktop(context)) {
+      if (index != _currentIndex) setState(() => _currentIndex = index);
+      _contentNavigatorKey.currentState!.pushAndRemoveUntil(
+        MaterialPageRoute<void>(builder: (_) => _newPageForIndex(index)),
+        (Route<dynamic> route) => false,
+      );
+      return;
+    }
     if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
   }
 
+  Widget _newPageForIndex(int index) {
+    switch (index) {
+      case 0:
+        return const FeedPage();
+      case 1:
+        return const CampusPage();
+      case 2:
+        return const AiPage();
+      default:
+        return const FeedPage();
+    }
+  }
+
+  NavigatorState get _contentNavigator => AppBreakpoints.isDesktop(context)
+      ? _contentNavigatorKey.currentState!
+      : Navigator.of(context);
+
   Future<void> _openCreatePost() async {
-    final bool? created = await Navigator.of(context).push<bool>(
-      MaterialPageRoute<bool>(builder: (_) => const CreatePostPage()),
+    final bool? created = await showCreatePostComposer(
+      _contentNavigator.context,
     );
     if (!mounted || created != true) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -170,73 +210,45 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   Future<void> _openNotifications() async {
-    await Navigator.of(context).push(
+    await _contentNavigator.push(
       MaterialPageRoute<void>(builder: (_) => const NotificationCenterPage()),
     );
     if (!mounted) return;
     await ref.read(notificationsControllerProvider.notifier).refresh();
   }
 
-  void _openSearch() => Navigator.of(context).push(
+  void _openSearch() => _contentNavigator.push(
     MaterialPageRoute<void>(builder: (_) => const SearchPage(autofocus: true)),
   );
 
-  void _openProfileSheet() {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet<void>(
-      context: context,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (BuildContext context) => ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 720),
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            0,
-            AppSpacing.md,
-            AppSpacing.lg,
-          ),
-          children: <Widget>[
-            _ProfileSheetItem(
-              icon: Icons.manage_accounts_outlined,
-              label: l10n.profileAndSettings,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => Scaffold(
-                      appBar: AppBar(title: Text(l10n.profileAndSettings)),
-                      body: const ProfilePage(),
-                    ),
-                  ),
-                );
-              },
-            ),
-            _ProfileSheetItem(
-              icon: Icons.chat_bubble_outline_rounded,
-              label: l10n.conversations,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const MessagesPage()),
-                );
-              },
-            ),
-            _ProfileSheetItem(
-              icon: Icons.settings_outlined,
-              label: l10n.settings,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
-                );
-              },
-            ),
-          ],
+  Future<void> _openProfile() async {
+    try {
+      final profile = await AppRepositories.users.fetchProfile();
+      AuthStore.instance.setCurrentUser(profile);
+      if (!mounted) return;
+      await _contentNavigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => PublicUserProfilePage(userId: profile.userId),
         ),
-      ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('无法打开个人主页：$error')));
+    }
+  }
+
+  void _openMessages() => _contentNavigator.push(
+    MaterialPageRoute<void>(builder: (_) => const MessagesPage()),
+  );
+
+  Future<void> _openSettings() async {
+    setState(() => _settingsOpen = true);
+    await _contentNavigator.push(
+      MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
     );
+    if (mounted) setState(() => _settingsOpen = false);
   }
 
   Future<void> _restorePostFromUrlIfNeeded() async {
@@ -247,7 +259,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     try {
       final PostItem post = await AppRepositories.posts.fetchPostDetail(postId);
       if (!mounted) return;
-      await openPostDetailPage(context, post: post);
+      final BuildContext routeContext = AppBreakpoints.isDesktop(context)
+          ? _contentNavigatorKey.currentContext!
+          : context;
+      await openPostDetailPage(routeContext, post: post);
     } catch (_) {
       setPostIdOnUrl(null);
     }
@@ -279,6 +294,8 @@ class _DesktopRail extends StatelessWidget {
     required this.onCreate,
     required this.onSearch,
     required this.onNotifications,
+    required this.onMessages,
+    required this.onSettings,
     required this.onProfile,
   });
 
@@ -290,6 +307,8 @@ class _DesktopRail extends StatelessWidget {
   final VoidCallback onCreate;
   final VoidCallback onSearch;
   final VoidCallback onNotifications;
+  final VoidCallback onMessages;
+  final VoidCallback onSettings;
   final VoidCallback onProfile;
 
   @override
@@ -314,7 +333,7 @@ class _DesktopRail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _RailBrand(extended: extended),
+          _RailBrand(extended: extended, onTap: () => onSelect(0)),
           const SizedBox(height: AppSpacing.xl),
           for (int index = 0; index < destinations.length; index++) ...<Widget>[
             _RailItem(
@@ -358,11 +377,23 @@ class _DesktopRail extends StatelessWidget {
             badge: unread,
             onTap: onNotifications,
           ),
+          const SizedBox(height: AppSpacing.xxs),
+          _RailUtility(
+            icon: Icons.chat_bubble_outline_rounded,
+            label: l10n.conversations,
+            extended: extended,
+            onTap: onMessages,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          _RailUtility(
+            icon: Icons.settings_outlined,
+            label: l10n.settings,
+            extended: extended,
+            onTap: onSettings,
+          ),
           const SizedBox(height: AppSpacing.md),
           Divider(color: colors.railMuted.withValues(alpha: 0.22)),
           const SizedBox(height: AppSpacing.md),
-          _RailLocaleToggle(extended: extended),
-          const SizedBox(height: AppSpacing.sm),
           _RailProfile(
             label: avatarLabel,
             nickname: nickname,
@@ -376,62 +407,24 @@ class _DesktopRail extends StatelessWidget {
 }
 
 class _RailBrand extends StatelessWidget {
-  const _RailBrand({required this.extended});
+  const _RailBrand({required this.extended, required this.onTap});
   final bool extended;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: extended ? AppSpacing.xs : 0),
-      child: extended
-          ? Row(
-              children: <Widget>[
-                Container(
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(AppRadii.small),
-                  ),
-                  child: Text(
-                    '知',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colors.onDarkPanel,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    '西电知行',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: colors.onDarkPanel,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Center(
-              child: Container(
-                width: 32,
-                height: 32,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: colors.primary,
-                  borderRadius: BorderRadius.circular(AppRadii.small),
-                ),
-                child: Text(
-                  '知',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: colors.onDarkPanel),
-                ),
-              ),
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadii.small),
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: extended ? AppSpacing.xs : 0),
+        child: extended
+            ? const Align(
+                alignment: Alignment.centerLeft,
+                child: AppBrandLogo(size: 32),
+              )
+            : const Center(child: AppBrandLogo(size: 32)),
+      ),
     );
   }
 }
@@ -464,13 +457,7 @@ class _RailItem extends StatelessWidget {
           padding: EdgeInsets.symmetric(
             horizontal: extended ? AppSpacing.sm : 0,
           ),
-          decoration: BoxDecoration(
-            color: selected ? colors.railSelected : colors.darkPanel,
-            borderRadius: BorderRadius.circular(AppRadii.medium),
-            border: selected
-                ? Border(left: BorderSide(color: colors.apricot, width: 2))
-                : null,
-          ),
+          decoration: const BoxDecoration(),
           child: extended
               ? Row(
                   children: <Widget>[
@@ -479,9 +466,12 @@ class _RailItem extends StatelessWidget {
                     Expanded(
                       child: Text(
                         destination.label,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelLarge?.copyWith(color: foreground),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: foreground,
+                          fontWeight: selected
+                              ? FontWeight.w700
+                              : FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -548,79 +538,6 @@ class _RailUtility extends StatelessWidget {
                       child: Icon(icon, color: colors.railMuted, size: 20),
                     ),
                   ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RailLocaleToggle extends StatelessWidget {
-  const _RailLocaleToggle({required this.extended});
-  final bool extended;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final bool english = Localizations.localeOf(context).languageCode == 'en';
-    if (!extended) {
-      return IconButton(
-        tooltip: english ? 'Switch to Chinese' : 'Switch to English',
-        onPressed: AppLocaleStore.instance.toggle,
-        style: IconButton.styleFrom(foregroundColor: colors.railMuted),
-        icon: const Icon(Icons.language_rounded, size: 19),
-      );
-    }
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(
-        border: Border.all(color: colors.railMuted.withValues(alpha: 0.32)),
-        borderRadius: BorderRadius.circular(AppRadii.small),
-      ),
-      child: Row(
-        children: <Widget>[
-          _LocaleOption(
-            label: '中',
-            selected: !english,
-            onTap: () =>
-                AppLocaleStore.instance.setLocale(const Locale('zh', 'CN')),
-          ),
-          _LocaleOption(
-            label: 'EN',
-            selected: english,
-            onTap: () => AppLocaleStore.instance.setLocale(const Locale('en')),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LocaleOption extends StatelessWidget {
-  const _LocaleOption({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: AppMotion.resolve(context, AppMotion.fast),
-          alignment: Alignment.center,
-          color: selected ? colors.primary : colors.darkPanel,
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: selected ? colors.onDarkPanel : colors.railMuted,
-            ),
           ),
         ),
       ),
@@ -699,25 +616,6 @@ class _RailAvatar extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ProfileSheetItem extends StatelessWidget {
-  const _ProfileSheetItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => ListTile(
-    leading: Icon(icon),
-    title: Text(label),
-    trailing: const Icon(Icons.chevron_right_rounded),
-    onTap: onTap,
-  );
 }
 
 class _ShellDestination {

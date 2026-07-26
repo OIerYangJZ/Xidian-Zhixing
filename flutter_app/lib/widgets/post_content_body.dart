@@ -1,10 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import '../core/config/app_config.dart';
 import '../core/theme/app_typography.dart';
+import '../core/theme/shared_colors.dart';
+
+/// Renders inline [#topic] references in the product's blue emphasis colour.
+/// Topics remain part of the author's text instead of becoming separate chips.
+class HashtagText extends StatefulWidget {
+  const HashtagText({
+    super.key,
+    required this.text,
+    this.style,
+    this.maxLines,
+    this.overflow,
+    this.textAlign,
+    this.onHashtagTap,
+  });
+
+  static final RegExp _hashtagPattern = RegExp(r'#[\w\u4e00-\u9fff-]+');
+
+  final String text;
+  final TextStyle? style;
+  final int? maxLines;
+  final TextOverflow? overflow;
+  final TextAlign? textAlign;
+  final ValueChanged<String>? onHashtagTap;
+
+  static TextSpan spanFor(
+    BuildContext context, {
+    required String text,
+    TextStyle? style,
+  }) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final List<InlineSpan> spans = <InlineSpan>[];
+    int cursor = 0;
+    for (final Match match in _hashtagPattern.allMatches(text)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, match.start)));
+      }
+      spans.add(
+        TextSpan(
+          text: match.group(0),
+          style: TextStyle(color: colors.info, fontWeight: FontWeight.w500),
+        ),
+      );
+      cursor = match.end;
+    }
+    if (cursor < text.length) {
+      spans.add(TextSpan(text: text.substring(cursor)));
+    }
+    return TextSpan(style: style, children: spans);
+  }
+
+  @override
+  State<HashtagText> createState() => _HashtagTextState();
+}
+
+class _HashtagTextState extends State<HashtagText> {
+  final List<TapGestureRecognizer> _recognizers = <TapGestureRecognizer>[];
+
+  @override
+  void dispose() {
+    for (final TapGestureRecognizer recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    for (final TapGestureRecognizer recognizer in _recognizers) {
+      recognizer.dispose();
+    }
+    _recognizers.clear();
+
+    if (widget.onHashtagTap == null) {
+      return Text.rich(
+        HashtagText.spanFor(context, text: widget.text, style: widget.style),
+        maxLines: widget.maxLines,
+        overflow: widget.overflow,
+        textAlign: widget.textAlign,
+      );
+    }
+
+    final EditorialColors colors = EditorialColors.of(context);
+    final List<InlineSpan> spans = <InlineSpan>[];
+    int cursor = 0;
+    for (final Match match in HashtagText._hashtagPattern.allMatches(
+      widget.text,
+    )) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: widget.text.substring(cursor, match.start)));
+      }
+      final String tag = match.group(0)!;
+      final TapGestureRecognizer recognizer = TapGestureRecognizer()
+        ..onTap = () => widget.onHashtagTap!(tag);
+      _recognizers.add(recognizer);
+      spans.add(
+        TextSpan(
+          text: tag,
+          style: TextStyle(color: colors.info, fontWeight: FontWeight.w500),
+          recognizer: recognizer,
+        ),
+      );
+      cursor = match.end;
+    }
+    if (cursor < widget.text.length) {
+      spans.add(TextSpan(text: widget.text.substring(cursor)));
+    }
+
+    return Text.rich(
+      TextSpan(style: widget.style, children: spans),
+      maxLines: widget.maxLines,
+      overflow: widget.overflow,
+      textAlign: widget.textAlign,
+    );
+  }
+}
 
 class PostContentBody extends StatelessWidget {
   const PostContentBody({
@@ -13,12 +129,14 @@ class PostContentBody extends StatelessWidget {
     this.contentFormat = 'plain',
     this.markdownSource = '',
     this.selectable = false,
+    this.onHashtagTap,
   });
 
   final String content;
   final String contentFormat;
   final String markdownSource;
   final bool selectable;
+  final ValueChanged<String>? onHashtagTap;
 
   @override
   Widget build(BuildContext context) {
@@ -27,13 +145,19 @@ class PostContentBody extends StatelessWidget {
         ? markdownSource
         : content;
     if (normalizedFormat != 'markdown' || markdownData.trim().isEmpty) {
-      final TextStyle? style = Theme.of(
-        context,
-      ).textTheme.bodyLarge?.copyWith(height: 1.6);
-      if (selectable) {
-        return SelectableText(content, style: style);
+      final TextStyle style = AppTypography.postContentStyle(
+        Theme.of(context).textTheme.bodyLarge,
+      ).copyWith(height: 1.6);
+      if (selectable && onHashtagTap == null) {
+        return SelectableText.rich(
+          HashtagText.spanFor(context, text: content, style: style),
+        );
       }
-      return Text(content, style: style);
+      return HashtagText(
+        text: content,
+        style: style,
+        onHashtagTap: onHashtagTap,
+      );
     }
 
     return MarkdownBody(
@@ -41,11 +165,12 @@ class PostContentBody extends StatelessWidget {
       selectable: selectable,
       softLineBreak: true,
       extensionSet: md.ExtensionSet.gitHubFlavored,
-      inlineSyntaxes: <md.InlineSyntax>[_InlineMathSyntax()],
+      inlineSyntaxes: <md.InlineSyntax>[_InlineMathSyntax(), _HashtagSyntax()],
       blockSyntaxes: <md.BlockSyntax>[_BlockMathSyntax()],
       builders: <String, MarkdownElementBuilder>{
         'math-inline': _MathElementBuilder(isBlock: false),
         'math-block': _MathElementBuilder(isBlock: true),
+        'hashtag': _HashtagElementBuilder(),
       },
       sizedImageBuilder: (MarkdownImageConfig config) {
         final String resolvedUrl = AppConfig.resolveUrl(config.uri.toString());
@@ -106,13 +231,36 @@ class PostContentBody extends StatelessWidget {
         );
       },
       styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-        p: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.7),
-        blockquote: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(
-            context,
-          ).colorScheme.onSurface.withValues(alpha: 0.74),
-          height: 1.6,
+        p: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.bodyLarge,
+        ).copyWith(height: 1.7),
+        h1: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.headlineSmall,
         ),
+        h2: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.titleLarge,
+        ),
+        h3: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.titleMedium,
+        ),
+        h4: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.titleSmall,
+        ),
+        h5: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.bodyLarge,
+        ),
+        h6: AppTypography.postContentStyle(
+          Theme.of(context).textTheme.bodyMedium,
+        ),
+        blockquote:
+            AppTypography.postContentStyle(
+              Theme.of(context).textTheme.bodyMedium,
+            ).copyWith(
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.74),
+              height: 1.6,
+            ),
         code: Theme.of(context).textTheme.bodyMedium?.copyWith(
           fontFamily: AppTypography.englishBody,
           fontFamilyFallback: AppTypography.englishBodyFallback,
@@ -126,6 +274,36 @@ class PostContentBody extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _HashtagElementBuilder extends MarkdownElementBuilder {
+  @override
+  Widget visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) => Text(
+    element.textContent,
+    style: (preferredStyle ?? parentStyle)?.copyWith(
+      color: EditorialColors.of(context).info,
+      fontWeight: FontWeight.w500,
+    ),
+  );
+}
+
+class _HashtagSyntax extends md.InlineSyntax {
+  _HashtagSyntax() : super(r'#[\w\u4e00-\u9fff-]+');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final String tag = match.group(0) ?? '';
+    if (tag.isEmpty) {
+      return false;
+    }
+    parser.addNode(md.Element.text('hashtag', tag));
+    return true;
   }
 }
 

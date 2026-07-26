@@ -573,7 +573,7 @@ class TestEmailCodeAuth:
 
         payload = json.loads(handler.wfile.getvalue().decode("utf-8"))
         assert handler.status_code == HTTPStatus.FORBIDDEN
-        assert payload["message"] == "当前仅向项目组测试账号开放"
+        assert payload["message"] == "当前账号暂未获得访问权限"
         assert all(user.get("email") != email for user in db["users"])
 
 

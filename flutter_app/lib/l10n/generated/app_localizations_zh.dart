@@ -21,12 +21,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get taglineSupporting => '一个为西电同学准备的克制、真诚、可持续讨论的校园社区。';
 
   @override
-  String get internalBeta => '项目组内测';
-
-  @override
-  String get unofficialNotice => '校园社区内测项目 · 非西电官方应用';
-
-  @override
   String get home => '首页';
 
   @override
@@ -63,7 +57,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get welcomeBack => '欢迎回来';
 
   @override
-  String get loginDescription => '使用项目组白名单中的学生账号登录。';
+  String get loginDescription => '使用学号或学生邮箱登录。';
 
   @override
   String get studentIdentifier => '学号或学生邮箱';
@@ -87,16 +81,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get forgotPassword => '忘记密码';
 
   @override
-  String get betaAccessTitle => '内测访问说明';
-
-  @override
-  String get betaAccessMessage => '仅白名单 @stu.xidian.edu.cn 账号可使用；学校一站式登录尚未启用。';
-
-  @override
   String get adminLogin => '管理员后台登录';
 
   @override
-  String get agreements => '用户协议 · 隐私政策 · 社区规范';
+  String get agreements => '用户协议';
 
   @override
   String get identifierRequired => '请输入学号或学生邮箱。';

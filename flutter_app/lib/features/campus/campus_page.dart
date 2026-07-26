@@ -7,7 +7,6 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
-import 'campus_auth_center_page.dart';
 import 'campus_service_detail_page.dart';
 
 class CampusPage extends ConsumerStatefulWidget {
@@ -98,19 +97,14 @@ class _CampusPageState extends ConsumerState<CampusPage> {
                     const SizedBox(width: AppSpacing.xl),
                     SizedBox(
                       width: AppLayout.asideWidth,
-                      child: Column(
-                        children: <Widget>[
-                          _IdsCard(onTap: _openAuthCenter),
-                          const SizedBox(height: AppSpacing.md),
-                          _TodayCard(today: _today, onTap: _openScheduleSource),
-                        ],
+                      child: _TodayCard(
+                        today: _today,
+                        onTap: _openScheduleSource,
                       ),
                     ),
                   ],
                 )
               else ...<Widget>[
-                _IdsCard(onTap: _openAuthCenter),
-                const SizedBox(height: AppSpacing.md),
                 _TodayCard(today: _today, onTap: _openScheduleSource),
                 const SizedBox(height: AppSpacing.xl),
                 services,
@@ -134,12 +128,6 @@ class _CampusPageState extends ConsumerState<CampusPage> {
       groups.putIfAbsent(name, () => <CampusService>[]).add(service);
     }
     return groups;
-  }
-
-  void _openAuthCenter() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const CampusAuthCenterPage()),
-    );
   }
 
   void _openScheduleSource(CampusScheduleItem item) {
@@ -210,8 +198,6 @@ class _ServicesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const AppSectionHeader(title: '校园服务', subtitle: '课表、考试、实验与常用校园入口'),
-        const SizedBox(height: AppSpacing.lg),
         for (final MapEntry<String, List<CampusService>> entry
             in groups.entries) ...<Widget>[
           AppSectionTitle(title: entry.key),
@@ -250,61 +236,6 @@ class _ServicesGrid extends StatelessWidget {
   }
 }
 
-class _IdsCard extends StatelessWidget {
-  const _IdsCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadii.large),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: colors.primarySubtle,
-          borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: colors.line),
-        ),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: colors.primary,
-                borderRadius: BorderRadius.circular(AppRadii.medium),
-              ),
-              child: Icon(
-                Icons.key_rounded,
-                color: colors.onDarkPanel,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    '西电统一认证',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(height: 4),
-                  Text('管理统一认证、水电、物理实验等校园系统登录'),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _TodayCard extends StatelessWidget {
   const _TodayCard({required this.today, required this.onTap});
 
@@ -319,7 +250,6 @@ class _TodayCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadii.large),
-        border: Border.all(color: colors.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,16 +373,11 @@ class _ServiceTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadii.large),
+    return AppHoverSurface(
       onTap: onTap,
-      child: Container(
+      radius: AppRadii.large,
+      child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: colors.surfaceRaised,
-          borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: colors.line),
-        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -471,13 +396,6 @@ class _ServiceTile extends StatelessWidget {
                     color: colors.primary,
                     size: 20,
                   ),
-                ),
-                const Spacer(),
-                AppStatusTag(
-                  label: service.authType.trim().isEmpty ? '可使用' : '需认证',
-                  color: service.authType.trim().isEmpty
-                      ? colors.success
-                      : colors.warning,
                 ),
               ],
             ),

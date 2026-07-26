@@ -18,8 +18,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
   List<PostItem> _posts = const <PostItem>[];
   bool _loading = true;
   bool _actionBusy = false;
-  int _userLevel = 2;
-  String _userLevelLabel = '二级用户';
   String? _error;
 
   @override
@@ -65,22 +63,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           ),
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        _userLevel == 1
-                            ? '当前身份：$_userLevelLabel，可直接为自己的帖子设置置顶时长。'
-                            : '当前身份：$_userLevelLabel，发帖后如需置顶，请提交管理员审核。',
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.58),
-                        ),
-                      ),
-                    ),
                     ..._posts.map(
                       (PostItem post) => Column(
                         children: <Widget>[
@@ -126,19 +108,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                       : () => _updateStatus(post),
                                   child: const Text('更新状态'),
                                 ),
-                                FilledButton.tonalIcon(
-                                  onPressed:
-                                      _actionBusy ||
-                                          (_userLevel != 1 && post.isPinned)
-                                      ? null
-                                      : () => _handlePin(post),
-                                  icon: const Icon(Icons.push_pin_outlined),
-                                  label: Text(
-                                    _userLevel == 1
-                                        ? (post.isPinned ? '重新置顶' : '置顶帖子')
-                                        : (post.isPinned ? '已置顶' : '申请置顶'),
-                                  ),
-                                ),
                                 FilledButton.tonal(
                                   onPressed: _actionBusy
                                       ? null
@@ -172,14 +141,11 @@ class _MyPostsPageState extends State<MyPostsPage> {
     });
 
     try {
-      final profile = await AppRepositories.users.fetchProfile();
       final List<PostItem> posts = await AppRepositories.posts.fetchMyPosts();
       if (!mounted) {
         return;
       }
       setState(() {
-        _userLevel = profile.userLevel;
-        _userLevelLabel = profile.userLevelLabel;
         _posts = posts;
       });
     } catch (error) {
@@ -275,114 +241,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
     }
   }
 
-  Future<void> _handlePin(PostItem post) async {
-    final _PinActionInput? input = await _showPinDialog(
-      direct: _userLevel == 1,
-    );
-    if (input == null) {
-      return;
-    }
-    setState(() {
-      _actionBusy = true;
-    });
-    try {
-      final result = await AppRepositories.posts.submitPinRequest(
-        postId: post.id,
-        durationMinutes: input.durationMinutes,
-        reason: input.reason,
-      );
-      if (!mounted) {
-        return;
-      }
-      if (result.post != null) {
-        setState(() {
-          _posts = _posts
-              .map((PostItem item) => item.id == post.id ? result.post! : item)
-              .toList(growable: false);
-        });
-      }
-      _toast(result.isDirect ? '帖子已置顶' : '置顶申请已提交');
-    } catch (error) {
-      _toast('操作失败：$error');
-    } finally {
-      if (mounted) {
-        setState(() {
-          _actionBusy = false;
-        });
-      }
-    }
-  }
-
-  Future<_PinActionInput?> _showPinDialog({required bool direct}) {
-    final TextEditingController reasonController = TextEditingController();
-    int selectedDuration = 30;
-    return showDialog<_PinActionInput>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder:
-              (BuildContext context, void Function(void Function()) setState) {
-                return AlertDialog(
-                  title: Text(direct ? '选择置顶时长' : '申请帖子置顶'),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      DropdownButtonFormField<int>(
-                        initialValue: selectedDuration,
-                        decoration: const InputDecoration(labelText: '置顶时长'),
-                        items: const <DropdownMenuItem<int>>[
-                          DropdownMenuItem(value: 30, child: Text('30 分钟')),
-                          DropdownMenuItem(value: 60, child: Text('1 小时')),
-                          DropdownMenuItem(value: 120, child: Text('2 小时')),
-                          DropdownMenuItem(value: 180, child: Text('3 小时')),
-                          DropdownMenuItem(value: 1440, child: Text('1 天')),
-                          DropdownMenuItem(value: 4320, child: Text('3 天')),
-                        ],
-                        onChanged: (int? value) {
-                          if (value == null) {
-                            return;
-                          }
-                          setState(() {
-                            selectedDuration = value;
-                          });
-                        },
-                      ),
-                      if (!direct) ...<Widget>[
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: reasonController,
-                          minLines: 2,
-                          maxLines: 4,
-                          decoration: const InputDecoration(
-                            labelText: '申请说明（可选）',
-                            hintText: '例如：活动通知、紧急求助、时效性较强等',
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('取消'),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).pop(
-                        _PinActionInput(
-                          durationMinutes: selectedDuration,
-                          reason: reasonController.text.trim(),
-                        ),
-                      ),
-                      child: Text(direct ? '确认置顶' : '提交申请'),
-                    ),
-                  ],
-                );
-              },
-        );
-      },
-    ).whenComplete(reasonController.dispose);
-  }
-
   void _toast(String message) {
     if (!mounted) {
       return;
@@ -391,11 +249,4 @@ class _MyPostsPageState extends State<MyPostsPage> {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
-}
-
-class _PinActionInput {
-  const _PinActionInput({required this.durationMinutes, required this.reason});
-
-  final int durationMinutes;
-  final String reason;
 }

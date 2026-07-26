@@ -7,8 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/state/app_providers.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/theme/shared_colors.dart';
+import '../../core/widgets/app_input.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
 
+/// Campus account connections live under Settings. Credentials are sent only
+/// to the selected service for verification; this page stores just the masked
+/// account identifier and its latest verification time on the device.
 class CampusAuthCenterPage extends ConsumerStatefulWidget {
   const CampusAuthCenterPage({super.key, this.initialSystem = 'ids'});
 
@@ -22,30 +29,12 @@ class CampusAuthCenterPage extends ConsumerStatefulWidget {
 class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   static const String _stateKey = 'campus_auth_state';
   static const List<_CampusSystem> _systems = <_CampusSystem>[
-    _CampusSystem('ids', '统一认证', 'IDS', '一站式、课表、成绩、考试等入口', _AuthType.password),
-    _CampusSystem(
-      'payment',
-      '缴费/水电',
-      '水电',
-      '缴费平台和水电系统跳转验证',
-      _AuthType.password,
-    ),
-    _CampusSystem('physics', '物理实验', '实验', '物理实验选课与实验安排', _AuthType.password),
-    _CampusSystem('sport', '体育系统', '体育', '体育课程、体测等系统访问', _AuthType.password),
-    _CampusSystem(
-      'schoolnet',
-      '校园网自服务',
-      '网络',
-      '校园网账号、查询密码和图形验证码',
-      _AuthType.schoolnet,
-    ),
-    _CampusSystem(
-      'dormWater',
-      '宿舍水机',
-      '水机',
-      '手机号、图形验证码和短信验证码',
-      _AuthType.phone,
-    ),
+    _CampusSystem('ids', '统一认证', _CampusAuthType.password),
+    _CampusSystem('payment', '缴费与水电', _CampusAuthType.password),
+    _CampusSystem('physics', '物理实验', _CampusAuthType.password),
+    _CampusSystem('sport', '体育系统', _CampusAuthType.password),
+    _CampusSystem('schoolnet', '校园网', _CampusAuthType.schoolnet),
+    _CampusSystem('dormWater', '宿舍水机', _CampusAuthType.phone),
   ];
 
   final TextEditingController _identifierController = TextEditingController();
@@ -74,13 +63,14 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   @override
   void initState() {
     super.initState();
-    _activeSystem =
-        _systems.any((_CampusSystem item) => item.id == widget.initialSystem)
+    _activeSystem = _systems.any(
+      (_CampusSystem item) => item.id == widget.initialSystem,
+    )
         ? widget.initialSystem
         : 'ids';
-    _loadState();
     _identifierController.text =
         AuthStore.instance.currentUser?.studentId.trim() ?? '';
+    Future<void>.microtask(_loadState);
   }
 
   @override
@@ -94,268 +84,221 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     super.dispose();
   }
 
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('校园账号管理')),
+      body: AppPageFrame(
+        maxWidth: AppLayout.readingMaxWidth,
+        child: ListView(
+          children: <Widget>[
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: <Widget>[
+                for (final _CampusSystem system in _systems)
+                  _SystemSelector(
+                    label: system.name,
+                    selected: system.id == _activeSystem,
+                    connected: _states.containsKey(system.id),
+                    onTap: () => _switchSystem(system.id),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            Text(_active.name, style: Theme.of(context).textTheme.titleLarge),
+            if (_states[_activeSystem] case final Map<dynamic, dynamic> state)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        '${state['studentId'] ?? ''} · ${state['updatedAt'] ?? ''}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: colors.mutedInk,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _clearCurrentState,
+                      child: const Text('移除账号'),
+                    ),
+                  ],
+                ),
+              ),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: AppInlineMessage(
+                  message: _error!,
+                  tone: AppMessageTone.error,
+                ),
+              ),
+            const SizedBox(height: AppSpacing.lg),
+            if (_active.type == _CampusAuthType.password)
+              _passwordForm()
+            else if (_active.type == _CampusAuthType.schoolnet)
+              _schoolnetForm()
+            else
+              _dormWaterForm(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _passwordForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[
+      TextField(
+        controller: _identifierController,
+        enabled: !_busy,
+        decoration: AppInput.decoration(hintText: '学号'),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      TextField(
+        controller: _passwordController,
+        enabled: !_busy,
+        obscureText: true,
+        onSubmitted: (_) => _submitPasswordAuth(),
+        decoration: AppInput.decoration(
+          hintText: _activeSystem == 'ids' || _activeSystem == 'payment'
+              ? '统一认证密码'
+              : '${_active.name}密码',
+        ),
+      ),
+      const SizedBox(height: AppSpacing.lg),
+      FilledButton(
+        onPressed: _busy ? null : _submitPasswordAuth,
+        child: Text(_busy ? '正在验证' : '验证并保存'),
+      ),
+    ],
+  );
+
+  Widget _schoolnetForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[
+      TextField(
+        controller: _identifierController,
+        enabled: !_busy,
+        decoration: AppInput.decoration(hintText: '账号'),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      TextField(
+        controller: _passwordController,
+        enabled: !_busy,
+        obscureText: true,
+        decoration: AppInput.decoration(hintText: '校园网查询密码'),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _schoolnetCaptchaController,
+              enabled: !_busy,
+              decoration: AppInput.decoration(hintText: '验证码'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          _CaptchaBox(
+            image: _schoolnetCaptchaImage,
+            busy: _captchaBusy,
+            onTap: _refreshSchoolnetCaptcha,
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      OutlinedButton(
+        onPressed: _captchaBusy ? null : _refreshSchoolnetCaptcha,
+        child: const Text('刷新验证码'),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      FilledButton(
+        onPressed: _busy ? null : _submitSchoolnetAuth,
+        child: Text(_busy ? '正在登录' : '登录并保存'),
+      ),
+    ],
+  );
+
+  Widget _dormWaterForm() => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: <Widget>[
+      TextField(
+        controller: _phoneController,
+        enabled: !_busy,
+        keyboardType: TextInputType.phone,
+        decoration: AppInput.decoration(hintText: '手机号'),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      Row(
+        children: <Widget>[
+          Expanded(
+            child: TextField(
+              controller: _dormWaterImageCodeController,
+              enabled: !_busy,
+              decoration: AppInput.decoration(hintText: '图形验证码'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          _CaptchaBox(
+            image: _dormWaterCaptchaImage,
+            busy: _captchaBusy,
+            onTap: _refreshDormWaterCaptcha,
+          ),
+        ],
+      ),
+      const SizedBox(height: AppSpacing.md),
+      TextField(
+        controller: _dormWaterSmsController,
+        enabled: !_busy,
+        keyboardType: TextInputType.number,
+        decoration: AppInput.decoration(hintText: '短信验证码'),
+      ),
+      const SizedBox(height: AppSpacing.md),
+      OutlinedButton(
+        onPressed: _smsBusy ? null : _sendDormWaterSms,
+        child: Text(_smsBusy ? '正在发送' : '发送短信验证码'),
+      ),
+      const SizedBox(height: AppSpacing.sm),
+      FilledButton(
+        onPressed: _busy ? null : _submitDormWaterAuth,
+        child: Text(_busy ? '正在登录' : '登录并保存'),
+      ),
+    ],
+  );
+
   Future<void> _loadState() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String raw = prefs.getString(_stateKey) ?? '{}';
-    final dynamic decoded = jsonDecode(raw);
-    if (decoded is Map) {
+    final dynamic decoded = jsonDecode(prefs.getString(_stateKey) ?? '{}');
+    if (decoded is Map && mounted) {
       setState(() {
         _states = decoded.map(
-          (dynamic key, dynamic value) =>
-              MapEntry<String, dynamic>(key.toString(), value),
+          (dynamic key, dynamic value) => MapEntry<String, dynamic>(
+            key.toString(),
+            value,
+          ),
         );
       });
     }
   }
 
   Future<void> _saveState(String systemId, CampusAuthResult result) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String studentId = result.studentId.isEmpty
+    final String identifier = result.studentId.isEmpty
         ? _identifierController.text.trim()
         : result.studentId;
-    final Map<String, dynamic> state = <String, dynamic>{
-      'studentId': _mask(studentId),
-      'updatedAt': _nowText(),
-    };
     final Map<String, dynamic> next = <String, dynamic>{
       ..._states,
-      systemId: state,
+      systemId: <String, dynamic>{
+        'studentId': _mask(identifier),
+        'updatedAt': _nowText(),
+      },
     };
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(_stateKey, jsonEncode(next));
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _states = next;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('登录管理')),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        children: <Widget>[
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final int columns = constraints.maxWidth >= 900 ? 3 : 2;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: columns == 3 ? 2.3 : 1.45,
-                ),
-                itemCount: _systems.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final _CampusSystem system = _systems[index];
-                  return _SystemCard(
-                    system: system,
-                    active: system.id == _activeSystem,
-                    verified: _states.containsKey(system.id),
-                    onTap: () => _switchSystem(system.id),
-                  );
-                },
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Theme.of(context).dividerColor),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        _active.name,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
-                    if (_states.containsKey(_activeSystem))
-                      TextButton(
-                        onPressed: _clearCurrentState,
-                        child: const Text('清除'),
-                      ),
-                  ],
-                ),
-                if (_states[_activeSystem] case final Map state) ...<Widget>[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withValues(alpha: 0.58),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '已保存账号 · ${state['studentId'] ?? ''} · ${state['updatedAt'] ?? ''}',
-                    ),
-                  ),
-                ],
-                if (_error != null) ...<Widget>[
-                  const SizedBox(height: 10),
-                  Text(
-                    _error!,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                if (_active.type == _AuthType.password)
-                  _passwordForm()
-                else if (_active.type == _AuthType.schoolnet)
-                  _schoolnetForm()
-                else
-                  _dormWaterForm(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _passwordForm() {
-    return Column(
-      children: <Widget>[
-        TextField(
-          controller: _identifierController,
-          decoration: const InputDecoration(labelText: '学号'),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: _activeSystem == 'ids' || _activeSystem == 'payment'
-                ? '统一认证密码'
-                : '${_active.name}密码',
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: _busy ? null : _submitPasswordAuth,
-            child: Text(_busy ? '正在验证' : '验证${_active.name}'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _schoolnetForm() {
-    return Column(
-      children: <Widget>[
-        TextField(
-          controller: _identifierController,
-          decoration: const InputDecoration(labelText: '账号'),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: const InputDecoration(labelText: '校园网查询密码'),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                controller: _schoolnetCaptchaController,
-                decoration: const InputDecoration(labelText: '验证码'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            _CaptchaBox(
-              image: _schoolnetCaptchaImage,
-              busy: _captchaBusy,
-              onTap: _refreshSchoolnetCaptcha,
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: _captchaBusy ? null : _refreshSchoolnetCaptcha,
-            child: const Text('刷新验证码'),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: _busy ? null : _submitSchoolnetAuth,
-            child: Text(_busy ? '正在登录' : '登录校园网自服务'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _dormWaterForm() {
-    return Column(
-      children: <Widget>[
-        TextField(
-          controller: _phoneController,
-          decoration: const InputDecoration(labelText: '手机号'),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: TextField(
-                controller: _dormWaterImageCodeController,
-                decoration: const InputDecoration(labelText: '图形码'),
-              ),
-            ),
-            const SizedBox(width: 10),
-            _CaptchaBox(
-              image: _dormWaterCaptchaImage,
-              busy: _captchaBusy,
-              onTap: _refreshDormWaterCaptcha,
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _dormWaterSmsController,
-          decoration: const InputDecoration(labelText: '短信码'),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            onPressed: _smsBusy ? null : _sendDormWaterSms,
-            child: Text(_smsBusy ? '正在发送' : '发送短信验证码'),
-          ),
-        ),
-        const SizedBox(height: 10),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: _busy ? null : _submitDormWaterAuth,
-            child: Text(_busy ? '正在登录' : '登录宿舍水机'),
-          ),
-        ),
-      ],
-    );
+    if (mounted) setState(() => _states = next);
   }
 
   void _switchSystem(String id) {
@@ -365,14 +308,14 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _schoolnetCaptchaController.clear();
       _dormWaterImageCodeController.clear();
       _dormWaterSmsController.clear();
+      _schoolnetAttemptId = '';
+      _dormWaterSessionId = '';
       _error = null;
     });
   }
 
   Future<void> _submitPasswordAuth() async {
-    if (!_requireIdentifierAndPassword()) {
-      return;
-    }
+    if (!_requireIdentifierAndPassword()) return;
     setState(() {
       _busy = true;
       _error = null;
@@ -402,9 +345,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     } catch (error) {
       _setError('${_active.name}验证失败：$error');
     } finally {
-      if (mounted) {
-        setState(() => _busy = false);
-      }
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -421,23 +362,21 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       final CampusAuthResult result = await ref
           .read(campusRepositoryProvider)
           .createSchoolnetCaptcha(_identifierController.text.trim());
-      setState(() {
-        _schoolnetAttemptId = result.attemptId;
-        _schoolnetCaptchaImage = base64Decode(result.imageBase64);
-      });
+      if (mounted) {
+        setState(() {
+          _schoolnetAttemptId = result.attemptId;
+          _schoolnetCaptchaImage = base64Decode(result.imageBase64);
+        });
+      }
     } catch (error) {
       _setError('校园网验证码获取失败：$error');
     } finally {
-      if (mounted) {
-        setState(() => _captchaBusy = false);
-      }
+      if (mounted) setState(() => _captchaBusy = false);
     }
   }
 
   Future<void> _submitSchoolnetAuth() async {
-    if (!_requireIdentifierAndPassword()) {
-      return;
-    }
+    if (!_requireIdentifierAndPassword()) return;
     if (_schoolnetAttemptId.isEmpty ||
         _schoolnetCaptchaController.text.trim().isEmpty) {
       _setError('请先获取并填写验证码');
@@ -460,12 +399,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _passwordController.clear();
       _schoolnetCaptchaController.clear();
     } catch (error) {
-      _setError('校园网自服务登录失败：$error');
-      await _refreshSchoolnetCaptcha();
+      _setError('校园网登录失败：$error');
     } finally {
-      if (mounted) {
-        setState(() => _busy = false);
-      }
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -478,16 +414,16 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       final CampusAuthResult result = await ref
           .read(campusRepositoryProvider)
           .createDormWaterCaptcha();
-      setState(() {
-        _dormWaterSessionId = result.sessionId;
-        _dormWaterCaptchaImage = base64Decode(result.imageBase64);
-      });
+      if (mounted) {
+        setState(() {
+          _dormWaterSessionId = result.sessionId;
+          _dormWaterCaptchaImage = base64Decode(result.imageBase64);
+        });
+      }
     } catch (error) {
       _setError('宿舍水机验证码获取失败：$error');
     } finally {
-      if (mounted) {
-        setState(() => _captchaBusy = false);
-      }
+      if (mounted) setState(() => _captchaBusy = false);
     }
   }
 
@@ -503,13 +439,11 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      await ref
-          .read(campusRepositoryProvider)
-          .sendDormWaterSms(
-            sessionId: _dormWaterSessionId,
-            phone: _phoneController.text.trim(),
-            imageCode: _dormWaterImageCodeController.text.trim(),
-          );
+      await ref.read(campusRepositoryProvider).sendDormWaterSms(
+        sessionId: _dormWaterSessionId,
+        phone: _phoneController.text.trim(),
+        imageCode: _dormWaterImageCodeController.text.trim(),
+      );
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -517,11 +451,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       }
     } catch (error) {
       _setError('短信验证码发送失败：$error');
-      await _refreshDormWaterCaptcha();
     } finally {
-      if (mounted) {
-        setState(() => _smsBusy = false);
-      }
+      if (mounted) setState(() => _smsBusy = false);
     }
   }
 
@@ -547,9 +478,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     } catch (error) {
       _setError('宿舍水机登录失败：$error');
     } finally {
-      if (mounted) {
-        setState(() => _busy = false);
-      }
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -566,30 +495,19 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   }
 
   Future<void> _clearCurrentState() async {
+    final Map<String, dynamic> next = <String, dynamic>{..._states}
+      ..remove(_activeSystem);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final Map<String, dynamic> next = <String, dynamic>{..._states};
-    next.remove(_activeSystem);
     await prefs.setString(_stateKey, jsonEncode(next));
-    if (mounted) {
-      setState(() {
-        _states = next;
-      });
-    }
+    if (mounted) setState(() => _states = next);
   }
 
   void _setError(String message) {
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _error = message;
-    });
+    if (mounted) setState(() => _error = message);
   }
 
   String _mask(String value) {
-    if (value.length <= 4) {
-      return value;
-    }
+    if (value.length <= 4) return value;
     return '${value.substring(0, 2)}****${value.substring(value.length - 2)}';
   }
 
@@ -600,75 +518,29 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   }
 }
 
-class _SystemCard extends StatelessWidget {
-  const _SystemCard({
-    required this.system,
-    required this.active,
-    required this.verified,
+class _SystemSelector extends StatelessWidget {
+  const _SystemSelector({
+    required this.label,
+    required this.selected,
+    required this.connected,
     required this.onTap,
   });
 
-  final _CampusSystem system;
-  final bool active;
-  final bool verified;
+  final String label;
+  final bool selected;
+  final bool connected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final Color primary = Theme.of(context).colorScheme.primary;
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: active
-              ? primary.withValues(alpha: 0.08)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: active ? primary : Theme.of(context).dividerColor,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Text(
-                  system.tag,
-                  style: TextStyle(color: primary, fontWeight: FontWeight.w900),
-                ),
-                const Spacer(),
-                if (verified)
-                  Text(
-                    '已验证',
-                    style: TextStyle(
-                      color: primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              system.name,
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              system.desc,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.62),
-              ),
-            ),
-          ],
-        ),
+    final EditorialColors colors = EditorialColors.of(context);
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        foregroundColor: selected ? colors.primary : colors.mutedInk,
+        backgroundColor: selected ? colors.primarySubtle : colors.surface,
       ),
+      child: Text(connected ? '$label · 已连接' : label),
     );
   }
 }
@@ -686,39 +558,39 @@ class _CaptchaBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: busy ? null : onTap,
-      child: Container(
-        width: 116,
-        height: 52,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Theme.of(context).dividerColor),
+    final EditorialColors colors = EditorialColors.of(context);
+    return Material(
+      color: colors.surfaceRaised,
+      borderRadius: BorderRadius.circular(AppRadii.input),
+      child: InkWell(
+        onTap: busy ? null : onTap,
+        borderRadius: BorderRadius.circular(AppRadii.input),
+        child: SizedBox(
+          width: 122,
+          height: 58,
+          child: Center(
+            child: busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : image == null
+                ? Text('获取验证码', style: Theme.of(context).textTheme.bodySmall)
+                : Image.memory(image!, fit: BoxFit.contain),
+          ),
         ),
-        child: busy
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : image == null
-            ? const Text('获取')
-            : Image.memory(image!, fit: BoxFit.contain),
       ),
     );
   }
 }
 
-enum _AuthType { password, schoolnet, phone }
+enum _CampusAuthType { password, schoolnet, phone }
 
 class _CampusSystem {
-  const _CampusSystem(this.id, this.name, this.tag, this.desc, this.type);
+  const _CampusSystem(this.id, this.name, this.type);
 
   final String id;
   final String name;
-  final String tag;
-  final String desc;
-  final _AuthType type;
+  final _CampusAuthType type;
 }

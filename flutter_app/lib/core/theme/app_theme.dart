@@ -107,10 +107,7 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         margin: EdgeInsets.zero,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.large),
-          side: BorderSide(color: palette.line),
-        ),
+        shape: const RoundedRectangleBorder(),
         elevation: 0,
         color: palette.surfaceRaised,
         surfaceTintColor: palette.surfaceRaised,
@@ -195,42 +192,37 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: palette.surface,
-        labelStyle: TextStyle(color: palette.mutedInk),
-        floatingLabelStyle: TextStyle(
-          color: palette.primary,
-          fontWeight: FontWeight.w600,
-        ),
+        fillColor: palette.surfaceRaised,
+        floatingLabelBehavior: FloatingLabelBehavior.never,
         hintStyle: TextStyle(color: palette.faintInk),
-        prefixIconColor: palette.mutedInk,
         suffixIconColor: palette.mutedInk,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.line),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.line),
         ),
         disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.line),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.danger),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.medium),
+          borderRadius: BorderRadius.circular(AppRadii.input),
           borderSide: BorderSide(color: palette.danger, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
+          horizontal: AppSpacing.lg,
+          vertical: 18,
         ),
       ),
       chipTheme: ChipThemeData(
@@ -255,16 +247,6 @@ class AppTheme {
         shape: controlShape,
         titleTextStyle: textTheme.titleLarge,
         contentTextStyle: textTheme.bodyMedium,
-      ),
-      bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: palette.surface,
-        surfaceTintColor: palette.surface,
-        showDragHandle: true,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadii.hero),
-          ),
-        ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: palette.primary,

@@ -122,7 +122,12 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                 color: Theme.of(context).colorScheme.onError,
               ),
             ),
-            child: Card(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
               child: ListTile(
                 leading: GestureDetector(
                   onTap: () async {

@@ -75,7 +75,7 @@ class _LanguageOption extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 160),
         constraints: BoxConstraints(minWidth: compact ? 42 : 48, minHeight: 42),
-        color: selected ? colors.primary : Colors.transparent,
+        color: selected ? colors.primary : colors.surface.withValues(alpha: 0),
         child: Center(
           child: Text(
             label,

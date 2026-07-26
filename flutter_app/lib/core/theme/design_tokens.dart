@@ -45,6 +45,7 @@ class AppRadii {
   static const double small = 8;
   static const double medium = 10;
   static const double large = 12;
+  static const double input = 16;
   static const double hero = 16;
   static const double pill = 999;
 }
@@ -86,6 +87,18 @@ class AppElevation {
   AppElevation._();
 
   static const List<BoxShadow> soft = <BoxShadow>[];
+}
+
+/// Shared geometry for continuous discussion threads. A reply keeps one rail
+/// and a short branch connector instead of introducing a card surface.
+class AppThread {
+  AppThread._();
+
+  static const double indent = AppSpacing.lg;
+  static const double railWidth = 2;
+  static const double avatarDiameter = 36;
+  static const double connectorLength = AppSpacing.md;
+  static const double connectorTop = AppSpacing.md + avatarDiameter / 2;
 }
 
 /// Shared interaction timing. Motion is only used to explain a state change.

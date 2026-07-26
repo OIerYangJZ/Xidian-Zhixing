@@ -22,13 +22,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'A calm and sincere campus community for lasting conversations at Xidian.';
 
   @override
-  String get internalBeta => 'Project beta';
-
-  @override
-  String get unofficialNotice =>
-      'Campus community beta · Not an official Xidian app';
-
-  @override
   String get home => 'Home';
 
   @override
@@ -66,7 +59,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginDescription =>
-      'Sign in with a student account on the project allowlist.';
+      'Sign in with your student ID or campus email.';
 
   @override
   String get studentIdentifier => 'Student ID or email';
@@ -90,17 +83,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forgotPassword => 'Forgot password';
 
   @override
-  String get betaAccessTitle => 'Beta access';
-
-  @override
-  String get betaAccessMessage =>
-      'Only allowlisted @stu.xidian.edu.cn accounts are supported. University SSO is not yet available.';
-
-  @override
   String get adminLogin => 'Admin sign in';
 
   @override
-  String get agreements => 'Terms · Privacy · Community rules';
+  String get agreements => 'Terms of service';
 
   @override
   String get identifierRequired => 'Enter your student ID or email.';
