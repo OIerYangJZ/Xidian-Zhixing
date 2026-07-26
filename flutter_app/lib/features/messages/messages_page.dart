@@ -45,9 +45,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
             const Text('会话'),
             if (unreadCount > 0) ...[
               const SizedBox(width: 6),
-              Badge(
-                label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
-              ),
+              Badge(label: Text(unreadCount > 99 ? '99+' : '$unreadCount')),
             ],
           ],
         ),
@@ -77,8 +75,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
       );
     }
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(messagesControllerProvider.notifier).refresh(),
+      onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: state.conversations.length,
@@ -100,8 +97,12 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('删除',
-                          style: TextStyle(color: Colors.red)),
+                      child: Text(
+                        '删除',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -115,8 +116,11 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
-              color: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
+              color: Theme.of(context).colorScheme.error,
+              child: Icon(
+                Icons.delete,
+                color: Theme.of(context).colorScheme.onError,
+              ),
             ),
             child: Card(
               child: ListTile(
@@ -136,18 +140,16 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                 .read(messagesControllerProvider.notifier)
                                 .removeConversation(session.id);
                           },
-                          onConversationFlagsChanged: ({
-                            bool? blockedByMe,
-                            bool? blockedByPeer,
-                          }) {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .updateConversationFlags(
-                                  conversationId: session.id,
-                                  blockedByMe: blockedByMe,
-                                  blockedByPeer: blockedByPeer,
-                                );
-                          },
+                          onConversationFlagsChanged:
+                              ({bool? blockedByMe, bool? blockedByPeer}) {
+                                ref
+                                    .read(messagesControllerProvider.notifier)
+                                    .updateConversationFlags(
+                                      conversationId: session.id,
+                                      blockedByMe: blockedByMe,
+                                      blockedByPeer: blockedByPeer,
+                                    );
+                              },
                           onMessageSent: (String content) {
                             ref
                                 .read(messagesControllerProvider.notifier)
@@ -162,7 +164,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     if (!mounted) {
                       return;
                     }
-                    await ref.read(messagesControllerProvider.notifier).refresh();
+                    await ref
+                        .read(messagesControllerProvider.notifier)
+                        .refresh();
                   },
                   child: _buildAvatar(session.avatarUrl, session.name),
                 ),
@@ -218,18 +222,16 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                               .read(messagesControllerProvider.notifier)
                               .removeConversation(session.id);
                         },
-                        onConversationFlagsChanged: ({
-                          bool? blockedByMe,
-                          bool? blockedByPeer,
-                        }) {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .updateConversationFlags(
-                                conversationId: session.id,
-                                blockedByMe: blockedByMe,
-                                blockedByPeer: blockedByPeer,
-                              );
-                        },
+                        onConversationFlagsChanged:
+                            ({bool? blockedByMe, bool? blockedByPeer}) {
+                              ref
+                                  .read(messagesControllerProvider.notifier)
+                                  .updateConversationFlags(
+                                    conversationId: session.id,
+                                    blockedByMe: blockedByMe,
+                                    blockedByPeer: blockedByPeer,
+                                  );
+                            },
                         onMessageSent: (String content) {
                           ref
                               .read(messagesControllerProvider.notifier)
@@ -256,13 +258,14 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
 
   Widget _buildAvatar(String avatarUrl, String name) {
     final String resolved = AppConfig.resolveUrl(avatarUrl);
-    final String fallback =
-        name.trim().isEmpty ? '?' : name.trim().substring(0, 1);
+    final String fallback = name.trim().isEmpty
+        ? '?'
+        : name.trim().substring(0, 1);
     if (resolved.isNotEmpty) {
       return CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.1),
         child: ClipOval(
           child: Image.network(
             resolved,

@@ -8,15 +8,19 @@ import 'package:flutter/material.dart';
 class AppTypography {
   AppTypography._();
 
+  /// The product UI is sans-serif to keep dense social content easy to scan.
+  /// The serif family remains a deliberate brand treatment for authentication.
   static const String chineseDisplay = 'STZhongsong';
-  static const String chineseBody = 'STSong';
+  static const String chineseBody = 'Microsoft YaHei';
   static const String chineseAccent = 'STKaiti';
   static const List<String> chineseDisplayFallback = <String>[
     '华文中宋',
     'STSong',
-    '华文宋体',
-    'SimSun',
-    '宋体',
+    'Microsoft YaHei UI',
+    'PingFang SC',
+    'Noto Sans CJK SC',
+    'Noto Sans SC',
+    'sans-serif',
   ];
   static const List<String> chineseBodyFallback = <String>[
     '华文宋体',
@@ -24,24 +28,27 @@ class AppTypography {
     '宋体',
   ];
 
-  static const String englishDisplay = 'Anthropic Serif Web';
-  static const String englishBody = 'Times New Roman';
+  static const String englishDisplay = 'Arial';
+  static const String englishBody = 'Arial';
   static const String englishAccent = 'Apple Chancery';
   static const List<String> englishDisplayFallback = <String>[
-    'Anthropic Serif Web Text',
-    'Times New Roman',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
   ];
   static const List<String> englishBodyFallback = <String>[
-    'Anthropic Serif Web',
+    'Helvetica Neue',
+    'Arial',
+    'sans-serif',
   ];
 
   static bool isEnglish(Locale locale) => locale.languageCode == 'en';
 
   static String displayFamily(Locale locale) =>
-      isEnglish(locale) ? englishDisplay : chineseDisplay;
+      isEnglish(locale) ? englishDisplay : chineseBody;
 
   static List<String> displayFallback(Locale locale) =>
-      isEnglish(locale) ? englishDisplayFallback : chineseDisplayFallback;
+      isEnglish(locale) ? englishDisplayFallback : chineseBodyFallback;
 
   static String bodyFamily(Locale locale) =>
       isEnglish(locale) ? englishBody : chineseBody;
@@ -51,6 +58,30 @@ class AppTypography {
 
   static String accentFamily(Locale locale) =>
       isEnglish(locale) ? englishAccent : chineseAccent;
+
+  static String brandFamily(Locale locale) =>
+      isEnglish(locale) ? 'Times New Roman' : chineseDisplay;
+
+  static List<String> brandFallback(Locale locale) => isEnglish(locale)
+      ? const <String>['Times New Roman', 'serif']
+      : chineseDisplayFallback;
+
+  static TextStyle brandStyle(
+    Locale locale, {
+    required double fontSize,
+    required Color color,
+    double height = 1.12,
+    FontWeight fontWeight = FontWeight.w600,
+    double? letterSpacing,
+  }) => TextStyle(
+    fontFamily: brandFamily(locale),
+    fontFamilyFallback: brandFallback(locale),
+    fontSize: fontSize,
+    color: color,
+    height: height,
+    fontWeight: fontWeight,
+    letterSpacing: letterSpacing,
+  );
 
   static TextStyle accentStyle(
     Locale locale, {

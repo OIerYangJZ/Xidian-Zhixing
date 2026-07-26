@@ -11,10 +11,9 @@ class CommunityGuidelinesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(_title),
-      ),
+      appBar: AppBar(title: const Text(_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -24,7 +23,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '社区宗旨',
             icon: Icons.flag_outlined,
-            iconColor: const Color(0xFF059669),
+            iconColor: colors.success,
             content:
                 '${AppBrand.displayName}致力于打造一个健康、积极、友善的校园匿名社交平台。我们鼓励真实表达、理性讨论、相互尊重，让每一位西电学子都能在这里找到归属感。',
           ),
@@ -46,7 +45,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '二、绝对禁止内容',
             icon: Icons.block_outlined,
-            iconColor: const Color(0xFFDC2626),
+            iconColor: colors.danger,
             isWarning: true,
             content:
                 '以下内容一经发现，将立即删除并视情节轻重给予处罚：\n\n'
@@ -65,7 +64,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '三、严重违规内容',
             icon: Icons.warning_amber_outlined,
-            iconColor: const Color(0xFFEA580C),
+            iconColor: colors.warning,
             isWarning: true,
             content:
                 '以下内容严重破坏社区环境，一经发现将从严处理：\n\n'
@@ -82,7 +81,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '四、一般违规内容',
             icon: Icons.edit_note_outlined,
-            iconColor: const Color(0xFFD97706),
+            iconColor: colors.warning,
             content:
                 '以下内容不鼓励发布，频繁发布可能导致功能限制：\n\n'
                 '• 与校园生活无关的水贴、纯表情贴\n'
@@ -95,7 +94,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '五、违规处罚',
             icon: Icons.gavel_outlined,
-            iconColor: const Color(0xFF7C3AED),
+            iconColor: colors.primary,
             content:
                 '根据违规情节严重程度，采取以下处罚措施：\n\n'
                 '【轻度违规】\n'
@@ -115,7 +114,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '六、举报机制',
             icon: Icons.flag_outlined,
-            iconColor: const Color(0xFF0284C7),
+            iconColor: colors.info,
             content:
                 '发现违规内容时，欢迎您积极举报：\n\n'
                 '• 点击帖子右下角的"举报"按钮\n'
@@ -128,7 +127,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '七、优质内容倡议',
             icon: Icons.thumb_up_outlined,
-            iconColor: const Color(0xFF059669),
+            iconColor: colors.success,
             content:
                 '我们倡议大家积极发布优质内容：\n\n'
                 '• 【学习分享】考研经验、课程评价、技能教程\n'
@@ -142,7 +141,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             context,
             title: '八、免责声明',
             icon: Icons.info_outline,
-            iconColor: const Color(0xFF6B7280),
+            iconColor: colors.mutedInk,
             content:
                 '• 用户发布的内容仅代表个人观点，不代表平台立场\n'
                 '• 平台对用户之间的私下交易、纠纷不承担责任\n'
@@ -158,6 +157,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -171,7 +171,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: colors.primarySubtle,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(
@@ -211,15 +211,16 @@ class CommunityGuidelinesPage extends StatelessWidget {
     required String content,
     bool isWarning = false,
   }) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isWarning
-            ? SharedColors.danger.withValues(alpha: 0.06)
+            ? colors.danger.withValues(alpha: 0.08)
             : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: isWarning
-            ? Border.all(color: SharedColors.danger.withValues(alpha: 0.18))
+            ? Border.all(color: colors.danger.withValues(alpha: 0.2))
             : Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
@@ -244,7 +245,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: isWarning
-                        ? SharedColors.danger
+                        ? colors.danger
                         : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
@@ -258,7 +259,7 @@ class CommunityGuidelinesPage extends StatelessWidget {
               fontSize: 14,
               height: 1.7,
               color: isWarning
-                  ? SharedColors.danger
+                  ? colors.danger
                   : Theme.of(
                       context,
                     ).colorScheme.onSurface.withValues(alpha: 0.74),
@@ -270,22 +271,17 @@ class CommunityGuidelinesPage extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+        color: colors.primarySubtle,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: <Widget>[
-          Icon(
-            Icons.info_outline,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
+          Icon(Icons.info_outline, color: colors.primary, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

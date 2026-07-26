@@ -63,7 +63,10 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
           ? null
           : Padding(
               padding: const EdgeInsets.all(12),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
     );
   }
@@ -75,7 +78,8 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
     });
 
     try {
-      final List<MyCommentItem> items = await AppRepositories.users.fetchMyComments();
+      final List<MyCommentItem> items = await AppRepositories.users
+          .fetchMyComments();
       if (!mounted) {
         return;
       }
@@ -108,17 +112,17 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('评论删除成功。')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('评论删除成功。')));
       await _load();
     } catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('删除失败：$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('删除失败：$error')));
     } finally {
       if (mounted) {
         setState(() {

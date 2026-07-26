@@ -257,15 +257,16 @@ class _IdsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+          color: colors.primarySubtle,
           borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: SharedColors.divider),
+          border: Border.all(color: colors.line),
         ),
         child: Row(
           children: <Widget>[
@@ -273,12 +274,12 @@ class _IdsCard extends StatelessWidget {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
+                color: colors.primary,
                 borderRadius: BorderRadius.circular(AppRadii.medium),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.key_rounded,
-                color: Colors.white,
+                color: colors.onDarkPanel,
                 size: 20,
               ),
             ),
@@ -312,12 +313,13 @@ class _TodayCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadii.large),
-        border: Border.all(color: SharedColors.divider),
+        border: Border.all(color: colors.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,8 +371,9 @@ class _TodayRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 9),
@@ -412,15 +415,13 @@ class _TodayRow extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadii.small),
+                  color: colors.primarySubtle,
+                  borderRadius: BorderRadius.circular(AppRadii.pill),
                 ),
                 child: Text(
                   '进行中',
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colors.primary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                   ),
@@ -441,15 +442,16 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: colors.surfaceRaised,
           borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: SharedColors.divider),
+          border: Border.all(color: colors.line),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,14 +463,12 @@ class _ServiceTile extends StatelessWidget {
                   height: 36,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.08),
+                    color: colors.primarySubtle,
                     borderRadius: BorderRadius.circular(AppRadii.medium),
                   ),
                   child: Icon(
                     _iconForService(service),
-                    color: Theme.of(context).colorScheme.primary,
+                    color: colors.primary,
                     size: 20,
                   ),
                 ),
@@ -476,8 +476,8 @@ class _ServiceTile extends StatelessWidget {
                 AppStatusTag(
                   label: service.authType.trim().isEmpty ? '可使用' : '需认证',
                   color: service.authType.trim().isEmpty
-                      ? SharedColors.success
-                      : SharedColors.warning,
+                      ? colors.success
+                      : colors.warning,
                 ),
               ],
             ),
@@ -527,17 +527,18 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        color: colors.danger.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppRadii.large),
       ),
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Text(message, style: const TextStyle(color: Colors.red)),
+            child: Text(message, style: TextStyle(color: colors.danger)),
           ),
           TextButton(onPressed: onRetry, child: const Text('重试')),
         ],

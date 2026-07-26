@@ -264,9 +264,11 @@ class _LoginManifesto extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 660),
                   child: Text(
                     l10n.tagline,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    style: AppTypography.brandStyle(
+                      locale,
                       color: colors.onDarkPanel,
                       fontSize: locale.languageCode == 'en' ? 66 : 74,
+                      height: 1.05,
                     ),
                   ),
                 ),
@@ -414,7 +416,12 @@ class _LoginForm extends StatelessWidget {
                   const SizedBox(height: AppSpacing.sm),
                 Text(
                   l10n.welcomeBack,
-                  style: Theme.of(context).textTheme.displaySmall,
+                  style: AppTypography.brandStyle(
+                    locale,
+                    color: colors.ink,
+                    fontSize: locale.languageCode == 'en' ? 36 : 38,
+                    height: 1.2,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
@@ -574,9 +581,11 @@ class _CompactBrandHeader extends StatelessWidget {
           color: colors.darkPanel,
           child: Text(
             l10n.tagline,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+            style: AppTypography.brandStyle(
+              locale,
               color: colors.onDarkPanel,
               fontSize: locale.languageCode == 'en' ? 38 : 42,
+              height: 1.15,
             ),
           ),
         ),

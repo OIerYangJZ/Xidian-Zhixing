@@ -1,0 +1,33 @@
+/*
+ * Web bootstrap theme configuration.
+ *
+ * This is the small, pre-Flutter counterpart to AppThemePresets. It only
+ * styles the loading shell, while Flutter owns the product UI after first
+ * frame. Add a preset selector here when AppThemePresets gains a new preset.
+ */
+:root,
+:root[data-theme-preset="ink_vermilion"][data-theme-mode="light"] {
+  color-scheme: light;
+  --boot-page: #ffffff;
+  --boot-surface: #ffffff;
+  --boot-ink: #191917;
+  --boot-muted: #6f706b;
+  --boot-line: #e8e8e4;
+  --boot-primary: #ab3e36;
+  --boot-primary-soft: #faece9;
+  --boot-danger: #af3e36;
+  --boot-control-radius: 10px;
+  --boot-card-radius: 12px;
+}
+
+:root[data-theme-preset="ink_vermilion"][data-theme-mode="dark"] {
+  color-scheme: dark;
+  --boot-page: #151513;
+  --boot-surface: #1d1d1b;
+  --boot-ink: #f5f5f0;
+  --boot-muted: #b7b8b1;
+  --boot-line: #343430;
+  --boot-primary: #e37d73;
+  --boot-primary-soft: #432b28;
+  --boot-danger: #e98c84;
+}

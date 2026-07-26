@@ -7,39 +7,30 @@ import 'shared_colors.dart';
 class AppTheme {
   AppTheme._();
 
-  static ThemeData get lightTheme => lightThemeFor(const Locale('zh', 'CN'));
+  static ThemeData lightThemeFor(Locale locale, {AppThemePreset? preset}) =>
+      _buildTheme(
+        (preset ?? AppThemePresets.inkVermilion).light,
+        Brightness.light,
+        locale,
+      );
 
-  static ThemeData get darkTheme => darkThemeFor(const Locale('zh', 'CN'));
-
-  static ThemeData lightThemeFor(Locale locale) =>
-      _buildTheme(SharedColors.light, Brightness.light, locale);
-
-  static ThemeData darkThemeFor(Locale locale) =>
-      _buildTheme(SharedColors.dark, Brightness.dark, locale);
+  static ThemeData darkThemeFor(Locale locale, {AppThemePreset? preset}) =>
+      _buildTheme(
+        (preset ?? AppThemePresets.inkVermilion).dark,
+        Brightness.dark,
+        locale,
+      );
 
   static ThemeData adminTheme(
     Brightness brightness, {
     Locale locale = const Locale('zh', 'CN'),
-  }) {
-    final EditorialColors base = brightness == Brightness.dark
-        ? SharedColors.dark
-        : SharedColors.light;
-    return _buildTheme(
-      base.copyWith(
-        primary: brightness == Brightness.dark
-            ? const Color(0xFF78B6C8)
-            : SharedColors.adminPrimary,
-        primaryActive: brightness == Brightness.dark
-            ? const Color(0xFF9BCAD7)
-            : const Color(0xFF173742),
-        coral: brightness == Brightness.dark
-            ? const Color(0xFFE0B66C)
-            : SharedColors.adminAccent,
-      ),
-      brightness,
-      locale,
-    );
-  }
+  }) => _buildTheme(
+    brightness == Brightness.dark
+        ? AppThemePresets.inkVermilion.dark
+        : AppThemePresets.inkVermilion.light,
+    brightness,
+    locale,
+  );
 
   static ThemeData _buildTheme(
     EditorialColors palette,
@@ -49,31 +40,29 @@ class AppTheme {
     final ColorScheme scheme = ColorScheme(
       brightness: brightness,
       primary: palette.primary,
-      onPrimary: brightness == Brightness.light
-          ? palette.onDarkPanel
-          : palette.page,
+      onPrimary: palette.onDarkPanel,
       primaryContainer: palette.primarySubtle,
-      onPrimaryContainer: palette.ink,
-      secondary: palette.coral,
-      onSecondary: palette.ink,
-      secondaryContainer: palette.apricot,
+      onPrimaryContainer: palette.primaryActive,
+      secondary: palette.apricot,
+      onSecondary: palette.darkPanel,
+      secondaryContainer: palette.infoSubtle,
       onSecondaryContainer: palette.ink,
       tertiary: palette.info,
-      onTertiary: palette.page,
+      onTertiary: palette.onDarkPanel,
       tertiaryContainer: palette.infoSubtle,
       onTertiaryContainer: palette.ink,
       error: palette.danger,
-      onError: palette.page,
-      errorContainer: palette.primarySubtle,
-      onErrorContainer: palette.ink,
+      onError: palette.onDarkPanel,
+      errorContainer: palette.danger.withValues(alpha: 0.12),
+      onErrorContainer: palette.danger,
       surface: palette.surface,
       onSurface: palette.ink,
-      surfaceContainerHighest: palette.primarySubtle,
+      surfaceContainerHighest: palette.surfaceRaised,
       onSurfaceVariant: palette.mutedInk,
       outline: palette.line,
-      outlineVariant: palette.line.withValues(alpha: 0.72),
-      shadow: Colors.transparent,
-      scrim: palette.ink.withValues(alpha: 0.5),
+      outlineVariant: palette.line,
+      shadow: palette.darkPanel,
+      scrim: palette.darkPanel.withValues(alpha: 0.56),
       inverseSurface: palette.darkPanel,
       onInverseSurface: palette.onDarkPanel,
       inversePrimary: palette.coral,
@@ -95,27 +84,37 @@ class AppTheme {
       splashFactory: InkRipple.splashFactory,
       visualDensity: VisualDensity.standard,
       extensions: <ThemeExtension<dynamic>>[palette],
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.macOS: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.windows: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.linux: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: FadeForwardsPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        toolbarHeight: 68,
-        backgroundColor: palette.page,
+        toolbarHeight: 64,
+        backgroundColor: palette.surface,
         foregroundColor: palette.ink,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: palette.surface,
         titleTextStyle: textTheme.titleMedium,
         shape: Border(bottom: BorderSide(color: palette.line)),
       ),
       cardTheme: CardThemeData(
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.small),
+          borderRadius: BorderRadius.circular(AppRadii.large),
           side: BorderSide(color: palette.line),
         ),
         elevation: 0,
-        color: palette.surface,
-        surfaceTintColor: Colors.transparent,
-        shadowColor: Colors.transparent,
+        color: palette.surfaceRaised,
+        surfaceTintColor: palette.surfaceRaised,
+        shadowColor: palette.darkPanel,
       ),
       dividerTheme: DividerThemeData(
         color: palette.line,
@@ -123,46 +122,51 @@ class AppTheme {
         space: 1,
       ),
       filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          elevation: 0,
-          shape: controlShape,
-          backgroundColor: palette.darkPanel,
-          foregroundColor: palette.onDarkPanel,
-          disabledBackgroundColor: palette.line,
-          disabledForegroundColor: palette.mutedInk,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.sm,
-          ),
-          textStyle: textTheme.labelLarge,
-        ),
+        style:
+            FilledButton.styleFrom(
+              minimumSize: const Size(48, 44),
+              elevation: 0,
+              shape: controlShape,
+              backgroundColor: palette.primary,
+              foregroundColor: palette.onDarkPanel,
+              disabledBackgroundColor: palette.line,
+              disabledForegroundColor: palette.faintInk,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              textStyle: textTheme.labelLarge,
+            ).copyWith(
+              overlayColor: WidgetStatePropertyAll(
+                palette.primaryActive.withValues(alpha: 0.16),
+              ),
+            ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 48),
+          minimumSize: const Size(48, 44),
           elevation: 0,
           shape: controlShape,
           foregroundColor: palette.ink,
           padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
+            horizontal: AppSpacing.md,
             vertical: AppSpacing.sm,
           ),
-          side: BorderSide(color: palette.ink),
+          side: BorderSide(color: palette.line),
           textStyle: textTheme.labelLarge,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size(44, 44),
+          minimumSize: const Size(40, 40),
           shape: controlShape,
-          foregroundColor: palette.ink,
+          foregroundColor: palette.primary,
           textStyle: textTheme.labelLarge,
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-          minimumSize: const Size(44, 44),
+          minimumSize: const Size(40, 40),
           foregroundColor: palette.ink,
           shape: controlShape,
         ),
@@ -172,14 +176,14 @@ class AppTheme {
         focusElevation: 0,
         hoverElevation: 0,
         backgroundColor: palette.primary,
-        foregroundColor: palette.page,
+        foregroundColor: palette.onDarkPanel,
         shape: controlShape,
       ),
       navigationBarTheme: NavigationBarThemeData(
         height: 68,
-        backgroundColor: palette.page,
+        backgroundColor: palette.surface,
         indicatorColor: palette.primarySubtle,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: palette.surface,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>(
           (Set<WidgetState> states) => textTheme.labelMedium?.copyWith(
@@ -189,26 +193,15 @@ class AppTheme {
           ),
         ),
       ),
-      navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: palette.page,
-        indicatorColor: palette.primarySubtle,
-        selectedIconTheme: IconThemeData(color: palette.primary),
-        unselectedIconTheme: IconThemeData(color: palette.mutedInk),
-        selectedLabelTextStyle: textTheme.labelLarge?.copyWith(
-          color: palette.primary,
-        ),
-        unselectedLabelTextStyle: textTheme.labelLarge?.copyWith(
-          color: palette.mutedInk,
-        ),
-      ),
       inputDecorationTheme: InputDecorationTheme(
-        filled: false,
+        filled: true,
+        fillColor: palette.surface,
         labelStyle: TextStyle(color: palette.mutedInk),
         floatingLabelStyle: TextStyle(
           color: palette.primary,
           fontWeight: FontWeight.w600,
         ),
-        hintStyle: TextStyle(color: palette.mutedInk),
+        hintStyle: TextStyle(color: palette.faintInk),
         prefixIconColor: palette.mutedInk,
         suffixIconColor: palette.mutedInk,
         border: OutlineInputBorder(
@@ -241,9 +234,7 @@ class AppTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.small),
-        ),
+        shape: const StadiumBorder(),
         selectedColor: palette.primarySubtle,
         backgroundColor: palette.surface,
         side: BorderSide(color: palette.line),
@@ -260,16 +251,20 @@ class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: palette.surface,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: palette.surface,
         shape: controlShape,
         titleTextStyle: textTheme.titleLarge,
         contentTextStyle: textTheme.bodyMedium,
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: palette.surface,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: palette.surface,
         showDragHandle: true,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.hero),
+          ),
+        ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: palette.primary,

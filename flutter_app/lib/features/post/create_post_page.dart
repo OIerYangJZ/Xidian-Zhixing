@@ -9,6 +9,7 @@ import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
@@ -885,6 +886,7 @@ class _PickedImageCard extends StatelessWidget {
 
     final String sizeStr = _formatFileSize(image.sizeBytes);
     final bool isLargeFile = image.sizeBytes > 5 * 1024 * 1024;
+    final EditorialColors colors = EditorialColors.of(context);
 
     return SizedBox(
       width: 140,
@@ -908,17 +910,17 @@ class _PickedImageCard extends StatelessWidget {
                       top: 2,
                       right: 2,
                       child: Material(
-                        color: Colors.black54,
+                        color: colors.darkPanel.withValues(alpha: 0.76),
                         borderRadius: BorderRadius.circular(999),
                         child: InkWell(
                           onTap: onRemove,
                           customBorder: const CircleBorder(),
-                          child: const Padding(
+                          child: Padding(
                             padding: EdgeInsets.all(4),
                             child: Icon(
                               Icons.close,
                               size: 14,
-                              color: Colors.white,
+                              color: colors.onDarkPanel,
                             ),
                           ),
                         ),
@@ -934,13 +936,13 @@ class _PickedImageCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.9),
+                            color: colors.warning,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             sizeStr,
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: colors.onDarkPanel,
                               fontSize: 9,
                               fontWeight: FontWeight.w600,
                             ),

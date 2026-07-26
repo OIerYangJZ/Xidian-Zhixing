@@ -21,6 +21,9 @@ flutter_app/android/build/
 
 # Local review artifacts
 /artifacts/
+/.playwright-cli/
+/output/
+/.code-review-graph/
 
 # macOS
 .DS_Store

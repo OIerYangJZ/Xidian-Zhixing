@@ -10,23 +10,29 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="apple-touch-icon" href="icons/Icon-192.png" />
     <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="bootstrap_theme.css" />
+    <script>
+      const storedThemeMode = Number(
+        window.localStorage.getItem('flutter.web_theme_mode'),
+      );
+      const resolvedThemeMode =
+        storedThemeMode === 2 ||
+        (storedThemeMode !== 1 &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches)
+          ? 'dark'
+          : 'light';
+      const storedPreset = JSON.parse(
+        window.localStorage.getItem('flutter.web_theme_preset') ??
+          '"ink_vermilion"',
+      );
+      document.documentElement.dataset.themeMode = resolvedThemeMode;
+      document.documentElement.dataset.themePreset = storedPreset;
+    </script>
     <style>
       @font-face {
         font-family: "Anthropic Serif Web";
         src: local("Anthropic Serif Web"), local("Anthropic Serif Web Text");
         font-display: swap;
-      }
-
-      :root {
-        color-scheme: light dark;
-        --boot-page: #f7f6f2;
-        --boot-surface: #fffefa;
-        --boot-ink: #181816;
-        --boot-muted: #66635d;
-        --boot-line: #d8d5cc;
-        --boot-primary: #a43b32;
-        --boot-primary-soft: #f1e5df;
-        --boot-danger: #97382f;
       }
 
       html,
@@ -58,7 +64,7 @@
       .boot-card {
         width: min(420px, calc(100vw - 32px));
         padding: 24px 22px 20px;
-        border-radius: 2px;
+        border-radius: var(--boot-card-radius);
         background: var(--boot-surface);
         box-shadow: none;
         border: 1px solid var(--boot-line);
@@ -117,57 +123,13 @@
         margin-top: 14px;
         display: none;
         border: 0;
-        border-radius: 2px;
+        border-radius: var(--boot-control-radius);
         background: var(--boot-primary);
         color: var(--boot-page);
         padding: 10px 14px;
         font-size: 14px;
         font-weight: 700;
         cursor: pointer;
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --boot-page: #171714;
-          --boot-surface: #20201c;
-          --boot-ink: #f4f1e8;
-          --boot-muted: #bbb6aa;
-          --boot-line: #45443d;
-          --boot-primary: #e08075;
-          --boot-primary-soft: #3c2824;
-          --boot-danger: #e58a80;
-        }
-
-        html,
-        body,
-        #boot-shell {
-          background: var(--boot-page);
-        }
-
-        .boot-card {
-          background: var(--boot-surface);
-          border-color: var(--boot-line);
-        }
-
-        .boot-title {
-          color: var(--boot-ink);
-        }
-
-        .boot-subtitle {
-          color: var(--boot-muted);
-        }
-
-        .boot-progress {
-          background: var(--boot-primary-soft);
-        }
-
-        .boot-progress > span {
-          background: var(--boot-primary);
-        }
-
-        .boot-status {
-          color: var(--boot-primary);
-        }
       }
 
       @keyframes boot-progress {

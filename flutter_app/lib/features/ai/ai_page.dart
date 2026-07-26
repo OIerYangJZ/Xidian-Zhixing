@@ -358,8 +358,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       }
       _scrollController.animateTo(
         _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
+        duration: AppMotion.resolve(context, AppMotion.page),
+        curve: AppMotion.settle,
       );
     });
   }
@@ -459,6 +459,7 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     final bool user = role == 'user';
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
@@ -477,11 +478,9 @@ class _MessageBubble extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(13),
               decoration: BoxDecoration(
-                color: user
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surface,
+                color: user ? colors.primary : colors.surfaceRaised,
                 borderRadius: BorderRadius.circular(AppRadii.large),
-                border: user ? null : Border.all(color: SharedColors.divider),
+                border: user ? null : Border.all(color: colors.line),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,7 +488,7 @@ class _MessageBubble extends StatelessWidget {
                   Text(
                     content,
                     style: TextStyle(
-                      color: user ? Colors.white : null,
+                      color: user ? colors.onDarkPanel : colors.ink,
                       height: 1.55,
                     ),
                   ),
@@ -504,16 +503,13 @@ class _MessageBubble extends StatelessWidget {
                         margin: const EdgeInsets.only(bottom: AppSpacing.xs),
                         padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          border: Border.all(color: SharedColors.divider),
+                          color: colors.surface,
+                          border: Border.all(color: colors.line),
                           borderRadius: BorderRadius.circular(AppRadii.small),
                         ),
                         child: Text(
                           '${entry.key + 1}. ${entry.value.type} · ${entry.value.title}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 12,
-                          ),
+                          style: TextStyle(color: colors.primary, fontSize: 12),
                         ),
                       ),
                   ],
@@ -535,20 +531,18 @@ class _AiAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       width: 34,
       height: 34,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadii.medium),
+        color: colors.primarySubtle,
+        shape: BoxShape.circle,
       ),
       child: Text(
         label,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w600,
-        ),
+        style: TextStyle(color: colors.primary, fontWeight: FontWeight.w600),
       ),
     );
   }

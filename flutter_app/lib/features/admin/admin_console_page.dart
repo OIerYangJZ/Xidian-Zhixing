@@ -427,6 +427,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _buildOverviewTab() {
+    final EditorialColors colors = EditorialColors.of(context);
     final AdminOverview overview =
         _overview ??
         AdminOverview(
@@ -452,55 +453,55 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
               title: '今日新增用户',
               value: overview.todayNewUsers,
               icon: Icons.person_add_alt_1_rounded,
-              color: SharedColors.primary,
+              color: colors.primary,
             ),
             _metricCard(
               title: '今日发帖数',
               value: overview.todayPosts,
               icon: Icons.edit_note_rounded,
-              color: SharedColors.success,
+              color: colors.success,
             ),
             _metricCard(
               title: '今日评论数',
               value: overview.todayComments,
               icon: Icons.forum_outlined,
-              color: SharedColors.deep,
+              color: colors.primaryActive,
             ),
             _metricCard(
               title: '今日举报数',
               value: overview.todayReports,
               icon: Icons.flag_circle_outlined,
-              color: SharedColors.warning,
+              color: colors.warning,
             ),
             _metricCard(
               title: '待审核内容',
               value: overview.pendingReviews,
               icon: Icons.approval_outlined,
-              color: SharedColors.warning,
+              color: colors.warning,
             ),
             _metricCard(
               title: '待注销申请',
               value: overview.pendingCancellationRequests,
               icon: Icons.person_remove_alt_1_outlined,
-              color: SharedColors.warning,
+              color: colors.warning,
             ),
             _metricCard(
               title: '活跃账号数',
               value: overview.activeUsers,
               icon: Icons.groups_rounded,
-              color: SharedColors.primary,
+              color: colors.primary,
             ),
             _metricCard(
               title: '被封禁用户',
               value: overview.bannedUsers,
               icon: Icons.gpp_bad_outlined,
-              color: SharedColors.danger,
+              color: colors.danger,
             ),
             _metricCard(
               title: '被禁言用户',
               value: overview.mutedUsers,
               icon: Icons.volume_off_outlined,
-              color: SharedColors.deep,
+              color: colors.primaryActive,
             ),
           ],
         ),
@@ -3195,14 +3196,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Widget _statusChip(String status) {
+    final EditorialColors tokens = EditorialColors.of(context);
     final String normalized = status.trim().toLowerCase();
     final Map<String, Color> colors = <String, Color>{
-      'pending': SharedColors.warning,
-      'approved': SharedColors.success,
-      'resolved': SharedColors.success,
-      'rejected': SharedColors.danger,
-      'closed': SharedColors.textSecondary,
-      'risk': SharedColors.warning,
+      'pending': tokens.warning,
+      'approved': tokens.success,
+      'resolved': tokens.success,
+      'rejected': tokens.danger,
+      'closed': tokens.mutedInk,
+      'risk': tokens.warning,
     };
     final Map<String, String> labels = <String, String>{
       'pending': '待处理',

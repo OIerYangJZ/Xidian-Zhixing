@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/config/app_config.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/theme/shared_colors.dart';
 
 class ImageGallery extends StatelessWidget {
   const ImageGallery({super.key, required this.images, this.onRemove});
@@ -60,7 +61,7 @@ class ImageGallery extends StatelessWidget {
     Navigator.of(context).push(
       PageRouteBuilder(
         opaque: false,
-        barrierColor: Colors.black,
+        barrierColor: EditorialColors.of(context).darkPanel,
         pageBuilder: (context, animation, secondaryAnimation) {
           return FadeTransition(
             opacity: animation,
@@ -93,6 +94,7 @@ class _ImageTile extends StatefulWidget {
 class _ImageTileState extends State<_ImageTile> {
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Semantics(
       button: true,
       label: '打开图片预览',
@@ -102,7 +104,7 @@ class _ImageTileState extends State<_ImageTile> {
           Material(
             clipBehavior: Clip.antiAlias,
             borderRadius: BorderRadius.circular(AppRadii.medium),
-            child: InkWell(onTap: widget.onTap, child: _buildImage()),
+            child: InkWell(onTap: widget.onTap, child: _buildImage(context)),
           ),
           if (widget.onRemove != null)
             Positioned(
@@ -113,8 +115,8 @@ class _ImageTileState extends State<_ImageTile> {
                 onPressed: widget.onRemove,
                 style: IconButton.styleFrom(
                   minimumSize: const Size(36, 36),
-                  backgroundColor: Colors.black.withValues(alpha: 0.64),
-                  foregroundColor: Colors.white,
+                  backgroundColor: colors.darkPanel.withValues(alpha: 0.76),
+                  foregroundColor: colors.onDarkPanel,
                 ),
                 icon: const Icon(Icons.close_rounded, size: 18),
               ),
@@ -124,22 +126,26 @@ class _ImageTileState extends State<_ImageTile> {
     );
   }
 
-  Widget _buildImage() {
-    const Widget errorPlaceholder = ColoredBox(
-      color: Colors.black12,
+  Widget _buildImage(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final Widget errorPlaceholder = ColoredBox(
+      color: colors.primarySubtle,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(Icons.broken_image_outlined, color: Colors.black38, size: 32),
-            SizedBox(height: 4),
-            Text('加载失败', style: TextStyle(color: Colors.black45, fontSize: 10)),
+            Icon(Icons.broken_image_outlined, color: colors.mutedInk, size: 32),
+            const SizedBox(height: 4),
+            Text(
+              '加载失败',
+              style: TextStyle(color: colors.mutedInk, fontSize: 10),
+            ),
           ],
         ),
       ),
     );
-    const Widget loadingPlaceholder = ColoredBox(
-      color: Colors.black12,
+    final Widget loadingPlaceholder = ColoredBox(
+      color: colors.primarySubtle,
       child: Center(
         child: SizedBox(
           width: 24,
@@ -221,8 +227,9 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colors.darkPanel,
       body: Stack(
         children: [
           // 图片页面
@@ -262,8 +269,10 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
                       tooltip: '关闭图片预览',
                       onPressed: () => Navigator.of(context).pop(),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.black45,
-                        foregroundColor: Colors.white,
+                        backgroundColor: colors.darkPanel.withValues(
+                          alpha: 0.76,
+                        ),
+                        foregroundColor: colors.onDarkPanel,
                       ),
                       icon: const Icon(Icons.close_rounded),
                     ),
@@ -273,13 +282,13 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black45,
+                        color: colors.darkPanel.withValues(alpha: 0.76),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         '${_currentIndex + 1} / ${widget.images.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: colors.onDarkPanel,
                           fontSize: 14,
                         ),
                       ),
@@ -299,12 +308,12 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
                 child: IconButton.filled(
                   tooltip: '上一张',
                   onPressed: () => _pageController.previousPage(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
+                    duration: AppMotion.resolve(context, AppMotion.page),
+                    curve: AppMotion.settle,
                   ),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black45,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colors.darkPanel.withValues(alpha: 0.76),
+                    foregroundColor: colors.onDarkPanel,
                   ),
                   icon: const Icon(Icons.chevron_left_rounded),
                 ),
@@ -320,12 +329,12 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
                 child: IconButton.filled(
                   tooltip: '下一张',
                   onPressed: () => _pageController.nextPage(
-                    duration: const Duration(milliseconds: 220),
-                    curve: Curves.easeOut,
+                    duration: AppMotion.resolve(context, AppMotion.page),
+                    curve: AppMotion.settle,
                   ),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black45,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colors.darkPanel.withValues(alpha: 0.76),
+                    foregroundColor: colors.onDarkPanel,
                   ),
                   icon: const Icon(Icons.chevron_right_rounded),
                 ),
@@ -349,16 +358,17 @@ class _ViewerImage extends StatefulWidget {
 class _ViewerImageState extends State<_ViewerImage> {
   @override
   Widget build(BuildContext context) {
-    const Widget errorPlaceholder = Column(
+    final EditorialColors colors = EditorialColors.of(context);
+    final Widget errorPlaceholder = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
-        SizedBox(height: 16),
-        Text('图片加载失败', style: TextStyle(color: Colors.white54)),
+        Icon(Icons.broken_image_outlined, color: colors.railMuted, size: 64),
+        const SizedBox(height: 16),
+        Text('图片加载失败', style: TextStyle(color: colors.railMuted)),
       ],
     );
-    const Widget loadingPlaceholder = CircularProgressIndicator(
-      color: Colors.white,
+    final Widget loadingPlaceholder = CircularProgressIndicator(
+      color: colors.onDarkPanel,
     );
 
     if (widget.imageUrl.startsWith('data:')) {

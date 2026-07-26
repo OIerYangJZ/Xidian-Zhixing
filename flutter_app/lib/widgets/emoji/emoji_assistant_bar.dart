@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/emoji/emoji_catalog.dart';
 import '../../core/emoji/emoji_settings_store.dart';
+import '../../core/theme/shared_colors.dart';
 
 class EmojiAssistantBar extends StatelessWidget {
   const EmojiAssistantBar({
@@ -125,8 +126,9 @@ Future<void> showEmojiPickerSheet({
                   ),
                   itemBuilder: (BuildContext context, int index) {
                     final String emoji = EmojiCatalog.all[index];
+                    final EditorialColors colors = EditorialColors.of(context);
                     return Material(
-                      color: Colors.white,
+                      color: colors.surfaceRaised,
                       borderRadius: BorderRadius.circular(8),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(8),

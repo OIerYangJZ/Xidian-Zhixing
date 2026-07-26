@@ -7,6 +7,7 @@ import 'core/auth/admin_auth_store.dart';
 import 'core/auth/auth_store.dart';
 import 'core/emoji/emoji_settings_store.dart';
 import 'core/state/app_locale_store.dart';
+import 'core/state/web_theme_store.dart';
 import 'mobile/mobile_app_entry_stub.dart'
     if (dart.library.io) 'mobile/mobile_app_entry.dart';
 
@@ -17,6 +18,7 @@ Future<void> main() async {
     AdminAuthStore.instance.init(),
     EmojiSettingsStore.instance.init(),
     AppLocaleStore.instance.init(),
+    WebThemeStore.instance.init(),
   ]);
 
   if (kIsWeb) {

@@ -11,10 +11,9 @@ class ReportGuidelinesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(_title),
-      ),
+      appBar: AppBar(title: const Text(_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -34,7 +33,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '一、举报流程',
             icon: Icons.route_outlined,
-            iconColor: const Color(0xFF059669),
+            iconColor: colors.success,
             content:
                 '【步骤一】找到举报入口\n'
                 '• 在帖子详情页右下角点击"更多"按钮（三个点图标）\n'
@@ -54,7 +53,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '二、举报类型说明',
             icon: Icons.list_alt_outlined,
-            iconColor: const Color(0xFF7C3AED),
+            iconColor: colors.primary,
             content:
                 '请选择最准确的举报类型，以便我们快速处理：\n\n'
                 '【违法违规】\n'
@@ -85,7 +84,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '三、举报注意事项',
             icon: Icons.tips_and_updates_outlined,
-            iconColor: const Color(0xFFEA580C),
+            iconColor: colors.warning,
             isWarning: true,
             content:
                 '【正确举报】\n'
@@ -108,7 +107,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '四、处理结果说明',
             icon: Icons.check_circle_outline,
-            iconColor: const Color(0xFF0284C7),
+            iconColor: colors.info,
             content:
                 '管理员审核后，处理结果分为以下几种：\n\n'
                 '【内容删除】\n'
@@ -126,7 +125,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '五、举报处理时长',
             icon: Icons.timer_outlined,
-            iconColor: const Color(0xFF6B7280),
+            iconColor: colors.mutedInk,
             content:
                 '【一般情况】\n'
                 '• 工作时间（工作日9:00-18:00）：平均处理时长 2-6 小时\n'
@@ -142,7 +141,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '六、举报人保护',
             icon: Icons.security_outlined,
-            iconColor: const Color(0xFF059669),
+            iconColor: colors.success,
             content:
                 '我们高度重视举报人的隐私和安全：\n\n'
                 '• 您的举报记录受到严格保护，不会向被举报人透露\n'
@@ -156,7 +155,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             context,
             title: '七、联系我们',
             icon: Icons.headset_mic_outlined,
-            iconColor: const Color(0xFF7C3AED),
+            iconColor: colors.primary,
             content:
                 '如果您在举报过程中遇到问题，或对处理结果有异议，可通过以下方式联系我们：\n\n'
                 '• 在"我的举报"页面查看详情并留言反馈\n'
@@ -173,6 +172,7 @@ class ReportGuidelinesPage extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -186,7 +186,7 @@ class ReportGuidelinesPage extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: colors.primarySubtle,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(
@@ -226,15 +226,16 @@ class ReportGuidelinesPage extends StatelessWidget {
     required String content,
     bool isWarning = false,
   }) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isWarning
-            ? SharedColors.warning.withValues(alpha: 0.08)
+            ? colors.warning.withValues(alpha: 0.1)
             : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: isWarning
-            ? Border.all(color: SharedColors.warning.withValues(alpha: 0.18))
+            ? Border.all(color: colors.warning.withValues(alpha: 0.2))
             : Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
@@ -259,7 +260,7 @@ class ReportGuidelinesPage extends StatelessWidget {
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: isWarning
-                        ? SharedColors.warning
+                        ? colors.warning
                         : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
@@ -273,7 +274,7 @@ class ReportGuidelinesPage extends StatelessWidget {
               fontSize: 14,
               height: 1.7,
               color: isWarning
-                  ? SharedColors.warning
+                  ? colors.warning
                   : Theme.of(
                       context,
                     ).colorScheme.onSurface.withValues(alpha: 0.74),
@@ -285,22 +286,17 @@ class ReportGuidelinesPage extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
+        color: colors.primarySubtle,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
-        ),
+        border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
       ),
       child: Row(
         children: <Widget>[
-          Icon(
-            Icons.info_outline,
-            color: Theme.of(context).colorScheme.primary,
-            size: 20,
-          ),
+          Icon(Icons.info_outline, color: colors.primary, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(

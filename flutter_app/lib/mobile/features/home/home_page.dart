@@ -364,7 +364,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 SliverAppBar(
                   pinned: true,
                   expandedHeight: 60,
-                  backgroundColor: isDarkMode ? Colors.black : colors.background,
+                  backgroundColor: isDarkMode
+                      ? Colors.black
+                      : colors.background,
                   elevation: 0,
                   scrolledUnderElevation: isDarkMode ? 0 : 0.5,
                   surfaceTintColor: Colors.transparent,
@@ -384,7 +386,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Text(
+                                Text(
                                   '树洞',
                                   style: TextStyle(
                                     color: SharedColors.deep,
@@ -411,11 +413,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         child: Row(
                                           children: [
                                             Icon(
-                                              meta?.icon ?? Icons.grid_view_rounded,
+                                              meta?.icon ??
+                                                  Icons.grid_view_rounded,
                                               size: 20,
                                               color: isSelected
                                                   ? primaryColor
-                                                  : (meta?.color ?? colors.textSecondary),
+                                                  : (meta?.color ??
+                                                        colors.textSecondary),
                                             ),
                                             const SizedBox(width: 12),
                                             Expanded(
@@ -449,12 +453,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         .switchChannel(channel);
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: SharedColors.softRed,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: SharedColors.primary.withValues(alpha: 0.2),
+                                        color: SharedColors.primary.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         width: 0.5,
                                       ),
                                     ),
@@ -469,14 +478,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         const SizedBox(width: 4),
                                         Text(
                                           feedState.selectedChannel,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.w600,
                                             color: SharedColors.primary,
                                           ),
                                         ),
                                         const SizedBox(width: 2),
-                                        const Icon(
+                                        Icon(
                                           Icons.arrow_drop_down,
                                           size: 12,
                                           color: SharedColors.primary,
@@ -487,14 +496,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 ),
                               ],
                             ),
-                            const Text(
+                            Text(
                               '把今天藏进一枚印章里',
                               style: TextStyle(
                                 color: SharedColors.textSecondary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.normal,
                                 fontFamily: MobileTheme.quoteFontFamily,
-                                fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
+                                fontFamilyFallback:
+                                    MobileTheme.quoteFontFamilyFallback,
                               ),
                             ),
                           ],

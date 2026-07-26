@@ -6,10 +6,7 @@ import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 
-enum FavoriteSortMode {
-  latest,
-  hot,
-}
+enum FavoriteSortMode { latest, hot }
 
 extension FavoriteSortModeLabel on FavoriteSortMode {
   String get label {
@@ -76,7 +73,10 @@ class FavoritesPageState extends State<FavoritesPage> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             ),
           const SizedBox(height: 4),
           ...filtered.map(_buildFavoriteCard),
@@ -84,9 +84,7 @@ class FavoritesPageState extends State<FavoritesPage> {
             Padding(
               padding: const EdgeInsets.all(20),
               child: Center(
-                child: Text(
-                  _favorites.isEmpty ? '你还没有收藏帖子。' : '暂无符合条件的收藏内容。',
-                ),
+                child: Text(_favorites.isEmpty ? '你还没有收藏帖子。' : '暂无符合条件的收藏内容。'),
               ),
             ),
         ],
@@ -111,9 +109,9 @@ class FavoritesPageState extends State<FavoritesPage> {
               children: <Widget>[
                 Text(
                   '我的收藏夹',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 Text(
@@ -226,8 +224,10 @@ class FavoritesPageState extends State<FavoritesPage> {
         PostCard(
           post: post,
           onTap: () async {
-            final PostItem? updated =
-                await openPostDetailPage(context, post: post);
+            final PostItem? updated = await openPostDetailPage(
+              context,
+              post: post,
+            );
             if (!mounted || updated == null) {
               return;
             }
@@ -297,16 +297,16 @@ class FavoritesPageState extends State<FavoritesPage> {
     });
 
     try {
-      final FavoriteActionResult result =
-          await AppRepositories.posts.unfavoritePost(post.id);
+      final FavoriteActionResult result = await AppRepositories.posts
+          .unfavoritePost(post.id);
       if (!mounted) {
         return;
       }
 
       if (result.favorited) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('取消收藏失败，请稍后重试。')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('取消收藏失败，请稍后重试。')));
         return;
       }
 
@@ -331,9 +331,9 @@ class FavoritesPageState extends State<FavoritesPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('取消收藏失败：$error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('取消收藏失败：$error')));
     } finally {
       if (mounted) {
         setState(() {
@@ -345,8 +345,8 @@ class FavoritesPageState extends State<FavoritesPage> {
 
   Future<void> _restoreFavorite(PostItem post) async {
     try {
-      final FavoriteActionResult result =
-          await AppRepositories.posts.favoritePost(post.id);
+      final FavoriteActionResult result = await AppRepositories.posts
+          .favoritePost(post.id);
       if (!mounted) {
         return;
       }
@@ -379,8 +379,8 @@ class FavoritesPageState extends State<FavoritesPage> {
 
     try {
       final List<String> channels = await AppRepositories.posts.fetchChannels();
-      final List<PostItem> posts =
-          await AppRepositories.posts.fetchFavoritePosts();
+      final List<PostItem> posts = await AppRepositories.posts
+          .fetchFavoritePosts();
 
       if (!mounted) {
         return;

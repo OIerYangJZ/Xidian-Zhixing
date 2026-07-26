@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config/app_brand.dart';
+import '../../core/theme/shared_colors.dart';
 
 class TermsOfServicePage extends StatelessWidget {
   const TermsOfServicePage({super.key});
@@ -11,9 +12,7 @@ class TermsOfServicePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(_title),
-      ),
+      appBar: AppBar(title: const Text(_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -123,6 +122,7 @@ class TermsOfServicePage extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -136,7 +136,7 @@ class TermsOfServicePage extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: colors.primarySubtle,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(

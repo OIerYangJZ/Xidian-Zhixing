@@ -4,6 +4,7 @@ import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/app_repositories.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -138,9 +139,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           context,
                         ).colorScheme.primary.withValues(alpha: 0.1),
                         child: _selectedAvatar == null
-                            ? const Icon(
+                            ? Icon(
                                 Icons.person_outline,
-                                color: Color(0xFF5B6B88),
+                                color: EditorialColors.of(context).info,
                               )
                             : ClipOval(
                                 child: Image.network(

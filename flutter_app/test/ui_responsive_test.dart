@@ -260,7 +260,7 @@ void main() {
 Widget _app(Widget home) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
-    theme: AppTheme.lightTheme,
+    theme: AppTheme.lightThemeFor(const Locale('zh', 'CN')),
     localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
       AppLocalizations.delegate,
       GlobalMaterialLocalizations.delegate,

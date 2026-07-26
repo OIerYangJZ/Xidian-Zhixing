@@ -7,11 +7,6 @@ import '../core/navigation/url_query_state.dart';
 import '../core/state/app_locale_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
-import '../core/widgets/app_surfaces.dart';
-import '../core/widgets/language_toggle.dart';
-import '../l10n/generated/app_localizations.dart';
-import '../models/post_item.dart';
-import '../repositories/app_repositories.dart';
 import '../features/ai/ai_page.dart';
 import '../features/campus/campus_page.dart';
 import '../features/feed/feed_page.dart';
@@ -22,6 +17,9 @@ import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
+import '../l10n/generated/app_localizations.dart';
+import '../models/post_item.dart';
+import '../repositories/app_repositories.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -38,9 +36,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _restorePostFromUrlIfNeeded();
-    });
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _restorePostFromUrlIfNeeded(),
+    );
   }
 
   @override
@@ -63,14 +61,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         Icons.auto_awesome_outlined,
       ),
     ];
-    final double width = MediaQuery.sizeOf(context).width;
-    final bool desktop = width >= AppBreakpoints.medium;
-    final bool expandedRail = width >= AppBreakpoints.expanded;
-    final NotificationsState notificationsState = ref.watch(
-      notificationsControllerProvider,
-    );
-    final int notificationUnreadCount = notificationsState.unreadCount;
-
+    final bool desktop = AppBreakpoints.isDesktop(context);
+    final bool expandedRail = AppBreakpoints.isExpanded(context);
+    final int unread = ref.watch(notificationsControllerProvider).unreadCount;
     final Widget content = Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: AppLayout.pageMaxWidth),
@@ -79,118 +72,56 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        toolbarHeight: 68,
-        titleSpacing: desktop ? 30 : 16,
-        title: Row(
-          children: <Widget>[
-            if (!desktop) ...<Widget>[
-              const AppSealMark(size: 32),
-              const SizedBox(width: AppSpacing.sm),
-            ],
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    destinations[_currentIndex].label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: desktop
-                        ? Theme.of(context).textTheme.titleLarge
-                        : Theme.of(context).textTheme.titleMedium,
+      backgroundColor: EditorialColors.of(context).page,
+      appBar: desktop
+          ? null
+          : AppBar(
+              titleSpacing: AppSpacing.md,
+              title: _MobileTitle(destination: destinations[_currentIndex]),
+              actions: <Widget>[
+                IconButton(
+                  onPressed: _openSearch,
+                  tooltip: l10n.search,
+                  icon: const Icon(Icons.search_rounded),
+                ),
+                IconButton(
+                  onPressed: _openNotifications,
+                  tooltip: l10n.notifications,
+                  icon: Badge(
+                    isLabelVisible: unread > 0,
+                    label: Text(unread > 99 ? '99+' : '$unread'),
+                    child: const Icon(Icons.notifications_none_rounded),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    destinations[_currentIndex].subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.58),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+              ],
             ),
-          ],
-        ),
-        actions: <Widget>[
-          if (_currentIndex == 0 && !desktop)
-            IconButton(
-              tooltip: l10n.filter,
-              onPressed: _openFeedFilters,
-              icon: const Icon(Icons.menu_rounded),
-            ),
-          if (desktop)
-            Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.sm),
-              child: LanguageToggle(
-                locale: Localizations.localeOf(context),
-                onChanged: AppLocaleStore.instance.setLocale,
-                compact: true,
-              ),
-            ),
-          if (desktop)
-            _DesktopSearchButton(onPressed: _openSearch, label: l10n.search)
-          else if (_currentIndex == 0)
-            IconButton(
-              tooltip: l10n.search,
-              onPressed: _openSearch,
-              icon: const Icon(Icons.search_rounded),
-            ),
-          IconButton(
-            onPressed: _openNotifications,
-            tooltip: l10n.notifications,
-            icon: Badge(
-              isLabelVisible: notificationUnreadCount > 0,
-              label: Text(
-                notificationUnreadCount > 99
-                    ? '99+'
-                    : '$notificationUnreadCount',
-              ),
-              child: const Icon(Icons.notifications_none_rounded),
-            ),
-          ),
-          if (desktop && _currentIndex == 0) ...<Widget>[
-            const SizedBox(width: AppSpacing.xs),
-            FilledButton.icon(
-              key: const Key('create-post-top-action'),
-              onPressed: _openCreatePost,
-              icon: const Icon(Icons.edit_outlined, size: 18),
-              label: Text(l10n.publishVoice),
-            ),
-          ],
-          SizedBox(width: desktop ? AppSpacing.lg : AppSpacing.xs),
-        ],
-      ),
       body: desktop
           ? Row(
               children: <Widget>[
                 _DesktopRail(
                   currentIndex: _currentIndex,
                   destinations: destinations,
-                  onSelect: _selectTab,
                   extended: expandedRail,
+                  unread: unread,
+                  onSelect: _selectTab,
+                  onCreate: _openCreatePost,
+                  onSearch: _openSearch,
+                  onNotifications: _openNotifications,
                   onProfile: _openProfileSheet,
                 ),
                 Expanded(child: content),
               ],
             )
           : content,
-      floatingActionButton: _currentIndex == 0
-          ? (desktop
-                ? null
-                : FloatingActionButton(
-                    key: const Key('create-post-fab'),
-                    onPressed: _openCreatePost,
-                    tooltip: l10n.createPost,
-                    child: const Icon(Icons.edit_outlined),
-                  ))
-          : null,
+      floatingActionButton: desktop || _currentIndex != 0
+          ? null
+          : FloatingActionButton(
+              key: const Key('create-post-fab'),
+              onPressed: _openCreatePost,
+              tooltip: l10n.createPost,
+              child: const Icon(Icons.edit_outlined),
+            ),
       bottomNavigationBar: desktop
           ? null
           : NavigationBar(
@@ -201,7 +132,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   .map(
                     (_ShellDestination item) => NavigationDestination(
                       icon: Icon(item.icon),
-                      selectedIcon: _selectedIcon(item.icon),
+                      selectedIcon: Icon(item.icon),
                       label: item.label,
                     ),
                   )
@@ -210,50 +141,29 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
   }
 
-  Widget _pageForIndex(int index) {
-    return _pageCache.putIfAbsent(index, () {
-      switch (index) {
-        case 0:
-          return const FeedPage();
-        case 1:
-          return const CampusPage();
-        case 2:
-          return const AiPage();
-        default:
-          return const FeedPage();
-      }
-    });
-  }
-
-  Widget _selectedIcon(IconData icon) {
-    return Container(
-      width: 30,
-      height: 30,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(icon, size: 18),
-    );
-  }
+  Widget _pageForIndex(int index) => _pageCache.putIfAbsent(index, () {
+    switch (index) {
+      case 0:
+        return const FeedPage();
+      case 1:
+        return const CampusPage();
+      case 2:
+        return const AiPage();
+      default:
+        return const FeedPage();
+    }
+  });
 
   void _selectTab(int index) {
-    if (index == _currentIndex) {
-      return;
-    }
-    setState(() {
-      _currentIndex = index;
-    });
+    if (index == _currentIndex) return;
+    setState(() => _currentIndex = index);
   }
 
   Future<void> _openCreatePost() async {
     final bool? created = await Navigator.of(context).push<bool>(
       MaterialPageRoute<bool>(builder: (_) => const CreatePostPage()),
     );
-    if (!mounted || created != true) {
-      return;
-    }
-
+    if (!mounted || created != true) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(AppLocalizations.of(context)!.published)),
     );
@@ -263,23 +173,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => const NotificationCenterPage()),
     );
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     await ref.read(notificationsControllerProvider.notifier).refresh();
   }
 
-  void _openSearch() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => const SearchPage(autofocus: true),
-      ),
-    );
-  }
-
-  void _openFeedFilters() {
-    FeedPage.openFilterSheet(context, ref);
-  }
+  void _openSearch() => Navigator.of(context).push(
+    MaterialPageRoute<void>(builder: (_) => const SearchPage(autofocus: true)),
+  );
 
   void _openProfileSheet() {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
@@ -287,80 +187,66 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       context: context,
       useSafeArea: true,
       showDragHandle: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      builder: (BuildContext context) {
-        return ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-            children: <Widget>[
-              ListTile(
-                leading: const Icon(Icons.manage_accounts_outlined),
-                title: Text(l10n.profileAndSettings),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => Scaffold(
-                        appBar: PreferredSize(
-                          preferredSize: const Size.fromHeight(56),
-                          child: AppBar(title: Text(l10n.profileAndSettings)),
-                        ),
-                        body: const ProfilePage(),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.chat_bubble_outline_rounded),
-                title: Text(l10n.conversations),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const MessagesPage(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.settings_outlined),
-                title: Text(l10n.settings),
-                trailing: const Icon(Icons.chevron_right_rounded),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => const SettingsPage(),
-                    ),
-                  );
-                },
-              ),
-            ],
+      builder: (BuildContext context) => ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            0,
+            AppSpacing.md,
+            AppSpacing.lg,
           ),
-        );
-      },
+          children: <Widget>[
+            _ProfileSheetItem(
+              icon: Icons.manage_accounts_outlined,
+              label: l10n.profileAndSettings,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => Scaffold(
+                      appBar: AppBar(title: Text(l10n.profileAndSettings)),
+                      body: const ProfilePage(),
+                    ),
+                  ),
+                );
+              },
+            ),
+            _ProfileSheetItem(
+              icon: Icons.chat_bubble_outline_rounded,
+              label: l10n.conversations,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const MessagesPage()),
+                );
+              },
+            ),
+            _ProfileSheetItem(
+              icon: Icons.settings_outlined,
+              label: l10n.settings,
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SettingsPage()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Future<void> _restorePostFromUrlIfNeeded() async {
-    if (_postUrlHandled) {
-      return;
-    }
+    if (_postUrlHandled) return;
     _postUrlHandled = true;
     final String? postId = currentPostIdFromUrl();
-    if (postId == null || postId.trim().isEmpty) {
-      return;
-    }
+    if (postId == null || postId.trim().isEmpty) return;
     try {
       final PostItem post = await AppRepositories.posts.fetchPostDetail(postId);
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       await openPostDetailPage(context, post: post);
     } catch (_) {
       setPostIdOnUrl(null);
@@ -368,142 +254,184 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 }
 
+class _MobileTitle extends StatelessWidget {
+  const _MobileTitle({required this.destination});
+  final _ShellDestination destination;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisSize: MainAxisSize.min,
+    children: <Widget>[
+      Text(destination.label, style: Theme.of(context).textTheme.titleMedium),
+      Text(destination.subtitle, style: Theme.of(context).textTheme.bodySmall),
+    ],
+  );
+}
+
 class _DesktopRail extends StatelessWidget {
   const _DesktopRail({
     required this.currentIndex,
     required this.destinations,
-    required this.onSelect,
     required this.extended,
+    required this.unread,
+    required this.onSelect,
+    required this.onCreate,
+    required this.onSearch,
+    required this.onNotifications,
     required this.onProfile,
   });
 
   final int currentIndex;
   final List<_ShellDestination> destinations;
-  final ValueChanged<int> onSelect;
   final bool extended;
+  final int unread;
+  final ValueChanged<int> onSelect;
+  final VoidCallback onCreate;
+  final VoidCallback onSearch;
+  final VoidCallback onNotifications;
   final VoidCallback onProfile;
 
   @override
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors palette = EditorialColors.of(context);
-    final user = AuthStore.instance.currentUser;
-    final String nickname = user?.nickname.trim() ?? '';
-    final String label = nickname.isEmpty ? '匿' : nickname.characters.first;
+    final EditorialColors colors = EditorialColors.of(context);
+    final String nickname =
+        AuthStore.instance.currentUser?.nickname.trim() ?? '';
+    final String avatarLabel = nickname.isEmpty
+        ? '匿'
+        : nickname.characters.first;
     return Container(
       key: const Key('desktop-primary-navigation'),
-      width: extended ? AppLayout.sidebarWidth : 76,
-      padding: const EdgeInsets.fromLTRB(14, 20, 14, 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          right: BorderSide(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
-          ),
-        ),
+      width: extended ? AppLayout.sidebarWidth : AppLayout.compactSidebarWidth,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.sm,
+        AppSpacing.lg,
+        AppSpacing.sm,
+        AppSpacing.md,
       ),
+      color: colors.darkPanel,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(extended ? 8 : 4, 0, 4, 24),
-            child: extended
-                ? Row(
-                    children: <Widget>[
-                      const AppSealMark(size: 38),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              l10n.brandShort,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            Text(
-                              l10n.tagline,
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                : const AppSealMark(size: 36),
-          ),
+          _RailBrand(extended: extended),
+          const SizedBox(height: AppSpacing.xl),
           for (int index = 0; index < destinations.length; index++) ...<Widget>[
             _RailItem(
               destination: destinations[index],
               selected: currentIndex == index,
-              onTap: () => onSelect(index),
               extended: extended,
+              onTap: () => onSelect(index),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: AppSpacing.xs),
           ],
-          const Spacer(),
-          Divider(color: Theme.of(context).dividerColor),
           const SizedBox(height: AppSpacing.sm),
-          InkWell(
-            borderRadius: BorderRadius.circular(AppRadii.medium),
-            onTap: onProfile,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xs,
-                vertical: AppSpacing.xs,
+          Tooltip(
+            message: l10n.publishVoice,
+            child: FilledButton.icon(
+              onPressed: onCreate,
+              style: FilledButton.styleFrom(
+                backgroundColor: colors.primary,
+                foregroundColor: colors.onDarkPanel,
+                padding: EdgeInsets.symmetric(
+                  horizontal: extended ? AppSpacing.md : 0,
+                ),
               ),
-              child: extended
-                  ? Row(
-                      children: <Widget>[
-                        Container(
-                          width: 34,
-                          height: 34,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: palette.primarySubtle,
-                            borderRadius: BorderRadius.circular(
-                              AppRadii.medium,
-                            ),
-                          ),
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: palette.primaryActive,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                nickname.isEmpty
-                                    ? l10n.personalCenter
-                                    : nickname,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                l10n.profileAndSettings,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    )
-                  : Icon(
-                      Icons.person_outline,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+              icon: const Icon(Icons.edit_outlined, size: 18),
+              label: extended
+                  ? Text(l10n.publishVoice)
+                  : const SizedBox.shrink(),
             ),
+          ),
+          const Spacer(),
+          _RailUtility(
+            icon: Icons.search_rounded,
+            label: l10n.search,
+            extended: extended,
+            onTap: onSearch,
+          ),
+          const SizedBox(height: AppSpacing.xxs),
+          _RailUtility(
+            icon: Icons.notifications_none_rounded,
+            label: l10n.notifications,
+            extended: extended,
+            badge: unread,
+            onTap: onNotifications,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Divider(color: colors.railMuted.withValues(alpha: 0.22)),
+          const SizedBox(height: AppSpacing.md),
+          _RailLocaleToggle(extended: extended),
+          const SizedBox(height: AppSpacing.sm),
+          _RailProfile(
+            label: avatarLabel,
+            nickname: nickname,
+            extended: extended,
+            onTap: onProfile,
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RailBrand extends StatelessWidget {
+  const _RailBrand({required this.extended});
+  final bool extended;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: extended ? AppSpacing.xs : 0),
+      child: extended
+          ? Row(
+              children: <Widget>[
+                Container(
+                  width: 32,
+                  height: 32,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    borderRadius: BorderRadius.circular(AppRadii.small),
+                  ),
+                  child: Text(
+                    '知',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: colors.onDarkPanel,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    '西电知行',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: colors.onDarkPanel,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          : Center(
+              child: Container(
+                width: 32,
+                height: 32,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(AppRadii.small),
+                ),
+                child: Text(
+                  '知',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: colors.onDarkPanel),
+                ),
+              ),
+            ),
     );
   }
 }
@@ -512,83 +440,54 @@ class _RailItem extends StatelessWidget {
   const _RailItem({
     required this.destination,
     required this.selected,
-    required this.onTap,
     required this.extended,
+    required this.onTap,
   });
-
   final _ShellDestination destination;
   final bool selected;
-  final VoidCallback onTap;
   final bool extended;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final Color color = selected
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62);
+    final EditorialColors colors = EditorialColors.of(context);
+    final Color foreground = selected ? colors.onDarkPanel : colors.railMuted;
     return Tooltip(
       message: destination.label,
       child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.medium),
         onTap: onTap,
-        child: Container(
-          height: 46,
+        borderRadius: BorderRadius.circular(AppRadii.medium),
+        child: AnimatedContainer(
+          duration: AppMotion.resolve(context, AppMotion.standard),
+          curve: AppMotion.emphasis,
+          height: 48,
           padding: EdgeInsets.symmetric(
             horizontal: extended ? AppSpacing.sm : 0,
           ),
           decoration: BoxDecoration(
-            color: selected
-                ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                : Colors.transparent,
+            color: selected ? colors.railSelected : colors.darkPanel,
             borderRadius: BorderRadius.circular(AppRadii.medium),
+            border: selected
+                ? Border(left: BorderSide(color: colors.apricot, width: 2))
+                : null,
           ),
           child: extended
               ? Row(
                   children: <Widget>[
-                    Icon(destination.icon, color: color, size: 20),
+                    Icon(destination.icon, size: 20, color: foreground),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            destination.label,
-                            style: TextStyle(
-                              color: color,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            destination.subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: color.withValues(alpha: 0.68),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        destination.label,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelLarge?.copyWith(color: foreground),
                       ),
                     ),
                   ],
                 )
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Icon(destination.icon, color: color, size: 20),
-                    const SizedBox(height: 3),
-                    Text(
-                      destination.label,
-                      style: TextStyle(
-                        color: color,
-                        fontSize: 12,
-                        fontWeight: selected
-                            ? FontWeight.w800
-                            : FontWeight.w600,
-                      ),
-                    ),
-                  ],
+              : Center(
+                  child: Icon(destination.icon, size: 20, color: foreground),
                 ),
         ),
       ),
@@ -596,37 +495,233 @@ class _RailItem extends StatelessWidget {
   }
 }
 
-class _DesktopSearchButton extends StatelessWidget {
-  const _DesktopSearchButton({required this.onPressed, required this.label});
-
-  final VoidCallback onPressed;
+class _RailUtility extends StatelessWidget {
+  const _RailUtility({
+    required this.icon,
+    required this.label,
+    required this.extended,
+    required this.onTap,
+    this.badge = 0,
+  });
+  final IconData icon;
   final String label;
+  final bool extended;
+  final VoidCallback onTap;
+  final int badge;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 232,
-      height: 40,
-      child: OutlinedButton.icon(
-        onPressed: onPressed,
-        icon: const Icon(Icons.search_rounded, size: 18),
-        label: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
-        ),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+    final EditorialColors colors = EditorialColors.of(context);
+    return Tooltip(
+      message: label,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadii.medium),
+        child: SizedBox(
+          height: 42,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: extended ? AppSpacing.sm : 0,
+            ),
+            child: extended
+                ? Row(
+                    children: <Widget>[
+                      Badge(
+                        isLabelVisible: badge > 0,
+                        label: Text(badge > 99 ? '99+' : '$badge'),
+                        child: Icon(icon, color: colors.railMuted, size: 20),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(color: colors.railMuted),
+                        ),
+                      ),
+                    ],
+                  )
+                : Center(
+                    child: Badge(
+                      isLabelVisible: badge > 0,
+                      label: Text('$badge'),
+                      child: Icon(icon, color: colors.railMuted, size: 20),
+                    ),
+                  ),
+          ),
         ),
       ),
     );
   }
 }
 
+class _RailLocaleToggle extends StatelessWidget {
+  const _RailLocaleToggle({required this.extended});
+  final bool extended;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final bool english = Localizations.localeOf(context).languageCode == 'en';
+    if (!extended) {
+      return IconButton(
+        tooltip: english ? 'Switch to Chinese' : 'Switch to English',
+        onPressed: AppLocaleStore.instance.toggle,
+        style: IconButton.styleFrom(foregroundColor: colors.railMuted),
+        icon: const Icon(Icons.language_rounded, size: 19),
+      );
+    }
+    return Container(
+      height: 36,
+      decoration: BoxDecoration(
+        border: Border.all(color: colors.railMuted.withValues(alpha: 0.32)),
+        borderRadius: BorderRadius.circular(AppRadii.small),
+      ),
+      child: Row(
+        children: <Widget>[
+          _LocaleOption(
+            label: '中',
+            selected: !english,
+            onTap: () =>
+                AppLocaleStore.instance.setLocale(const Locale('zh', 'CN')),
+          ),
+          _LocaleOption(
+            label: 'EN',
+            selected: english,
+            onTap: () => AppLocaleStore.instance.setLocale(const Locale('en')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocaleOption extends StatelessWidget {
+  const _LocaleOption({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: AppMotion.resolve(context, AppMotion.fast),
+          alignment: Alignment.center,
+          color: selected ? colors.primary : colors.darkPanel,
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: selected ? colors.onDarkPanel : colors.railMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RailProfile extends StatelessWidget {
+  const _RailProfile({
+    required this.label,
+    required this.nickname,
+    required this.extended,
+    required this.onTap,
+  });
+  final String label;
+  final String nickname;
+  final bool extended;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadii.medium),
+      child: Padding(
+        padding: EdgeInsets.all(extended ? AppSpacing.xs : 0),
+        child: extended
+            ? Row(
+                children: <Widget>[
+                  _RailAvatar(label: label),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      nickname.isEmpty ? '个人中心' : nickname,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: colors.onDarkPanel,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.more_horiz_rounded,
+                    color: colors.railMuted,
+                    size: 18,
+                  ),
+                ],
+              )
+            : Center(child: _RailAvatar(label: label)),
+      ),
+    );
+  }
+}
+
+class _RailAvatar extends StatelessWidget {
+  const _RailAvatar({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: colors.railSelected,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: colors.onDarkPanel),
+      ),
+    );
+  }
+}
+
+class _ProfileSheetItem extends StatelessWidget {
+  const _ProfileSheetItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(icon),
+    title: Text(label),
+    trailing: const Icon(Icons.chevron_right_rounded),
+    onTap: onTap,
+  );
+}
+
 class _ShellDestination {
   const _ShellDestination(this.label, this.subtitle, this.icon);
-
   final String label;
   final String subtitle;
   final IconData icon;

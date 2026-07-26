@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/state/app_providers.dart';
-import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
 
 class CampusServiceDetailPage extends ConsumerStatefulWidget {
@@ -51,8 +50,9 @@ class _CampusServiceDetailPageState
     });
     try {
       final repository = ref.read(campusRepositoryProvider);
-      final CampusService service =
-          await repository.fetchServiceDetail(widget.serviceId);
+      final CampusService service = await repository.fetchServiceDetail(
+        widget.serviceId,
+      );
       CampusCalendar? calendar;
       if (service.kind == 'schedule' || service.calendarSource.isNotEmpty) {
         calendar = await repository.fetchCalendar(
@@ -121,10 +121,7 @@ class _CampusServiceDetailPageState
                     onPressed: () => _shiftWeek(-1),
                     icon: const Icon(Icons.chevron_left_rounded),
                   ),
-                  TextButton(
-                    onPressed: _pickWeek,
-                    child: Text(_weekTitle()),
-                  ),
+                  TextButton(onPressed: _pickWeek, child: Text(_weekTitle())),
                   IconButton(
                     tooltip: '下一周',
                     onPressed: () => _shiftWeek(1),
@@ -137,44 +134,49 @@ class _CampusServiceDetailPageState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : service == null
-                  ? const SizedBox.shrink()
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                      children: <Widget>[
-                        if (_isExamService(service))
-                          _ExamList(calendar: _calendar)
-                        else if (service.kind == 'schedule' ||
-                            service.calendarSource.isNotEmpty)
-                          _ScheduleGrid(
-                            calendar: _calendar,
-                            sectionRows: _sectionRows,
-                          ),
-                        if (_businessActions(service).isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 16),
-                          const _BlockTitle('操作'),
-                          const SizedBox(height: 10),
-                          _ActionGrid(
-                            actions: _businessActions(service),
-                            onTap: _runAction,
-                          ),
-                        ],
-                        if (service.maps.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 16),
-                          const _BlockTitle('相关地图'),
-                          const SizedBox(height: 10),
-                          for (final CampusMap map in service.maps)
-                            _MapRow(map: map, onTap: _openCampusMap),
-                        ],
-                      ],
-                    ),
+          ? Center(
+              child: Text(
+                _error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            )
+          : service == null
+          ? const SizedBox.shrink()
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+              children: <Widget>[
+                if (_isExamService(service))
+                  _ExamList(calendar: _calendar)
+                else if (service.kind == 'schedule' ||
+                    service.calendarSource.isNotEmpty)
+                  _ScheduleGrid(calendar: _calendar, sectionRows: _sectionRows),
+                if (_businessActions(service).isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  const _BlockTitle('操作'),
+                  const SizedBox(height: 10),
+                  _ActionGrid(
+                    actions: _businessActions(service),
+                    onTap: _runAction,
+                  ),
+                ],
+                if (service.maps.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  const _BlockTitle('相关地图'),
+                  const SizedBox(height: 10),
+                  for (final CampusMap map in service.maps)
+                    _MapRow(map: map, onTap: _openCampusMap),
+                ],
+              ],
+            ),
     );
   }
 
   List<CampusAction> _businessActions(CampusService service) {
     return service.actions
-        .where((CampusAction item) => item.type != 'calendar' && item.type != 'notice')
+        .where(
+          (CampusAction item) =>
+              item.type != 'calendar' && item.type != 'notice',
+        )
         .toList();
   }
 
@@ -216,10 +218,14 @@ class _CampusServiceDetailPageState
           children: <Widget>[
             for (final DateTime week in weeks)
               ListTile(
-                title: Text('${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}'),
+                title: Text(
+                  '${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}',
+                ),
                 trailing: _ymd(week) == _ymd(_weekStart)
-                    ? Icon(Icons.check_rounded,
-                        color: Theme.of(context).colorScheme.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () => Navigator.of(context).pop(week),
               ),
@@ -274,10 +280,7 @@ class _CampusServiceDetailPageState
 }
 
 class _ScheduleGrid extends StatelessWidget {
-  const _ScheduleGrid({
-    required this.calendar,
-    required this.sectionRows,
-  });
+  const _ScheduleGrid({required this.calendar, required this.sectionRows});
 
   final CampusCalendar? calendar;
   final List<_SectionRow> sectionRows;
@@ -285,7 +288,8 @@ class _ScheduleGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CampusCalendar? data = calendar;
-    if (data == null || data.days.every((CampusCalendarDay day) => day.items.isEmpty)) {
+    if (data == null ||
+        data.days.every((CampusCalendarDay day) => day.items.isEmpty)) {
       return const _EmptyBlock(text: '本周暂无课表或考试安排');
     }
     const double timeWidth = 72;
@@ -328,7 +332,7 @@ class _ScheduleGrid extends StatelessWidget {
                   height: rowHeight,
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: SharedColors.divider),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                     ),
                   ),
                 ),
@@ -397,13 +401,18 @@ class _DayHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: SharedColors.divider)),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text('周${day.weekday}', style: const TextStyle(fontWeight: FontWeight.w800)),
+          Text(
+            '周${day.weekday}',
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 2),
           Text(day.date.length >= 10 ? day.date.substring(8) : day.date),
         ],
@@ -421,10 +430,10 @@ class _TimeCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          right: BorderSide(color: SharedColors.divider),
-          bottom: BorderSide(color: SharedColors.divider),
+          right: BorderSide(color: Theme.of(context).dividerColor),
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
       ),
       child: Column(
@@ -434,10 +443,15 @@ class _TimeCell extends StatelessWidget {
             row.period,
             style: TextStyle(
               fontSize: 11,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
-          Text('${row.section}', style: const TextStyle(fontWeight: FontWeight.w900)),
+          Text(
+            '${row.section}',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
           Text(row.start, style: const TextStyle(fontSize: 10)),
           Text(row.end, style: const TextStyle(fontSize: 10)),
         ],
@@ -458,13 +472,13 @@ class _ScheduleCard extends StatelessWidget {
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         color: isExam
-            ? SharedColors.primary.withValues(alpha: 0.12)
-            : SharedColors.softRed,
+            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.12)
+            : Theme.of(context).colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isExam
-              ? SharedColors.primary.withValues(alpha: 0.22)
-              : SharedColors.divider,
+              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.22)
+              : Theme.of(context).dividerColor,
         ),
       ),
       child: Column(
@@ -505,11 +519,17 @@ class _ExamList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<CampusScheduleItem> items = <CampusScheduleItem>[
-      for (final CampusCalendarDay day in calendar?.days ?? const <CampusCalendarDay>[])
-        ...day.items,
-    ]..sort((CampusScheduleItem a, CampusScheduleItem b) =>
-        '${a.date} ${a.startTime} ${a.id}'.compareTo('${b.date} ${b.startTime} ${b.id}'));
+    final List<CampusScheduleItem> items =
+        <CampusScheduleItem>[
+          for (final CampusCalendarDay day
+              in calendar?.days ?? const <CampusCalendarDay>[])
+            ...day.items,
+        ]..sort(
+          (CampusScheduleItem a, CampusScheduleItem b) =>
+              '${a.date} ${a.startTime} ${a.id}'.compareTo(
+                '${b.date} ${b.startTime} ${b.id}',
+              ),
+        );
     if (items.isEmpty) {
       return const _EmptyBlock(text: '暂无考试安排');
     }
@@ -522,16 +542,22 @@ class _ExamList extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: SharedColors.divider),
+              border: Border.all(color: Theme.of(context).dividerColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(item.date, style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(
+                  item.date,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 6),
                 Text(
                   item.title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 _InfoRow(label: '时间', value: item.timeRange),
@@ -551,10 +577,7 @@ class _ExamList extends StatelessWidget {
 }
 
 class _ActionGrid extends StatelessWidget {
-  const _ActionGrid({
-    required this.actions,
-    required this.onTap,
-  });
+  const _ActionGrid({required this.actions, required this.onTap});
 
   final List<CampusAction> actions;
   final ValueChanged<CampusAction> onTap;
@@ -580,10 +603,7 @@ class _ActionGrid extends StatelessWidget {
 }
 
 class _MapRow extends StatelessWidget {
-  const _MapRow({
-    required this.map,
-    required this.onTap,
-  });
+  const _MapRow({required this.map, required this.onTap});
 
   final CampusMap map;
   final VoidCallback onTap;
@@ -601,10 +621,7 @@ class _MapRow extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -620,7 +637,9 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.56),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.56),
               ),
             ),
           ),
@@ -656,7 +675,7 @@ class _EmptyBlock extends StatelessWidget {
       height: 180,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: Border.all(color: SharedColors.divider),
+        border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Text(text),

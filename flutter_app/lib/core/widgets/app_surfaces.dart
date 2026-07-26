@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
+import '../theme/shared_colors.dart';
 
 class AppPageFrame extends StatelessWidget {
   const AppPageFrame({
@@ -47,19 +48,19 @@ class AppSurfaceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return DecoratedBox(
+    final EditorialColors colors = EditorialColors.of(context);
+    return AnimatedContainer(
+      duration: AppMotion.resolve(context, AppMotion.standard),
+      curve: AppMotion.emphasis,
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: colors.surfaceRaised,
         borderRadius: BorderRadius.circular(AppRadii.large),
         border: Border.all(
           color: highlighted
-              ? theme.colorScheme.primary.withValues(alpha: 0.24)
-              : theme.dividerColor,
+              ? colors.primary.withValues(alpha: 0.28)
+              : colors.line,
         ),
-        boxShadow: elevated
-            ? AppElevation.soft(theme.colorScheme.shadow)
-            : const <BoxShadow>[],
+        boxShadow: elevated ? AppElevation.soft : const <BoxShadow>[],
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -74,20 +75,20 @@ class AppSealMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = Theme.of(context).colorScheme.primary;
-    return Container(
+    final EditorialColors colors = EditorialColors.of(context);
+    return AnimatedContainer(
+      duration: AppMotion.resolve(context, AppMotion.standard),
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.025),
+        color: colors.primary,
         borderRadius: BorderRadius.circular(AppRadii.medium),
-        border: Border.all(color: color, width: 1.5),
       ),
       child: Text(
         label,
         style: TextStyle(
-          color: color,
+          color: colors.onDarkPanel,
           fontSize: size * 0.45,
           fontWeight: FontWeight.w600,
           height: 1,
@@ -111,12 +112,13 @@ class AppStatusTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color effectiveColor = color ?? Theme.of(context).colorScheme.primary;
+    final EditorialColors colors = EditorialColors.of(context);
+    final Color effectiveColor = color ?? colors.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: outlined
-            ? Colors.transparent
+            ? colors.surface.withValues(alpha: 0)
             : effectiveColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadii.small),
         border: Border.all(
@@ -220,11 +222,12 @@ class AppInlineMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
     final Color color = switch (tone) {
-      AppMessageTone.info => Theme.of(context).colorScheme.primary,
-      AppMessageTone.success => const Color(0xFF2D7255),
-      AppMessageTone.warning => const Color(0xFF986615),
-      AppMessageTone.error => Theme.of(context).colorScheme.error,
+      AppMessageTone.info => colors.info,
+      AppMessageTone.success => colors.success,
+      AppMessageTone.warning => colors.warning,
+      AppMessageTone.error => colors.danger,
     };
     final IconData icon = switch (tone) {
       AppMessageTone.info => Icons.info_outline_rounded,
@@ -295,6 +298,7 @@ class AppStatePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final EditorialColors colors = EditorialColors.of(context);
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 440),
@@ -307,14 +311,14 @@ class AppStatePanel extends StatelessWidget {
                 width: compact ? 52 : 68,
                 height: compact ? 52 : 68,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.09),
+                  color: colors.primarySubtle,
                   borderRadius: BorderRadius.circular(
                     compact ? AppRadii.medium : AppRadii.large,
                   ),
                 ),
                 child: Icon(
                   icon,
-                  color: theme.colorScheme.primary,
+                  color: colors.primary,
                   size: compact ? 26 : 32,
                 ),
               ),

@@ -69,7 +69,9 @@ class _VerifyPageState extends State<VerifyPage> {
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
                           _errorText!,
-                          style: const TextStyle(color: Colors.red),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
                         ),
                       ),
                     FilledButton(

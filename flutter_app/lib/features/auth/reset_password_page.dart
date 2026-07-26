@@ -116,7 +116,9 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
                             _error!,
-                            style: const TextStyle(color: Colors.red),
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.error,
+                            ),
                           ),
                         ),
                       const SizedBox(height: 12),

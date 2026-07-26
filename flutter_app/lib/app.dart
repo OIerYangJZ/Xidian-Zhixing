@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'core/auth/admin_auth_store.dart';
 import 'core/auth/auth_store.dart';
 import 'core/state/app_locale_store.dart';
+import 'core/state/web_theme_store.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
@@ -21,16 +22,20 @@ class XduTreeholeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: AppLocaleStore.instance,
+      listenable: Listenable.merge(<Listenable>[
+        AppLocaleStore.instance,
+        WebThemeStore.instance,
+      ]),
       builder: (BuildContext context, Widget? child) {
         final Locale locale = AppLocaleStore.instance.locale;
+        final WebThemeStore themeStore = WebThemeStore.instance;
         return MaterialApp(
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightThemeFor(locale),
-          darkTheme: AppTheme.darkThemeFor(locale),
-          themeMode: ThemeMode.system,
+          theme: AppTheme.lightThemeFor(locale, preset: themeStore.preset),
+          darkTheme: AppTheme.darkThemeFor(locale, preset: themeStore.preset),
+          themeMode: themeStore.themeMode,
           locale: locale,
           localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
             AppLocalizations.delegate,

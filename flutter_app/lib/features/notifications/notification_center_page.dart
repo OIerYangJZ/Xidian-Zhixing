@@ -82,6 +82,7 @@ class _NotificationCenterPageState
                   padding: const EdgeInsets.all(12),
                   itemBuilder: (BuildContext context, int index) {
                     final NotificationItem item = state.items[index];
+                    final EditorialColors colors = EditorialColors.of(context);
                     return InkWell(
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => _openNotification(item),
@@ -106,8 +107,8 @@ class _NotificationCenterPageState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             CircleAvatar(
-                              backgroundColor: _badgeColor(item.type),
-                              foregroundColor: Colors.white,
+                              backgroundColor: _badgeColor(context, item.type),
+                              foregroundColor: colors.onDarkPanel,
                               child: Icon(_iconForType(item.type), size: 18),
                             ),
                             const SizedBox(width: 12),
@@ -126,8 +127,8 @@ class _NotificationCenterPageState
                                         ),
                                       ),
                                       if (!item.isRead)
-                                        const Badge(
-                                          backgroundColor: Color(0xFFDC2626),
+                                        Badge(
+                                          backgroundColor: colors.danger,
                                           smallSize: 9,
                                         ),
                                     ],
@@ -149,9 +150,9 @@ class _NotificationCenterPageState
                                     children: <Widget>[
                                       Text(
                                         _labelForType(item.type),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 12,
-                                          color: SharedColors.primary,
+                                          color: colors.primary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -279,21 +280,22 @@ class _NotificationCenterPageState
     }
   }
 
-  Color _badgeColor(String type) {
+  Color _badgeColor(BuildContext context, String type) {
+    final EditorialColors colors = EditorialColors.of(context);
     switch (type) {
       case 'comment':
-        return SharedColors.primary;
+        return colors.primary;
       case 'reply':
-        return SharedColors.success;
+        return colors.success;
       case 'like':
-        return SharedColors.danger;
+        return colors.danger;
       case 'favorite':
-        return SharedColors.warning;
+        return colors.warning;
       case 'report_result':
-        return SharedColors.deep;
+        return colors.primaryActive;
       case 'system_announcement':
       default:
-        return SharedColors.textSecondary;
+        return colors.mutedInk;
     }
   }
 

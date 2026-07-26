@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Flutter Web 统一设计令牌。
-///
-/// 页面只消费这些语义值，避免在业务组件中重复定义断点、间距和圆角。
+/// Breakpoints shared by every Flutter Web feature.
 class AppBreakpoints {
   AppBreakpoints._();
 
@@ -39,13 +37,15 @@ class AppSpacing {
   static const double xxxl = 64;
 }
 
+/// Geometry is intentionally small and consistent: content surfaces, controls
+/// and pills each have one role-specific radius.
 class AppRadii {
   AppRadii._();
 
-  static const double small = 2;
-  static const double medium = 4;
-  static const double large = 6;
-  static const double hero = 0;
+  static const double small = 8;
+  static const double medium = 10;
+  static const double large = 12;
+  static const double hero = 16;
   static const double pill = 999;
 }
 
@@ -53,18 +53,19 @@ class AppLayout {
   AppLayout._();
 
   static const double pageMaxWidth = 1440;
-  static const double contentMaxWidth = 1280;
-  static const double readingMaxWidth = 760;
+  static const double contentMaxWidth = 1184;
+  static const double readingMaxWidth = 680;
   static const double formMaxWidth = 680;
   static const double authMaxWidth = 1080;
-  static const double sidebarWidth = 216;
-  static const double asideWidth = 280;
+  static const double sidebarWidth = 248;
+  static const double compactSidebarWidth = 84;
+  static const double asideWidth = 304;
 
   static EdgeInsets pagePadding(BuildContext context) {
     final double width = MediaQuery.sizeOf(context).width;
     if (width >= AppBreakpoints.expanded) {
       return const EdgeInsets.symmetric(
-        horizontal: 28,
+        horizontal: AppSpacing.xl,
         vertical: AppSpacing.lg,
       );
     }
@@ -84,5 +85,19 @@ class AppLayout {
 class AppElevation {
   AppElevation._();
 
-  static List<BoxShadow> soft(Color color) => const <BoxShadow>[];
+  static const List<BoxShadow> soft = <BoxShadow>[];
+}
+
+/// Shared interaction timing. Motion is only used to explain a state change.
+class AppMotion {
+  AppMotion._();
+
+  static const Duration fast = Duration(milliseconds: 140);
+  static const Duration standard = Duration(milliseconds: 180);
+  static const Duration page = Duration(milliseconds: 240);
+  static const Curve emphasis = Curves.easeOutCubic;
+  static const Curve settle = Curves.easeOutQuart;
+
+  static Duration resolve(BuildContext context, Duration duration) =>
+      MediaQuery.disableAnimationsOf(context) ? Duration.zero : duration;
 }

@@ -280,7 +280,10 @@ class _ChatPageState extends State<ChatPage> {
             ),
             if (isMe && message.canRecall)
               ListTile(
-                leading: const Icon(Icons.undo, color: Colors.red),
+                leading: Icon(
+                  Icons.undo,
+                  color: Theme.of(context).colorScheme.error,
+                ),
                 title: const Text('撤回'),
                 onTap: () => _handleMessageAction(
                   context,
@@ -384,7 +387,7 @@ class _ChatPageState extends State<ChatPage> {
                           style: TextStyle(
                             fontSize: 11,
                             color: message.isRead
-                                ? SharedColors.success
+                                ? EditorialColors.of(context).success
                                 : Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.45),
                             fontWeight: FontWeight.w600,
