@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/theme/mobile_theme.dart';
@@ -8,21 +9,22 @@ class DisplaySettingsPage extends ConsumerStatefulWidget {
   const DisplaySettingsPage({super.key});
 
   @override
-  ConsumerState<DisplaySettingsPage> createState() => _DisplaySettingsPageState();
+  ConsumerState<DisplaySettingsPage> createState() =>
+      _DisplaySettingsPageState();
 }
 
 class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
   static const _themeOptions = [
-    ('zhushachi', '朱砂赤', Color(0xFFB23A2E)),
-    ('yanzhihong', '胭脂红', Color(0xFFB8324A)),
-    ('chitaonuan', '赤陶暖', Color(0xFFB85B3E)),
-    ('zaonihong', '枣泥红', Color(0xFF8F2F2C)),
-    ('xuanzhizhu', '宣纸朱', Color(0xFFC43A2F)),
-    ('zhuqing', '竹青', Color(0xFF4F8A5F)),
-    ('ouhezi', '藕荷紫', Color(0xFF8B6F9E)),
-    ('xingrenhuang', '杏仁黄', Color(0xFFC28A3A)),
-    ('haiyanqing', '海盐青', Color(0xFF5B9EA6)),
-    ('mohui', '墨灰', Color(0xFF4F5552)),
+    ('zhushachi', '朱砂赤'),
+    ('yanzhihong', '胭脂红'),
+    ('chitaonuan', '赤陶暖'),
+    ('zaonihong', '枣泥红'),
+    ('xuanzhizhu', '宣纸朱'),
+    ('zhuqing', '竹青'),
+    ('ouhezi', '藕荷紫'),
+    ('xingrenhuang', '杏仁黄'),
+    ('haiyanqing', '海盐青'),
+    ('mohui', '墨灰'),
   ];
 
   void _showThemeDialog() {
@@ -35,14 +37,14 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: _themeOptions.map((option) {
-              final (key, name, color) = option;
+              final (key, name) = option;
               final selected = key == currentKey;
               return ListTile(
                 leading: Container(
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: color,
+                    color: MobileTheme.themes[key]!.primary,
                     borderRadius: BorderRadius.circular(6),
                   ),
                 ),
@@ -83,31 +85,16 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _LocaleOption(
-              title: '简体中文',
+              title: '中文',
               locale: const Locale('zh', 'CN'),
               current: currentLocale,
               onTap: () => _setLocale(const Locale('zh', 'CN'), ctx),
             ),
             _LocaleOption(
-              title: '繁體中文',
-              locale: const Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hant',
-              ),
-              current: currentLocale,
-              onTap: () => _setLocale(
-                const Locale.fromSubtags(
-                  languageCode: 'zh',
-                  scriptCode: 'Hant',
-                ),
-                ctx,
-              ),
-            ),
-            _LocaleOption(
               title: 'English',
-              locale: const Locale('en', 'US'),
+              locale: const Locale('en'),
               current: currentLocale,
-              onTap: () => _setLocale(const Locale('en', 'US'), ctx),
+              onTap: () => _setLocale(const Locale('en'), ctx),
             ),
           ],
         ),
@@ -123,30 +110,25 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
   }
 
   String _localeLabel(Locale loc) {
-    final code = loc.scriptCode != null && loc.scriptCode!.isNotEmpty
-        ? '${loc.languageCode}_${loc.scriptCode}'
-        : '${loc.languageCode}_${loc.countryCode ?? ''}';
-    if (code == 'zh_CN') return '简体中文';
-    if (code == 'zh_Hant' || code == 'zh_TW') return '繁體中文';
-    if (code == 'en_US' || code == 'en_') return 'English';
-    return '${loc.languageCode}_${loc.countryCode ?? ''}';
+    return loc.languageCode == 'en' ? 'English' : '中文';
   }
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
     final settings = ref.watch(appSettingsProvider);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
-        title: const Text('界面设置'),
+        title: Text(l10n.settings),
         backgroundColor: colors.background,
         centerTitle: true,
       ),
@@ -162,8 +144,10 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
             ),
             _buildListTile(
               icon: Icons.language_outlined,
-              title: '多语言',
-              subtitle: _localeLabel(settings.locale ?? const Locale('zh', 'CN')),
+              title: l10n.language,
+              subtitle: _localeLabel(
+                settings.locale ?? const Locale('zh', 'CN'),
+              ),
               onTap: _showLanguageDialog,
             ),
           ]),
@@ -233,9 +217,7 @@ class _LocaleOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected =
-        locale.languageCode == current?.languageCode &&
-        locale.countryCode == current?.countryCode;
+    final selected = locale.languageCode == current?.languageCode;
     return ListTile(
       title: Text(title),
       trailing: selected

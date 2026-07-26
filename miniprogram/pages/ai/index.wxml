@@ -6,8 +6,8 @@
       <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
     <view>
-      <view class="ai-title">AI 助手</view>
-      <view class="ai-subtitle">{{subtitleText}}</view>
+      <view class="ai-title">{{t.ai}}</view>
+      <view class="ai-subtitle">{{t.ai_subtitle}}</view>
     </view>
   </view>
   
@@ -34,7 +34,7 @@
     </view>
     <view class="history-list">
       <view class="history-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat">
-        <view class="item-icon">💬</view>
+        <view class="item-icon"><view class="chat-glyph"></view></view>
         <view class="item-content">
           <view class="item-title">{{item.title}}</view>
           <view class="item-date">{{item.date}}</view>

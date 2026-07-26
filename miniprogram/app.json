@@ -48,7 +48,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
-    "navigationBarTitleText": "电台",
+    "navigationBarTitleText": "西电知行",
     "navigationBarTextStyle": "black"
   },
   "usingComponents": {

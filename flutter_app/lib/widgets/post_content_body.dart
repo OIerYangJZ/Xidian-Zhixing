@@ -4,6 +4,7 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 
 import '../core/config/app_config.dart';
+import '../core/theme/app_typography.dart';
 
 class PostContentBody extends StatelessWidget {
   const PostContentBody({
@@ -113,7 +114,8 @@ class PostContentBody extends StatelessWidget {
           height: 1.6,
         ),
         code: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontFamily: 'monospace',
+          fontFamily: AppTypography.englishBody,
+          fontFamilyFallback: AppTypography.englishBodyFallback,
           backgroundColor: Theme.of(
             context,
           ).colorScheme.surfaceContainerHighest,
@@ -155,7 +157,8 @@ class _MathElementBuilder extends MarkdownElementBuilder {
         return Text(
           source,
           style: (preferredStyle ?? parentStyle)?.copyWith(
-            fontFamily: 'monospace',
+            fontFamily: AppTypography.englishBody,
+            fontFamilyFallback: AppTypography.englishBodyFallback,
             color: Theme.of(context).colorScheme.error,
           ),
         );

@@ -35,8 +35,10 @@
   align-items: center;
   gap: 20rpx;
   min-height: 112rpx;
-  padding: 24rpx 32rpx;
-  background: transparent;
+  margin-left: 24rpx;
+  margin-right: 24rpx;
+  padding: 32rpx;
+  background: var(--app-dark-panel);
 }
 
 .new-chat-btn {
@@ -46,9 +48,9 @@
   flex: 1;
   height: 88rpx;
   padding: 0 28rpx;
-  border-radius: 28rpx; /* button.radius.primary = 14px = 28rpx */
-  background: var(--app-primary);
-  color: #ffffff;
+  border-radius: 4rpx;
+  background: var(--app-coral);
+  color: var(--app-text-primary);
   font-size: 30rpx;
   font-weight: 600;
   line-height: 88rpx;
@@ -64,9 +66,9 @@
   flex: 0 0 auto;
   height: 88rpx;
   padding: 0 28rpx;
-  border-radius: 28rpx;
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
+  border-radius: 4rpx;
+  background: var(--app-apricot);
+  color: var(--app-text-primary);
   font-size: 28rpx;
   font-weight: 600;
   line-height: 88rpx;
@@ -109,7 +111,7 @@
   margin: 16rpx 24rpx;
   background: var(--app-surface);
   border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx;
+  border-radius: 0;
 }
 
 .item-icon {
@@ -118,6 +120,25 @@
   color: var(--app-primary);
   font-size: 34rpx;
   text-align: center;
+}
+
+.chat-glyph {
+  position: relative;
+  width: 34rpx;
+  height: 28rpx;
+  border: 3rpx solid var(--app-primary);
+}
+
+.chat-glyph::after {
+  content: '';
+  position: absolute;
+  left: 4rpx;
+  bottom: -10rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-left: 3rpx solid var(--app-primary);
+  border-bottom: 3rpx solid var(--app-primary);
+  transform: skewY(-35deg);
 }
 
 .item-content {
@@ -175,7 +196,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: serif;
+  font-family: var(--font-accent);
 }
 
 .empty-state-title {

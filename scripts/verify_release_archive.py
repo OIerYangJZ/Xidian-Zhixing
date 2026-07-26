@@ -54,6 +54,18 @@ def main() -> int:
             extra = sorted(actual_names - set(expected))
             print(f"[verify] manifest mismatch; missing={missing}, extra={extra}", file=sys.stderr)
             return 1
+        required_members = {
+            "backend/server.py",
+            "web/index.html",
+            "web/main.dart.js",
+        }
+        missing_required = sorted(required_members - actual_names)
+        if missing_required:
+            print(
+                f"[verify] required release files are missing: {missing_required}",
+                file=sys.stderr,
+            )
+            return 1
         for name, digest in expected.items():
             handle = archive.extractfile(regular[name])
             if handle is None:

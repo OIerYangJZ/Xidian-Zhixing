@@ -36,3 +36,23 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  fonts:
+    - family: STZhongsong
+      fonts:
+        - asset: assets/fonts/STZhongsong.ttf
+          weight: 600
+    - family: STSong
+      fonts:
+        - asset: assets/fonts/STSong.ttf
+    - family: STKaiti
+      fonts:
+        - asset: assets/fonts/STKaiti.ttf
+    - family: Anthropic Serif Web
+      fonts:
+        - asset: assets/fonts/AnthropicSerif.otf
+    - family: Times New Roman
+      fonts:
+        - asset: assets/fonts/TimesNewRoman.ttf
+    - family: Apple Chancery
+      fonts:
+        - asset: assets/fonts/AppleChancery.ttf

@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
+import '../../l10n/generated/app_localizations.dart';
 import 'feed_controller.dart';
 
 class FeedPage extends ConsumerStatefulWidget {
@@ -79,6 +81,7 @@ class _FeedPageState extends ConsumerState<FeedPage> {
                         ),
                         child: Column(
                           children: <Widget>[
+                            if (desktop) const _FeedManifesto(),
                             _FeedToolbar(
                               channel: state.selectedChannel,
                               sort: state.sort,
@@ -210,6 +213,65 @@ class _FeedPageState extends ConsumerState<FeedPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
     }
+  }
+}
+
+class _FeedManifesto extends StatelessWidget {
+  const _FeedManifesto();
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final Locale locale = Localizations.localeOf(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      color: colors.darkPanel,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.fromLTRB(30, 24, 30, 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  l10n.appTitle,
+                  style: AppTypography.accentStyle(
+                    locale,
+                    fontSize: 14,
+                    color: colors.onDarkPanel.withValues(alpha: 0.72),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Text(
+                  l10n.tagline,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: colors.onDarkPanel,
+                    fontSize: locale.languageCode == 'en' ? 38 : 42,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: SizedBox(
+                  height: 10,
+                  child: ColoredBox(color: colors.coral),
+                ),
+              ),
+              SizedBox(
+                width: 140,
+                height: 10,
+                child: ColoredBox(color: colors.apricot),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

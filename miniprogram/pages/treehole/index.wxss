@@ -19,6 +19,43 @@
   color: var(--app-text-secondary);
 }
 
+.editorial-intro {
+  margin: 24rpx;
+  background: var(--app-dark-panel);
+  color: var(--app-on-dark-panel);
+}
+
+.editorial-kicker {
+  padding: 24rpx 26rpx 0;
+  color: var(--app-on-dark-panel);
+  font-family: var(--font-accent);
+  font-size: 24rpx;
+}
+
+.editorial-title {
+  padding: 52rpx 26rpx 58rpx;
+  color: var(--app-on-dark-panel);
+  font-family: var(--font-display);
+  font-size: 58rpx;
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.editorial-color-bar {
+  display: flex;
+  height: 16rpx;
+}
+
+.editorial-coral {
+  flex: 1;
+  background: var(--app-coral);
+}
+
+.editorial-apricot {
+  width: 148rpx;
+  background: var(--app-apricot);
+}
+
 .home-appbar {
   position: fixed;
   top: 0;
@@ -283,7 +320,7 @@
   z-index: 45;
   display: flex;
   justify-content: center;
-  background: rgba(255, 255, 255, .68);
+  background: var(--app-surface-translucent);
   pointer-events: none;
 }
 
@@ -300,15 +337,15 @@
   color: var(--app-text-primary);
   font-size: 24rpx;
   font-weight: 600;
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, .08);
+  box-shadow: none;
 }
 
 .color-mode-dark .refresh-feedback {
-  background: rgba(0, 0, 0, .42);
+  background: var(--app-scrim);
 }
 
 .color-mode-dark .refresh-feedback-pill {
-  box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, .32);
+  box-shadow: none;
 }
 
 .treehole-layout-threads .feed-list {
@@ -463,11 +500,11 @@
 }
 
 .thread-action.active {
-  color: #ff2d55;
+  color: var(--app-like);
 }
 
 .thread-action.favorited {
-  color: #ff9500;
+  color: var(--app-favorite);
 }
 
 .thread-action .feed-action-icon {
@@ -486,16 +523,16 @@
   height: 112rpx;
   border: 1rpx solid var(--app-divider);
   border-radius: 32rpx;
-  background: rgba(255, 255, 255, .92);
+  background: var(--app-translucent-surface);
   color: var(--app-text-tertiary);
   line-height: 106rpx;
-  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, .12);
+  box-shadow: none;
 }
 
 .theme-minimal.color-mode-dark.treehole-layout-threads .floating-publish,
 .color-mode-dark.treehole-layout-threads .floating-publish {
-  background: rgba(28, 28, 30, .92);
-  box-shadow: 0 8rpx 28rpx rgba(0, 0, 0, .42);
+  background: var(--app-translucent-surface);
+  box-shadow: none;
 }
 
 .feed-list .feed-card {
@@ -521,7 +558,7 @@
 }
 
 .feed-list .feed-action.favorited {
-  color: #ff9500;
+  color: var(--app-favorite);
   font-weight: 650;
 }
 
@@ -548,7 +585,7 @@
   height: 96rpx;
   border-radius: 48rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 58rpx;
   font-weight: 300;
   line-height: 90rpx;
@@ -694,7 +731,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-family: serif;
+  font-family: var(--font-accent);
 }
 
 .empty-state-title {

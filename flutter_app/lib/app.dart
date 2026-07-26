@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/auth/admin_auth_store.dart';
 import 'core/auth/auth_store.dart';
+import 'core/state/app_locale_store.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/login_page.dart';
@@ -10,6 +12,7 @@ import 'features/legal/privacy_policy_page.dart';
 import 'features/legal/community_guidelines_page.dart';
 import 'features/legal/report_guidelines_page.dart';
 import 'features/legal/terms_of_service_page.dart';
+import 'l10n/generated/app_localizations.dart';
 import 'widgets/home_shell.dart';
 
 class XduTreeholeApp extends StatelessWidget {
@@ -17,17 +20,32 @@ class XduTreeholeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: '西电知行',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      onGenerateRoute: _onGenerateRoute,
-      onUnknownRoute: (RouteSettings settings) => MaterialPageRoute<void>(
-        builder: (_) => const AccessStatePage.notFound(),
-        settings: settings,
-      ),
+    return ListenableBuilder(
+      listenable: AppLocaleStore.instance,
+      builder: (BuildContext context, Widget? child) {
+        final Locale locale = AppLocaleStore.instance.locale;
+        return MaterialApp(
+          onGenerateTitle: (BuildContext context) =>
+              AppLocalizations.of(context)!.appTitle,
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightThemeFor(locale),
+          darkTheme: AppTheme.darkThemeFor(locale),
+          themeMode: ThemeMode.system,
+          locale: locale,
+          localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
+          onGenerateRoute: _onGenerateRoute,
+          onUnknownRoute: (RouteSettings settings) => MaterialPageRoute<void>(
+            builder: (_) => const AccessStatePage.notFound(),
+            settings: settings,
+          ),
+        );
+      },
     );
   }
 

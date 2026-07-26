@@ -4,9 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_store.dart';
 import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
+import '../core/state/app_locale_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../core/widgets/app_surfaces.dart';
+import '../core/widgets/language_toggle.dart';
+import '../l10n/generated/app_localizations.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
 import '../features/ai/ai_page.dart';
@@ -32,12 +35,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   bool _postUrlHandled = false;
   final Map<int, Widget> _pageCache = <int, Widget>{};
 
-  static const List<_ShellDestination> _destinations = <_ShellDestination>[
-    _ShellDestination('树洞', '校园里的声音', Icons.forum_outlined),
-    _ShellDestination('校园', '服务、日程、地图', Icons.account_balance_outlined),
-    _ShellDestination('AI', '学习与校园问答', Icons.auto_awesome_outlined),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -48,6 +45,24 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final List<_ShellDestination> destinations = <_ShellDestination>[
+      _ShellDestination(
+        l10n.treehole,
+        l10n.treeholeSubtitle,
+        Icons.forum_outlined,
+      ),
+      _ShellDestination(
+        l10n.campus,
+        l10n.campusSubtitle,
+        Icons.account_balance_outlined,
+      ),
+      _ShellDestination(
+        l10n.campusAi,
+        l10n.campusAiSubtitle,
+        Icons.auto_awesome_outlined,
+      ),
+    ];
     final double width = MediaQuery.sizeOf(context).width;
     final bool desktop = width >= AppBreakpoints.medium;
     final bool expandedRail = width >= AppBreakpoints.expanded;
@@ -80,7 +95,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Text(
-                    _destinations[_currentIndex].label,
+                    destinations[_currentIndex].label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: desktop
@@ -89,7 +104,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    _destinations[_currentIndex].subtitle,
+                    destinations[_currentIndex].subtitle,
                     style: TextStyle(
                       fontSize: 12,
                       color: Theme.of(
@@ -106,21 +121,30 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         actions: <Widget>[
           if (_currentIndex == 0 && !desktop)
             IconButton(
-              tooltip: '筛选',
+              tooltip: l10n.filter,
               onPressed: _openFeedFilters,
               icon: const Icon(Icons.menu_rounded),
             ),
           if (desktop)
-            _DesktopSearchButton(onPressed: _openSearch)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: LanguageToggle(
+                locale: Localizations.localeOf(context),
+                onChanged: AppLocaleStore.instance.setLocale,
+                compact: true,
+              ),
+            ),
+          if (desktop)
+            _DesktopSearchButton(onPressed: _openSearch, label: l10n.search)
           else if (_currentIndex == 0)
             IconButton(
-              tooltip: '搜索',
+              tooltip: l10n.search,
               onPressed: _openSearch,
               icon: const Icon(Icons.search_rounded),
             ),
           IconButton(
             onPressed: _openNotifications,
-            tooltip: '通知',
+            tooltip: l10n.notifications,
             icon: Badge(
               isLabelVisible: notificationUnreadCount > 0,
               label: Text(
@@ -137,7 +161,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               key: const Key('create-post-top-action'),
               onPressed: _openCreatePost,
               icon: const Icon(Icons.edit_outlined, size: 18),
-              label: const Text('发布心声'),
+              label: Text(l10n.publishVoice),
             ),
           ],
           SizedBox(width: desktop ? AppSpacing.lg : AppSpacing.xs),
@@ -148,7 +172,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               children: <Widget>[
                 _DesktopRail(
                   currentIndex: _currentIndex,
-                  destinations: _destinations,
+                  destinations: destinations,
                   onSelect: _selectTab,
                   extended: expandedRail,
                   onProfile: _openProfileSheet,
@@ -163,7 +187,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                 : FloatingActionButton(
                     key: const Key('create-post-fab'),
                     onPressed: _openCreatePost,
-                    tooltip: '发帖',
+                    tooltip: l10n.createPost,
                     child: const Icon(Icons.edit_outlined),
                   ))
           : null,
@@ -173,7 +197,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               key: const Key('mobile-primary-navigation'),
               selectedIndex: _currentIndex,
               onDestinationSelected: _selectTab,
-              destinations: _destinations
+              destinations: destinations
                   .map(
                     (_ShellDestination item) => NavigationDestination(
                       icon: Icon(item.icon),
@@ -230,9 +254,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return;
     }
 
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('帖子已发布')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.published)),
+    );
   }
 
   Future<void> _openNotifications() async {
@@ -258,6 +282,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   void _openProfileSheet() {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       useSafeArea: true,
@@ -272,7 +297,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.manage_accounts_outlined),
-                title: const Text('个人资料与设置'),
+                title: Text(l10n.profileAndSettings),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -281,7 +306,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
                       builder: (_) => Scaffold(
                         appBar: PreferredSize(
                           preferredSize: const Size.fromHeight(56),
-                          child: AppBar(title: const Text('个人资料与设置')),
+                          child: AppBar(title: Text(l10n.profileAndSettings)),
                         ),
                         body: const ProfilePage(),
                       ),
@@ -291,7 +316,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               ),
               ListTile(
                 leading: const Icon(Icons.chat_bubble_outline_rounded),
-                title: const Text('会话'),
+                title: Text(l10n.conversations),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -304,7 +329,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               ),
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
-                title: const Text('设置'),
+                title: Text(l10n.settings),
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () {
                   Navigator.of(context).pop();
@@ -360,6 +385,8 @@ class _DesktopRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final EditorialColors palette = EditorialColors.of(context);
     final user = AuthStore.instance.currentUser;
     final String nickname = user?.nickname.trim() ?? '';
     final String label = nickname.isEmpty ? '匿' : nickname.characters.first;
@@ -389,11 +416,11 @@ class _DesktopRail extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '知行',
+                              l10n.brandShort,
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             Text(
-                              '校园电台',
+                              l10n.tagline,
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
@@ -431,15 +458,15 @@ class _DesktopRail extends StatelessWidget {
                           height: 34,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: SharedColors.softRed,
+                            color: palette.primarySubtle,
                             borderRadius: BorderRadius.circular(
                               AppRadii.medium,
                             ),
                           ),
                           child: Text(
                             label,
-                            style: const TextStyle(
-                              color: SharedColors.deep,
+                            style: TextStyle(
+                              color: palette.primaryActive,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -450,7 +477,9 @@ class _DesktopRail extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                nickname.isEmpty ? '个人中心' : nickname,
+                                nickname.isEmpty
+                                    ? l10n.personalCenter
+                                    : nickname,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -459,7 +488,7 @@ class _DesktopRail extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '资料与设置',
+                                l10n.profileAndSettings,
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -568,9 +597,10 @@ class _RailItem extends StatelessWidget {
 }
 
 class _DesktopSearchButton extends StatelessWidget {
-  const _DesktopSearchButton({required this.onPressed});
+  const _DesktopSearchButton({required this.onPressed, required this.label});
 
   final VoidCallback onPressed;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
@@ -580,13 +610,9 @@ class _DesktopSearchButton extends StatelessWidget {
       child: OutlinedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.search_rounded, size: 18),
-        label: const Align(
+        label: Align(
           alignment: Alignment.centerLeft,
-          child: Text(
-            '搜索帖子、话题与公告',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
         ),
         style: OutlinedButton.styleFrom(
           foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,

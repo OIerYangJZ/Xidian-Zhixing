@@ -19,6 +19,9 @@ flutter_app/android/build/
 # Runtime logs
 *.log
 
+# Local review artifacts
+/artifacts/
+
 # macOS
 .DS_Store
 *.pem

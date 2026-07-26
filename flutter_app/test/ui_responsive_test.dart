@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -17,6 +18,7 @@ import 'package:xdu_treehole_web/features/auth/verify_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
+import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/home_shell.dart';
@@ -259,6 +261,14 @@ Widget _app(Widget home) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.lightTheme,
+    localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
+    locale: const Locale('zh', 'CN'),
     home: home,
   );
 }

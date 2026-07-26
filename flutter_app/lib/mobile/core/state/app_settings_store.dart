@@ -11,8 +11,7 @@ class AppSettingsStore extends ChangeNotifier {
 
   static const String _brightnessKey =
       'treehole_brightness'; // ThemeMode.index: 0=system, 1=light, 2=dark
-  static const String _localeKey =
-      'treehole_localization'; // 'zh_CN', 'zh_Hant', 'en_US'
+  static const String _localeKey = 'treehole_localization'; // 'zh_CN', 'en_US'
   static const String _legacyLocaleKey = 'treehole_locale';
   static const String _themeKeyStorageKey = 'treehole_theme_key';
 
@@ -62,10 +61,6 @@ class AppSettingsStore extends ChangeNotifier {
   }
 
   Locale _normalizeLocale(Locale locale) {
-    if (locale.languageCode == 'zh' &&
-        (locale.scriptCode == 'Hant' || locale.countryCode == 'TW')) {
-      return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
-    }
     if (locale.languageCode == 'en') {
       return const Locale('en');
     }
@@ -77,7 +72,7 @@ class AppSettingsStore extends ChangeNotifier {
     switch (code) {
       case 'zh_TW':
       case 'zh_Hant':
-        return const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant');
+        return const Locale('zh', 'CN');
       case 'en':
       case 'en_US':
         return const Locale('en');
@@ -89,9 +84,6 @@ class AppSettingsStore extends ChangeNotifier {
   }
 
   String _storageLocaleCode(Locale locale) {
-    if (locale.languageCode == 'zh' && locale.scriptCode == 'Hant') {
-      return 'zh_Hant';
-    }
     if (locale.languageCode == 'en') {
       return 'en_US';
     }

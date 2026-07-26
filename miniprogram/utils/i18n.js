@@ -1,5 +1,12 @@
 const translations = {
   'zh-CN': {
+    app_title: '西电知行',
+    tagline: '让校园里的真实声音被听见',
+    home: '树洞',
+    campus: '校园',
+    ai: '校园 AI',
+    campus_subtitle: '服务、日程、地图',
+    ai_subtitle: '学习与校园问答',
     theme: '主题',
     theme_system: '跟随系统',
     theme_light: '浅色',
@@ -39,6 +46,13 @@ const translations = {
     chat_banner_warning: '只能发1条消息（对方回复或关注后解锁）'
   },
   'zh-TW': {
+    app_title: '西電知行',
+    tagline: '讓校園裡的真實聲音被聽見',
+    home: '樹洞',
+    campus: '校園',
+    ai: '校園 AI',
+    campus_subtitle: '服務、日程、地圖',
+    ai_subtitle: '學習與校園問答',
     theme: '主題',
     theme_system: '跟隨系統',
     theme_light: '淺色',
@@ -78,6 +92,13 @@ const translations = {
     chat_banner_warning: '只能發1條消息（對方回復或關注後解鎖）'
   },
   'en': {
+    app_title: 'Xidian Zhixing',
+    tagline: 'Let authentic campus voices be heard',
+    home: 'Treehole',
+    campus: 'Campus',
+    ai: 'Campus AI',
+    campus_subtitle: 'Services, calendar, maps',
+    ai_subtitle: 'Study and campus questions',
     theme: 'Theme',
     theme_system: 'System',
     theme_light: 'Light',
@@ -119,7 +140,9 @@ const translations = {
 };
 
 export const getLanguage = () => {
-  return wx.getStorageSync('language') || 'zh-CN';
+  const stored = wx.getStorageSync('language');
+  if (stored === 'en') return 'en';
+  return 'zh-CN';
 };
 
 export const setLanguage = (lang) => {

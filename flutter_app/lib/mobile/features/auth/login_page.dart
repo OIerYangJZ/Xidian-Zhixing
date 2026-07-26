@@ -4,10 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
+import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
+import 'package:xdu_treehole_web/core/widgets/language_toggle.dart';
+import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/repositories/auth_repository.dart';
 import '../../core/theme/mobile_colors.dart';
-import '../../core/theme/mobile_theme.dart';
-import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -33,14 +34,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _login() async {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     final String identifier = _identifierController.text.trim();
     final String password = _passwordController.text.trim();
     if (identifier.isEmpty) {
-      _showError('请输入学号或学生邮箱');
+      _showError(l10n.identifierRequired);
       return;
     }
     if (password.isEmpty) {
-      _showError('请输入密码');
+      _showError(l10n.passwordRequired);
       return;
     }
 
@@ -64,8 +66,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         } catch (error) {
           if (!mounted) return;
           _showError(
-            '登录成功，但个人资料加载失败：'
-            '${error.toString().replaceAll('Exception: ', '')}',
+            l10n.loginFailed(error.toString().replaceAll('Exception: ', '')),
           );
           return;
         }
@@ -81,14 +82,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       final String email = (result.email ?? '').trim();
       if (email.isEmpty) {
-        _showError('登录结果异常，请稍后重试');
+        _showError(l10n.loginResultError);
         return;
       }
       context.go('/auth/verify?email=${Uri.encodeComponent(email)}');
     } on ApiException catch (error) {
       _showError(error.message);
     } catch (error) {
-      _showError('登录失败：$error');
+      _showError(l10n.loginFailed('$error'));
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -107,97 +108,99 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final MobileColors colors = MobileColors.of(context);
+    final EditorialColors editorial = EditorialColors.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final settings = ref.watch(appSettingsProvider);
+    final Locale locale = settings.locale ?? const Locale('zh', 'CN');
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 48),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 80),
-              Center(
-                child: Container(
-                  width: 90,
-                  height: 90,
-                  decoration: BoxDecoration(
-                    color: SharedColors.primary,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: SharedColors.deep, width: 2),
-                    boxShadow: [
-                      BoxShadow(
-                        color: SharedColors.deep.withValues(alpha: 0.15),
-                        blurRadius: 6,
-                        offset: const Offset(1, 2),
-                      ),
-                    ],
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  alignment: Alignment.center,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        width: 1.5,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Container(
+                    width: 32,
+                    height: 32,
                     alignment: Alignment.center,
-                    child: const Text(
-                      '西电\n知行',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                        letterSpacing: 2,
-                        fontFamily: MobileTheme.brandFontFamily,
-                        fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
-                      ),
+                    color: colors.primary,
+                    child: Text(
+                      '知',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.copyWith(color: colors.surface),
                     ),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    l10n.appTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const Spacer(),
+                  LanguageToggle(
+                    locale: locale,
+                    compact: true,
+                    onChanged: ref.read(appSettingsProvider).setLocale,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.fromLTRB(22, 28, 22, 30),
+                color: colors.textPrimary,
+                child: Text(
+                  l10n.tagline,
+                  style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                    color: colors.surface,
+                    fontSize: locale.languageCode == 'en' ? 38 : 42,
+                    height: 1.08,
                   ),
                 ),
+              ),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: SizedBox(
+                      height: 10,
+                      child: ColoredBox(color: editorial.coral),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 84,
+                    height: 10,
+                    child: ColoredBox(color: editorial.apricot),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 34),
+              Text(
+                l10n.welcomeBack,
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                l10n.loginDescription,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               ),
               const SizedBox(height: 24),
-              Text(
-                '西电知行',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: colors.textPrimary,
-                  fontFamily: MobileTheme.brandFontFamily,
-                  fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '欢迎回来',
-                style: TextStyle(
-                  fontSize: 15,
-                  color: colors.textSecondary,
-                  fontFamily: MobileTheme.brandFontFamily,
-                  fontFamilyFallback: MobileTheme.brandFontFamilyFallback,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '项目组内测仅开放白名单学生邮箱',
-                style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 28),
               TextField(
                 controller: _identifierController,
                 enabled: !_isLoading,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                decoration: const InputDecoration(
-                  hintText: '学号或学生邮箱',
-                  prefixIcon: Icon(Icons.school_outlined),
+                autofillHints: const <String>[
+                  AutofillHints.username,
+                  AutofillHints.email,
+                ],
+                decoration: InputDecoration(
+                  labelText: l10n.studentIdentifier,
+                  hintText: l10n.studentIdentifierHint,
                 ),
               ),
               const SizedBox(height: 16),
@@ -205,12 +208,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 controller: _passwordController,
                 enabled: !_isLoading,
                 obscureText: _obscurePassword,
+                autofillHints: const <String>[AutofillHints.password],
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _login(),
                 decoration: InputDecoration(
-                  hintText: '密码',
-                  prefixIcon: const Icon(Icons.lock_outline),
+                  labelText: l10n.password,
                   suffixIcon: IconButton(
+                    tooltip: _obscurePassword
+                        ? l10n.showPassword
+                        : l10n.hidePassword,
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_outlined
@@ -232,33 +238,25 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
                     _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
+                    style: TextStyle(color: colors.error),
                   ),
                 ),
-              FilledButton.icon(
+              FilledButton(
                 onPressed: _isLoading ? null : _login,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.login_rounded),
-                label: Text(_isLoading ? '登录中...' : '登录'),
+                child: Text(_isLoading ? l10n.loggingIn : l10n.loginButton),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: _isLoading
                     ? null
                     : () => context.go('/auth/register'),
-                child: const Text('注册账号'),
+                child: Text(l10n.registerAccount),
               ),
               TextButton(
                 onPressed: _isLoading
                     ? null
                     : () => context.go('/auth/reset-password'),
-                child: const Text('忘记密码'),
+                child: Text(l10n.forgotPassword),
               ),
             ],
           ),

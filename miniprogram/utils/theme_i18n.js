@@ -42,7 +42,8 @@ export const applyThemeAndLanguage = (page) => {
   const resolvedDisplayMode = resolveDisplayMode(displayMode);
   const lang = getLanguage();
   const t = getTranslation(lang);
-  const themeClass = `theme-${theme} color-mode-${resolvedDisplayMode}`;
+  const languageClass = lang === 'en' ? 'lang-en' : 'lang-zh';
+  const themeClass = `theme-${theme} color-mode-${resolvedDisplayMode} ${languageClass}`;
   const colors = THEME_MAP[theme];
   const isDark = resolvedDisplayMode === 'dark';
   const navBg = isDark ? '#000000' : colors.navBg;
@@ -71,6 +72,7 @@ export const applyThemeAndLanguage = (page) => {
   TAB_BAR_ITEMS.forEach((item) => {
     wx.setTabBarItem({
       index: item.index,
+      text: t[item.key],
       selectedIconPath: `assets/tabbar/theme-${theme}${isDark ? '_dark' : ''}/${item.key}_selected.png`
     });
   });

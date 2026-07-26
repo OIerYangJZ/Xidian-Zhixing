@@ -582,7 +582,7 @@
   background-color: var(--app-control);
   padding: 2rpx 8rpx;
   border-radius: 6rpx;
-  font-family: monospace, Consolas, Courier;
+  font-family: var(--font-en-body);
   font-size: 0.9em;
   word-break: break-all;
   color: var(--app-accent);
@@ -599,7 +599,7 @@
 }
 
 .md-code-inner {
-  font-family: monospace, Consolas, Courier;
+  font-family: var(--font-en-body);
   font-size: 26rpx;
   line-height: 1.45;
   color: var(--app-text-primary);

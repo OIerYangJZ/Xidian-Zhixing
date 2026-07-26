@@ -49,8 +49,8 @@
   margin: 24rpx 32rpx 0;
   padding: 22rpx 24rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 28rpx;
-  background: var(--app-surface);
+  border-radius: 0;
+  background: var(--app-dark-panel);
 }
 
 .ids-card:active {
@@ -70,7 +70,7 @@
 .ids-mark::after {
   content: '';
   position: absolute;
-  background: #ffffff;
+  background: var(--app-on-primary);
 }
 
 .ids-mark::before {
@@ -95,7 +95,7 @@
 }
 
 .ids-title {
-  color: var(--app-text-primary);
+  color: var(--app-on-dark-panel);
   font-size: 30rpx;
   font-weight: 700;
   line-height: 1.35;
@@ -103,7 +103,8 @@
 
 .ids-desc {
   margin-top: 6rpx;
-  color: var(--app-text-secondary);
+  color: var(--app-on-dark-panel);
+  opacity: .68;
   font-size: 24rpx;
   line-height: 1.35;
 }
@@ -144,7 +145,7 @@
   margin: 0 32rpx;
   overflow: hidden;
   border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx;
+  border-radius: 0;
   background: var(--app-surface);
 }
 
@@ -203,7 +204,7 @@
   padding: 0 12rpx;
   border-radius: 19rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 21rpx;
   font-weight: 650;
   line-height: 38rpx;

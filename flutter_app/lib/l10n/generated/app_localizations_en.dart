@@ -9,10 +9,45 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => '西电知行';
+  String get appTitle => 'Xidian Zhixing';
+
+  @override
+  String get brandShort => 'Zhixing';
+
+  @override
+  String get tagline => 'Let authentic campus voices be heard';
+
+  @override
+  String get taglineSupporting =>
+      'A calm and sincere campus community for lasting conversations at Xidian.';
+
+  @override
+  String get internalBeta => 'Project beta';
+
+  @override
+  String get unofficialNotice =>
+      'Campus community beta · Not an official Xidian app';
 
   @override
   String get home => 'Home';
+
+  @override
+  String get treehole => 'Treehole';
+
+  @override
+  String get treeholeSubtitle => 'Voices from campus';
+
+  @override
+  String get campus => 'Campus';
+
+  @override
+  String get campusSubtitle => 'Services, calendar, maps';
+
+  @override
+  String get campusAi => 'Campus AI';
+
+  @override
+  String get campusAiSubtitle => 'Study and campus questions';
 
   @override
   String get messages => 'Messages';
@@ -24,7 +59,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Login';
 
   @override
-  String get loginTitle => 'Login to 西电知行';
+  String get loginTitle => 'Login to Xidian Zhixing';
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String get loginDescription =>
+      'Sign in with a student account on the project allowlist.';
+
+  @override
+  String get studentIdentifier => 'Student ID or email';
+
+  @override
+  String get studentIdentifierHint => '2023123456 or student email';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get loggingIn => 'Signing in';
+
+  @override
+  String get registerAccount => 'Create account';
+
+  @override
+  String get forgotPassword => 'Forgot password';
+
+  @override
+  String get betaAccessTitle => 'Beta access';
+
+  @override
+  String get betaAccessMessage =>
+      'Only allowlisted @stu.xidian.edu.cn accounts are supported. University SSO is not yet available.';
+
+  @override
+  String get adminLogin => 'Admin sign in';
+
+  @override
+  String get agreements => 'Terms · Privacy · Community rules';
+
+  @override
+  String get identifierRequired => 'Enter your student ID or email.';
+
+  @override
+  String get passwordRequired => 'Enter your password.';
+
+  @override
+  String get loginResultError =>
+      'The sign-in response was incomplete. Please try again.';
+
+  @override
+  String loginFailed(String error) {
+    return 'Sign-in failed: $error';
+  }
 
   @override
   String get username => 'Username';
@@ -61,6 +152,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get createPost => 'Create Post';
+
+  @override
+  String get publishVoice => 'Share a voice';
+
+  @override
+  String get published => 'Post published';
+
+  @override
+  String get latest => 'Latest';
+
+  @override
+  String get popular => 'Popular';
+
+  @override
+  String get allChannels => 'All channels';
+
+  @override
+  String get filterChannels => 'Filter channels';
+
+  @override
+  String get filter => 'Filter';
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get personalCenter => 'Profile';
+
+  @override
+  String get profileAndSettings => 'Profile and settings';
+
+  @override
+  String get conversations => 'Conversations';
+
+  @override
+  String get readFirst => 'Reading first';
+
+  @override
+  String get readFirstDescription =>
+      'A measured line length and a clear information hierarchy';
+
+  @override
+  String get crossScreen => 'Across screens';
+
+  @override
+  String get crossScreenDescription =>
+      'Designed for desktop, tablet, and mobile browsers';
 
   @override
   String get postDetail => 'Post Detail';

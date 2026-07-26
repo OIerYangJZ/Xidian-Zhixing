@@ -96,7 +96,6 @@ abstract class AppLocalizations {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('zh'),
-    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
   ];
 
   /// No description provided for @appTitle.
@@ -105,11 +104,77 @@ abstract class AppLocalizations {
   /// **'西电知行'**
   String get appTitle;
 
+  /// No description provided for @brandShort.
+  ///
+  /// In zh, this message translates to:
+  /// **'知行'**
+  String get brandShort;
+
+  /// No description provided for @tagline.
+  ///
+  /// In zh, this message translates to:
+  /// **'让校园里的真实声音被听见'**
+  String get tagline;
+
+  /// No description provided for @taglineSupporting.
+  ///
+  /// In zh, this message translates to:
+  /// **'一个为西电同学准备的克制、真诚、可持续讨论的校园社区。'**
+  String get taglineSupporting;
+
+  /// No description provided for @internalBeta.
+  ///
+  /// In zh, this message translates to:
+  /// **'项目组内测'**
+  String get internalBeta;
+
+  /// No description provided for @unofficialNotice.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园社区内测项目 · 非西电官方应用'**
+  String get unofficialNotice;
+
   /// No description provided for @home.
   ///
   /// In zh, this message translates to:
   /// **'首页'**
   String get home;
+
+  /// No description provided for @treehole.
+  ///
+  /// In zh, this message translates to:
+  /// **'树洞'**
+  String get treehole;
+
+  /// No description provided for @treeholeSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园里的声音'**
+  String get treeholeSubtitle;
+
+  /// No description provided for @campus.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园'**
+  String get campus;
+
+  /// No description provided for @campusSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'服务、日程、地图'**
+  String get campusSubtitle;
+
+  /// No description provided for @campusAi.
+  ///
+  /// In zh, this message translates to:
+  /// **'校园 AI'**
+  String get campusAi;
+
+  /// No description provided for @campusAiSubtitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'学习与校园问答'**
+  String get campusAiSubtitle;
 
   /// No description provided for @messages.
   ///
@@ -134,6 +199,108 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'登录西电知行'**
   String get loginTitle;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In zh, this message translates to:
+  /// **'欢迎回来'**
+  String get welcomeBack;
+
+  /// No description provided for @loginDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'使用项目组白名单中的学生账号登录。'**
+  String get loginDescription;
+
+  /// No description provided for @studentIdentifier.
+  ///
+  /// In zh, this message translates to:
+  /// **'学号或学生邮箱'**
+  String get studentIdentifier;
+
+  /// No description provided for @studentIdentifierHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'2023123456 或学生邮箱'**
+  String get studentIdentifierHint;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'显示密码'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'隐藏密码'**
+  String get hidePassword;
+
+  /// No description provided for @loggingIn.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在登录'**
+  String get loggingIn;
+
+  /// No description provided for @registerAccount.
+  ///
+  /// In zh, this message translates to:
+  /// **'注册账号'**
+  String get registerAccount;
+
+  /// No description provided for @forgotPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'忘记密码'**
+  String get forgotPassword;
+
+  /// No description provided for @betaAccessTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'内测访问说明'**
+  String get betaAccessTitle;
+
+  /// No description provided for @betaAccessMessage.
+  ///
+  /// In zh, this message translates to:
+  /// **'仅白名单 @stu.xidian.edu.cn 账号可使用；学校一站式登录尚未启用。'**
+  String get betaAccessMessage;
+
+  /// No description provided for @adminLogin.
+  ///
+  /// In zh, this message translates to:
+  /// **'管理员后台登录'**
+  String get adminLogin;
+
+  /// No description provided for @agreements.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户协议 · 隐私政策 · 社区规范'**
+  String get agreements;
+
+  /// No description provided for @identifierRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入学号或学生邮箱。'**
+  String get identifierRequired;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In zh, this message translates to:
+  /// **'请输入密码。'**
+  String get passwordRequired;
+
+  /// No description provided for @loginResultError.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录结果异常，请稍后重试。'**
+  String get loginResultError;
+
+  /// No description provided for @loginFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'登录失败：{error}'**
+  String loginFailed(String error);
 
   /// No description provided for @username.
   ///
@@ -206,6 +373,102 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'发帖'**
   String get createPost;
+
+  /// No description provided for @publishVoice.
+  ///
+  /// In zh, this message translates to:
+  /// **'发布心声'**
+  String get publishVoice;
+
+  /// No description provided for @published.
+  ///
+  /// In zh, this message translates to:
+  /// **'帖子已发布'**
+  String get published;
+
+  /// No description provided for @latest.
+  ///
+  /// In zh, this message translates to:
+  /// **'最新'**
+  String get latest;
+
+  /// No description provided for @popular.
+  ///
+  /// In zh, this message translates to:
+  /// **'热度'**
+  String get popular;
+
+  /// No description provided for @allChannels.
+  ///
+  /// In zh, this message translates to:
+  /// **'全部分区'**
+  String get allChannels;
+
+  /// No description provided for @filterChannels.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选分区'**
+  String get filterChannels;
+
+  /// No description provided for @filter.
+  ///
+  /// In zh, this message translates to:
+  /// **'筛选'**
+  String get filter;
+
+  /// No description provided for @search.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索'**
+  String get search;
+
+  /// No description provided for @notifications.
+  ///
+  /// In zh, this message translates to:
+  /// **'通知'**
+  String get notifications;
+
+  /// No description provided for @personalCenter.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人中心'**
+  String get personalCenter;
+
+  /// No description provided for @profileAndSettings.
+  ///
+  /// In zh, this message translates to:
+  /// **'个人资料与设置'**
+  String get profileAndSettings;
+
+  /// No description provided for @conversations.
+  ///
+  /// In zh, this message translates to:
+  /// **'会话'**
+  String get conversations;
+
+  /// No description provided for @readFirst.
+  ///
+  /// In zh, this message translates to:
+  /// **'阅读优先'**
+  String get readFirst;
+
+  /// No description provided for @readFirstDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'克制的正文宽度与清晰的信息层级'**
+  String get readFirstDescription;
+
+  /// No description provided for @crossScreen.
+  ///
+  /// In zh, this message translates to:
+  /// **'跨屏可用'**
+  String get crossScreen;
+
+  /// No description provided for @crossScreenDescription.
+  ///
+  /// In zh, this message translates to:
+  /// **'适配电脑、平板与手机浏览器'**
+  String get crossScreenDescription;
 
   /// No description provided for @postDetail.
   ///
@@ -376,18 +639,6 @@ class _AppLocalizationsDelegate
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
-  // Lookup logic when language+script codes are specified.
-  switch (locale.languageCode) {
-    case 'zh':
-      {
-        switch (locale.scriptCode) {
-          case 'Hant':
-            return AppLocalizationsZhHant();
-        }
-        break;
-      }
-  }
-
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'en':

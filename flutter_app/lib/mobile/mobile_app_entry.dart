@@ -39,7 +39,10 @@ class XduTreeholeMobileApp extends ConsumerWidget {
     return MaterialApp.router(
       title: '西电知行',
       debugShowCheckedModeBanner: false,
-      theme: MobileTheme.getThemeData(settings.themeKey),
+      theme: MobileTheme.getThemeData(
+        settings.themeKey,
+        settings.locale ?? const Locale('zh', 'CN'),
+      ),
       themeMode: ThemeMode.light,
       locale: settings.locale,
       localizationsDelegates: const [

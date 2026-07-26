@@ -1,13 +1,13 @@
 page {
-  --brand-primary: #A33A32;
-  --brand-deep: #7D2924;
-  --brand-bright: #C46A50;
-  --brand-seal: #A33A32;
-  --background-paper: #F6F2EA;
-  --background-softRed: #F0E5DF;
-  --text-primary: #292522;
-  --text-secondary: #716A64;
-  --border-default: #DED6CB;
+  --brand-primary: #A43B32;
+  --brand-deep: #7E2924;
+  --brand-bright: #D9775F;
+  --brand-seal: #A43B32;
+  --background-paper: #F7F6F2;
+  --background-softRed: #F1E5DF;
+  --text-primary: #181816;
+  --text-secondary: #66635D;
+  --border-default: #D8D5CC;
   --state-success: #4F725E;
   --state-warning: #9A672A;
   --state-danger: #97382F;
@@ -15,10 +15,19 @@ page {
   --app-primary: var(--brand-primary);
   --app-primary-dark: var(--brand-deep);
   --app-accent: var(--brand-bright);
+  --app-coral: #D9775F;
+  --app-apricot: #E8B65D;
+  --app-dark-panel: #1E1E1B;
+  --app-on-dark-panel: #F7F6F2;
+  --app-on-primary: #F7F6F2;
+  --app-like: var(--brand-primary);
+  --app-favorite: #A86E1C;
+  --app-scrim: rgba(24, 24, 22, .42);
+  --app-translucent-surface: rgba(255, 254, 250, .92);
   --app-background: var(--background-paper);
-  --app-surface: #FFFCF7;
+  --app-surface: #FFFEFA;
   --app-surface-translucent: rgba(255, 255, 255, 0.72);
-  --app-card: #FFFCF7;
+  --app-card: #FFFEFA;
   --app-text-primary: var(--text-primary);
   --app-text-secondary: var(--text-secondary);
   --app-text-tertiary: #A2948E;
@@ -30,14 +39,33 @@ page {
   --app-primary-soft: var(--background-softRed);
   --app-accent-soft: var(--background-softRed);
 
-  --font-serif: "Source Han Serif SC", "Source Han Serif CN", "Noto Serif CJK SC", "Songti SC", "SimSun", serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-  --font-quote: var(--font-serif);
+  --font-zh-display: "STZhongsong", "华文中宋", "STSong", "华文宋体", "SimSun", "宋体";
+  --font-zh-body: "STSong", "华文宋体", "SimSun", "宋体";
+  --font-zh-accent: "STKaiti", "华文楷体", "KaiTi", "楷体";
+  --font-en-display: "Anthropic Serif Web", "Anthropic Serif Web Text", "Times New Roman";
+  --font-en-body: "Times New Roman", "Anthropic Serif Web";
+  --font-en-accent: "Apple Chancery", "Times New Roman";
+  --font-display: var(--font-zh-display);
+  --font-body: var(--font-zh-body);
+  --font-accent: var(--font-zh-accent);
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-quote: var(--font-accent);
 
   min-height: 100vh;
   background: var(--app-background);
   color: var(--app-text-primary);
   font-family: var(--font-sans);
+}
+
+.lang-en {
+  --font-display: var(--font-en-display);
+  --font-body: var(--font-en-body);
+  --font-accent: var(--font-en-accent);
+  --font-serif: var(--font-display);
+  --font-sans: var(--font-body);
+  --font-quote: var(--font-accent);
+  font-family: var(--font-body);
 }
 
 view,
@@ -88,6 +116,7 @@ button::after {
   color: var(--app-text-primary);
   font-size: 34rpx;
   font-weight: 700;
+  font-family: var(--font-display);
   line-height: 1.35;
 }
 
@@ -121,9 +150,9 @@ button::after {
   align-items: center;
   justify-content: center;
   height: 88rpx;
-  border-radius: 20rpx;
-  background: var(--app-primary);
-  color: #ffffff;
+  border-radius: 4rpx;
+  background: var(--app-dark-panel);
+  color: var(--app-on-dark-panel);
   font-size: 30rpx;
   font-weight: 600;
   line-height: 88rpx;
@@ -148,7 +177,7 @@ button::after {
   justify-content: center;
   height: 56rpx;
   padding: 0 20rpx;
-  border-radius: 12rpx;
+  border-radius: 4rpx;
   background: var(--app-primary-soft);
   color: var(--app-primary);
   font-size: 25rpx;
@@ -168,7 +197,7 @@ button::after {
   width: 100%;
   padding: 0 24rpx;
   border: 1rpx solid var(--app-divider);
-  border-radius: 20rpx;
+  border-radius: 4rpx;
   background: var(--app-surface);
   color: var(--app-text-primary);
   font-size: 29rpx;
@@ -1108,6 +1137,13 @@ button::after {
   --app-primary-soft: rgba(255, 255, 255, 0.08);
   --app-accent-soft: rgba(255, 255, 255, 0.08);
   --app-control: rgba(255, 255, 255, 0.06);
+  --app-dark-panel: #F1EDE4;
+  --app-on-dark-panel: #1A1A17;
+  --app-on-primary: #171714;
+  --app-like: #E08075;
+  --app-favorite: #EBC474;
+  --app-scrim: rgba(0, 0, 0, .42);
+  --app-translucent-surface: rgba(28, 28, 30, .92);
 }
 
 .color-mode-dark .anonymous-badge,

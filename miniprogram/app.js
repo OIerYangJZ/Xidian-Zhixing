@@ -2,7 +2,7 @@ import { clearLegacyCampusAuthSecrets } from './utils/campus_auth';
 
 App({
   globalData: {
-    appName: '电台',
+    appName: '西电知行',
     clientType: 'wechat-miniprogram',
     navTop: 44,
     navHeight: 32

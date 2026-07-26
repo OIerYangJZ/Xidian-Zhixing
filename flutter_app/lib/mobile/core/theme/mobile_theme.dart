@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/shared_colors.dart';
 import 'mobile_colors.dart';
 
 /// 主题配置数据类
@@ -31,17 +33,19 @@ class ThemeConfig {
 /// 移动端 iOS 风格主题
 /// 遵循极简、优雅的设计理念
 class MobileTheme {
-  static const String interfaceFontFamily = 'PingFang SC';
+  static const String interfaceFontFamily = AppTypography.chineseBody;
   static const List<String> interfaceFontFamilyFallback = [
-    'Noto Sans CJK SC',
-    'Microsoft YaHei',
-    'sans-serif',
+    '华文宋体',
+    'SimSun',
+    '宋体',
   ];
-  static const String brandFontFamily = 'Source Han Serif SC';
+  static const String brandFontFamily = AppTypography.chineseDisplay;
   static const List<String> brandFontFamilyFallback = [
-    'Songti SC',
-    'Noto Serif CJK SC',
-    'serif',
+    '华文中宋',
+    'STSong',
+    '华文宋体',
+    'SimSun',
+    '宋体',
   ];
 
   static const String quoteFontFamily = brandFontFamily;
@@ -180,18 +184,39 @@ class MobileTheme {
       Theme.of(context).colorScheme.secondary;
 
   /// 向后兼容
-  static ThemeData get lightTheme => getThemeData('zhushachi');
+  static ThemeData get lightTheme =>
+      getThemeData('zhushachi', const Locale('zh', 'CN'));
 
   /// 根据主题 key 动态构建 ThemeData
-  static ThemeData getThemeData(String themeKey) {
+  static ThemeData getThemeData(String themeKey, Locale locale) {
     final config = themes[themeKey]!;
     final colors = MobileColors.fromThemeKey(themeKey);
+    final EditorialColors editorial = SharedColors.light.copyWith(
+      page: colors.background,
+      surface: colors.surface,
+      ink: colors.textPrimary,
+      mutedInk: colors.textSecondary,
+      line: colors.divider,
+      primary: config.primary,
+      primaryActive: config.primaryDark,
+      coral: config.accent,
+      primarySubtle: config.softBackground,
+      success: config.success,
+      warning: config.warning,
+      danger: config.error,
+    );
+    final String bodyFontFamily = AppTypography.bodyFamily(locale);
+    final List<String> bodyFontFallback = AppTypography.bodyFallback(locale);
+    final String displayFontFamily = AppTypography.displayFamily(locale);
+    final List<String> displayFontFallback = AppTypography.displayFallback(
+      locale,
+    );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      fontFamily: interfaceFontFamily,
-      fontFamilyFallback: interfaceFontFamilyFallback,
+      fontFamily: bodyFontFamily,
+      fontFamilyFallback: bodyFontFallback,
       primaryColor: config.primary,
       scaffoldBackgroundColor: config.background,
       colorScheme: ColorScheme.light(
@@ -217,8 +242,8 @@ class MobileTheme {
           color: config.primaryDark,
           fontSize: 17,
           fontWeight: FontWeight.w600,
-          fontFamily: interfaceFontFamily,
-          fontFamilyFallback: interfaceFontFamilyFallback,
+          fontFamily: bodyFontFamily,
+          fontFamilyFallback: bodyFontFallback,
         ),
         iconTheme: IconThemeData(color: config.primary),
       ),
@@ -380,29 +405,29 @@ class MobileTheme {
           fontSize: 34,
           fontWeight: FontWeight.bold,
           color: colors.textPrimary,
-          fontFamily: brandFontFamily,
-          fontFamilyFallback: brandFontFamilyFallback,
+          fontFamily: displayFontFamily,
+          fontFamilyFallback: displayFontFallback,
         ),
         titleLarge: TextStyle(
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: colors.textPrimary,
-          fontFamily: brandFontFamily,
-          fontFamilyFallback: brandFontFamilyFallback,
+          fontFamily: displayFontFamily,
+          fontFamilyFallback: displayFontFallback,
         ),
         titleMedium: TextStyle(
           fontSize: 17,
           fontWeight: FontWeight.w600,
           color: colors.textPrimary,
-          fontFamily: brandFontFamily,
-          fontFamilyFallback: brandFontFamilyFallback,
+          fontFamily: displayFontFamily,
+          fontFamilyFallback: displayFontFallback,
         ),
         titleSmall: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
           color: colors.textPrimary,
-          fontFamily: brandFontFamily,
-          fontFamilyFallback: brandFontFamilyFallback,
+          fontFamily: displayFontFamily,
+          fontFamilyFallback: displayFontFallback,
         ),
         bodyLarge: TextStyle(
           fontSize: 17,
@@ -437,7 +462,7 @@ class MobileTheme {
       ),
 
       // MobileColors 扩展 - 用于 MobileColors.of(context)
-      extensions: [colors],
+      extensions: <ThemeExtension<dynamic>>[colors, editorial],
     );
   }
 }

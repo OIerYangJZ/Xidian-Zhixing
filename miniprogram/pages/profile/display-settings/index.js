@@ -47,8 +47,7 @@ Page({
         { label: t.theme_dark || '深色', value: 'dark' }
       ],
       langOptions: [
-        { label: t.lang_cn || '简体中文', value: 'zh-CN' },
-        { label: t.lang_tw || '繁體中文', value: 'zh-TW' },
+        { label: t.lang_cn || '中文', value: 'zh-CN' },
         { label: t.lang_en || 'English', value: 'en' }
       ],
       layoutOptions: [

@@ -7,8 +7,8 @@
       <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
     </view>
     <view class="nav-title">
-      <view class="nav-name">校园</view>
-      <view class="nav-subtitle">服务、日程、地图</view>
+      <view class="nav-name">{{t.campus}}</view>
+      <view class="nav-subtitle">{{t.campus_subtitle}}</view>
     </view>
   </view>
 

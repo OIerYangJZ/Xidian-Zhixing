@@ -42,10 +42,10 @@ class AppSpacing {
 class AppRadii {
   AppRadii._();
 
-  static const double small = 6;
-  static const double medium = 10;
-  static const double large = 12;
-  static const double hero = 16;
+  static const double small = 2;
+  static const double medium = 4;
+  static const double large = 6;
+  static const double hero = 0;
   static const double pill = 999;
 }
 
@@ -84,11 +84,5 @@ class AppLayout {
 class AppElevation {
   AppElevation._();
 
-  static List<BoxShadow> soft(Color color) => <BoxShadow>[
-    BoxShadow(
-      color: color.withValues(alpha: 0.06),
-      blurRadius: 18,
-      offset: const Offset(0, 8),
-    ),
-  ];
+  static List<BoxShadow> soft(Color color) => const <BoxShadow>[];
 }

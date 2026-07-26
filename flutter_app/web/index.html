@@ -11,8 +11,22 @@
     <link rel="apple-touch-icon" href="icons/Icon-192.png" />
     <link rel="manifest" href="manifest.json" />
     <style>
+      @font-face {
+        font-family: "Anthropic Serif Web";
+        src: local("Anthropic Serif Web"), local("Anthropic Serif Web Text");
+        font-display: swap;
+      }
+
       :root {
         color-scheme: light dark;
+        --boot-page: #f7f6f2;
+        --boot-surface: #fffefa;
+        --boot-ink: #181816;
+        --boot-muted: #66635d;
+        --boot-line: #d8d5cc;
+        --boot-primary: #a43b32;
+        --boot-primary-soft: #f1e5df;
+        --boot-danger: #97382f;
       }
 
       html,
@@ -21,9 +35,8 @@
         padding: 0;
         width: 100%;
         height: 100%;
-        background: #ffffff;
-        font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
-          sans-serif;
+        background: var(--boot-page);
+        font-family: "STSong", "华文宋体", "SimSun", "宋体";
       }
 
       #boot-shell {
@@ -32,7 +45,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #ffffff;
+        background: var(--boot-page);
         z-index: 9999;
         transition: opacity 220ms ease;
       }
@@ -45,10 +58,10 @@
       .boot-card {
         width: min(420px, calc(100vw - 32px));
         padding: 24px 22px 20px;
-        border-radius: 16px;
-        background: #ffffff;
+        border-radius: 2px;
+        background: var(--boot-surface);
         box-shadow: none;
-        border: 1px solid #eee4e1;
+        border: 1px solid var(--boot-line);
         box-sizing: border-box;
       }
 
@@ -57,13 +70,15 @@
         font-size: 30px;
         font-weight: 800;
         line-height: 1.2;
-        color: #2d2522;
+        color: var(--boot-ink);
+        font-family: "STZhongsong", "华文中宋", "STSong", "华文宋体",
+          "SimSun", "宋体";
       }
 
       .boot-subtitle {
         margin: 8px 0 0;
         font-size: 14px;
-        color: #847a76;
+        color: var(--boot-muted);
       }
 
       .boot-progress {
@@ -72,7 +87,7 @@
         height: 8px;
         border-radius: 999px;
         overflow: hidden;
-        background: #f8ecea;
+        background: var(--boot-primary-soft);
       }
 
       .boot-progress > span {
@@ -80,14 +95,14 @@
         width: 42%;
         height: 100%;
         border-radius: inherit;
-        background: #a8332c;
+        background: var(--boot-primary);
         animation: boot-progress 1.4s ease-in-out infinite;
       }
 
       .boot-status {
         margin-top: 14px;
         font-size: 13px;
-        color: #a8332c;
+        color: var(--boot-primary);
       }
 
       .boot-error {
@@ -95,16 +110,16 @@
         display: none;
         font-size: 13px;
         line-height: 1.6;
-        color: #b42318;
+        color: var(--boot-danger);
       }
 
       .boot-retry {
         margin-top: 14px;
         display: none;
         border: 0;
-        border-radius: 12px;
-        background: #a8332c;
-        color: #fff;
+        border-radius: 2px;
+        background: var(--boot-primary);
+        color: var(--boot-page);
         padding: 10px 14px;
         font-size: 14px;
         font-weight: 700;
@@ -112,35 +127,46 @@
       }
 
       @media (prefers-color-scheme: dark) {
+        :root {
+          --boot-page: #171714;
+          --boot-surface: #20201c;
+          --boot-ink: #f4f1e8;
+          --boot-muted: #bbb6aa;
+          --boot-line: #45443d;
+          --boot-primary: #e08075;
+          --boot-primary-soft: #3c2824;
+          --boot-danger: #e58a80;
+        }
+
         html,
         body,
         #boot-shell {
-          background: #120f0e;
+          background: var(--boot-page);
         }
 
         .boot-card {
-          background: #171211;
-          border-color: rgba(255, 255, 255, 0.08);
+          background: var(--boot-surface);
+          border-color: var(--boot-line);
         }
 
         .boot-title {
-          color: #f5efed;
+          color: var(--boot-ink);
         }
 
         .boot-subtitle {
-          color: rgba(245, 239, 237, 0.68);
+          color: var(--boot-muted);
         }
 
         .boot-progress {
-          background: rgba(224, 114, 105, 0.14);
+          background: var(--boot-primary-soft);
         }
 
         .boot-progress > span {
-          background: #e07269;
+          background: var(--boot-primary);
         }
 
         .boot-status {
-          color: #e6a09a;
+          color: var(--boot-primary);
         }
       }
 

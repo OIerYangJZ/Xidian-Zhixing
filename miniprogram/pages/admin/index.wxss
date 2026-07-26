@@ -219,7 +219,7 @@
 
 .form-textarea.code {
   min-height: 240rpx;
-  font-family: monospace;
+  font-family: var(--font-en-body);
 }
 
 .form-textarea.large {

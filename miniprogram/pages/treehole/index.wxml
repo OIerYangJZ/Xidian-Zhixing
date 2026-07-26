@@ -41,6 +41,14 @@
     bindscroll="onScroll"
     style="padding-top: {{navTop + navHeight + 8}}px;"
   >
+    <view class="editorial-intro" wx:if="{{!activeSection}}">
+      <view class="editorial-kicker">{{t.app_title}}</view>
+      <view class="editorial-title">{{t.tagline}}</view>
+      <view class="editorial-color-bar">
+        <view class="editorial-coral"></view>
+        <view class="editorial-apricot"></view>
+      </view>
+    </view>
     <view class="active-filter-bar" wx:if="{{activeSection}}">
       <view class="filter-info">
         <text class="filter-text">当前筛选：#{{activeSection.sectionName || activeSection.name}}</text>
