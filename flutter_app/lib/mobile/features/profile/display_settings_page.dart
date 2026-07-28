@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
+import '../../../core/theme/shared_colors.dart';
+import '../../../core/widgets/theme_dropdown.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/theme/mobile_theme.dart';
@@ -14,65 +16,12 @@ class DisplaySettingsPage extends ConsumerStatefulWidget {
 }
 
 class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
-  static const _themeOptions = [
-    ('zhushachi', '朱砂赤'),
-    ('yanzhihong', '胭脂红'),
-    ('chitaonuan', '赤陶暖'),
-    ('zaonihong', '枣泥红'),
-    ('xuanzhizhu', '宣纸朱'),
-    ('zhuqing', '竹青'),
-    ('ouhezi', '藕荷紫'),
-    ('xingrenhuang', '杏仁黄'),
-    ('haiyanqing', '海盐青'),
-    ('mohui', '墨灰'),
-  ];
-
-  void _showThemeDialog() {
-    final currentKey = ref.read(appSettingsProvider).themeKey;
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('外观主题'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: _themeOptions.map((option) {
-              final (key, name) = option;
-              final selected = key == currentKey;
-              return ListTile(
-                leading: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: MobileTheme.themes[key]!.primary,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                ),
-                title: Text(name),
-                trailing: selected
-                    ? Icon(Icons.check, color: MobileTheme.primaryOf(context))
-                    : null,
-                onTap: () => _setThemeKey(key, ctx),
-              );
-            }).toList(),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _setThemeKey(String key, BuildContext dialogContext) async {
+  Future<void> _setThemeKey(String key) async {
     await ref.read(appSettingsProvider.notifier).setThemeKey(key);
     if (!mounted) return;
-    Navigator.pop(dialogContext);
-    _showToast('已切换到 ${_themeLabel(key)}');
-  }
-
-  String _themeLabel(String key) {
-    for (final option in _themeOptions) {
-      if (option.$1 == key) return option.$2;
-    }
-    return key;
+    _showToast(
+      '已切换到 ${AppColorThemes.optionFor(key).labelFor(Localizations.localeOf(context))}',
+    );
   }
 
   void _showLanguageDialog() {
@@ -136,12 +85,7 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
         padding: const EdgeInsets.all(16),
         children: [
           _buildTileCard([
-            _buildListTile(
-              icon: Icons.brightness_6_outlined,
-              title: '外观主题',
-              subtitle: _themeLabel(settings.themeKey),
-              onTap: _showThemeDialog,
-            ),
+            _buildThemeSelector(settings.themeKey),
             _buildListTile(
               icon: Icons.language_outlined,
               title: l10n.language,
@@ -151,6 +95,46 @@ class _DisplaySettingsPageState extends ConsumerState<DisplaySettingsPage> {
               onTap: _showLanguageDialog,
             ),
           ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeSelector(String themeKey) {
+    final MobileColors colors = MobileColors.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                Icons.palette_outlined,
+                color: colors.textSecondary,
+                size: 20,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  locale.languageCode == 'en' ? 'Color theme' : '配色主题',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ThemeDropdown(
+            themeKey: themeKey,
+            locale: locale,
+            expanded: true,
+            onChanged: _setThemeKey,
+          ),
         ],
       ),
     );

@@ -1,17 +1,27 @@
 import { getTranslation, getLanguage } from './i18n';
 
 const THEME_MAP = {
-  zhushachi: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  yanzhihong: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  chitaonuan: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  zaonihong: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  xuanzhizhu: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  zhuqing: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  ouhezi: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  xingrenhuang: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  haiyanqing: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  mohui: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' },
-  minimal: { navBg: '#ffffff', navFront: '#000000', tabSelectedColor: '#A8332C', tabSelectedColorDark: '#ffffff' }
+  zhushachi: {
+    navBg: '#F7F6F2',
+    navFront: '#000000',
+    tabBg: '#FFFEFA',
+    tabSelectedColor: '#A43B32',
+    tabSelectedColorDark: '#E08075'
+  },
+  zhuqing: {
+    navBg: '#F3F7F2',
+    navFront: '#000000',
+    tabBg: '#FFFEF9',
+    tabSelectedColor: '#426F52',
+    tabSelectedColorDark: '#91C29C'
+  },
+  xingrenhuang: {
+    navBg: '#FBF6EA',
+    navFront: '#000000',
+    tabBg: '#FFFEF8',
+    tabSelectedColor: '#94631F',
+    tabSelectedColorDark: '#E1B665'
+  }
 };
 
 const TAB_BAR_ITEMS = [
@@ -21,7 +31,35 @@ const TAB_BAR_ITEMS = [
 ];
 
 export const getDisplayTheme = () => {
-  return wx.getStorageSync('colorTheme') || 'minimal';
+  const stored = wx.getStorageSync('colorTheme');
+  const resolved = (() => {
+    switch (stored) {
+      case '':
+      case undefined:
+      case null:
+        return 'zhushachi';
+      case 'zhushachi':
+      case 'zhuqing':
+      case 'xingrenhuang':
+        return stored;
+      case 'haiyanqing':
+        return 'zhuqing';
+      case 'minimal':
+      case 'yanzhihong':
+      case 'chitaonuan':
+      case 'zaonihong':
+      case 'xuanzhizhu':
+      case 'ouhezi':
+      case 'mohui':
+        return 'zhushachi';
+      default:
+        throw new Error(`Unknown stored color theme: ${stored}`);
+    }
+  })();
+  if (stored && stored !== resolved) {
+    wx.setStorageSync('colorTheme', resolved);
+  }
+  return resolved;
 };
 
 export const getDisplayMode = () => {
@@ -48,7 +86,7 @@ export const applyThemeAndLanguage = (page) => {
   const isDark = resolvedDisplayMode === 'dark';
   const navBg = isDark ? '#000000' : colors.navBg;
   const navFront = isDark ? '#ffffff' : colors.navFront;
-  const tabBg = isDark ? '#000000' : '#ffffff';
+  const tabBg = isDark ? '#000000' : colors.tabBg;
   const tabColor = isDark ? '#ffffff' : '#8E8E93';
   page.setData({
     themeClass,

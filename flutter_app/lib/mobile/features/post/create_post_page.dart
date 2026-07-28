@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../../core/theme/shared_colors.dart';
+import '../../../core/network/api_exception.dart';
 import '../../core/state/mobile_providers.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
@@ -258,6 +259,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           context,
         ).showSnackBar(SnackBar(content: Text(successMsg)));
         context.pop();
+      }
+    } on ApiException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('发布失败: ${error.message}')));
       }
     } catch (e) {
       if (mounted) {

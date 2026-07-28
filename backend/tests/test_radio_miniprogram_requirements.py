@@ -639,6 +639,19 @@ def test_miniprogram_does_not_persist_or_replay_campus_passwords() -> None:
     assert "saveCampusAuthSecret" not in auth_center_source
 
 
+def test_miniprogram_create_post_displays_moderation_rejection_reason() -> None:
+    miniprogram_dir = backend_dir.parent / "miniprogram"
+    api_source = (miniprogram_dir / "api" / "posts.js").read_text()
+    create_source = (
+        miniprogram_dir / "pages" / "campus" / "create-post" / "index.js"
+    ).read_text()
+
+    assert "silentErrorToast: true" in api_source
+    assert "POST_CONTENT_REJECTED" in create_source
+    assert "发布被自动审核拦截" in create_source
+    assert "responseData && responseData.message" in create_source
+
+
 def test_miniprogram_logout_clears_account_scoped_campus_state() -> None:
     miniprogram_dir = backend_dir.parent / "miniprogram"
     auth_guard_source = (miniprogram_dir / "utils" / "auth_guard.js").read_text()

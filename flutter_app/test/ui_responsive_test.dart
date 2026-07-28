@@ -11,8 +11,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/core/state/app_providers.dart';
+import 'package:xdu_treehole_web/core/state/app_theme_store.dart';
 import 'package:xdu_treehole_web/core/theme/app_theme.dart';
+import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
 import 'package:xdu_treehole_web/core/widgets/async_page_state.dart';
+import 'package:xdu_treehole_web/core/widgets/theme_dropdown.dart';
 import 'package:xdu_treehole_web/features/auth/login_page.dart';
 import 'package:xdu_treehole_web/features/auth/verify_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
@@ -25,6 +28,76 @@ import 'package:xdu_treehole_web/widgets/home_shell.dart';
 import 'package:xdu_treehole_web/widgets/post_card.dart';
 
 void main() {
+  group('color theme catalog', () {
+    test('current theme is named 人本·初创 and palettes are distinct', () {
+      expect(AppColorThemes.defaultKey, 'zhushachi');
+      expect(
+        AppColorThemes.optionFor(AppColorThemes.defaultKey).labelZh,
+        '人本·初创',
+      );
+      expect(AppColorThemes.options, hasLength(4));
+      expect(
+        AppColorThemes.lightFor('zhushachi').primary,
+        isNot(AppColorThemes.lightFor('zhuqing').primary),
+      );
+      expect(
+        AppColorThemes.lightFor('zhuqing').primary,
+        isNot(AppColorThemes.lightFor('xingrenhuang').primary),
+      );
+    });
+
+    testWidgets('dropdown exposes every theme and reports selection', (
+      WidgetTester tester,
+    ) async {
+      String selectedKey = AppColorThemes.defaultKey;
+      await tester.pumpWidget(
+        _app(
+          Material(
+            child: Center(
+              child: SizedBox(
+                width: 360,
+                child: ThemeDropdown(
+                  themeKey: selectedKey,
+                  locale: const Locale('zh', 'CN'),
+                  expanded: true,
+                  onChanged: (String key) {
+                    selectedKey = key;
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(DropdownButton<String>));
+      await tester.pumpAndSettle();
+      expect(find.text('人本·初创'), findsWidgets);
+      expect(find.text('书院·青绿'), findsOneWidget);
+      expect(find.text('杏黄·纸韵'), findsOneWidget);
+      expect(find.text('墨朱·新页'), findsOneWidget);
+
+      await tester.tap(find.text('书院·青绿'));
+      await tester.pumpAndSettle();
+      expect(selectedKey, 'zhuqing');
+    });
+
+    test('stored legacy themes migrate and new selection persists', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'treehole_theme_key': 'haiyanqing',
+      });
+      await AppThemeStore.instance.init();
+      expect(AppThemeStore.instance.themeKey, 'zhuqing');
+
+      await AppThemeStore.instance.setThemeKey('xingrenhuang');
+      final SharedPreferences preferences =
+          await SharedPreferences.getInstance();
+      expect(preferences.getString('treehole_theme_key'), 'xingrenhuang');
+
+      await AppThemeStore.instance.setThemeKey(AppColorThemes.defaultKey);
+    });
+  });
+
   group('responsive web layout', () {
     for (final double width in <double>[360, 390, 768, 1280, 1440]) {
       testWidgets('login page has no overflow at ${width.toInt()}px', (
@@ -116,6 +189,34 @@ void main() {
       expect(find.byKey(const Key('create-post-fab')), findsOneWidget);
       expect(find.text('公告'), findsNothing);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('remote discussion UI is an additional selectable shell', (
+      WidgetTester tester,
+    ) async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      await AppThemeStore.instance.setThemeKey('mozhuxinye');
+      final ApiClient apiClient = _emptyApiClient();
+      _setViewport(tester, width: 1280, height: 900);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            postRepositoryProvider.overrideWithValue(PostRepository(apiClient)),
+          ],
+          child: _app(const HomeShell()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('discussion-ui-shell')), findsOneWidget);
+      expect(
+        find.byKey(const Key('desktop-primary-navigation')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('discussion-feed-list')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      await AppThemeStore.instance.setThemeKey(AppColorThemes.defaultKey);
     });
 
     testWidgets('loading and error states expose clear feedback and retry', (

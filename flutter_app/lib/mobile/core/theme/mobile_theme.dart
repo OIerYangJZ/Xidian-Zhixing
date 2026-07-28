@@ -60,7 +60,7 @@ class MobileTheme {
   static const Color warning = _warning;
   static const Color error = _error;
 
-  /// 10 款主题配置
+  /// 配色数据保留历史键用于已发布版本迁移；新界面只开放主题目录中的键。
   static const Map<String, ThemeConfig> themes = {
     'zhushachi': ThemeConfig(
       primary: Color(0xFFA33A32),
@@ -118,12 +118,12 @@ class MobileTheme {
       error: _error,
     ),
     'zhuqing': ThemeConfig(
-      primary: Color(0xFF4F8A5F),
-      primaryDark: Color(0xFF2F5C3D),
-      accent: Color(0xFF78B985),
-      seal: Color(0xFF3E744D),
-      background: Color(0xFFF3F8F1),
-      softBackground: Color(0xFFE0EFD8),
+      primary: Color(0xFF426F52),
+      primaryDark: Color(0xFF2D5139),
+      accent: Color(0xFF71967B),
+      seal: Color(0xFF426F52),
+      background: Color(0xFFF3F7F2),
+      softBackground: Color(0xFFE0EBDF),
       success: _success,
       warning: _warning,
       error: _error,
@@ -140,12 +140,12 @@ class MobileTheme {
       error: _error,
     ),
     'xingrenhuang': ThemeConfig(
-      primary: Color(0xFFC28A3A),
-      primaryDark: Color(0xFF7A5422),
-      accent: Color(0xFFDDAA5C),
-      seal: Color(0xFFA9712B),
-      background: Color(0xFFFCF7EC),
-      softBackground: Color(0xFFF4E3C1),
+      primary: Color(0xFF94631F),
+      primaryDark: Color(0xFF694513),
+      accent: Color(0xFFC38D3B),
+      seal: Color(0xFF94631F),
+      background: Color(0xFFFBF6EA),
+      softBackground: Color(0xFFF2E2BF),
       success: _success,
       warning: _warning,
       error: _error,
@@ -189,6 +189,13 @@ class MobileTheme {
 
   /// 根据主题 key 动态构建 ThemeData
   static ThemeData getThemeData(String themeKey, Locale locale) {
+    if (!AppColorThemes.isSupported(themeKey)) {
+      throw ArgumentError.value(
+        themeKey,
+        'themeKey',
+        'Unsupported color theme',
+      );
+    }
     final config = themes[themeKey]!;
     final colors = MobileColors.fromThemeKey(themeKey);
     final EditorialColors editorial = SharedColors.light.copyWith(

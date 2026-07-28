@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// 移动端主题颜色扩展（ThemeExtension）
-/// 支持 10 款自定义配色主题，通过 MobileColors.of(context) 在 build() 中获取当前主题颜色。
+/// 支持跨端主题目录中的自定义配色，通过 MobileColors.of(context) 在 build() 中获取当前主题颜色。
 ///
 /// 用法：
 /// ```dart
@@ -145,18 +145,18 @@ class MobileColors extends ThemeExtension<MobileColors> {
   );
 
   static const _zhuqing = MobileColors(
-    background: Color(0xFFF3F8F1),
-    surface: Color(0xFFFFFFFF),
-    cardBackground: Color(0xFFFFFFFF),
-    textPrimary: Color(0xFF242F26),
-    textSecondary: Color(0xFF68766A),
-    textTertiary: Color(0xFF9AA89D),
-    divider: Color(0xFFD5E4D0),
-    primary: Color(0xFF4F8A5F),
-    primaryDark: Color(0xFF2F5C3D),
-    accent: Color(0xFF78B985),
-    seal: Color(0xFF3E744D),
-    softBackground: Color(0xFFE0EFD8),
+    background: Color(0xFFF3F7F2),
+    surface: Color(0xFFFFFEF9),
+    cardBackground: Color(0xFFFFFEF9),
+    textPrimary: Color(0xFF202A23),
+    textSecondary: Color(0xFF657168),
+    textTertiary: Color(0xFF929E94),
+    divider: Color(0xFFD3DED2),
+    primary: Color(0xFF426F52),
+    primaryDark: Color(0xFF2D5139),
+    accent: Color(0xFF71967B),
+    seal: Color(0xFF426F52),
+    softBackground: Color(0xFFE0EBDF),
     success: _success,
     warning: _warning,
     error: _error,
@@ -181,18 +181,18 @@ class MobileColors extends ThemeExtension<MobileColors> {
   );
 
   static const _xingrenhuang = MobileColors(
-    background: Color(0xFFFCF7EC),
-    surface: Color(0xFFFFFFFF),
-    cardBackground: Color(0xFFFFFFFF),
-    textPrimary: Color(0xFF31281E),
-    textSecondary: Color(0xFF7D6F5F),
-    textTertiary: Color(0xFFB6A897),
-    divider: Color(0xFFE8D8BA),
-    primary: Color(0xFFC28A3A),
-    primaryDark: Color(0xFF7A5422),
-    accent: Color(0xFFDDAA5C),
-    seal: Color(0xFFA9712B),
-    softBackground: Color(0xFFF4E3C1),
+    background: Color(0xFFFBF6EA),
+    surface: Color(0xFFFFFEF8),
+    cardBackground: Color(0xFFFFFEF8),
+    textPrimary: Color(0xFF30281E),
+    textSecondary: Color(0xFF766A5B),
+    textTertiary: Color(0xFFA99C89),
+    divider: Color(0xFFE4D5B9),
+    primary: Color(0xFF94631F),
+    primaryDark: Color(0xFF694513),
+    accent: Color(0xFFC38D3B),
+    seal: Color(0xFF94631F),
+    softBackground: Color(0xFFF2E2BF),
     success: _success,
     warning: _warning,
     error: _error,

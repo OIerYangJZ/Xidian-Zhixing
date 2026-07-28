@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/state/app_theme_store.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
+import '../../core/widgets/theme_dropdown.dart';
 import '../legal/community_guidelines_page.dart';
 import '../legal/privacy_policy_page.dart';
 import '../legal/report_guidelines_page.dart';
@@ -29,9 +31,39 @@ class SettingsPage extends StatelessWidget {
             Card(
               child: Column(
                 children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: ListenableBuilder(
+                      listenable: AppThemeStore.instance,
+                      builder: (BuildContext context, Widget? child) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              '配色主题',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '使用下拉列表切换整套语义配色，选择会保存在当前设备。',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            ThemeDropdown(
+                              themeKey: AppThemeStore.instance.themeKey,
+                              locale: Localizations.localeOf(context),
+                              expanded: true,
+                              onChanged: AppThemeStore.instance.setThemeKey,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const Divider(height: 1),
                   const ListTile(
                     leading: Icon(Icons.brightness_auto_outlined),
-                    title: Text('界面主题'),
+                    title: Text('明暗模式'),
                     subtitle: Text('自动跟随浏览器与系统的浅色或深色模式'),
                   ),
                   ListTile(

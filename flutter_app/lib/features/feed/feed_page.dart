@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/state/app_theme_store.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/shared_colors.dart';
@@ -12,6 +13,7 @@ import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 import '../../l10n/generated/app_localizations.dart';
 import 'feed_controller.dart';
+import 'discussion_feed_view.dart';
 
 class FeedPage extends ConsumerStatefulWidget {
   const FeedPage({super.key});
@@ -49,6 +51,22 @@ class _FeedPageState extends ConsumerState<FeedPage> {
   @override
   Widget build(BuildContext context) {
     final FeedState state = ref.watch(feedControllerProvider);
+    if (AppColorThemes.usesDiscussionLayout(AppThemeStore.instance.themeKey)) {
+      return DiscussionFeedView(
+        state: state,
+        onRefresh: () =>
+            ref.read(feedControllerProvider.notifier).refreshPosts(),
+        onLoadMore: () =>
+            ref.read(feedControllerProvider.notifier).loadMoreIfNeeded(),
+        onRetry: () => ref.read(feedControllerProvider.notifier).loadInitial(),
+        onFilter: () => FeedPage.openFilterSheet(context, ref),
+        onSortChanged: (PostSort sort) =>
+            ref.read(feedControllerProvider.notifier).switchSort(sort),
+        onPostOpen: _openPost,
+        onLike: _toggleLike,
+        onFavorite: _toggleFavorite,
+      );
+    }
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool desktop = constraints.maxWidth >= AppBreakpoints.expanded;
@@ -200,6 +218,14 @@ class _FeedPageState extends ConsumerState<FeedPage> {
         context,
       ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
     }
+  }
+
+  Future<void> _openPost(PostItem post) async {
+    final PostItem? updated = await openPostDetailPage(context, post: post);
+    if (updated == null || !mounted) {
+      return;
+    }
+    ref.read(feedControllerProvider.notifier).replacePost(updated);
   }
 
   Future<void> _toggleFavorite(PostItem post) async {

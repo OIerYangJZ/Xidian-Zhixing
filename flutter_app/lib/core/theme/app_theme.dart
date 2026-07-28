@@ -11,11 +11,16 @@ class AppTheme {
 
   static ThemeData get darkTheme => darkThemeFor(const Locale('zh', 'CN'));
 
-  static ThemeData lightThemeFor(Locale locale) =>
-      _buildTheme(SharedColors.light, Brightness.light, locale);
+  static ThemeData lightThemeFor(
+    Locale locale, {
+    String themeKey = AppColorThemes.defaultKey,
+  }) =>
+      _buildTheme(AppColorThemes.lightFor(themeKey), Brightness.light, locale);
 
-  static ThemeData darkThemeFor(Locale locale) =>
-      _buildTheme(SharedColors.dark, Brightness.dark, locale);
+  static ThemeData darkThemeFor(
+    Locale locale, {
+    String themeKey = AppColorThemes.defaultKey,
+  }) => _buildTheme(AppColorThemes.darkFor(themeKey), Brightness.dark, locale);
 
   static ThemeData adminTheme(
     Brightness brightness, {

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_locale_store.dart';
+import '../../core/state/app_theme_store.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../core/widgets/language_toggle.dart';
+import '../../core/widgets/theme_dropdown.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -404,9 +406,21 @@ class _LoginForm extends StatelessWidget {
                 if (showLanguage) ...<Widget>[
                   Align(
                     alignment: Alignment.centerRight,
-                    child: LanguageToggle(
-                      locale: locale,
-                      onChanged: AppLocaleStore.instance.setLocale,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ThemeDropdown(
+                          themeKey: AppThemeStore.instance.themeKey,
+                          locale: locale,
+                          onChanged: AppThemeStore.instance.setThemeKey,
+                          compact: true,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        LanguageToggle(
+                          locale: locale,
+                          onChanged: AppLocaleStore.instance.setLocale,
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 72),
@@ -561,6 +575,13 @@ class _CompactBrandHeader extends StatelessWidget {
           children: <Widget>[
             const _Wordmark(),
             const Spacer(),
+            ThemeDropdown(
+              themeKey: AppThemeStore.instance.themeKey,
+              locale: locale,
+              onChanged: AppThemeStore.instance.setThemeKey,
+              compact: true,
+            ),
+            const SizedBox(width: AppSpacing.xs),
             LanguageToggle(
               locale: locale,
               onChanged: AppLocaleStore.instance.setLocale,

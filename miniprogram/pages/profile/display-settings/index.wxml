@@ -19,20 +19,27 @@
 
   <view class="mobile-section-title">主题配色</view>
   <view class="mobile-tile-card">
-    <view
-      wx:for="{{themeOptions}}"
-      wx:key="value"
-      class="mobile-tile option-row {{currentThemeOption === item.value ? 'active' : ''}}"
-      data-theme="{{item.value}}"
-      bindtap="onThemeTap"
+    <picker
+      mode="selector"
+      range="{{themeOptions}}"
+      range-key="label"
+      value="{{currentThemeIndex}}"
+      bindchange="onThemeChange"
     >
-      <text class="mobile-tile-icon">◐</text>
-      <view class="mobile-tile-body">
-        <view class="mobile-tile-title">{{item.label}}</view>
-        <view class="mobile-tile-subtitle">配色主题</view>
+      <view class="mobile-tile theme-picker-row">
+        <text class="mobile-tile-icon">◐</text>
+        <view class="mobile-tile-body">
+          <view class="mobile-tile-title">{{currentThemeLabel}}</view>
+          <view class="mobile-tile-subtitle">{{t.theme_select_hint}}</view>
+        </view>
+        <view class="theme-swatches theme-swatches-{{currentThemeOption}}">
+          <text></text>
+          <text></text>
+          <text></text>
+        </view>
+        <text class="picker-chevron">⌄</text>
       </view>
-      <text wx:if="{{currentThemeOption === item.value}}" class="check-mark">✓</text>
-    </view>
+    </picker>
   </view>
 
   <view class="mobile-section-title">帖子布局</view>

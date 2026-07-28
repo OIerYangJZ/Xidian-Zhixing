@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/state/app_theme_store.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/theme/shared_colors.dart';
 import '../models/post_item.dart';
 
 class PostCard extends StatelessWidget {
@@ -19,6 +21,9 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (AppColorThemes.usesDiscussionLayout(AppThemeStore.instance.themeKey)) {
+      return _buildDiscussionCard(context);
+    }
     final ThemeData theme = Theme.of(context);
     final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.56);
     return Material(
@@ -131,6 +136,125 @@ class PostCard extends StatelessWidget {
     );
   }
 
+  Widget _buildDiscussionCard(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final EditorialColors colors = EditorialColors.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: colors.primarySubtle.withValues(alpha: 0.34),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.md,
+            AppSpacing.md,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _DiscussionAvatar(post: post),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            post.authorAlias.isEmpty
+                                ? '匿名同学'
+                                : post.authorAlias,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: colors.ink,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          _relativeTime(post.createdAt),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.mutedInk,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Icon(
+                          Icons.more_horiz_rounded,
+                          size: 18,
+                          color: colors.mutedInk,
+                        ),
+                      ],
+                    ),
+                    if (post.title.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        post.title.trim(),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          height: 1.42,
+                          color: colors.ink,
+                        ),
+                      ),
+                    ],
+                    if (post.content.trim().isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        post.content.trim(),
+                        maxLines: post.imageUrls.isEmpty ? 4 : 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.ink,
+                          height: 1.65,
+                        ),
+                      ),
+                    ],
+                    if (post.imageUrls.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: AppSpacing.sm),
+                      _ImageStrip(urls: post.imageUrls),
+                    ],
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: <Widget>[
+                        _DiscussionAction(
+                          icon: post.isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          value: post.likeCount,
+                          active: post.isLiked,
+                          onTap: onLike,
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        _DiscussionAction(
+                          icon: Icons.mode_comment_outlined,
+                          value: post.commentCount,
+                          onTap: onTap,
+                        ),
+                        const SizedBox(width: AppSpacing.lg),
+                        _DiscussionAction(
+                          icon: post.isFavorited
+                              ? Icons.bookmark_rounded
+                              : Icons.bookmark_border_rounded,
+                          value: post.favoriteCount,
+                          active: post.isFavorited,
+                          onTap: onFavorite,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   String _relativeTime(DateTime time) {
     final Duration diff = DateTime.now().difference(time);
     if (diff.inMinutes < 1) {
@@ -146,6 +270,100 @@ class PostCard extends StatelessWidget {
       return '${diff.inDays} 天前';
     }
     return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')}';
+  }
+}
+
+class _DiscussionAvatar extends StatelessWidget {
+  const _DiscussionAvatar({required this.post});
+
+  final PostItem post;
+
+  @override
+  Widget build(BuildContext context) {
+    final String label = post.authorAlias.trim().isEmpty
+        ? '匿'
+        : post.authorAlias.trim().characters.first;
+    if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          post.authorAvatarUrl,
+          width: 42,
+          height: 42,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _DiscussionFallbackAvatar(label: label),
+        ),
+      );
+    }
+    return _DiscussionFallbackAvatar(label: post.isAnonymous ? '匿' : label);
+  }
+}
+
+class _DiscussionFallbackAvatar extends StatelessWidget {
+  const _DiscussionFallbackAvatar({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Container(
+      width: 42,
+      height: 42,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: colors.primarySubtle,
+        shape: BoxShape.circle,
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(color: colors.primary),
+      ),
+    );
+  }
+}
+
+class _DiscussionAction extends StatelessWidget {
+  const _DiscussionAction({
+    required this.icon,
+    required this.value,
+    this.active = false,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final int value;
+  final bool active;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final Color color = active ? colors.primary : colors.mutedInk;
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.xxs,
+          vertical: AppSpacing.xxs,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: AppSpacing.xxs),
+            Text(
+              '$value',
+              style: Theme.of(
+                context,
+              ).textTheme.labelMedium?.copyWith(color: color),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

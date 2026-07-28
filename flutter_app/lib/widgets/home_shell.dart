@@ -5,10 +5,12 @@ import '../core/auth/auth_store.dart';
 import '../core/navigation/post_detail_nav.dart';
 import '../core/navigation/url_query_state.dart';
 import '../core/state/app_locale_store.dart';
+import '../core/state/app_theme_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../core/widgets/app_surfaces.dart';
 import '../core/widgets/language_toggle.dart';
+import '../core/widgets/theme_dropdown.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
@@ -22,6 +24,7 @@ import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
+import 'discussion_home_scaffold.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -78,6 +81,22 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       ),
     );
 
+    if (AppColorThemes.usesDiscussionLayout(AppThemeStore.instance.themeKey)) {
+      return DiscussionHomeScaffold(
+        currentIndex: _currentIndex,
+        content: content,
+        notificationUnreadCount: notificationUnreadCount,
+        onSelect: _selectTab,
+        onCreate: _openCreatePost,
+        onFilter: _openFeedFilters,
+        onSearch: _openSearch,
+        onNotifications: _openNotifications,
+        onMessages: _openMessages,
+        onSettings: _openSettings,
+        onProfile: _openProfileSheet,
+      );
+    }
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -124,6 +143,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               tooltip: l10n.filter,
               onPressed: _openFeedFilters,
               icon: const Icon(Icons.menu_rounded),
+            ),
+          if (desktop)
+            Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
+              child: ThemeDropdown(
+                themeKey: AppThemeStore.instance.themeKey,
+                locale: Localizations.localeOf(context),
+                onChanged: AppThemeStore.instance.setThemeKey,
+                compact: true,
+              ),
             ),
           if (desktop)
             Padding(
@@ -279,6 +308,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   void _openFeedFilters() {
     FeedPage.openFilterSheet(context, ref);
+  }
+
+  void _openMessages() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const MessagesPage()));
+  }
+
+  void _openSettings() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => const SettingsPage()));
   }
 
   void _openProfileSheet() {

@@ -721,13 +721,29 @@ def handle_create_post(
 
     risk_marked, high_risk, risk_reasons = assess_text_risk(
         db,
-        " ".join([title, content, " ".join(tags)]),
+        "\n字段分隔\n".join([title, raw_content, " ".join(tags)]),
+        block_on_match=True,
     )
     if high_risk:
+        prohibited_categories = [
+            reason.removeprefix("禁止内容类别: ").strip()
+            for reason in risk_reasons
+            if reason.startswith("禁止内容类别: ")
+        ]
+        category_text = "、".join(prohibited_categories)
+        message = (
+            f"内容包含平台禁止发布的{category_text}内容，请修改后重试"
+            if category_text
+            else "内容命中敏感词，禁止发布，请修改后重试"
+        )
         json_error(
             handler,
             HTTPStatus.BAD_REQUEST,
-            f"内容触发高风险风控：{'; '.join(risk_reasons)}",
+            message,
+            data={
+                "code": "POST_CONTENT_REJECTED",
+                "categories": prohibited_categories,
+            },
         )
         add_audit_log(db, user["id"], "risk_block_post", ";".join(risk_reasons))
         save_db(db)

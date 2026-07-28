@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/theme/shared_colors.dart';
+
 /// 树洞移动端应用级设置（主题、语言）的持久化管理。
 /// 单例，通过 AppSettingsStore.instance 访问。
 class AppSettingsStore extends ChangeNotifier {
@@ -18,7 +20,7 @@ class AppSettingsStore extends ChangeNotifier {
   // ignore: unused_field
   ThemeMode _themeMode = ThemeMode.light;
   Locale? _locale;
-  String _themeKey = 'zhushachi';
+  String _themeKey = AppColorThemes.defaultKey;
 
   ThemeMode get themeMode => ThemeMode.light;
   Locale? get locale => _locale;
@@ -28,7 +30,11 @@ class AppSettingsStore extends ChangeNotifier {
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     _themeMode = ThemeMode.values[_prefs!.getInt(_brightnessKey) ?? 1];
-    _themeKey = _prefs!.getString(_themeKeyStorageKey) ?? 'zhushachi';
+    final String? storedThemeKey = _prefs!.getString(_themeKeyStorageKey);
+    _themeKey = AppColorThemes.resolveStoredKey(storedThemeKey);
+    if (storedThemeKey != null && storedThemeKey != _themeKey) {
+      await _prefs!.setString(_themeKeyStorageKey, _themeKey);
+    }
     final String loc =
         _prefs!.getString(_localeKey) ??
         _prefs!.getString(_legacyLocaleKey) ??
@@ -46,6 +52,12 @@ class AppSettingsStore extends ChangeNotifier {
 
   /// 设置主题配色并持久化。
   Future<void> setThemeKey(String key) async {
+    if (!AppColorThemes.isSupported(key)) {
+      throw ArgumentError.value(key, 'key', 'Unsupported color theme');
+    }
+    if (_themeKey == key) {
+      return;
+    }
     _themeKey = key;
     await _prefs?.setString(_themeKeyStorageKey, key);
     notifyListeners();

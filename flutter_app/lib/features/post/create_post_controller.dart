@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
@@ -165,6 +166,13 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         );
       }
       return created;
+    } on ApiException catch (error) {
+      state = state.copyWith(
+        submitting: false,
+        clearProgress: true,
+        error: '发布失败：${error.message}',
+      );
+      return null;
     } catch (error) {
       state = state.copyWith(
         submitting: false,

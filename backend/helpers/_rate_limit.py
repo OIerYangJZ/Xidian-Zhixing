@@ -2,11 +2,107 @@ from __future__ import annotations
 
 import re
 import time
+import unicodedata
 from collections import deque
 from http.server import BaseHTTPRequestHandler
 from typing import Any
 
 import _globals
+
+
+PROHIBITED_CONTENT_TERMS: dict[str, tuple[str, ...]] = {
+    "血腥": (
+        "血腥",
+        "血肉模糊",
+        "肢解",
+        "碎尸",
+        "斩首",
+        "开膛",
+        "割喉",
+        "断肢",
+        "虐杀",
+        "gore",
+        "dismemberment",
+        "beheading",
+    ),
+    "暴力": (
+        "暴力",
+        "殴打",
+        "群殴",
+        "砍人",
+        "捅人",
+        "枪杀",
+        "虐待",
+        "家暴",
+        "恐怖袭击",
+        "校园霸凌",
+        "violent assault",
+    ),
+    "色情": (
+        "色情",
+        "淫秽",
+        "成人影片",
+        "成人视频",
+        "黄色内容",
+        "黄色图片",
+        "黄色视频",
+        "黄色网站",
+        "裸聊",
+        "约炮",
+        "卖淫",
+        "嫖娼",
+        "强奸",
+        "乱伦",
+        "porn",
+        "pornography",
+        "sexual content",
+    ),
+    "违法犯罪": (
+        "违法犯罪",
+        "诈骗",
+        "毒品",
+        "贩毒",
+        "制毒",
+        "赌博网站",
+        "赌博平台",
+        "洗钱",
+        "枪支交易",
+        "炸弹制作",
+        "买卖身份证",
+        "伪造证件",
+        "入室盗窃",
+        "抢劫",
+        "绑架",
+        "勒索",
+        "黑客攻击",
+        "盗号",
+        "criminal activity",
+        "drug trafficking",
+        "money laundering",
+    ),
+}
+
+
+def _normalize_moderation_text(value: Any) -> str:
+    return unicodedata.normalize("NFKC", str(value or "")).casefold()
+
+
+def _moderation_term_matches(normalized_text: str, term: str) -> bool:
+    normalized_term = _normalize_moderation_text(term).strip()
+    if not normalized_term:
+        return False
+
+    if re.fullmatch(r"[a-z0-9 ]+", normalized_term):
+        pattern = (
+            r"(?<![a-z0-9])"
+            + re.escape(normalized_term).replace(r"\ ", r"\s+")
+            + r"(?![a-z0-9])"
+        )
+        return re.search(pattern, normalized_text) is not None
+
+    compact_text = re.sub(r"[\W_]+", "", normalized_text, flags=re.UNICODE)
+    compact_term = re.sub(r"[\W_]+", "", normalized_term, flags=re.UNICODE)
+    return bool(compact_term and compact_term in compact_text)
 
 
 def get_setting_int(db: dict[str, Any], key: str, default: int, *, minimum: int = 1) -> int:
@@ -93,18 +189,34 @@ def check_duplicate_image_hash(db: dict[str, Any], image_hash: str) -> bool:
     )
 
 
-def assess_text_risk(db: dict[str, Any], text: str) -> tuple[bool, bool, list[str]]:
-    normalized = text.strip()
+def assess_text_risk(
+    db: dict[str, Any],
+    text: str,
+    *,
+    block_on_match: bool = False,
+) -> tuple[bool, bool, list[str]]:
+    normalized = _normalize_moderation_text(text).strip()
     if not normalized:
         return False, False, []
 
     reasons: list[str] = []
     spam_re = re.compile(r"(.)\1{8,}", re.DOTALL)
 
+    prohibited_categories = (
+        [
+            category
+            for category, terms in PROHIBITED_CONTENT_TERMS.items()
+            if any(_moderation_term_matches(normalized, term) for term in terms)
+        ]
+        if block_on_match
+        else []
+    )
+    reasons.extend(f"禁止内容类别: {category}" for category in prohibited_categories)
+
     hit_words = [
         str(word).strip()
         for word in db.get("sensitiveWords", [])
-        if str(word).strip() and str(word).strip() in normalized
+        if str(word).strip() and _moderation_term_matches(normalized, str(word))
     ]
     if hit_words:
         reasons.append(f"命中敏感词: {','.join(hit_words[:3])}")
@@ -115,7 +227,8 @@ def assess_text_risk(db: dict[str, Any], text: str) -> tuple[bool, bool, list[st
         reasons.append("文本长度异常")
 
     risk_marked = bool(reasons)
-    return risk_marked, False, reasons
+    high_risk = block_on_match and bool(prohibited_categories or hit_words)
+    return risk_marked, high_risk, reasons
 
 
 def send_rate_limit_error(

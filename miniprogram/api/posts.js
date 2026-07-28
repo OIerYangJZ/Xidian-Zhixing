@@ -48,7 +48,11 @@ export const getPostComments = async (postId, params = {}) => {
 };
 
 export const createPost = async (payload) => {
-  const response = await request.post('/api/posts', payload);
+  const response = await request.post(
+    '/api/posts',
+    payload,
+    { silentErrorToast: true }
+  );
   return normalizePost(getData(response, {}));
 };
 

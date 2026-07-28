@@ -1116,6 +1116,56 @@ button::after {
   --app-control: rgba(168, 51, 44, .06);
 }
 
+.theme-zhuqing {
+  --background-paper: #F3F7F2;
+  --background-softRed: #E0EBDF;
+  --brand-primary: #426F52;
+  --brand-deep: #2D5139;
+  --brand-bright: #71967B;
+  --brand-seal: #426F52;
+  --text-primary: #202A23;
+  --text-secondary: #657168;
+  --border-default: #D3DED2;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-surface: #FFFEF9;
+  --app-card: #FFFEF9;
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #929E94;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: #E3ECE9;
+  --app-control: rgba(66, 111, 82, .07);
+}
+
+.theme-xingrenhuang {
+  --background-paper: #FBF6EA;
+  --background-softRed: #F2E2BF;
+  --brand-primary: #94631F;
+  --brand-deep: #694513;
+  --brand-bright: #C38D3B;
+  --brand-seal: #94631F;
+  --text-primary: #30281E;
+  --text-secondary: #766A5B;
+  --border-default: #E4D5B9;
+  --app-primary: var(--brand-primary);
+  --app-primary-dark: var(--brand-deep);
+  --app-accent: var(--brand-bright);
+  --app-background: var(--background-paper);
+  --app-surface: #FFFEF8;
+  --app-card: #FFFEF8;
+  --app-text-primary: var(--text-primary);
+  --app-text-secondary: var(--text-secondary);
+  --app-text-tertiary: #A99C89;
+  --app-divider: var(--border-default);
+  --app-primary-soft: var(--background-softRed);
+  --app-accent-soft: #F5E8CD;
+  --app-control: rgba(148, 99, 31, .07);
+}
+
 .color-mode-dark {
   --brand-deep: #ffffff;
   --brand-primary: var(--brand-bright);

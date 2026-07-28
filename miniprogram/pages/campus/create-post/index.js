@@ -609,7 +609,19 @@ Page({
       }, 250);
     } catch (error) {
       wx.hideLoading();
-      wx.showToast({ title: '发布失败', icon: 'none' });
+      const responseData = error && error.data;
+      const errorMessage = (responseData && responseData.message) || '发布失败，请重试';
+      const errorCode = responseData && responseData.data && responseData.data.code;
+      if (errorCode === 'POST_CONTENT_REJECTED') {
+        wx.showModal({
+          title: '发布被自动审核拦截',
+          content: errorMessage,
+          showCancel: false,
+          confirmText: '知道了'
+        });
+      } else {
+        wx.showToast({ title: errorMessage, icon: 'none' });
+      }
       this.setData({ isPublishing: false }, () => {
         this.updatePublishState();
       });

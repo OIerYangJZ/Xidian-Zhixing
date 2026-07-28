@@ -1,4 +1,4 @@
-import { applyThemeAndLanguage, getDisplayMode } from '../../../utils/theme_i18n';
+import { applyThemeAndLanguage, getDisplayMode, getDisplayTheme } from '../../../utils/theme_i18n';
 import { setLanguage, getLanguage } from '../../../utils/i18n';
 
 Page({
@@ -7,7 +7,9 @@ Page({
     modeOptions: [],
     langOptions: [],
     layoutOptions: [],
-    currentThemeOption: 'minimal',
+    currentThemeOption: 'zhushachi',
+    currentThemeIndex: 0,
+    currentThemeLabel: '人本·初创',
     currentModeOption: 'system',
     currentPostLayout: 'threads'
   },
@@ -20,27 +22,26 @@ Page({
   updateOptionsAndApply() {
     applyThemeAndLanguage(this);
     const t = this.data.t;
-    const currentThemeOption = wx.getStorageSync('colorTheme') || 'minimal';
+    const currentThemeOption = getDisplayTheme();
     const currentModeOption = getDisplayMode();
     const currentPostLayout = wx.getStorageSync('treeholePostLayout') || 'threads';
+    const themeOptions = [
+      { label: t.theme_humanist_founding || '人本·初创', value: 'zhushachi' },
+      { label: t.theme_academy_teal || '书院·青绿', value: 'zhuqing' },
+      { label: t.theme_apricot_paper || '杏黄·纸韵', value: 'xingrenhuang' }
+    ];
+    const currentThemeIndex = themeOptions.findIndex((option) => option.value === currentThemeOption);
+    if (currentThemeIndex < 0) {
+      throw new Error(`Theme option is missing: ${currentThemeOption}`);
+    }
 
     this.setData({
       currentThemeOption,
+      currentThemeIndex,
+      currentThemeLabel: themeOptions[currentThemeIndex].label,
       currentModeOption,
       currentPostLayout,
-      themeOptions: [
-        { label: '朱砂赤', value: 'zhushachi' },
-        { label: '胭脂红', value: 'yanzhihong' },
-        { label: '赤陶暖', value: 'chitaonuan' },
-        { label: '枣泥红', value: 'zaonihong' },
-        { label: '宣纸朱', value: 'xuanzhizhu' },
-        { label: '竹青', value: 'zhuqing' },
-        { label: '藕荷紫', value: 'ouhezi' },
-        { label: '杏仁黄', value: 'xingrenhuang' },
-        { label: '海盐青', value: 'haiyanqing' },
-        { label: '墨灰', value: 'mohui' },
-        { label: '极简', value: 'minimal' }
-      ],
+      themeOptions,
       modeOptions: [
         { label: t.theme_system || '跟随系统', value: 'system' },
         { label: t.theme_light || '浅色', value: 'light' },
@@ -57,10 +58,13 @@ Page({
     });
   },
 
-  onThemeTap(event) {
-    const theme = event.currentTarget.dataset.theme;
-    if (!theme) return;
-    wx.setStorageSync('colorTheme', theme);
+  onThemeChange(event) {
+    const index = Number(event.detail.value);
+    const option = this.data.themeOptions[index];
+    if (!option) {
+      throw new Error(`Invalid theme option index: ${event.detail.value}`);
+    }
+    wx.setStorageSync('colorTheme', option.value);
     this.updateOptionsAndApply();
     wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   },

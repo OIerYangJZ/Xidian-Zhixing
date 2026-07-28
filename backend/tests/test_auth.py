@@ -682,8 +682,56 @@ class TestTextValidation:
         risk_marked, high_risk, reasons = assess_text_risk(db, "这是广告内容")
 
         assert risk_marked is True
+        assert high_risk is False
         assert len(reasons) > 0
         assert any("敏感词" in r for r in reasons)
+
+        _, strict_high_risk, _ = assess_text_risk(
+            db,
+            "这是广告内容",
+            block_on_match=True,
+        )
+        assert strict_high_risk is True
+
+    @pytest.mark.parametrize(
+        ("text", "category"),
+        [
+            ("发布血 腥肢解照片", "血腥"),
+            ("号召参与群殴", "暴力"),
+            ("传播黄_色_视频", "色情"),
+            ("提供洗 钱服务", "违法犯罪"),
+        ],
+    )
+    def test_assess_text_risk_blocks_prohibited_categories(
+        self,
+        text: str,
+        category: str,
+    ):
+        """内置禁止类别无法通过插入空格或标点绕过。"""
+        from server import assess_text_risk
+
+        risk_marked, high_risk, reasons = assess_text_risk(
+            {"sensitiveWords": []},
+            text,
+            block_on_match=True,
+        )
+
+        assert risk_marked is True
+        assert high_risk is True
+        assert f"禁止内容类别: {category}" in reasons
+
+    def test_assess_text_risk_allows_normal_content(self):
+        """正常校园内容不应被内置规则误拦截。"""
+        from server import assess_text_risk
+
+        risk_marked, high_risk, reasons = assess_text_risk(
+            {"sensitiveWords": []},
+            "周六下午在操场打羽毛球，有同学一起吗？",
+        )
+
+        assert risk_marked is False
+        assert high_risk is False
+        assert reasons == []
 
     def test_assess_text_risk_repeat_spam(self):
         """测试重复刷屏检测。"""

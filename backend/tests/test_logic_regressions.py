@@ -1139,6 +1139,73 @@ def test_binding_risk_image_to_post_does_not_auto_approve(
     assert db["mediaUploads"][0]["status"] == "risk"
 
 
+@pytest.mark.parametrize(
+    ("content", "expected_category"),
+    [
+        ("这里发布血腥肢解内容", "血腥"),
+        ("这里发布群殴暴力内容", "暴力"),
+        ("这里发布色情视频", "色情"),
+        ("这里提供洗钱服务", "违法犯罪"),
+    ],
+)
+def test_create_post_blocks_prohibited_content_before_persistence(
+    monkeypatch: pytest.MonkeyPatch,
+    content: str,
+    expected_category: str,
+) -> None:
+    from handlers import _post_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    target = _user("moderation-owner", "2500211@stu.xidian.edu.cn")
+    db["users"].append(target)
+    original_post_ids = [post["id"] for post in db["posts"]]
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: target)
+    monkeypatch.setattr(
+        _post_handler,
+        "read_json_body",
+        lambda _h: {"title": "自动审核测试", "content": content},
+    )
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_create_post(handler, db)
+
+    payload = handler.payload()
+    assert handler.status_code == HTTPStatus.BAD_REQUEST
+    assert payload["data"]["code"] == "POST_CONTENT_REJECTED"
+    assert expected_category in payload["data"]["categories"]
+    assert [post["id"] for post in db["posts"]] == original_post_ids
+    assert db["auditLogs"][-1]["action"] == "risk_block_post"
+
+
+def test_create_post_blocks_admin_configured_sensitive_word(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from handlers import _post_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    db["sensitiveWords"] = ["校内禁词"]
+    target = _user("sensitive-owner", "2500212@stu.xidian.edu.cn")
+    db["users"].append(target)
+    original_post_count = len(db["posts"])
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: target)
+    monkeypatch.setattr(
+        _post_handler,
+        "read_json_body",
+        lambda _h: {"title": "测试", "content": "包含校 内 禁 词的帖子"},
+    )
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_create_post(handler, db)
+
+    assert handler.status_code == HTTPStatus.BAD_REQUEST
+    assert handler.payload()["message"] == "内容命中敏感词，禁止发布，请修改后重试"
+    assert len(db["posts"]) == original_post_count
+
+
 def test_image_delete_failure_keeps_review_state_unchanged(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
