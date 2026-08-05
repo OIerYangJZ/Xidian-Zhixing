@@ -210,14 +210,14 @@ sudo chmod 0640 "${DEPLOY_ROOT}/shared/config/backend.env"
 
 ```bash
 sudo grep -E \
-  '^(BACKEND_DB_FILE|BACKEND_STORAGE_DIR|BACKEND_WEB_ROOT|BACKEND_CORS_ALLOWED_ORIGINS|BACKEND_AUTH_ALLOWED_EMAILS|BACKEND_ENABLE_XIDIAN_AUTH)=' \
+  '^(BACKEND_DB_FILE|BACKEND_STORAGE_DIR|BACKEND_WEB_ROOT|BACKEND_CORS_ALLOWED_ORIGINS|BACKEND_AUTH_ALLOWED_STUDENT_IDS|BACKEND_ENABLE_XIDIAN_AUTH)=' \
   "${DEPLOY_ROOT}/shared/config/backend.env"
 ```
 
 确认：
 
 ```text
-BACKEND_ENABLE_XIDIAN_AUTH=false
+BACKEND_ENABLE_XIDIAN_AUTH=true
 BACKEND_CORS_ALLOWED_ORIGINS=https://zhixing.xidian.edu.cn
 BACKEND_WEB_ROOT=${DEPLOY_ROOT}/current/web
 ```
@@ -290,7 +290,7 @@ cat "${DEPLOY_ROOT}/current/release-meta/version.json"
 curl -isS -X OPTIONS \
   -H 'Origin: https://zhixing.xidian.edu.cn' \
   -H 'Access-Control-Request-Method: POST' \
-  https://zhixing.xidian.edu.cn/api/auth/login
+  https://zhixing.xidian.edu.cn/api/auth/xidian/session
 ```
 
 未列入白名单的 Origin 应被拒绝，且不得返回通配符：
@@ -299,7 +299,7 @@ curl -isS -X OPTIONS \
 curl -isS -X OPTIONS \
   -H 'Origin: https://not-allowed.invalid' \
   -H 'Access-Control-Request-Method: POST' \
-  https://zhixing.xidian.edu.cn/api/auth/login
+  https://zhixing.xidian.edu.cn/api/auth/xidian/session
 ```
 
 HSTS：
@@ -347,7 +347,7 @@ sudo systemctl reload "${NGINX_SERVICE_NAME}"
 - 应用运行用户和组；
 - SQLite、上传目录、环境文件的真实绝对路径；
 - 服务器现有 SSL 证书和私钥路径（仅核对，不写入本文档）；
-- 项目组邮箱白名单；
+- 项目组学号白名单；
 - 生产管理员凭据和测试账号（仅服务器私密配置）。
 
 ## 19. 必须按服务器实际情况调整的命令

@@ -17,7 +17,6 @@ import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
 import 'package:xdu_treehole_web/core/widgets/async_page_state.dart';
 import 'package:xdu_treehole_web/core/widgets/theme_dropdown.dart';
 import 'package:xdu_treehole_web/features/auth/login_page.dart';
-import 'package:xdu_treehole_web/features/auth/verify_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
@@ -263,16 +262,18 @@ void main() {
   });
 
   group('forms and authentication state', () {
-    testWidgets('login form shows inline validation feedback', (
+    testWidgets('login page only offers the official authentication redirect', (
       WidgetTester tester,
     ) async {
       _setViewport(tester, width: 390, height: 820);
       await tester.pumpWidget(_app(const LoginPage()));
-      await tester.tap(find.byKey(const Key('login-submit')));
-      await tester.pump();
 
-      expect(find.byKey(const Key('login-error')), findsOneWidget);
-      expect(find.text('请输入学号或学生邮箱。'), findsOneWidget);
+      expect(find.byKey(const Key('official-auth-notice')), findsOneWidget);
+      expect(find.byKey(const Key('login-submit')), findsOneWidget);
+      expect(find.byKey(const Key('login-identifier')), findsNothing);
+      expect(find.byKey(const Key('login-password')), findsNothing);
+      expect(find.text('注册账号'), findsNothing);
+      expect(find.text('忘记密码'), findsNothing);
     });
 
     testWidgets('create form validates required fields', (
@@ -326,25 +327,6 @@ void main() {
       expect(submit.onPressed, isNull);
       expect(find.text('发布中...'), findsWidgets);
     });
-
-    testWidgets(
-      'verification input keeps leading zero without numeric conversion',
-      (WidgetTester tester) async {
-        await tester.pumpWidget(
-          _app(const VerifyPage(campusEmail: 'student@stu.xidian.edu.cn')),
-        );
-
-        await tester.enterText(
-          find.byKey(const Key('verification-code-input')),
-          '012345',
-        );
-
-        final TextField field = tester.widget<TextField>(
-          find.byKey(const Key('verification-code-input')),
-        );
-        expect(field.controller!.text, '012345');
-      },
-    );
 
     test('saved login token restores authenticated state', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{

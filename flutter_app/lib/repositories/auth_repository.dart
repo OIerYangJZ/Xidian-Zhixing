@@ -3,27 +3,11 @@ import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 
-class AuthLoginResult {
-  AuthLoginResult({
-    required this.verified,
-    this.token,
-    this.email,
-    this.studentId,
-    this.raw = const <String, dynamic>{},
-  });
-
-  final bool verified;
-  final String? token;
-  final String? email;
-  final String? studentId;
-  final Map<String, dynamic> raw;
-}
-
 class XidianAuthSessionResult {
-  XidianAuthSessionResult({
+  const XidianAuthSessionResult({
     required this.attemptId,
     required this.status,
-    this.platform,
+    required this.platform,
     this.authorizeUrl,
     this.message,
     this.token,
@@ -33,7 +17,7 @@ class XidianAuthSessionResult {
 
   final String attemptId;
   final String status;
-  final String? platform;
+  final String platform;
   final String? authorizeUrl;
   final String? message;
   final String? token;
@@ -50,62 +34,6 @@ class AuthRepository {
 
   final ApiClient _apiClient;
 
-  static String _normalizeEmail(String email) => email.trim().toLowerCase();
-
-  Future<void> register({
-    required String email,
-    required String password,
-    String nickname = '',
-    String? avatarUrl,
-    String? avatarFileName,
-    String? avatarContentType,
-    String? avatarDataBase64,
-  }) async {
-    await _apiClient.post(
-      ApiEndpoints.register,
-      auth: false,
-      body: <String, dynamic>{
-        'email': _normalizeEmail(email),
-        'password': password,
-        if (nickname.trim().isNotEmpty) 'nickname': nickname.trim(),
-        if (avatarUrl != null && avatarUrl.trim().isNotEmpty)
-          'avatarUrl': avatarUrl.trim(),
-        if (avatarFileName != null && avatarFileName.trim().isNotEmpty)
-          'avatarFileName': avatarFileName.trim(),
-        if (avatarContentType != null && avatarContentType.trim().isNotEmpty)
-          'avatarContentType': avatarContentType.trim(),
-        if (avatarDataBase64 != null && avatarDataBase64.trim().isNotEmpty)
-          'avatarDataBase64': avatarDataBase64.trim(),
-      },
-    );
-  }
-
-  Future<String?> sendEmailCode(String email) async {
-    final dynamic response = await _apiClient.post(
-      ApiEndpoints.sendEmailCode,
-      auth: false,
-      body: <String, dynamic>{'email': _normalizeEmail(email)},
-    );
-    final Map<String, dynamic> data = extractMap(response);
-    return readString(data, <String>['debugCode']);
-  }
-
-  Future<AuthLoginResult> login({
-    required String identifier,
-    required String password,
-  }) async {
-    final dynamic response = await _apiClient.post(
-      ApiEndpoints.login,
-      auth: false,
-      body: <String, dynamic>{'identifier': identifier, 'password': password},
-    );
-    final AuthLoginResult result = _parseAuthResult(response);
-    if (result.token != null && result.token!.isNotEmpty) {
-      await AuthStore.instance.saveToken(result.token!);
-    }
-    return result;
-  }
-
   Future<XidianAuthSessionResult> createXidianAuthSession({
     required String platform,
     String nextPath = '/',
@@ -115,7 +43,11 @@ class AuthRepository {
       auth: false,
       body: <String, dynamic>{'platform': platform, 'nextPath': nextPath},
     );
-    return _parseXidianAuthSession(response);
+    final XidianAuthSessionResult result = _parseXidianAuthSession(response);
+    if (!result.isPending || (result.authorizeUrl ?? '').isEmpty) {
+      throw const FormatException('统一认证会话响应缺少官方授权地址');
+    }
+    return result;
   }
 
   Future<XidianAuthSessionResult> fetchXidianAuthSession(
@@ -126,81 +58,15 @@ class AuthRepository {
       auth: false,
     );
     final XidianAuthSessionResult result = _parseXidianAuthSession(response);
-    if (result.token != null && result.token!.isNotEmpty) {
-      await AuthStore.instance.saveToken(result.token!);
+    if (result.isAuthenticated) {
+      final String token = result.token?.trim() ?? '';
+      final String studentId = result.studentId?.trim() ?? '';
+      if (token.isEmpty || studentId.isEmpty) {
+        throw const FormatException('统一认证结果缺少有效登录凭据');
+      }
+      await AuthStore.instance.saveToken(token);
     }
     return result;
-  }
-
-  Future<AuthLoginResult> consumeMobileCallbackUrl(String callbackUrl) async {
-    final dynamic response = await _apiClient.get(callbackUrl, auth: false);
-    final AuthLoginResult result = _parseAuthResult(response);
-    if (result.token != null && result.token!.isNotEmpty) {
-      await AuthStore.instance.saveToken(result.token!);
-    }
-    return result;
-  }
-
-  Future<AuthLoginResult> verifyEmail({
-    required String email,
-    required String code,
-    String? password,
-  }) async {
-    final Map<String, dynamic> body = <String, dynamic>{
-      'email': _normalizeEmail(email),
-      'code': code.trim(),
-    };
-    if (password != null && password.trim().isNotEmpty) {
-      body['password'] = password.trim();
-    }
-
-    final dynamic response = await _apiClient.post(
-      ApiEndpoints.verifyEmail,
-      auth: false,
-      body: body,
-    );
-
-    final AuthLoginResult result = _parseAuthResult(response);
-    final String token = result.token?.trim() ?? '';
-    if (!result.verified || token.isEmpty) {
-      throw const FormatException('邮箱验证响应缺少有效登录凭据');
-    }
-    await AuthStore.instance.saveToken(token);
-    return result;
-  }
-
-  Future<String?> resendCode(String email) async {
-    final dynamic response = await _apiClient.post(
-      ApiEndpoints.resendCode,
-      auth: false,
-      body: <String, dynamic>{'email': _normalizeEmail(email)},
-    );
-    final Map<String, dynamic> data = extractMap(response);
-    return readString(data, <String>['debugCode']);
-  }
-
-  Future<void> sendPasswordResetCode(String email) async {
-    await _apiClient.post(
-      ApiEndpoints.passwordResetSendCode,
-      auth: false,
-      body: <String, dynamic>{'email': _normalizeEmail(email)},
-    );
-  }
-
-  Future<void> resetPasswordByEmail({
-    required String email,
-    required String code,
-    required String newPassword,
-  }) async {
-    await _apiClient.post(
-      ApiEndpoints.passwordReset,
-      auth: false,
-      body: <String, dynamic>{
-        'email': _normalizeEmail(email),
-        'code': code.trim(),
-        'newPassword': newPassword,
-      },
-    );
   }
 
   Future<void> logout() async {
@@ -216,84 +82,34 @@ class AuthRepository {
     return AuthStore.instance.saveToken(token);
   }
 
-  AuthLoginResult _parseAuthResult(dynamic response) {
+  XidianAuthSessionResult _parseXidianAuthSession(dynamic response) {
     final Map<String, dynamic> root = asMap(response);
-    final Map<String, dynamic> data = extractMap(response);
-
-    final String? token =
-        readString(data, <String>['token', 'accessToken', 'jwt']) ??
-        readString(root, <String>['token', 'accessToken', 'jwt']);
-    final String? email =
-        readString(data, <String>['email']) ??
-        readString(root, <String>['email']);
-    final String? studentId =
-        readString(data, <String>['studentId', 'userId']) ??
-        readString(root, <String>['studentId', 'userId']);
-
-    final bool needsVerify =
-        readBool(data, <String>[
-          'needVerify',
-          'needVerification',
-          'requireVerify',
-        ]) ??
-        readBool(root, <String>[
-          'needVerify',
-          'needVerification',
-          'requireVerify',
-        ]) ??
-        false;
-
-    bool verified =
-        readBool(data, <String>['verified', 'isVerified']) ??
-        readBool(root, <String>['verified', 'isVerified']) ??
-        false;
-
-    if (needsVerify) {
-      verified = false;
+    final Map<String, dynamic> data = asMap(root['data']);
+    final String attemptId =
+        readString(data, <String>['attemptId'])?.trim() ?? '';
+    final String status = readString(data, <String>['status'])?.trim() ?? '';
+    final String platform =
+        readString(data, <String>['platform'])?.trim() ?? '';
+    if (attemptId.isEmpty ||
+        !<String>{'pending', 'authenticated', 'failed'}.contains(status)) {
+      throw const FormatException('统一认证会话响应格式无效');
     }
-    if (!verified && token != null && token.isNotEmpty && !needsVerify) {
-      verified = true;
+    final String? token = readString(data, <String>['token']);
+    final String? email = readString(data, <String>['email']);
+    final String? studentId = readString(data, <String>['studentId']);
+    if (status == 'authenticated' &&
+        readBool(data, <String>['verified']) != true) {
+      throw const FormatException('统一认证结果未经验证');
     }
-
-    return AuthLoginResult(
-      verified: verified,
+    return XidianAuthSessionResult(
+      attemptId: attemptId,
+      status: status,
+      platform: platform,
+      authorizeUrl: readString(data, <String>['authorizeUrl']),
+      message: readString(data, <String>['message']),
       token: token,
       email: email,
       studentId: studentId,
-      raw: data,
-    );
-  }
-
-  XidianAuthSessionResult _parseXidianAuthSession(dynamic response) {
-    final Map<String, dynamic> root = asMap(response);
-    final Map<String, dynamic> data = extractMap(response);
-    return XidianAuthSessionResult(
-      attemptId:
-          readString(data, <String>['attemptId']) ??
-          readString(root, <String>['attemptId']) ??
-          '',
-      status:
-          readString(data, <String>['status']) ??
-          readString(root, <String>['status']) ??
-          'pending',
-      platform:
-          readString(data, <String>['platform']) ??
-          readString(root, <String>['platform']),
-      authorizeUrl:
-          readString(data, <String>['authorizeUrl']) ??
-          readString(root, <String>['authorizeUrl']),
-      message:
-          readString(data, <String>['message']) ??
-          readString(root, <String>['message']),
-      token:
-          readString(data, <String>['token']) ??
-          readString(root, <String>['token']),
-      email:
-          readString(data, <String>['email']) ??
-          readString(root, <String>['email']),
-      studentId:
-          readString(data, <String>['studentId']) ??
-          readString(root, <String>['studentId']),
     );
   }
 }

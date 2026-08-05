@@ -13,7 +13,6 @@ import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/report_guidelines_page.dart';
 import '../auth/login_page.dart';
-import '../auth/reset_password_page.dart';
 import 'emoji_settings_page.dart';
 import 'settings_page.dart';
 import '../me/my_comments_page.dart';
@@ -313,22 +312,6 @@ class ProfilePageState extends State<ProfilePage> {
                         return;
                       }
                       await _loadProfile();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.lock_outline),
-                    title: const Text('修改登录密码'),
-                    subtitle: const Text('通过学生邮箱验证码重置密码'),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => ResetPasswordPage(
-                            initialEmail: profile.email,
-                            lockEmail: profile.email.isNotEmpty,
-                          ),
-                        ),
-                      );
                     },
                   ),
                   ListTile(

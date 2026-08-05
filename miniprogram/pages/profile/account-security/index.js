@@ -1,4 +1,4 @@
-import { getUserInfo, resetPassword, sendPasswordResetCode } from '../../../api/auth';
+import { getUserInfo } from '../../../api/auth';
 import { submitCancellationRequest, submitLevelUpgradeRequest } from '../../../api/user';
 import { logout } from '../../../api/auth';
 import { clearLocalSession, requireLoginPage } from '../../../utils/auth_guard';
@@ -44,10 +44,6 @@ Page({
         errorMessage: '账号安全信息加载失败，请重试'
       });
     }
-  },
-
-  goResetPassword() {
-    wx.navigateTo({ url: '/pages/profile/reset-password/index' });
   },
 
   async requestLevelUpgrade() {

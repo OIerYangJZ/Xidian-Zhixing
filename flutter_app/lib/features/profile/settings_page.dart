@@ -117,7 +117,7 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             const AppInlineMessage(
               title: '内测状态',
-              message: '当前仅向项目组白名单账号开放，学校一站式登录尚未启用。',
+              message: '当前使用学校统一身份认证登录，仅向项目组白名单学号开放。',
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(

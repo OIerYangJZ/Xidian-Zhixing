@@ -196,14 +196,6 @@ def _get_version_info() -> dict[str, Any]:
 class TreeholeHandler(BaseHTTPRequestHandler):
     server_version = "XduTreeholeBackend/0.2"
     miniprogram_public_paths = {
-        "/api/auth/login",
-        "/api/auth/register",
-        "/api/auth/verify",
-        "/api/auth/send-code",
-        "/api/auth/resend-code",
-        "/api/auth/password/send-code",
-        "/api/auth/password/reset",
-        "/api/auth/xidian/password",
         "/api/auth/xidian/session",
     }
 
@@ -381,9 +373,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/auth/xidian/callback":
             _auth_handler.handle_xidian_auth_callback(self, None, query)
-            return
-        if path == "/api/auth/xidian/mobile/callback":
-            _auth_handler.handle_xidian_mobile_callback(self, None, query)
             return
 
         with DB_LOCK:
@@ -691,11 +680,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
             send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
 
-        if path == "/api/auth/xidian/password":
-            with DB_LOCK:
-                db = load_db()
-            _auth_handler.handle_xidian_password_login(self, db)
-            return
         if path == "/api/campus/auth/ids":
             user = require_campus_auth_user()
             if user is None:
@@ -854,32 +838,8 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_admin_reindex(self, db)
                 return
 
-            if path in {"/api/auth/send-code", "/api/auth/resend-code"}:
-                _auth_handler.handle_send_code(self, db)
-                return
-
-            if path == "/api/auth/password/send-code":
-                _auth_handler.handle_password_send_code(self, db)
-                return
-
-            if path == "/api/auth/password/reset":
-                _auth_handler.handle_password_reset(self, db)
-                return
-
-            if path == "/api/auth/login":
-                _auth_handler.handle_login(self, db)
-                return
-
             if path == "/api/auth/xidian/session":
                 _auth_handler.handle_xidian_auth_create_session(self, db)
-                return
-
-            if path == "/api/auth/register":
-                _auth_handler.handle_register(self, db)
-                return
-
-            if path == "/api/auth/verify":
-                _auth_handler.handle_verify(self, db)
                 return
 
             if path == "/api/auth/logout":
@@ -1276,8 +1236,8 @@ def main() -> None:
             f"SMTP: {smtp_mode} {SMTP_HOST}:{SMTP_PORT} from={SMTP_FROM_EMAIL}"
         )
     else:
-        _logger.info("SMTP: not configured (set BACKEND_SMTP_* to enable email verification)")
-    _logger.info("User auth: 学生邮箱注册 / 验证码验证 / 账号密码登录")
+        _logger.info("SMTP: not configured")
+    _logger.info("User auth: 西电官方统一身份认证跳转 + service ticket")
     if getattr(_globals, "BACKEND_XIDIAN_PUBLIC_ORIGIN", ""):
         _logger.info(
             f"Optional IDS callback origin configured: {getattr(_globals, 'BACKEND_XIDIAN_PUBLIC_ORIGIN')}",

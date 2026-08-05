@@ -194,8 +194,8 @@ def auth_user(
     if not user_id:
         return None, token
     user = _find_user_by_id_unsafe(db, user_id)
-    if user is not None and not _globals.is_auth_email_allowed(
-        str(user.get("email", "")),
+    if user is not None and not _globals.is_auth_student_id_allowed(
+        str(user.get("studentId", "")),
     ):
         return None, token
     return user, token

@@ -6,14 +6,12 @@ class TermsOfServicePage extends StatelessWidget {
   const TermsOfServicePage({super.key});
 
   static const String _title = '用户协议';
-  static const String _lastUpdated = '2026年3月20日';
+  static const String _lastUpdated = '2026年8月4日';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(_title),
-      ),
+      appBar: AppBar(title: const Text(_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -42,12 +40,12 @@ class TermsOfServicePage extends StatelessWidget {
           const SizedBox(height: 16),
           _buildSection(
             context,
-            title: '三、用户注册与账号',
+            title: '三、用户身份与账号',
             content:
-                '1. 注册资格\n'
-                '   用户须为西安电子科技大学在校学生，使用学生邮箱（@stu.xidian.edu.cn）进行注册。\n\n'
+                '1. 使用资格\n'
+                '   用户须为西安电子科技大学在校学生，并通过学校官方统一身份认证页面完成身份验证。首次验证成功后，平台会自动创建本站账号，无需单独注册。\n\n'
                 '2. 账号安全\n'
-                '   用户须妥善保管账号信息，因个人保管不当造成的损失，由用户自行承担。\n\n'
+                '   用户须妥善保管统一身份认证凭据，不得出借账号。账号登录时，学号和密码仅在学校官方认证页面输入，平台不接收、不保存该登录密码。校园服务中心如另行要求连接其他校内系统，将在相应页面单独说明处理方式。\n\n'
                 '3. 账号注销\n'
                 '   用户可申请注销账号，提交申请后需经管理员审核通过方可完成注销。',
           ),

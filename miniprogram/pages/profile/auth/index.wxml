@@ -3,43 +3,15 @@
     <view class="brand-block">
       <view class="brand-mark">电</view>
       <view class="brand-name">SeeRadio</view>
-      <view class="brand-subtitle">电台账号登录</view>
+      <view class="brand-subtitle">西电统一身份认证登录</view>
     </view>
 
-    <view class="form-list">
-      <view class="form-row">
-        <view class="field-label">账号</view>
-        <input
-          class="field-input"
-          value="{{identifier}}"
-          placeholder="学号或邮箱"
-          placeholder-class="field-placeholder"
-          bindinput="onIdentifierInput"
-        />
-      </view>
-      <view class="form-divider"></view>
-      <view class="form-row">
-        <view class="field-label">密码</view>
-        <input
-          class="field-input"
-          type="password"
-          value="{{password}}"
-          placeholder="电台账号密码"
-          placeholder-class="field-placeholder"
-          bindinput="onPasswordInput"
-        />
-      </view>
-    </view>
+    <view class="auth-tip">账号登录时，学号和密码仅在西电官方统一身份认证页面输入，西电知行不会接触或保存该登录密码。完成认证后，请点击左上角返回小程序。</view>
 
     <button class="login-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleLogin">
-      登录
+      {{attemptId ? '重新打开官方认证页面' : '前往西电官方认证'}}
     </button>
 
-    <view class="aux-actions">
-      <text class="aux-link" bindtap="handleEmailCodeLogin">验证码登录/注册</text>
-      <text class="aux-dot"></text>
-      <text class="aux-link" bindtap="handleResetPassword">忘记密码</text>
-    </view>
   </view>
 
   <view class="agreement">

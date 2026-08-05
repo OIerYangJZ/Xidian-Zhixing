@@ -26,21 +26,21 @@
      /home/ubuntu/treehole/shared/config/backend.env
    ```
 
-生产必填项包括管理员凭据、SMTP 凭据、SQLite 和对象目录、Web 根目录、正式 CORS 来源以及项目组测试邮箱白名单。真实邮箱、密码、授权码和 AI/S3 密钥只能写入服务器环境文件。
+生产必填项包括管理员凭据、SQLite 和对象目录、Web 根目录、正式 CORS 来源以及项目组测试学号白名单。真实学号、管理员密码和 AI/S3 密钥只能写入服务器环境文件。
 
 网页端生产 API 使用同源 `/api`，由 Nginx 反向代理到 `127.0.0.1:8080`。移动 App 和小程序需要在各自构建配置中显式注入正式 HTTPS 地址。
 
 当前内测约束：
 
 - `BACKEND_CORS_ALLOWED_ORIGINS=https://zhixing.xidian.edu.cn`
-- `BACKEND_AUTH_ALLOWED_EMAILS` 填项目组成员学生邮箱，英文逗号分隔
-- `BACKEND_ENABLE_XIDIAN_AUTH=false`
-- `BACKEND_XIDIAN_PUBLIC_ORIGIN` 留空
+- `BACKEND_AUTH_ALLOWED_STUDENT_IDS` 填项目组成员学号，英文逗号分隔
+- `BACKEND_ENABLE_XIDIAN_AUTH=true`
+- `BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn`
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE=false`
 - `BACKEND_INCLUDE_DEBUG_CODE=false`
 - `BACKEND_SEED_DEMO_DATA=false`
 
-学校统一身份认证接口层保留，但在 `BACKEND_ENABLE_XIDIAN_AUTH=false` 时明确返回“尚未启用”，不会伪装为已经接入。
+普通用户只通过西电官方统一身份认证页面登录，固定登记的 CAS `service`/回调地址为 `https://zhixing.xidian.edu.cn/api/auth/xidian/callback`。本站不展示学号密码输入框、不接收统一认证密码，只校验 IDS 发给该回调地址的票据。首次认证成功后自动创建本站账号。校园邮箱注册、邮箱验证码和邮箱找回密码接口不再对外开放。
 
 ## 2. 正式构建与发布包
 

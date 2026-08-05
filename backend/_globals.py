@@ -101,8 +101,9 @@ SMTP_USE_SSL: bool = True
 SMTP_USE_STARTTLS: bool = False
 BACKEND_XIDIAN_PUBLIC_ORIGIN: str = ""
 ENABLE_XIDIAN_AUTH: bool = False
+XIDIAN_AUTHORIZED_PUBLIC_ORIGIN = "https://zhixing.xidian.edu.cn"
 CORS_ALLOWED_ORIGINS: set[str] = set()
-AUTH_ALLOWED_EMAILS: set[str] = set()
+AUTH_ALLOWED_STUDENT_IDS: set[str] = set()
 MAX_REQUEST_BODY_BYTES: int = 20 * 1024 * 1024
 
 # AI provider configuration is server-only.  Never send these values to a
@@ -133,7 +134,7 @@ def configure() -> None:
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, \
         SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_SSL, SMTP_USE_STARTTLS, \
         BACKEND_XIDIAN_PUBLIC_ORIGIN, ENABLE_XIDIAN_AUTH, CORS_ALLOWED_ORIGINS, \
-        AUTH_ALLOWED_EMAILS, MAX_REQUEST_BODY_BYTES, \
+        AUTH_ALLOWED_STUDENT_IDS, MAX_REQUEST_BODY_BYTES, \
         DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
@@ -315,11 +316,14 @@ def configure() -> None:
         for origin in os.environ.get("BACKEND_CORS_ALLOWED_ORIGINS", "").split(",")
         if origin.strip()
     )
-    AUTH_ALLOWED_EMAILS.clear()
-    AUTH_ALLOWED_EMAILS.update(
-        normalize_auth_email(email)
-        for email in os.environ.get("BACKEND_AUTH_ALLOWED_EMAILS", "").split(",")
-        if email.strip()
+    AUTH_ALLOWED_STUDENT_IDS.clear()
+    AUTH_ALLOWED_STUDENT_IDS.update(
+        student_id.strip().lower()
+        for student_id in os.environ.get(
+            "BACKEND_AUTH_ALLOWED_STUDENT_IDS",
+            "",
+        ).split(",")
+        if student_id.strip()
     )
     try:
         max_request_body_mb = int(
@@ -330,6 +334,13 @@ def configure() -> None:
     if not 1 <= max_request_body_mb <= 100:
         raise RuntimeError("BACKEND_MAX_REQUEST_BODY_MB must be between 1 and 100")
     MAX_REQUEST_BODY_BYTES = max_request_body_mb * 1024 * 1024
+
+    if ENABLE_XIDIAN_AUTH:
+        if not re.fullmatch(r"https://[^/?#]+", BACKEND_XIDIAN_PUBLIC_ORIGIN):
+            raise RuntimeError(
+                "BACKEND_XIDIAN_PUBLIC_ORIGIN is required and must be an HTTPS origin "
+                "when Xidian authentication is enabled"
+            )
 
     if runtime_env == "production":
         if not CORS_ALLOWED_ORIGINS:
@@ -345,22 +356,30 @@ def configure() -> None:
             raise RuntimeError(
                 "BACKEND_CORS_ALLOWED_ORIGINS must contain HTTPS origins only"
             )
-        if not AUTH_ALLOWED_EMAILS:
+        if CORS_ALLOWED_ORIGINS != {XIDIAN_AUTHORIZED_PUBLIC_ORIGIN}:
             raise RuntimeError(
-                "BACKEND_AUTH_ALLOWED_EMAILS is required during private beta"
+                "BACKEND_CORS_ALLOWED_ORIGINS must match the authorized production origin"
             )
-        invalid_emails = [
-            email
-            for email in AUTH_ALLOWED_EMAILS
-            if not re.fullmatch(r"[A-Za-z0-9._%+-]+@stu\.xidian\.edu\.cn", email)
+        if not AUTH_ALLOWED_STUDENT_IDS:
+            raise RuntimeError(
+                "BACKEND_AUTH_ALLOWED_STUDENT_IDS is required during private beta"
+            )
+        invalid_student_ids = [
+            student_id
+            for student_id in AUTH_ALLOWED_STUDENT_IDS
+            if not re.fullmatch(r"[0-9A-Za-z]{6,20}", student_id)
         ]
-        if invalid_emails:
+        if invalid_student_ids:
             raise RuntimeError(
-                "BACKEND_AUTH_ALLOWED_EMAILS must contain student email addresses"
+                "BACKEND_AUTH_ALLOWED_STUDENT_IDS must contain valid student IDs"
             )
-        if ENABLE_XIDIAN_AUTH and not BACKEND_XIDIAN_PUBLIC_ORIGIN.startswith("https://"):
+        if not ENABLE_XIDIAN_AUTH:
             raise RuntimeError(
-                "BACKEND_XIDIAN_PUBLIC_ORIGIN is required when unified authentication is enabled"
+                "BACKEND_ENABLE_XIDIAN_AUTH must be true in production"
+            )
+        if BACKEND_XIDIAN_PUBLIC_ORIGIN != XIDIAN_AUTHORIZED_PUBLIC_ORIGIN:
+            raise RuntimeError(
+                "BACKEND_XIDIAN_PUBLIC_ORIGIN must match the IDS-authorized production origin"
             )
     AI_BASE_URL = os.environ.get("BACKEND_AI_BASE_URL", os.environ.get("AI_BASE_URL", "")).strip().rstrip("/")
     AI_API_KEY = os.environ.get("BACKEND_AI_API_KEY", os.environ.get("AI_API_KEY", "")).strip()
@@ -378,11 +397,6 @@ def configure() -> None:
     _smtp_host = SMTP_HOST
     _smtp_port = SMTP_PORT
     _smtp_from_email = SMTP_FROM_EMAIL
-
-    if runtime_env == "production":
-        smtp_values = (SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD, SMTP_FROM_EMAIL)
-        if any(not value or value.upper().startswith("REPLACE_WITH_") for value in smtp_values):
-            raise RuntimeError("Complete BACKEND_SMTP_* configuration is required in production")
 
     ALLOW_DEBUG_VERIFY_CODE = os.environ.get("BACKEND_ALLOW_DEBUG_VERIFY_CODE", "").strip().lower() in {"1", "true", "yes", "on"}
     INCLUDE_DEBUG_CODE_IN_RESPONSE = os.environ.get("BACKEND_INCLUDE_DEBUG_CODE", "").strip().lower() in {"1", "true", "yes", "on"}
@@ -547,11 +561,11 @@ def get_image_max_bytes(db: dict[str, Any]) -> int:
     return max(1024 * 1024, mb * 1024 * 1024)
 
 
-def is_auth_email_allowed(email: str) -> bool:
-    """Return whether an account may access the current private beta."""
-    if not AUTH_ALLOWED_EMAILS:
+def is_auth_student_id_allowed(student_id: str) -> bool:
+    """Return whether a unified-auth identity may access the private beta."""
+    if not AUTH_ALLOWED_STUDENT_IDS:
         return True
-    return normalize_auth_email(email) in AUTH_ALLOWED_EMAILS
+    return student_id.strip().lower() in AUTH_ALLOWED_STUDENT_IDS
 
 
 def public_system_settings() -> dict[str, Any]:
@@ -589,9 +603,9 @@ __all__ = [
     "PIN_DURATION_OPTIONS",
     "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD",
     "SMTP_FROM_EMAIL", "SMTP_FROM_NAME", "SMTP_USE_SSL", "SMTP_USE_STARTTLS",
-    "BACKEND_XIDIAN_PUBLIC_ORIGIN", "ENABLE_XIDIAN_AUTH",
-    "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_EMAILS", "MAX_REQUEST_BODY_BYTES",
-    "is_auth_email_allowed",
+    "BACKEND_XIDIAN_PUBLIC_ORIGIN", "ENABLE_XIDIAN_AUTH", "XIDIAN_AUTHORIZED_PUBLIC_ORIGIN",
+    "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_STUDENT_IDS", "MAX_REQUEST_BODY_BYTES",
+    "is_auth_student_id_allowed",
     "PASSWORD_RESET_CODE_PREFIX",
     "RATE_LIMIT_WINDOWS_SECONDS", "IP_RATE_LIMITS", "ALLOWED_IMAGE_TYPES",
     "RATE_LIMIT_EVENT_MAX", "SPAM_REPEAT_REGEX",

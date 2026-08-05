@@ -25,7 +25,7 @@ const isLoginRoute = () => {
   const current = pages[pages.length - 1];
   if (!current) return false;
   const route = `/${current.route || ''}`;
-  return route === LOGIN_PAGE || route === '/pages/profile/register/index';
+  return route === LOGIN_PAGE;
 };
 
 const isCurrentPageTabbar = () => {

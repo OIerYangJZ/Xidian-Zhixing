@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -6,292 +7,137 @@ import 'package:http/testing.dart';
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/repositories/auth_repository.dart';
-import 'api_mocks.dart';
 
 void main() {
-  group('AuthRepository', () {
-    late MockClient mockClient;
-    late AuthRepository authRepository;
-
-    setUp(() {
-      mockClient = MockClient((http.Request request) async {
-        final String path = request.url.path;
-        final String method = request.method;
-
-        if (path.endsWith('/auth/login') && method == 'POST') {
-          final body = jsonDecode(request.body) as Map<String, dynamic>;
-          final identifier = body['identifier'] as String?;
-          final password = body['password'] as String?;
-
-          if (identifier == 'test@example.com' &&
-              password == 'correct_password') {
-            return http.Response(
-              jsonEncode(MockApiResponses.loginSuccess()),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }
-          if (identifier == 'unverified@example.com') {
-            return http.Response(
-              jsonEncode(MockApiResponses.loginNeedsVerification()),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }
-          return http.Response(
-            jsonEncode(MockApiResponses.badRequest('用户名或密码错误')),
-            400,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        if (path.endsWith('/auth/register') && method == 'POST') {
-          final body = jsonDecode(request.body) as Map<String, dynamic>;
-          final email = body['email'] as String?;
-
-          if (email != null && email.contains('@')) {
-            return http.Response(
-              jsonEncode(MockApiResponses.registerSuccess()),
-              201,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }
-          return http.Response(
-            jsonEncode(MockApiResponses.badRequest('邮箱格式不正确')),
-            400,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        if (path.endsWith('/auth/send-code') && method == 'POST') {
-          return http.Response(
-            jsonEncode(MockApiResponses.sendEmailCodeSuccess()),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        if (path.endsWith('/auth/verify') && method == 'POST') {
-          final body = jsonDecode(request.body) as Map<String, dynamic>;
-          final code = body['code'] as String?;
-
-          if (code == '123456') {
-            return http.Response(
-              jsonEncode(MockApiResponses.verifyEmailSuccess()),
-              200,
-              headers: {'content-type': 'application/json; charset=utf-8'},
-            );
-          }
-          return http.Response(
-            jsonEncode(MockApiResponses.badRequest('验证码错误')),
-            400,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        if (path.endsWith('/auth/logout') && method == 'POST') {
-          return http.Response(
-            jsonEncode(<String, dynamic>{'message': '已退出登录'}),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
+  group('AuthRepository official unified authentication', () {
+    test('creates a redirect session without collecting credentials', () async {
+      late Map<String, dynamic> submitted;
+      final MockClient client = MockClient((http.Request request) async {
+        expect(request.method, 'POST');
+        expect(request.url.path, '/api/auth/xidian/session');
+        submitted = jsonDecode(request.body) as Map<String, dynamic>;
         return http.Response(
-          jsonEncode(MockApiResponses.notFound()),
-          404,
-          headers: {'content-type': 'application/json; charset=utf-8'},
-        );
-      });
-    });
-
-    group('login', () {
-      test('使用正确凭据登录成功', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        final result = await authRepository.login(
-          identifier: 'test@example.com',
-          password: 'correct_password',
-        );
-
-        expect(result.verified, isTrue);
-        expect(result.token, equals('mock_token_123'));
-        expect(result.email, equals('test@example.com'));
-        expect(result.studentId, equals('2111111'));
-      });
-
-      test('未验证用户返回需要验证标志', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        final result = await authRepository.login(
-          identifier: 'unverified@example.com',
-          password: 'any_password',
-        );
-
-        expect(result.verified, isFalse);
-        expect(result.token, isNull);
-      });
-
-      test('错误凭据抛出异常', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        expect(
-          () => authRepository.login(
-            identifier: 'wrong@example.com',
-            password: 'wrong_password',
-          ),
-          throwsA(isA<ApiException>()),
-        );
-      });
-    });
-
-    group('register', () {
-      test('注册成功不抛出异常', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        await expectLater(
-          authRepository.register(
-            email: 'new@example.com',
-            password: 'password123',
-            nickname: '新用户',
-          ),
-          completes,
-        );
-      });
-
-      test('无效邮箱抛出异常', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        expect(
-          () => authRepository.register(
-            email: 'invalid-email',
-            password: 'password123',
-            nickname: '新用户',
-          ),
-          throwsA(isA<ApiException>()),
-        );
-      });
-    });
-
-    group('sendEmailCode', () {
-      test('发送验证码成功返回 debug code', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        final debugCode = await authRepository.sendEmailCode(
-          'test@example.com',
-        );
-
-        expect(debugCode, equals('123456'));
-      });
-    });
-
-    group('verifyEmail', () {
-      test('正确验证码验证成功', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        final result = await authRepository.verifyEmail(
-          email: 'test@example.com',
-          code: '123456',
-        );
-
-        expect(result.verified, isTrue);
-        expect(result.token, equals('verified_token_456'));
-      });
-
-      test('错误验证码抛出异常', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        await expectLater(
-          () => authRepository.verifyEmail(
-            email: 'test@example.com',
-            code: 'wrong_code',
-          ),
-          throwsA(
-            isA<ApiException>().having(
-              (ApiException error) => error.message,
-              'message',
-              '验证码错误',
-            ),
-          ),
-        );
-      });
-
-      test('保留前导零、规范化邮箱并识别嵌套成功响应', () async {
-        late Map<String, dynamic> submitted;
-        final MockClient contractClient = MockClient((
-          http.Request request,
-        ) async {
-          submitted = jsonDecode(request.body) as Map<String, dynamic>;
-          return http.Response(
-            jsonEncode(<String, dynamic>{
-              'success': true,
-              'message': '邮箱验证成功',
-              'data': <String, dynamic>{
-                'token': 'leading_zero_token',
-                'verified': true,
-                'email': 'student@stu.xidian.edu.cn',
-              },
-            }),
-            200,
-            headers: <String, String>{
-              'content-type': 'application/json; charset=utf-8',
+          jsonEncode(<String, dynamic>{
+            'data': <String, dynamic>{
+              'attemptId': 'attempt-1',
+              'status': 'pending',
+              'platform': 'web',
+              'authorizeUrl':
+                  'https://zhixing.xidian.edu.cn/api/auth/xidian/start?attempt=attempt-1',
             },
-          );
-        });
-        authRepository = AuthRepository(ApiClient(httpClient: contractClient));
-
-        final AuthLoginResult result = await authRepository.verifyEmail(
-          email: '  Student@STU.XIDIAN.EDU.CN  ',
-          code: '012345',
+          }),
+          200,
+          headers: <String, String>{
+            'content-type': 'application/json; charset=utf-8',
+          },
         );
-
-        expect(submitted['email'], 'student@stu.xidian.edu.cn');
-        expect(submitted['code'], '012345');
-        expect(submitted['code'], isA<String>());
-        expect(result.verified, isTrue);
-        expect(result.token, 'leading_zero_token');
       });
-    });
-
-    group('logout', () {
-      test('登出成功', () async {
-        authRepository = AuthRepository(ApiClient(httpClient: mockClient));
-
-        await expectLater(authRepository.logout(), completes);
-      });
-    });
-  });
-
-  group('AuthLoginResult', () {
-    test('正确解析登录响应中的 token', () {
-      final mockResponse = MockApiResponses.loginSuccess(
-        token: 'test_token',
-        email: 'user@test.com',
-        studentId: '1234567',
-        verified: true,
+      final AuthRepository repository = AuthRepository(
+        ApiClient(httpClient: client),
       );
 
-      expect(mockResponse['token'], equals('test_token'));
-      expect(mockResponse['email'], equals('user@test.com'));
-      expect(mockResponse['studentId'], equals('1234567'));
-      expect(mockResponse['verified'], isTrue);
+      final XidianAuthSessionResult result = await repository
+          .createXidianAuthSession(platform: 'web', nextPath: '/');
+
+      expect(submitted, <String, dynamic>{'platform': 'web', 'nextPath': '/'});
+      expect(submitted.containsKey('studentId'), isFalse);
+      expect(submitted.containsKey('password'), isFalse);
+      expect(result.isPending, isTrue);
+      expect(result.attemptId, 'attempt-1');
     });
 
-    test('处理 accessToken 别名字段', () {
-      final responseWithAccessToken = <String, dynamic>{
-        'accessToken': 'alt_token',
-        'email': 'user@test.com',
-        'verified': true,
-      };
+    test('consumes a validated IDS ticket session', () async {
+      final MockClient client = MockClient((http.Request request) async {
+        expect(request.method, 'GET');
+        expect(request.url.path, '/api/auth/xidian/session/attempt-1');
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'data': <String, dynamic>{
+              'attemptId': 'attempt-1',
+              'status': 'authenticated',
+              'platform': 'web',
+              'token': 'ids-session-token',
+              'verified': true,
+              'studentId': '2300000000',
+              'email': '2300000000@stu.xidian.edu.cn',
+            },
+          }),
+          200,
+          headers: <String, String>{
+            'content-type': 'application/json; charset=utf-8',
+          },
+        );
+      });
+      final AuthRepository repository = AuthRepository(
+        ApiClient(httpClient: client),
+      );
 
-      expect(responseWithAccessToken['accessToken'], equals('alt_token'));
+      final XidianAuthSessionResult result = await repository
+          .fetchXidianAuthSession('attempt-1');
+
+      expect(result.isAuthenticated, isTrue);
+      expect(result.token, 'ids-session-token');
+      expect(result.studentId, '2300000000');
     });
 
-    test('处理 needVerify 标志', () {
-      final needsVerification = MockApiResponses.loginNeedsVerification();
+    test('rejects authenticated status without a complete local session', () {
+      final MockClient client = MockClient((http.Request request) async {
+        return http.Response(
+          jsonEncode(<String, dynamic>{
+            'data': <String, dynamic>{
+              'attemptId': 'attempt-1',
+              'status': 'authenticated',
+              'platform': 'mobile',
+              'verified': true,
+              'studentId': '2300000000',
+            },
+          }),
+          200,
+          headers: <String, String>{
+            'content-type': 'application/json; charset=utf-8',
+          },
+        );
+      });
+      final AuthRepository repository = AuthRepository(
+        ApiClient(httpClient: client),
+      );
 
-      expect(needsVerification['needVerify'], isTrue);
-      expect(needsVerification['email'], equals('test@example.com'));
+      expect(
+        () => repository.fetchXidianAuthSession('attempt-1'),
+        throwsA(
+          isA<FormatException>().having(
+            (FormatException error) => error.message,
+            'message',
+            '统一认证结果缺少有效登录凭据',
+          ),
+        ),
+      );
+    });
+
+    test('preserves an official authentication availability error', () {
+      final MockClient client = MockClient((http.Request request) async {
+        return http.Response(
+          jsonEncode(<String, dynamic>{'message': '学校统一身份认证暂时不可用'}),
+          503,
+          headers: <String, String>{
+            'content-type': 'application/json; charset=utf-8',
+          },
+        );
+      });
+      final AuthRepository repository = AuthRepository(
+        ApiClient(httpClient: client),
+      );
+
+      expect(
+        () => repository.createXidianAuthSession(platform: 'web'),
+        throwsA(
+          isA<ApiException>().having(
+            (ApiException error) => error.message,
+            'message',
+            '学校统一身份认证暂时不可用',
+          ),
+        ),
+      );
     });
   });
 }

@@ -82,14 +82,6 @@ def validate(values: dict[str, str]) -> list[str]:
             require(key)
 
     for key in (
-        "BACKEND_SMTP_HOST",
-        "BACKEND_SMTP_USERNAME",
-        "BACKEND_SMTP_PASSWORD",
-        "BACKEND_SMTP_FROM_EMAIL",
-    ):
-        require(key)
-
-    for key in (
         "BACKEND_ALLOW_DEBUG_VERIFY_CODE",
         "BACKEND_INCLUDE_DEBUG_CODE",
         "BACKEND_SEED_DEMO_DATA",
@@ -110,27 +102,36 @@ def validate(values: dict[str, str]) -> list[str]:
                 "BACKEND_CORS_ALLOWED_ORIGINS must contain HTTPS origins only",
             )
             break
+    if set(cors_origins) != {"https://zhixing.xidian.edu.cn"}:
+        errors.append(
+            "BACKEND_CORS_ALLOWED_ORIGINS must match https://zhixing.xidian.edu.cn",
+        )
 
-    allowed_emails = [
-        item.strip().lower()
-        for item in values.get("BACKEND_AUTH_ALLOWED_EMAILS", "").split(",")
+    allowed_student_ids = [
+        item.strip()
+        for item in values.get(
+            "BACKEND_AUTH_ALLOWED_STUDENT_IDS",
+            "",
+        ).split(",")
         if item.strip()
     ]
-    if not allowed_emails:
-        errors.append("BACKEND_AUTH_ALLOWED_EMAILS is required during private beta")
-    for email in allowed_emails:
-        if is_placeholder(email) or not re.fullmatch(
-            r"[A-Za-z0-9._%+-]+@stu\.xidian\.edu\.cn",
-            email,
+    if not allowed_student_ids:
+        errors.append(
+            "BACKEND_AUTH_ALLOWED_STUDENT_IDS is required during private beta",
+        )
+    for student_id in allowed_student_ids:
+        if is_placeholder(student_id) or not re.fullmatch(
+            r"[0-9A-Za-z]{6,20}",
+            student_id,
         ):
             errors.append(
-                "BACKEND_AUTH_ALLOWED_EMAILS must contain real student email addresses",
+                "BACKEND_AUTH_ALLOWED_STUDENT_IDS must contain valid student IDs",
             )
             break
 
-    if values.get("BACKEND_ENABLE_XIDIAN_AUTH", "").strip().lower() != "false":
+    if values.get("BACKEND_ENABLE_XIDIAN_AUTH", "").strip().lower() != "true":
         errors.append(
-            "BACKEND_ENABLE_XIDIAN_AUTH must be false until unified authentication is approved",
+            "BACKEND_ENABLE_XIDIAN_AUTH must be true in production",
         )
 
     try:
@@ -140,9 +141,15 @@ def validate(values: dict[str, str]) -> list[str]:
     except ValueError:
         errors.append("BACKEND_MAX_REQUEST_BODY_MB must be an integer from 1 to 100")
 
-    public_origin = values.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip()
-    if public_origin and not public_origin.startswith("https://"):
-        errors.append("BACKEND_XIDIAN_PUBLIC_ORIGIN must use HTTPS when configured")
+    public_origin = values.get("BACKEND_XIDIAN_PUBLIC_ORIGIN", "").strip().rstrip("/")
+    if not re.fullmatch(r"https://[^/?#]+", public_origin):
+        errors.append(
+            "BACKEND_XIDIAN_PUBLIC_ORIGIN is required and must be the registered HTTPS origin",
+        )
+    elif public_origin != "https://zhixing.xidian.edu.cn":
+        errors.append(
+            "BACKEND_XIDIAN_PUBLIC_ORIGIN must match https://zhixing.xidian.edu.cn",
+        )
 
     ai_base_url = values.get("BACKEND_AI_BASE_URL", "").strip()
     ai_api_key = values.get("BACKEND_AI_API_KEY", "").strip()

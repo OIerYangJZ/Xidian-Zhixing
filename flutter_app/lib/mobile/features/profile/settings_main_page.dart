@@ -128,7 +128,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
             _buildMenuTile(
               icon: Icons.lock_outline,
               title: '账号与安全',
-              subtitle: '修改密码、用户等级、注销账号',
+              subtitle: '统一认证、用户等级、注销账号',
               onTap: () => context.push('/profile/settings/account'),
             ),
             _buildMenuTile(

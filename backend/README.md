@@ -1,6 +1,6 @@
 # XDU Treehole Backend (Python)
 
-一个本地后端，核心 API 使用 Python 标准库实现；普通用户默认使用学生邮箱注册 / 验证码验证 / 账号密码登录；启用 S3/OSS 对象存储时需额外安装 `boto3`。
+一个本地后端，普通用户通过西电官方统一身份认证页面登录；本站只校验 IDS 发给已登记回调地址的服务票据，不接收统一认证密码。首次认证成功后自动创建本站账号。启用 S3/OSS 对象存储时需额外安装 `boto3`。
 后端也可直接托管 Flutter Web 构建产物（默认 `build/web`），用于单端口内测发布。
 
 ## 启动
@@ -23,7 +23,9 @@ python3 backend/server.py
 
 - `BACKEND_HOST`（默认 `0.0.0.0`）
 - `BACKEND_PORT`（默认 `8080`）
-- `BACKEND_XIDIAN_PUBLIC_ORIGIN`（可选，仅在启用统一认证回调桥接时填写；普通学生邮箱登录可留空）
+- `BACKEND_ENABLE_XIDIAN_AUTH`（普通用户登录必须启用；生产环境必须为 `true`）
+- `BACKEND_AUTH_ALLOWED_STUDENT_IDS`（私有内测学号白名单，英文逗号分隔；生产环境必填）
+- `BACKEND_XIDIAN_PUBLIC_ORIGIN`（启用统一认证时必填；必须是 IDS 已登记的 HTTPS Origin，当前为 `https://zhixing.xidian.edu.cn`）
 - `BACKEND_AI_BASE_URL`（服务器端 OpenAI 兼容接口地址；不得下发到客户端）
 - `BACKEND_AI_API_KEY`（服务器端模型密钥；不得写入小程序、Flutter 或请求体）
 - `BACKEND_AI_MODEL`（默认 `gpt-4o-mini`）
@@ -35,14 +37,6 @@ python3 backend/server.py
 - `BACKEND_ADMIN_USERNAME`（默认 `admin`）
 - `BACKEND_ADMIN_PASSWORD`（必填；生产环境至少 12 位，且不得使用模板值）
 - `BACKEND_SEED_DEMO_DATA`（开发环境默认 `true`；生产环境必须为 `false`）
-- `BACKEND_SMTP_HOST`（SMTP 主机，启用真实邮箱验证码必填，QQ 可用 `smtp.qq.com`）
-- `BACKEND_SMTP_PORT`（默认 `465`，QQ 常用 `465`）
-- `BACKEND_SMTP_USERNAME`（SMTP 登录账号）
-- `BACKEND_SMTP_PASSWORD`（SMTP 登录密码/授权码）
-- `BACKEND_SMTP_FROM_EMAIL`（发件邮箱，默认同 `BACKEND_SMTP_USERNAME`）
-- `BACKEND_SMTP_FROM_NAME`（默认 `电台`）
-- `BACKEND_SMTP_USE_SSL`（默认 `true`，QQ 推荐 `true`）
-- `BACKEND_SMTP_USE_STARTTLS`（默认 `false`，QQ 推荐 `false`）
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE`（默认 `false`，设置为 `true` 后允许 `123456` 调试码）
 - `BACKEND_INCLUDE_DEBUG_CODE`（默认 `false`，设置为 `true` 后接口响应会返回 `debugCode`）
 
@@ -99,10 +93,8 @@ BACKEND_HOST=0.0.0.0 BACKEND_PORT=8080 ./scripts/run_backend_beta.sh
 2. Render 控制台选择 New -> Blueprint -> 绑定该仓库。
 3. 在 Render 环境变量里填写敏感项：
    - `BACKEND_ADMIN_PASSWORD`
-   - `BACKEND_SMTP_USERNAME`
-   - `BACKEND_SMTP_PASSWORD`
-   - `BACKEND_SMTP_FROM_EMAIL`
-   - `BACKEND_XIDIAN_PUBLIC_ORIGIN=https://<service-name>.onrender.com`（仅在启用可选统一认证桥接时填写）
+   - `BACKEND_CORS_ALLOWED_ORIGINS=https://<service-name>.onrender.com`
+   - `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
 4. 部署成功后访问：
    - `https://<service-name>.onrender.com`
    - `https://<service-name>.onrender.com/api/channels`
@@ -154,9 +146,9 @@ sudo ./scripts/install_ubuntu_offline.sh /path/to/treehole-release.tar.gz
 sudoedit /home/ubuntu/treehole/shared/config/backend.env
 ```
 
-普通学生邮箱登录不依赖统一认证回调。部署时重点确认：
+普通用户学号密码登录不依赖统一认证回调地址。部署时重点确认：
 
-1. `/home/ubuntu/treehole/shared/config/backend.env` 中已正确填写 `BACKEND_SMTP_*`
+1. `/home/ubuntu/treehole/shared/config/backend.env` 中已设置 `BACKEND_ENABLE_XIDIAN_AUTH=true` 与真实的 `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
 2. Nginx `server_name` 与 HTTPS 证书已配置完成
 3. 移动端正式构建时使用：
 
@@ -168,9 +160,7 @@ flutter build apk --release \
 重点修改：
 
 - `BACKEND_ADMIN_PASSWORD`
-- `BACKEND_SMTP_USERNAME`
-- `BACKEND_SMTP_PASSWORD`
-- `BACKEND_SMTP_FROM_EMAIL`
+- `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
 
 应用修改：
 
@@ -187,39 +177,27 @@ curl http://127.0.0.1:8080/api/channels
 
 ## 账号初始化
 
-- 普通用户：使用 `学号 + 西电统一身份认证密码` 登录；首次成功登录会自动创建本地树洞账号并按学号映射老用户
+- 普通用户：跳转西电官方 IDS 页面登录；首次成功登录会自动创建本地树洞账号并按学号映射老用户
 - 管理员用户名和密码由 `BACKEND_ADMIN_USERNAME`、`BACKEND_ADMIN_PASSWORD` 显式提供；不存在生产默认密码。
 - 管理员密码在数据库中以 PBKDF2-SHA256 哈希存储（兼容旧明文自动迁移）
 - 生产环境不会创建演示用户、演示帖子、评论或私信数据。
 
-## 真实邮箱验证码配置
+## 统一身份认证配置
 
-普通用户默认使用学生邮箱验证码认证。注册、验证码验证和密码找回仅支持 `@stu.xidian.edu.cn`，SMTP 配置同时也可复用于项目内其他邮件通知能力。
-
-QQ 邮箱示例：
+普通用户登录必须启用西电统一身份认证，并在私有内测期间填写学号白名单：
 
 ```bash
-BACKEND_SMTP_HOST=smtp.qq.com \
-BACKEND_SMTP_PORT=465 \
-BACKEND_SMTP_USERNAME=your@qq.com \
-BACKEND_SMTP_PASSWORD='替换为你的 QQ 邮箱 SMTP 授权码（不是QQ登录密码）' \
-BACKEND_SMTP_FROM_EMAIL=your@qq.com \
-BACKEND_SMTP_FROM_NAME=电台 \
-BACKEND_SMTP_USE_SSL=true \
-BACKEND_SMTP_USE_STARTTLS=false \
+BACKEND_ENABLE_XIDIAN_AUTH=true \
+BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn \
+BACKEND_AUTH_ALLOWED_STUDENT_IDS=2300000000,2300000001 \
 python3 backend/server.py
 ```
 
-如果你需要开发调试模式（不建议生产启用）：
-
-```bash
-BACKEND_ALLOW_DEBUG_VERIFY_CODE=true
-BACKEND_INCLUDE_DEBUG_CODE=true
-```
+账号登录固定使用 `https://zhixing.xidian.edu.cn/api/auth/xidian/callback` 作为 CAS `service`，用户凭据仅在西电官方页面输入。运行环境需安装 `requests`；其他校园服务集成功能仍需 `Pillow` 和 `openssl`。正式发布依赖已列入 `backend/requirements-storage.txt`。校园邮箱注册、邮箱验证码验证和邮箱找回密码接口不再对外开放。
 
 ## 已实现接口
 
-- 认证：`/auth/send-code` `/auth/register` `/auth/verify` `/auth/login` `/auth/password/send-code` `/auth/password/reset` `/auth/logout`
+- 认证：`/auth/xidian/session` `/auth/xidian/session/{attemptId}` `/auth/xidian/start` `/auth/xidian/callback` `/auth/logout`
 - 用户：`/users/me` `/users/privacy`
 - 频道/帖子：`/channels` `/posts` `/posts/mine` `/posts/favorites` `/posts/{id}`
 - 上传/图片：`/uploads/images` `/uploads/mine` `/storage/{key}`

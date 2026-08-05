@@ -21,8 +21,6 @@
     "pages/ai/chat/index",
     "pages/ai/history/index",
     "pages/profile/auth/index",
-    "pages/profile/register/index",
-    "pages/profile/reset-password/index",
     "pages/profile/favorites/index",
     "pages/profile/my-posts/index",
     "pages/profile/my-comments/index",

@@ -44,19 +44,8 @@ const request = (options) => {
   return new Promise((resolve, reject) => {
     const token = wx.getStorageSync('token');
     const requestUrl = options.url || '';
-    const publicAuthPaths = [
-      '/api/auth/login',
-      '/api/auth/register',
-      '/api/auth/verify',
-      '/api/auth/send-code',
-      '/api/auth/resend-code',
-      '/api/auth/password/send-code',
-      '/api/auth/password/reset',
-      '/api/auth/xidian/password',
-      '/api/auth/xidian/session'
-    ];
-    const isPublicAuthPath = publicAuthPaths.some((path) => requestUrl === path)
-      || /^\/api\/auth\/xidian\/session\/[^/]+$/.test(requestUrl);
+    const isPublicAuthPath = requestUrl === '/api/auth/xidian/session'
+      || requestUrl.startsWith('/api/auth/xidian/session/');
 
     if (!token && !isPublicAuthPath) {
       clearLoginAndRedirect();

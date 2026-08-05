@@ -560,8 +560,8 @@ class TestEmailCodeAuth:
         handler = FakeJsonHandler()
         monkeypatch.setattr(
             _globals,
-            "AUTH_ALLOWED_EMAILS",
-            {"2500001@stu.xidian.edu.cn"},
+            "AUTH_ALLOWED_STUDENT_IDS",
+            {"2500001"},
         )
         monkeypatch.setattr(
             _auth_handler,

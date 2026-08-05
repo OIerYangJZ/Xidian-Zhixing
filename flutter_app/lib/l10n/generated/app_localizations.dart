@@ -209,61 +209,19 @@ abstract class AppLocalizations {
   /// No description provided for @loginDescription.
   ///
   /// In zh, this message translates to:
-  /// **'使用项目组白名单中的学生账号登录。'**
+  /// **'前往西电官方统一身份认证页面完成登录。'**
   String get loginDescription;
-
-  /// No description provided for @studentIdentifier.
-  ///
-  /// In zh, this message translates to:
-  /// **'学号或学生邮箱'**
-  String get studentIdentifier;
-
-  /// No description provided for @studentIdentifierHint.
-  ///
-  /// In zh, this message translates to:
-  /// **'2023123456 或学生邮箱'**
-  String get studentIdentifierHint;
-
-  /// No description provided for @showPassword.
-  ///
-  /// In zh, this message translates to:
-  /// **'显示密码'**
-  String get showPassword;
-
-  /// No description provided for @hidePassword.
-  ///
-  /// In zh, this message translates to:
-  /// **'隐藏密码'**
-  String get hidePassword;
 
   /// No description provided for @loggingIn.
   ///
   /// In zh, this message translates to:
-  /// **'正在登录'**
+  /// **'等待官方认证'**
   String get loggingIn;
-
-  /// No description provided for @registerAccount.
-  ///
-  /// In zh, this message translates to:
-  /// **'注册账号'**
-  String get registerAccount;
-
-  /// No description provided for @forgotPassword.
-  ///
-  /// In zh, this message translates to:
-  /// **'忘记密码'**
-  String get forgotPassword;
-
-  /// No description provided for @betaAccessTitle.
-  ///
-  /// In zh, this message translates to:
-  /// **'内测访问说明'**
-  String get betaAccessTitle;
 
   /// No description provided for @betaAccessMessage.
   ///
   /// In zh, this message translates to:
-  /// **'仅白名单 @stu.xidian.edu.cn 账号可使用；学校一站式登录尚未启用。'**
+  /// **'账号登录时，学号和密码仅在西电官方页面输入，西电知行不会接触或保存统一认证密码。首次认证成功后自动创建账号；当前仅开放白名单学号。'**
   String get betaAccessMessage;
 
   /// No description provided for @adminLogin.
@@ -278,46 +236,16 @@ abstract class AppLocalizations {
   /// **'用户协议 · 隐私政策 · 社区规范'**
   String get agreements;
 
-  /// No description provided for @identifierRequired.
-  ///
-  /// In zh, this message translates to:
-  /// **'请输入学号或学生邮箱。'**
-  String get identifierRequired;
-
-  /// No description provided for @passwordRequired.
-  ///
-  /// In zh, this message translates to:
-  /// **'请输入密码。'**
-  String get passwordRequired;
-
-  /// No description provided for @loginResultError.
-  ///
-  /// In zh, this message translates to:
-  /// **'登录结果异常，请稍后重试。'**
-  String get loginResultError;
-
   /// No description provided for @loginFailed.
   ///
   /// In zh, this message translates to:
   /// **'登录失败：{error}'**
   String loginFailed(String error);
 
-  /// No description provided for @username.
-  ///
-  /// In zh, this message translates to:
-  /// **'用户名'**
-  String get username;
-
-  /// No description provided for @password.
-  ///
-  /// In zh, this message translates to:
-  /// **'密码'**
-  String get password;
-
   /// No description provided for @loginButton.
   ///
   /// In zh, this message translates to:
-  /// **'登录'**
+  /// **'前往西电官方认证'**
   String get loginButton;
 
   /// No description provided for @logout.

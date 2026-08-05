@@ -27,14 +27,13 @@ class HelpAndFeedbackPage extends StatelessWidget {
             context,
             icon: Icons.lock_outline,
             title: '登录失败怎么办？',
-            description: '请确认学号或学生邮箱、密码输入正确；如果仍然失败，可尝试通过学生邮箱验证码重置密码。',
+            description: '请在西电官方统一身份认证页面按提示处理；如忘记密码，请使用官方页面的找回密码功能。',
           ),
           _buildFAQItem(
             context,
-            icon: Icons.mail_outline,
-            title: '如何注册和找回密码？',
-            description:
-                '当前支持学生邮箱注册、邮箱验证码验证和密码找回，注册与重置密码仅支持 @stu.xidian.edu.cn 学生邮箱。',
+            icon: Icons.verified_user_outlined,
+            title: '需要单独注册吗？',
+            description: '不需要。首次通过西电官方统一身份认证后，平台会自动创建账号。',
           ),
           _buildFAQItem(
             context,

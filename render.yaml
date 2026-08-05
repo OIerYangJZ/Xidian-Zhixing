@@ -13,22 +13,14 @@ services:
         value: admin
       - key: BACKEND_ADMIN_PASSWORD
         sync: false
-      - key: BACKEND_SMTP_HOST
-        value: smtp.qq.com
-      - key: BACKEND_SMTP_PORT
-        value: "465"
-      - key: BACKEND_SMTP_USERNAME
+      - key: BACKEND_CORS_ALLOWED_ORIGINS
         sync: false
-      - key: BACKEND_SMTP_PASSWORD
+      - key: BACKEND_AUTH_ALLOWED_STUDENT_IDS
         sync: false
-      - key: BACKEND_SMTP_FROM_EMAIL
-        sync: false
-      - key: BACKEND_SMTP_FROM_NAME
-        value: 西电树洞
-      - key: BACKEND_SMTP_USE_SSL
+      - key: BACKEND_ENABLE_XIDIAN_AUTH
         value: "true"
-      - key: BACKEND_SMTP_USE_STARTTLS
-        value: "false"
+      - key: BACKEND_XIDIAN_PUBLIC_ORIGIN
+        value: https://zhixing.xidian.edu.cn
       - key: BACKEND_ALLOW_DEBUG_VERIFY_CODE
         value: "false"
       - key: BACKEND_INCLUDE_DEBUG_CODE

@@ -6,14 +6,12 @@ class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
 
   static const String _title = '隐私政策';
-  static const String _lastUpdated = '2026年3月20日';
+  static const String _lastUpdated = '2026年8月4日';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(_title),
-      ),
+      appBar: AppBar(title: const Text(_title)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -33,7 +31,9 @@ class PrivacyPolicyPage extends StatelessWidget {
             content:
                 '我们收集的信息包括您主动提供的信息以及您使用服务时自动收集的信息：\n\n'
                 '【主动提供的信息】\n'
-                '• 注册信息：校园邮箱、昵称、密码\n'
+                '• 账号信息：学号、统一认证返回的校园身份信息、昵称\n'
+                '• 账号登录凭据：学号和密码仅在西电官方认证页面输入，本平台不接收、不保存该登录密码\n'
+                '• 校园服务凭据：仅当你主动使用校园服务中心的独立连接功能时按页面说明处理，不用于本站账号登录\n'
                 '• 个人资料：头像、自愿填写的个人信息\n'
                 '• 内容信息：发布的帖子、评论、私信内容\n'
                 '• 其他您主动提供的信息\n\n'
@@ -49,7 +49,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             content:
                 '我们收集的信息将用于以下目的：\n\n'
                 '• 提供和改进服务：为您展示内容、处理您的操作请求\n'
-                '• 账号管理：注册、登录、身份验证、账号安全\n'
+                '• 账号管理：统一认证登录、首次建号、身份验证、账号安全\n'
                 '• 内容审核：检测和处理违规内容\n'
                 '• 沟通联系：向您发送服务通知、回复您的咨询\n'
                 '• 统计分析：分析服务使用情况，优化产品体验\n'
@@ -188,7 +188,11 @@ class PrivacyPolicyPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(BuildContext context, {required String title, required String content}) {
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required String content,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

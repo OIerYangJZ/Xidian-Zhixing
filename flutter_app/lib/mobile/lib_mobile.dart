@@ -9,8 +9,6 @@ export 'core/navigation/app_router.dart';
 export 'core/state/mobile_providers.dart';
 export 'features/shell/mobile_shell.dart';
 export 'features/auth/login_page.dart';
-export 'features/auth/verify_page.dart';
-export 'features/auth/reset_password_page.dart';
 export 'features/home/home_page.dart';
 export 'features/search/search_page.dart';
 export 'features/post/post_detail_page.dart';

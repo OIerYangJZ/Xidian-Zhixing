@@ -102,33 +102,6 @@ void main() {
     );
   });
 
-  test('email verification rejects a success response without token', () async {
-    final MockClient malformedClient = MockClient(
-      (http.Request request) async => http.Response(
-        jsonEncode(<String, dynamic>{
-          'data': <String, dynamic>{'verified': true},
-        }),
-        200,
-        headers: <String, String>{
-          'content-type': 'application/json; charset=utf-8',
-        },
-      ),
-    );
-
-    await expectLater(
-      AuthRepository(
-        ApiClient(httpClient: malformedClient),
-      ).verifyEmail(email: 'student@stu.xidian.edu.cn', code: '123456'),
-      throwsA(
-        isA<FormatException>().having(
-          (FormatException error) => error.message,
-          'message',
-          '邮箱验证响应缺少有效登录凭据',
-        ),
-      ),
-    );
-  });
-
   test('background upload rejects an unapproved moderation result', () async {
     final MockClient pendingClient = MockClient(
       (http.Request request) async => http.Response(

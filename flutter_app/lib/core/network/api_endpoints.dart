@@ -1,13 +1,7 @@
 class ApiEndpoints {
-  static const String sendEmailCode = '/auth/send-code';
-  static const String register = '/auth/register';
-  static const String login = '/auth/login';
   static const String xidianAuthSession = '/auth/xidian/session';
-  static const String xidianAuthStart = '/auth/xidian/start';
-  static const String verifyEmail = '/auth/verify';
-  static const String resendCode = '/auth/resend-code';
-  static const String passwordResetSendCode = '/auth/password/send-code';
-  static const String passwordReset = '/auth/password/reset';
+  static String xidianAuthSessionById(String attemptId) =>
+      '/auth/xidian/session/${Uri.encodeComponent(attemptId)}';
   static const String logout = '/auth/logout';
 
   static const String me = '/users/me';
@@ -71,8 +65,6 @@ class ApiEndpoints {
   static const String androidReleaseLatest = '/releases/android/latest';
 
   static String postById(String postId) => '/posts/$postId';
-  static String xidianAuthSessionById(String attemptId) =>
-      '/auth/xidian/session/$attemptId';
   static String postComments(String postId) => '/posts/$postId/comments';
   static String postLike(String postId) => '/posts/$postId/like';
   static String postFavorite(String postId) => '/posts/$postId/favorite';

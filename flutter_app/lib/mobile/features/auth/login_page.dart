@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
@@ -19,82 +20,85 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final TextEditingController _identifierController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
   bool _isLoading = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
+  int _loginGeneration = 0;
 
   @override
   void dispose() {
-    _identifierController.dispose();
-    _passwordController.dispose();
+    _loginGeneration += 1;
     super.dispose();
   }
 
   Future<void> _login() async {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final String identifier = _identifierController.text.trim();
-    final String password = _passwordController.text.trim();
-    if (identifier.isEmpty) {
-      _showError(l10n.identifierRequired);
-      return;
-    }
-    if (password.isEmpty) {
-      _showError(l10n.passwordRequired);
-      return;
-    }
-
+    final int generation = ++_loginGeneration;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
     try {
-      final AuthLoginResult result = await ref
-          .read(authRepositoryProvider)
-          .login(identifier: identifier, password: password);
-      if (!mounted) {
-        return;
+      final repository = ref.read(authRepositoryProvider);
+      final XidianAuthSessionResult created = await repository
+          .createXidianAuthSession(platform: 'mobile');
+      final bool launched = await launchUrl(
+        Uri.parse(created.authorizeUrl!),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!launched) {
+        throw StateError('无法打开西电官方统一身份认证页面');
       }
 
-      if (result.verified && (result.token ?? '').isNotEmpty) {
-        try {
-          final profile = await ref.read(userRepositoryProvider).fetchProfile();
-          AuthStore.instance.setCurrentUser(profile);
-        } catch (error) {
-          if (!mounted) return;
-          _showError(
-            l10n.loginFailed(error.toString().replaceAll('Exception: ', '')),
-          );
+      XidianAuthSessionResult? authenticated;
+      for (int poll = 0; poll < 300; poll += 1) {
+        if (!mounted || generation != _loginGeneration) {
           return;
         }
-        if (!mounted) {
-          return;
+        await Future<void>.delayed(const Duration(seconds: 2));
+        final XidianAuthSessionResult session = await repository
+            .fetchXidianAuthSession(created.attemptId);
+        if (session.isFailed) {
+          throw StateError(session.message ?? '统一认证登录失败');
         }
-        ref.invalidate(feedControllerProvider);
-        ref.invalidate(notificationsControllerProvider);
-        ref.invalidate(messagesControllerProvider);
-        context.go('/');
-        return;
+        if (session.isAuthenticated) {
+          authenticated = session;
+          break;
+        }
       }
-
-      final String email = (result.email ?? '').trim();
-      if (email.isEmpty) {
-        _showError(l10n.loginResultError);
-        return;
+      if (authenticated == null) {
+        throw StateError('统一认证登录已超时，请重新发起登录');
       }
-      context.go('/auth/verify?email=${Uri.encodeComponent(email)}');
+      await _finishLogin();
     } on ApiException catch (error) {
       _showError(error.message);
     } catch (error) {
       _showError(l10n.loginFailed('$error'));
     } finally {
-      if (mounted) {
+      if (mounted && generation == _loginGeneration) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<void> _finishLogin() async {
+    final profile = await ref.read(userRepositoryProvider).fetchProfile();
+    AuthStore.instance.setCurrentUser(profile);
+    if (!mounted) {
+      return;
+    }
+    ref.invalidate(feedControllerProvider);
+    ref.invalidate(notificationsControllerProvider);
+    ref.invalidate(messagesControllerProvider);
+    context.go('/');
+  }
+
+  void _cancelLogin() {
+    _loginGeneration += 1;
+    setState(() {
+      _isLoading = false;
+      _errorMessage = null;
+    });
   }
 
   void _showError(String message) {
@@ -189,47 +193,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               ),
               const SizedBox(height: 24),
-              TextField(
-                controller: _identifierController,
-                enabled: !_isLoading,
-                keyboardType: TextInputType.emailAddress,
-                textInputAction: TextInputAction.next,
-                autofillHints: const <String>[
-                  AutofillHints.username,
-                  AutofillHints.email,
-                ],
-                decoration: InputDecoration(
-                  labelText: l10n.studentIdentifier,
-                  hintText: l10n.studentIdentifierHint,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                enabled: !_isLoading,
-                obscureText: _obscurePassword,
-                autofillHints: const <String>[AutofillHints.password],
-                textInputAction: TextInputAction.done,
-                onSubmitted: (_) => _login(),
-                decoration: InputDecoration(
-                  labelText: l10n.password,
-                  suffixIcon: IconButton(
-                    tooltip: _obscurePassword
-                        ? l10n.showPassword
-                        : l10n.hidePassword,
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                    onPressed: _isLoading
-                        ? null
-                        : () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: editorial.info.withValues(alpha: 0.08),
+                  border: Border.all(
+                    color: editorial.info.withValues(alpha: 0.32),
                   ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Icon(Icons.verified_user_outlined, color: editorial.info),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        l10n.betaAccessMessage,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 12),
@@ -243,21 +226,27 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               FilledButton(
                 onPressed: _isLoading ? null : _login,
-                child: Text(_isLoading ? l10n.loggingIn : l10n.loginButton),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    if (_isLoading) ...<Widget>[
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Text(_isLoading ? l10n.loggingIn : l10n.loginButton),
+                    if (!_isLoading) ...<Widget>[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.open_in_new, size: 18),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              OutlinedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () => context.go('/auth/register'),
-                child: Text(l10n.registerAccount),
-              ),
-              TextButton(
-                onPressed: _isLoading
-                    ? null
-                    : () => context.go('/auth/reset-password'),
-                child: Text(l10n.forgotPassword),
-              ),
+              if (_isLoading)
+                TextButton(onPressed: _cancelLogin, child: const Text('取消等待')),
             ],
           ),
         ),

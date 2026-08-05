@@ -5,16 +5,21 @@ import {
   responseContractError
 } from '../utils/format';
 
-const requireAuthData = (response, { allowNeedVerify = false } = {}) => {
+const requireSessionData = (response) => {
   const data = getData(response, {});
-  const token = String(data.token || data.accessToken || '').trim();
-  if (token) {
+  const attemptId = String(data.attemptId || '').trim();
+  const status = String(data.status || '').trim();
+  const platform = String(data.platform || '').trim();
+  if (!attemptId || !['pending', 'authenticated', 'failed'].includes(status) || !platform) {
+    throw responseContractError('统一认证会话响应格式无效');
+  }
+  if (status !== 'authenticated') return response;
+  const token = String(data.token || '').trim();
+  const studentId = String(data.studentId || '').trim();
+  if (token && studentId && data.verified === true) {
     return response;
   }
-  if (allowNeedVerify && data.needVerify === true) {
-    return response;
-  }
-  throw responseContractError('认证响应缺少登录凭据');
+  throw responseContractError('统一认证响应缺少有效登录凭据');
 };
 
 const normalizeUser = (user = {}) => {
@@ -26,42 +31,24 @@ const normalizeUser = (user = {}) => {
 };
 
 /**
- * 账号密码登录
- * @param {string} identifier - 学号或邮箱
- * @param {string} password - 密码
+ * 创建西电官方统一身份认证会话。
  */
-export const login = async (identifier, password) => {
-  const response = await request.post('/api/auth/login', { identifier, password });
-  return requireAuthData(response, { allowNeedVerify: true });
+export const createXidianAuthSession = async () => {
+  const response = await request.post('/api/auth/xidian/session', {
+    platform: 'mobile',
+    nextPath: '/'
+  });
+  const data = getData(requireSessionData(response), {});
+  if (!String(data.authorizeUrl || '').trim()) {
+    throw responseContractError('统一认证会话缺少官方授权地址');
+  }
+  return response;
 };
 
-/**
- * 创建西电统一认证会话
- */
-export const createXidianAuthSession = (platform = 'mobile', nextPath = '/') => {
-  return request.post('/api/auth/xidian/session', { platform, nextPath });
-};
-
-/**
- * 轮询西电统一认证会话
- */
-export const getXidianAuthSession = (attemptId) => {
-  return request.get(`/api/auth/xidian/session/${attemptId}`);
-};
-
-/**
- * 注册
- */
-export const register = (data) => {
-  return request.post('/api/auth/register', data);
-};
-
-/**
- * 邮箱验证码验证
- */
-export const verifyEmail = async (email, code, password = '') => {
-  const response = await request.post('/api/auth/verify', { email, code, password });
-  return requireAuthData(response);
+export const fetchXidianAuthSession = async (attemptId) => {
+  const encoded = encodeURIComponent(String(attemptId || '').trim());
+  const response = await request.get(`/api/auth/xidian/session/${encoded}`);
+  return requireSessionData(response);
 };
 
 /**
@@ -73,21 +60,6 @@ export const getUserInfo = async () => {
     ...response,
     data: normalizeUser(getData(response, {}))
   };
-};
-
-/**
- * 发送验证码
- */
-export const sendCode = (email) => {
-  return request.post('/api/auth/send-code', { email });
-};
-
-export const sendPasswordResetCode = (email) => {
-  return request.post('/api/auth/password/send-code', { email });
-};
-
-export const resetPassword = (email, code, newPassword) => {
-  return request.post('/api/auth/password/reset', { email, code, newPassword });
 };
 
 /**

@@ -2,10 +2,7 @@ import 'dart:convert';
 
 /// Mock HTTP 响应，用于测试时模拟 API 返回。
 class MockHttpResponse {
-  MockHttpResponse({
-    required this.statusCode,
-    required this.body,
-  });
+  MockHttpResponse({required this.statusCode, required this.body});
 
   final int statusCode;
   final dynamic body;
@@ -18,17 +15,11 @@ class MockHttpResponse {
   }
 
   factory MockHttpResponse.success(dynamic data) {
-    return MockHttpResponse(
-      statusCode: 200,
-      body: data,
-    );
+    return MockHttpResponse(statusCode: 200, body: data);
   }
 
   factory MockHttpResponse.created(dynamic data) {
-    return MockHttpResponse(
-      statusCode: 201,
-      body: data,
-    );
+    return MockHttpResponse(statusCode: 201, body: data);
   }
 
   factory MockHttpResponse.badRequest(String message) {
@@ -62,68 +53,13 @@ class MockHttpResponse {
 
 /// Mock API 响应数据工厂。
 class MockApiResponses {
-  // region 认证相关
-
-  static Map<String, dynamic> loginSuccess({
-    String token = 'mock_token_123',
-    String email = 'test@example.com',
-    String studentId = '2111111',
-    bool verified = true,
-  }) {
-    return <String, dynamic>{
-      'token': token,
-      'email': email,
-      'studentId': studentId,
-      'verified': verified,
-      'accessToken': token,
-    };
-  }
-
-  static Map<String, dynamic> loginNeedsVerification() {
-    return <String, dynamic>{
-      'needVerify': true,
-      'email': 'test@example.com',
-    };
-  }
-
-  static Map<String, dynamic> registerSuccess() {
-    return <String, dynamic>{
-      'message': '注册成功',
-    };
-  }
-
-  static Map<String, dynamic> sendEmailCodeSuccess() {
-    return <String, dynamic>{
-      'message': '验证码已发送',
-      'debugCode': '123456',
-    };
-  }
-
   static Map<String, dynamic> badRequest(String message) {
-    return <String, dynamic>{
-      'message': message,
-    };
+    return <String, dynamic>{'message': message};
   }
 
   static Map<String, dynamic> notFound([String message = '资源不存在']) {
-    return <String, dynamic>{
-      'message': message,
-    };
+    return <String, dynamic>{'message': message};
   }
-
-  static Map<String, dynamic> verifyEmailSuccess({
-    String token = 'verified_token_456',
-    String email = 'test@example.com',
-  }) {
-    return <String, dynamic>{
-      'token': token,
-      'email': email,
-      'verified': true,
-      'accessToken': token,
-    };
-  }
-
-  // endregion
 
   // region 帖子相关
 
@@ -248,10 +184,7 @@ class MockApiResponses {
   }
 
   static Map<String, dynamic> favoriteSuccess() {
-    return <String, dynamic>{
-      'favorited': true,
-      'favoriteCount': 4,
-    };
+    return <String, dynamic>{'favorited': true, 'favoriteCount': 4};
   }
 
   // endregion
@@ -315,9 +248,7 @@ class MockApiResponses {
   // region 举报相关
 
   static Map<String, dynamic> reportSuccess() {
-    return <String, dynamic>{
-      'message': '举报已提交，感谢您的反馈',
-    };
+    return <String, dynamic>{'message': '举报已提交，感谢您的反馈'};
   }
 
   // endregion

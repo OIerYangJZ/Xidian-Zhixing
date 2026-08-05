@@ -63,34 +63,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get welcomeBack => '欢迎回来';
 
   @override
-  String get loginDescription => '使用项目组白名单中的学生账号登录。';
+  String get loginDescription => '前往西电官方统一身份认证页面完成登录。';
 
   @override
-  String get studentIdentifier => '学号或学生邮箱';
+  String get loggingIn => '等待官方认证';
 
   @override
-  String get studentIdentifierHint => '2023123456 或学生邮箱';
-
-  @override
-  String get showPassword => '显示密码';
-
-  @override
-  String get hidePassword => '隐藏密码';
-
-  @override
-  String get loggingIn => '正在登录';
-
-  @override
-  String get registerAccount => '注册账号';
-
-  @override
-  String get forgotPassword => '忘记密码';
-
-  @override
-  String get betaAccessTitle => '内测访问说明';
-
-  @override
-  String get betaAccessMessage => '仅白名单 @stu.xidian.edu.cn 账号可使用；学校一站式登录尚未启用。';
+  String get betaAccessMessage =>
+      '账号登录时，学号和密码仅在西电官方页面输入，西电知行不会接触或保存统一认证密码。首次认证成功后自动创建账号；当前仅开放白名单学号。';
 
   @override
   String get adminLogin => '管理员后台登录';
@@ -99,27 +79,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get agreements => '用户协议 · 隐私政策 · 社区规范';
 
   @override
-  String get identifierRequired => '请输入学号或学生邮箱。';
-
-  @override
-  String get passwordRequired => '请输入密码。';
-
-  @override
-  String get loginResultError => '登录结果异常，请稍后重试。';
-
-  @override
   String loginFailed(String error) {
     return '登录失败：$error';
   }
 
   @override
-  String get username => '用户名';
-
-  @override
-  String get password => '密码';
-
-  @override
-  String get loginButton => '登录';
+  String get loginButton => '前往西电官方认证';
 
   @override
   String get logout => '退出登录';

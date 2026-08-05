@@ -33,18 +33,14 @@ class AppConfig {
       return _normalizeApiBaseUrl(webUrl);
     }
     if (kReleaseMode) {
-      throw StateError(
-        '生产构建缺少 API_BASE_URL；请在构建时显式注入 HTTPS API 地址',
-      );
+      throw StateError('生产构建缺少 API_BASE_URL；请在构建时显式注入 HTTPS API 地址');
     }
     return _localApiBaseUrl;
   }
 
   static String get _defaultMobileApiBaseUrl {
     if (kReleaseMode) {
-      throw StateError(
-        '移动端生产构建缺少 MOBILE_API_BASE_URL；请在构建时显式注入 HTTPS API 地址',
-      );
+      throw StateError('移动端生产构建缺少 MOBILE_API_BASE_URL；请在构建时显式注入 HTTPS API 地址');
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Android 模拟器访问宿主机 localhost 需要使用 10.0.2.2。
@@ -52,60 +48,6 @@ class AppConfig {
     }
     // iOS 模拟器可以直接访问宿主机 127.0.0.1；真机调试请注入局域网 IP。
     return _localApiBaseUrl;
-  }
-
-  // 统一认证回调固定外网 Origin。
-  // Web 端由后端环境变量 BACKEND_XIDIAN_PUBLIC_ORIGIN 控制；
-  // 移动端可通过 --dart-define=MOBILE_XIDIAN_PUBLIC_ORIGIN=https://example.com 注入。
-  static String get xidianAuthPublicOrigin {
-    const mobileAuthOrigin = String.fromEnvironment(
-      'MOBILE_XIDIAN_PUBLIC_ORIGIN',
-      defaultValue: '',
-    );
-    if (mobileAuthOrigin.trim().isNotEmpty) {
-      return mobileAuthOrigin.trim().replaceAll(RegExp(r'/$'), '');
-    }
-    const sharedAuthOrigin = String.fromEnvironment(
-      'XIDIAN_PUBLIC_ORIGIN',
-      defaultValue: '',
-    );
-    if (sharedAuthOrigin.trim().isNotEmpty) {
-      return sharedAuthOrigin.trim().replaceAll(RegExp(r'/$'), '');
-    }
-
-    final Uri? apiUri = Uri.tryParse(apiBaseUrl);
-    if (apiUri != null &&
-        apiUri.hasScheme &&
-        apiUri.hasAuthority &&
-        apiUri.scheme == 'https' &&
-        !_isLoopbackHost(apiUri.host.trim().toLowerCase())) {
-      final bool includePort =
-          apiUri.hasPort &&
-          !((apiUri.scheme == 'https' && apiUri.port == 443) ||
-              (apiUri.scheme == 'http' && apiUri.port == 80));
-      return '${apiUri.scheme}://${apiUri.host}${includePort ? ':${apiUri.port}' : ''}';
-    }
-    return '';
-  }
-
-  static String resolveXidianCallbackUrl(String path) {
-    final String trimmedPath = path.startsWith('/') ? path : '/$path';
-    final String fixedOrigin = xidianAuthPublicOrigin;
-    if (fixedOrigin.isNotEmpty) {
-      return Uri.parse(fixedOrigin).resolve(trimmedPath).toString();
-    }
-    final Uri? apiUri = Uri.tryParse(apiBaseUrl);
-    if (apiUri != null &&
-        apiUri.hasScheme &&
-        apiUri.hasAuthority &&
-        apiUri.scheme == 'https' &&
-        !_isLoopbackHost(apiUri.host.trim().toLowerCase())) {
-      return apiUri.resolve(trimmedPath).toString();
-    }
-    throw Exception(
-      '统一认证回调地址未配置：请设置 HTTPS API 地址，或注入 '
-      'MOBILE_XIDIAN_PUBLIC_ORIGIN / XIDIAN_PUBLIC_ORIGIN',
-    );
   }
 
   // 生产构建时由 scripts/build_web_production.sh 通过 --dart-define=APP_VERSION=... 注入

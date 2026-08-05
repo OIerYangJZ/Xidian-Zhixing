@@ -2,18 +2,11 @@
 handlers/_auth_handler.py
 
 Authentication & user session endpoints:
-  POST /api/auth/login
   POST /api/auth/xidian/session                  — create browser auth attempt
   GET  /api/auth/xidian/session/<attemptId>      — poll/consume auth result
   GET  /api/auth/xidian/start?attempt=<id>       — redirect to IDS login page
   GET  /api/auth/xidian/callback?...             — IDS callback, issue treehole token
   POST /api/auth/logout
-  POST /api/auth/register
-  POST /api/auth/verify
-  POST /api/auth/password/send-code
-  POST /api/auth/password/reset
-  POST /api/auth/send-code  (alias for resend)
-  POST /api/auth/resend-code (alias)
 """
 from __future__ import annotations
 
@@ -60,12 +53,10 @@ from helpers import (
     student_id_from_email,
 )
 from helpers._xidian_auth import (
-    XidianAuthCaptchaError,
     XidianAuthDependencyError,
     XidianAuthPasswordError,
     XidianAuthUnavailableError,
     IDS_LOGIN_URL,
-    login_via_xidian_ids,
     validate_xidian_service_ticket,
 )
 from services import (
@@ -93,7 +84,7 @@ def _require_private_beta_access(
     handler: BaseHTTPRequestHandler,
     email: str,
 ) -> bool:
-    if _globals.is_auth_email_allowed(email):
+    if _globals.is_auth_student_id_allowed(student_id_from_email(email)):
         return True
     json_error(handler, HTTPStatus.FORBIDDEN, "当前仅向项目组测试账号开放")
     return False
@@ -365,58 +356,26 @@ def _sanitize_next_path(value: str) -> str:
 def _configured_public_origin() -> str:
     configured = str(getattr(_globals, "BACKEND_XIDIAN_PUBLIC_ORIGIN", "") or "").strip()
     if not configured:
-        return ""
-    if not (configured.startswith("http://") or configured.startswith("https://")):
-        return ""
+        raise RuntimeError("统一认证固定回调域名尚未配置")
+    parsed = urlsplit(configured)
+    if (
+        parsed.scheme != "https"
+        or not parsed.netloc
+        or parsed.path not in {"", "/"}
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise RuntimeError("统一认证固定回调域名必须是无路径的 HTTPS Origin")
     return configured.rstrip("/")
 
 
 def _client_origin(handler: BaseHTTPRequestHandler) -> str:
-    configured = _configured_public_origin()
-    if configured:
-        return configured
-    forwarded_proto = (handler.headers.get("X-Forwarded-Proto", "") or "").split(",", 1)[0].strip()
-    forwarded_host = (handler.headers.get("X-Forwarded-Host", "") or "").split(",", 1)[0].strip()
-    host = forwarded_host or (handler.headers.get("Host", "") or "").strip()
-    if not host:
-        host = f"{handler.server.server_name}:{handler.server.server_port}"
-    proto = forwarded_proto
-    if not proto:
-        for candidate in (
-            handler.headers.get("Origin", "") or "",
-            handler.headers.get("Referer", "") or "",
-        ):
-            if candidate.startswith("http://") or candidate.startswith("https://"):
-                proto = urlsplit(candidate).scheme
-                break
-    if not proto:
-        proto = "http"
-    return f"{proto}://{host}"
-
-
-def _attempt_service_url(handler: BaseHTTPRequestHandler, attempt_id: str) -> str:
-    base = _client_origin(handler)
-    return f"{base}/api/auth/xidian/callback?attempt={attempt_id}"
+    del handler
+    return _configured_public_origin()
 
 
 def _web_callback_service_url(handler: BaseHTTPRequestHandler) -> str:
     return f"{_client_origin(handler)}/api/auth/xidian/callback"
-
-
-def _current_request_service_url(
-    handler: BaseHTTPRequestHandler,
-    *,
-    exclude_keys: set[str] | None = None,
-) -> str:
-    exclude_keys = exclude_keys or set()
-    request_uri = urlsplit(handler.path)
-    query_pairs = [
-        (key, value)
-        for key, value in parse_qsl(request_uri.query, keep_blank_values=True)
-        if key not in exclude_keys
-    ]
-    query_string = urlencode(query_pairs)
-    return f"{_client_origin(handler)}{urlunsplit(('', '', request_uri.path, query_string, ''))}"
 
 
 def _attempt_redirect_url(attempt: dict[str, Any]) -> str:
@@ -564,13 +523,39 @@ def _update_attempt(attempt_id: str, **values: Any) -> dict[str, Any] | None:
         return dict(attempt)
 
 
+def _send_auth_attempt_failure(
+    handler: BaseHTTPRequestHandler,
+    *,
+    attempt_id: str,
+    status: HTTPStatus,
+    title: str,
+    message: str,
+) -> None:
+    updated = _update_attempt(attempt_id, status="failed", message=message)
+    if updated is not None and str(updated.get("platform", "web")) == "web":
+        handler.send_response(HTTPStatus.FOUND)
+        handler.send_header("Location", _attempt_redirect_url(updated))
+        handler.send_header("Set-Cookie", _clear_attempt_cookie(handler))
+        handler.send_header("Cache-Control", "no-store")
+        handler.send_header("Content-Length", "0")
+        handler.end_headers()
+        return
+    _send_html_page(
+        handler,
+        status=status,
+        title=title,
+        message=message,
+        cookies=[_clear_attempt_cookie(handler)],
+    )
+
+
 def _upsert_user_from_xidian_identity(
     db: dict[str, Any],
     *,
     student_id: str,
     campus_email: str,
 ) -> dict[str, Any]:
-    if not _globals.is_auth_email_allowed(campus_email):
+    if not _globals.is_auth_student_id_allowed(student_id):
         raise PermissionError("当前仅向项目组测试账号开放")
     user = find_user_by_student_id(db, student_id, include_deleted=True)
 
@@ -667,12 +652,14 @@ def _issue_auth_payload_with_lock(
     *,
     student_id: str,
     campus_email: str,
+    audit_action: str = "login_by_xidian_ids_ticket",
 ) -> dict[str, Any]:
     if db is not None:
         return _issue_auth_payload(
             db,
             student_id=student_id,
             campus_email=campus_email,
+            audit_action=audit_action,
         )
     lock = _globals.DB_LOCK
     if lock is None:
@@ -683,200 +670,13 @@ def _issue_auth_payload_with_lock(
             latest_db,
             student_id=student_id,
             campus_email=campus_email,
+            audit_action=audit_action,
         )
 
 
 # ---------------------------------------------------------------------------
 # Public handler functions
 # ---------------------------------------------------------------------------
-
-
-def handle_xidian_password_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    body = read_json_body(handler)
-    identifier = str(
-        body.get("identifier", body.get("studentId", body.get("username", ""))),
-    ).strip()
-    password = str(body.get("password", "")).strip()
-
-    student_id = identifier
-    email_hint = ""
-    if "@" in identifier:
-        email_hint = _globals.normalize_auth_email(identifier)
-        if not is_campus_email(email_hint):
-            json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
-            return
-        student_id = student_id_from_email(email_hint)
-
-    if not is_valid_student_id(student_id):
-        json_error(handler, HTTPStatus.BAD_REQUEST, "请输入有效学号")
-        return
-    if not password:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "统一认证密码不能为空")
-        return
-    if not _consume_auth_rate_limit(
-        handler,
-        db,
-        subject=student_id,
-        action="auth_login",
-        setting_key="authLoginRateLimit",
-        action_text="统一认证登录",
-    ):
-        return
-
-    try:
-        result = login_via_xidian_ids(student_id, password, email_hint=email_hint)
-    except PermissionError as error:
-        json_error(handler, HTTPStatus.FORBIDDEN, str(error))
-        return
-    except XidianAuthPasswordError as error:
-        json_error(handler, HTTPStatus.UNAUTHORIZED, str(error))
-        return
-    except XidianAuthCaptchaError as error:
-        json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
-        return
-    except (XidianAuthUnavailableError, XidianAuthDependencyError) as error:
-        json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
-        return
-
-    send_json(
-        handler,
-        HTTPStatus.OK,
-        {
-            "data": {
-                "system": "ids",
-                "status": "authenticated",
-                "studentId": result.student_id,
-                "email": result.campus_email,
-                "message": "统一认证验证通过",
-            }
-        },
-        no_cache=True,
-    )
-
-
-def handle_login(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    body = read_json_body(handler)
-    identifier = str(
-        body.get("identifier", body.get("studentId", body.get("email", ""))),
-    ).strip()
-    password = str(body.get("password", "")).strip()
-
-    login_email = ""
-    login_student_id = ""
-    user: dict[str, Any] | None = None
-
-    if "@" in identifier:
-        login_email = _globals.normalize_auth_email(identifier)
-        if not is_campus_email(login_email):
-            json_error(handler, HTTPStatus.BAD_REQUEST, _student_email_only_error())
-            return
-        user = find_user_by_email(db, login_email, include_deleted=True)
-    else:
-        login_student_id = identifier
-        if not is_valid_student_id(login_student_id):
-            json_error(handler, HTTPStatus.BAD_REQUEST, "请输入有效学号")
-            return
-        user = find_user_by_student_id(db, login_student_id, include_deleted=True)
-        if user is not None:
-            login_email = str(user.get("email", "")).strip().lower()
-
-    if not password:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "密码不能为空")
-        return
-    if not _consume_auth_rate_limit(
-        handler,
-        db,
-        subject=login_email or login_student_id,
-        action="auth_login",
-        setting_key="authLoginRateLimit",
-        action_text="登录",
-    ):
-        return
-    if user is not None and user.get("deleted"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
-        return
-    if user is None:
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号或密码错误")
-        return
-    if not login_email:
-        login_email = str(user.get("email", "")).strip().lower()
-    if not is_campus_email(login_email):
-        json_error(handler, HTTPStatus.FORBIDDEN, _student_email_only_error())
-        return
-    if not _require_private_beta_access(handler, login_email):
-        return
-    if not login_student_id:
-        login_student_id = str(user.get("studentId", "")).strip() or student_id_from_email(login_email)
-
-    stored_password = str(user.get("password", "")).strip()
-    if not stored_password:
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号未设置密码，请先重置密码")
-        return
-    if not verify_password(stored_password, password):
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号或密码错误")
-        return
-    if not is_password_hashed(stored_password):
-        user["password"] = hash_password(password)
-    if user.get("banned"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
-        return
-
-    if not bool(user.get("verified", False)):
-        code_store = db.get("emailCodes", {}).get(login_email)
-        if not _verification_record_is_active(
-            code_store,
-            purpose=_EMAIL_VERIFICATION_PURPOSE,
-        ):
-            if not _consume_auth_rate_limit(
-                handler,
-                db,
-                subject=login_email,
-                action="verification_send",
-                setting_key="verificationSendRateLimit",
-                action_text="发送验证码",
-            ):
-                return
-            issued = _issue_verification_code(
-                handler,
-                db,
-                email=login_email,
-                purpose=_EMAIL_VERIFICATION_PURPOSE,
-                send_email=lambda address, value: send_verification_email(
-                    to_email=address,
-                    code=value,
-                    expires_in_minutes=10,
-                ),
-            )
-            if issued is None:
-                return
-            code_store, _ = issued
-        send_json(
-            handler,
-            HTTPStatus.OK,
-            {"data": _verification_response_data(
-                email=login_email,
-                student_id=login_student_id,
-                code_store=code_store,
-            )},
-        )
-        return
-
-    token = secrets.token_urlsafe(24)
-    db["sessions"][token] = user["id"]
-    save_db(db)
-    send_json(
-        handler,
-        HTTPStatus.OK,
-        {
-            "data": {
-                "token": token,
-                "verified": True,
-                "isAdmin": bool(user.get("isAdmin", False)),
-                "email": login_email,
-                "studentId": login_student_id,
-            }
-        },
-    )
 
 
 def handle_xidian_auth_create_session(
@@ -982,9 +782,7 @@ def handle_xidian_auth_callback(
     db: dict[str, Any] | None,
     query: dict[str, list[str]],
 ) -> None:
-    attempt_id = _query_value(query, "attempt")
-    if not attempt_id:
-        attempt_id = _read_cookie(handler, _WEB_ATTEMPT_COOKIE_NAME)
+    attempt_id = _read_cookie(handler, _WEB_ATTEMPT_COOKIE_NAME)
     ticket = _query_value(query, "ticket")
     attempt = _load_attempt(attempt_id)
     if not attempt_id or attempt is None:
@@ -997,22 +795,17 @@ def handle_xidian_auth_callback(
         )
         return
     if not ticket:
-        _update_attempt(attempt_id, status="failed", message="统一认证未返回有效票据")
-        _send_html_page(
+        _send_auth_attempt_failure(
             handler,
+            attempt_id=attempt_id,
             status=HTTPStatus.BAD_REQUEST,
             title="登录失败",
             message="统一认证未返回有效票据，请重新发起登录。",
-            cookies=[_clear_attempt_cookie(handler)],
         )
         return
 
     try:
-        service_url = (
-            _attempt_service_url(handler, attempt_id)
-            if _query_value(query, "attempt")
-            else _web_callback_service_url(handler)
-        )
+        service_url = _web_callback_service_url(handler)
         result = validate_xidian_service_ticket(ticket, service_url)
         auth_payload = _issue_auth_payload_with_lock(
             db,
@@ -1020,33 +813,30 @@ def handle_xidian_auth_callback(
             campus_email=result.campus_email,
         )
     except PermissionError as error:
-        _update_attempt(attempt_id, status="failed", message=str(error))
-        _send_html_page(
+        _send_auth_attempt_failure(
             handler,
+            attempt_id=attempt_id,
             status=HTTPStatus.FORBIDDEN,
             title="登录失败",
             message=str(error),
-            cookies=[_clear_attempt_cookie(handler)],
         )
         return
     except XidianAuthPasswordError as error:
-        _update_attempt(attempt_id, status="failed", message=str(error))
-        _send_html_page(
+        _send_auth_attempt_failure(
             handler,
+            attempt_id=attempt_id,
             status=HTTPStatus.UNAUTHORIZED,
             title="登录失败",
             message=str(error),
-            cookies=[_clear_attempt_cookie(handler)],
         )
         return
     except (XidianAuthUnavailableError, XidianAuthDependencyError) as error:
-        _update_attempt(attempt_id, status="failed", message=str(error))
-        _send_html_page(
+        _send_auth_attempt_failure(
             handler,
+            attempt_id=attempt_id,
             status=HTTPStatus.SERVICE_UNAVAILABLE,
             title="统一认证暂时不可用",
             message=str(error),
-            cookies=[_clear_attempt_cookie(handler)],
         )
         return
 
@@ -1085,39 +875,6 @@ def handle_xidian_auth_callback(
         title="登录成功",
         message="统一认证已经完成，请返回电台，登录状态会自动同步。",
     )
-
-
-def handle_xidian_mobile_callback(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any] | None,
-    query: dict[str, list[str]],
-) -> None:
-    ticket = _query_value(query, "ticket")
-    if not ticket:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "统一认证未返回有效票据")
-        return
-
-    try:
-        result = validate_xidian_service_ticket(
-            ticket,
-            _current_request_service_url(handler, exclude_keys={"ticket"}),
-        )
-        auth_payload = _issue_auth_payload_with_lock(
-            db,
-            student_id=result.student_id,
-            campus_email=result.campus_email,
-        )
-    except PermissionError as error:
-        json_error(handler, HTTPStatus.FORBIDDEN, str(error))
-        return
-    except XidianAuthPasswordError as error:
-        json_error(handler, HTTPStatus.UNAUTHORIZED, str(error))
-        return
-    except (XidianAuthUnavailableError, XidianAuthDependencyError) as error:
-        json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, str(error))
-        return
-
-    send_json(handler, HTTPStatus.OK, {"data": auth_payload}, no_cache=True)
 
 
 def handle_register(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:

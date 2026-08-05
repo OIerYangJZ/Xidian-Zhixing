@@ -47,7 +47,6 @@ from handlers._ai_handler import (
     handle_ai_chat,
 )
 from handlers._auth_handler import (
-    handle_login,
     handle_logout,
     handle_password_reset,
     handle_password_send_code,
@@ -162,7 +161,6 @@ __all__ = [
     # ai
     "handle_ai_chat",
     # auth
-    "handle_login",
     "handle_logout",
     "handle_password_reset",
     "handle_password_send_code",

@@ -10,10 +10,6 @@ class MobileConfig {
   /// 实际网络请求由 AppConfig 统一解析，避免 Web 和 App 配置漂移。
   static String get apiBaseUrl => AppConfig.apiBaseUrl;
 
-  /// 统一认证固定回调域名（必须为 IDS 已登记的 HTTPS 外网 Origin）。
-  /// 当 API 仍走 IP / 非 HTTPS 地址时，移动端统一认证必须单独配置这个值。
-  static String get xidianPublicOrigin => AppConfig.xidianAuthPublicOrigin;
-
   /// App 版本号
   static const String appVersion = String.fromEnvironment(
     'APP_VERSION',

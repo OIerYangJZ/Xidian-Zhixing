@@ -1,74 +1,58 @@
-import { login } from '../../../api/auth';
+import {
+  createXidianAuthSession,
+  fetchXidianAuthSession
+} from '../../../api/auth';
 import { clearCampusAuthSession } from '../../../utils/campus_auth';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   onShow() {
     applyThemeAndLanguage(this);
+    if (this._awaitingOfficialReturn) {
+      this._awaitingOfficialReturn = false;
+      this.checkAuthenticationResult();
+    }
   },
   data: {
-    identifier: '',
-    password: '',
+    attemptId: '',
+    authorizeUrl: '',
     submitting: false
   },
 
-  onLoad(options) {
-    if (options && options.mode === 'xidian') {
-      wx.redirectTo({
-        url: '/pages/campus/auth-center/index?system=ids'
-      });
-      return;
-    }
-    wx.setNavigationBarTitle({ title: '电台账号登录' });
-  },
-
-  onIdentifierInput(e) {
-    this.setData({ identifier: e.detail.value });
-  },
-
-  onPasswordInput(e) {
-    this.setData({ password: e.detail.value });
+  onLoad() {
+    wx.setNavigationBarTitle({ title: '统一身份认证登录' });
   },
 
   async handleLogin() {
-    const { identifier, password, submitting } = this.data;
+    const { submitting } = this.data;
     if (submitting) return;
-    if (!identifier || !password) {
-      wx.showToast({ title: '请输入账号和密码', icon: 'none' });
-      return;
-    }
 
     this.setData({ submitting: true });
-    wx.showLoading({ title: '登录中' });
+    wx.showLoading({ title: '正在跳转' });
     try {
-      const res = await login(identifier, password);
-      if (res && res.data && res.data.token) {
-        clearCampusAuthSession();
-        wx.setStorageSync('token', res.data.token);
-        wx.showToast({ title: '登录成功', icon: 'success' });
-        setTimeout(() => {
-          wx.navigateBack({
-            delta: 1,
-            fail: () => wx.switchTab({ url: '/pages/treehole/index' })
-          });
-        }, 1500);
-      } else if (res && res.data && res.data.needVerify) {
-        wx.showModal({
-          title: '需要邮箱验证',
-          content: '账号尚未完成邮箱验证，是否现在验证？',
-          success: (modal) => {
-            if (modal.confirm) {
-              wx.navigateTo({
-                url: `/pages/profile/register/index?email=${encodeURIComponent(res.data.email || '')}`
-              });
-            }
-          }
-        });
+      let { attemptId, authorizeUrl } = this.data;
+      if (!attemptId || !authorizeUrl) {
+        const response = await createXidianAuthSession();
+        attemptId = response.data.attemptId;
+        authorizeUrl = response.data.authorizeUrl;
+        this.setData({ attemptId, authorizeUrl });
       }
+      this._awaitingOfficialReturn = true;
+      wx.navigateTo({
+        url: `/pages/campus/webview/index?url=${encodeURIComponent(authorizeUrl)}`,
+        fail: (error) => {
+          this._awaitingOfficialReturn = false;
+          this.setData({ submitting: false });
+          wx.showToast({
+            title: (error && error.errMsg) || '无法打开官方认证页面',
+            icon: 'none'
+          });
+        }
+      });
     } catch (err) {
       console.error(err);
       wx.showToast({
-        title: (err && err.data && err.data.message) || '登录失败，请检查账号和密码',
+        title: (err && err.data && err.data.message) || err.message || '统一认证登录失败',
         icon: 'none'
       });
     } finally {
@@ -77,12 +61,44 @@ Page({
     }
   },
 
-  handleEmailCodeLogin() {
-    wx.navigateTo({ url: '/pages/profile/register/index' });
-  },
-
-  handleResetPassword() {
-    wx.navigateTo({ url: '/pages/profile/reset-password/index' });
+  async checkAuthenticationResult() {
+    const { attemptId } = this.data;
+    if (!attemptId || this._checkingSession) return;
+    this._checkingSession = true;
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '确认认证结果' });
+    try {
+      const response = await fetchXidianAuthSession(attemptId);
+      const data = response.data;
+      if (data.status === 'pending') {
+        wx.showToast({ title: '认证尚未完成，可重新打开官方页面', icon: 'none' });
+        return;
+      }
+      if (data.status === 'failed') {
+        throw new Error(data.message || '统一认证登录失败');
+      }
+      clearCampusAuthSession();
+      wx.setStorageSync('token', data.token);
+      this.setData({ attemptId: '', authorizeUrl: '' });
+      wx.showToast({ title: '登录成功', icon: 'success' });
+      setTimeout(() => {
+        wx.navigateBack({
+          delta: 1,
+          fail: () => wx.switchTab({ url: '/pages/treehole/index' })
+        });
+      }, 800);
+    } catch (err) {
+      console.error(err);
+      this.setData({ attemptId: '', authorizeUrl: '' });
+      wx.showToast({
+        title: (err && err.data && err.data.message) || err.message || '统一认证登录失败',
+        icon: 'none'
+      });
+    } finally {
+      wx.hideLoading();
+      this._checkingSession = false;
+      this.setData({ submitting: false });
+    }
   },
 
   goTerms() {

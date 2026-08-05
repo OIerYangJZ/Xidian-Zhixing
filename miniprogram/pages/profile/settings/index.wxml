@@ -17,7 +17,7 @@
         <text class="mobile-tile-icon">⌕</text>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">账号与安全</view>
-          <view class="mobile-tile-subtitle">修改密码、用户等级、注销账号</view>
+          <view class="mobile-tile-subtitle">统一认证、用户等级、注销账号</view>
         </view>
         <text class="mobile-tile-arrow">›</text>
       </view>

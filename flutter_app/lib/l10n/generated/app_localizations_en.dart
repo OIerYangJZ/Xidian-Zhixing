@@ -66,35 +66,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginDescription =>
-      'Sign in with a student account on the project allowlist.';
+      'Continue to Xidian\'s official identity provider to sign in.';
 
   @override
-  String get studentIdentifier => 'Student ID or email';
-
-  @override
-  String get studentIdentifierHint => '2023123456 or student email';
-
-  @override
-  String get showPassword => 'Show password';
-
-  @override
-  String get hidePassword => 'Hide password';
-
-  @override
-  String get loggingIn => 'Signing in';
-
-  @override
-  String get registerAccount => 'Create account';
-
-  @override
-  String get forgotPassword => 'Forgot password';
-
-  @override
-  String get betaAccessTitle => 'Beta access';
+  String get loggingIn => 'Waiting for Xidian';
 
   @override
   String get betaAccessMessage =>
-      'Only allowlisted @stu.xidian.edu.cn accounts are supported. University SSO is not yet available.';
+      'For account sign-in, enter your student ID and password only on Xidian\'s official page. Xidian Zhixing never receives or stores that sign-in password. Your account is created after the first successful sign-in and access remains allowlisted.';
 
   @override
   String get adminLogin => 'Admin sign in';
@@ -103,28 +82,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get agreements => 'Terms · Privacy · Community rules';
 
   @override
-  String get identifierRequired => 'Enter your student ID or email.';
-
-  @override
-  String get passwordRequired => 'Enter your password.';
-
-  @override
-  String get loginResultError =>
-      'The sign-in response was incomplete. Please try again.';
-
-  @override
   String loginFailed(String error) {
     return 'Sign-in failed: $error';
   }
 
   @override
-  String get username => 'Username';
-
-  @override
-  String get password => 'Password';
-
-  @override
-  String get loginButton => 'Login';
+  String get loginButton => 'Continue to Xidian';
 
   @override
   String get logout => 'Logout';

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
+import 'package:xdu_treehole_web/repositories/auth_repository.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/theme/mobile_theme.dart';
@@ -144,12 +145,6 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
               padding: const EdgeInsets.all(16),
               children: [
                 _buildTileCard([
-                  _buildListTile(
-                    icon: Icons.lock_outline,
-                    title: '修改密码',
-                    subtitle: '定期修改密码有助于账号安全',
-                    onTap: () => context.push('/auth/reset-password'),
-                  ),
                   if (!(_profile?.isLevelOneUser ?? false))
                     _buildListTile(
                       icon: Icons.workspace_premium_outlined,
@@ -242,7 +237,7 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
             style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
             onPressed: () {
               Navigator.pop(ctx);
-              _showCancelAccountPassword();
+              _showCancelAccountReauthentication();
             },
             child: const Text('继续注销'),
           ),
@@ -251,9 +246,7 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
     );
   }
 
-  void _showCancelAccountPassword() {
-    final passwordController = TextEditingController();
-    bool obscure = true;
+  void _showCancelAccountReauthentication() {
     bool submitting = false;
     showDialog(
       context: context,
@@ -261,30 +254,7 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           title: const Text('验证身份'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('请输入当前登录密码以确认注销申请：', style: TextStyle(fontSize: 14)),
-              const SizedBox(height: 16),
-              TextField(
-                controller: passwordController,
-                obscureText: obscure,
-                decoration: InputDecoration(
-                  hintText: '当前登录密码',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      obscure
-                          ? Icons.visibility_outlined
-                          : Icons.visibility_off_outlined,
-                    ),
-                    onPressed: () => setDialogState(() => obscure = !obscure),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          content: const Text('为确认由本人操作，将前往西电官方统一身份认证页面重新验证。西电知行不会接触你的统一认证密码。'),
           actions: [
             TextButton(
               onPressed: submitting ? null : () => Navigator.pop(ctx),
@@ -295,25 +265,53 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
               onPressed: submitting
                   ? null
                   : () async {
-                      if (passwordController.text.isEmpty) return;
                       setDialogState(() => submitting = true);
                       try {
-                        final studentId =
-                            AuthStore.instance.currentUser?.studentId ?? '';
-                        await ref
-                            .read(authRepositoryProvider)
-                            .login(
-                              identifier: studentId,
-                              password: passwordController.text,
-                            );
+                        final repository = ref.read(authRepositoryProvider);
+                        final XidianAuthSessionResult created = await repository
+                            .createXidianAuthSession(platform: 'mobile');
+                        final bool launched = await launchUrl(
+                          Uri.parse(created.authorizeUrl!),
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched) {
+                          throw StateError('无法打开西电官方统一身份认证页面');
+                        }
+                        XidianAuthSessionResult? authenticated;
+                        for (int poll = 0; poll < 300; poll += 1) {
+                          await Future<void>.delayed(
+                            const Duration(seconds: 2),
+                          );
+                          final XidianAuthSessionResult session =
+                              await repository.fetchXidianAuthSession(
+                                created.attemptId,
+                              );
+                          if (session.isFailed) {
+                            throw StateError(session.message ?? '统一认证登录失败');
+                          }
+                          if (session.isAuthenticated) {
+                            authenticated = session;
+                            break;
+                          }
+                        }
+                        if (authenticated == null) {
+                          throw StateError('统一认证登录已超时，请重新操作');
+                        }
                         if (!ctx.mounted) return;
                         Navigator.pop(ctx);
                         _submitCancellationRequest();
-                      } catch (_) {
+                      } catch (error) {
                         setDialogState(() => submitting = false);
                         if (ctx.mounted) {
                           ScaffoldMessenger.of(ctx).showSnackBar(
-                            const SnackBar(content: Text('密码错误，请重新输入')),
+                            SnackBar(
+                              content: Text(
+                                error.toString().replaceFirst(
+                                  RegExp(r'^(Exception|Bad state): '),
+                                  '',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       }

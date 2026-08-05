@@ -6,6 +6,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
@@ -405,58 +407,142 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
     assert authed_handler.payload()["data"]["system"] == "ids"
 
 
-def test_xidian_password_login_returns_campus_auth_result_without_token(monkeypatch) -> None:
+def test_xidian_auth_session_redirects_to_registered_official_callback(monkeypatch) -> None:
+    import _globals
     import handlers._auth_handler as auth_handler
-    from helpers._xidian_auth import XidianAuthResult
-
-    def fake_login(student_id: str, password: str, *, email_hint: str = "") -> XidianAuthResult:
-        assert student_id == "2300000000"
-        assert password == "secret-pass"
-        return XidianAuthResult(student_id=student_id, campus_email=f"{student_id}@stu.xidian.edu.cn")
 
     db = make_db()
-    monkeypatch.setattr(auth_handler, "login_via_xidian_ids", fake_login)
-    monkeypatch.setattr(auth_handler, "save_db", lambda _db: None)
-    handler = FakeHandler(body={"identifier": "2300000000", "password": "secret-pass"})
+    monkeypatch.setattr(
+        _globals,
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN",
+        "https://zhixing.xidian.edu.cn",
+    )
+    handler = FakeHandler(body={"platform": "web", "nextPath": "/"})
 
-    auth_handler.handle_xidian_password_login(handler, db)
+    auth_handler.handle_xidian_auth_create_session(handler, db)
 
     payload = handler.payload()["data"]
     assert handler.status_code == 200
-    assert "token" not in payload
-    assert payload["system"] == "ids"
-    assert payload["status"] == "authenticated"
-    assert payload["studentId"] == "2300000000"
-    assert payload["email"] == "2300000000@stu.xidian.edu.cn"
+    assert payload["status"] == "pending"
+    assert payload["authorizeUrl"].startswith(
+        "https://zhixing.xidian.edu.cn/api/auth/xidian/start?attempt=",
+    )
 
 
-def test_xidian_password_network_handler_runs_outside_database_lock(
-    monkeypatch,
-) -> None:
+def test_xidian_callback_validates_registered_service_and_issues_session(monkeypatch) -> None:
+    import _globals
+    import handlers._auth_handler as auth_handler
+    from helpers._xidian_auth import XidianAuthResult
+
+    db = make_db()
+    monkeypatch.setattr(
+        _globals,
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN",
+        "https://zhixing.xidian.edu.cn",
+    )
+    monkeypatch.setattr(auth_handler, "save_db", lambda _db: None)
+    attempt = auth_handler._create_auth_attempt(platform="web", next_path="/")
+
+    def fake_validate(ticket: str, service_url: str) -> XidianAuthResult:
+        assert ticket == "ST-registered-ticket"
+        assert service_url == "https://zhixing.xidian.edu.cn/api/auth/xidian/callback"
+        return XidianAuthResult(
+            student_id="2300000000",
+            campus_email="2300000000@stu.xidian.edu.cn",
+        )
+
+    monkeypatch.setattr(auth_handler, "validate_xidian_service_ticket", fake_validate)
+    handler = FakeHandler()
+    handler.headers["Cookie"] = f"xdu_whisper_xidian_attempt={attempt['id']}"
+
+    auth_handler.handle_xidian_auth_callback(
+        handler,
+        db,
+        {"ticket": ["ST-registered-ticket"]},
+    )
+
+    assert handler.status_code == 302
+    headers = dict(handler.response_headers)
+    assert headers["Location"].startswith("/?xidianAuthAttempt=")
+    result = auth_handler._load_attempt(attempt["id"])
+    assert result is not None
+    assert result["status"] == "authenticated"
+    assert result["token"] in db["sessions"]
+    created_user = next(
+        user for user in db["users"] if user.get("studentId") == "2300000000"
+    )
+    assert created_user["password"] == ""
+
+
+def test_xidian_callback_failure_returns_web_client_to_login(monkeypatch) -> None:
+    import _globals
+    import handlers._auth_handler as auth_handler
+    from helpers._xidian_auth import XidianAuthUnavailableError
+
+    db = make_db()
+    monkeypatch.setattr(
+        _globals,
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN",
+        "https://zhixing.xidian.edu.cn",
+    )
+    attempt = auth_handler._create_auth_attempt(platform="web", next_path="/")
+
+    def fail_validate(_ticket: str, _service_url: str):
+        raise XidianAuthUnavailableError("统一认证票据校验失败")
+
+    monkeypatch.setattr(auth_handler, "validate_xidian_service_ticket", fail_validate)
+    handler = FakeHandler()
+    handler.headers["Cookie"] = f"xdu_whisper_xidian_attempt={attempt['id']}"
+
+    auth_handler.handle_xidian_auth_callback(
+        handler,
+        db,
+        {"ticket": ["ST-invalid-ticket"]},
+    )
+
+    assert handler.status_code == 302
+    assert dict(handler.response_headers)["Location"].startswith(
+        "/?xidianAuthAttempt=",
+    )
+    result = auth_handler._load_attempt(attempt["id"])
+    assert result is not None
+    assert result["status"] == "failed"
+    assert result["message"] == "统一认证票据校验失败"
+
+
+def test_password_proxy_login_endpoint_is_not_routed(monkeypatch) -> None:
     import server
 
     monkeypatch.setattr(server, "load_db", make_db)
-
-    def fake_handler(handler, db) -> None:
-        assert not server.DB_LOCK.locked()
-        server.send_json(
-            handler,
-            200,
-            {"data": {"system": "ids", "status": "authenticated"}},
-        )
-
-    monkeypatch.setattr(
-        server._auth_handler,
-        "handle_xidian_password_login",
-        fake_handler,
-    )
     handler = FakeHandler(
-        body={"identifier": "2300000000", "password": "secret-pass"},
+        body={"studentId": "2300000000", "password": "secret-pass"},
     )
 
-    server.TreeholeHandler._handle_post(handler, "/api/auth/xidian/password")
+    server.TreeholeHandler._handle_post(handler, "/api/auth/login")
 
-    assert handler.status_code == 200
+    assert handler.status_code == 404
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/api/auth/register",
+        "/api/auth/verify",
+        "/api/auth/send-code",
+        "/api/auth/password/send-code",
+        "/api/auth/password/reset",
+    ],
+)
+def test_legacy_email_auth_endpoints_are_not_routed(monkeypatch, path) -> None:
+    import server
+
+    monkeypatch.setattr(server, "load_db", make_db)
+    handler = FakeHandler(body={})
+
+    server.TreeholeHandler._handle_post(handler, path)
+
+    assert handler.status_code == 404
+    assert handler.payload()["message"] == "Not Found"
 
 
 def test_xidian_slider_solver_uses_signed_tracks_and_expanded_delta(monkeypatch) -> None:

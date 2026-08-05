@@ -3,14 +3,6 @@
   <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadProfile">{{errorMessage}} · 点击重试</view>
   <view wx:else>
     <view class="mobile-tile-card">
-      <view class="mobile-tile" bindtap="goResetPassword">
-        <text class="mobile-tile-icon">⌕</text>
-        <view class="mobile-tile-body">
-          <view class="mobile-tile-title">修改密码</view>
-          <view class="mobile-tile-subtitle">定期修改密码有助于账号安全</view>
-        </view>
-        <text class="mobile-tile-arrow">›</text>
-      </view>
       <view wx:if="{{!profile.isLevelOneUser}}" class="mobile-tile" bindtap="requestLevelUpgrade">
         <text class="mobile-tile-icon">◇</text>
         <view class="mobile-tile-body">
