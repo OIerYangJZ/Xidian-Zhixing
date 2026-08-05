@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
+import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../../widgets/post_card.dart';
 
@@ -19,7 +21,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
   bool _loading = true;
   bool _actionBusy = false;
   int _userLevel = 2;
-  String _userLevelLabel = '二级用户';
   String? _error;
 
   @override
@@ -30,18 +31,32 @@ class _MyPostsPageState extends State<MyPostsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final String levelLabel = userLevelLabelForLevel(
+      Localizations.localeOf(context),
+      _userLevel,
+    );
     return Scaffold(
-      appBar: AppBar(title: const Text('我的帖子')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '我的帖子', en: 'My posts')),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             maxWidth: AppLayout.readingMaxWidth,
           ),
           child: _loading
-              ? const AppStatePanel(
+              ? AppStatePanel(
                   icon: Icons.article_outlined,
-                  title: '正在加载我的帖子',
-                  message: '正在同步发布记录和审核状态。',
+                  title: uiText(
+                    context,
+                    zh: '正在加载我的帖子',
+                    en: 'Loading your posts',
+                  ),
+                  message: uiText(
+                    context,
+                    zh: '正在同步发布记录和审核状态。',
+                    en: 'Syncing your publishing history and review status.',
+                  ),
                 )
               : ListView(
                   padding: const EdgeInsets.only(
@@ -56,12 +71,18 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           vertical: AppSpacing.xs,
                         ),
                         child: AppInlineMessage(
-                          title: '帖子加载失败',
+                          title: uiText(
+                            context,
+                            zh: '帖子加载失败',
+                            en: 'Could not load your posts',
+                          ),
                           message: _error!,
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _actionBusy ? null : _loadData,
-                            child: const Text('重试'),
+                            child: Text(
+                              uiText(context, zh: '重试', en: 'Retry'),
+                            ),
                           ),
                         ),
                       ),
@@ -72,8 +93,18 @@ class _MyPostsPageState extends State<MyPostsPage> {
                       ),
                       child: Text(
                         _userLevel == 1
-                            ? '当前身份：$_userLevelLabel，可直接为自己的帖子设置置顶时长。'
-                            : '当前身份：$_userLevelLabel，发帖后如需置顶，请提交管理员审核。',
+                            ? uiText(
+                                context,
+                                zh: '当前身份：$levelLabel，可直接为自己的帖子设置置顶时长。',
+                                en:
+                                    'Current role: $levelLabel — you can pin your own posts directly.',
+                              )
+                            : uiText(
+                                context,
+                                zh: '当前身份：$levelLabel，发帖后如需置顶，请提交管理员审核。',
+                                en:
+                                    'Current role: $levelLabel — pinning a post requires moderator approval.',
+                              ),
                         style: TextStyle(
                           color: Theme.of(
                             context,
@@ -124,7 +155,13 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                   onPressed: _actionBusy
                                       ? null
                                       : () => _updateStatus(post),
-                                  child: const Text('更新状态'),
+                                  child: Text(
+                                    uiText(
+                                      context,
+                                      zh: '更新状态',
+                                      en: 'Update status',
+                                    ),
+                                  ),
                                 ),
                                 FilledButton.tonalIcon(
                                   onPressed:
@@ -135,15 +172,37 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                   icon: const Icon(Icons.push_pin_outlined),
                                   label: Text(
                                     _userLevel == 1
-                                        ? (post.isPinned ? '重新置顶' : '置顶帖子')
-                                        : (post.isPinned ? '已置顶' : '申请置顶'),
+                                        ? (post.isPinned
+                                              ? uiText(
+                                                  context,
+                                                  zh: '重新置顶',
+                                                  en: 'Re-pin',
+                                                )
+                                              : uiText(
+                                                  context,
+                                                  zh: '置顶帖子',
+                                                  en: 'Pin post',
+                                                ))
+                                        : (post.isPinned
+                                              ? uiText(
+                                                  context,
+                                                  zh: '已置顶',
+                                                  en: 'Pinned',
+                                                )
+                                              : uiText(
+                                                  context,
+                                                  zh: '申请置顶',
+                                                  en: 'Request pin',
+                                                )),
                                   ),
                                 ),
                                 FilledButton.tonal(
                                   onPressed: _actionBusy
                                       ? null
                                       : () => _delete(post),
-                                  child: const Text('删除'),
+                                  child: Text(
+                                    uiText(context, zh: '删除', en: 'Delete'),
+                                  ),
                                 ),
                               ],
                             ),
@@ -152,11 +211,20 @@ class _MyPostsPageState extends State<MyPostsPage> {
                       ),
                     ),
                     if (_posts.isEmpty)
-                      const AppStatePanel(
-                        key: Key('my-posts-empty-state'),
+                      AppStatePanel(
+                        key: const Key('my-posts-empty-state'),
                         icon: Icons.post_add_outlined,
-                        title: '你还没有发布帖子',
-                        message: '回到帖子流，使用发布按钮分享第一条内容。',
+                        title: uiText(
+                          context,
+                          zh: '你还没有发布帖子',
+                          en: 'You have not published any posts yet',
+                        ),
+                        message: uiText(
+                          context,
+                          zh: '回到帖子流，使用发布按钮分享第一条内容。',
+                          en:
+                              'Go back to the feed and use the compose button to share your first post.',
+                        ),
                       ),
                   ],
                 ),
@@ -179,7 +247,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
       }
       setState(() {
         _userLevel = profile.userLevel;
-        _userLevelLabel = profile.userLevelLabel;
         _posts = posts;
       });
     } catch (error) {
@@ -187,7 +254,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error');
       });
     } finally {
       if (mounted) {
@@ -217,10 +284,15 @@ class _MyPostsPageState extends State<MyPostsPage> {
       if (!mounted) {
         return;
       }
-      _toast('帖子状态已更新为 ${next.label}');
+      _toast(
+        uiTextGlobal(
+          zh: '帖子状态已更新为 ${next.labelFor(const Locale('zh', 'CN'))}',
+          en: 'Post status updated to ${next.labelFor(const Locale('en'))}',
+        ),
+      );
       await _loadData();
     } catch (error) {
-      _toast('更新失败：$error');
+      _toast(uiTextGlobal(zh: '更新失败：$error', en: 'Update failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -235,16 +307,24 @@ class _MyPostsPageState extends State<MyPostsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('删除这条帖子？'),
-          content: const Text('删除后无法恢复，相关内容将不再展示。'),
+          title: Text(
+            uiText(context, zh: '删除这条帖子？', en: 'Delete this post?'),
+          ),
+          content: Text(
+            uiText(
+              context,
+              zh: '删除后无法恢复，相关内容将不再展示。',
+              en: 'This cannot be undone. The post will no longer be visible.',
+            ),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('确认删除'),
+              child: Text(uiText(context, zh: '确认删除', en: 'Delete')),
             ),
           ],
         );
@@ -262,10 +342,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
       if (!mounted) {
         return;
       }
-      _toast('帖子已删除');
+      _toast(uiTextGlobal(zh: '帖子已删除', en: 'Post deleted'));
       await _loadData();
     } catch (error) {
-      _toast('删除失败：$error');
+      _toast(uiTextGlobal(zh: '删除失败：$error', en: 'Delete failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -301,9 +381,13 @@ class _MyPostsPageState extends State<MyPostsPage> {
               .toList(growable: false);
         });
       }
-      _toast(result.isDirect ? '帖子已置顶' : '置顶申请已提交');
+      _toast(
+        result.isDirect
+            ? uiTextGlobal(zh: '帖子已置顶', en: 'Post pinned')
+            : uiTextGlobal(zh: '置顶申请已提交', en: 'Pin request submitted'),
+      );
     } catch (error) {
-      _toast('操作失败：$error');
+      _toast(uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -323,20 +407,68 @@ class _MyPostsPageState extends State<MyPostsPage> {
           builder:
               (BuildContext context, void Function(void Function()) setState) {
                 return AlertDialog(
-                  title: Text(direct ? '选择置顶时长' : '申请帖子置顶'),
+                  title: Text(
+                    direct
+                        ? uiText(
+                            context,
+                            zh: '选择置顶时长',
+                            en: 'Choose a pin duration',
+                          )
+                        : uiText(
+                            context,
+                            zh: '申请帖子置顶',
+                            en: 'Request a pinned post',
+                          ),
+                  ),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       DropdownButtonFormField<int>(
                         initialValue: selectedDuration,
-                        decoration: const InputDecoration(labelText: '置顶时长'),
-                        items: const <DropdownMenuItem<int>>[
-                          DropdownMenuItem(value: 30, child: Text('30 分钟')),
-                          DropdownMenuItem(value: 60, child: Text('1 小时')),
-                          DropdownMenuItem(value: 120, child: Text('2 小时')),
-                          DropdownMenuItem(value: 180, child: Text('3 小时')),
-                          DropdownMenuItem(value: 1440, child: Text('1 天')),
-                          DropdownMenuItem(value: 4320, child: Text('3 天')),
+                        decoration: InputDecoration(
+                          labelText: uiText(
+                            context,
+                            zh: '置顶时长',
+                            en: 'Pin duration',
+                          ),
+                        ),
+                        items: <DropdownMenuItem<int>>[
+                          DropdownMenuItem(
+                            value: 30,
+                            child: Text(
+                              uiText(context, zh: '30 分钟', en: '30 minutes'),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 60,
+                            child: Text(
+                              uiText(context, zh: '1 小时', en: '1 hour'),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 120,
+                            child: Text(
+                              uiText(context, zh: '2 小时', en: '2 hours'),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 180,
+                            child: Text(
+                              uiText(context, zh: '3 小时', en: '3 hours'),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 1440,
+                            child: Text(
+                              uiText(context, zh: '1 天', en: '1 day'),
+                            ),
+                          ),
+                          DropdownMenuItem(
+                            value: 4320,
+                            child: Text(
+                              uiText(context, zh: '3 天', en: '3 days'),
+                            ),
+                          ),
                         ],
                         onChanged: (int? value) {
                           if (value == null) {
@@ -353,9 +485,18 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           controller: reasonController,
                           minLines: 2,
                           maxLines: 4,
-                          decoration: const InputDecoration(
-                            labelText: '申请说明（可选）',
-                            hintText: '例如：活动通知、紧急求助、时效性较强等',
+                          decoration: InputDecoration(
+                            labelText: uiText(
+                              context,
+                              zh: '申请说明（可选）',
+                              en: 'Reason (optional)',
+                            ),
+                            hintText: uiText(
+                              context,
+                              zh: '例如：活动通知、紧急求助、时效性较强等',
+                              en:
+                                  'e.g. event announcement, urgent request, time-sensitive',
+                            ),
                           ),
                         ),
                       ],
@@ -364,7 +505,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                   actions: <Widget>[
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('取消'),
+                      child: Text(uiText(context, zh: '取消', en: 'Cancel')),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.of(context).pop(
@@ -373,7 +514,11 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           reason: reasonController.text.trim(),
                         ),
                       ),
-                      child: Text(direct ? '确认置顶' : '提交申请'),
+                      child: Text(
+                        direct
+                            ? uiText(context, zh: '确认置顶', en: 'Pin post')
+                            : uiText(context, zh: '提交申请', en: 'Submit request'),
+                      ),
                     ),
                   ],
                 );

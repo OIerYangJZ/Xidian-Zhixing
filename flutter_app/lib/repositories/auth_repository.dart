@@ -2,6 +2,7 @@ import '../core/auth/auth_store.dart';
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
+import '../core/l10n/ui_text.dart';
 
 class XidianAuthSessionResult {
   const XidianAuthSessionResult({
@@ -45,7 +46,7 @@ class AuthRepository {
     );
     final XidianAuthSessionResult result = _parseXidianAuthSession(response);
     if (!result.isPending || (result.authorizeUrl ?? '').isEmpty) {
-      throw const FormatException('统一认证会话响应缺少官方授权地址');
+      throw FormatException(uiTextGlobal(zh: '统一认证会话响应缺少官方授权地址', en: 'The CAS session response is missing the official authorization URL'));
     }
     return result;
   }
@@ -62,7 +63,7 @@ class AuthRepository {
       final String token = result.token?.trim() ?? '';
       final String studentId = result.studentId?.trim() ?? '';
       if (token.isEmpty || studentId.isEmpty) {
-        throw const FormatException('统一认证结果缺少有效登录凭据');
+        throw FormatException(uiTextGlobal(zh: '统一认证结果缺少有效登录凭据', en: 'The CAS result is missing valid login credentials'));
       }
       await AuthStore.instance.saveToken(token);
     }
@@ -92,14 +93,14 @@ class AuthRepository {
         readString(data, <String>['platform'])?.trim() ?? '';
     if (attemptId.isEmpty ||
         !<String>{'pending', 'authenticated', 'failed'}.contains(status)) {
-      throw const FormatException('统一认证会话响应格式无效');
+      throw FormatException(uiTextGlobal(zh: '统一认证会话响应格式无效', en: 'The CAS session response format is invalid'));
     }
     final String? token = readString(data, <String>['token']);
     final String? email = readString(data, <String>['email']);
     final String? studentId = readString(data, <String>['studentId']);
     if (status == 'authenticated' &&
         readBool(data, <String>['verified']) != true) {
-      throw const FormatException('统一认证结果未经验证');
+      throw FormatException(uiTextGlobal(zh: '统一认证结果未经验证', en: 'The CAS result has not been verified'));
     }
     return XidianAuthSessionResult(
       attemptId: attemptId,

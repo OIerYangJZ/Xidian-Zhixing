@@ -1,3 +1,37 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
+/// Level and review-status labels arrive from the server already rendered in
+/// Chinese, so the UI derives its own label from the structured field instead
+/// of echoing `userLevelLabel` / `statusLabel`.
+String userLevelLabelForLevel(Locale locale, int level) {
+  return level == 1
+      ? uiTextFor(locale, zh: '一级用户', en: 'Level 1 user')
+      : uiTextFor(locale, zh: '二级用户', en: 'Level 2 user');
+}
+
+String reviewStatusLabelFor(
+  Locale locale,
+  String status, {
+  required String pendingZh,
+  required String pendingEn,
+  required String fallback,
+}) {
+  switch (status.trim().toLowerCase()) {
+    case 'pending':
+      return uiTextFor(locale, zh: pendingZh, en: pendingEn);
+    case 'approved':
+      return uiTextFor(locale, zh: '已通过', en: 'Approved');
+    case 'rejected':
+      return uiTextFor(locale, zh: '已驳回', en: 'Rejected');
+    case 'closed':
+      return uiTextFor(locale, zh: '已关闭', en: 'Closed');
+    default:
+      return fallback;
+  }
+}
+
 class UserProfile {
   UserProfile({
     required this.nickname,
@@ -70,6 +104,22 @@ class UserProfile {
   final String gender;
 
   bool get isMutual => isFollowing && isFollower;
+
+  String userLevelLabelFor(Locale locale) =>
+      userLevelLabelForLevel(locale, isLevelOneUser ? 1 : userLevel);
+
+  String nicknameFor(Locale locale) => localizedAlias(locale, nickname);
+
+  String genderFor(Locale locale) {
+    switch (gender) {
+      case '男':
+        return uiTextFor(locale, zh: gender, en: 'Male');
+      case '女':
+        return uiTextFor(locale, zh: gender, en: 'Female');
+      default:
+        return gender;
+    }
+  }
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     final String nickname =
@@ -251,6 +301,14 @@ class AccountCancellationRequestSummary {
   final String handledAt;
   final String handledBy;
 
+  String statusLabelFor(Locale locale) => reviewStatusLabelFor(
+    locale,
+    status,
+    pendingZh: '待审核',
+    pendingEn: 'Pending review',
+    fallback: statusLabel,
+  );
+
   factory AccountCancellationRequestSummary.fromJson(
     Map<String, dynamic> json,
   ) {
@@ -295,6 +353,20 @@ class UserLevelRequestSummary {
   final String createdAt;
   final String handledAt;
   final String handledBy;
+
+  String statusLabelFor(Locale locale) => reviewStatusLabelFor(
+    locale,
+    status,
+    pendingZh: '待处理',
+    pendingEn: 'Pending',
+    fallback: statusLabel,
+  );
+
+  String currentLevelLabelFor(Locale locale) =>
+      userLevelLabelForLevel(locale, currentLevel);
+
+  String targetLevelLabelFor(Locale locale) =>
+      userLevelLabelForLevel(locale, targetLevel);
 
   factory UserLevelRequestSummary.fromJson(Map<String, dynamic> json) {
     return UserLevelRequestSummary(

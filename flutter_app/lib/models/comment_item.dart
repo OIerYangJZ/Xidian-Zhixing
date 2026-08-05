@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
+
 import '../core/config/app_config.dart';
+import '../core/l10n/ui_text.dart';
 
 class CommentItem {
   CommentItem({
@@ -85,6 +88,8 @@ class CommentItem {
       replyCount: replyCount ?? this.replyCount,
     );
   }
+
+  String authorAliasFor(Locale locale) => localizedAlias(locale, authorAlias);
 
   factory CommentItem.fromJson(Map<String, dynamic> json) {
     final dynamic created = json['createdAt'] ?? json['createTime'];

@@ -270,7 +270,10 @@ class _DiscussionHeader extends StatelessWidget {
           ),
           const Spacer(),
           if (channel.isNotEmpty && channel != '全部')
-            Text(channel, style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              localizedChannel(Localizations.localeOf(context), channel),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           IconButton(
             key: const Key('feed-filter-button'),
             onPressed: onFilter,

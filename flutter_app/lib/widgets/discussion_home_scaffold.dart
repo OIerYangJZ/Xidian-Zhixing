@@ -9,6 +9,7 @@ import '../core/widgets/app_surfaces.dart';
 import '../core/widgets/language_toggle.dart';
 import '../core/widgets/theme_dropdown.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../core/l10n/ui_text.dart';
 
 class DiscussionHomeScaffold extends StatelessWidget {
   const DiscussionHomeScaffold({
@@ -170,7 +171,7 @@ class _DiscussionRail extends StatelessWidget {
     final String nickname =
         AuthStore.instance.currentUser?.nickname.trim() ?? '';
     final String avatarLabel = nickname.isEmpty
-        ? '匿'
+        ? uiText(context, zh: '匿', en: 'A')
         : nickname.characters.first;
 
     return Container(

@@ -5,6 +5,7 @@ import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../repositories/post_repository.dart';
+import '../../core/l10n/ui_text.dart';
 
 class CreatePostState {
   const CreatePostState({
@@ -87,7 +88,10 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         clearError: true,
       );
     } catch (error) {
-      state = state.copyWith(loadingChannels: false, error: '加载频道失败：$error');
+      state = state.copyWith(loadingChannels: false, error: uiTextGlobal(
+        zh: '加载频道失败：$error',
+        en: 'Could not load channels: $error',
+      ));
     }
   }
 
@@ -107,7 +111,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
   }) async {
     state = state.copyWith(
       submitting: true,
-      progressText: uploadPayloads.isEmpty ? '发布帖子中...' : '上传图片中...',
+      progressText: uploadPayloads.isEmpty ? uiTextGlobal(zh: '发布帖子中...', en: 'Publishing...') : uiTextGlobal(zh: '上传图片中...', en: 'Uploading images...'),
       clearError: true,
     );
 
@@ -116,7 +120,10 @@ class CreatePostController extends StateNotifier<CreatePostState> {
       final List<String> uploadedUrls = <String>[];
       for (int i = 0; i < uploadPayloads.length; i += 1) {
         state = state.copyWith(
-          progressText: '上传图片 ${i + 1}/${uploadPayloads.length}...',
+          progressText: uiTextGlobal(
+          zh: '上传图片 ${i + 1}/${uploadPayloads.length}...',
+          en: 'Uploading image ${i + 1}/${uploadPayloads.length}...',
+        ),
         );
         final UploadPayload payload = uploadPayloads[i];
         final UploadedImageItem uploaded = await _ref
@@ -130,7 +137,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         uploadedUrls.add(uploaded.url);
       }
 
-      state = state.copyWith(progressText: '提交帖子中...');
+      state = state.copyWith(progressText: uiTextGlobal(zh: '提交帖子中...', en: 'Submitting post...'));
       final PostItem created = await _ref
           .read(postRepositoryProvider)
           .createPost(
@@ -170,14 +177,17 @@ class CreatePostController extends StateNotifier<CreatePostState> {
       state = state.copyWith(
         submitting: false,
         clearProgress: true,
-        error: '发布失败：${error.message}',
+        error: uiTextGlobal(
+          zh: '发布失败：${error.message}',
+          en: 'Publish failed: ${error.message}',
+        ),
       );
       return null;
     } catch (error) {
       state = state.copyWith(
         submitting: false,
         clearProgress: true,
-        error: '发布失败：$error',
+        error: uiTextGlobal(zh: '发布失败：$error', en: 'Publish failed: $error'),
       );
       return null;
     }

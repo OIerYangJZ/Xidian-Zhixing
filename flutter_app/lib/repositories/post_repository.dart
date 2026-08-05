@@ -1,11 +1,14 @@
 import 'dart:math' as math;
 
+import 'package:flutter/widgets.dart';
+
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../models/comment_item.dart';
 import '../models/post_item.dart';
 import '../models/uploaded_image_item.dart';
+import '../core/l10n/ui_text.dart';
 
 enum PostSort { latest, hot, likes }
 
@@ -31,6 +34,17 @@ extension PostSortCodec on PostSort {
         return '热度排序';
       case PostSort.likes:
         return '按点赞量';
+    }
+  }
+
+  String labelFor(Locale locale) {
+    switch (this) {
+      case PostSort.latest:
+        return uiTextFor(locale, zh: '按发布时间', en: 'By date');
+      case PostSort.hot:
+        return uiTextFor(locale, zh: '热度排序', en: 'By activity');
+      case PostSort.likes:
+        return uiTextFor(locale, zh: '按点赞量', en: 'By likes');
     }
   }
 }
@@ -274,7 +288,7 @@ class PostRepository {
       return readString(map, <String>['name', 'title', 'channelName']) ?? '';
     }).toList();
     if (channels.any((String name) => name.isEmpty)) {
-      throw const FormatException('频道列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '频道列表包含无效记录', en: 'The channel list contains invalid records'));
     }
     return channels.toSet().toList();
   }
@@ -306,7 +320,7 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw const FormatException('帖子列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '帖子列表包含无效记录', en: 'The post list contains invalid records'));
     }
     return sortPostsForView(posts, sort: sort);
   }
@@ -322,7 +336,7 @@ class PostRepository {
         return post;
       }
     }
-    throw const FormatException('帖子详情响应缺少有效帖子数据');
+    throw FormatException(uiTextGlobal(zh: '帖子详情响应缺少有效帖子数据', en: 'The post detail response is missing valid post data'));
   }
 
   Future<PostItem> createPost(CreatePostInput input) async {
@@ -339,7 +353,7 @@ class PostRepository {
       }
     }
 
-    throw const FormatException('创建帖子响应缺少帖子数据');
+    throw FormatException(uiTextGlobal(zh: '创建帖子响应缺少帖子数据', en: 'The create-post response is missing post data'));
   }
 
   Future<UploadedImageItem> uploadImage({
@@ -362,7 +376,7 @@ class PostRepository {
         return item;
       }
     }
-    throw const FormatException('图片上传响应缺少有效图片数据');
+    throw FormatException(uiTextGlobal(zh: '图片上传响应缺少有效图片数据', en: 'The image upload response is missing valid image data'));
   }
 
   Future<List<UploadedImageItem>> fetchMyUploads() async {
@@ -372,7 +386,7 @@ class PostRepository {
         .map((dynamic item) => UploadedImageItem.fromJson(asMap(item)))
         .toList();
     if (items.any((UploadedImageItem item) => item.id.isEmpty)) {
-      throw const FormatException('上传图片列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '上传图片列表包含无效记录', en: 'The uploaded image list contains invalid records'));
     }
     return items;
   }
@@ -392,7 +406,7 @@ class PostRepository {
     if (comments.any(
       (CommentItem comment) => comment.id.isEmpty || comment.content.isEmpty,
     )) {
-      throw const FormatException('评论列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '评论列表包含无效记录', en: 'The comment list contains invalid records'));
     }
     return sortCommentsForView(comments, sort: sort);
   }
@@ -480,7 +494,7 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw const FormatException('收藏帖子列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '收藏帖子列表包含无效记录', en: 'The saved post list contains invalid records'));
     }
     return posts;
   }
@@ -496,7 +510,7 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw const FormatException('用户帖子列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '用户帖子列表包含无效记录', en: 'The user post list contains invalid records'));
     }
     return posts;
   }
@@ -508,7 +522,7 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw const FormatException('我的帖子列表包含无效记录');
+      throw FormatException(uiTextGlobal(zh: '我的帖子列表包含无效记录', en: 'My post list contains invalid records'));
     }
     return posts;
   }
@@ -535,7 +549,7 @@ class PostRepository {
     final Map<String, dynamic> map = extractMap(response);
     final int? viewCount = readInt(map, <String>['viewCount']);
     if (viewCount == null) {
-      throw const FormatException('阅读量响应缺少 viewCount');
+      throw FormatException(uiTextGlobal(zh: '阅读量响应缺少 viewCount', en: 'The view-count response is missing viewCount'));
     }
     return viewCount;
   }
@@ -555,11 +569,11 @@ class PostRepository {
     final Map<String, dynamic> map = extractMap(response);
     final String mode = (readString(map, <String>['mode']) ?? '').trim();
     if (mode != 'direct' && mode != 'pending') {
-      throw const FormatException('置顶申请响应包含无效 mode');
+      throw FormatException(uiTextGlobal(zh: '置顶申请响应包含无效 mode', en: 'The pin request response contains an invalid mode'));
     }
     final Map<String, dynamic> postMap = asMap(map['post']);
     if (mode == 'direct' && postMap.isEmpty) {
-      throw const FormatException('直接置顶响应缺少帖子数据');
+      throw FormatException(uiTextGlobal(zh: '直接置顶响应缺少帖子数据', en: 'The direct pin response is missing post data'));
     }
     return PinPostActionResult(
       mode: mode,
@@ -570,11 +584,11 @@ class PostRepository {
   FavoriteActionResult _parseFavoriteActionResult(dynamic response) {
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      throw const FormatException('收藏操作响应缺少数据');
+      throw FormatException(uiTextGlobal(zh: '收藏操作响应缺少数据', en: 'The favorite response is missing data'));
     }
     final bool? favorited = readBool(map, <String>['favorited', 'isFavorited']);
     if (favorited == null) {
-      throw const FormatException('收藏操作响应缺少 favorited 状态');
+      throw FormatException(uiTextGlobal(zh: '收藏操作响应缺少 favorited 状态', en: 'The favorite response is missing the favorited flag'));
     }
     return FavoriteActionResult(
       favorited: favorited,

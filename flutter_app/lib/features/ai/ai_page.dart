@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/ui_text.dart';
+import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
@@ -206,12 +210,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 
   Future<void> _loadConfig() async {
-    AiServerStatus status;
-    try {
-      status = await ref.read(aiRepositoryProvider).fetchStatus();
-    } catch (_) {
-      status = const AiServerStatus(model: '', models: <String>[]);
-    }
+    final AiServerStatus status = await ref
+        .read(aiRepositoryProvider)
+        .fetchStatus();
     if (!mounted) {
       return;
     }
@@ -222,13 +223,22 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     final bool configured = _status.configured;
     return Scaffold(
       appBar: AppBar(
-        title: Text(configured ? '当前模型：${_status.model}' : 'AI 助手'),
+        title: Text(
+          configured
+              ? uiText(
+                  context,
+                  zh: '当前模型：${_status.model}',
+                  en: 'Model: ${_status.model}',
+                )
+              : uiText(context, zh: 'AI 助手', en: 'AI assistant'),
+        ),
         actions: <Widget>[
           IconButton(
-            tooltip: 'AI 设置',
+            tooltip: uiText(context, zh: 'AI 设置', en: 'AI settings'),
             onPressed: () async {
               await Navigator.of(context).push(
                 MaterialPageRoute<void>(builder: (_) => const AiSettingsPage()),
@@ -241,6 +251,36 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       ),
       body: Column(
         children: <Widget>[
+          if (!configured)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: AppInlineMessage(
+                title: _status.problemTitleFor(locale),
+                message: _status.problemMessageFor(locale),
+                tone: _status.problem == AiStatusProblem.unauthorized
+                    ? AppMessageTone.warning
+                    : AppMessageTone.error,
+                action: TextButton(
+                  onPressed: _loadConfig,
+                  child: Text(uiText(context, zh: '重试', en: 'Retry')),
+                ),
+              ),
+            ),
+          if (!configured && _status.diagnosticLine.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: SelectableText(
+                  _status.diagnosticLine,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.58),
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: Center(
               child: ConstrainedBox(
@@ -248,10 +288,18 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   maxWidth: AppLayout.readingMaxWidth,
                 ),
                 child: _messages.isEmpty && !_sending
-                    ? const AppStatePanel(
+                    ? AppStatePanel(
                         icon: Icons.auto_awesome_outlined,
-                        title: '开始一次可核对的问答',
-                        message: '回答中使用的校园资料会在下方标注来源。',
+                        title: uiText(
+                          context,
+                          zh: '开始一次可核对的问答',
+                          en: 'Start a question you can verify',
+                        ),
+                        message: uiText(
+                          context,
+                          zh: '回答中使用的校园资料会在下方标注来源。',
+                          en: 'Sources used in the answer are listed below it.',
+                        ),
                       )
                     : ListView.builder(
                         controller: _scrollController,
@@ -259,10 +307,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         itemCount: _messages.length + (_sending ? 1 : 0),
                         itemBuilder: (BuildContext context, int index) {
                           if (index == _messages.length) {
-                            return const _MessageBubble(
+                            return _MessageBubble(
                               role: 'assistant',
-                              content: '正在查找相关资料…',
-                              references: <AiReference>[],
+                              content: uiText(
+                                context,
+                                zh: '正在查找相关资料…',
+                                en: 'Looking up sources…',
+                              ),
+                              references: const <AiReference>[],
                             );
                           }
                           final AiMessage message = _messages[index];
@@ -289,7 +341,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                       minLines: 1,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: configured ? '输入问题...' : '服务器 AI 尚未配置',
+                        hintText: configured
+                            ? uiText(
+                                context,
+                                zh: '输入问题...',
+                                en: 'Ask a question...',
+                              )
+                            : _status.problemTitleFor(locale),
                       ),
                       onSubmitted: (_) => _send(),
                     ),
@@ -297,7 +355,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   const SizedBox(width: 10),
                   FilledButton(
                     onPressed: _sending || !configured ? null : _send,
-                    child: const Text('发送'),
+                    child: Text(uiText(context, zh: '发送', en: 'Send')),
                   ),
                 ],
               ),
@@ -335,11 +393,39 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           ),
         );
       });
+    } on ApiException catch (error) {
+      // Keep the status code visible: 401, 503 and 502 need very different fixes.
+      final String code = error.statusCode == null
+          ? ''
+          : uiTextGlobal(
+              zh: '（HTTP ${error.statusCode}）',
+              en: ' (HTTP ${error.statusCode})',
+            );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTextGlobal(
+                zh: '发送失败$code：${error.message}',
+                en: 'Send failed$code: ${error.message}',
+              ),
+            ),
+          ),
+        );
+      }
+      unawaited(_loadConfig());
     } catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('发送失败：$error')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiTextGlobal(
+                zh: '发送失败：$error',
+                en: 'Send failed: $error',
+              ),
+            ),
+          ),
+        );
       }
     } finally {
       if (mounted) {
@@ -384,27 +470,25 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    try {
-      final AiServerStatus status = await ref
-          .read(aiRepositoryProvider)
-          .fetchStatus();
-      if (!mounted) return;
-      setState(() => _status = status);
-    } catch (_) {
-      if (mounted) {
-        setState(
-          () => _status = const AiServerStatus(model: '', models: <String>[]),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+    final AiServerStatus status = await ref
+        .read(aiRepositoryProvider)
+        .fetchStatus();
+    if (!mounted) {
+      return;
     }
+    setState(() {
+      _status = status;
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('AI 设置')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: 'AI 设置', en: 'AI settings')),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
@@ -415,30 +499,69 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
                   ? Icons.cloud_done_outlined
                   : Icons.cloud_off_outlined,
             ),
-            title: const Text('服务器 AI'),
-            subtitle: Text(_status.configured ? '已启用' : '尚未配置'),
+            title: Text(uiText(context, zh: '服务器 AI', en: 'Server AI')),
+            subtitle: Text(_status.problemTitleFor(locale)),
           ),
+          if (!_status.configured)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: AppInlineMessage(
+                title: uiText(context, zh: '如何修复', en: 'How to fix'),
+                message: _status.problemMessageFor(locale),
+                tone: _status.problem == AiStatusProblem.unauthorized
+                    ? AppMessageTone.warning
+                    : AppMessageTone.error,
+              ),
+            ),
+          if (!_status.configured && _status.diagnosticLine.isNotEmpty)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                uiText(context, zh: '服务器返回', en: 'Server response'),
+              ),
+              subtitle: SelectableText(_status.diagnosticLine),
+            ),
           if (_status.configured)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('当前模型'),
+              title: Text(uiText(context, zh: '当前模型', en: 'Current model')),
               subtitle: Text(_status.model),
             ),
-          const ListTile(
+          ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('校园知识库'),
-            subtitle: Text('由服务器统一维护并建立索引'),
+            title: Text(
+              uiText(context, zh: '校园知识库', en: 'Campus knowledge base'),
+            ),
+            subtitle: Text(
+              uiText(
+                context,
+                zh: '由服务器统一维护并建立索引',
+                en: 'Maintained and indexed on the server',
+              ),
+            ),
           ),
-          const ListTile(
+          ListTile(
             contentPadding: EdgeInsets.zero,
-            title: Text('论坛公开帖子'),
-            subtitle: Text('审核通过后自动进入检索'),
+            title: Text(
+              uiText(context, zh: '论坛公开帖子', en: 'Public forum posts'),
+            ),
+            subtitle: Text(
+              uiText(
+                context,
+                zh: '审核通过后自动进入检索',
+                en: 'Indexed automatically once approved',
+              ),
+            ),
           ),
           const SizedBox(height: 14),
           FilledButton.icon(
             onPressed: _loading ? null : _load,
             icon: const Icon(Icons.refresh_rounded),
-            label: Text(_loading ? '读取中' : '刷新状态'),
+            label: Text(
+              _loading
+                  ? uiText(context, zh: '读取中', en: 'Loading')
+                  : uiText(context, zh: '刷新状态', en: 'Refresh status'),
+            ),
           ),
         ],
       ),

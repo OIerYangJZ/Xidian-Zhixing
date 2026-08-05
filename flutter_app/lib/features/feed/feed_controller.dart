@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
+import '../../core/l10n/ui_text.dart';
 
 class FeedState {
   const FeedState({
@@ -82,7 +83,7 @@ class FeedController extends StateNotifier<FeedState> {
         orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(loading: false, error: '加载失败：$error');
+      state = state.copyWith(loading: false, error: uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'));
     }
   }
 
@@ -104,7 +105,7 @@ class FeedController extends StateNotifier<FeedState> {
         orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(error: '刷新失败：$error');
+      state = state.copyWith(error: uiTextGlobal(zh: '刷新失败：$error', en: 'Refresh failed: $error'));
     }
   }
 
@@ -130,7 +131,7 @@ class FeedController extends StateNotifier<FeedState> {
         orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(loading: false, error: '加载失败：$error');
+      state = state.copyWith(loading: false, error: uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'));
     }
   }
 
@@ -154,7 +155,10 @@ class FeedController extends StateNotifier<FeedState> {
         orderVersion: state.orderVersion + 1,
       );
     } catch (error) {
-      state = state.copyWith(loading: false, error: '排序切换失败：$error');
+      state = state.copyWith(loading: false, error: uiTextGlobal(
+        zh: '排序切换失败：$error',
+        en: 'Could not change sorting: $error',
+      ));
     }
   }
 

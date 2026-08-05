@@ -19,6 +19,7 @@ import '../../repositories/app_repositories.dart';
 import '../../repositories/auth_repository.dart';
 import '../../widgets/home_shell.dart';
 import '../admin/admin_login_page.dart';
+import '../../core/l10n/ui_text.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -134,7 +135,12 @@ class _LoginPageState extends State<LoginPage> {
         webOnlyWindowName: '_self',
       );
       if (!launched) {
-        throw StateError('无法打开西电官方统一身份认证页面');
+        throw StateError(
+          uiTextGlobal(
+            zh: '无法打开西电官方统一身份认证页面',
+            en: 'Could not open the Xidian single sign-on page',
+          ),
+        );
       }
     } on ApiException catch (error) {
       _showError(error.message);
@@ -157,10 +163,21 @@ class _LoginPageState extends State<LoginPage> {
       final XidianAuthSessionResult session = await AppRepositories.auth
           .fetchXidianAuthSession(attemptId);
       if (session.isFailed) {
-        throw StateError(session.message ?? '统一认证登录失败');
+        throw StateError(
+          session.message ??
+              uiTextGlobal(
+                zh: '统一认证登录失败',
+                en: 'Single sign-on failed',
+              ),
+        );
       }
       if (!session.isAuthenticated) {
-        throw StateError('统一认证尚未完成，请重新发起登录');
+        throw StateError(
+          uiTextGlobal(
+            zh: '统一认证尚未完成，请重新发起登录',
+            en: 'Single sign-on is not complete. Please start the login again.',
+          ),
+        );
       }
       if (!mounted) {
         return;
@@ -555,7 +572,9 @@ class _LoginTermsRoute extends StatelessWidget {
         children: <Widget>[
           ListTile(
             leading: const Icon(Icons.description_outlined),
-            title: const Text('用户协议'),
+            title: Text(
+              uiText(context, zh: '用户协议', en: 'Terms of Service'),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(
@@ -567,7 +586,9 @@ class _LoginTermsRoute extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
-            title: const Text('隐私政策'),
+            title: Text(
+              uiText(context, zh: '隐私政策', en: 'Privacy Policy'),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(
@@ -579,7 +600,9 @@ class _LoginTermsRoute extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.gavel_outlined),
-            title: const Text('社区规范'),
+            title: Text(
+              uiText(context, zh: '社区规范', en: 'Community Guidelines'),
+            ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(

@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class ConversationItem {
   ConversationItem({
     required this.id,
@@ -24,6 +28,8 @@ class ConversationItem {
   final bool blockedByPeer;
 
   bool get isBlocked => blockedByMe || blockedByPeer;
+
+  String nameFor(Locale locale) => localizedAlias(locale, name);
 
   factory ConversationItem.fromJson(Map<String, dynamic> json) {
     final int unreadCount = _toInt(

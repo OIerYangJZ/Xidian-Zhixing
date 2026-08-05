@@ -1,6 +1,7 @@
 import '../core/network/api_client.dart';
 import '../core/network/json_utils.dart';
 import '../models/campus_models.dart';
+import '../core/l10n/ui_text.dart';
 
 class CampusRepository {
   CampusRepository(this._apiClient);
@@ -19,7 +20,7 @@ class CampusRepository {
     final dynamic response = await _apiClient.get('/campus/services/$id');
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      throw Exception('服务不存在');
+      throw Exception(uiTextGlobal(zh: '服务不存在', en: 'This service does not exist'));
     }
     return CampusService.fromJson(map);
   }

@@ -60,6 +60,7 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     String text(String zh, String en) => uiText(context, zh: zh, en: en);
     if (_loading) {
       return AppStatePanel(
@@ -124,18 +125,18 @@ class ProfilePageState extends State<ProfilePage> {
                     subtitle: Text(
                       profile.isLevelOneUser
                           ? text(
-                              '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长',
+                              '当前为 ${profile.userLevelLabelFor(locale)}，可直接为帖子设置置顶时长',
                               'Your current level allows you to set a pin duration for posts.',
                             )
                           : levelUpgradeRequest == null
                           ? text(
-                              '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级',
+                              '当前为 ${profile.userLevelLabelFor(locale)}，可向一级管理员申请升级',
                               'You can request an account-level upgrade from an administrator.',
                             )
                           : _levelUpgradeSubtitle(levelUpgradeRequest),
                     ),
                     trailing: Text(
-                      profile.userLevelLabel,
+                      profile.userLevelLabelFor(locale),
                       style: const TextStyle(fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -535,6 +536,7 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildProfileHero(UserProfile profile) {
+    final Locale locale = Localizations.localeOf(context);
     final String backgroundImageUrl = AppConfig.resolveUrl(
       profile.backgroundImageUrl.trim(),
     );
@@ -581,7 +583,7 @@ class ProfilePageState extends State<ProfilePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          profile.nickname,
+                          profile.nicknameFor(locale),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w800,
                           ),
@@ -612,7 +614,7 @@ class ProfilePageState extends State<ProfilePage> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                profile.gender.trim(),
+                                profile.genderFor(locale).trim(),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: theme.colorScheme.onSurface.withValues(
                                     alpha: 0.58,
@@ -624,13 +626,30 @@ class ProfilePageState extends State<ProfilePage> {
                         ],
                         const SizedBox(height: 6),
                         Text(
-                          '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
+                          uiText(
+                            context,
+                            zh:
+                                '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
+                            en:
+                                'Student ID: ${profile.studentId.isEmpty ? 'Not set' : profile.studentId}',
+                          ),
                         ),
                         Text(
-                          '邮箱：${profile.email.isEmpty ? '-' : profile.email}',
+                          uiText(
+                            context,
+                            zh: '邮箱：${profile.email.isEmpty ? '-' : profile.email}',
+                            en:
+                                'Email: ${profile.email.isEmpty ? '-' : profile.email}',
+                          ),
                         ),
                         Text(
-                          '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
+                          uiText(
+                            context,
+                            zh:
+                                '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
+                            en:
+                                'Verification: ${profile.verified ? 'Verified' : 'Not verified'} (${profile.verifiedAt})',
+                          ),
                         ),
                       ],
                     ),
@@ -646,8 +665,13 @@ class ProfilePageState extends State<ProfilePage> {
 
   Widget _buildAvatar(String url, String nickname) {
     final String resolved = AppConfig.resolveUrl(url);
-    final String trimmed = nickname.trim();
-    final String label = trimmed.isEmpty ? '匿' : trimmed.substring(0, 1);
+    final String trimmed = localizedAlias(
+      Localizations.localeOf(context),
+      nickname,
+    ).trim();
+    final String label = trimmed.isEmpty
+        ? uiText(context, zh: '匿', en: 'A')
+        : trimmed.substring(0, 1);
     if (resolved.isNotEmpty) {
       return CircleAvatar(
         radius: 30,
@@ -693,7 +717,10 @@ class ProfilePageState extends State<ProfilePage> {
         return;
       }
       setState(() {
-        _error = '资料加载失败：$error';
+        _error = uiTextGlobal(
+          zh: '资料加载失败：$error',
+          en: 'Failed to load profile: $error',
+        );
       });
     } finally {
       if (mounted) {
@@ -707,7 +734,12 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> _pickAndUploadBackgroundImage() async {
     final UserProfile? current = _profile;
     if (current == null) {
-      _toast('个人资料尚未加载，无法上传背景图');
+      _toast(
+        uiTextGlobal(
+          zh: '个人资料尚未加载，无法上传背景图',
+          en: 'Profile not loaded yet, cannot upload a background image',
+        ),
+      );
       return;
     }
     setState(() {
@@ -739,9 +771,16 @@ class ProfilePageState extends State<ProfilePage> {
           backgroundImageUrl: _backgroundUrlController.text.trim(),
         );
       });
-      _toast('背景图上传成功');
+      _toast(
+        uiTextGlobal(zh: '背景图上传成功', en: 'Background image uploaded'),
+      );
     } catch (error) {
-      _toast('背景图上传失败：$error');
+      _toast(
+        uiTextGlobal(
+          zh: '背景图上传失败：$error',
+          en: 'Background upload failed: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -754,7 +793,12 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> _pickAndUploadAvatar() async {
     final UserProfile? current = _profile;
     if (current == null) {
-      _toast('个人资料尚未加载，无法上传头像');
+      _toast(
+        uiTextGlobal(
+          zh: '个人资料尚未加载，无法上传头像',
+          en: 'Profile not loaded yet, cannot upload an avatar',
+        ),
+      );
       return;
     }
     setState(() {
@@ -785,9 +829,11 @@ class ProfilePageState extends State<ProfilePage> {
           avatarUrl: _avatarUrlController.text.trim(),
         );
       });
-      _toast('头像上传成功');
+      _toast(uiTextGlobal(zh: '头像上传成功', en: 'Avatar uploaded'));
     } catch (error) {
-      _toast('头像上传失败：$error');
+      _toast(
+        uiTextGlobal(zh: '头像上传失败：$error', en: 'Avatar upload failed: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -800,7 +846,12 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> _saveProfile() async {
     final UserProfile? current = _profile;
     if (current == null) {
-      _toast('个人资料尚未加载，无法保存');
+      _toast(
+        uiTextGlobal(
+          zh: '个人资料尚未加载，无法保存',
+          en: 'Profile not loaded yet, nothing to save',
+        ),
+      );
       return;
     }
     final String nickname = _nicknameController.text.trim();
@@ -837,9 +888,9 @@ class ProfilePageState extends State<ProfilePage> {
       setState(() {
         _profile = nextProfile;
       });
-      _toast('资料已更新');
+      _toast(uiTextGlobal(zh: '资料已更新', en: 'Profile updated'));
     } catch (error) {
-      _toast('保存失败：$error');
+      _toast(uiTextGlobal(zh: '保存失败：$error', en: 'Save failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -855,7 +906,12 @@ class ProfilePageState extends State<ProfilePage> {
   }) async {
     final UserProfile? current = _profile;
     if (current == null) {
-      _toast('个人资料尚未加载，无法保存隐私设置');
+      _toast(
+        uiTextGlobal(
+          zh: '个人资料尚未加载，无法保存隐私设置',
+          en: 'Profile not loaded yet, cannot save privacy settings',
+        ),
+      );
       return;
     }
     setState(() {
@@ -876,9 +932,11 @@ class ProfilePageState extends State<ProfilePage> {
           showContactable: showContactable,
         );
       });
-      _toast('隐私设置已更新');
+      _toast(
+        uiTextGlobal(zh: '隐私设置已更新', en: 'Privacy settings updated'),
+      );
     } catch (error) {
-      _toast('保存失败：$error');
+      _toast(uiTextGlobal(zh: '保存失败：$error', en: 'Save failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -894,25 +952,35 @@ class ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('提交注销申请'),
+          title: Text(
+            uiText(context, zh: '提交注销申请', en: 'Submit a deletion request'),
+          ),
           content: TextField(
             controller: controller,
             minLines: 3,
             maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: '申请说明（可选）',
-              hintText: '例如：不再使用、信息更换、测试账号清理等',
+            decoration: InputDecoration(
+              labelText: uiText(
+                context,
+                zh: '申请说明（可选）',
+                en: 'Reason (optional)',
+              ),
+              hintText: uiText(
+                context,
+                zh: '例如：不再使用、信息更换、测试账号清理等',
+                en: 'For example: no longer used, changing accounts, test cleanup',
+              ),
             ),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
+              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
             ),
             FilledButton(
               onPressed: () =>
                   Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认提交'),
+              child: Text(uiText(context, zh: '确认提交', en: 'Submit')),
             ),
           ],
         );
@@ -938,9 +1006,14 @@ class ProfilePageState extends State<ProfilePage> {
       if (!mounted) {
         return;
       }
-      _toast('注销申请已提交，等待管理员审核');
+      _toast(
+        uiTextGlobal(
+          zh: '注销申请已提交，等待管理员审核',
+          en: 'Deletion request submitted, awaiting administrator review',
+        ),
+      );
     } catch (error) {
-      _toast('提交失败：$error');
+      _toast(uiTextGlobal(zh: '提交失败：$error', en: 'Submit failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -955,16 +1028,24 @@ class ProfilePageState extends State<ProfilePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('申请成为一级用户'),
-          content: const Text('确认提交一级用户申请吗？'),
+          title: Text(
+            uiText(context, zh: '申请成为一级用户', en: 'Request level-one access'),
+          ),
+          content: Text(
+            uiText(
+              context,
+              zh: '确认提交一级用户申请吗？',
+              en: 'Submit a level-one access request?',
+            ),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('确认提交'),
+              child: Text(uiText(context, zh: '确认提交', en: 'Submit')),
             ),
           ],
         );
@@ -982,9 +1063,14 @@ class ProfilePageState extends State<ProfilePage> {
       if (!mounted) {
         return;
       }
-      _toast('一级用户申请已提交');
+      _toast(
+        uiTextGlobal(
+          zh: '一级用户申请已提交',
+          en: 'Level-one request submitted',
+        ),
+      );
     } catch (error) {
-      _toast('提交失败：$error');
+      _toast(uiTextGlobal(zh: '提交失败：$error', en: 'Submit failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -997,8 +1083,9 @@ class ProfilePageState extends State<ProfilePage> {
   String _accountCancellationSubtitle(
     AccountCancellationRequestSummary request,
   ) {
+    final Locale locale = Localizations.localeOf(context);
     final StringBuffer text = StringBuffer();
-    text.write('${request.statusLabel} · ${request.createdAt}');
+    text.write('${request.statusLabelFor(locale)} · ${request.createdAt}');
     if (request.reviewNote.trim().isNotEmpty) {
       text.write(' · ${request.reviewNote.trim()}');
     }
@@ -1006,8 +1093,9 @@ class ProfilePageState extends State<ProfilePage> {
   }
 
   String _levelUpgradeSubtitle(UserLevelRequestSummary request) {
+    final Locale locale = Localizations.localeOf(context);
     final StringBuffer text = StringBuffer();
-    text.write('${request.statusLabel} · ${request.createdAt}');
+    text.write('${request.statusLabelFor(locale)} · ${request.createdAt}');
     if (request.adminNote.trim().isNotEmpty) {
       text.write(' · ${request.adminNote.trim()}');
     }
@@ -1029,7 +1117,7 @@ class ProfilePageState extends State<ProfilePage> {
         (Route<dynamic> route) => false,
       );
     } catch (error) {
-      _toast('退出失败：$error');
+      _toast(uiTextGlobal(zh: '退出失败：$error', en: 'Log out failed: $error'));
       if (mounted) {
         setState(() {
           _saving = false;

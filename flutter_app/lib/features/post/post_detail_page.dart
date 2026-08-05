@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/comment_item.dart';
@@ -51,19 +52,26 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
     return Scaffold(
-      appBar: AppBar(title: const Text('帖子详情')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '帖子详情', en: 'Post')),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             maxWidth: AppLayout.readingMaxWidth,
           ),
           child: _loading
-              ? const AppStatePanel(
+              ? AppStatePanel(
                   icon: Icons.hourglass_top_rounded,
-                  title: '正在加载帖子',
-                  message: '正文和评论即将呈现。',
+                  title: uiText(context, zh: '正在加载帖子', en: 'Loading post'),
+                  message: uiText(
+                    context,
+                    zh: '正文和评论即将呈现。',
+                    en: 'The body and comments will appear shortly.',
+                  ),
                 )
               : ListView(
                   padding: AppLayout.pagePadding(context),
@@ -72,12 +80,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: AppInlineMessage(
-                          title: '部分内容加载失败',
+                          title: uiText(
+                            context,
+                            zh: '部分内容加载失败',
+                            en: 'Some content failed to load',
+                          ),
                           message: _error!,
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: () => _loadDetail(),
-                            child: const Text('重试'),
+                            child: Text(
+                              uiText(context, zh: '重试', en: 'Retry'),
+                            ),
                           ),
                         ),
                       ),
@@ -88,10 +102,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         children: <Widget>[
                           Row(
                             children: <Widget>[
-                              AppStatusTag(label: _post.channel),
+                              AppStatusTag(label: _post.channelFor(locale)),
                               const SizedBox(width: AppSpacing.xs),
                               AppStatusTag(
-                                label: _post.status.label,
+                                label: _post.status.labelFor(locale),
                                 outlined: true,
                               ),
                             ],
@@ -110,12 +124,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             children: <Widget>[
                               Expanded(
                                 child: Text(
-                                  '${_post.isAnonymous ? '匿名身份' : _post.authorAlias} · ${_post.createdAt.toLocal()}',
+                                  '${_post.isAnonymous ? uiText(context, zh: '匿名身份', en: 'Anonymous') : _post.authorAliasFor(locale)} · ${_post.createdAt.toLocal()}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
                               Text(
-                                '${_post.viewCount} 阅读',
+                                uiText(
+                                  context,
+                                  zh: '${_post.viewCount} 阅读',
+                                  en: '${_post.viewCount} views',
+                                ),
                                 style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
@@ -138,7 +156,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             Padding(
                               padding: const EdgeInsets.only(top: 8),
                               child: Text(
-                                '图片暂时不可用，请稍后重试',
+                                uiText(
+                                  context,
+                                  zh: '图片暂时不可用，请稍后重试',
+                                  en:
+                                      'Images are temporarily unavailable. Please try again later.',
+                                ),
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onSurface
                                       .withValues(alpha: 0.58),
@@ -163,7 +186,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 OutlinedButton.icon(
                                   onPressed: _openAuthorProfile,
                                   icon: const Icon(Icons.person_outline),
-                                  label: const Text('查看主页'),
+                                  label: Text(
+                                    uiText(
+                                      context,
+                                      zh: '查看主页',
+                                      en: 'View profile',
+                                    ),
+                                  ),
                                 ),
                               if (_post.canFollowAuthor &&
                                   _post.authorUserId.isNotEmpty)
@@ -177,13 +206,29 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                         : Icons.person_add_alt_1_outlined,
                                   ),
                                   label: Text(
-                                    _post.isFollowingAuthor ? '取消关注' : '关注作者',
+                                    _post.isFollowingAuthor
+                                        ? uiText(
+                                            context,
+                                            zh: '取消关注',
+                                            en: 'Unfollow',
+                                          )
+                                        : uiText(
+                                            context,
+                                            zh: '关注作者',
+                                            en: 'Follow author',
+                                          ),
                                   ),
                                 ),
                               OutlinedButton.icon(
                                 onPressed: _actionBusy ? null : _like,
                                 icon: const Icon(Icons.thumb_up_alt_outlined),
-                                label: Text('点赞 ${_post.likeCount}'),
+                                label: Text(
+                                  uiText(
+                                    context,
+                                    zh: '点赞 ${_post.likeCount}',
+                                    en: 'Like ${_post.likeCount}',
+                                  ),
+                                ),
                               ),
                               OutlinedButton.icon(
                                 onPressed: _actionBusy ? null : _toggleFavorite,
@@ -193,25 +238,39 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                       : Icons.bookmark_border,
                                 ),
                                 label: Text(
-                                  '${_post.isFavorited ? '取消收藏' : '收藏'} ${_post.favoriteCount}',
+                                  '${_post.isFavorited ? uiText(context, zh: '取消收藏', en: 'Saved') : uiText(context, zh: '收藏', en: 'Save')} ${_post.favoriteCount}',
                                 ),
                               ),
                               OutlinedButton.icon(
                                 onPressed: _actionBusy ? null : _report,
                                 icon: const Icon(Icons.report_gmailerrorred),
-                                label: const Text('举报'),
+                                label: Text(
+                                  uiText(context, zh: '举报', en: 'Report'),
+                                ),
                               ),
                               if (!_post.isMarkdown)
                                 OutlinedButton.icon(
                                   onPressed: _copyPostContent,
                                   icon: const Icon(Icons.copy_all_rounded),
-                                  label: const Text('复制内容'),
+                                  label: Text(
+                                    uiText(
+                                      context,
+                                      zh: '复制内容',
+                                      en: 'Copy text',
+                                    ),
+                                  ),
                                 ),
                               if (_post.canMessageAuthor)
                                 OutlinedButton.icon(
                                   onPressed: _actionBusy ? null : _requestDm,
                                   icon: const Icon(Icons.forum_outlined),
-                                  label: const Text('私信作者'),
+                                  label: Text(
+                                    uiText(
+                                      context,
+                                      zh: '私信作者',
+                                      en: 'Message author',
+                                    ),
+                                  ),
                                 ),
                             ],
                           ),
@@ -225,17 +284,30 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Text(
-                            '评论区（${_countComments(_comments)}）',
+                            uiText(
+                              context,
+                              zh: '评论区（${_countComments(_comments)}）',
+                              en: 'Comments (${_countComments(_comments)})',
+                            ),
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 10),
                           if (_comments.isEmpty)
-                            const AppStatePanel(
-                              key: Key('comments-empty-state'),
+                            AppStatePanel(
+                              key: const Key('comments-empty-state'),
                               icon: Icons.chat_bubble_outline_rounded,
-                              title: '还没有评论',
-                              message: '欢迎留下第一条友善、具体的回复。',
+                              title: uiText(
+                                context,
+                                zh: '还没有评论',
+                                en: 'No comments yet',
+                              ),
+                              message: uiText(
+                                context,
+                                zh: '欢迎留下第一条友善、具体的回复。',
+                                en:
+                                    'Be the first to leave a kind, specific reply.',
+                              ),
                               compact: true,
                             )
                           else
@@ -243,7 +315,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               (MapEntry<int, CommentItem> entry) =>
                                   _CommentThreadTile(
                                     comment: entry.value,
-                                    floorLabel: '${entry.key + 1} 楼',
+                                    floorLabel: uiText(
+                                      context,
+                                      zh: '${entry.key + 1} 楼',
+                                      en: '#${entry.key + 1}',
+                                    ),
                                     onReply: _actionBusy
                                         ? null
                                         : (CommentItem comment) =>
@@ -274,7 +350,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 children: <Widget>[
                                   Expanded(
                                     child: Text(
-                                      '正在回复 $_replyToAlias',
+                                      uiText(
+                                        context,
+                                        zh: '正在回复 $_replyToAlias',
+                                        en: 'Replying to $_replyToAlias',
+                                      ),
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                   ),
@@ -289,7 +369,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                           },
                                     icon: const Icon(Icons.close, size: 16),
                                     visualDensity: VisualDensity.compact,
-                                    tooltip: '取消回复',
+                                    tooltip: uiText(
+                                      context,
+                                      zh: '取消回复',
+                                      en: 'Cancel reply',
+                                    ),
                                   ),
                                 ],
                               ),
@@ -301,8 +385,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                             maxLines: 4,
                             decoration: InputDecoration(
                               hintText: _replyToCommentId == null
-                                  ? '发表评论（支持楼中楼回复）'
-                                  : '输入回复内容',
+                                  ? uiText(
+                                      context,
+                                      zh: '发表评论（支持楼中楼回复）',
+                                      en:
+                                          'Write a comment (threaded replies supported)',
+                                    )
+                                  : uiText(
+                                      context,
+                                      zh: '输入回复内容',
+                                      en: 'Write your reply',
+                                    ),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -315,7 +408,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               const Spacer(),
                               FilledButton(
                                 onPressed: _actionBusy ? null : _submitComment,
-                                child: Text(_actionBusy ? '提交中...' : '发送评论'),
+                                child: Text(
+                                  _actionBusy
+                                      ? uiText(
+                                          context,
+                                          zh: '提交中...',
+                                          en: 'Submitting...',
+                                        )
+                                      : uiText(
+                                          context,
+                                          zh: '发送评论',
+                                          en: 'Post comment',
+                                        ),
+                                ),
                               ),
                             ],
                           ),
@@ -363,7 +468,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error');
       });
     } finally {
       if (mounted) {
@@ -403,7 +508,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _submitComment() async {
     final String content = _commentController.text.trim();
     if (content.isEmpty) {
-      _feedback('评论不能为空');
+      _feedback(
+        uiTextGlobal(zh: '评论不能为空', en: 'A comment cannot be empty'),
+      );
       return;
     }
 
@@ -428,9 +535,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
         _replyToCommentId = null;
         _replyToAlias = null;
       });
-      _feedback('评论已发送');
+      _feedback(uiTextGlobal(zh: '评论已发送', en: 'Comment posted'));
     } catch (error) {
-      _feedback('评论失败：$error');
+      _feedback(
+        uiTextGlobal(zh: '评论失败：$error', en: 'Could not post comment: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -443,7 +552,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _like() async {
     await _runAction(
       action: () => AppRepositories.posts.likePost(_post.id),
-      success: '已点赞',
+      success: uiTextGlobal(zh: '已点赞', en: 'Liked'),
     );
   }
 
@@ -477,9 +586,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
           favoriteCount: nextCount,
         );
       });
-      _feedback(result.favorited ? '已收藏' : '已取消收藏');
+      _feedback(
+        result.favorited
+            ? uiTextGlobal(zh: '已收藏', en: 'Saved to favorites')
+            : uiTextGlobal(zh: '已取消收藏', en: 'Removed from favorites'),
+      );
     } catch (error) {
-      _feedback('操作失败：$error');
+      _feedback(
+        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -500,7 +615,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         reason: result['reason'] as String,
         description: result['description'] as String?,
       ),
-      success: '已提交举报',
+      success: uiTextGlobal(zh: '已提交举报', en: 'Report submitted'),
     );
   }
 
@@ -515,7 +630,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         reason: result['reason'] as String,
         description: result['description'] as String?,
       ),
-      success: '已举报评论',
+      success: uiTextGlobal(zh: '已举报评论', en: 'Comment reported'),
     );
   }
 
@@ -523,14 +638,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
     String? selectedReason;
     final TextEditingController descController = TextEditingController();
 
-    final List<String> reasons = <String>[
-      '垃圾广告',
-      '违法违规',
-      '色情低俗',
-      '人身攻击',
-      '虚假信息',
-      '侵犯隐私',
-      '其他',
+    // The value sent to the API stays Chinese; only the label is localized.
+    const List<(String, String)> reasons = <(String, String)>[
+      ('垃圾广告', 'Spam or advertising'),
+      ('违法违规', 'Illegal content'),
+      ('色情低俗', 'Sexual or vulgar content'),
+      ('人身攻击', 'Personal attack'),
+      ('虚假信息', 'Misinformation'),
+      ('侵犯隐私', 'Privacy violation'),
+      ('其他', 'Other'),
     ];
 
     try {
@@ -540,18 +656,26 @@ class _PostDetailPageState extends State<PostDetailPage> {
           return StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
               return AlertDialog(
-                title: const Text('举报'),
+                title: Text(uiText(context, zh: '举报', en: 'Report')),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      const Text('请选择举报原因：'),
+                      Text(
+                        uiText(
+                          context,
+                          zh: '请选择举报原因：',
+                          en: 'Choose a reason:',
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       ...reasons.map(
-                        (String reason) => RadioListTile<String>(
-                          title: Text(reason),
-                          value: reason,
+                        ((String, String) reason) => RadioListTile<String>(
+                          title: Text(
+                            uiText(context, zh: reason.$1, en: reason.$2),
+                          ),
+                          value: reason.$1,
                           // ignore: deprecated_member_use
                           groupValue: selectedReason,
                           // ignore: deprecated_member_use
@@ -570,9 +694,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         maxLength: 200,
                         minLines: 2,
                         maxLines: 4,
-                        decoration: const InputDecoration(
-                          labelText: '补充说明（可选）',
-                          hintText: '请详细描述举报原因',
+                        decoration: InputDecoration(
+                          labelText: uiText(
+                            context,
+                            zh: '补充说明（可选）',
+                            en: 'Additional details (optional)',
+                          ),
+                          hintText: uiText(
+                            context,
+                            zh: '请详细描述举报原因',
+                            en: 'Describe the issue in more detail',
+                          ),
                         ),
                       ),
                     ],
@@ -581,13 +713,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text('取消'),
+                    child: Text(uiText(context, zh: '取消', en: 'Cancel')),
                   ),
                   FilledButton(
                     onPressed: selectedReason == null
                         ? null
                         : () => Navigator.of(context).pop(true),
-                    child: const Text('确认举报'),
+                    child: Text(
+                      uiText(context, zh: '确认举报', en: 'Submit report'),
+                    ),
                   ),
                 ],
               );
@@ -611,13 +745,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   Future<void> _copyPostContent() async {
     if (_post.isMarkdown) {
-      _feedback('Markdown 帖子不支持复制内容');
+      _feedback(
+        uiTextGlobal(
+          zh: 'Markdown 帖子不支持复制内容',
+          en: 'Copying is not supported for Markdown posts',
+        ),
+      );
       return;
     }
     final String body = _post.isMarkdown ? _post.markdownSource : _post.content;
     final String text = '[${_post.channel}] ${_post.title}\\n$body';
     await Clipboard.setData(ClipboardData(text: text));
-    _feedback('已复制帖子内容');
+    _feedback(uiTextGlobal(zh: '已复制帖子内容', en: 'Post content copied'));
   }
 
   List<String> _supplementaryImageUrls(PostItem post) {
@@ -651,7 +790,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         ),
       );
     } catch (error) {
-      _feedback('无法发起私信：$error');
+      _feedback(
+        uiTextGlobal(
+          zh: '无法发起私信：$error',
+          en: 'Could not start a direct message: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -680,9 +824,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         _post = _post.copyWith(isFollowingAuthor: !_post.isFollowingAuthor);
       });
-      _feedback(_post.isFollowingAuthor ? '关注成功' : '已取消关注');
+      _feedback(
+        _post.isFollowingAuthor
+            ? uiTextGlobal(zh: '关注成功', en: 'Following')
+            : uiTextGlobal(zh: '已取消关注', en: 'Unfollowed'),
+      );
     } catch (error) {
-      _feedback('操作失败：$error');
+      _feedback(
+        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -713,10 +863,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void _prepareReply({required CommentItem comment}) {
     setState(() {
       _replyToCommentId = comment.id;
-      _replyToAlias = comment.authorAlias;
+      _replyToAlias = comment.authorAliasFor(appLocale);
     });
     _commentFocusNode.requestFocus();
-    _feedback('已选择回复 ${comment.authorAlias}');
+    _feedback(
+      uiTextGlobal(
+        zh: '已选择回复 ${comment.authorAliasFor(appLocale)}',
+        en: 'Replying to ${comment.authorAliasFor(appLocale)}',
+      ),
+    );
   }
 
   Future<void> _runAction({
@@ -731,7 +886,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       await action();
       _feedback(success);
     } catch (error) {
-      _feedback('操作失败：$error');
+      _feedback(
+        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -835,9 +992,11 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
     final String avatarUrl = AppConfig.resolveUrl(
       (comment.authorAvatar ?? '').trim(),
     );
-    final String fallback = comment.authorAlias.trim().isEmpty
-        ? '匿'
-        : comment.authorAlias.trim().characters.first;
+    final Locale locale = Localizations.localeOf(context);
+    final String authorAlias = comment.authorAliasFor(locale);
+    final String fallback = authorAlias.trim().isEmpty
+        ? uiTextFor(locale, zh: '匿', en: 'A')
+        : authorAlias.trim().characters.first;
     final ThemeData theme = Theme.of(context);
     final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.58);
 
@@ -889,7 +1048,7 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                                       comment.authorUserId,
                                     ),
                               child: Text(
-                                comment.authorAlias,
+                                authorAlias,
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   color: comment.authorUserId.isEmpty
@@ -939,7 +1098,7 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                       ? null
                       : () => widget.onReply!(comment),
                   icon: const Icon(Icons.reply_outlined, size: 16),
-                  label: const Text('回复'),
+                  label: Text(uiText(context, zh: '回复', en: 'Reply')),
                 ),
                 TextButton.icon(
                   style: TextButton.styleFrom(
@@ -965,13 +1124,19 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
                       ? null
                       : () => widget.onReport!(comment.id),
                   icon: const Icon(Icons.flag_outlined, size: 16),
-                  label: const Text('举报'),
+                  label: Text(uiText(context, zh: '举报', en: 'Report')),
                 ),
                 if (comment.effectiveReplyCount > 0)
                   Padding(
                     padding: const EdgeInsets.only(left: 4, top: 8),
                     child: Text(
-                      '${comment.effectiveReplyCount} 条回复',
+                      uiText(
+                        context,
+                        zh: '${comment.effectiveReplyCount} 条回复',
+                        en: comment.effectiveReplyCount == 1
+                            ? '1 reply'
+                            : '${comment.effectiveReplyCount} replies',
+                      ),
                       style: TextStyle(color: muted, fontSize: 12),
                     ),
                   ),

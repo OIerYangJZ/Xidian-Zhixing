@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class FollowUserItem {
   FollowUserItem({
     required this.userId,
@@ -14,6 +18,8 @@ class FollowUserItem {
   final bool isFollower;
 
   bool get isMutual => isFollowing && isFollower;
+
+  String nicknameFor(Locale locale) => localizedAlias(locale, nickname);
 
   factory FollowUserItem.fromJson(Map<String, dynamic> json) {
     return FollowUserItem(

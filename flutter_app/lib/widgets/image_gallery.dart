@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/config/app_config.dart';
 import '../core/theme/design_tokens.dart';
+import '../core/l10n/ui_text.dart';
 
 class ImageGallery extends StatelessWidget {
   const ImageGallery({super.key, required this.images, this.onRemove});
@@ -22,7 +23,11 @@ class ImageGallery extends StatelessWidget {
       children: <Widget>[
         const SizedBox(height: 8),
         Text(
-          '图片（${images.length}）',
+          uiText(
+            context,
+            zh: '图片（${images.length}）',
+            en: 'Images (${images.length})',
+          ),
           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
         ),
         const SizedBox(height: 8),
@@ -95,7 +100,7 @@ class _ImageTileState extends State<_ImageTile> {
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
-      label: '打开图片预览',
+      label: uiText(context, zh: '打开图片预览', en: 'Open image preview'),
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
@@ -109,7 +114,7 @@ class _ImageTileState extends State<_ImageTile> {
               top: 6,
               right: 6,
               child: IconButton.filled(
-                tooltip: '移除图片',
+                tooltip: uiText(context, zh: '移除图片', en: 'Remove image'),
                 onPressed: widget.onRemove,
                 style: IconButton.styleFrom(
                   minimumSize: const Size(36, 36),
@@ -125,15 +130,22 @@ class _ImageTileState extends State<_ImageTile> {
   }
 
   Widget _buildImage() {
-    const Widget errorPlaceholder = ColoredBox(
+    final Widget errorPlaceholder = ColoredBox(
       color: Colors.black12,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(Icons.broken_image_outlined, color: Colors.black38, size: 32),
-            SizedBox(height: 4),
-            Text('加载失败', style: TextStyle(color: Colors.black45, fontSize: 10)),
+            const Icon(
+              Icons.broken_image_outlined,
+              color: Colors.black38,
+              size: 32,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              uiText(context, zh: '加载失败', en: 'Failed to load'),
+              style: const TextStyle(color: Colors.black45, fontSize: 10),
+            ),
           ],
         ),
       ),
@@ -259,7 +271,11 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton.filled(
-                      tooltip: '关闭图片预览',
+                      tooltip: uiText(
+                        context,
+                        zh: '关闭图片预览',
+                        en: 'Close image preview',
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                       style: IconButton.styleFrom(
                         backgroundColor: Colors.black45,
@@ -297,7 +313,7 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
               bottom: 0,
               child: Center(
                 child: IconButton.filled(
-                  tooltip: '上一张',
+                  tooltip: uiText(context, zh: '上一张', en: 'Previous'),
                   onPressed: () => _pageController.previousPage(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOut,
@@ -318,7 +334,7 @@ class _ImageViewerPageState extends State<_ImageViewerPage> {
               bottom: 0,
               child: Center(
                 child: IconButton.filled(
-                  tooltip: '下一张',
+                  tooltip: uiText(context, zh: '下一张', en: 'Next'),
                   onPressed: () => _pageController.nextPage(
                     duration: const Duration(milliseconds: 220),
                     curve: Curves.easeOut,
@@ -349,12 +365,15 @@ class _ViewerImage extends StatefulWidget {
 class _ViewerImageState extends State<_ViewerImage> {
   @override
   Widget build(BuildContext context) {
-    const Widget errorPlaceholder = Column(
+    final Widget errorPlaceholder = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
-        SizedBox(height: 16),
-        Text('图片加载失败', style: TextStyle(color: Colors.white54)),
+        const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
+        const SizedBox(height: 16),
+        Text(
+          uiText(context, zh: '图片加载失败', en: 'Image failed to load'),
+          style: const TextStyle(color: Colors.white54),
+        ),
       ],
     );
     const Widget loadingPlaceholder = CircularProgressIndicator(

@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
+
 import '../core/config/app_config.dart';
+import '../core/l10n/ui_text.dart';
 
 enum PostStatus {
   ongoing,
@@ -15,6 +18,17 @@ extension PostStatusLabel on PostStatus {
         return '已解决';
       case PostStatus.closed:
         return '已结束';
+    }
+  }
+
+  String labelFor(Locale locale) {
+    switch (this) {
+      case PostStatus.ongoing:
+        return uiTextFor(locale, zh: '进行中', en: 'Ongoing');
+      case PostStatus.resolved:
+        return uiTextFor(locale, zh: '已解决', en: 'Resolved');
+      case PostStatus.closed:
+        return uiTextFor(locale, zh: '已结束', en: 'Closed');
     }
   }
 }
@@ -124,6 +138,12 @@ class PostItem {
   bool get isMarkdown =>
       contentFormat.trim().toLowerCase() == 'markdown' &&
       markdownSource.trim().isNotEmpty;
+
+  /// The server sends these two placeholders in Chinese, so mapping them here
+  /// keeps English mode consistent without touching real user content.
+  String channelFor(Locale locale) => localizedChannel(locale, channel);
+
+  String authorAliasFor(Locale locale) => localizedAlias(locale, authorAlias);
 
   factory PostItem.fromJson(Map<String, dynamic> json) {
     final dynamic tagsValue = json['tags'] ?? json['tagList'];

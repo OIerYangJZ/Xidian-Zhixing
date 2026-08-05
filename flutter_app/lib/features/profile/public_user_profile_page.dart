@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
@@ -51,7 +52,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error');
       });
     } finally {
       if (mounted) {
@@ -89,9 +90,15 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
               : profile.followerCount + 1,
         );
       });
-      _feedback(profile.isFollowing ? '已取消关注' : '关注成功');
+      _feedback(
+        profile.isFollowing
+            ? uiTextGlobal(zh: '已取消关注', en: 'Unfollowed')
+            : uiTextGlobal(zh: '关注成功', en: 'Following'),
+      );
     } catch (error) {
-      _feedback('操作失败：$error');
+      _feedback(
+        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -120,7 +127,12 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
         ),
       );
     } catch (error) {
-      _feedback('无法发起私信：$error');
+      _feedback(
+        uiTextGlobal(
+          zh: '无法发起私信：$error',
+          en: 'Could not start a direct message: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -133,23 +145,34 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    final Locale locale = Localizations.localeOf(context);
     final PublicUserProfile? profile = _profile;
     final String backgroundImageUrl = AppConfig.resolveUrl(
       profile?.backgroundImageUrl ?? '',
     );
 
     return Scaffold(
-      appBar: AppBar(title: const Text('个人主页')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '个人主页', en: 'Profile')),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             maxWidth: AppLayout.readingMaxWidth,
           ),
           child: _loading
-              ? const AppStatePanel(
+              ? AppStatePanel(
                   icon: Icons.person_search_outlined,
-                  title: '正在加载个人主页',
-                  message: '正在同步公开资料和互动状态。',
+                  title: uiText(
+                    context,
+                    zh: '正在加载个人主页',
+                    en: 'Loading profile',
+                  ),
+                  message: uiText(
+                    context,
+                    zh: '正在同步公开资料和互动状态。',
+                    en: 'Syncing the public profile and interaction status.',
+                  ),
                 )
               : ListView(
                   padding: AppLayout.pagePadding(context),
@@ -158,12 +181,18 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: AppInlineMessage(
-                          title: '个人主页加载失败',
+                          title: uiText(
+                            context,
+                            zh: '个人主页加载失败',
+                            en: 'Could not load the profile',
+                          ),
                           message: _error!,
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _loadProfile,
-                            child: const Text('重试'),
+                            child: Text(
+                              uiText(context, zh: '重试', en: 'Retry'),
+                            ),
                           ),
                         ),
                       ),
@@ -205,7 +234,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                           CrossAxisAlignment.start,
                                       children: <Widget>[
                                         Text(
-                                          profile.nickname,
+                                          profile.nicknameFor(locale),
                                           style: theme.textTheme.titleLarge
                                               ?.copyWith(
                                                 fontWeight: FontWeight.w800,
@@ -213,7 +242,13 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                         ),
                                         const SizedBox(height: 6),
                                         Text(
-                                          '等级：${profile.userLevelLabel}',
+                                          uiText(
+                                            context,
+                                            zh:
+                                                '等级：${profile.userLevelLabelFor(locale)}',
+                                            en:
+                                                'Level: ${profile.userLevelLabelFor(locale)}',
+                                          ),
                                           style: theme.textTheme.bodyMedium,
                                         ),
                                       ],
@@ -246,7 +281,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      profile.gender.trim(),
+                                      profile.genderFor(locale).trim(),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme.colorScheme.onSurface
@@ -262,15 +297,27 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                 runSpacing: 12,
                                 children: <Widget>[
                                   _StatChip(
-                                    label: '帖子',
+                                    label: uiText(
+                                      context,
+                                      zh: '帖子',
+                                      en: 'Posts',
+                                    ),
                                     value: '${profile.postCount}',
                                   ),
                                   _StatChip(
-                                    label: '关注',
+                                    label: uiText(
+                                      context,
+                                      zh: '关注',
+                                      en: 'Following',
+                                    ),
                                     value: '${profile.followingCount}',
                                   ),
                                   _StatChip(
-                                    label: '粉丝',
+                                    label: uiText(
+                                      context,
+                                      zh: '粉丝',
+                                      en: 'Followers',
+                                    ),
                                     value: '${profile.followerCount}',
                                   ),
                                 ],
@@ -292,14 +339,30 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                               : Icons.person_add_alt_1_outlined,
                                         ),
                                         label: Text(
-                                          profile.isFollowing ? '取消关注' : '关注',
+                                          profile.isFollowing
+                                              ? uiText(
+                                                  context,
+                                                  zh: '取消关注',
+                                                  en: 'Unfollow',
+                                                )
+                                              : uiText(
+                                                  context,
+                                                  zh: '关注',
+                                                  en: 'Follow',
+                                                ),
                                         ),
                                       ),
                                     if (profile.canDirectMessage)
                                       OutlinedButton.icon(
                                         onPressed: _busy ? null : _handleDm,
                                         icon: const Icon(Icons.forum_outlined),
-                                        label: const Text('私信'),
+                                        label: Text(
+                                          uiText(
+                                            context,
+                                            zh: '私信',
+                                            en: 'Message',
+                                          ),
+                                        ),
                                       ),
                                   ],
                                 ),
@@ -307,7 +370,12 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 10),
                                     child: Text(
-                                      '对方当前未开放私信入口',
+                                      uiText(
+                                        context,
+                                        zh: '对方当前未开放私信入口',
+                                        en:
+                                            'This user has not enabled direct messages.',
+                                      ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
                                             color: theme.colorScheme.onSurface
@@ -322,10 +390,19 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                       ),
                     ],
                     if (profile == null && _error == null)
-                      const AppStatePanel(
+                      AppStatePanel(
                         icon: Icons.person_off_outlined,
-                        title: '无法显示个人主页',
-                        message: '该用户不存在，或主页当前不可访问。',
+                        title: uiText(
+                          context,
+                          zh: '无法显示个人主页',
+                          en: 'Profile unavailable',
+                        ),
+                        message: uiText(
+                          context,
+                          zh: '该用户不存在，或主页当前不可访问。',
+                          en:
+                              'This user does not exist, or the profile is currently unavailable.',
+                        ),
                       ),
                   ],
                 ),
@@ -352,7 +429,9 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String displayName = nickname.trim().isEmpty ? '用户' : nickname.trim();
+    final String displayName = nickname.trim().isEmpty
+        ? uiText(context, zh: '用户', en: 'User')
+        : localizedAlias(Localizations.localeOf(context), nickname.trim());
     final String resolvedAvatarUrl = AppConfig.resolveUrl(avatarUrl.trim());
     final ImageProvider<Object>? imageProvider = resolvedAvatarUrl.isEmpty
         ? null

@@ -6,6 +6,7 @@ import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../models/report_item.dart';
 import '../../repositories/app_repositories.dart';
+import '../../core/l10n/ui_text.dart';
 
 class ReportDetailPage extends StatefulWidget {
   const ReportDetailPage({super.key, required this.report});
@@ -38,15 +39,25 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         : _report.status;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('举报详情')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '举报详情', en: 'Report details')),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: AppLayout.formMaxWidth),
           child: _loading
-              ? const AppStatePanel(
+              ? AppStatePanel(
                   icon: Icons.fact_check_outlined,
-                  title: '正在加载举报详情',
-                  message: '正在获取最新处理结果。',
+                  title: uiText(
+                    context,
+                    zh: '正在加载举报详情',
+                    en: 'Loading report details',
+                  ),
+                  message: uiText(
+                    context,
+                    zh: '正在获取最新处理结果。',
+                    en: 'Fetching the latest moderation result.',
+                  ),
                 )
               : ListView(
                   padding: AppLayout.pagePadding(context),
@@ -55,12 +66,18 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                         child: AppInlineMessage(
-                          title: '最新状态加载失败',
+                          title: uiText(
+                            context,
+                            zh: '最新状态加载失败',
+                            en: 'Could not refresh status',
+                          ),
                           message: _error!,
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _loadDetail,
-                            child: const Text('重试'),
+                            child: Text(
+                              uiText(context, zh: '重试', en: 'Retry'),
+                            ),
                           ),
                         ),
                       ),
@@ -71,20 +88,60 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '举报单号：${_report.id}',
+                              uiText(
+                                context,
+                                zh: '举报单号：${_report.id}',
+                                en: 'Report ID: ${_report.id}',
+                              ),
                               style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                             const SizedBox(height: 8),
-                            Text('举报对象：$targetLabel'),
-                            Text('举报原因：${_report.reason}'),
+                            Text(
+                              uiText(
+                                context,
+                                zh: '举报对象：$targetLabel',
+                                en: 'Target: $targetLabel',
+                              ),
+                            ),
+                            Text(
+                              uiText(
+                                context,
+                                zh: '举报原因：${_report.reason}',
+                                en: 'Reason: ${_report.reason}',
+                              ),
+                            ),
                             if (_report.description.trim().isNotEmpty)
-                              Text('补充说明：${_report.description}'),
-                            Text('处理状态：$statusText'),
+                              Text(
+                                uiText(
+                                  context,
+                                  zh: '补充说明：${_report.description}',
+                                  en: 'Details: ${_report.description}',
+                                ),
+                              ),
+                            Text(
+                              uiText(
+                                context,
+                                zh: '处理状态：$statusText',
+                                en: 'Status: $statusText',
+                              ),
+                            ),
                             if (_report.createdAt.trim().isNotEmpty)
-                              Text('提交时间：${_report.createdAt}'),
+                              Text(
+                                uiText(
+                                  context,
+                                  zh: '提交时间：${_report.createdAt}',
+                                  en: 'Submitted: ${_report.createdAt}',
+                                ),
+                              ),
                             if (_report.handledAt.trim().isNotEmpty)
-                              Text('处理时间：${_report.handledAt}'),
+                              Text(
+                                uiText(
+                                  context,
+                                  zh: '处理时间：${_report.handledAt}',
+                                  en: 'Handled: ${_report.handledAt}',
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -103,7 +160,15 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                                   ),
                                 )
                               : const Icon(Icons.open_in_new_outlined),
-                          label: Text(_openingTarget ? '打开中...' : '查看被举报帖子'),
+                          label: Text(
+                            _openingTarget
+                                ? uiText(context, zh: '打开中...', en: 'Opening...')
+                                : uiText(
+                                    context,
+                                    zh: '查看被举报帖子',
+                                    en: 'View reported post',
+                                  ),
+                          ),
                         ),
                       ),
                   ],
@@ -134,7 +199,10 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
         return;
       }
       setState(() {
-        _error = '加载举报详情失败：$error';
+        _error = uiTextGlobal(
+          zh: '加载举报详情失败：$error',
+          en: 'Could not load report details: $error',
+        );
       });
     } finally {
       if (mounted) {
@@ -175,7 +243,16 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('打开帖子失败：$error')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiTextGlobal(
+              zh: '打开帖子失败：$error',
+              en: 'Could not open the post: $error',
+            ),
+          ),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {

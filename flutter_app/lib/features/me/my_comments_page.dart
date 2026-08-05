@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../models/my_comment_item.dart';
 import '../../repositories/app_repositories.dart';
+import '../../core/l10n/ui_text.dart';
 
 class MyCommentsPage extends StatefulWidget {
   const MyCommentsPage({super.key});
@@ -25,7 +26,9 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('我的评论')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '我的评论', en: 'My comments')),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
@@ -44,14 +47,27 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                         TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('原帖跳转下一步接入。')),
+                              SnackBar(
+                                content: Text(
+                                  uiText(
+                                    context,
+                                    zh: '原帖跳转下一步接入。',
+                                    en:
+                                        'Opening the original post is coming soon.',
+                                  ),
+                                ),
+                              ),
                             );
                           },
-                          child: const Text('原帖'),
+                          child: Text(
+                            uiText(context, zh: '原帖', en: 'Original post'),
+                          ),
                         ),
                         TextButton(
                           onPressed: _actionBusy ? null : () => _delete(row.id),
-                          child: const Text('删除'),
+                          child: Text(
+                            uiText(context, zh: '删除', en: 'Delete'),
+                          ),
                         ),
                       ],
                     ),
@@ -87,7 +103,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error');
       });
     } finally {
       if (mounted) {
@@ -109,7 +125,9 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('评论删除成功。')),
+        SnackBar(
+          content: Text(uiText(context, zh: '评论删除成功。', en: 'Comment deleted.')),
+        ),
       );
       await _load();
     } catch (error) {
@@ -117,7 +135,11 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('删除失败：$error')),
+        SnackBar(
+          content: Text(
+            uiText(context, zh: '删除失败：$error', en: 'Delete failed: $error'),
+          ),
+        ),
       );
     } finally {
       if (mounted) {

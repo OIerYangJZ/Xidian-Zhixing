@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
 import '../../models/notification_item.dart';
+import '../../core/l10n/ui_text.dart';
 
 class NotificationsState {
   const NotificationsState({
@@ -68,7 +69,12 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     try {
       await _ref.read(notificationRepositoryProvider).markRead(notificationId);
     } catch (error) {
-      state = state.copyWith(error: '通知已读失败：$error');
+      state = state.copyWith(
+        error: uiTextGlobal(
+          zh: '通知已读失败：$error',
+          en: 'Could not mark as read: $error',
+        ),
+      );
       await refresh();
     }
   }
@@ -89,7 +95,13 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       await _ref.read(notificationRepositoryProvider).markAllRead();
       state = state.copyWith(actionBusy: false, clearError: true);
     } catch (error) {
-      state = state.copyWith(actionBusy: false, error: '全部已读失败：$error');
+      state = state.copyWith(
+        actionBusy: false,
+        error: uiTextGlobal(
+          zh: '全部已读失败：$error',
+          en: 'Could not mark all as read: $error',
+        ),
+      );
       await refresh();
     }
   }
@@ -111,7 +123,10 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       state = state.copyWith(
         loading: false,
         actionBusy: false,
-        error: '通知加载失败：$error',
+        error: uiTextGlobal(
+          zh: '通知加载失败：$error',
+          en: 'Could not load notifications: $error',
+        ),
       );
     }
   }

@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class MyCommentItem {
   MyCommentItem({
     required this.id,
@@ -12,6 +16,10 @@ class MyCommentItem {
   final String postTitle;
   final String content;
   final String timeText;
+
+  String postTitleFor(Locale locale) => postTitle == '原帖'
+      ? uiTextFor(locale, zh: postTitle, en: 'Original post')
+      : postTitle;
 
   factory MyCommentItem.fromJson(Map<String, dynamic> json) {
     return MyCommentItem(

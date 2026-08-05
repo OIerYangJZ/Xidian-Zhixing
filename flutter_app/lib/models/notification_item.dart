@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class NotificationItem {
   NotificationItem({
     required this.id,
@@ -68,6 +72,57 @@ class NotificationItem {
         return title.trim().isNotEmpty ? title : '系统公告';
       default:
         return title.trim().isNotEmpty ? title : '通知';
+    }
+  }
+
+  String displayTitleFor(Locale locale) {
+    final String normalizedType = type.trim().toLowerCase();
+    final String normalizedRelatedType = relatedType.trim().toLowerCase();
+    switch (normalizedType) {
+      case 'like':
+        if (normalizedRelatedType == 'comment') {
+          return uiTextFor(locale, zh: '喜欢了你的评论', en: 'liked your comment');
+        }
+        if (normalizedRelatedType == 'post') {
+          return uiTextFor(locale, zh: '喜欢了你的帖子', en: 'liked your post');
+        }
+        return uiTextFor(locale, zh: '喜欢了你的内容', en: 'liked your content');
+      case 'favorite':
+        if (normalizedRelatedType == 'post' || normalizedRelatedType.isEmpty) {
+          return uiTextFor(locale, zh: '收藏了你的帖子', en: 'saved your post');
+        }
+        return uiTextFor(locale, zh: '收藏了你的内容', en: 'saved your content');
+      case 'reply':
+        if (normalizedRelatedType == 'comment' ||
+            normalizedRelatedType.isEmpty) {
+          return uiTextFor(locale, zh: '回复了你的评论', en: 'replied to your comment');
+        }
+        return uiTextFor(locale, zh: '回复了你的内容', en: 'replied to your content');
+      case 'comment':
+        if (normalizedRelatedType == 'comment') {
+          return uiTextFor(
+            locale,
+            zh: '评论了你的评论',
+            en: 'commented on your comment',
+          );
+        }
+        if (normalizedRelatedType == 'post' || normalizedRelatedType.isEmpty) {
+          return uiTextFor(locale, zh: '评论了你的帖子', en: 'commented on your post');
+        }
+        return uiTextFor(locale, zh: '评论了你的内容', en: 'commented on your content');
+      case 'report_result':
+        return title.trim().isNotEmpty
+            ? title
+            : uiTextFor(locale, zh: '举报结果', en: 'Report outcome');
+      case 'system':
+      case 'system_announcement':
+        return title.trim().isNotEmpty
+            ? title
+            : uiTextFor(locale, zh: '系统公告', en: 'Announcement');
+      default:
+        return title.trim().isNotEmpty
+            ? title
+            : uiTextFor(locale, zh: '通知', en: 'Notification');
     }
   }
 

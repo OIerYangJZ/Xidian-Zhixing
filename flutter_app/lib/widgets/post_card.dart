@@ -56,7 +56,9 @@ class PostCard extends StatelessWidget {
                                     zh: '匿名用户',
                                     en: 'Anonymous user',
                                   )
-                                : post.authorAlias,
+                                : post.authorAliasFor(
+                                    Localizations.localeOf(context),
+                                  ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -171,7 +173,9 @@ class PostCard extends StatelessWidget {
                           child: Text(
                             post.authorAlias.isEmpty
                                 ? uiText(context, zh: '匿名同学', en: 'Anonymous')
-                                : post.authorAlias,
+                                : post.authorAliasFor(
+                                    Localizations.localeOf(context),
+                                  ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.labelLarge?.copyWith(
@@ -297,9 +301,10 @@ class _DiscussionAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
     final String label = post.authorAlias.trim().isEmpty
-        ? '匿'
-        : post.authorAlias.trim().characters.first;
+        ? anonymousInitial
+        : post.authorAliasFor(Localizations.localeOf(context)).trim().characters.first;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
       return ClipOval(
         child: Image.network(
@@ -311,7 +316,9 @@ class _DiscussionAvatar extends StatelessWidget {
         ),
       );
     }
-    return _DiscussionFallbackAvatar(label: post.isAnonymous ? '匿' : label);
+    return _DiscussionFallbackAvatar(
+      label: post.isAnonymous ? anonymousInitial : label,
+    );
   }
 }
 
@@ -403,7 +410,10 @@ class _PostMeta extends StatelessWidget {
         _MetaPill(
           label: post.channel.trim().isEmpty
               ? uiText(context, zh: '未分类', en: 'Uncategorized')
-              : post.channel.trim(),
+              : localizedChannel(
+                  Localizations.localeOf(context),
+                  post.channel.trim(),
+                ),
           color: theme.colorScheme.primary,
         ),
         if (post.isPinned)
@@ -413,7 +423,7 @@ class _PostMeta extends StatelessWidget {
           ),
         if (post.status != PostStatus.ongoing)
           _MetaPill(
-            label: post.status.label,
+            label: post.status.labelFor(Localizations.localeOf(context)),
             color: theme.colorScheme.onSurfaceVariant,
           ),
         for (final String tag in tags)
@@ -462,9 +472,10 @@ class _Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
     final String label = post.authorAlias.trim().isEmpty
-        ? '匿'
-        : post.authorAlias.trim().characters.first;
+        ? anonymousInitial
+        : post.authorAliasFor(Localizations.localeOf(context)).trim().characters.first;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.medium),
@@ -477,7 +488,7 @@ class _Avatar extends StatelessWidget {
         ),
       );
     }
-    return _FallbackAvatar(label: post.isAnonymous ? '匿' : label);
+    return _FallbackAvatar(label: post.isAnonymous ? anonymousInitial : label);
   }
 }
 

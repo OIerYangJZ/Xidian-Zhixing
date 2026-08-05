@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class PublicUserProfile {
   PublicUserProfile({
     required this.id,
@@ -31,6 +35,34 @@ class PublicUserProfile {
 
   /// 兼容旧代码，userId 映射到 id
   String get userId => id;
+
+  String nicknameFor(Locale locale) => localizedAlias(locale, nickname);
+
+  /// `userLevelLabel` arrives pre-rendered in Chinese, so English mode reads
+  /// the trailing level number instead of echoing the server string.
+  String userLevelLabelFor(Locale locale) {
+    if (locale.languageCode != 'en') {
+      return userLevelLabel;
+    }
+    if (userLevelLabel.contains('一级')) {
+      return 'Level 1 user';
+    }
+    if (userLevelLabel.contains('二级')) {
+      return 'Level 2 user';
+    }
+    return userLevelLabel;
+  }
+
+  String genderFor(Locale locale) {
+    switch (gender) {
+      case '男':
+        return uiTextFor(locale, zh: gender, en: 'Male');
+      case '女':
+        return uiTextFor(locale, zh: gender, en: 'Female');
+      default:
+        return gender;
+    }
+  }
 
   factory PublicUserProfile.fromJson(Map<String, dynamic> json) {
     return PublicUserProfile(

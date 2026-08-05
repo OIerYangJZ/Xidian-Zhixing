@@ -5,6 +5,7 @@ import 'package:markdown/markdown.dart' as md;
 
 import '../core/config/app_config.dart';
 import '../core/theme/app_typography.dart';
+import '../core/l10n/ui_text.dart';
 
 class PostContentBody extends StatelessWidget {
   const PostContentBody({
@@ -52,7 +53,7 @@ class PostContentBody extends StatelessWidget {
         final String rawSemanticLabel = (config.alt ?? config.title ?? '')
             .trim();
         final String semanticLabel = rawSemanticLabel.isEmpty
-            ? '图片'
+            ? uiText(context, zh: '图片', en: 'Image')
             : rawSemanticLabel;
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
@@ -92,7 +93,11 @@ class PostContentBody extends StatelessWidget {
                       alignment: Alignment.center,
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        '图片加载失败',
+                        uiText(
+                          context,
+                          zh: '图片加载失败',
+                          en: 'Image failed to load',
+                        ),
                         style: TextStyle(
                           color: Theme.of(
                             context,

@@ -3,6 +3,7 @@ import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/api_exception.dart';
 import '../core/network/json_utils.dart';
+import '../core/l10n/ui_text.dart';
 
 class AdminAuthRepository {
   AdminAuthRepository(this._apiClient);
@@ -22,14 +23,14 @@ class AdminAuthRepository {
       );
     } on ApiException catch (error) {
       if (error.statusCode == 404) {
-        throw Exception('管理员登录接口不存在（404）。请重启后端并确认使用最新 backend/server.py。');
+        throw Exception(uiTextGlobal(zh: '管理员登录接口不存在（404）。请重启后端并确认使用最新 backend/server.py。', en: 'Admin login endpoint not found (404). Restart the backend and make sure it runs the latest backend/server.py.'));
       }
       rethrow;
     }
     final Map<String, dynamic> data = extractMap(response);
     final String token = (data['token'] ?? '').toString().trim();
     if (token.isEmpty) {
-      throw Exception('管理员登录失败：服务端未返回 token');
+      throw Exception(uiTextGlobal(zh: '管理员登录失败：服务端未返回 token', en: 'Admin login failed: the server returned no token'));
     }
     await AdminAuthStore.instance.saveToken(token);
     return token;

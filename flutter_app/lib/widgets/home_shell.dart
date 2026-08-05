@@ -25,6 +25,7 @@ import '../features/profile/profile_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
 import 'discussion_home_scaffold.dart';
+import '../core/l10n/ui_text.dart';
 
 class HomeShell extends ConsumerStatefulWidget {
   const HomeShell({super.key});
@@ -430,7 +431,9 @@ class _DesktopRail extends StatelessWidget {
     final EditorialColors palette = EditorialColors.of(context);
     final user = AuthStore.instance.currentUser;
     final String nickname = user?.nickname.trim() ?? '';
-    final String label = nickname.isEmpty ? '匿' : nickname.characters.first;
+    final String label = nickname.isEmpty
+        ? uiText(context, zh: '匿', en: 'A')
+        : nickname.characters.first;
     return Container(
       key: const Key('desktop-primary-navigation'),
       width: extended ? AppLayout.sidebarWidth : 76,

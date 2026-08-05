@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class DirectMessageItem {
   DirectMessageItem({
     required this.id,
@@ -73,6 +77,8 @@ class DirectMessageItem {
       replyToContent: replyToContent ?? this.replyToContent,
     );
   }
+
+  String senderAliasFor(Locale locale) => localizedAlias(locale, senderAlias);
 
   factory DirectMessageItem.fromJson(Map<String, dynamic> json) {
     final String readAt = (json['readAt'] ?? '').toString();

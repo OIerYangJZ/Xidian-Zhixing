@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import '../auth/auth_store.dart';
 import '../config/app_config.dart';
+import '../l10n/ui_text.dart';
 import 'api_exception.dart';
 
 class ApiClient {
@@ -111,11 +112,18 @@ class ApiClient {
       );
       response = await http.Response.fromStream(streamed);
     } on TimeoutException {
-      throw ApiException(message: '请求超时，请稍后重试');
+      throw ApiException(
+        message: uiTextGlobal(
+          zh: '请求超时，请稍后重试',
+          en: 'Request timed out, please try again later',
+        ),
+      );
     } on ApiException {
       rethrow;
     } catch (error) {
-      throw ApiException(message: '网络错误：$error');
+      throw ApiException(
+        message: uiTextGlobal(zh: '网络错误：$error', en: 'Network error: $error'),
+      );
     }
 
     final dynamic decoded = _tryDecode(response.body);
@@ -124,7 +132,11 @@ class ApiClient {
     }
 
     final String message =
-        _extractMessage(decoded) ?? '请求失败（${response.statusCode}）';
+        _extractMessage(decoded) ??
+        uiTextGlobal(
+          zh: '请求失败（${response.statusCode}）',
+          en: 'Request failed (${response.statusCode})',
+        );
     throw ApiException(
       message: message,
       statusCode: response.statusCode,
@@ -194,11 +206,18 @@ class ApiClient {
           throw ApiException(message: 'Unsupported HTTP method: $method');
       }
     } on TimeoutException {
-      throw ApiException(message: '请求超时，请稍后重试');
+      throw ApiException(
+        message: uiTextGlobal(
+          zh: '请求超时，请稍后重试',
+          en: 'Request timed out, please try again later',
+        ),
+      );
     } on ApiException {
       rethrow;
     } catch (error) {
-      throw ApiException(message: '网络错误：$error');
+      throw ApiException(
+        message: uiTextGlobal(zh: '网络错误：$error', en: 'Network error: $error'),
+      );
     }
 
     final dynamic decoded = _tryDecode(response.body);
@@ -207,7 +226,11 @@ class ApiClient {
     }
 
     final String message =
-        _extractMessage(decoded) ?? '请求失败（${response.statusCode}）';
+        _extractMessage(decoded) ??
+        uiTextGlobal(
+          zh: '请求失败（${response.statusCode}）',
+          en: 'Request failed (${response.statusCode})',
+        );
     throw ApiException(
       message: message,
       statusCode: response.statusCode,

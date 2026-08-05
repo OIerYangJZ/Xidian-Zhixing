@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/ui_text.dart';
 import '../theme/design_tokens.dart';
 import 'app_surfaces.dart';
 
@@ -26,7 +27,7 @@ class AsyncPageState extends StatelessWidget {
     if (loading) {
       return Semantics(
         liveRegion: true,
-        label: loadingLabel ?? '正在加载',
+        label: loadingLabel ?? uiText(context, zh: '正在加载', en: 'Loading'),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
@@ -42,7 +43,8 @@ class AsyncPageState extends StatelessWidget {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
-                    loadingLabel ?? '正在加载内容',
+                    loadingLabel ??
+                        uiText(context, zh: '正在加载内容', en: 'Loading content'),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -60,12 +62,19 @@ class AsyncPageState extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         children: <Widget>[
           AppInlineMessage(
-            title: '内容加载失败',
+            title: uiText(
+              context,
+              zh: '内容加载失败',
+              en: 'Failed to load content',
+            ),
             message: error!,
             tone: AppMessageTone.error,
             action: onRetry == null
                 ? null
-                : TextButton(onPressed: onRetry, child: const Text('重试')),
+                : TextButton(
+                    onPressed: onRetry,
+                    child: Text(uiText(context, zh: '重试', en: 'Retry')),
+                  ),
           ),
           const SizedBox(height: 12),
           emptyFallback!,
@@ -79,12 +88,19 @@ class AsyncPageState extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
             child: AppInlineMessage(
-              title: '内容加载失败',
+              title: uiText(
+                context,
+                zh: '内容加载失败',
+                en: 'Failed to load content',
+              ),
               message: error!,
               tone: AppMessageTone.error,
               action: onRetry == null
                   ? null
-                  : TextButton(onPressed: onRetry, child: const Text('重试')),
+                  : TextButton(
+                      onPressed: onRetry,
+                      child: Text(uiText(context, zh: '重试', en: 'Retry')),
+                    ),
             ),
           ),
         Expanded(child: child),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/conversation_item.dart';
 import '../../models/dm_request_item.dart';
+import '../../core/l10n/ui_text.dart';
 
 class MessagesState {
   const MessagesState({
@@ -71,7 +72,10 @@ class MessagesController extends StateNotifier<MessagesState> {
       state = state.copyWith(actionBusy: false, clearError: true);
       return true;
     } catch (error) {
-      state = state.copyWith(actionBusy: false, error: '操作失败：$error');
+      state = state.copyWith(
+        actionBusy: false,
+        error: uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
+      );
       return false;
     }
   }
@@ -101,7 +105,10 @@ class MessagesController extends StateNotifier<MessagesState> {
       state = state.copyWith(
         loading: false,
         actionBusy: preserveActionBusy ? state.actionBusy : false,
-        error: '消息加载失败：$error',
+        error: uiTextGlobal(
+          zh: '消息加载失败：$error',
+          en: 'Could not load messages: $error',
+        ),
       );
       return false;
     }
@@ -197,7 +204,10 @@ class MessagesController extends StateNotifier<MessagesState> {
     final int idx = rows.indexWhere((c) => c.id == conversationId);
     if (idx >= 0) {
       rows[idx] = rows[idx].copyWith(
-        lastMessage: '对方撤回了一条消息',
+        lastMessage: uiTextGlobal(
+          zh: '对方撤回了一条消息',
+          en: 'A message was withdrawn',
+        ),
         timeText: _formatNowTime(),
       );
       state = state.copyWith(conversations: rows, clearError: true);

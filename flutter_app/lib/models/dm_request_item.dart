@@ -1,3 +1,7 @@
+import 'package:flutter/widgets.dart';
+
+import '../core/l10n/ui_text.dart';
+
 class DmRequestItem {
   DmRequestItem({
     required this.id,
@@ -16,6 +20,25 @@ class DmRequestItem {
   final String timeText;
   final String status;
   final String statusLabel;
+
+  String fromAliasFor(Locale locale) => localizedAlias(locale, fromAlias);
+
+  String statusLabelFor(Locale locale) {
+    switch (status.trim().toLowerCase()) {
+      case 'accepted':
+        return uiTextFor(locale, zh: '已同意', en: 'Accepted');
+      case 'rejected':
+        return uiTextFor(locale, zh: '已拒绝', en: 'Declined');
+      case 'pending':
+        return uiTextFor(locale, zh: '待处理', en: 'Pending');
+      default:
+        return statusLabel;
+    }
+  }
+
+  String reasonFor(Locale locale) => reason == '请求联系'
+      ? uiTextFor(locale, zh: reason, en: 'Wants to reach you')
+      : reason;
 
   factory DmRequestItem.fromJson(Map<String, dynamic> json) {
     return DmRequestItem(

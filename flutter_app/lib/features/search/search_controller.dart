@@ -4,6 +4,7 @@ import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../models/public_user_profile.dart';
 import '../../repositories/post_repository.dart';
+import '../../core/l10n/ui_text.dart';
 
 const Object _statusUnchanged = Object();
 
@@ -107,7 +108,10 @@ class SearchController extends StateNotifier<SearchState> {
       state = state.copyWith(
         loading: false,
         searching: false,
-        error: '频道加载失败：$error',
+        error: uiTextGlobal(
+        zh: '频道加载失败：$error',
+        en: 'Could not load channels: $error',
+      ),
       );
     }
   }
@@ -186,7 +190,7 @@ class SearchController extends StateNotifier<SearchState> {
       state = state.copyWith(
         loading: false,
         searching: false,
-        error: '搜索失败：$error',
+        error: uiTextGlobal(zh: '搜索失败：$error', en: 'Search failed: $error'),
       );
     }
   }

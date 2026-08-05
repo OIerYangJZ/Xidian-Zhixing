@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/emoji/emoji_catalog.dart';
 import '../../core/emoji/emoji_settings_store.dart';
+import '../../core/l10n/ui_text.dart';
 
 class EmojiAssistantBar extends StatelessWidget {
   const EmojiAssistantBar({
@@ -32,7 +33,7 @@ class EmojiAssistantBar extends StatelessWidget {
                     controller: controller,
                   ),
                   icon: const Icon(Icons.emoji_emotions_outlined),
-                  tooltip: '表情',
+                  tooltip: uiText(context, zh: '表情', en: 'Emoji'),
                   visualDensity: VisualDensity.compact,
                 )
               : OutlinedButton.icon(
@@ -41,7 +42,7 @@ class EmojiAssistantBar extends StatelessWidget {
                     controller: controller,
                   ),
                   icon: const Icon(Icons.emoji_emotions_outlined, size: 18),
-                  label: const Text('表情'),
+                  label: Text(uiText(context, zh: '表情', en: 'Emoji')),
                   style: OutlinedButton.styleFrom(
                     visualDensity: VisualDensity.compact,
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -74,9 +75,12 @@ Future<void> showEmojiPickerSheet({
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              const Text(
-                '选择表情',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+              Text(
+                uiText(context, zh: '选择表情', en: 'Pick an emoji'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 8),
               AnimatedBuilder(
@@ -150,7 +154,7 @@ Future<void> showEmojiPickerSheet({
                 alignment: Alignment.centerRight,
                 child: FilledButton.tonal(
                   onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('完成'),
+                  child: Text(uiText(context, zh: '完成', en: 'Done')),
                 ),
               ),
             ],

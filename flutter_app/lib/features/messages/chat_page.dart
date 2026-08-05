@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/theme/shared_colors.dart';
 import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
@@ -67,6 +68,7 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     final bool busy = _loading || _sending;
     final bool blockedByMe = _conversation.blockedByMe;
     final bool blockedByPeer = _conversation.blockedByPeer;
@@ -82,7 +84,7 @@ class _ChatPageState extends State<ChatPage> {
             children: <Widget>[
               _buildAvatar(_conversation.avatarUrl, _conversation.name),
               const SizedBox(width: 8),
-              Expanded(child: Text(_conversation.name)),
+              Expanded(child: Text(_conversation.nameFor(locale))),
             ],
           ),
         ),
@@ -90,7 +92,7 @@ class _ChatPageState extends State<ChatPage> {
           IconButton(
             onPressed: _loading ? null : _loadMessages,
             icon: const Icon(Icons.refresh),
-            tooltip: '刷新',
+            tooltip: uiText(context, zh: '刷新', en: 'Refresh'),
           ),
           PopupMenuButton<String>(
             onSelected: (String value) {
@@ -113,15 +115,26 @@ class _ChatPageState extends State<ChatPage> {
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
               if (widget.peerUserId != null)
-                const PopupMenuItem<String>(
+                PopupMenuItem<String>(
                   value: 'profile',
-                  child: Text('查看对方主页'),
+                  child: Text(
+                    uiText(context, zh: '查看对方主页', en: 'View profile'),
+                  ),
                 ),
               PopupMenuItem<String>(
                 value: _conversation.blockedByMe ? 'unblock' : 'block',
-                child: Text(_conversation.blockedByMe ? '取消屏蔽' : '屏蔽对方'),
+                child: Text(
+                  _conversation.blockedByMe
+                      ? uiText(context, zh: '取消屏蔽', en: 'Unblock')
+                      : uiText(context, zh: '屏蔽对方', en: 'Block user'),
+                ),
               ),
-              const PopupMenuItem<String>(value: 'delete', child: Text('删除会话')),
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: Text(
+                  uiText(context, zh: '删除会话', en: 'Delete conversation'),
+                ),
+              ),
             ],
           ),
         ],
@@ -157,11 +170,13 @@ class _ChatPageState extends State<ChatPage> {
                               retryContent: _lastFailedContent,
                               retryReplyTarget: _lastFailedReplyTarget,
                             ),
-                      child: const Text('重试发送'),
+                      child: Text(
+                        uiText(context, zh: '重试发送', en: 'Resend'),
+                      ),
                     ),
                   TextButton(
                     onPressed: _loading ? null : _loadMessages,
-                    child: const Text('重试'),
+                    child: Text(uiText(context, zh: '重试', en: 'Retry')),
                   ),
                 ],
               ),
@@ -202,12 +217,31 @@ class _ChatPageState extends State<ChatPage> {
                           enabled: inputEnabled,
                           decoration: InputDecoration(
                             hintText: blockedByPeer
-                                ? '对方已屏蔽你，暂时无法发送消息'
+                                ? uiText(
+                                    context,
+                                    zh: '对方已屏蔽你，暂时无法发送消息',
+                                    en:
+                                        'This user has blocked you, so messages cannot be sent.',
+                                  )
                                 : blockedByMe
-                                ? '你已屏蔽对方，解除屏蔽后可继续发送'
+                                ? uiText(
+                                    context,
+                                    zh: '你已屏蔽对方，解除屏蔽后可继续发送',
+                                    en:
+                                        'You blocked this user. Unblock them to keep chatting.',
+                                  )
                                 : _replyingTo != null
-                                ? '回复 ${_displaySender(_replyingTo!)}'
-                                : '输入消息',
+                                ? uiText(
+                                    context,
+                                    zh: '回复 ${_displaySender(_replyingTo!)}',
+                                    en:
+                                        'Reply to ${_displaySender(_replyingTo!)}',
+                                  )
+                                : uiText(
+                                    context,
+                                    zh: '输入消息',
+                                    en: 'Type a message',
+                                  ),
                           ),
                           onSubmitted: (_) => _send(),
                         ),
@@ -229,7 +263,7 @@ class _ChatPageState extends State<ChatPage> {
                                 ),
                               )
                             : const Icon(Icons.send_rounded),
-                        tooltip: '发送',
+                        tooltip: uiText(context, zh: '发送', en: 'Send'),
                       ),
                     ],
                   ),
@@ -260,7 +294,7 @@ class _ChatPageState extends State<ChatPage> {
           children: [
             ListTile(
               leading: const Icon(Icons.content_copy),
-              title: const Text('复制'),
+              title: Text(uiText(context, zh: '复制', en: 'Copy')),
               onTap: () => _handleMessageAction(
                 context,
                 _MessageAction.copy,
@@ -270,7 +304,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
             ListTile(
               leading: const Icon(Icons.reply_outlined),
-              title: const Text('回复'),
+              title: Text(uiText(context, zh: '回复', en: 'Reply')),
               onTap: () => _handleMessageAction(
                 context,
                 _MessageAction.reply,
@@ -281,7 +315,7 @@ class _ChatPageState extends State<ChatPage> {
             if (isMe && message.canRecall)
               ListTile(
                 leading: const Icon(Icons.undo, color: Colors.red),
-                title: const Text('撤回'),
+                title: Text(uiText(context, zh: '撤回', en: 'Recall')),
                 onTap: () => _handleMessageAction(
                   context,
                   _MessageAction.recall,
@@ -304,7 +338,17 @@ class _ChatPageState extends State<ChatPage> {
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
-            _error == null ? '还没有消息，先打个招呼吧。' : '消息加载失败，请重试。',
+            _error == null
+                ? uiText(
+                    context,
+                    zh: '还没有消息，先打个招呼吧。',
+                    en: 'No messages yet — say hello first.',
+                  )
+                : uiText(
+                    context,
+                    zh: '消息加载失败，请重试。',
+                    en: 'Could not load messages. Please try again.',
+                  ),
             style: TextStyle(
               color: Theme.of(
                 context,
@@ -350,7 +394,9 @@ class _ChatPageState extends State<ChatPage> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        message.senderAlias,
+                        message.senderAliasFor(
+                          Localizations.localeOf(context),
+                        ),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -380,7 +426,9 @@ class _ChatPageState extends State<ChatPage> {
                       if (message.fromMe) ...<Widget>[
                         const SizedBox(width: 6),
                         Text(
-                          message.isRead ? '已读' : '未读',
+                          message.isRead
+                              ? uiText(context, zh: '已读', en: 'Read')
+                              : uiText(context, zh: '未读', en: 'Unread'),
                           style: TextStyle(
                             fontSize: 11,
                             color: message.isRead
@@ -392,7 +440,11 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ],
                       PopupMenuButton<_MessageAction>(
-                        tooltip: '更多操作',
+                        tooltip: uiText(
+                          context,
+                          zh: '更多操作',
+                          en: 'More actions',
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(
                           minWidth: 36,
@@ -402,18 +454,24 @@ class _ChatPageState extends State<ChatPage> {
                             _handleMessageAction(context, action, message),
                         itemBuilder: (BuildContext context) =>
                             <PopupMenuEntry<_MessageAction>>[
-                              const PopupMenuItem<_MessageAction>(
+                              PopupMenuItem<_MessageAction>(
                                 value: _MessageAction.copy,
-                                child: Text('复制'),
+                                child: Text(
+                                  uiText(context, zh: '复制', en: 'Copy'),
+                                ),
                               ),
-                              const PopupMenuItem<_MessageAction>(
+                              PopupMenuItem<_MessageAction>(
                                 value: _MessageAction.reply,
-                                child: Text('回复'),
+                                child: Text(
+                                  uiText(context, zh: '回复', en: 'Reply'),
+                                ),
                               ),
                               if (message.fromMe && message.canRecall)
-                                const PopupMenuItem<_MessageAction>(
+                                PopupMenuItem<_MessageAction>(
                                   value: _MessageAction.recall,
-                                  child: Text('撤回'),
+                                  child: Text(
+                                    uiText(context, zh: '撤回', en: 'Recall'),
+                                  ),
                                 ),
                             ],
                         icon: Icon(
@@ -450,7 +508,13 @@ class _ChatPageState extends State<ChatPage> {
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('已复制到剪贴板')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiText(context, zh: '已复制到剪贴板', en: 'Copied to clipboard'),
+            ),
+          ),
+        );
         return;
       case _MessageAction.reply:
         _handleReply(message);
@@ -472,7 +536,17 @@ class _ChatPageState extends State<ChatPage> {
     if (!message.canRecall) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('只能撤回 2 分钟内自己发送的消息')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '只能撤回 2 分钟内自己发送的消息',
+              en: 'You can only recall your own messages within 2 minutes.',
+            ),
+          ),
+        ),
+      );
       return;
     }
     final bool recalledLastMessage =
@@ -500,31 +574,42 @@ class _ChatPageState extends State<ChatPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('消息已撤回')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(uiText(context, zh: '消息已撤回', en: 'Message recalled')),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
+      final String message = uiTextGlobal(
+        zh: '撤回失败：$error',
+        en: 'Recall failed: $error',
+      );
       setState(() {
-        _error = '撤回失败：$error';
+        _error = message;
       });
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('撤回失败：$error')));
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
   String _displaySender(DirectMessageItem? message) {
+    final Locale locale = appLocale;
     if (message == null) {
-      return '匿名同学';
+      return localizedAlias(locale, '匿名同学');
     }
-    return message.fromMe ? '我' : message.senderAlias;
+    return message.fromMe
+        ? uiTextFor(locale, zh: '我', en: 'Me')
+        : message.senderAliasFor(locale);
   }
 
   String _conversationPreviewText(List<DirectMessageItem> messages) {
     if (messages.isEmpty) {
-      return '开始聊天吧';
+      return uiTextGlobal(zh: '开始聊天吧', en: 'Start the conversation');
     }
     return messages.last.content.trim().isEmpty
-        ? '开始聊天吧'
+        ? uiTextGlobal(zh: '开始聊天吧', en: 'Start the conversation')
         : messages.last.content;
   }
 
@@ -556,7 +641,11 @@ class _ChatPageState extends State<ChatPage> {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Text(
-                  '回复 ${_displaySender(message)}',
+                  uiText(
+                    context,
+                    zh: '回复 ${_displaySender(message)}',
+                    en: 'Reply to ${_displaySender(message)}',
+                  ),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -581,7 +670,7 @@ class _ChatPageState extends State<ChatPage> {
           IconButton(
             onPressed: () => setState(() => _replyingTo = null),
             icon: const Icon(Icons.close, size: 18),
-            tooltip: '取消回复',
+            tooltip: uiText(context, zh: '取消回复', en: 'Cancel reply'),
             visualDensity: VisualDensity.compact,
           ),
         ],
@@ -630,7 +719,10 @@ class _ChatPageState extends State<ChatPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      message.replyToSender ?? '匿名同学',
+                      localizedAlias(
+                        Localizations.localeOf(context),
+                        message.replyToSender ?? '匿名同学',
+                      ),
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -663,8 +755,16 @@ class _ChatPageState extends State<ChatPage> {
     required bool blockedByPeer,
   }) {
     final String text = blockedByPeer
-        ? '对方已屏蔽你，当前只能查看历史消息。'
-        : '你已屏蔽对方，解除后才可继续发送。';
+        ? uiText(
+            context,
+            zh: '对方已屏蔽你，当前只能查看历史消息。',
+            en: 'This user has blocked you. You can only read past messages.',
+          )
+        : uiText(
+            context,
+            zh: '你已屏蔽对方，解除后才可继续发送。',
+            en: 'You blocked this user. Unblock them to send messages again.',
+          );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -690,7 +790,7 @@ class _ChatPageState extends State<ChatPage> {
           if (blockedByMe && !blockedByPeer)
             TextButton(
               onPressed: _sending ? null : () => _toggleBlock(false),
-              child: const Text('取消屏蔽'),
+              child: Text(uiText(context, zh: '取消屏蔽', en: 'Unblock')),
             ),
         ],
       ),
@@ -718,7 +818,10 @@ class _ChatPageState extends State<ChatPage> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = '消息加载失败：$error';
+        _error = uiTextGlobal(
+          zh: '消息加载失败：$error',
+          en: 'Could not load messages: $error',
+        );
       });
     } finally {
       if (mounted) {
@@ -769,7 +872,10 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _lastFailedContent = content;
         _lastFailedReplyTarget = replyTarget;
-        _error = '发送失败：$error';
+        _error = uiTextGlobal(
+          zh: '发送失败：$error',
+          en: 'Send failed: $error',
+        );
       });
     } finally {
       if (mounted) {
@@ -814,11 +920,22 @@ class _ChatPageState extends State<ChatPage> {
       );
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(block ? '已屏蔽对方' : '已取消屏蔽')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            block
+                ? uiText(context, zh: '已屏蔽对方', en: 'User blocked')
+                : uiText(context, zh: '已取消屏蔽', en: 'User unblocked'),
+          ),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = '操作失败：$error';
+        _error = uiTextGlobal(
+          zh: '操作失败：$error',
+          en: 'Action failed: $error',
+        );
       });
     }
   }
@@ -828,16 +945,25 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('删除会话'),
-          content: const Text('删除后仅从你的列表中移除，会话历史不会立即物理删除。'),
+          title: Text(
+            uiText(context, zh: '删除会话', en: 'Delete conversation'),
+          ),
+          content: Text(
+            uiText(
+              context,
+              zh: '删除后仅从你的列表中移除，会话历史不会立即物理删除。',
+              en:
+                  'This only removes the conversation from your list; the history is not deleted immediately.',
+            ),
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('取消'),
+              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('删除'),
+              child: Text(uiText(context, zh: '删除', en: 'Delete')),
             ),
           ],
         );
@@ -850,12 +976,21 @@ class _ChatPageState extends State<ChatPage> {
       widget.onConversationRemoved?.call();
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('会话已删除')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(context, zh: '会话已删除', en: 'Conversation deleted'),
+          ),
+        ),
+      );
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = '删除会话失败：$error';
+        _error = uiTextGlobal(
+          zh: '删除会话失败：$error',
+          en: 'Could not delete the conversation: $error',
+        );
       });
     }
   }

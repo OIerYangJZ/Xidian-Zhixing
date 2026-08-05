@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -12,12 +13,12 @@ enum FavoriteSortMode {
 }
 
 extension FavoriteSortModeLabel on FavoriteSortMode {
-  String get label {
+  String labelFor(Locale locale) {
     switch (this) {
       case FavoriteSortMode.latest:
-        return '按时间';
+        return uiTextFor(locale, zh: '按时间', en: 'By date');
       case FavoriteSortMode.hot:
-        return '按热度';
+        return uiTextFor(locale, zh: '按热度', en: 'By activity');
     }
   }
 }
@@ -85,7 +86,17 @@ class FavoritesPageState extends State<FavoritesPage> {
               padding: const EdgeInsets.all(20),
               child: Center(
                 child: Text(
-                  _favorites.isEmpty ? '你还没有收藏帖子。' : '暂无符合条件的收藏内容。',
+                  _favorites.isEmpty
+                      ? uiText(
+                          context,
+                          zh: '你还没有收藏帖子。',
+                          en: 'You have not favorited any posts yet.',
+                        )
+                      : uiText(
+                          context,
+                          zh: '暂无符合条件的收藏内容。',
+                          en: 'No favorites match the current filters.',
+                        ),
                 ),
               ),
             ),
@@ -110,14 +121,19 @@ class FavoritesPageState extends State<FavoritesPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  '我的收藏夹',
+                  uiText(context, zh: '我的收藏夹', en: 'My favorites'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '总收藏 ${_favorites.length} 条 · 当前显示 $filteredCount 条',
+                  uiText(
+                    context,
+                    zh: '总收藏 ${_favorites.length} 条 · 当前显示 $filteredCount 条',
+                    en:
+                        '${_favorites.length} saved · $filteredCount shown',
+                  ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
@@ -130,7 +146,7 @@ class FavoritesPageState extends State<FavoritesPage> {
           FilledButton.tonalIcon(
             onPressed: _loadFavorites,
             icon: const Icon(Icons.refresh),
-            label: const Text('刷新'),
+            label: Text(uiText(context, zh: '刷新', en: 'Refresh')),
           ),
         ],
       ),
@@ -151,7 +167,11 @@ class FavoritesPageState extends State<FavoritesPage> {
           TextField(
             controller: _keywordController,
             decoration: InputDecoration(
-              hintText: '搜索收藏帖子（标题/正文/标签）',
+              hintText: uiText(
+                context,
+                zh: '搜索收藏帖子（标题/正文/标签）',
+                en: 'Search favorites (title / body / tags)',
+              ),
               prefixIcon: const Icon(Icons.search_rounded),
               suffixIcon: _keywordController.text.isEmpty
                   ? null
@@ -170,13 +190,16 @@ class FavoritesPageState extends State<FavoritesPage> {
             children: <Widget>[
               const Icon(Icons.sort_rounded, size: 18),
               const SizedBox(width: 6),
-              const Text('排序', style: TextStyle(fontWeight: FontWeight.w700)),
+              Text(
+                uiText(context, zh: '排序', en: 'Sort'),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
               const SizedBox(width: 10),
               ...FavoriteSortMode.values.map(
                 (FavoriteSortMode mode) => Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ChoiceChip(
-                    label: Text(mode.label),
+                    label: Text(mode.labelFor(Localizations.localeOf(context))),
                     selected: _sortMode == mode,
                     onSelected: (_) {
                       setState(() {
@@ -194,6 +217,7 @@ class FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildChannelBar() {
+    final Locale locale = Localizations.localeOf(context);
     return SizedBox(
       height: 42,
       child: ListView(
@@ -204,7 +228,7 @@ class FavoritesPageState extends State<FavoritesPage> {
               (String channel) => Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
-                  label: Text(channel),
+                  label: Text(localizedChannel(locale, channel)),
                   selected: _selectedChannel == channel,
                   onSelected: (_) {
                     setState(() {
@@ -259,7 +283,11 @@ class FavoritesPageState extends State<FavoritesPage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.bookmark_remove_outlined),
-              label: Text(busy ? '处理中...' : '取消收藏'),
+              label: Text(
+                busy
+                    ? uiText(context, zh: '处理中...', en: 'Working...')
+                    : uiText(context, zh: '取消收藏', en: 'Remove'),
+              ),
             ),
           ),
         ),
@@ -305,7 +333,15 @@ class FavoritesPageState extends State<FavoritesPage> {
 
       if (result.favorited) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('取消收藏失败，请稍后重试。')),
+          SnackBar(
+            content: Text(
+              uiText(
+                context,
+                zh: '取消收藏失败，请稍后重试。',
+                en: 'Could not remove the favorite. Please try again later.',
+              ),
+            ),
+          ),
         );
         return;
       }
@@ -318,9 +354,15 @@ class FavoritesPageState extends State<FavoritesPage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('已取消收藏：${post.title}'),
+          content: Text(
+            uiText(
+              context,
+              zh: '已取消收藏：${post.title}',
+              en: 'Removed from favorites: ${post.title}',
+            ),
+          ),
           action: SnackBarAction(
-            label: '撤销',
+            label: uiText(context, zh: '撤销', en: 'Undo'),
             onPressed: () {
               _restoreFavorite(post);
             },
@@ -332,7 +374,15 @@ class FavoritesPageState extends State<FavoritesPage> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('取消收藏失败：$error')),
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '取消收藏失败：$error',
+              en: 'Could not remove the favorite: $error',
+            ),
+          ),
+        ),
       );
     } finally {
       if (mounted) {
@@ -395,7 +445,10 @@ class FavoritesPageState extends State<FavoritesPage> {
         return;
       }
       setState(() {
-        _error = '收藏加载失败：$error';
+        _error = uiTextGlobal(
+          zh: '收藏加载失败：$error',
+          en: 'Could not load favorites: $error',
+        );
       });
     } finally {
       if (mounted) {

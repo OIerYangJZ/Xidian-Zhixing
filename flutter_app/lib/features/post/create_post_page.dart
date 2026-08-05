@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
@@ -12,6 +13,7 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
+import '../../models/user_profile.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 import '../../widgets/post_content_body.dart';
@@ -72,9 +74,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     final CreatePostState state = ref.watch(createPostControllerProvider);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
+    final String levelLabel = userLevelLabelForLevel(
+      locale,
+      state.isLevelOneUser ? 1 : 2,
+    );
     final List<String> channels = state.channels;
     final bool hasChannels = channels.isNotEmpty;
     final String? selectedChannel = hasChannels
@@ -82,7 +89,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         : null;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('发布帖子')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '发布帖子', en: 'New post')),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(
@@ -90,7 +99,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           ),
           child: AsyncPageState(
             loading: state.loadingChannels,
-            loadingLabel: '正在准备发布表单',
+            loadingLabel: uiText(
+              context,
+              zh: '正在准备发布表单',
+              en: 'Preparing the compose form',
+            ),
             error: state.error,
             onRetry: () =>
                 ref.read(createPostControllerProvider.notifier).loadChannels(),
@@ -101,10 +114,23 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 if (isBusy)
                   _ProgressCard(
                     text: _pastingMarkdownImages
-                        ? '上传粘贴图片中...'
+                        ? uiText(
+                            context,
+                            zh: '上传粘贴图片中...',
+                            en: 'Uploading pasted images...',
+                          )
                         : _pickingImages
-                        ? '读取图片中...'
-                        : (state.progressText ?? '提交中...'),
+                        ? uiText(
+                            context,
+                            zh: '读取图片中...',
+                            en: 'Reading images...',
+                          )
+                        : (state.progressText ??
+                              uiText(
+                                context,
+                                zh: '提交中...',
+                                en: 'Submitting...',
+                              )),
                   ),
                 if (isBusy) const SizedBox(height: AppSpacing.sm),
                 AppSurfaceCard(
@@ -118,9 +144,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        const AppSectionHeader(
-                          title: '分享一条校园内容',
-                          subtitle: '清楚的标题和上下文，更容易获得有效回应。',
+                        AppSectionHeader(
+                          title: uiText(
+                            context,
+                            zh: '分享一条校园内容',
+                            en: 'Share something from campus',
+                          ),
+                          subtitle: uiText(
+                            context,
+                            zh: '清楚的标题和上下文，更容易获得有效回应。',
+                            en:
+                                'A clear title and enough context get better replies.',
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         Shortcuts(
@@ -136,16 +171,32 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                             key: const Key('create-post-title'),
                             controller: _titleController,
                             maxLength: 60,
-                            decoration: const InputDecoration(
-                              labelText: '标题',
-                              hintText: '一句话概括你的问题或诉求',
+                            decoration: InputDecoration(
+                              labelText: uiText(
+                                context,
+                                zh: '标题',
+                                en: 'Title',
+                              ),
+                              hintText: uiText(
+                                context,
+                                zh: '一句话概括你的问题或诉求',
+                                en: 'Sum up your question or request in one line',
+                              ),
                             ),
                             validator: (String? value) {
                               if (value == null || value.trim().isEmpty) {
-                                return '请输入标题';
+                                return uiTextFor(
+                                  locale,
+                                  zh: '请输入标题',
+                                  en: 'Please enter a title',
+                                );
                               }
                               if (value.trim().length < 4) {
-                                return '标题至少 4 个字';
+                                return uiTextFor(
+                                  locale,
+                                  zh: '标题至少 4 个字',
+                                  en: 'The title needs at least 4 characters',
+                                );
                               }
                               return null;
                             },
@@ -155,8 +206,21 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         SwitchListTile(
                           value: _useMarkdown,
                           onChanged: isBusy ? null : _handleMarkdownToggle,
-                          title: const Text('使用 Markdown 编辑'),
-                          subtitle: const Text('开启后可编写 Markdown 源码，发出后按渲染效果展示'),
+                          title: Text(
+                            uiText(
+                              context,
+                              zh: '使用 Markdown 编辑',
+                              en: 'Compose in Markdown',
+                            ),
+                          ),
+                          subtitle: Text(
+                            uiText(
+                              context,
+                              zh: '开启后可编写 Markdown 源码，发出后按渲染效果展示',
+                              en:
+                                  'Write Markdown source; the post renders it once published',
+                            ),
+                          ),
                           contentPadding: EdgeInsets.zero,
                         ),
                         const SizedBox(height: 6),
@@ -190,25 +254,66 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               : null,
                           decoration: InputDecoration(
                             alignLabelWithHint: true,
-                            labelText: _useMarkdown ? 'Markdown 源码' : '正文',
+                            labelText: _useMarkdown
+                                ? uiText(
+                                    context,
+                                    zh: 'Markdown 源码',
+                                    en: 'Markdown source',
+                                  )
+                                : uiText(context, zh: '正文', en: 'Body'),
                             hintText: _useMarkdown
-                                ? '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```'
-                                : '描述越完整，越容易获得帮助',
+                                ? uiText(
+                                    context,
+                                    zh:
+                                        '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```',
+                                    en:
+                                        '# Heading\n- List item\n> Quote\n```dart\nprint("Hello");\n```',
+                                  )
+                                : uiText(
+                                    context,
+                                    zh: '描述越完整，越容易获得帮助',
+                                    en:
+                                        'The more detail you give, the easier it is to help',
+                                  ),
                             helperText: _useMarkdown
-                                ? 'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。'
-                                : '纯文本模式最多 3000 字。切换模式会清空当前正文。',
+                                ? uiText(
+                                    context,
+                                    zh:
+                                        'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。',
+                                    en:
+                                        'Markdown mode has no length limit and supports pasting images. Switching modes clears the body.',
+                                  )
+                                : uiText(
+                                    context,
+                                    zh: '纯文本模式最多 3000 字。切换模式会清空当前正文。',
+                                    en:
+                                        'Plain text is limited to 3000 characters. Switching modes clears the body.',
+                                  ),
                             helperMaxLines: 2,
                           ),
                           validator: (String? value) {
                             if (value == null || value.trim().isEmpty) {
-                              return '请输入正文';
+                              return uiTextFor(
+                                locale,
+                                zh: '请输入正文',
+                                en: 'Please enter the body',
+                              );
                             }
                             if (value.trim().length < 8) {
-                              return '正文至少 8 个字';
+                              return uiTextFor(
+                                locale,
+                                zh: '正文至少 8 个字',
+                                en: 'The body needs at least 8 characters',
+                              );
                             }
                             if (!_useMarkdown &&
                                 value.length > _plainTextMaxLength) {
-                              return '纯文本正文最多 $_plainTextMaxLength 字';
+                              return uiTextFor(
+                                locale,
+                                zh: '纯文本正文最多 $_plainTextMaxLength 字',
+                                en:
+                                    'Plain text is limited to $_plainTextMaxLength characters',
+                              );
                             }
                             return null;
                           },
@@ -237,7 +342,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
                                 Text(
-                                  '实时预览',
+                                  uiText(
+                                    context,
+                                    zh: '实时预览',
+                                    en: 'Live preview',
+                                  ),
                                   style: Theme.of(context).textTheme.titleSmall
                                       ?.copyWith(fontWeight: FontWeight.w700),
                                 ),
@@ -253,7 +362,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                         final String source = value.text.trim();
                                         if (source.isEmpty) {
                                           return Text(
-                                            '输入 Markdown 源码后，这里会显示渲染效果。',
+                                            uiText(
+                                              context,
+                                              zh:
+                                                  '输入 Markdown 源码后，这里会显示渲染效果。',
+                                              en:
+                                                  'Type Markdown source and the rendered result appears here.',
+                                            ),
                                             style: TextStyle(
                                               color: Theme.of(context)
                                                   .colorScheme
@@ -278,12 +393,20 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         if (hasChannels)
                           DropdownButtonFormField<String>(
                             initialValue: selectedChannel,
-                            decoration: const InputDecoration(labelText: '频道'),
+                            decoration: InputDecoration(
+                              labelText: uiText(
+                                context,
+                                zh: '频道',
+                                en: 'Channel',
+                              ),
+                            ),
                             items: channels
                                 .map(
                                   (String channel) => DropdownMenuItem<String>(
                                     value: channel,
-                                    child: Text(channel),
+                                    child: Text(
+                                      localizedChannel(locale, channel),
+                                    ),
                                   ),
                                 )
                                 .toList(),
@@ -303,13 +426,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         const SizedBox(height: 10),
                         DropdownButtonFormField<PostStatus>(
                           initialValue: _status,
-                          decoration: const InputDecoration(labelText: '状态'),
+                          decoration: InputDecoration(
+                            labelText: uiText(
+                              context,
+                              zh: '状态',
+                              en: 'Status',
+                            ),
+                          ),
                           items: PostStatus.values
                               .map(
                                 (PostStatus status) =>
                                     DropdownMenuItem<PostStatus>(
                                       value: status,
-                                      child: Text(status.label),
+                                      child: Text(status.labelFor(locale)),
                                     ),
                               )
                               .toList(),
@@ -327,9 +456,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _tagsController,
-                          decoration: const InputDecoration(
-                            labelText: '标签（可选）',
-                            hintText: '例如：北校区, 学习, 周末',
+                          decoration: InputDecoration(
+                            labelText: uiText(
+                              context,
+                              zh: '标签（可选）',
+                              en: 'Tags (optional)',
+                            ),
+                            hintText: uiText(
+                              context,
+                              zh: '例如：北校区, 学习, 周末',
+                              en: 'e.g. North campus, study, weekend',
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -342,23 +479,49 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                     _useAnonymousAlias = value;
                                   });
                                 },
-                          title: const Text('本帖使用匿名身份'),
-                          subtitle: const Text('仅影响当前帖子，不影响你的账号昵称'),
+                          title: Text(
+                            uiText(
+                              context,
+                              zh: '本帖使用匿名身份',
+                              en: 'Post anonymously',
+                            ),
+                          ),
+                          subtitle: Text(
+                            uiText(
+                              context,
+                              zh: '仅影响当前帖子，不影响你的账号昵称',
+                              en:
+                                  'Affects this post only, not your account nickname',
+                            ),
+                          ),
                           contentPadding: EdgeInsets.zero,
                         ),
                         if (_useAnonymousAlias) ...<Widget>[
                           TextFormField(
                             controller: _anonymousAliasController,
-                            decoration: const InputDecoration(
-                              labelText: '匿名昵称（可选）',
-                              hintText: '例如：热心同学',
+                            decoration: InputDecoration(
+                              labelText: uiText(
+                                context,
+                                zh: '匿名昵称（可选）',
+                                en: 'Anonymous nickname (optional)',
+                              ),
+                              hintText: uiText(
+                                context,
+                                zh: '例如：热心同学',
+                                en: 'e.g. Helpful classmate',
+                              ),
                             ),
                             validator: (String? value) {
                               if (value == null || value.trim().isEmpty) {
                                 return null;
                               }
                               if (value.trim().length > 24) {
-                                return '匿名昵称最长 24 个字符';
+                                return uiTextFor(
+                                  locale,
+                                  zh: '匿名昵称最长 24 个字符',
+                                  en:
+                                      'The anonymous nickname is limited to 24 characters',
+                                );
                               }
                               return null;
                             },
@@ -367,15 +530,33 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           initialValue: _privateOnly ? 'private' : 'public',
-                          decoration: const InputDecoration(labelText: '可见范围'),
-                          items: const <DropdownMenuItem<String>>[
+                          decoration: InputDecoration(
+                            labelText: uiText(
+                              context,
+                              zh: '可见范围',
+                              en: 'Visibility',
+                            ),
+                          ),
+                          items: <DropdownMenuItem<String>>[
                             DropdownMenuItem<String>(
                               value: 'public',
-                              child: Text('所有人可见'),
+                              child: Text(
+                                uiText(
+                                  context,
+                                  zh: '所有人可见',
+                                  en: 'Visible to everyone',
+                                ),
+                              ),
                             ),
                             DropdownMenuItem<String>(
                               value: 'private',
-                              child: Text('仅自己可见'),
+                              child: Text(
+                                uiText(
+                                  context,
+                                  zh: '仅自己可见',
+                                  en: 'Visible only to me',
+                                ),
+                              ),
                             ),
                           ],
                           onChanged: isBusy
@@ -389,8 +570,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         const SizedBox(height: 4),
                         Text(
                           _privateOnly
-                              ? '仅你自己能在“我的帖子”里看到这条内容。'
-                              : '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                              ? uiText(
+                                  context,
+                                  zh: '仅你自己能在“我的帖子”里看到这条内容。',
+                                  en:
+                                      'Only you can see this post, under “My posts”.',
+                                )
+                              : uiText(
+                                  context,
+                                  zh:
+                                      '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                                  en:
+                                      'On a public, non-anonymous post, others can message you directly if you allow messages from strangers.',
+                                ),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(
@@ -403,37 +595,67 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           DropdownButtonFormField<int?>(
                             initialValue: _selectedPinDurationMinutes,
                             decoration: InputDecoration(
-                              labelText: '发帖后立即置顶（可选）',
-                              helperText: '当前身份：${state.userLevelLabel}',
+                              labelText: uiText(
+                                context,
+                                zh: '发帖后立即置顶（可选）',
+                                en: 'Pin immediately after posting (optional)',
+                              ),
+                              helperText: uiText(
+                                context,
+                                zh: '当前身份：$levelLabel',
+                                en: 'Current role: $levelLabel',
+                              ),
                             ),
-                            items: const <DropdownMenuItem<int?>>[
+                            items: <DropdownMenuItem<int?>>[
                               DropdownMenuItem<int?>(
                                 value: null,
-                                child: Text('不置顶'),
+                                child: Text(
+                                  uiText(
+                                    context,
+                                    zh: '不置顶',
+                                    en: 'Do not pin',
+                                  ),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 30,
-                                child: Text('30 分钟'),
+                                child: Text(
+                                  uiText(
+                                    context,
+                                    zh: '30 分钟',
+                                    en: '30 minutes',
+                                  ),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 60,
-                                child: Text('1 小时'),
+                                child: Text(
+                                  uiText(context, zh: '1 小时', en: '1 hour'),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 120,
-                                child: Text('2 小时'),
+                                child: Text(
+                                  uiText(context, zh: '2 小时', en: '2 hours'),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 180,
-                                child: Text('3 小时'),
+                                child: Text(
+                                  uiText(context, zh: '3 小时', en: '3 hours'),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 1440,
-                                child: Text('1 天'),
+                                child: Text(
+                                  uiText(context, zh: '1 天', en: '1 day'),
+                                ),
                               ),
                               DropdownMenuItem<int?>(
                                 value: 4320,
-                                child: Text('3 天'),
+                                child: Text(
+                                  uiText(context, zh: '3 天', en: '3 days'),
+                                ),
                               ),
                             ],
                             onChanged: isBusy
@@ -449,7 +671,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         Row(
                           children: <Widget>[
                             Text(
-                              '图片（${_pickedImages.length}/9）',
+                              uiText(
+                                context,
+                                zh: '图片（${_pickedImages.length}/9）',
+                                en: 'Images (${_pickedImages.length}/9)',
+                              ),
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                               ),
@@ -460,14 +686,25 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               icon: const Icon(
                                 Icons.add_photo_alternate_outlined,
                               ),
-                              label: const Text('选择图片'),
+                              label: Text(
+                                uiText(
+                                  context,
+                                  zh: '选择图片',
+                                  en: 'Choose images',
+                                ),
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         if (_pickedImages.isEmpty)
                           Text(
-                            '未选择图片。支持 jpg/png/webp/gif。',
+                            uiText(
+                              context,
+                              zh: '未选择图片。支持 jpg/png/webp/gif。',
+                              en:
+                                  'No images selected. jpg / png / webp / gif are supported.',
+                            ),
                             style: TextStyle(
                               color: Theme.of(
                                 context,
@@ -507,7 +744,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                 ? null
                                 : () => _submit(selectedChannel),
                             icon: const Icon(Icons.send_rounded),
-                            label: Text(state.submitting ? '发布中...' : '发布帖子'),
+                            label: Text(
+                              state.submitting
+                                  ? uiText(
+                                      context,
+                                      zh: '发布中...',
+                                      en: 'Publishing...',
+                                    )
+                                  : uiText(
+                                      context,
+                                      zh: '发布帖子',
+                                      en: 'Publish post',
+                                    ),
+                            ),
                           ),
                         ),
                       ],
@@ -552,7 +801,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       if (remaining <= 0) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('最多上传 9 张图片')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiText(
+                context,
+                zh: '最多上传 9 张图片',
+                en: 'You can upload up to 9 images',
+              ),
+            ),
+          ),
+        );
         return;
       }
 
@@ -565,7 +824,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+              uiText(
+                context,
+                zh:
+                    '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+                en:
+                    'Up to 9 images: kept the first $remaining, skipped ${selected.length - accepted.length}.',
+              ),
             ),
           ),
         );
@@ -578,7 +843,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       if (largeFiles.isNotEmpty && accepted.length == remaining) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。'),
+            content: Text(
+              uiText(
+                context,
+                zh: '提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。',
+                en:
+                    'Heads up: ${largeFiles.length} image(s) exceed 5MB and may upload slowly.',
+              ),
+            ),
             duration: const Duration(seconds: 3),
           ),
         );
@@ -589,7 +861,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('选择图片失败：$error')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '选择图片失败：$error',
+              en: 'Could not select images: $error',
+            ),
+          ),
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -655,7 +937,19 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(created.isPinned ? '帖子发布成功，已置顶展示。' : '帖子发布成功，已立即展示。'),
+        content: Text(
+          created.isPinned
+              ? uiText(
+                  context,
+                  zh: '帖子发布成功，已置顶展示。',
+                  en: 'Post published and pinned.',
+                )
+              : uiText(
+                  context,
+                  zh: '帖子发布成功，已立即展示。',
+                  en: 'Post published and live.',
+                ),
+        ),
       ),
     );
     Navigator.of(context).pop(true);
@@ -675,7 +969,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            value ? '已切换到 Markdown 编辑，当前正文已清空。' : '已切换到纯文本编辑，当前正文已清空。',
+            value
+                ? uiText(
+                    context,
+                    zh: '已切换到 Markdown 编辑，当前正文已清空。',
+                    en: 'Switched to Markdown editing; the body was cleared.',
+                  )
+                : uiText(
+                    context,
+                    zh: '已切换到纯文本编辑，当前正文已清空。',
+                    en: 'Switched to plain text editing; the body was cleared.',
+                  ),
           ),
         ),
       );
@@ -694,7 +998,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     if (remaining <= 0) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('最多上传 9 张图片')));
+      ).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '最多上传 9 张图片',
+              en: 'You can upload up to 9 images',
+            ),
+          ),
+        ),
+      );
       return;
     }
 
@@ -729,13 +1043,26 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          SnackBar(content: Text('已插入 ${accepted.length} 张 Markdown 图片')),
+          SnackBar(
+            content: Text(
+              uiText(
+                context,
+                zh: '已插入 ${accepted.length} 张 Markdown 图片',
+                en: 'Inserted ${accepted.length} Markdown image(s)',
+              ),
+            ),
+          ),
         );
       if (images.length > accepted.length) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
+              uiText(
+                context,
+                zh: '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
+                en:
+                    'Up to 9 images: ${images.length - accepted.length} were not inserted.',
+              ),
             ),
           ),
         );
@@ -746,7 +1073,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('粘贴图片失败：$error')));
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              uiText(
+                context,
+                zh: '粘贴图片失败：$error',
+                en: 'Could not paste images: $error',
+              ),
+            ),
+          ),
+        );
     } finally {
       if (mounted) {
         setState(() {
@@ -792,14 +1129,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   String _deriveMarkdownImageAlt(String fileName) {
     final String trimmed = fileName.trim();
     if (trimmed.isEmpty) {
-      return '图片';
+      return uiTextGlobal(zh: '图片', en: 'image');
     }
     final int dotIndex = trimmed.lastIndexOf('.');
     final String baseName = dotIndex > 0
         ? trimmed.substring(0, dotIndex)
         : trimmed;
     final String sanitized = baseName.trim();
-    return sanitized.isEmpty ? '图片' : sanitized;
+    return sanitized.isEmpty ? uiTextGlobal(zh: '图片', en: 'image') : sanitized;
   }
 }
 
@@ -852,7 +1189,11 @@ class _EmptyChannelCard extends StatelessWidget {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(width: 10),
-          const Expanded(child: Text('暂无可用频道')),
+          Expanded(
+            child: Text(
+              uiText(context, zh: '暂无可用频道', en: 'No channels available'),
+            ),
+          ),
         ],
       ),
     );
