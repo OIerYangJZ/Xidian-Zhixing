@@ -26,14 +26,14 @@
      /home/ubuntu/treehole/shared/config/backend.env
    ```
 
-生产必填项包括管理员凭据、SQLite 和对象目录、Web 根目录、正式 CORS 来源以及项目组测试学号白名单。真实学号、管理员密码和 AI/S3 密钥只能写入服务器环境文件。
+生产必填项包括管理员凭据、SQLite 和对象目录、Web 根目录以及正式 CORS 来源。可选学号白名单及真实学号、管理员密码和 AI/S3 密钥只能写入服务器环境文件。
 
 网页端生产 API 使用同源 `/api`，由 Nginx 反向代理到 `127.0.0.1:8080`。移动 App 和小程序需要在各自构建配置中显式注入正式 HTTPS 地址。
 
 当前内测约束：
 
 - `BACKEND_CORS_ALLOWED_ORIGINS=https://zhixing.xidian.edu.cn`
-- `BACKEND_AUTH_ALLOWED_STUDENT_IDS` 填项目组成员学号，英文逗号分隔
+- `BACKEND_AUTH_ALLOWED_STUDENT_IDS=` 留空允许所有通过学校统一认证的用户；非空时只允许英文逗号分隔的学号
 - `BACKEND_ENABLE_XIDIAN_AUTH=true`
 - `BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn`
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE=false`

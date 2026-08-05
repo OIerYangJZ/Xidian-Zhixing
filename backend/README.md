@@ -24,7 +24,7 @@ python3 backend/server.py
 - `BACKEND_HOST`（默认 `0.0.0.0`）
 - `BACKEND_PORT`（默认 `8080`）
 - `BACKEND_ENABLE_XIDIAN_AUTH`（普通用户登录必须启用；生产环境必须为 `true`）
-- `BACKEND_AUTH_ALLOWED_STUDENT_IDS`（私有内测学号白名单，英文逗号分隔；生产环境必填）
+- `BACKEND_AUTH_ALLOWED_STUDENT_IDS`（可选学号白名单；留空允许所有统一认证用户，非空时只允许英文逗号分隔的学号）
 - `BACKEND_XIDIAN_PUBLIC_ORIGIN`（启用统一认证时必填；必须是 IDS 已登记的 HTTPS Origin，当前为 `https://zhixing.xidian.edu.cn`）
 - `BACKEND_AI_BASE_URL`（服务器端 OpenAI 兼容接口地址；不得下发到客户端）
 - `BACKEND_AI_API_KEY`（服务器端模型密钥；不得写入小程序、Flutter 或请求体）
@@ -146,9 +146,9 @@ sudo ./scripts/install_ubuntu_offline.sh /path/to/treehole-release.tar.gz
 sudoedit /home/ubuntu/treehole/shared/config/backend.env
 ```
 
-普通用户学号密码登录不依赖统一认证回调地址。部署时重点确认：
+普通用户登录依赖统一认证回调地址。部署时重点确认：
 
-1. `/home/ubuntu/treehole/shared/config/backend.env` 中已设置 `BACKEND_ENABLE_XIDIAN_AUTH=true` 与真实的 `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
+1. `/home/ubuntu/treehole/shared/config/backend.env` 中已设置 `BACKEND_ENABLE_XIDIAN_AUTH=true`；`BACKEND_AUTH_ALLOWED_STUDENT_IDS` 留空时开放给所有统一认证用户，非空时只开放给列出的学号
 2. Nginx `server_name` 与 HTTPS 证书已配置完成
 3. 移动端正式构建时使用：
 
@@ -184,12 +184,12 @@ curl http://127.0.0.1:8080/api/channels
 
 ## 统一身份认证配置
 
-普通用户登录必须启用西电统一身份认证，并在私有内测期间填写学号白名单：
+普通用户登录必须启用西电统一身份认证。学号白名单可以留空以允许所有统一认证用户，也可以填写为仅允许指定学号：
 
 ```bash
 BACKEND_ENABLE_XIDIAN_AUTH=true \
 BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn \
-BACKEND_AUTH_ALLOWED_STUDENT_IDS=2300000000,2300000001 \
+BACKEND_AUTH_ALLOWED_STUDENT_IDS= \
 python3 backend/server.py
 ```
 

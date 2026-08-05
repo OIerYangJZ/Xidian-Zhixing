@@ -19,7 +19,13 @@ from sql_repository import SqliteTreeholeRepository
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
 
-def _production_env(db_file: Path, storage_dir: Path, web_root: Path) -> dict[str, str]:
+def _production_env(
+    db_file: Path,
+    storage_dir: Path,
+    web_root: Path,
+    *,
+    allowed_student_ids: str = "2500001",
+) -> dict[str, str]:
     env = os.environ.copy()
     env.update(
         {
@@ -34,7 +40,7 @@ def _production_env(db_file: Path, storage_dir: Path, web_root: Path) -> dict[st
             "BACKEND_STORAGE_DIR": str(storage_dir),
             "BACKEND_WEB_ROOT": str(web_root),
             "BACKEND_CORS_ALLOWED_ORIGINS": "https://zhixing.xidian.edu.cn",
-            "BACKEND_AUTH_ALLOWED_STUDENT_IDS": "2500001",
+            "BACKEND_AUTH_ALLOWED_STUDENT_IDS": allowed_student_ids,
             "BACKEND_MAX_REQUEST_BODY_MB": "20",
             "BACKEND_ENABLE_XIDIAN_AUTH": "true",
             "BACKEND_XIDIAN_PUBLIC_ORIGIN": "https://zhixing.xidian.edu.cn",
@@ -51,7 +57,12 @@ def _production_env(db_file: Path, storage_dir: Path, web_root: Path) -> dict[st
     return env
 
 
-def _run_production_ensure(db_file: Path, tmp_path: Path) -> dict[str, Any]:
+def _run_production_ensure(
+    db_file: Path,
+    tmp_path: Path,
+    *,
+    allowed_student_ids: str = "2500001",
+) -> dict[str, Any]:
     script = """
 import json
 import sqlite3
@@ -76,7 +87,12 @@ print(json.dumps(result))
     completed = subprocess.run(
         [sys.executable, "-c", script],
         cwd=BACKEND_DIR,
-        env=_production_env(db_file, tmp_path / "storage", tmp_path / "web"),
+        env=_production_env(
+            db_file,
+            tmp_path / "storage",
+            tmp_path / "web",
+            allowed_student_ids=allowed_student_ids,
+        ),
         check=True,
         capture_output=True,
         text=True,
@@ -96,6 +112,19 @@ def test_production_empty_database_first_ensure_db(tmp_path: Path) -> None:
     assert result["posts"] == 0
     assert result["admins"] == 1
     assert result["initialized"] == 1
+
+
+def test_production_empty_auth_allowlist_allows_initialization(tmp_path: Path) -> None:
+    db_file = tmp_path / "production-open-auth.db"
+
+    result = _run_production_ensure(
+        db_file,
+        tmp_path,
+        allowed_student_ids="",
+    )
+
+    assert result["initialized"] == 1
+    assert result["foreign_keys"] == []
 
 
 def test_production_ensure_db_succeeds_twice_without_reseeding(tmp_path: Path) -> None:

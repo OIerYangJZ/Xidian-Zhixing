@@ -523,6 +523,83 @@ def test_password_proxy_login_endpoint_is_not_routed(monkeypatch) -> None:
     assert handler.status_code == 404
 
 
+def test_empty_xidian_allowlist_allows_every_verified_student(monkeypatch) -> None:
+    import _globals
+
+    monkeypatch.setattr(_globals, "AUTH_ALLOWED_STUDENT_IDS", set())
+
+    assert _globals.is_auth_student_id_allowed("2300000000") is True
+    assert _globals.is_auth_student_id_allowed("2500000001") is True
+
+
+def test_nonempty_xidian_allowlist_restricts_verified_students(monkeypatch) -> None:
+    import _globals
+
+    monkeypatch.setattr(
+        _globals,
+        "AUTH_ALLOWED_STUDENT_IDS",
+        {"2300000000"},
+    )
+
+    assert _globals.is_auth_student_id_allowed("2300000000") is True
+    assert _globals.is_auth_student_id_allowed("2500000001") is False
+
+
+def test_production_env_validator_accepts_empty_xidian_allowlist() -> None:
+    from scripts.validate_production_env import validate
+
+    values = {
+        "BACKEND_ENV": "production",
+        "BACKEND_HOST": "127.0.0.1",
+        "BACKEND_PORT": "8080",
+        "BACKEND_ADMIN_USERNAME": "admin",
+        "BACKEND_ADMIN_PASSWORD": "NotARealProductionPassword-2026",
+        "BACKEND_DB_FILE": "/home/ubuntu/treehole/shared/data/treehole.db",
+        "BACKEND_STORAGE_DIR": "/home/ubuntu/treehole/shared/storage/objects",
+        "BACKEND_WEB_ROOT": "/home/ubuntu/treehole/current/web",
+        "BACKEND_OBJECT_STORAGE_BACKEND": "local",
+        "BACKEND_ALLOW_DEBUG_VERIFY_CODE": "false",
+        "BACKEND_INCLUDE_DEBUG_CODE": "false",
+        "BACKEND_SEED_DEMO_DATA": "false",
+        "BACKEND_CORS_ALLOWED_ORIGINS": "https://zhixing.xidian.edu.cn",
+        "BACKEND_AUTH_ALLOWED_STUDENT_IDS": "",
+        "BACKEND_ENABLE_XIDIAN_AUTH": "true",
+        "BACKEND_MAX_REQUEST_BODY_MB": "20",
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN": "https://zhixing.xidian.edu.cn",
+    }
+
+    assert validate(values) == []
+
+
+def test_production_env_validator_checks_nonempty_xidian_allowlist() -> None:
+    from scripts.validate_production_env import validate
+
+    values = {
+        "BACKEND_ENV": "production",
+        "BACKEND_HOST": "127.0.0.1",
+        "BACKEND_PORT": "8080",
+        "BACKEND_ADMIN_USERNAME": "admin",
+        "BACKEND_ADMIN_PASSWORD": "NotARealProductionPassword-2026",
+        "BACKEND_DB_FILE": "/home/ubuntu/treehole/shared/data/treehole.db",
+        "BACKEND_STORAGE_DIR": "/home/ubuntu/treehole/shared/storage/objects",
+        "BACKEND_WEB_ROOT": "/home/ubuntu/treehole/current/web",
+        "BACKEND_OBJECT_STORAGE_BACKEND": "local",
+        "BACKEND_ALLOW_DEBUG_VERIFY_CODE": "false",
+        "BACKEND_INCLUDE_DEBUG_CODE": "false",
+        "BACKEND_SEED_DEMO_DATA": "false",
+        "BACKEND_CORS_ALLOWED_ORIGINS": "https://zhixing.xidian.edu.cn",
+        "BACKEND_AUTH_ALLOWED_STUDENT_IDS": "invalid-student-id!",
+        "BACKEND_ENABLE_XIDIAN_AUTH": "true",
+        "BACKEND_MAX_REQUEST_BODY_MB": "20",
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN": "https://zhixing.xidian.edu.cn",
+    }
+
+    assert (
+        "BACKEND_AUTH_ALLOWED_STUDENT_IDS must contain valid student IDs"
+        in validate(values)
+    )
+
+
 @pytest.mark.parametrize(
     "path",
     [

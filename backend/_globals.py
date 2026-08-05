@@ -360,10 +360,6 @@ def configure() -> None:
             raise RuntimeError(
                 "BACKEND_CORS_ALLOWED_ORIGINS must match the authorized production origin"
             )
-        if not AUTH_ALLOWED_STUDENT_IDS:
-            raise RuntimeError(
-                "BACKEND_AUTH_ALLOWED_STUDENT_IDS is required during private beta"
-            )
         invalid_student_ids = [
             student_id
             for student_id in AUTH_ALLOWED_STUDENT_IDS

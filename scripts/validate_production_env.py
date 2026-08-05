@@ -115,10 +115,6 @@ def validate(values: dict[str, str]) -> list[str]:
         ).split(",")
         if item.strip()
     ]
-    if not allowed_student_ids:
-        errors.append(
-            "BACKEND_AUTH_ALLOWED_STUDENT_IDS is required during private beta",
-        )
     for student_id in allowed_student_ids:
         if is_placeholder(student_id) or not re.fullmatch(
             r"[0-9A-Za-z]{6,20}",
