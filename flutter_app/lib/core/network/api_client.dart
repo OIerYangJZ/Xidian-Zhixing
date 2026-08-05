@@ -21,12 +21,14 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? queryParameters,
     bool auth = true,
+    Duration? timeout,
   }) {
     return _request(
       method: 'GET',
       path: path,
       queryParameters: queryParameters,
       auth: auth,
+      timeout: timeout,
     );
   }
 
@@ -35,6 +37,7 @@ class ApiClient {
     Object? body,
     Map<String, dynamic>? queryParameters,
     bool auth = true,
+    Duration? timeout,
   }) {
     return _request(
       method: 'POST',
@@ -42,6 +45,7 @@ class ApiClient {
       queryParameters: queryParameters,
       body: body,
       auth: auth,
+      timeout: timeout,
     );
   }
 
@@ -117,6 +121,7 @@ class ApiClient {
           zh: '请求超时，请稍后重试',
           en: 'Request timed out, please try again later',
         ),
+        isTimeout: true,
       );
     } on ApiException {
       rethrow;
@@ -150,7 +155,9 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Object? body,
     required bool auth,
+    Duration? timeout,
   }) async {
+    final Duration deadline = timeout ?? AppConfig.requestTimeout;
     final Uri uri = _buildUri(path, queryParameters: queryParameters);
     final Map<String, String> headers = <String, String>{
       'Accept': 'application/json',
@@ -170,7 +177,7 @@ class ApiClient {
         case 'GET':
           response = await _http
               .get(uri, headers: headers)
-              .timeout(AppConfig.requestTimeout);
+              .timeout(deadline);
           break;
         case 'POST':
           response = await _http
@@ -180,7 +187,7 @@ class ApiClient {
                 body: _encodeBody(body),
                 encoding: utf8,
               )
-              .timeout(AppConfig.requestTimeout);
+              .timeout(deadline);
           break;
         case 'PATCH':
           response = await _http
@@ -190,7 +197,7 @@ class ApiClient {
                 body: _encodeBody(body),
                 encoding: utf8,
               )
-              .timeout(AppConfig.requestTimeout);
+              .timeout(deadline);
           break;
         case 'DELETE':
           response = await _http
@@ -200,7 +207,7 @@ class ApiClient {
                 body: _encodeBody(body),
                 encoding: utf8,
               )
-              .timeout(AppConfig.requestTimeout);
+              .timeout(deadline);
           break;
         default:
           throw ApiException(message: 'Unsupported HTTP method: $method');
@@ -211,6 +218,7 @@ class ApiClient {
           zh: '请求超时，请稍后重试',
           en: 'Request timed out, please try again later',
         ),
+        isTimeout: true,
       );
     } on ApiException {
       rethrow;

@@ -10,12 +10,20 @@ class AiRepository {
 
   final ApiClient _apiClient;
 
+  /// The backend gives the upstream provider 20s for /models and 45s for
+  /// /chat. The client must wait longer than that, otherwise it always times
+  /// out first and the server's real error (bad key, unreachable host) never
+  /// reaches the UI.
+  static const Duration _statusTimeout = Duration(seconds: 30);
+  static const Duration _chatTimeout = Duration(seconds: 55);
+
   Future<AiChatResponse> sendMessage({
     required String content,
     required List<AiMessage> messages,
   }) async {
     final dynamic response = await _apiClient.post(
       '/ai/chat',
+      timeout: _chatTimeout,
       body: <String, dynamic>{
         'content': content,
         'messages': messages
@@ -36,7 +44,10 @@ class AiRepository {
   /// expired" or "the upstream provider rejected us".
   Future<AiServerStatus> fetchStatus() async {
     try {
-      final dynamic response = await _apiClient.get('/ai/models');
+      final dynamic response = await _apiClient.get(
+        '/ai/models',
+        timeout: _statusTimeout,
+      );
       final Map<String, dynamic> map = extractMap(response);
       final List<String> models = asList(map['models'])
           .map((dynamic item) => item.toString().trim())
@@ -69,9 +80,11 @@ class AiRepository {
 /// difference between a deployment problem and a login problem.
 enum AiStatusProblem {
   none,
+  loading,
   unauthorized,
   notConfigured,
   providerError,
+  timeout,
   network,
   emptyModel,
   unknown,
@@ -89,7 +102,9 @@ class AiServerStatus {
   factory AiServerStatus.fromApiException(ApiException error) {
     final int? code = error.statusCode;
     final AiStatusProblem problem;
-    if (code == null) {
+    if (error.isTimeout) {
+      problem = AiStatusProblem.timeout;
+    } else if (code == null) {
       problem = AiStatusProblem.network;
     } else if (code == 401 || code == 403) {
       problem = AiStatusProblem.unauthorized;
@@ -120,16 +135,23 @@ class AiServerStatus {
   bool get configured =>
       problem == AiStatusProblem.none && model.trim().isNotEmpty;
 
+  /// The status has not been fetched yet, so nothing should be claimed about it.
+  bool get isLoading => problem == AiStatusProblem.loading;
+
   String problemTitleFor(Locale locale) {
     switch (problem) {
       case AiStatusProblem.none:
         return uiTextFor(locale, zh: '服务可用', en: 'Service available');
+      case AiStatusProblem.loading:
+        return uiTextFor(locale, zh: '正在检查服务状态', en: 'Checking service');
       case AiStatusProblem.unauthorized:
         return uiTextFor(locale, zh: '登录状态已失效', en: 'Session expired');
       case AiStatusProblem.notConfigured:
         return uiTextFor(locale, zh: '服务器尚未配置 AI', en: 'AI not configured');
       case AiStatusProblem.providerError:
         return uiTextFor(locale, zh: '模型接口调用失败', en: 'Provider call failed');
+      case AiStatusProblem.timeout:
+        return uiTextFor(locale, zh: '模型接口响应超时', en: 'Provider timed out');
       case AiStatusProblem.network:
         return uiTextFor(locale, zh: '无法连接服务器', en: 'Cannot reach server');
       case AiStatusProblem.emptyModel:
@@ -148,6 +170,12 @@ class AiServerStatus {
           locale,
           zh: '当前模型：$model',
           en: 'Current model: $model',
+        );
+      case AiStatusProblem.loading:
+        return uiTextFor(
+          locale,
+          zh: '正在向服务器确认 AI 是否可用，请稍候。',
+          en: 'Checking with the server whether AI is available.',
         );
       case AiStatusProblem.unauthorized:
         return uiTextFor(
@@ -175,6 +203,19 @@ class AiServerStatus {
           en:
               'AI is configured, but the upstream provider call failed. An '
               'administrator should check the base URL, key, quota and egress.',
+        );
+      case AiStatusProblem.timeout:
+        return uiTextFor(
+          locale,
+          zh:
+              '服务器接受了请求但迟迟没有返回。如果站内其他功能正常，问题多半出在服务器到模型服务商这一段：'
+              '请管理员确认 BACKEND_AI_BASE_URL 可从服务器直接访问，并检查出口网络与代理设置。',
+          en:
+              'The server accepted the request but never answered. If the rest '
+              'of the site works, the problem is most likely between the server '
+              'and the model provider: an administrator should confirm that '
+              'BACKEND_AI_BASE_URL is reachable from the server and check '
+              'egress networking and proxy settings.',
         );
       case AiStatusProblem.network:
         return uiTextFor(

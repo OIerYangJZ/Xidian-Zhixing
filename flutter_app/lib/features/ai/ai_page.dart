@@ -194,7 +194,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   final ScrollController _scrollController = ScrollController();
   final List<AiMessage> _messages = <AiMessage>[];
   bool _sending = false;
-  AiServerStatus _status = const AiServerStatus(model: '', models: <String>[]);
+  AiServerStatus _status = const AiServerStatus(
+    model: '',
+    models: <String>[],
+    problem: AiStatusProblem.loading,
+  );
 
   @override
   void initState() {
@@ -210,6 +214,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   }
 
   Future<void> _loadConfig() async {
+    setState(() {
+      _status = const AiServerStatus(
+        model: '',
+        models: <String>[],
+        problem: AiStatusProblem.loading,
+      );
+    });
     final AiServerStatus status = await ref
         .read(aiRepositoryProvider)
         .fetchStatus();
@@ -251,7 +262,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       ),
       body: Column(
         children: <Widget>[
-          if (!configured)
+          if (!configured && !_status.isLoading)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: AppInlineMessage(
@@ -266,7 +277,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                 ),
               ),
             ),
-          if (!configured && _status.diagnosticLine.isNotEmpty)
+          if (!configured &&
+              !_status.isLoading &&
+              _status.diagnosticLine.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
               child: Align(
@@ -459,7 +472,11 @@ class AiSettingsPage extends ConsumerStatefulWidget {
 }
 
 class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
-  AiServerStatus _status = const AiServerStatus(model: '', models: <String>[]);
+  AiServerStatus _status = const AiServerStatus(
+    model: '',
+    models: <String>[],
+    problem: AiStatusProblem.loading,
+  );
   bool _loading = true;
 
   @override
@@ -469,7 +486,14 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _status = const AiServerStatus(
+        model: '',
+        models: <String>[],
+        problem: AiStatusProblem.loading,
+      );
+    });
     final AiServerStatus status = await ref
         .read(aiRepositoryProvider)
         .fetchStatus();
@@ -502,7 +526,7 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
             title: Text(uiText(context, zh: '服务器 AI', en: 'Server AI')),
             subtitle: Text(_status.problemTitleFor(locale)),
           ),
-          if (!_status.configured)
+          if (!_status.configured && !_status.isLoading)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: AppInlineMessage(
@@ -513,7 +537,9 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
                     : AppMessageTone.error,
               ),
             ),
-          if (!_status.configured && _status.diagnosticLine.isNotEmpty)
+          if (!_status.configured &&
+              !_status.isLoading &&
+              _status.diagnosticLine.isNotEmpty)
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(

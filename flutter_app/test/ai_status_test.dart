@@ -40,11 +40,33 @@ void main() {
 
     test('a missing status code is treated as a network failure', () {
       final AiServerStatus status = AiServerStatus.fromApiException(
-        ApiException(message: '请求超时，请稍后重试'),
+        ApiException(message: 'XMLHttpRequest error'),
       );
 
       expect(status.problem, AiStatusProblem.network);
       expect(status.diagnosticLine, isNot(contains('HTTP')));
+    });
+
+    test('a client timeout blames the server hop, not the user network', () {
+      final AiServerStatus status = AiServerStatus.fromApiException(
+        ApiException(message: '请求超时，请稍后重试', isTimeout: true),
+      );
+
+      expect(status.problem, AiStatusProblem.timeout);
+      expect(status.problemMessageFor(zh), contains('BACKEND_AI_BASE_URL'));
+      expect(status.problemMessageFor(zh), isNot(contains('检查网络连接')));
+    });
+
+    test('the initial placeholder never claims the service is available', () {
+      const AiServerStatus status = AiServerStatus(
+        model: '',
+        models: <String>[],
+        problem: AiStatusProblem.loading,
+      );
+
+      expect(status.isLoading, isTrue);
+      expect(status.configured, isFalse);
+      expect(status.problemTitleFor(zh), isNot(contains('服务可用')));
     });
 
     test('a healthy response is configured and reports the model', () {
