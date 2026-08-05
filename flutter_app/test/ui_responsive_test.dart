@@ -20,6 +20,7 @@ import 'package:xdu_treehole_web/features/auth/login_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
+import 'package:xdu_treehole_web/features/profile/settings_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
@@ -98,6 +99,39 @@ void main() {
   });
 
   group('responsive web layout', () {
+    testWidgets(
+      'English login and settings contain no beta disclaimer labels',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          _appWithLocale(const LoginPage(), const Locale('en')),
+        );
+        await tester.pump();
+
+        expect(
+          find.text('Let authentic campus voices be heard'),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Project beta'), findsNothing);
+        expect(find.textContaining('Not an official'), findsNothing);
+
+        await tester.pumpWidget(
+          _appWithLocale(const SettingsPage(), const Locale('en')),
+        );
+        await tester.pump();
+
+        expect(find.text('Appearance and preferences'), findsOneWidget);
+        expect(find.text('Rules and privacy'), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.text('Access information'),
+          240,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(find.text('Access information'), findsOneWidget);
+        expect(find.textContaining('内测'), findsNothing);
+        expect(find.textContaining('非官方'), findsNothing);
+      },
+    );
+
     for (final double width in <double>[360, 390, 768, 1280, 1440]) {
       testWidgets('login page has no overflow at ${width.toInt()}px', (
         WidgetTester tester,
@@ -341,6 +375,10 @@ void main() {
 }
 
 Widget _app(Widget home) {
+  return _appWithLocale(home, const Locale('zh', 'CN'));
+}
+
+Widget _appWithLocale(Widget home, Locale locale) {
   return MaterialApp(
     debugShowCheckedModeBanner: false,
     theme: AppTheme.lightTheme,
@@ -351,7 +389,7 @@ Widget _app(Widget home) {
       GlobalCupertinoLocalizations.delegate,
     ],
     supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
-    locale: const Locale('zh', 'CN'),
+    locale: locale,
     home: home,
   );
 }

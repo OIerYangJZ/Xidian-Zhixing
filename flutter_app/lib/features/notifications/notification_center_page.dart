@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/async_page_state.dart';
@@ -40,7 +41,7 @@ class _NotificationCenterPageState
     final NotificationsState state = ref.watch(notificationsControllerProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('通知中心'),
+        title: Text(uiText(context, zh: '通知中心', en: 'Notifications')),
         actions: <Widget>[
           IconButton(
             onPressed: state.actionBusy || state.unreadCount == 0
@@ -49,7 +50,7 @@ class _NotificationCenterPageState
                       .read(notificationsControllerProvider.notifier)
                       .markAllRead(),
             icon: const Icon(Icons.done_all_outlined),
-            tooltip: '全部已读',
+            tooltip: uiText(context, zh: '全部已读', en: 'Mark all as read'),
           ),
           IconButton(
             onPressed: state.loading
@@ -58,7 +59,7 @@ class _NotificationCenterPageState
                       .read(notificationsControllerProvider.notifier)
                       .refresh(),
             icon: const Icon(Icons.refresh),
-            tooltip: '刷新',
+            tooltip: uiText(context, zh: '刷新', en: 'Refresh'),
           ),
         ],
       ),
@@ -69,9 +70,17 @@ class _NotificationCenterPageState
             ref.read(notificationsControllerProvider.notifier).loadInitial(),
         child: state.items.isEmpty
             ? ListView(
-                children: const <Widget>[
-                  SizedBox(height: 120),
-                  Center(child: Text('暂时没有新的通知。')),
+                children: <Widget>[
+                  const SizedBox(height: 120),
+                  Center(
+                    child: Text(
+                      uiText(
+                        context,
+                        zh: '暂时没有新的通知。',
+                        en: 'No new notifications.',
+                      ),
+                    ),
+                  ),
                 ],
               )
             : RefreshIndicator(
@@ -148,7 +157,7 @@ class _NotificationCenterPageState
                                   Row(
                                     children: <Widget>[
                                       Text(
-                                        _labelForType(item.type),
+                                        _labelForType(context, item.type),
                                         style: const TextStyle(
                                           fontSize: 12,
                                           color: SharedColors.primary,
@@ -213,7 +222,7 @@ class _NotificationCenterPageState
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('关闭'),
+              child: Text(uiText(context, zh: '关闭', en: 'Close')),
             ),
           ],
         );
@@ -232,9 +241,17 @@ class _NotificationCenterPageState
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('打开帖子失败：$error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '打开帖子失败：$error',
+              en: 'Could not open post: $error',
+            ),
+          ),
+        ),
+      );
     }
   }
 
@@ -255,9 +272,17 @@ class _NotificationCenterPageState
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('打开举报详情失败：$error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '打开举报详情失败：$error',
+              en: 'Could not open report details: $error',
+            ),
+          ),
+        ),
+      );
     }
   }
 
@@ -297,21 +322,21 @@ class _NotificationCenterPageState
     }
   }
 
-  String _labelForType(String type) {
+  String _labelForType(BuildContext context, String type) {
     switch (type) {
       case 'comment':
-        return '评论通知';
+        return uiText(context, zh: '评论通知', en: 'Comment');
       case 'reply':
-        return '回复通知';
+        return uiText(context, zh: '回复通知', en: 'Reply');
       case 'like':
-        return '点赞通知';
+        return uiText(context, zh: '点赞通知', en: 'Like');
       case 'favorite':
-        return '收藏通知';
+        return uiText(context, zh: '收藏通知', en: 'Favorite');
       case 'report_result':
-        return '举报结果';
+        return uiText(context, zh: '举报结果', en: 'Report result');
       case 'system_announcement':
       default:
-        return '系统公告';
+        return uiText(context, zh: '系统公告', en: 'System announcement');
     }
   }
 }

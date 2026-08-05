@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/l10n/ui_text.dart';
 import '../core/state/app_theme_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
@@ -50,7 +51,11 @@ class PostCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             post.authorAlias.isEmpty
-                                ? '匿名用户'
+                                ? uiText(
+                                    context,
+                                    zh: '匿名用户',
+                                    en: 'Anonymous user',
+                                  )
                                 : post.authorAlias,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -62,7 +67,7 @@ class PostCard extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          _relativeTime(post.createdAt),
+                          _relativeTime(context, post.createdAt),
                           style: TextStyle(color: muted, fontSize: 12),
                         ),
                       ],
@@ -165,7 +170,7 @@ class PostCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             post.authorAlias.isEmpty
-                                ? '匿名同学'
+                                ? uiText(context, zh: '匿名同学', en: 'Anonymous')
                                 : post.authorAlias,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -176,7 +181,7 @@ class PostCard extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          _relativeTime(post.createdAt),
+                          _relativeTime(context, post.createdAt),
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.mutedInk,
                           ),
@@ -255,19 +260,31 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  String _relativeTime(DateTime time) {
+  String _relativeTime(BuildContext context, DateTime time) {
     final Duration diff = DateTime.now().difference(time);
     if (diff.inMinutes < 1) {
-      return '刚刚';
+      return uiText(context, zh: '刚刚', en: 'Just now');
     }
     if (diff.inMinutes < 60) {
-      return '${diff.inMinutes} 分钟前';
+      return uiText(
+        context,
+        zh: '${diff.inMinutes} 分钟前',
+        en: '${diff.inMinutes}m ago',
+      );
     }
     if (diff.inHours < 24) {
-      return '${diff.inHours} 小时前';
+      return uiText(
+        context,
+        zh: '${diff.inHours} 小时前',
+        en: '${diff.inHours}h ago',
+      );
     }
     if (diff.inDays < 30) {
-      return '${diff.inDays} 天前';
+      return uiText(
+        context,
+        zh: '${diff.inDays} 天前',
+        en: '${diff.inDays}d ago',
+      );
     }
     return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')}';
   }
@@ -384,11 +401,16 @@ class _PostMeta extends StatelessWidget {
       runSpacing: AppSpacing.xs,
       children: <Widget>[
         _MetaPill(
-          label: post.channel.trim().isEmpty ? '未分类' : post.channel.trim(),
+          label: post.channel.trim().isEmpty
+              ? uiText(context, zh: '未分类', en: 'Uncategorized')
+              : post.channel.trim(),
           color: theme.colorScheme.primary,
         ),
         if (post.isPinned)
-          _MetaPill(label: '置顶', color: theme.colorScheme.secondary),
+          _MetaPill(
+            label: uiText(context, zh: '置顶', en: 'Pinned'),
+            color: theme.colorScheme.secondary,
+          ),
         if (post.status != PostStatus.ongoing)
           _MetaPill(
             label: post.status.label,
@@ -528,7 +550,11 @@ class _ImageStrip extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '图片加载失败',
+                          uiText(
+                            context,
+                            zh: '图片加载失败',
+                            en: 'Image failed to load',
+                          ),
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontSize: 12,

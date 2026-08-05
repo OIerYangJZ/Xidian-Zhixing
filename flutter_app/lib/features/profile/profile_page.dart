@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/theme/design_tokens.dart';
@@ -59,11 +60,15 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    String text(String zh, String en) => uiText(context, zh: zh, en: en);
     if (_loading) {
-      return const AppStatePanel(
+      return AppStatePanel(
         icon: Icons.person_outline_rounded,
-        title: '正在加载个人资料',
-        message: '正在同步账号、内容和隐私设置。',
+        title: text('正在加载个人资料', 'Loading profile'),
+        message: text(
+          '正在同步账号、内容和隐私设置。',
+          'Syncing account, content, and privacy settings.',
+        ),
       );
     }
 
@@ -71,12 +76,14 @@ class ProfilePageState extends State<ProfilePage> {
     if (loadedProfile == null) {
       return AppStatePanel(
         icon: Icons.error_outline,
-        title: '个人资料加载失败',
-        message: _error ?? '服务端未返回有效的个人资料',
+        title: text('个人资料加载失败', 'Could not load profile'),
+        message:
+            _error ??
+            text('服务端未返回有效的个人资料', 'The server did not return a valid profile.'),
         action: FilledButton.tonalIcon(
           onPressed: _loadProfile,
           icon: const Icon(Icons.refresh),
-          label: const Text('重试'),
+          label: Text(text('重试', 'Retry')),
         ),
       );
     }
@@ -97,12 +104,12 @@ class ProfilePageState extends State<ProfilePage> {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: AppInlineMessage(
-                  title: '资料未完全同步',
+                  title: text('资料未完全同步', 'Profile not fully synced'),
                   message: _error!,
                   tone: AppMessageTone.error,
                   action: TextButton(
                     onPressed: _saving ? null : _loadProfile,
-                    child: const Text('重试'),
+                    child: Text(text('重试', 'Retry')),
                   ),
                 ),
               ),
@@ -113,12 +120,18 @@ class ProfilePageState extends State<ProfilePage> {
                 children: <Widget>[
                   ListTile(
                     leading: const Icon(Icons.workspace_premium_outlined),
-                    title: const Text('账号等级'),
+                    title: Text(text('账号等级', 'Account level')),
                     subtitle: Text(
                       profile.isLevelOneUser
-                          ? '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长'
+                          ? text(
+                              '当前为 ${profile.userLevelLabel}，可直接为帖子设置置顶时长',
+                              'Your current level allows you to set a pin duration for posts.',
+                            )
                           : levelUpgradeRequest == null
-                          ? '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级'
+                          ? text(
+                              '当前为 ${profile.userLevelLabel}，可向一级管理员申请升级',
+                              'You can request an account-level upgrade from an administrator.',
+                            )
                           : _levelUpgradeSubtitle(levelUpgradeRequest),
                     ),
                     trailing: Text(
@@ -140,8 +153,8 @@ class ProfilePageState extends State<ProfilePage> {
                           icon: const Icon(Icons.arrow_circle_up_outlined),
                           label: Text(
                             levelUpgradeRequest?.status == 'pending'
-                                ? '申请审核中'
-                                : '申请成为一级用户',
+                                ? text('申请审核中', 'Request under review')
+                                : text('申请成为一级用户', 'Request level-one access'),
                           ),
                         ),
                       ),
@@ -157,7 +170,7 @@ class ProfilePageState extends State<ProfilePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      '个人信息',
+                      text('个人信息', 'Personal information'),
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -166,19 +179,19 @@ class ProfilePageState extends State<ProfilePage> {
                     TextField(
                       controller: _nicknameController,
                       enabled: !_saving,
-                      decoration: const InputDecoration(
-                        labelText: '用户昵称',
-                        prefixIcon: Icon(Icons.badge_outlined),
+                      decoration: InputDecoration(
+                        labelText: text('用户昵称', 'Nickname'),
+                        prefixIcon: const Icon(Icons.badge_outlined),
                       ),
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: _avatarUrlController,
                       enabled: !_saving,
-                      decoration: const InputDecoration(
-                        labelText: '头像 URL',
+                      decoration: InputDecoration(
+                        labelText: text('头像 URL', 'Avatar URL'),
                         hintText: 'https://...',
-                        prefixIcon: Icon(Icons.image_outlined),
+                        prefixIcon: const Icon(Icons.image_outlined),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -187,7 +200,9 @@ class ProfilePageState extends State<ProfilePage> {
                       child: OutlinedButton.icon(
                         onPressed: _saving ? null : _pickAndUploadAvatar,
                         icon: const Icon(Icons.file_upload_outlined),
-                        label: const Text('选择图片并上传头像'),
+                        label: Text(
+                          text('选择图片并上传头像', 'Choose and upload avatar'),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -196,24 +211,36 @@ class ProfilePageState extends State<ProfilePage> {
                       enabled: !_saving,
                       maxLines: 2,
                       maxLength: 100,
-                      decoration: const InputDecoration(
-                        labelText: '个性签名',
-                        hintText: '介绍一下自己吧',
-                        prefixIcon: Icon(Icons.edit_note_outlined),
+                      decoration: InputDecoration(
+                        labelText: text('个性签名', 'Bio'),
+                        hintText: text(
+                          '介绍一下自己吧',
+                          'Tell others a little about yourself',
+                        ),
+                        prefixIcon: const Icon(Icons.edit_note_outlined),
                         alignLabelWithHint: true,
                       ),
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       initialValue: _gender,
-                      decoration: const InputDecoration(
-                        labelText: '性别',
-                        prefixIcon: Icon(Icons.wc_outlined),
+                      decoration: InputDecoration(
+                        labelText: text('性别', 'Gender'),
+                        prefixIcon: const Icon(Icons.wc_outlined),
                       ),
-                      items: const <DropdownMenuItem<String>>[
-                        DropdownMenuItem<String>(value: '', child: Text('不显示')),
-                        DropdownMenuItem<String>(value: '男', child: Text('男')),
-                        DropdownMenuItem<String>(value: '女', child: Text('女')),
+                      items: <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: '',
+                          child: Text(text('不显示', 'Prefer not to say')),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: '男',
+                          child: Text(text('男', 'Male')),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: '女',
+                          child: Text(text('女', 'Female')),
+                        ),
                       ],
                       onChanged: _saving
                           ? null
@@ -227,10 +254,10 @@ class ProfilePageState extends State<ProfilePage> {
                     TextField(
                       controller: _backgroundUrlController,
                       enabled: !_saving,
-                      decoration: const InputDecoration(
-                        labelText: '主页背景图 URL',
+                      decoration: InputDecoration(
+                        labelText: text('主页背景图 URL', 'Profile background URL'),
                         hintText: 'https://...',
-                        prefixIcon: Icon(Icons.wallpaper_outlined),
+                        prefixIcon: const Icon(Icons.wallpaper_outlined),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -241,7 +268,9 @@ class ProfilePageState extends State<ProfilePage> {
                             ? null
                             : _pickAndUploadBackgroundImage,
                         icon: const Icon(Icons.landscape_outlined),
-                        label: const Text('选择图片并上传背景图'),
+                        label: Text(
+                          text('选择图片并上传背景图', 'Choose and upload background'),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -250,7 +279,11 @@ class ProfilePageState extends State<ProfilePage> {
                       child: FilledButton.icon(
                         onPressed: _saving ? null : _saveProfile,
                         icon: const Icon(Icons.save_outlined),
-                        label: Text(_saving ? '保存中...' : '保存资料'),
+                        label: Text(
+                          _saving
+                              ? text('保存中...', 'Saving...')
+                              : text('保存资料', 'Save profile'),
+                        ),
                       ),
                     ),
                   ],
@@ -263,7 +296,7 @@ class ProfilePageState extends State<ProfilePage> {
                 children: <Widget>[
                   ListTile(
                     leading: const Icon(Icons.article_outlined),
-                    title: const Text('我的帖子'),
+                    title: Text(text('我的帖子', 'My posts')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -275,7 +308,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.comment_bank_outlined),
-                    title: const Text('我的评论'),
+                    title: Text(text('我的评论', 'My comments')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -287,7 +320,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.flag_outlined),
-                    title: const Text('我的举报'),
+                    title: Text(text('我的举报', 'My reports')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -299,8 +332,13 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.bookmark_outline),
-                    title: const Text('我的收藏'),
-                    subtitle: Text('当前收藏帖子：${profile.favoriteCount}'),
+                    title: Text(text('我的收藏', 'My favorites')),
+                    subtitle: Text(
+                      text(
+                        '当前收藏帖子：${profile.favoriteCount}',
+                        '${profile.favoriteCount} saved posts',
+                      ),
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
                       await Navigator.of(context).push(
@@ -316,10 +354,13 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.delete_outline),
-                    title: const Text('注销账号申请'),
+                    title: Text(text('注销账号申请', 'Account deletion request')),
                     subtitle: Text(
                       cancellationRequest == null
-                          ? '提交后将进入管理员后台审核，通过后账号才会注销'
+                          ? text(
+                              '提交后将进入管理员后台审核，通过后账号才会注销',
+                              'Your account is deleted only after an administrator approves the request.',
+                            )
                           : _accountCancellationSubtitle(cancellationRequest),
                     ),
                     onTap: _saving || cancellationRequest?.status == 'pending'
@@ -334,8 +375,15 @@ class ProfilePageState extends State<ProfilePage> {
               child: Column(
                 children: <Widget>[
                   SwitchListTile(
-                    title: const Text('允许陌生人私信'),
-                    subtitle: const Text('关闭后，其他人无法通过你的公开主页或帖子给你发起私信'),
+                    title: Text(
+                      text('允许陌生人私信', 'Allow messages from strangers'),
+                    ),
+                    subtitle: Text(
+                      text(
+                        '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
+                        'When disabled, people cannot message you from your profile or posts.',
+                      ),
+                    ),
                     value: profile.allowStrangerDm,
                     onChanged: _saving
                         ? null
@@ -347,7 +395,9 @@ class ProfilePageState extends State<ProfilePage> {
                           },
                   ),
                   SwitchListTile(
-                    title: const Text('显示“可联系”状态'),
+                    title: Text(
+                      text('显示“可联系”状态', 'Show available-to-contact status'),
+                    ),
                     value: profile.showContactable,
                     onChanged: _saving
                         ? null
@@ -360,13 +410,23 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.block_outlined),
-                    title: const Text('黑名单管理'),
-                    onTap: () => _toast('黑名单管理页下一步接入。'),
+                    title: Text(text('黑名单管理', 'Blocked accounts')),
+                    onTap: () => _toast(
+                      text(
+                        '黑名单管理页下一步接入。',
+                        'Blocked-account management is not available yet.',
+                      ),
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.emoji_emotions_outlined),
-                    title: const Text('表情设置'),
-                    subtitle: const Text('配置常用表情和输入面板开关'),
+                    title: Text(text('表情设置', 'Emoji settings')),
+                    subtitle: Text(
+                      text(
+                        '配置常用表情和输入面板开关',
+                        'Configure favorite emoji and the input panel',
+                      ),
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -378,8 +438,13 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.settings_outlined),
-                    title: const Text('网页端设置'),
-                    subtitle: const Text('界面偏好、协议与内测状态'),
+                    title: Text(text('网页端设置', 'Web settings')),
+                    subtitle: Text(
+                      text(
+                        '界面偏好与社区规则',
+                        'Appearance preferences and community rules',
+                      ),
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -391,7 +456,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.logout),
-                    title: const Text('退出登录'),
+                    title: Text(text('退出登录', 'Log out')),
                     onTap: _saving ? null : _logout,
                   ),
                 ],
@@ -403,7 +468,7 @@ class ProfilePageState extends State<ProfilePage> {
                 children: <Widget>[
                   ListTile(
                     leading: const Icon(Icons.description_outlined),
-                    title: const Text('用户协议'),
+                    title: Text(text('用户协议', 'Terms of Service')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -415,7 +480,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.shield_outlined),
-                    title: const Text('隐私政策'),
+                    title: Text(text('隐私政策', 'Privacy Policy')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -427,7 +492,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.groups_outlined),
-                    title: const Text('社区规范'),
+                    title: Text(text('社区规范', 'Community Guidelines')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -439,7 +504,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.flag_outlined),
-                    title: const Text('举报说明'),
+                    title: Text(text('举报说明', 'Reporting Guidelines')),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
                       Navigator.of(context).push(
@@ -457,12 +522,7 @@ class ProfilePageState extends State<ProfilePage> {
               child: Column(
                 children: <Widget>[
                   Text(
-                    '西电知行 v${AppConfig.appVersion}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '校园社区内测项目 · 非西电官方应用',
+                    '${text('西电知行', 'Xidian Zhixing')} v${AppConfig.appVersion}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],

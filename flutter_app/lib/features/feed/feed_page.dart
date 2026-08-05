@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_theme_store.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/app_typography.dart';
@@ -85,7 +86,11 @@ class _FeedPageState extends ConsumerState<FeedPage> {
               padding: contentPadding,
               child: AsyncPageState(
                 loading: state.loading,
-                loadingLabel: '正在读取帖子',
+                loadingLabel: uiText(
+                  context,
+                  zh: '正在读取帖子',
+                  en: 'Loading posts',
+                ),
                 error: state.error,
                 onRetry: () =>
                     ref.read(feedControllerProvider.notifier).loadInitial(),
@@ -214,9 +219,13 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(context, zh: '操作失败：$error', en: 'Action failed: $error'),
+          ),
+        ),
+      );
     }
   }
 
@@ -235,9 +244,13 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('操作失败：$error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(context, zh: '操作失败：$error', en: 'Action failed: $error'),
+          ),
+        ),
+      );
     }
   }
 }
@@ -316,6 +329,7 @@ class _FeedToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
@@ -331,20 +345,20 @@ class _FeedToolbar extends StatelessWidget {
       child: Row(
         children: <Widget>[
           _FeedTab(
-            label: '最新',
+            label: l10n.latest,
             selected: sort == PostSort.latest,
             onTap: () => onSortChanged(PostSort.latest),
           ),
           const SizedBox(width: AppSpacing.lg),
           _FeedTab(
-            label: '热度',
+            label: l10n.popular,
             selected: sort == PostSort.hot,
             onTap: () => onSortChanged(PostSort.hot),
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Text(
-              channel.isEmpty ? '全部分区' : channel,
+              channel.isEmpty ? l10n.allChannels : channel,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.bodySmall,
@@ -353,7 +367,7 @@ class _FeedToolbar extends StatelessWidget {
           IconButton(
             key: const Key('feed-filter-button'),
             onPressed: onFilter,
-            tooltip: '筛选分区',
+            tooltip: l10n.filterChannels,
             icon: const Icon(Icons.tune_rounded, size: 18),
           ),
         ],
@@ -416,11 +430,23 @@ class _FeedAside extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool english = Localizations.localeOf(context).languageCode == 'en';
+    final List<(String, String)> topics = english
+        ? const <(String, String)>[
+            ('Fall course selection tips', '428'),
+            ('Campus competition teams', '316'),
+            ('New library opening hours', '204'),
+            ('South Campus dining picks', '188'),
+          ]
+        : _topics;
     return ListView(
       padding: const EdgeInsets.only(top: AppSpacing.md, bottom: 40),
       children: <Widget>[
-        const AppSectionTitle(title: '今日热议', actionLabel: '查看热榜'),
-        for (int index = 0; index < _topics.length; index++)
+        AppSectionTitle(
+          title: uiText(context, zh: '今日热议', en: 'Trending today'),
+          actionLabel: uiText(context, zh: '查看热榜', en: 'View ranking'),
+        ),
+        for (int index = 0; index < topics.length; index++)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
             child: Row(
@@ -438,12 +464,12 @@ class _FeedAside extends StatelessWidget {
                 ),
                 Expanded(
                   child: Text(
-                    _topics[index].$1,
+                    topics[index].$1,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ),
                 Text(
-                  _topics[index].$2,
+                  topics[index].$2,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
@@ -452,7 +478,10 @@ class _FeedAside extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Divider(color: Theme.of(context).dividerColor),
         const SizedBox(height: AppSpacing.md),
-        const AppSectionTitle(title: '社区共识', actionLabel: '完整规则'),
+        AppSectionTitle(
+          title: uiText(context, zh: '社区共识', en: 'Community principles'),
+          actionLabel: uiText(context, zh: '完整规则', en: 'Full rules'),
+        ),
         Container(
           padding: const EdgeInsets.only(left: AppSpacing.sm),
           decoration: const BoxDecoration(
@@ -461,21 +490,34 @@ class _FeedAside extends StatelessWidget {
             ),
           ),
           child: Text(
-            '尊重每一次认真表达。匿名不等于无边界，请避免泄露个人信息，也不要传播未经核实的校园消息。',
+            uiText(
+              context,
+              zh: '尊重每一次认真表达。匿名不等于无边界，请避免泄露个人信息，也不要传播未经核实的校园消息。',
+              en: 'Respect every sincere contribution. Anonymity still has boundaries: protect personal information and do not spread unverified campus news.',
+            ),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
         Divider(color: Theme.of(context).dividerColor),
         const SizedBox(height: AppSpacing.md),
-        const AppSectionTitle(title: '关注分区', actionLabel: '管理'),
-        const Wrap(
+        AppSectionTitle(
+          title: uiText(context, zh: '关注分区', en: 'Followed channels'),
+          actionLabel: uiText(context, zh: '管理', en: 'Manage'),
+        ),
+        Wrap(
           spacing: AppSpacing.xs,
           runSpacing: AppSpacing.xs,
           children: <Widget>[
-            AppStatusTag(label: '校园互助'),
-            AppStatusTag(label: '学习交流'),
-            AppStatusTag(label: '社团活动'),
+            AppStatusTag(
+              label: uiText(context, zh: '校园互助', en: 'Campus help'),
+            ),
+            AppStatusTag(
+              label: uiText(context, zh: '学习交流', en: 'Study'),
+            ),
+            AppStatusTag(
+              label: uiText(context, zh: '社团活动', en: 'Clubs'),
+            ),
           ],
         ),
       ],
@@ -491,13 +533,14 @@ class _FeedFilterSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final FeedState state = ref.watch(feedControllerProvider);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
     return ListView(
       shrinkWrap: true,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
       children: <Widget>[
-        const _FilterSectionTitle('排序'),
+        _FilterSectionTitle(uiText(context, zh: '排序', en: 'Sort')),
         _FilterItem(
-          label: '最新',
+          label: l10n.latest,
           selected: state.sort == PostSort.latest,
           onTap: () {
             ref
@@ -507,7 +550,7 @@ class _FeedFilterSheet extends ConsumerWidget {
           },
         ),
         _FilterItem(
-          label: '热度',
+          label: l10n.popular,
           selected: state.sort == PostSort.hot,
           onTap: () {
             ref.read(feedControllerProvider.notifier).switchSort(PostSort.hot);
@@ -515,7 +558,7 @@ class _FeedFilterSheet extends ConsumerWidget {
           },
         ),
         const SizedBox(height: 8),
-        const _FilterSectionTitle('分区'),
+        _FilterSectionTitle(uiText(context, zh: '分区', en: 'Channel')),
         for (final String channel in state.channels)
           _FilterItem(
             label: channel,
@@ -588,11 +631,15 @@ class _FeedEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 360,
-      child: const AppStatePanel(
-        key: Key('feed-empty-state'),
+      child: AppStatePanel(
+        key: const Key('feed-empty-state'),
         icon: Icons.forum_outlined,
-        title: '这里还没有帖子',
-        message: '可以切换分区，或发布第一条内容。',
+        title: uiText(context, zh: '这里还没有帖子', en: 'No posts yet'),
+        message: uiText(
+          context,
+          zh: '可以切换分区，或发布第一条内容。',
+          en: 'Try another channel or publish the first post.',
+        ),
       ),
     );
   }

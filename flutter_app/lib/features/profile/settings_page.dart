@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_theme_store.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
@@ -16,16 +17,20 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    String text(String zh, String en) => uiText(context, zh: zh, en: en);
     return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
+      appBar: AppBar(title: Text(text('设置', 'Settings'))),
       body: AppPageFrame(
         maxWidth: AppLayout.formMaxWidth,
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const AppSectionHeader(
-              title: '界面与偏好',
-              subtitle: '网页端设置不会改变 Android、iOS 或微信小程序。',
+            AppSectionHeader(
+              title: text('界面与偏好', 'Appearance and preferences'),
+              subtitle: text(
+                '网页端设置不会改变 Android、iOS 或微信小程序。',
+                'Web settings do not affect Android, iOS, or WeChat Mini Program.',
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Card(
@@ -40,12 +45,15 @@ class SettingsPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
-                              '配色主题',
+                              text('配色主题', 'Color theme'),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
-                              '使用下拉列表切换整套语义配色，选择会保存在当前设备。',
+                              text(
+                                '使用下拉列表切换整套语义配色，选择会保存在当前设备。',
+                                'Choose a color theme. Your selection is saved on this device.',
+                              ),
                               style: Theme.of(context).textTheme.bodySmall,
                             ),
                             const SizedBox(height: AppSpacing.sm),
@@ -61,15 +69,25 @@ class SettingsPage extends StatelessWidget {
                     ),
                   ),
                   const Divider(height: 1),
-                  const ListTile(
-                    leading: Icon(Icons.brightness_auto_outlined),
-                    title: Text('明暗模式'),
-                    subtitle: Text('自动跟随浏览器与系统的浅色或深色模式'),
+                  ListTile(
+                    leading: const Icon(Icons.brightness_auto_outlined),
+                    title: Text(text('明暗模式', 'Light and dark mode')),
+                    subtitle: Text(
+                      text(
+                        '自动跟随浏览器与系统的浅色或深色模式',
+                        'Automatically follows the browser and system appearance.',
+                      ),
+                    ),
                   ),
                   ListTile(
                     leading: const Icon(Icons.emoji_emotions_outlined),
-                    title: const Text('表情与输入'),
-                    subtitle: const Text('设置常用表情和输入面板'),
+                    title: Text(text('表情与输入', 'Emoji and input')),
+                    subtitle: Text(
+                      text(
+                        '设置常用表情和输入面板',
+                        'Manage favorite emoji and the input panel.',
+                      ),
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () {
                       Navigator.of(context).push(
@@ -83,9 +101,12 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            const AppSectionHeader(
-              title: '规则与隐私',
-              subtitle: '了解社区边界、举报流程与数据处理方式。',
+            AppSectionHeader(
+              title: text('规则与隐私', 'Rules and privacy'),
+              subtitle: text(
+                '了解社区边界、举报流程与数据处理方式。',
+                'Learn about community rules, reports, and data handling.',
+              ),
             ),
             const SizedBox(height: AppSpacing.sm),
             Card(
@@ -93,35 +114,38 @@ class SettingsPage extends StatelessWidget {
                 children: <Widget>[
                   _SettingsLink(
                     icon: Icons.description_outlined,
-                    title: '用户协议',
+                    title: text('用户协议', 'Terms of Service'),
                     page: const TermsOfServicePage(),
                   ),
                   _SettingsLink(
                     icon: Icons.shield_outlined,
-                    title: '隐私政策',
+                    title: text('隐私政策', 'Privacy Policy'),
                     page: const PrivacyPolicyPage(),
                   ),
                   _SettingsLink(
                     icon: Icons.groups_outlined,
-                    title: '社区规范',
+                    title: text('社区规范', 'Community Guidelines'),
                     page: const CommunityGuidelinesPage(),
                   ),
                   _SettingsLink(
                     icon: Icons.flag_outlined,
-                    title: '举报说明',
+                    title: text('举报说明', 'Reporting Guidelines'),
                     page: const ReportGuidelinesPage(),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            const AppInlineMessage(
-              title: '内测状态',
-              message: '当前使用学校统一身份认证登录，仅向项目组白名单学号开放。',
+            AppInlineMessage(
+              title: text('访问说明', 'Access information'),
+              message: text(
+                '当前使用学校统一身份认证登录，仅向项目组白名单学号开放。',
+                'Sign-in uses Xidian unified authentication and is currently limited to allowlisted student IDs.',
+              ),
             ),
             const SizedBox(height: AppSpacing.lg),
             Text(
-              '西电知行 v${AppConfig.appVersion}\n校园社区内测项目 · 非西电官方应用',
+              '${text('西电知行', 'Xidian Zhixing')} v${AppConfig.appVersion}',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodySmall,
             ),

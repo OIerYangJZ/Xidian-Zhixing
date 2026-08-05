@@ -122,18 +122,6 @@ abstract class AppLocalizations {
   /// **'一个为西电同学准备的克制、真诚、可持续讨论的校园社区。'**
   String get taglineSupporting;
 
-  /// No description provided for @internalBeta.
-  ///
-  /// In zh, this message translates to:
-  /// **'项目组内测'**
-  String get internalBeta;
-
-  /// No description provided for @unofficialNotice.
-  ///
-  /// In zh, this message translates to:
-  /// **'校园社区内测项目 · 非西电官方应用'**
-  String get unofficialNotice;
-
   /// No description provided for @home.
   ///
   /// In zh, this message translates to:

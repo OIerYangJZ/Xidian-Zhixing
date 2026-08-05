@@ -21,12 +21,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get taglineSupporting => '一个为西电同学准备的克制、真诚、可持续讨论的校园社区。';
 
   @override
-  String get internalBeta => '项目组内测';
-
-  @override
-  String get unofficialNotice => '校园社区内测项目 · 非西电官方应用';
-
-  @override
   String get home => '首页';
 
   @override

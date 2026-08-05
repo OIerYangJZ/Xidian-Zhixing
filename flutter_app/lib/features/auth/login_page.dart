@@ -220,28 +220,7 @@ class _LoginManifesto extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    _Wordmark(onDark: true),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: colors.onDarkPanel.withValues(alpha: 0.42),
-                        ),
-                      ),
-                      child: Text(
-                        l10n.internalBeta,
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(color: colors.onDarkPanel),
-                      ),
-                    ),
-                  ],
-                ),
+                const _Wordmark(onDark: true),
                 const Spacer(),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 660),
@@ -281,15 +260,6 @@ class _LoginManifesto extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                Text(
-                  l10n.unofficialNotice,
-                  style: AppTypography.accentStyle(
-                    locale,
-                    fontSize: 15,
-                    color: colors.onDarkPanel.withValues(alpha: 0.72),
-                  ),
                 ),
               ],
             ),

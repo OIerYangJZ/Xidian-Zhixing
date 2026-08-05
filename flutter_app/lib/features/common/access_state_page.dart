@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 
@@ -20,8 +21,26 @@ class AccessStatePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String localizedTitle = forbidden
+        ? uiText(context, zh: '暂时无法访问', en: 'Access unavailable')
+        : uiText(context, zh: '页面没有找到', en: 'Page not found');
+    final String localizedMessage = forbidden
+        ? uiText(
+            context,
+            zh: '当前账号没有访问这个页面的权限。',
+            en: 'This account does not have permission to view this page.',
+          )
+        : uiText(
+            context,
+            zh: '链接可能已失效，或页面地址输入有误。',
+            en: 'The link may have expired or the address may be incorrect.',
+          );
     return Scaffold(
-      appBar: AppBar(title: Text(forbidden ? '无权限' : '404')),
+      appBar: AppBar(
+        title: Text(
+          forbidden ? uiText(context, zh: '无权限', en: 'Forbidden') : '404',
+        ),
+      ),
       body: AppPageFrame(
         maxWidth: AppLayout.readingMaxWidth,
         alignment: Alignment.center,
@@ -29,8 +48,8 @@ class AccessStatePage extends StatelessWidget {
           icon: forbidden
               ? Icons.lock_outline_rounded
               : Icons.explore_off_outlined,
-          title: title,
-          message: message,
+          title: localizedTitle,
+          message: localizedMessage,
           action: FilledButton.icon(
             onPressed: () {
               Navigator.of(
@@ -38,7 +57,7 @@ class AccessStatePage extends StatelessWidget {
               ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
             },
             icon: const Icon(Icons.home_outlined),
-            label: const Text('返回首页'),
+            label: Text(uiText(context, zh: '返回首页', en: 'Back to home')),
           ),
         ),
       ),

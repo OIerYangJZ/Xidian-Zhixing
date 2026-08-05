@@ -22,13 +22,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'A calm and sincere campus community for lasting conversations at Xidian.';
 
   @override
-  String get internalBeta => 'Project beta';
-
-  @override
-  String get unofficialNotice =>
-      'Campus community beta · Not an official Xidian app';
-
-  @override
   String get home => 'Home';
 
   @override

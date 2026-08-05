@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/conversation_item.dart';
 import 'chat_page.dart';
@@ -42,12 +43,10 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('会话'),
+            Text(uiText(context, zh: '会话', en: 'Conversations')),
             if (unreadCount > 0) ...[
               const SizedBox(width: 6),
-              Badge(
-                label: Text(unreadCount > 99 ? '99+' : '$unreadCount'),
-              ),
+              Badge(label: Text(unreadCount > 99 ? '99+' : '$unreadCount')),
             ],
           ],
         ),
@@ -69,16 +68,19 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         onRefresh: () =>
             ref.read(messagesControllerProvider.notifier).refresh(),
         child: ListView(
-          children: const <Widget>[
-            SizedBox(height: 80),
-            Center(child: Text('暂无会话。')),
+          children: <Widget>[
+            const SizedBox(height: 80),
+            Center(
+              child: Text(
+                uiText(context, zh: '暂无会话。', en: 'No conversations.'),
+              ),
+            ),
           ],
         ),
       );
     }
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(messagesControllerProvider.notifier).refresh(),
+      onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: state.conversations.length,
@@ -91,17 +93,27 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
               return await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('删除会话'),
-                  content: Text('确定删除与 "${session.name}" 的会话吗？'),
+                  title: Text(
+                    uiText(context, zh: '删除会话', en: 'Delete conversation'),
+                  ),
+                  content: Text(
+                    uiText(
+                      context,
+                      zh: '确定删除与 "${session.name}" 的会话吗？',
+                      en: 'Delete your conversation with "${session.name}"?',
+                    ),
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, false),
-                      child: const Text('取消'),
+                      child: Text(uiText(context, zh: '取消', en: 'Cancel')),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('删除',
-                          style: TextStyle(color: Colors.red)),
+                      child: Text(
+                        uiText(context, zh: '删除', en: 'Delete'),
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     ),
                   ],
                 ),
@@ -136,18 +148,16 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                                 .read(messagesControllerProvider.notifier)
                                 .removeConversation(session.id);
                           },
-                          onConversationFlagsChanged: ({
-                            bool? blockedByMe,
-                            bool? blockedByPeer,
-                          }) {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .updateConversationFlags(
-                                  conversationId: session.id,
-                                  blockedByMe: blockedByMe,
-                                  blockedByPeer: blockedByPeer,
-                                );
-                          },
+                          onConversationFlagsChanged:
+                              ({bool? blockedByMe, bool? blockedByPeer}) {
+                                ref
+                                    .read(messagesControllerProvider.notifier)
+                                    .updateConversationFlags(
+                                      conversationId: session.id,
+                                      blockedByMe: blockedByMe,
+                                      blockedByPeer: blockedByPeer,
+                                    );
+                              },
                           onMessageSent: (String content) {
                             ref
                                 .read(messagesControllerProvider.notifier)
@@ -162,7 +172,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     if (!mounted) {
                       return;
                     }
-                    await ref.read(messagesControllerProvider.notifier).refresh();
+                    await ref
+                        .read(messagesControllerProvider.notifier)
+                        .refresh();
                   },
                   child: _buildAvatar(session.avatarUrl, session.name),
                 ),
@@ -170,13 +182,15 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                   children: <Widget>[
                     Expanded(child: Text(session.name)),
                     if (session.blockedByMe)
-                      const Chip(
-                        label: Text('已屏蔽'),
+                      Chip(
+                        label: Text(uiText(context, zh: '已屏蔽', en: 'Blocked')),
                         visualDensity: VisualDensity.compact,
                       )
                     else if (session.blockedByPeer)
-                      const Chip(
-                        label: Text('对方已屏蔽'),
+                      Chip(
+                        label: Text(
+                          uiText(context, zh: '对方已屏蔽', en: 'Blocked by user'),
+                        ),
                         visualDensity: VisualDensity.compact,
                       ),
                   ],
@@ -218,18 +232,16 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                               .read(messagesControllerProvider.notifier)
                               .removeConversation(session.id);
                         },
-                        onConversationFlagsChanged: ({
-                          bool? blockedByMe,
-                          bool? blockedByPeer,
-                        }) {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .updateConversationFlags(
-                                conversationId: session.id,
-                                blockedByMe: blockedByMe,
-                                blockedByPeer: blockedByPeer,
-                              );
-                        },
+                        onConversationFlagsChanged:
+                            ({bool? blockedByMe, bool? blockedByPeer}) {
+                              ref
+                                  .read(messagesControllerProvider.notifier)
+                                  .updateConversationFlags(
+                                    conversationId: session.id,
+                                    blockedByMe: blockedByMe,
+                                    blockedByPeer: blockedByPeer,
+                                  );
+                            },
                         onMessageSent: (String content) {
                           ref
                               .read(messagesControllerProvider.notifier)
@@ -256,13 +268,14 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
 
   Widget _buildAvatar(String avatarUrl, String name) {
     final String resolved = AppConfig.resolveUrl(avatarUrl);
-    final String fallback =
-        name.trim().isEmpty ? '?' : name.trim().substring(0, 1);
+    final String fallback = name.trim().isEmpty
+        ? '?'
+        : name.trim().substring(0, 1);
     if (resolved.isNotEmpty) {
       return CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
+        backgroundColor: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: 0.1),
         child: ClipOval(
           child: Image.network(
             resolved,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/post_item.dart';
@@ -56,7 +57,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
   Widget build(BuildContext context) {
     final SearchState state = ref.watch(searchControllerProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('搜索')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '搜索', en: 'Search')),
+      ),
       body: AsyncPageState(
         loading: state.loading,
         error: state.error,
@@ -68,9 +71,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             TextField(
               controller: _queryController,
               autofocus: widget.autofocus,
-              decoration: const InputDecoration(
-                hintText: '输入关键词搜索帖子，或按昵称搜索用户',
-                prefixIcon: Icon(Icons.search),
+              decoration: InputDecoration(
+                hintText: uiText(
+                  context,
+                  zh: '输入关键词搜索帖子，或按昵称搜索用户',
+                  en: 'Search posts by keyword or users by nickname',
+                ),
+                prefixIcon: const Icon(Icons.search),
               ),
               onSubmitted: (_) => _submitSearch(),
             ),
@@ -79,12 +86,24 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               segments: <ButtonSegment<SearchResultTab>>[
                 ButtonSegment<SearchResultTab>(
                   value: SearchResultTab.posts,
-                  label: Text('帖子 ${state.results.length}'),
+                  label: Text(
+                    uiText(
+                      context,
+                      zh: '帖子 ${state.results.length}',
+                      en: 'Posts ${state.results.length}',
+                    ),
+                  ),
                   icon: const Icon(Icons.article_outlined),
                 ),
                 ButtonSegment<SearchResultTab>(
                   value: SearchResultTab.users,
-                  label: Text('用户 ${state.userResults.length}'),
+                  label: Text(
+                    uiText(
+                      context,
+                      zh: '用户 ${state.userResults.length}',
+                      en: 'Users ${state.userResults.length}',
+                    ),
+                  ),
                   icon: const Icon(Icons.person_search_outlined),
                 ),
               ],
@@ -104,7 +123,13 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   padding: EdgeInsets.only(bottom: 10),
                   child: LinearProgressIndicator(minHeight: 2),
                 ),
-              Text('共找到 ${state.results.length} 条帖子'),
+              Text(
+                uiText(
+                  context,
+                  zh: '共找到 ${state.results.length} 条帖子',
+                  en: '${state.results.length} posts found',
+                ),
+              ),
               const SizedBox(height: 6),
               ...state.results.map(
                 (PostItem post) => PostCard(
@@ -124,9 +149,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 ),
               ),
               if (state.results.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('没有匹配帖子，换个关键词试试。')),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      uiText(
+                        context,
+                        zh: '没有匹配帖子，换个关键词试试。',
+                        en: 'No matching posts. Try another keyword.',
+                      ),
+                    ),
+                  ),
                 ),
             ] else ...<Widget>[
               _buildUserSearchActions(state),
@@ -136,19 +169,41 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                   padding: EdgeInsets.only(bottom: 10),
                   child: LinearProgressIndicator(minHeight: 2),
                 ),
-              Text('共找到 ${state.userResults.length} 位用户'),
+              Text(
+                uiText(
+                  context,
+                  zh: '共找到 ${state.userResults.length} 位用户',
+                  en: '${state.userResults.length} users found',
+                ),
+              ),
               const SizedBox(height: 6),
               if (state.keyword.trim().isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Center(child: Text('输入昵称后即可搜索用户。')),
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Text(
+                      uiText(
+                        context,
+                        zh: '输入昵称后即可搜索用户。',
+                        en: 'Enter a nickname to search for users.',
+                      ),
+                    ),
+                  ),
                 )
               else ...<Widget>[
                 ...state.userResults.map(_buildUserCard),
                 if (state.userResults.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Center(child: Text('没有找到匹配昵称的用户。')),
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(
+                        uiText(
+                          context,
+                          zh: '没有找到匹配昵称的用户。',
+                          en: 'No users match that nickname.',
+                        ),
+                      ),
+                    ),
                   ),
               ],
             ],
@@ -167,9 +222,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           width: 150,
           child: DropdownButtonFormField<String>(
             initialValue: state.selectedChannel,
-            decoration: const InputDecoration(
-              labelText: '频道',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: InputDecoration(
+              labelText: uiText(context, zh: '频道', en: 'Channel'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
             ),
             items: state.channels
                 .map(
@@ -193,14 +251,17 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           width: 150,
           child: DropdownButtonFormField<PostStatus?>(
             initialValue: state.status,
-            decoration: const InputDecoration(
-              labelText: '状态',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: InputDecoration(
+              labelText: uiText(context, zh: '状态', en: 'Status'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
             ),
             items: <DropdownMenuItem<PostStatus?>>[
-              const DropdownMenuItem<PostStatus?>(
+              DropdownMenuItem<PostStatus?>(
                 value: null,
-                child: Text('全部状态'),
+                child: Text(uiText(context, zh: '全部状态', en: 'All statuses')),
               ),
               ...PostStatus.values.map(
                 (PostStatus status) => DropdownMenuItem<PostStatus?>(
@@ -222,9 +283,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           width: 180,
           child: DropdownButtonFormField<PostSort>(
             initialValue: state.sort,
-            decoration: const InputDecoration(
-              labelText: '排序',
-              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: InputDecoration(
+              labelText: uiText(context, zh: '排序', en: 'Sort'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 8,
+              ),
             ),
             items: _webSorts
                 .map(
@@ -247,7 +311,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ),
         FilterChip(
-          label: const Text('仅看有图'),
+          label: Text(uiText(context, zh: '仅看有图', en: 'With images')),
           selected: state.imageOnly,
           onSelected: state.searching
               ? null
@@ -258,7 +322,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                 },
         ),
         FilterChip(
-          label: const Text('仅看可私信'),
+          label: Text(uiText(context, zh: '仅看可私信', en: 'Messageable')),
           selected: state.dmOnly,
           onSelected: state.searching
               ? null
@@ -271,7 +335,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         FilledButton.icon(
           onPressed: state.searching ? null : _submitSearch,
           icon: const Icon(Icons.search),
-          label: const Text('搜索'),
+          label: Text(uiText(context, zh: '搜索', en: 'Search')),
         ),
       ],
     );
@@ -283,14 +347,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: <Widget>[
-        const Chip(
-          avatar: Icon(Icons.person_search_outlined, size: 16),
-          label: Text('按昵称搜索用户'),
+        Chip(
+          avatar: const Icon(Icons.person_search_outlined, size: 16),
+          label: Text(
+            uiText(context, zh: '按昵称搜索用户', en: 'Search users by nickname'),
+          ),
         ),
         FilledButton.icon(
           onPressed: state.searching ? null : _submitSearch,
           icon: const Icon(Icons.search),
-          label: const Text('搜索用户'),
+          label: Text(uiText(context, zh: '搜索用户', en: 'Search users')),
         ),
       ],
     );
@@ -304,9 +370,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     return Card(
       child: ListTile(
         leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-          alpha: 0.1,
-        ),
+          backgroundColor: Theme.of(
+            context,
+          ).colorScheme.primary.withValues(alpha: 0.1),
           backgroundImage: resolvedAvatar.isNotEmpty
               ? NetworkImage(resolvedAvatar)
               : null,
@@ -314,11 +380,15 @@ class _SearchPageState extends ConsumerState<SearchPage> {
         ),
         title: Text(profile.nickname),
         subtitle: Text(
-          '${profile.userLevelLabel} · 帖子 ${profile.postCount} · 粉丝 ${profile.followerCount}',
+          uiText(
+            context,
+            zh: '${profile.userLevelLabel} · 帖子 ${profile.postCount} · 粉丝 ${profile.followerCount}',
+            en: '${profile.postCount} posts · ${profile.followerCount} followers',
+          ),
         ),
         trailing: profile.isFollowing
-            ? const Chip(
-                label: Text('已关注'),
+            ? Chip(
+                label: Text(uiText(context, zh: '已关注', en: 'Following')),
                 visualDensity: VisualDensity.compact,
               )
             : null,

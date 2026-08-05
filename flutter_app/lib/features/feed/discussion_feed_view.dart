@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/l10n/ui_text.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
@@ -170,9 +171,12 @@ class _DiscussionFeedBody extends StatelessWidget {
     if (state.error != null && state.posts.isEmpty) {
       return AppStatePanel(
         icon: Icons.cloud_off_outlined,
-        title: '内容加载失败',
+        title: uiText(context, zh: '内容加载失败', en: 'Could not load content'),
         message: state.error!,
-        action: TextButton(onPressed: onRetry, child: const Text('重试')),
+        action: TextButton(
+          onPressed: onRetry,
+          child: Text(uiText(context, zh: '重试', en: 'Retry')),
+        ),
       );
     }
     return RefreshIndicator(
@@ -195,12 +199,16 @@ class _DiscussionFeedBody extends StatelessWidget {
               Divider(height: 1, color: EditorialColors.of(context).line),
           itemBuilder: (BuildContext context, int index) {
             if (state.posts.isEmpty) {
-              return const SizedBox(
+              return SizedBox(
                 height: 320,
                 child: AppStatePanel(
                   icon: Icons.forum_outlined,
-                  title: '这里还没有帖子',
-                  message: '成为第一位分享校园日常的人。',
+                  title: uiText(context, zh: '这里还没有帖子', en: 'No posts yet'),
+                  message: uiText(
+                    context,
+                    zh: '成为第一位分享校园日常的人。',
+                    en: 'Be the first to share something from campus.',
+                  ),
                 ),
               );
             }
@@ -250,13 +258,13 @@ class _DiscussionHeader extends StatelessWidget {
       child: Row(
         children: <Widget>[
           _DiscussionTab(
-            label: '推荐',
+            label: uiText(context, zh: '推荐', en: 'Recommended'),
             selected: sort == PostSort.hot,
             onTap: () => onSortChanged(PostSort.hot),
           ),
           const SizedBox(width: AppSpacing.lg),
           _DiscussionTab(
-            label: '最新',
+            label: uiText(context, zh: '最新', en: 'Latest'),
             selected: sort == PostSort.latest,
             onTap: () => onSortChanged(PostSort.latest),
           ),
@@ -266,7 +274,7 @@ class _DiscussionHeader extends StatelessWidget {
           IconButton(
             key: const Key('feed-filter-button'),
             onPressed: onFilter,
-            tooltip: '选择分区',
+            tooltip: uiText(context, zh: '选择分区', en: 'Choose channel'),
             icon: const Icon(Icons.tune_rounded, size: 19),
           ),
         ],
@@ -338,7 +346,7 @@ class _DiscussionAside extends StatelessWidget {
               children: <Widget>[
                 Expanded(
                   child: Text(
-                    '正在讨论',
+                    uiText(context, zh: '正在讨论', en: 'In discussion'),
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
@@ -348,7 +356,7 @@ class _DiscussionAside extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             if (discussions.isEmpty)
               Text(
-                '暂时没有讨论',
+                uiText(context, zh: '暂时没有讨论', en: 'No discussions yet'),
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: colors.mutedInk),
@@ -374,7 +382,11 @@ class _DiscussionAside extends StatelessWidget {
                         ),
                         const SizedBox(height: AppSpacing.xxs),
                         Text(
-                          '${post.commentCount} 条回复',
+                          uiText(
+                            context,
+                            zh: '${post.commentCount} 条回复',
+                            en: '${post.commentCount} replies',
+                          ),
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: colors.mutedInk),
                         ),
@@ -385,10 +397,17 @@ class _DiscussionAside extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Divider(color: colors.line),
             const SizedBox(height: AppSpacing.md),
-            Text('社区共识', style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              uiText(context, zh: '社区共识', en: 'Community principles'),
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              '尊重每一次认真表达。匿名不等于无边界。',
+              uiText(
+                context,
+                zh: '尊重每一次认真表达。匿名不等于无边界。',
+                en: 'Respect every sincere contribution. Anonymity still has boundaries.',
+              ),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: colors.mutedInk),
