@@ -123,8 +123,11 @@ fi
 "$VENV_DIR/bin/python" -m pip install \
   --no-index \
   --find-links "$WHEEL_DIR" \
-  -r "$RELEASE_DIR/backend/requirements-storage.txt"
-"$VENV_DIR/bin/python" -c 'import boto3, PIL, requests'
+  -r "$RELEASE_DIR/backend/requirements-storage.txt" \
+  -r "$RELEASE_DIR/backend/requirements-auth.txt"
+# cryptography is required by the campus-service login (RSA of the school login
+# page); without it those endpoints fail at runtime, not at startup.
+"$VENV_DIR/bin/python" -c 'import boto3, PIL, requests, cryptography'
 chown -R root:"$APP_USER" "$VENV_DIR"
 chmod -R g+rX,o-rwx "$VENV_DIR"
 

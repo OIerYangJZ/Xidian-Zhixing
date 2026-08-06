@@ -42,7 +42,8 @@ install -d \
   "$STAGING_DIR/scripts" \
   "$STAGING_DIR/release-meta"
 
-for file in server.py _globals.py object_storage.py rag_service.py sql_repository.py requirements-storage.txt; do
+for file in server.py _globals.py object_storage.py rag_service.py sql_repository.py \
+  requirements-storage.txt requirements-auth.txt; do
   install -m 0644 "$ROOT_DIR/backend/$file" "$STAGING_DIR/backend/$file"
 done
 

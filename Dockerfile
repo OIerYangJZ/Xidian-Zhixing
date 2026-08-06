@@ -15,8 +15,10 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 COPY backend/requirements-storage.txt /tmp/requirements-storage.txt
+COPY backend/requirements-auth.txt /tmp/requirements-auth.txt
 RUN python3 -m pip install --no-cache-dir -r /tmp/requirements-storage.txt \
-    && rm -f /tmp/requirements-storage.txt \
+    && python3 -m pip install --no-cache-dir -r /tmp/requirements-auth.txt \
+    && rm -f /tmp/requirements-storage.txt /tmp/requirements-auth.txt \
     && groupadd --system treehole \
     && useradd --system --gid treehole --home-dir /app --shell /usr/sbin/nologin treehole
 

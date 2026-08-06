@@ -56,6 +56,11 @@ def main() -> int:
             return 1
         required_members = {
             "backend/server.py",
+            # Both dependency manifests must ship: the installer reads them to
+            # build the venv, and a missing one only surfaces at runtime as
+            # "后端缺少 xxx 依赖" on the login / campus-service endpoints.
+            "backend/requirements-storage.txt",
+            "backend/requirements-auth.txt",
             "web/index.html",
             "web/main.dart.js",
         }

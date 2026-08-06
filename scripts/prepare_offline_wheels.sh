@@ -22,7 +22,8 @@ mkdir -p "$OUTPUT_DIR"
 python3 -m pip download \
   --only-binary=:all: \
   --dest "$OUTPUT_DIR" \
-  -r "$ROOT_DIR/backend/requirements-storage.txt"
+  -r "$ROOT_DIR/backend/requirements-storage.txt" \
+  -r "$ROOT_DIR/backend/requirements-auth.txt"
 
 python3 - "$OUTPUT_DIR" <<'PY'
 import hashlib
