@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_store.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
@@ -23,12 +24,66 @@ class CampusAuthCenterPage extends ConsumerStatefulWidget {
 class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   static const String _stateKey = 'campus_auth_state';
   static const List<_CampusSystem> _systems = <_CampusSystem>[
-    _CampusSystem('ids', '统一认证', 'IDS', '一站式、课表、成绩、考试等入口', _AuthType.password),
-    _CampusSystem('payment', '缴费/水电', '水电', '缴费平台和水电系统跳转验证', _AuthType.password),
-    _CampusSystem('physics', '物理实验', '实验', '物理实验选课与实验安排', _AuthType.password),
-    _CampusSystem('sport', '体育系统', '体育', '体育课程、体测等系统访问', _AuthType.password),
-    _CampusSystem('schoolnet', '校园网自服务', '网络', '校园网账号、查询密码和图形验证码', _AuthType.schoolnet),
-    _CampusSystem('dormWater', '宿舍水机', '水机', '手机号、图形验证码和短信验证码', _AuthType.phone),
+    _CampusSystem(
+      'ids',
+      _AuthType.password,
+      nameZh: '统一认证',
+      nameEn: 'Unified login',
+      tagZh: 'IDS',
+      tagEn: 'IDS',
+      descZh: '一站式、课表、成绩、考试等入口',
+      descEn: 'One-stop portal, schedules, grades and exams',
+    ),
+    _CampusSystem(
+      'payment',
+      _AuthType.password,
+      nameZh: '缴费/水电',
+      nameEn: 'Payments & utilities',
+      tagZh: '水电',
+      tagEn: 'Utilities',
+      descZh: '缴费平台和水电系统跳转验证',
+      descEn: 'Verification for the payment and utilities platforms',
+    ),
+    _CampusSystem(
+      'physics',
+      _AuthType.password,
+      nameZh: '物理实验',
+      nameEn: 'Physics labs',
+      tagZh: '实验',
+      tagEn: 'Labs',
+      descZh: '物理实验选课与实验安排',
+      descEn: 'Physics lab enrolment and session schedule',
+    ),
+    _CampusSystem(
+      'sport',
+      _AuthType.password,
+      nameZh: '体育系统',
+      nameEn: 'PE system',
+      tagZh: '体育',
+      tagEn: 'Sports',
+      descZh: '体育课程、体测等系统访问',
+      descEn: 'Access to PE courses and fitness test records',
+    ),
+    _CampusSystem(
+      'schoolnet',
+      _AuthType.schoolnet,
+      nameZh: '校园网自服务',
+      nameEn: 'Campus network self-service',
+      tagZh: '网络',
+      tagEn: 'Network',
+      descZh: '校园网账号、查询密码和图形验证码',
+      descEn: 'Network account, lookup password and image captcha',
+    ),
+    _CampusSystem(
+      'dormWater',
+      _AuthType.phone,
+      nameZh: '宿舍水机',
+      nameEn: 'Dorm water dispenser',
+      tagZh: '水机',
+      tagEn: 'Water',
+      descZh: '手机号、图形验证码和短信验证码',
+      descEn: 'Phone number, image captcha and SMS code',
+    ),
   ];
 
   final TextEditingController _identifierController = TextEditingController();
@@ -110,8 +165,11 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('登录管理')),
+      appBar: AppBar(
+        title: Text(uiText(context, zh: '登录管理', en: 'Sign-in manager')),
+      ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
         children: <Widget>[
@@ -155,7 +213,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                   children: <Widget>[
                     Expanded(
                       child: Text(
-                        _active.name,
+                        _active.name(locale),
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w900,
@@ -163,7 +221,10 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                       ),
                     ),
                     if (_states.containsKey(_activeSystem))
-                      TextButton(onPressed: _clearCurrentState, child: const Text('清除')),
+                      TextButton(
+                        onPressed: _clearCurrentState,
+                        child: Text(uiText(context, zh: '清除', en: 'Clear')),
+                      ),
                   ],
                 ),
                 if (_states[_activeSystem] case final Map state) ...<Widget>[
@@ -175,7 +236,13 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '已保存账号 · ${state['studentId'] ?? ''} · ${state['updatedAt'] ?? ''}',
+                      uiText(
+                        context,
+                        zh: '已保存账号 · ${state['studentId'] ?? ''} · '
+                            '${state['updatedAt'] ?? ''}',
+                        en: 'Saved account · ${state['studentId'] ?? ''} · '
+                            '${state['updatedAt'] ?? ''}',
+                      ),
                     ),
                   ),
                 ],
@@ -199,11 +266,15 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   }
 
   Widget _passwordForm() {
+    final Locale locale = Localizations.localeOf(context);
+    final String systemName = _active.name(locale);
     return Column(
       children: <Widget>[
         TextField(
           controller: _identifierController,
-          decoration: const InputDecoration(labelText: '学号'),
+          decoration: InputDecoration(
+            labelText: uiText(context, zh: '学号', en: 'Student ID'),
+          ),
         ),
         const SizedBox(height: 10),
         TextField(
@@ -211,8 +282,16 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           obscureText: true,
           decoration: InputDecoration(
             labelText: _activeSystem == 'ids' || _activeSystem == 'payment'
-                ? '统一认证密码'
-                : '${_active.name}密码',
+                ? uiText(
+                    context,
+                    zh: '统一认证密码',
+                    en: 'Unified login password',
+                  )
+                : uiText(
+                    context,
+                    zh: '$systemName密码',
+                    en: '$systemName password',
+                  ),
           ),
         ),
         const SizedBox(height: 14),
@@ -220,7 +299,15 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           width: double.infinity,
           child: FilledButton(
             onPressed: _busy ? null : _submitPasswordAuth,
-            child: Text(_busy ? '正在验证' : '验证${_active.name}'),
+            child: Text(
+              _busy
+                  ? uiText(context, zh: '正在验证', en: 'Verifying')
+                  : uiText(
+                      context,
+                      zh: '验证$systemName',
+                      en: 'Verify $systemName',
+                    ),
+            ),
           ),
         ),
       ],
@@ -232,13 +319,21 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       children: <Widget>[
         TextField(
           controller: _identifierController,
-          decoration: const InputDecoration(labelText: '账号'),
+          decoration: InputDecoration(
+            labelText: uiText(context, zh: '账号', en: 'Account'),
+          ),
         ),
         const SizedBox(height: 10),
         TextField(
           controller: _passwordController,
           obscureText: true,
-          decoration: const InputDecoration(labelText: '校园网查询密码'),
+          decoration: InputDecoration(
+            labelText: uiText(
+              context,
+              zh: '校园网查询密码',
+              en: 'Network lookup password',
+            ),
+          ),
         ),
         const SizedBox(height: 10),
         Row(
@@ -246,7 +341,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
             Expanded(
               child: TextField(
                 controller: _schoolnetCaptchaController,
-                decoration: const InputDecoration(labelText: '验证码'),
+                decoration: InputDecoration(
+                  labelText: uiText(context, zh: '验证码', en: 'Captcha'),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -262,7 +359,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           width: double.infinity,
           child: OutlinedButton(
             onPressed: _captchaBusy ? null : _refreshSchoolnetCaptcha,
-            child: const Text('刷新验证码'),
+            child: Text(
+              uiText(context, zh: '刷新验证码', en: 'Refresh captcha'),
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -270,7 +369,15 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           width: double.infinity,
           child: FilledButton(
             onPressed: _busy ? null : _submitSchoolnetAuth,
-            child: Text(_busy ? '正在登录' : '登录校园网自服务'),
+            child: Text(
+              _busy
+                  ? uiText(context, zh: '正在登录', en: 'Signing in')
+                  : uiText(
+                      context,
+                      zh: '登录校园网自服务',
+                      en: 'Sign in to campus network',
+                    ),
+            ),
           ),
         ),
       ],
@@ -282,7 +389,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       children: <Widget>[
         TextField(
           controller: _phoneController,
-          decoration: const InputDecoration(labelText: '手机号'),
+          decoration: InputDecoration(
+            labelText: uiText(context, zh: '手机号', en: 'Phone number'),
+          ),
         ),
         const SizedBox(height: 10),
         Row(
@@ -290,7 +399,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
             Expanded(
               child: TextField(
                 controller: _dormWaterImageCodeController,
-                decoration: const InputDecoration(labelText: '图形码'),
+                decoration: InputDecoration(
+                  labelText: uiText(context, zh: '图形码', en: 'Image code'),
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -304,14 +415,20 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
         const SizedBox(height: 10),
         TextField(
           controller: _dormWaterSmsController,
-          decoration: const InputDecoration(labelText: '短信码'),
+          decoration: InputDecoration(
+            labelText: uiText(context, zh: '短信码', en: 'SMS code'),
+          ),
         ),
         const SizedBox(height: 10),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton(
             onPressed: _smsBusy ? null : _sendDormWaterSms,
-            child: Text(_smsBusy ? '正在发送' : '发送短信验证码'),
+            child: Text(
+              _smsBusy
+                  ? uiText(context, zh: '正在发送', en: 'Sending')
+                  : uiText(context, zh: '发送短信验证码', en: 'Send SMS code'),
+            ),
           ),
         ),
         const SizedBox(height: 10),
@@ -319,7 +436,15 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           width: double.infinity,
           child: FilledButton(
             onPressed: _busy ? null : _submitDormWaterAuth,
-            child: Text(_busy ? '正在登录' : '登录宿舍水机'),
+            child: Text(
+              _busy
+                  ? uiText(context, zh: '正在登录', en: 'Signing in')
+                  : uiText(
+                      context,
+                      zh: '登录宿舍水机',
+                      en: 'Sign in to water dispenser',
+                    ),
+            ),
           ),
         ),
       ],
@@ -368,7 +493,13 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       await _saveState(_activeSystem, result);
       _passwordController.clear();
     } catch (error) {
-      _setError('${_active.name}验证失败：$error');
+      final String systemName = _active.name(appLocale);
+      _setError(
+        uiTextGlobal(
+          zh: '$systemName验证失败：$error',
+          en: '$systemName verification failed: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _busy = false);
@@ -378,7 +509,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   Future<void> _refreshSchoolnetCaptcha() async {
     if (_identifierController.text.trim().isEmpty) {
-      _setError('请输入学号后获取验证码');
+      _setError(
+        uiTextGlobal(
+          zh: '请输入学号后获取验证码',
+          en: 'Enter your student ID before requesting a captcha',
+        ),
+      );
       return;
     }
     setState(() {
@@ -394,7 +530,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
         _schoolnetCaptchaImage = base64Decode(result.imageBase64);
       });
     } catch (error) {
-      _setError('校园网验证码获取失败：$error');
+      _setError(
+        uiTextGlobal(
+          zh: '校园网验证码获取失败：$error',
+          en: 'Could not load the campus network captcha: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _captchaBusy = false);
@@ -408,7 +549,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     }
     if (_schoolnetAttemptId.isEmpty ||
         _schoolnetCaptchaController.text.trim().isEmpty) {
-      _setError('请先获取并填写验证码');
+      _setError(
+        uiTextGlobal(
+          zh: '请先获取并填写验证码',
+          en: 'Request a captcha and fill it in first',
+        ),
+      );
       return;
     }
     setState(() {
@@ -427,7 +573,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _passwordController.clear();
       _schoolnetCaptchaController.clear();
     } catch (error) {
-      _setError('校园网自服务登录失败：$error');
+      _setError(
+        uiTextGlobal(
+          zh: '校园网自服务登录失败：$error',
+          en: 'Campus network sign-in failed: $error',
+        ),
+      );
       await _refreshSchoolnetCaptcha();
     } finally {
       if (mounted) {
@@ -449,7 +600,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
         _dormWaterCaptchaImage = base64Decode(result.imageBase64);
       });
     } catch (error) {
-      _setError('宿舍水机验证码获取失败：$error');
+      _setError(
+        uiTextGlobal(
+          zh: '宿舍水机验证码获取失败：$error',
+          en: 'Could not load the water dispenser captcha: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _captchaBusy = false);
@@ -461,7 +617,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     if (_phoneController.text.trim().isEmpty ||
         _dormWaterSessionId.isEmpty ||
         _dormWaterImageCodeController.text.trim().isEmpty) {
-      _setError('请填写手机号和图形验证码');
+      _setError(
+        uiTextGlobal(
+          zh: '请填写手机号和图形验证码',
+          en: 'Fill in your phone number and the image captcha',
+        ),
+      );
       return;
     }
     setState(() {
@@ -475,11 +636,19 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
             imageCode: _dormWaterImageCodeController.text.trim(),
           );
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('短信已发送')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(uiText(context, zh: '短信已发送', en: 'SMS sent')),
+          ),
+        );
       }
     } catch (error) {
-      _setError('短信验证码发送失败：$error');
+      _setError(
+        uiTextGlobal(
+          zh: '短信验证码发送失败：$error',
+          en: 'Could not send the SMS code: $error',
+        ),
+      );
       await _refreshDormWaterCaptcha();
     } finally {
       if (mounted) {
@@ -491,7 +660,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   Future<void> _submitDormWaterAuth() async {
     if (_phoneController.text.trim().isEmpty ||
         _dormWaterSmsController.text.trim().isEmpty) {
-      _setError('请输入手机号和短信验证码');
+      _setError(
+        uiTextGlobal(
+          zh: '请输入手机号和短信验证码',
+          en: 'Enter your phone number and the SMS code',
+        ),
+      );
       return;
     }
     setState(() {
@@ -507,7 +681,12 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       await _saveState('dormWater', result);
       _dormWaterSmsController.clear();
     } catch (error) {
-      _setError('宿舍水机登录失败：$error');
+      _setError(
+        uiTextGlobal(
+          zh: '宿舍水机登录失败：$error',
+          en: 'Water dispenser sign-in failed: $error',
+        ),
+      );
     } finally {
       if (mounted) {
         setState(() => _busy = false);
@@ -517,11 +696,15 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   bool _requireIdentifierAndPassword() {
     if (_identifierController.text.trim().isEmpty) {
-      _setError('请输入学号');
+      _setError(
+        uiTextGlobal(zh: '请输入学号', en: 'Enter your student ID'),
+      );
       return false;
     }
     if (_passwordController.text.isEmpty) {
-      _setError('请输入密码');
+      _setError(
+        uiTextGlobal(zh: '请输入密码', en: 'Enter your password'),
+      );
       return false;
     }
     return true;
@@ -578,6 +761,7 @@ class _SystemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color primary = Theme.of(context).colorScheme.primary;
+    final Locale locale = Localizations.localeOf(context);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
@@ -594,7 +778,7 @@ class _SystemCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Text(
-                  system.tag,
+                  system.tag(locale),
                   style: TextStyle(
                     color: primary,
                     fontWeight: FontWeight.w900,
@@ -603,16 +787,19 @@ class _SystemCard extends StatelessWidget {
                 const Spacer(),
                 if (verified)
                   Text(
-                    '已验证',
+                    uiText(context, zh: '已验证', en: 'Verified'),
                     style: TextStyle(color: primary, fontWeight: FontWeight.w700),
                   ),
               ],
             ),
             const SizedBox(height: 10),
-            Text(system.name, style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text(
+              system.name(locale),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 5),
             Text(
-              system.desc,
+              system.desc(locale),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -657,7 +844,7 @@ class _CaptchaBox extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : image == null
-                ? const Text('获取')
+                ? Text(uiText(context, zh: '获取', en: 'Load'))
                 : Image.memory(image!, fit: BoxFit.contain),
       ),
     );
@@ -667,11 +854,29 @@ class _CaptchaBox extends StatelessWidget {
 enum _AuthType { password, schoolnet, phone }
 
 class _CampusSystem {
-  const _CampusSystem(this.id, this.name, this.tag, this.desc, this.type);
+  const _CampusSystem(
+    this.id,
+    this.type, {
+    required this.nameZh,
+    required this.nameEn,
+    required this.tagZh,
+    required this.tagEn,
+    required this.descZh,
+    required this.descEn,
+  });
 
   final String id;
-  final String name;
-  final String tag;
-  final String desc;
   final _AuthType type;
+  final String nameZh;
+  final String nameEn;
+  final String tagZh;
+  final String tagEn;
+  final String descZh;
+  final String descEn;
+
+  String name(Locale locale) => uiTextFor(locale, zh: nameZh, en: nameEn);
+
+  String tag(Locale locale) => uiTextFor(locale, zh: tagZh, en: tagEn);
+
+  String desc(Locale locale) => uiTextFor(locale, zh: descZh, en: descEn);
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/l10n/campus_text.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
@@ -29,12 +30,21 @@ class _AiPageState extends ConsumerState<AiPage> {
             padding: const EdgeInsets.only(bottom: 100),
             children: <Widget>[
               AppSectionHeader(
-                title: '校园 AI 助手',
-                subtitle: '基于校园知识库与审核通过的公开内容回答',
+                title: uiText(
+                  context,
+                  zh: '校园 AI 助手',
+                  en: 'Campus AI assistant',
+                ),
+                subtitle: uiText(
+                  context,
+                  zh: '基于校园知识库与审核通过的公开内容回答',
+                  en: 'Answers drawn from the campus knowledge base and '
+                      'approved public content',
+                ),
                 trailing: OutlinedButton.icon(
                   onPressed: _openSettings,
                   icon: const Icon(Icons.tune_rounded, size: 18),
-                  label: const Text('设置'),
+                  label: Text(uiText(context, zh: '设置', en: 'Settings')),
                 ),
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -91,19 +101,37 @@ class _AiStartCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const AppSealMark(label: '问', size: 46),
+          AppSealMark(
+            label: uiText(context, zh: '问', en: 'Q'),
+            size: 46,
+          ),
           const SizedBox(height: AppSpacing.lg),
-          Text('从一个校园问题开始', style: Theme.of(context).textTheme.headlineSmall),
+          Text(
+            uiText(
+              context,
+              zh: '从一个校园问题开始',
+              en: 'Start with a campus question',
+            ),
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            '进入对话后可询问办事流程、校园服务或公开社区内容。回答若引用资料，会在正文下方逐条列出来源。',
+            uiText(
+              context,
+              zh: '进入对话后可询问办事流程、校园服务或公开社区内容。回答若引用资料，会在正文下方逐条列出来源。',
+              en: 'Ask about administrative procedures, campus services or '
+                  'public community content. Whenever an answer cites '
+                  'material, the sources are listed one by one beneath it.',
+            ),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: AppSpacing.xl),
           FilledButton.icon(
             onPressed: onOpenChat,
             icon: const Icon(Icons.arrow_forward_rounded),
-            label: const Text('发起新对话'),
+            label: Text(
+              uiText(context, zh: '发起新对话', en: 'Start a conversation'),
+            ),
           ),
         ],
       ),
@@ -116,26 +144,49 @@ class _AiPrinciplesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AppSurfaceCard(
+    return AppSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          AppSectionTitle(title: '回答原则'),
-          SizedBox(height: AppSpacing.sm),
+          AppSectionTitle(
+            title: uiText(context, zh: '回答原则', en: 'How answers work'),
+          ),
+          const SizedBox(height: AppSpacing.sm),
           _AiPrinciple(
             icon: Icons.source_outlined,
-            title: '来源可核对',
-            message: '检索到的参考资料会和回答分开呈现。',
+            title: uiText(context, zh: '来源可核对', en: 'Checkable sources'),
+            message: uiText(
+              context,
+              zh: '检索到的参考资料会和回答分开呈现。',
+              en: 'Retrieved references are shown separately from the answer.',
+            ),
           ),
           _AiPrinciple(
             icon: Icons.visibility_outlined,
-            title: '能力边界透明',
-            message: '服务器未配置时会明确提示，不生成替代回答。',
+            title: uiText(
+              context,
+              zh: '能力边界透明',
+              en: 'Honest about its limits',
+            ),
+            message: uiText(
+              context,
+              zh: '服务器未配置时会明确提示，不生成替代回答。',
+              en: 'If the server has no AI configured it says so, rather than '
+                  'inventing a substitute answer.',
+            ),
           ),
           _AiPrinciple(
             icon: Icons.lock_outline_rounded,
-            title: '公开内容范围',
-            message: '论坛内容仅使用审核通过的公开帖子。',
+            title: uiText(
+              context,
+              zh: '公开内容范围',
+              en: 'Public content only',
+            ),
+            message: uiText(
+              context,
+              zh: '论坛内容仅使用审核通过的公开帖子。',
+              en: 'Forum material is limited to approved public posts.',
+            ),
           ),
         ],
       ),
@@ -609,6 +660,7 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool user = role == 'user';
+    final Locale locale = Localizations.localeOf(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -617,7 +669,7 @@ class _MessageBubble extends StatelessWidget {
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: <Widget>[
-          if (!user) const _AiAvatar(label: '印'),
+          if (!user) _AiAvatar(label: uiText(context, zh: '印', en: 'AI')),
           Flexible(
             child: Container(
               margin: EdgeInsets.only(
@@ -644,7 +696,10 @@ class _MessageBubble extends StatelessWidget {
                   ),
                   if (references.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 12),
-                    Text('参考来源', style: Theme.of(context).textTheme.labelLarge),
+                    Text(
+                      uiText(context, zh: '参考来源', en: 'Sources'),
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
                     const SizedBox(height: AppSpacing.xs),
                     for (final MapEntry<int, AiReference> entry
                         in references.asMap().entries)
@@ -658,7 +713,9 @@ class _MessageBubble extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadii.small),
                         ),
                         child: Text(
-                          '${entry.key + 1}. ${entry.value.type} · ${entry.value.title}',
+                          '${entry.key + 1}. '
+                          '${localizedAiReferenceType(locale, entry.value.type)}'
+                          ' · ${entry.value.title}',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             fontSize: 12,
@@ -670,7 +727,7 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (user) const _AiAvatar(label: '我'),
+          if (user) _AiAvatar(label: uiText(context, zh: '我', en: 'Me')),
         ],
       ),
     );
