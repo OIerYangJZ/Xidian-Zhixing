@@ -348,7 +348,16 @@ def _query_value(query: dict[str, list[str]], key: str) -> str:
 
 def _sanitize_next_path(value: str) -> str:
     normalized = value.strip() or "/"
+    # Backslashes are normalized to "/" by several browsers, so "/\evil.com"
+    # and "/\/evil.com" are protocol-relative redirects in disguise.  Reject
+    # anything that is not an unambiguous single-slash local path.
+    normalized = normalized.replace("\\", "/")
     if not normalized.startswith("/") or normalized.startswith("//"):
+        return "/"
+    # A scheme can only appear before the first "/", which we already require to
+    # be at index 0 — but reject stray control characters that could split the
+    # Location header.
+    if any(char in normalized for char in ("\r", "\n", "\t", "\x00")):
         return "/"
     return normalized
 
@@ -1225,6 +1234,11 @@ def handle_verify(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     user = find_user_by_email(db, email, include_deleted=True)
     if user is not None and user.get("deleted"):
         json_error(handler, HTTPStatus.FORBIDDEN, "账号已注销，请联系管理员恢复")
+        return
+    # Must mirror the Xidian unified-auth path: a banned account may not obtain
+    # a session through the email code route either, or the ban is a no-op.
+    if user is not None and user.get("banned"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
         return
     if user is None:
         existing_student = find_user_by_student_id(db, student_id, include_deleted=False)

@@ -43,9 +43,11 @@ Admin & moderation endpoints:
 from __future__ import annotations
 
 import copy
+import logging
 import os
 import re
 import secrets
+import time
 from typing import Any
 
 from http import HTTPStatus
@@ -58,7 +60,11 @@ from object_storage import (
     restore_object_backups,
 )
 from helpers import (
+    RequestBodyTooLarge,
     calc_sha256_hex,
+    check_ip_rate_limit,
+    consume_rate_limit,
+    get_client_ip,
     hash_password,
     is_today_iso,
     is_password_hashed,
@@ -68,6 +74,7 @@ from helpers import (
     read_json_body,
     sanitize_alias,
     send_json,
+    send_rate_limit_error,
     verify_password,
 )
 from services import (
@@ -109,6 +116,9 @@ from services import (
 )
 
 
+_logger = logging.getLogger("treehole.admin")
+
+
 def _rollback_db_and_storage(
     db: dict[str, Any],
     db_snapshot: dict[str, Any],
@@ -137,7 +147,14 @@ def _require_primary_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     return admin
 
 
-def _read_multipart_form(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
+ANDROID_RELEASE_MAX_BYTES = 300 * 1024 * 1024
+
+
+def _read_multipart_form(
+    handler: BaseHTTPRequestHandler,
+    *,
+    max_bytes: int | None = None,
+) -> dict[str, Any]:
     content_type = handler.headers.get("Content-Type", "")
     match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type)
     if match is None:
@@ -150,6 +167,15 @@ def _read_multipart_form(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
         content_length = max(0, int(handler.headers.get("Content-Length", "0")))
     except ValueError as exc:
         raise ValueError("invalid content length") from exc
+
+    # Enforce the ceiling before buffering: multipart must not be a way around
+    # the JSON body limit, and we must not allocate a caller-chosen size first
+    # and validate afterwards.
+    limit = _globals.MAX_REQUEST_BODY_BYTES if max_bytes is None else max_bytes
+    if content_length > limit:
+        raise RequestBodyTooLarge(
+            f"request body exceeds {limit} bytes",
+        )
 
     raw_body = handler.rfile.read(content_length) if content_length > 0 else b""
     delimiter = b"--" + boundary
@@ -222,13 +248,61 @@ def handle_admin_auth_login(
     if not username or not password:
         json_error(handler, HTTPStatus.BAD_REQUEST, "管理员账号和密码不能为空")
         return
+    # Both values are unauthenticated and only bounded by the 20MB body limit.
+    # They must not reach a dict key, an audit-log row or a hash function at
+    # that size.
+    if len(username) > 64 or len(password) > 256:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "管理员账号或密码格式不正确")
+        return
+
+    # Throttle before touching credentials: this endpoint hands out full
+    # backoffice access, so it must not be brute-forceable.
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "admin_login")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="管理员登录",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    # Hash the username into the bucket key: RATE_LIMIT_EVENTS is never pruned,
+    # so a raw attacker-supplied string here would be a permanent allocation per
+    # distinct username tried.
+    username_bucket = calc_sha256_hex(username.lower().encode("utf-8"))[:32]
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=f"admin_login::{username_bucket}",
+        action="admin_login",
+        setting_key="adminLoginRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["adminLoginRateLimit"]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="管理员登录",
+            retry_after_seconds=retry_after,
+        )
+        return
+
+    def _reject_invalid_credentials() -> None:
+        # Deliberately no add_audit_log/save_db here.  save_db rewrites the
+        # entire database while DB_LOCK is held, so auditing a failed login
+        # would let an unauthenticated caller force a full-table rewrite (and
+        # an unbounded, never-trimmed auditLogs row) on every wrong password.
+        # Failed attempts are recorded in the application log instead.
+        _logger.warning(
+            "admin login failed for username=%r from ip=%s",
+            username[:64],
+            get_client_ip(handler),
+        )
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员账号或密码错误")
 
     account = find_admin_account_by_username(db, username, include_inactive=True)
     if account is None:
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员账号或密码错误")
+        _reject_invalid_credentials()
         return
     if not verify_password(str(account.get("passwordHash", "")), password):
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "管理员账号或密码错误")
+        _reject_invalid_credentials()
         return
     if not bool(account.get("active", True)):
         json_error(handler, HTTPStatus.FORBIDDEN, "该管理员账号已注销，请联系一级管理员")
@@ -237,6 +311,7 @@ def handle_admin_auth_login(
     token = secrets.token_urlsafe(24)
     with _globals.ADMIN_SESSION_LOCK:
         _globals.ADMIN_SESSIONS[token] = str(account.get("id", "")).strip()
+        _globals.ADMIN_SESSION_ISSUED_AT[token] = time.time()
     admin_payload = serialize_admin_auth_payload(account)
     add_audit_log(
         db,
@@ -263,6 +338,7 @@ def handle_admin_auth_logout(
     if token:
         with _globals.ADMIN_SESSION_LOCK:
             _globals.ADMIN_SESSIONS.pop(token, None)
+            _globals.ADMIN_SESSION_ISSUED_AT.pop(token, None)
     add_audit_log(db, "", "admin_logout", f"管理员退出: {admin.get('username', '')}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"message": "管理员已退出", "data": {"ok": True}})
@@ -755,7 +831,14 @@ def handle_admin_upload_android_release(
         return
 
     try:
-        form = _read_multipart_form(handler)
+        form = _read_multipart_form(handler, max_bytes=ANDROID_RELEASE_MAX_BYTES)
+    except RequestBodyTooLarge:
+        json_error(
+            handler,
+            HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
+            "安装包大小不能超过 300MB",
+        )
+        return
     except Exception:
         json_error(handler, HTTPStatus.BAD_REQUEST, "安装包表单解析失败")
         return
@@ -791,7 +874,7 @@ def handle_admin_upload_android_release(
     if not isinstance(file_bytes, (bytes, bytearray)) or not file_bytes:
         json_error(handler, HTTPStatus.BAD_REQUEST, "安装包内容不能为空")
         return
-    if len(file_bytes) > 300 * 1024 * 1024:
+    if len(file_bytes) > ANDROID_RELEASE_MAX_BYTES:
         json_error(handler, HTTPStatus.BAD_REQUEST, "安装包大小不能超过 300MB")
         return
 

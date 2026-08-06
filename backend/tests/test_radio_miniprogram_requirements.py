@@ -387,8 +387,11 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
 
     assert handler.status_code == 401
 
+    seen_identifiers: list[str] = []
+
     def fake_fetch_ids(identifier, password, **_kwargs):
         assert not server.DB_LOCK.locked()
+        seen_identifiers.append(identifier)
         return (
             identifier,
             {"semesterCode": "2026-1", "courseSchedules": [], "examSchedules": []},
@@ -400,11 +403,28 @@ def test_campus_auth_routes_require_login_and_dispatch(monkeypatch) -> None:
         fake_fetch_ids,
     )
     monkeypatch.setattr(server, "save_db", lambda _db: None)
-    authed_handler = FakeHandler(body={"identifier": "2300000000", "password": "secret-pass"})
+
+    # A caller may only drive the campus systems with their own student id;
+    # otherwise this endpoint is a password-checking oracle for arbitrary ids.
+    foreign_handler = FakeHandler(
+        body={"identifier": "2300000000", "password": "secret-pass"}
+    )
+    server.TreeholeHandler._handle_post(foreign_handler, "/api/campus/auth/ids")
+    assert foreign_handler.status_code == 403
+    assert seen_identifiers == []
+
+    authed_handler = FakeHandler(body={"identifier": "2023000001", "password": "secret-pass"})
     server.TreeholeHandler._handle_post(authed_handler, "/api/campus/auth/ids")
 
     assert authed_handler.status_code == 200
     assert authed_handler.payload()["data"]["system"] == "ids"
+    assert seen_identifiers == ["2023000001"]
+
+    # Omitting the identifier falls back to the session owner's student id.
+    implicit_handler = FakeHandler(body={"password": "secret-pass"})
+    server.TreeholeHandler._handle_post(implicit_handler, "/api/campus/auth/ids")
+    assert implicit_handler.status_code == 200
+    assert seen_identifiers == ["2023000001", "2023000001"]
 
 
 def test_xidian_auth_session_redirects_to_registered_official_callback(monkeypatch) -> None:

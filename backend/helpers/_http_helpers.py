@@ -3,13 +3,23 @@ from __future__ import annotations
 import io
 import json
 import mimetypes
+import re
 import time
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
+from urllib.parse import quote
 
 from helpers._datetime_helpers import now_iso
+
+
+def _sanitize_header_filename(filename: str) -> str:
+    """Strip path separators and anything that could break out of the header."""
+    cleaned = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(filename or ""))
+    cleaned = cleaned.replace("\\", "/").rsplit("/", 1)[-1]
+    cleaned = cleaned.replace('"', "").strip()
+    return cleaned[:180] or "download"
 
 
 class RequestBodyTooLarge(ValueError):
@@ -109,6 +119,30 @@ def json_error(
     send_json(handler, status, payload)
 
 
+def _send_content_security_headers(
+    handler: BaseHTTPRequestHandler,
+    *,
+    sandbox: bool,
+) -> None:
+    """Headers that stop user-supplied bytes from being treated as active
+    content on our own origin."""
+    handler.send_header("X-Content-Type-Options", "nosniff")
+    if sandbox:
+        # User uploads: no scripts, no plugins, no framing, no navigation.
+        handler.send_header(
+            "Content-Security-Policy",
+            "default-src 'none'; img-src 'self' data:; media-src 'self'; "
+            "style-src 'unsafe-inline'; sandbox; frame-ancestors 'none'",
+        )
+        handler.send_header("X-Frame-Options", "DENY")
+        # Deliberately "cross-origin", not "same-origin": the web build is often
+        # served from a different origin than the API (see API_BASE_URL), and
+        # same-origin here would block every avatar and post image in that
+        # topology.  nosniff + the sandbox CSP are what actually prevent these
+        # bytes from executing.
+        handler.send_header("Cross-Origin-Resource-Policy", "cross-origin")
+
+
 def send_binary(
     handler: BaseHTTPRequestHandler,
     status: HTTPStatus | int,
@@ -116,18 +150,28 @@ def send_binary(
     content_type: str,
     *,
     filename: str = "",
+    inline: bool = False,
 ) -> None:
     code = int(status)
     handler.send_response(code)
     handler.send_header("Content-Type", content_type)
     handler.send_header("Content-Length", str(len(data)))
     _send_cors_headers(handler)
+    _send_content_security_headers(handler, sandbox=True)
+    disposition = "inline" if inline else "attachment"
     if filename:
-        encoded_filename = filename.encode("utf-8")
+        safe_filename = _sanitize_header_filename(filename)
+        encoded_filename = quote(safe_filename, safe="")
+        ascii_fallback = (
+            re.sub(r'[^A-Za-z0-9._-]', "_", safe_filename) or "download"
+        )
         handler.send_header(
             "Content-Disposition",
-            f'attachment; filename*=UTF-8\'\'{encoded_filename.decode("latin-1")}',
+            f'{disposition}; filename="{ascii_fallback}"; '
+            f"filename*=UTF-8''{encoded_filename}",
         )
+    else:
+        handler.send_header("Content-Disposition", disposition)
     handler.end_headers()
     handler.wfile.write(data)
 
@@ -152,6 +196,8 @@ def send_static_file(
     handler.send_header("Content-Type", content_type)
     handler.send_header("Content-Length", str(len(data)))
     _send_cors_headers(handler)
+    # Trusted first-party bundle: nosniff only, no sandbox (it must run).
+    _send_content_security_headers(handler, sandbox=False)
     # Beta deployment prefers freshness over caching to avoid stale Flutter bundles.
     handler.send_header("Cache-Control", "no-cache")
     handler.end_headers()

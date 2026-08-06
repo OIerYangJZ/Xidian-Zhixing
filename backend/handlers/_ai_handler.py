@@ -10,9 +10,16 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 import _globals
-from helpers import json_error, read_json_body, send_json
+from helpers import (
+    check_ip_rate_limit,
+    consume_rate_limit,
+    json_error,
+    read_json_body,
+    send_json,
+    send_rate_limit_error,
+)
 from rag_service import citations, retrieve
-from services import auth_user as auth_user_helper, save_db
+from services import auth_user as auth_user_helper, load_db, save_db
 
 
 MAX_CONTEXT_ITEMS = 8
@@ -23,7 +30,41 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> dict[s
     if user is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return None
+    if user.get("deleted") or user.get("banned"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号状态异常，无法使用 AI 助手")
+        return None
     return user
+
+
+def _enforce_ai_rate_limit(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    user: dict[str, Any],
+) -> bool:
+    """Each chat turn costs money upstream, so it must be metered per account."""
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "ai_chat")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 提问",
+            retry_after_seconds=ip_retry_after,
+        )
+        return False
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=str(user.get("id", "")).strip(),
+        action="ai_chat",
+        setting_key="aiChatRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["aiChatRateLimit"]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 提问",
+            retry_after_seconds=retry_after,
+        )
+        return False
+    return True
 
 
 def _clean_text(value: Any, max_len: int = 4000) -> str:
@@ -173,6 +214,8 @@ def handle_ai_chat(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not question:
         json_error(handler, HTTPStatus.BAD_REQUEST, "Content is required")
         return
+    if not _enforce_ai_rate_limit(handler, db, user):
+        return
     base_url, api_key, configured_model = _configured_provider()
     if not base_url or not api_key:
         json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, "服务器尚未配置 AI 服务")
@@ -194,14 +237,20 @@ def handle_ai_chat(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     except RuntimeError as error:
         json_error(handler, HTTPStatus.BAD_GATEWAY, str(error))
         return
-    db.setdefault("ragRetrievalLogs", []).append({
-        "queryLength": len(question),
-        "includePosts": include_posts,
-        "sourceKeys": [str(item.get("key", "")) for item in context_items],
-        "createdAt": _globals.now_iso(),
-    })
-    db["ragRetrievalLogs"] = db["ragRetrievalLogs"][-500:]
-    save_db(db)
+    # The provider call above runs without DB_LOCK held (it can block for
+    # seconds).  Persisting the stale snapshot we started from would roll back
+    # every write that landed meanwhile, since save_db replaces whole state.
+    # Re-read under the lock and append to the fresh copy instead.
+    with _globals.DB_LOCK:
+        fresh_db = load_db()
+        fresh_db.setdefault("ragRetrievalLogs", []).append({
+            "queryLength": len(question),
+            "includePosts": include_posts,
+            "sourceKeys": [str(item.get("key", "")) for item in context_items],
+            "createdAt": _globals.now_iso(),
+        })
+        fresh_db["ragRetrievalLogs"] = fresh_db["ragRetrievalLogs"][-500:]
+        save_db(fresh_db)
     reference_rows = citations(context_items)
     send_json(handler, HTTPStatus.OK, {
         "data": {

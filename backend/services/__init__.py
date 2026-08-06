@@ -36,6 +36,7 @@ from services._db_service import (
     normalize_admin_role,
     normalize_admin_username,
     post_counts,
+    remove_audit_log,
     save_db,
     serialize_android_release,
     serialize_admin_account,
@@ -110,6 +111,7 @@ from services._user_service import (
 __all__ = [
     # db service
     "add_audit_log",
+    "remove_audit_log",
     "apply_admin_review_action",
     "default_db",
     "ensure_db",

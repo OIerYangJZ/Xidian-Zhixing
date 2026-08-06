@@ -11,6 +11,7 @@ Why: avoids circular import issues between helpers and services.
 from __future__ import annotations
 
 import importlib
+import ipaddress
 import os
 import re
 import threading
@@ -23,6 +24,10 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 ADMIN_SESSIONS: dict[str, str] = {}
+# token -> monotonic-ish issue time, so admin sessions can age out.  Kept
+# alongside ADMIN_SESSIONS rather than inside it to preserve that dict's shape.
+ADMIN_SESSION_ISSUED_AT: dict[str, float] = {}
+ADMIN_SESSION_MAX_AGE_SECONDS = 12 * 3600
 ADMIN_SESSION_LOCK = threading.Lock()
 
 RATE_LIMIT_EVENTS: dict[tuple[str, str], deque[float]] = {}
@@ -106,6 +111,10 @@ CORS_ALLOWED_ORIGINS: set[str] = set()
 AUTH_ALLOWED_STUDENT_IDS: set[str] = set()
 MAX_REQUEST_BODY_BYTES: int = 20 * 1024 * 1024
 
+# Only peers inside these networks may set X-Forwarded-For / X-Real-IP.  An
+# empty set means "trust nobody", so the raw socket peer is always used.
+TRUSTED_PROXY_NETWORKS: list[ipaddress.IPv4Network | ipaddress.IPv6Network] = []
+
 # AI provider configuration is server-only.  Never send these values to a
 # client or accept them from an AI request body.
 AI_BASE_URL: str = ""
@@ -134,7 +143,7 @@ def configure() -> None:
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, \
         SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_SSL, SMTP_USE_STARTTLS, \
         BACKEND_XIDIAN_PUBLIC_ORIGIN, ENABLE_XIDIAN_AUTH, CORS_ALLOWED_ORIGINS, \
-        AUTH_ALLOWED_STUDENT_IDS, MAX_REQUEST_BODY_BYTES, \
+        AUTH_ALLOWED_STUDENT_IDS, MAX_REQUEST_BODY_BYTES, TRUSTED_PROXY_NETWORKS, \
         DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
@@ -211,11 +220,13 @@ def configure() -> None:
         "reportRateLimit": 10,
         "dmRequestRateLimit": 20,
         "authLoginRateLimit": 10,
+        "adminLoginRateLimit": 5,
         "verificationSendRateLimit": 3,
         "verificationCheckRateLimit": 10,
         "passwordResetRateLimit": 5,
         "appealRateLimit": 5,
         "campusAuthRateLimit": 20,
+        "aiChatRateLimit": 30,
     })
     DEFAULT_SENSITIVE_WORDS[:] = ["引流", "广告", "辱骂", "诈骗"]
 
@@ -271,11 +282,13 @@ def configure() -> None:
         "post": 3600, "comment": 3600, "message": 3600,
         "report": 3600, "dm_request": 3600, "upload": 3600,
         "auth_login": 900,
+        "admin_login": 900,
         "verification_send": 600,
         "verification_check": 600,
         "password_reset": 600,
         "appeal": 3600,
         "campus_auth": 900,
+        "ai_chat": 3600,
     })
     IP_RATE_LIMITS.clear()
     IP_RATE_LIMITS.update({
@@ -284,11 +297,13 @@ def configure() -> None:
         "message": {"limit": 60, "window": 3600},
         "upload": {"limit": 30, "window": 3600},
         "auth_login": {"limit": 30, "window": 900},
+        "admin_login": {"limit": 10, "window": 900},
         "verification_send": {"limit": 10, "window": 3600},
         "verification_check": {"limit": 30, "window": 600},
         "password_reset": {"limit": 15, "window": 600},
         "appeal": {"limit": 15, "window": 3600},
         "campus_auth": {"limit": 40, "window": 900},
+        "ai_chat": {"limit": 60, "window": 3600},
     })
 
     ALLOWED_IMAGE_TYPES.clear()
@@ -325,6 +340,27 @@ def configure() -> None:
         ).split(",")
         if student_id.strip()
     )
+    # Reverse-proxy trust boundary.  X-Forwarded-For is only honoured when the
+    # direct peer is one of these networks; otherwise any client could forge
+    # its own source address and bypass every IP-keyed rate limit.
+    configured_proxies = os.environ.get(
+        "BACKEND_TRUSTED_PROXY_NETWORKS",
+        "127.0.0.1/32,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+    )
+    TRUSTED_PROXY_NETWORKS = []
+    for entry in configured_proxies.split(","):
+        candidate = entry.strip()
+        if not candidate:
+            continue
+        try:
+            TRUSTED_PROXY_NETWORKS.append(
+                ipaddress.ip_network(candidate, strict=False),
+            )
+        except ValueError as error:
+            raise RuntimeError(
+                f"BACKEND_TRUSTED_PROXY_NETWORKS contains an invalid entry: {candidate}"
+            ) from error
+
     try:
         max_request_body_mb = int(
             os.environ.get("BACKEND_MAX_REQUEST_BODY_MB", "20"),
@@ -601,6 +637,7 @@ __all__ = [
     "SMTP_FROM_EMAIL", "SMTP_FROM_NAME", "SMTP_USE_SSL", "SMTP_USE_STARTTLS",
     "BACKEND_XIDIAN_PUBLIC_ORIGIN", "ENABLE_XIDIAN_AUTH", "XIDIAN_AUTHORIZED_PUBLIC_ORIGIN",
     "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_STUDENT_IDS", "MAX_REQUEST_BODY_BYTES",
+    "TRUSTED_PROXY_NETWORKS",
     "is_auth_student_id_allowed",
     "PASSWORD_RESET_CODE_PREFIX",
     "RATE_LIMIT_WINDOWS_SECONDS", "IP_RATE_LIMITS", "ALLOWED_IMAGE_TYPES",

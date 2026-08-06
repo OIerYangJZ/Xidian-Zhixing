@@ -690,7 +690,16 @@ def _xml_local_name(tag: str) -> str:
     return tag
 
 
+_XML_DOCTYPE_RE = re.compile(r"<!DOCTYPE", re.I)
+_MAX_TICKET_RESPONSE_CHARS = 256 * 1024
+
+
 def _parse_service_validate_result(xml_text: str) -> XidianAuthResult:
+    # ElementTree does not resolve external entities (no XXE), but it does
+    # expand internally declared ones, so a "billion laughs" document would
+    # exhaust memory.  A CAS response has no legitimate reason to carry a DTD.
+    if len(xml_text) > _MAX_TICKET_RESPONSE_CHARS or _XML_DOCTYPE_RE.search(xml_text):
+        raise XidianAuthUnavailableError("统一认证票据校验响应异常")
     try:
         root = ET.fromstring(xml_text)
     except ET.ParseError as exc:

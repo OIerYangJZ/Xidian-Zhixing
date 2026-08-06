@@ -2,13 +2,17 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
 
 
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+# Bearer sessions expire after this long; see load_db().
+SESSION_MAX_AGE_DAYS = 30
 
 
 def _to_bool_int(value: Any) -> int:
@@ -856,7 +860,19 @@ class SqliteTreeholeRepository:
                 }
             )
 
-        for row in conn.execute("SELECT token, user_id FROM sessions ORDER BY created_at, token"):
+        # Sessions are bearer tokens with no server-side revocation beyond this,
+        # so they must age out instead of living forever.  load_state runs on
+        # every request, so filter on read and only pay for the DELETE
+        # occasionally — issuing a write per request would put an fsync in front
+        # of every read while DB_LOCK is held.
+        session_cutoff = (
+            datetime.now(timezone.utc) - timedelta(days=SESSION_MAX_AGE_DAYS)
+        ).isoformat()
+        for row in conn.execute(
+            "SELECT token, user_id FROM sessions WHERE created_at >= ?"
+            " ORDER BY created_at, token",
+            (session_cutoff,),
+        ):
             db["sessions"][row["token"]] = row["user_id"]
 
         for row in conn.execute(
@@ -1400,6 +1416,16 @@ class SqliteTreeholeRepository:
                 "sessions",
                 "users",
             ]:
+                if table == "sessions":
+                    # Capture issue times before the wipe: save_db rewrites the
+                    # whole table, and stamping created_at=now each time would
+                    # make session expiry unreachable.
+                    existing_session_created_at = {
+                        _to_str(row["token"]): _to_str(row["created_at"])
+                        for row in conn.execute(
+                            "SELECT token, created_at FROM sessions"
+                        )
+                    }
                 conn.execute(f"DELETE FROM {table}")
 
             created_now = now_iso()
@@ -1462,7 +1488,12 @@ class SqliteTreeholeRepository:
                     if token_str and uid:
                         conn.execute(
                             "INSERT INTO sessions (token, user_id, created_at) VALUES (?, ?, ?)",
-                            (token_str, uid, created_now),
+                            (
+                                token_str,
+                                uid,
+                                existing_session_created_at.get(token_str)
+                                or created_now,
+                            ),
                         )
 
             email_codes = db.get("emailCodes", {})

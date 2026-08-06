@@ -35,6 +35,7 @@ from services import (
     auth_user as auth_user_helper,
     find_user_by_id,
     next_id,
+    remove_audit_log,
     save_db,
 )
 
@@ -304,14 +305,17 @@ def handle_upload_avatar(
 
     old_avatar_url = normalize_avatar_url(str(user.get("avatarUrl", "")))
     old_key = extract_local_object_key_from_url(old_avatar_url) if old_avatar_url else ""
-    audit_count = len(db.get("auditLogs", []))
     user["avatarUrl"] = stored.url
-    add_audit_log(db, user["id"], "upload_avatar", f"更换头像 {stored.key}")
+    # Roll back by id, not by saved length: add_audit_log trims the head of the
+    # table once it is full, so a positional slice can delete the wrong rows.
+    audit_entry_id = add_audit_log(
+        db, user["id"], "upload_avatar", f"更换头像 {stored.key}"
+    )
     try:
         save_db(db)
     except Exception:
         user["avatarUrl"] = old_avatar_url
-        del db["auditLogs"][audit_count:]
+        remove_audit_log(db, audit_entry_id)
         try:
             _globals.OBJECT_STORAGE.delete(stored.key)
         except Exception as cleanup_error:
@@ -325,7 +329,7 @@ def handle_upload_avatar(
             _globals.OBJECT_STORAGE.delete(old_key)
         except Exception:
             user["avatarUrl"] = old_avatar_url
-            del db["auditLogs"][audit_count:]
+            remove_audit_log(db, audit_entry_id)
             save_db(db)
             try:
                 _globals.OBJECT_STORAGE.delete(stored.key)

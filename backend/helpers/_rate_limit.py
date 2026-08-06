@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 import re
 import time
 import unicodedata
@@ -138,19 +139,130 @@ def consume_rate_limit(
             return False, retry_after
 
         queue.append(now)
-        while len(queue) > 300:
+        # Cap memory per bucket, but never below the limit we are enforcing:
+        # truncating to fewer entries than `limit` would make len(queue) >= limit
+        # unreachable and silently disable the limit altogether (admins can set
+        # these above RATE_LIMIT_EVENT_MAX from the config page).
+        cap = max(_globals.RATE_LIMIT_EVENT_MAX, limit + 1)
+        while len(queue) > cap:
             queue.popleft()
         return True, 0
 
 
+def _parse_ip(value: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
+    candidate = (value or "").strip()
+    if not candidate:
+        return None
+    # Tolerate "[::1]:443" / "1.2.3.4:443" forms emitted by some proxies.
+    if candidate.startswith("["):
+        candidate = candidate[1:].split("]", 1)[0]
+    elif candidate.count(":") == 1:
+        candidate = candidate.split(":", 1)[0]
+    try:
+        address = ipaddress.ip_address(candidate)
+    except ValueError:
+        return None
+    # A dual-stack listener reports IPv4 peers as "::ffff:127.0.0.1".  Such an
+    # address is NOT a member of any IPv4Network (ipaddress compares versions
+    # first), so without this the local nginx would not match 127.0.0.1/32 and
+    # every request would collapse into a single shared rate-limit bucket.
+    mapped = getattr(address, "ipv4_mapped", None)
+    if mapped is not None:
+        return mapped
+    return address
+
+
+def _is_trusted_proxy(address: ipaddress.IPv4Address | ipaddress.IPv6Address | None) -> bool:
+    if address is None:
+        return False
+    return any(address in network for network in _globals.TRUSTED_PROXY_NETWORKS)
+
+
 def get_client_ip(handler: BaseHTTPRequestHandler) -> str:
-    x_forwarded_for = handler.headers.get("X-Forwarded-For", "")
-    if x_forwarded_for:
-        return x_forwarded_for.split(",")[0].strip()
-    x_real_ip = handler.headers.get("X-Real-IP", "")
-    if x_real_ip:
-        return x_real_ip.strip()
-    return handler.client_address[0] or "unknown"
+    """Resolve the real client IP, honouring proxy headers only from trusted peers.
+
+    X-Forwarded-For is attacker-controlled on the leftmost entries: nginx appends
+    with $proxy_add_x_forwarded_for, so a forged header survives as a prefix.  We
+    therefore walk the chain right-to-left and return the first address that is
+    not itself a trusted proxy.
+    """
+    peer_raw = ""
+    try:
+        peer_raw = handler.client_address[0] or ""
+    except (AttributeError, IndexError, TypeError):
+        peer_raw = ""
+    peer = _parse_ip(peer_raw)
+
+    if not _is_trusted_proxy(peer):
+        # Direct connection (or an unknown peer): never trust forwarding headers.
+        return str(peer) if peer is not None else (peer_raw.strip() or "unknown")
+
+    forwarded_chain = handler.headers.get("X-Forwarded-For", "") or ""
+    for entry in reversed(forwarded_chain.split(",")):
+        candidate = _parse_ip(entry)
+        if candidate is None:
+            continue
+        if _is_trusted_proxy(candidate):
+            continue
+        return str(candidate)
+
+    real_ip = _parse_ip(handler.headers.get("X-Real-IP", "") or "")
+    if real_ip is not None and not _is_trusted_proxy(real_ip):
+        return str(real_ip)
+
+    return str(peer) if peer is not None else "unknown"
+
+
+_IP_RATE_LIMIT_LAST_PRUNE: float = 0.0
+_IP_RATE_LIMIT_PRUNE_INTERVAL_SECONDS = 300
+_IP_RATE_LIMIT_MAX_TRACKED_IPS = 20000
+
+
+def _prune_ip_rate_limit_events(now: float) -> None:
+    """Drop per-IP buckets whose events have all aged out.
+
+    Callers must already hold IP_RATE_LIMIT_LOCK.  Without this the table grows
+    without bound, one entry per distinct source address.
+    """
+    global _IP_RATE_LIMIT_LAST_PRUNE
+
+    events = _globals.IP_RATE_LIMIT_EVENTS
+    over_capacity = len(events) > _IP_RATE_LIMIT_MAX_TRACKED_IPS
+    if (
+        not over_capacity
+        and now - _IP_RATE_LIMIT_LAST_PRUNE < _IP_RATE_LIMIT_PRUNE_INTERVAL_SECONDS
+    ):
+        return
+    _IP_RATE_LIMIT_LAST_PRUNE = now
+
+    for tracked_ip in list(events.keys()):
+        buckets = events.get(tracked_ip) or {}
+        for bucket_action in list(buckets.keys()):
+            queue = buckets[bucket_action]
+            bucket_window = (
+                _globals.IP_RATE_LIMITS.get(bucket_action, {}) or {}
+            ).get("window", 3600)
+            while queue and now - queue[0] >= bucket_window:
+                queue.popleft()
+            if not queue:
+                buckets.pop(bucket_action, None)
+        if not buckets:
+            events.pop(tracked_ip, None)
+
+    # Hard ceiling: if a flood from many distinct sources still leaves us over
+    # capacity, evict the least-recently-active buckets.  Clearing the whole
+    # table would let an attacker reset everyone's quota on demand simply by
+    # touching enough distinct addresses.
+    overflow = len(events) - _IP_RATE_LIMIT_MAX_TRACKED_IPS
+    if overflow > 0:
+        def _last_seen(item: tuple[str, dict]) -> float:
+            return max(
+                (queue[-1] for queue in item[1].values() if queue),
+                default=0.0,
+            )
+
+        for tracked_ip, _buckets in sorted(events.items(), key=_last_seen)[:overflow]:
+            events.pop(tracked_ip, None)
 
 
 def check_ip_rate_limit(
@@ -166,6 +278,8 @@ def check_ip_rate_limit(
     now = time.time()
 
     with _globals.IP_RATE_LIMIT_LOCK:
+        _prune_ip_rate_limit_events(now)
+
         ip_events = _globals.IP_RATE_LIMIT_EVENTS.setdefault(ip, {})
         queue = ip_events.setdefault(action, deque())
         while queue and now - queue[0] >= window_seconds:
@@ -176,6 +290,8 @@ def check_ip_rate_limit(
             return False, retry_after
 
         queue.append(now)
+        while len(queue) > _globals.RATE_LIMIT_EVENT_MAX:
+            queue.popleft()
         return True, 0
 
 

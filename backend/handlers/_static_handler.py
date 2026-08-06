@@ -15,6 +15,7 @@ from http.server import BaseHTTPRequestHandler
 
 import _globals
 from helpers import (
+    json_error,
     resolve_web_asset_path,
     send_binary,
     send_static_file,
@@ -59,6 +60,14 @@ def handle_storage_get(
                 continue
             post_id = str(upload.get("postId", "")).strip()
             if not post_id:
+                # Not attached to a post: avatars, profile backgrounds and
+                # images staged before their post exists all live here, and
+                # every other user legitimately needs to load them.  These are
+                # capability URLs — object_storage mints keys as
+                # token_hex(2)/token_hex(16), i.e. 128 bits of entropy, so the
+                # key itself is the secret and cannot be enumerated.  Moderation
+                # is still enforced: the status check above already rejects
+                # anything not approved.
                 allowed = True
                 break
             post = next(
@@ -118,7 +127,16 @@ def handle_storage_get(
         return False
 
     data, content_type = result
-    send_binary(handler, HTTPStatus.OK, data, content_type)
+    # Images are meant to render in-page; anything else is forced to download so
+    # it can never be interpreted as a document on our origin.
+    is_image = str(content_type or "").lower().startswith("image/")
+    send_binary(
+        handler,
+        HTTPStatus.OK,
+        data,
+        content_type,
+        inline=is_image,
+    )
     return True
 
 
@@ -134,5 +152,16 @@ def handle_web_fallback_get(
         return False
 
     asset_path = resolve_web_asset_path(path)
-    send_static_file(handler, asset_path, fallback_to_index=True)
+    if asset_path is None:
+        # Path escaped the web root (or could not be resolved) — never fall back
+        # to index.html for it.
+        json_error(handler, HTTPStatus.NOT_FOUND, "Not Found")
+        return True
+    if not asset_path.is_file():
+        index_path = resolve_web_asset_path("/index.html")
+        if index_path is None or not index_path.is_file():
+            json_error(handler, HTTPStatus.NOT_FOUND, "Not Found")
+            return True
+        asset_path = index_path
+    send_static_file(handler, asset_path)
     return True

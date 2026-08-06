@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from typing import Any
 
 import _globals
@@ -31,7 +32,21 @@ def next_id(db: dict[str, Any], key: str, prefix: str) -> str:
     return f"{prefix}{db['seq'][key]}"
 
 
-def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -> None:
+# save_db rewrites every table on each write, so an unbounded auditLogs table
+# makes every subsequent write slower — it has to stay capped.
+_AUDIT_LOG_MAX_ROWS = 20000
+_AUDIT_LOG_DETAIL_MAX_CHARS = 512
+_AUDIT_LOG_ACTION_MAX_CHARS = 64
+
+
+def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -> str:
+    """Append one audit row and return its id.
+
+    Callers that may have to undo their write should keep the returned id and
+    pass it to remove_audit_log().  Do not roll back by slicing on a saved
+    length: this function also trims the head of the table once it is full, so
+    positional indexes are not stable across the call.
+    """
     normalized_actor_id = str(actor_id).strip()
     actor_is_user = any(
         str(user.get("id", "")).strip() == normalized_actor_id
@@ -41,15 +56,41 @@ def add_audit_log(db: dict[str, Any], actor_id: str, action: str, detail: str) -
     if normalized_actor_id and not actor_is_user:
         normalized_detail = f"[actor={normalized_actor_id}] {normalized_detail}"
         normalized_actor_id = ""
+    entry_id = next_id(db, "audit", "a")
     db["auditLogs"].append(
         {
-            "id": next_id(db, "audit", "a"),
+            "id": entry_id,
             "actorId": normalized_actor_id,
-            "action": action,
-            "detail": normalized_detail,
+            # Details routinely embed user-supplied names/ids.  Bound each row
+            # so one oversized field cannot bloat every subsequent full-database
+            # rewrite, and bound the table so it cannot grow without limit.
+            "action": str(action)[:_AUDIT_LOG_ACTION_MAX_CHARS],
+            "detail": normalized_detail[:_AUDIT_LOG_DETAIL_MAX_CHARS],
             "createdAt": now_iso(),
         }
     )
+    if len(db["auditLogs"]) > _AUDIT_LOG_MAX_ROWS:
+        del db["auditLogs"][:-_AUDIT_LOG_MAX_ROWS]
+    return entry_id
+
+
+def remove_audit_log(db: dict[str, Any], entry_id: str) -> bool:
+    """Drop exactly the row add_audit_log() created, by id.
+
+    Returns True if a row was removed.  A False result is not an error: the row
+    may already have been trimmed away by the table cap.
+    """
+    target = str(entry_id).strip()
+    if not target:
+        return False
+    rows = db.get("auditLogs")
+    if not isinstance(rows, list):
+        return False
+    for index in range(len(rows) - 1, -1, -1):
+        if str(rows[index].get("id", "")).strip() == target:
+            del rows[index]
+            return True
+    return False
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
@@ -177,6 +218,7 @@ def clear_admin_sessions_for_account(admin_id: str) -> None:
         ]
         for token in expired_tokens:
             _globals.ADMIN_SESSIONS.pop(token, None)
+            _globals.ADMIN_SESSION_ISSUED_AT.pop(token, None)
 
 
 def auth_user(
@@ -222,11 +264,21 @@ def auth_admin(
         return None, None
     with _globals.ADMIN_SESSION_LOCK:
         admin_id = _globals.ADMIN_SESSIONS.get(token)
+        if admin_id:
+            issued_at = _globals.ADMIN_SESSION_ISSUED_AT.get(token)
+            if (
+                issued_at is None
+                or time.time() - issued_at > _globals.ADMIN_SESSION_MAX_AGE_SECONDS
+            ):
+                _globals.ADMIN_SESSIONS.pop(token, None)
+                _globals.ADMIN_SESSION_ISSUED_AT.pop(token, None)
+                admin_id = None
     if admin_id:
         account = find_admin_account_by_id(db, str(admin_id), include_inactive=True)
         if account is None or not bool(account.get("active", True)):
             with _globals.ADMIN_SESSION_LOCK:
                 _globals.ADMIN_SESSIONS.pop(token, None)
+                _globals.ADMIN_SESSION_ISSUED_AT.pop(token, None)
             return None, token
         return build_authenticated_admin(account), token
 

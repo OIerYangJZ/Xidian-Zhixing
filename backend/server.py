@@ -169,25 +169,49 @@ def _configure_logging() -> None:
 _BACKEND_VERSION = "0.2"
 
 
+_REQUEST_ID_SAFE_RE = re.compile(r"[^A-Za-z0-9._:-]")
+
+
+def _sanitize_request_id(value: str) -> str:
+    """Reduce a client-supplied request id to a header-safe token."""
+    return _REQUEST_ID_SAFE_RE.sub("", value.strip())[:64]
+
+
+_GIT_HASH_CACHE: str | None = None
+
+
+def _resolve_git_hash() -> str:
+    """Read the build commit once; /api/version is unauthenticated, so this
+    must not fork a subprocess per request."""
+    global _GIT_HASH_CACHE
+    if _GIT_HASH_CACHE is not None:
+        return _GIT_HASH_CACHE
+
+    git_hash = os.environ.get("BACKEND_GIT_HASH", "").strip()
+    if not git_hash:
+        import subprocess
+        git_hash = "unknown"
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--short", "HEAD"],
+                cwd=str(ROOT_DIR),
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            if result.returncode == 0:
+                git_hash = result.stdout.strip() or "unknown"
+        except Exception:
+            pass
+    _GIT_HASH_CACHE = git_hash
+    return git_hash
+
+
 def _get_version_info() -> dict[str, Any]:
-    import subprocess
-    git_hash = "unknown"
-    try:
-        result = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=str(ROOT_DIR),
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        if result.returncode == 0:
-            git_hash = result.stdout.strip()
-    except Exception:
-        pass
     return {
         "version": f"XduTreeholeBackend/{_BACKEND_VERSION}",
         "backendVersion": _BACKEND_VERSION,
-        "gitHash": git_hash,
+        "gitHash": _resolve_git_hash(),
         "buildDate": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
@@ -220,19 +244,27 @@ class TreeholeHandler(BaseHTTPRequestHandler):
     def log_message(self, format: str, *args: Any) -> None:  # noqa: A003
         _logger.info(format, *args)
 
+    # Methods that can change server state must carry a same-origin guarantee.
+    _STATE_CHANGING_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
+
     def _handle(self, method: str) -> None:
-        supplied_request_id = (
+        # This value is echoed back in a response header, so keep it to a safe
+        # printable subset instead of reflecting whatever the client sent.
+        supplied_request_id = _sanitize_request_id(
             self.headers.get("X-Request-ID", "") or ""
-        ).strip()
-        self.request_id = (
-            supplied_request_id[:64]
-            if supplied_request_id
-            else secrets.token_hex(12)
         )
+        self.request_id = supplied_request_id or secrets.token_hex(12)
         try:
             parsed = urlparse(self.path)
             path = parsed.path
             query = parse_qs(parsed.query)
+            if (
+                method in self._STATE_CHANGING_METHODS
+                and path.startswith("/api")
+                and not request_origin_allowed(self)
+            ):
+                json_error(self, HTTPStatus.FORBIDDEN, "Origin not allowed")
+                return
             if path.startswith("/api/auth/xidian/") and not _globals.ENABLE_XIDIAN_AUTH:
                 json_error(
                     self,
@@ -273,6 +305,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "Internal server error")
 
     def _authorize_miniprogram_request(self, path: str) -> bool:
+        """Product rule: the miniprogram shows no content before login.
+
+        NOT a security boundary — X-Client-Type is a client-supplied string, so
+        anyone can skip this gate by omitting the header.  Every endpoint that
+        needs authentication must therefore still enforce it itself; this only
+        gives the miniprogram a consistent "please log in" response instead of
+        a half-populated page.  Never move an authorization decision here.
+        """
         client_type = (self.headers.get("X-Client-Type", "") or "").strip().lower()
         if client_type != "wechat-miniprogram":
             return True
@@ -680,14 +720,48 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
             send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
 
+        def campus_identifier_for(
+            user: dict[str, Any],
+            body: dict[str, Any],
+        ) -> str | None:
+            """Resolve which student id may be used against the campus systems.
+
+            The backend logs into the school's systems on the caller's behalf, so
+            the identifier must be the caller's own.  Taking it from the request
+            body would turn this into a credential-checking oracle for arbitrary
+            student ids, with the school seeing our server as the source.
+            """
+            own_student_id = str(user.get("studentId", "")).strip()
+            if not own_student_id:
+                json_error(
+                    self,
+                    HTTPStatus.FORBIDDEN,
+                    "请先完成学号认证后再使用校园服务",
+                )
+                return None
+            submitted = str(
+                body.get("identifier", body.get("studentId", "")) or "",
+            ).strip()
+            if submitted and submitted.lower() != own_student_id.lower():
+                json_error(
+                    self,
+                    HTTPStatus.FORBIDDEN,
+                    "只能使用本人学号访问校园系统",
+                )
+                return None
+            return own_student_id
+
         if path == "/api/campus/auth/ids":
             user = require_campus_auth_user()
             if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             try:
                 student_id, synced = _campus_auth.fetch_ids_academic_data(
-                    body.get("identifier", body.get("studentId", "")),
+                    identifier,
                     body.get("password", ""),
                     owner_user_id=str(user.get("id", "")),
                 )
@@ -711,47 +785,67 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
             return
         if path == "/api/campus/auth/payment":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             send_campus_auth_result(lambda: _campus_auth.login_payment(
-                body.get("identifier", body.get("studentId", "")),
+                identifier,
                 body.get("password", ""),
             ))
             return
         if path == "/api/campus/auth/physics":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             send_campus_auth_result(lambda: _campus_auth.login_physics(
-                body.get("identifier", body.get("studentId", "")),
+                identifier,
                 body.get("password", ""),
             ))
             return
         if path == "/api/campus/auth/sport":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             send_campus_auth_result(lambda: _campus_auth.login_sport(
-                body.get("identifier", body.get("studentId", "")),
+                identifier,
                 body.get("password", ""),
             ))
             return
         if path == "/api/campus/auth/schoolnet/captcha":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             send_campus_auth_result(lambda: _campus_auth.create_schoolnet_captcha(
-                body.get("identifier", body.get("studentId", "")),
+                identifier,
             ))
             return
         if path == "/api/campus/auth/schoolnet/login":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            identifier = campus_identifier_for(user, body)
+            if identifier is None:
+                return
             send_campus_auth_result(lambda: _campus_auth.login_schoolnet(
                 body.get("attemptId", ""),
-                body.get("identifier", body.get("studentId", "")),
+                identifier,
                 body.get("password", ""),
                 body.get("captcha", ""),
             ))

@@ -59,7 +59,10 @@ def verify_password(stored: str | None, candidate: str) -> bool:
     if not stored:
         return False
     if not is_password_hashed(stored):
-        return hmac.compare_digest(stored, candidate)
+        # Legacy plaintext rows are never accepted: silently comparing them
+        # would let an unmigrated (or attacker-written) record downgrade the
+        # whole scheme.  Such an account must go through password reset.
+        return False
     parts = stored.split("$")
     if len(parts) != 4 or parts[0] != _globals.PASSWORD_HASH_SCHEME:
         return False
