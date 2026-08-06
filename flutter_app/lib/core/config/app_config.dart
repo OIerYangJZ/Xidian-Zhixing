@@ -69,6 +69,12 @@ class AppConfig {
 
     final Uri? parsed = Uri.tryParse(trimmed);
     if (parsed != null && parsed.hasScheme) {
+      // These values come from server data (media urls, announcement targets)
+      // and are fed to image loaders, url_launcher and anchor hrefs.  Only
+      // plain web schemes may pass; javascript:/data:/file:/intent: must not.
+      if (!_isWebScheme(parsed.scheme)) {
+        return '';
+      }
       final String host = parsed.host.trim().toLowerCase();
       if (_isLoopbackHost(host)) {
         final String path = parsed.path.isEmpty ? '/' : parsed.path;
@@ -115,6 +121,19 @@ class AppConfig {
       return apiUri.resolve(trimmed).toString();
     }
     return Uri.base.resolve(trimmed).toString();
+  }
+
+  static bool isWebUrl(String value) {
+    final Uri? parsed = Uri.tryParse(value.trim());
+    if (parsed == null || !parsed.hasScheme || !parsed.hasAuthority) {
+      return false;
+    }
+    return _isWebScheme(parsed.scheme) && parsed.host.trim().isNotEmpty;
+  }
+
+  static bool _isWebScheme(String scheme) {
+    final String normalized = scheme.trim().toLowerCase();
+    return normalized == 'http' || normalized == 'https';
   }
 
   static bool _isLoopbackHost(String host) {

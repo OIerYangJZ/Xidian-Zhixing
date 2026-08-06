@@ -1,4 +1,20 @@
-const escapeText = (value) => String(value || '');
+// Post content is user-supplied.  A markdown link may carry any scheme, so only
+// let plain http(s) and in-app paths through; anything else renders as inert
+// text rather than a live href.
+const safeLinkUrl = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  // Strip characters that browsers/rich-text ignore when resolving a scheme
+  // ("java\nscript:alert(1)" is still javascript:).
+  const collapsed = text.replace(/[\s\u0000-\u001f\u007f]/g, '').toLowerCase();
+  if (/^https?:\/\//.test(collapsed)) return text;
+  // Protocol-relative ("//evil.com") inherits the page scheme and points off-site.
+  if (collapsed.startsWith('//')) return '';
+  if (collapsed.startsWith('/')) return text;
+  if (collapsed.indexOf(':') >= 0) return '';
+  // Scheme-less relative link: harmless.
+  return text;
+};
 
 const inlineNodes = (text) => {
   const source = String(text || '');
@@ -73,12 +89,21 @@ const inlineNodes = (text) => {
       });
     } else if (matchType === 'link') {
       const linkText = earliest[1];
-      const linkUrl = earliest[2];
-      nodes.push({
-        name: 'a',
-        attrs: { class: 'md-link', href: linkUrl },
-        children: inlineNodes(linkText)
-      });
+      const linkUrl = safeLinkUrl(earliest[2]);
+      if (linkUrl) {
+        nodes.push({
+          name: 'a',
+          attrs: { class: 'md-link', href: linkUrl },
+          children: inlineNodes(linkText)
+        });
+      } else {
+        // Rejected scheme: show the label, but never as a live link.
+        nodes.push({
+          name: 'span',
+          attrs: { class: 'md-link-blocked' },
+          children: inlineNodes(linkText)
+        });
+      }
     } else if (matchType === 'tag') {
       nodes.push({
         name: 'span',

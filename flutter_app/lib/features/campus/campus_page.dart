@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
+import '../../core/l10n/campus_text.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
@@ -58,7 +61,7 @@ class _CampusPageState extends ConsumerState<CampusPage> {
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Could not load: $error');
         _loading = false;
       });
     }
@@ -170,10 +173,15 @@ class _CampusPageState extends ConsumerState<CampusPage> {
     if ((service.groupId == 'quick' || service.kind == 'external') &&
         action?.type == 'external' &&
         (action?.url ?? '').trim().isNotEmpty) {
-      await launchUrl(
-        Uri.parse(action!.url),
-        mode: LaunchMode.externalApplication,
-      );
+      // Server-supplied url: only plain web schemes may reach the system
+      // launcher, and Uri.parse throws on malformed input.
+      final String target = action!.url.trim();
+      if (AppConfig.isWebUrl(target)) {
+        await launchUrl(
+          Uri.parse(target),
+          mode: LaunchMode.externalApplication,
+        );
+      }
       return;
     }
     if (!mounted) {
@@ -210,11 +218,23 @@ class _ServicesGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const AppSectionHeader(title: '校园服务', subtitle: '课表、考试、实验与常用校园入口'),
+        AppSectionHeader(
+          title: uiText(context, zh: '校园服务', en: 'Campus services'),
+          subtitle: uiText(
+            context,
+            zh: '课表、考试、实验与常用校园入口',
+            en: 'Schedules, exams, labs and the entrances you use most',
+          ),
+        ),
         const SizedBox(height: AppSpacing.lg),
         for (final MapEntry<String, List<CampusService>> entry
             in groups.entries) ...<Widget>[
-          AppSectionTitle(title: entry.key),
+          AppSectionTitle(
+            title: localizedCampusGroup(
+              Localizations.localeOf(context),
+              entry.key,
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
@@ -283,16 +303,27 @@ class _IdsCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    '西电统一认证',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    uiText(context, zh: '西电统一认证', en: 'XDU unified login'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  SizedBox(height: 4),
-                  Text('管理统一认证、水电、物理实验等校园系统登录'),
+                  const SizedBox(height: 4),
+                  Text(
+                    uiText(
+                      context,
+                      zh: '管理统一认证、水电、物理实验等校园系统登录',
+                      en:
+                          'Manage sign-in for unified auth, utilities, physics '
+                          'labs and other campus systems',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -324,10 +355,13 @@ class _TodayCard extends StatelessWidget {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Expanded(
+              Expanded(
                 child: Text(
-                  '今日日程',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  uiText(context, zh: '今日日程', en: 'Today'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Text(
@@ -343,7 +377,11 @@ class _TodayCard extends StatelessWidget {
           const SizedBox(height: 10),
           if (today.items.isEmpty)
             Text(
-              '今天没有课表、考试或实验安排',
+              uiText(
+                context,
+                zh: '今天没有课表、考试或实验安排',
+                en: 'No classes, exams or labs scheduled today',
+              ),
               style: TextStyle(
                 color: Theme.of(
                   context,
@@ -395,7 +433,8 @@ class _TodayRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    '${item.sourceLabel} · ${item.location}',
+                    '${localizedScheduleSource(Localizations.localeOf(context), item.sourceLabel)}'
+                    ' · ${item.location}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -418,7 +457,7 @@ class _TodayRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadii.small),
                 ),
                 child: Text(
-                  '进行中',
+                  uiText(context, zh: '进行中', en: 'Now'),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.primary,
                     fontSize: 12,
@@ -441,6 +480,12 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
+    final String description = localizedCampusServiceDescription(
+      locale,
+      slug: service.slug,
+      description: service.description,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(AppRadii.large),
       onTap: onTap,
@@ -474,7 +519,9 @@ class _ServiceTile extends StatelessWidget {
                 ),
                 const Spacer(),
                 AppStatusTag(
-                  label: service.authType.trim().isEmpty ? '可使用' : '需认证',
+                  label: service.authType.trim().isEmpty
+                      ? uiText(context, zh: '可使用', en: 'Open')
+                      : uiText(context, zh: '需认证', en: 'Sign-in'),
                   color: service.authType.trim().isEmpty
                       ? SharedColors.success
                       : SharedColors.warning,
@@ -483,15 +530,19 @@ class _ServiceTile extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              service.name,
+              localizedCampusServiceName(
+                locale,
+                slug: service.slug,
+                name: service.name,
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
-            if (service.description.trim().isNotEmpty) ...<Widget>[
+            if (description.trim().isNotEmpty) ...<Widget>[
               const SizedBox(height: AppSpacing.xxs),
               Text(
-                service.description,
+                description,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -539,7 +590,10 @@ class _ErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(message, style: const TextStyle(color: Colors.red)),
           ),
-          TextButton(onPressed: onRetry, child: const Text('重试')),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(uiText(context, zh: '重试', en: 'Retry')),
+          ),
         ],
       ),
     );

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
+import '../../core/l10n/campus_text.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
@@ -51,8 +54,9 @@ class _CampusServiceDetailPageState
     });
     try {
       final repository = ref.read(campusRepositoryProvider);
-      final CampusService service =
-          await repository.fetchServiceDetail(widget.serviceId);
+      final CampusService service = await repository.fetchServiceDetail(
+        widget.serviceId,
+      );
       CampusCalendar? calendar;
       if (service.kind == 'schedule' || service.calendarSource.isNotEmpty) {
         calendar = await repository.fetchCalendar(
@@ -77,7 +81,7 @@ class _CampusServiceDetailPageState
         return;
       }
       setState(() {
-        _error = '加载失败：$error';
+        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Could not load: $error');
         _loading = false;
       });
     }
@@ -110,6 +114,7 @@ class _CampusServiceDetailPageState
   @override
   Widget build(BuildContext context) {
     final CampusService? service = _service;
+    final Locale locale = Localizations.localeOf(context);
     return Scaffold(
       appBar: AppBar(
         title: _isClasstable(service)
@@ -117,64 +122,71 @@ class _CampusServiceDetailPageState
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   IconButton(
-                    tooltip: '上一周',
+                    tooltip: uiText(context, zh: '上一周', en: 'Previous week'),
                     onPressed: () => _shiftWeek(-1),
                     icon: const Icon(Icons.chevron_left_rounded),
                   ),
-                  TextButton(
-                    onPressed: _pickWeek,
-                    child: Text(_weekTitle()),
-                  ),
+                  TextButton(onPressed: _pickWeek, child: Text(_weekTitle())),
                   IconButton(
-                    tooltip: '下一周',
+                    tooltip: uiText(context, zh: '下一周', en: 'Next week'),
                     onPressed: () => _shiftWeek(1),
                     icon: const Icon(Icons.chevron_right_rounded),
                   ),
                 ],
               )
-            : Text(service?.name ?? '校园服务'),
+            : Text(
+                service == null
+                    ? uiText(context, zh: '校园服务', en: 'Campus services')
+                    : localizedCampusServiceName(
+                        locale,
+                        slug: service.slug,
+                        name: service.name,
+                      ),
+              ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : service == null
-                  ? const SizedBox.shrink()
-                  : ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-                      children: <Widget>[
-                        if (_isExamService(service))
-                          _ExamList(calendar: _calendar)
-                        else if (service.kind == 'schedule' ||
-                            service.calendarSource.isNotEmpty)
-                          _ScheduleGrid(
-                            calendar: _calendar,
-                            sectionRows: _sectionRows,
-                          ),
-                        if (_businessActions(service).isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 16),
-                          const _BlockTitle('操作'),
-                          const SizedBox(height: 10),
-                          _ActionGrid(
-                            actions: _businessActions(service),
-                            onTap: _runAction,
-                          ),
-                        ],
-                        if (service.maps.isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 16),
-                          const _BlockTitle('相关地图'),
-                          const SizedBox(height: 10),
-                          for (final CampusMap map in service.maps)
-                            _MapRow(map: map, onTap: _openCampusMap),
-                        ],
-                      ],
-                    ),
+          ? Center(
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+            )
+          : service == null
+          ? const SizedBox.shrink()
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+              children: <Widget>[
+                if (_isExamService(service))
+                  _ExamList(calendar: _calendar)
+                else if (service.kind == 'schedule' ||
+                    service.calendarSource.isNotEmpty)
+                  _ScheduleGrid(calendar: _calendar, sectionRows: _sectionRows),
+                if (_businessActions(service).isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  _BlockTitle(uiText(context, zh: '操作', en: 'Actions')),
+                  const SizedBox(height: 10),
+                  _ActionGrid(
+                    actions: _businessActions(service),
+                    onTap: _runAction,
+                  ),
+                ],
+                if (service.maps.isNotEmpty) ...<Widget>[
+                  const SizedBox(height: 16),
+                  _BlockTitle(uiText(context, zh: '相关地图', en: 'Related maps')),
+                  const SizedBox(height: 10),
+                  for (final CampusMap map in service.maps)
+                    _MapRow(map: map, onTap: _openCampusMap),
+                ],
+              ],
+            ),
     );
   }
 
   List<CampusAction> _businessActions(CampusService service) {
     return service.actions
-        .where((CampusAction item) => item.type != 'calendar' && item.type != 'notice')
+        .where(
+          (CampusAction item) =>
+              item.type != 'calendar' && item.type != 'notice',
+        )
         .toList();
   }
 
@@ -216,10 +228,14 @@ class _CampusServiceDetailPageState
           children: <Widget>[
             for (final DateTime week in weeks)
               ListTile(
-                title: Text('${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}'),
+                title: Text(
+                  '${_ymd(week)} - ${_ymd(week.add(const Duration(days: 6)))}',
+                ),
                 trailing: _ymd(week) == _ymd(_weekStart)
-                    ? Icon(Icons.check_rounded,
-                        color: Theme.of(context).colorScheme.primary)
+                    ? Icon(
+                        Icons.check_rounded,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     : null,
                 onTap: () => Navigator.of(context).pop(week),
               ),
@@ -241,11 +257,11 @@ class _CampusServiceDetailPageState
       await _openCampusMap();
       return;
     }
-    if (action.url.trim().isNotEmpty) {
-      await launchUrl(
-        Uri.parse(action.url),
-        mode: LaunchMode.externalApplication,
-      );
+    final String target = action.url.trim();
+    // Server-supplied url: only plain web schemes may reach the system
+    // launcher, and Uri.parse throws on malformed input.
+    if (target.isNotEmpty && AppConfig.isWebUrl(target)) {
+      await launchUrl(Uri.parse(target), mode: LaunchMode.externalApplication);
     }
   }
 
@@ -274,10 +290,7 @@ class _CampusServiceDetailPageState
 }
 
 class _ScheduleGrid extends StatelessWidget {
-  const _ScheduleGrid({
-    required this.calendar,
-    required this.sectionRows,
-  });
+  const _ScheduleGrid({required this.calendar, required this.sectionRows});
 
   final CampusCalendar? calendar;
   final List<_SectionRow> sectionRows;
@@ -285,8 +298,15 @@ class _ScheduleGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final CampusCalendar? data = calendar;
-    if (data == null || data.days.every((CampusCalendarDay day) => day.items.isEmpty)) {
-      return const _EmptyBlock(text: '本周暂无课表或考试安排');
+    if (data == null ||
+        data.days.every((CampusCalendarDay day) => day.items.isEmpty)) {
+      return _EmptyBlock(
+        text: uiText(
+          context,
+          zh: '本周暂无课表或考试安排',
+          en: 'No classes or exams scheduled this week',
+        ),
+      );
     }
     const double timeWidth = 72;
     const double dayWidth = 132;
@@ -403,7 +423,10 @@ class _DayHeader extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text('周${day.weekday}', style: const TextStyle(fontWeight: FontWeight.w800)),
+          Text(
+            localizedWeekdayLabel(Localizations.localeOf(context), day.weekday),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 2),
           Text(day.date.length >= 10 ? day.date.substring(8) : day.date),
         ],
@@ -431,13 +454,18 @@ class _TimeCell extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           Text(
-            row.period,
+            localizedDayPeriod(Localizations.localeOf(context), row.period),
             style: TextStyle(
               fontSize: 11,
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.5),
             ),
           ),
-          Text('${row.section}', style: const TextStyle(fontWeight: FontWeight.w900)),
+          Text(
+            '${row.section}',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
           Text(row.start, style: const TextStyle(fontSize: 10)),
           Text(row.end, style: const TextStyle(fontSize: 10)),
         ],
@@ -472,7 +500,11 @@ class _ScheduleCard extends StatelessWidget {
         children: <Widget>[
           Text(
             isExam && !block.item.title.endsWith('考试')
-                ? '${block.item.title}考试'
+                ? uiText(
+                    context,
+                    zh: '${block.item.title}考试',
+                    en: '${block.item.title} exam',
+                  )
                 : block.item.title,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -505,13 +537,21 @@ class _ExamList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List<CampusScheduleItem> items = <CampusScheduleItem>[
-      for (final CampusCalendarDay day in calendar?.days ?? const <CampusCalendarDay>[])
-        ...day.items,
-    ]..sort((CampusScheduleItem a, CampusScheduleItem b) =>
-        '${a.date} ${a.startTime} ${a.id}'.compareTo('${b.date} ${b.startTime} ${b.id}'));
+    final List<CampusScheduleItem> items =
+        <CampusScheduleItem>[
+          for (final CampusCalendarDay day
+              in calendar?.days ?? const <CampusCalendarDay>[])
+            ...day.items,
+        ]..sort(
+          (CampusScheduleItem a, CampusScheduleItem b) =>
+              '${a.date} ${a.startTime} ${a.id}'.compareTo(
+                '${b.date} ${b.startTime} ${b.id}',
+              ),
+        );
     if (items.isEmpty) {
-      return const _EmptyBlock(text: '暂无考试安排');
+      return _EmptyBlock(
+        text: uiText(context, zh: '暂无考试安排', en: 'No exams scheduled'),
+      );
     }
     return Column(
       children: <Widget>[
@@ -527,19 +567,31 @@ class _ExamList extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(item.date, style: const TextStyle(fontWeight: FontWeight.w800)),
+                Text(
+                  item.date,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 6),
                 Text(
                   item.title,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
                 const SizedBox(height: 10),
-                _InfoRow(label: '时间', value: item.timeRange),
+                _InfoRow(
+                  label: uiText(context, zh: '时间', en: 'Time'),
+                  value: item.timeRange,
+                ),
                 if (item.location.isNotEmpty)
-                  _InfoRow(label: '地点', value: item.location),
+                  _InfoRow(
+                    label: uiText(context, zh: '地点', en: 'Room'),
+                    value: item.location,
+                  ),
                 if ((item.seatNo.isNotEmpty || item.section.isNotEmpty))
                   _InfoRow(
-                    label: '座位号',
+                    label: uiText(context, zh: '座位号', en: 'Seat'),
                     value: item.seatNo.isNotEmpty ? item.seatNo : item.section,
                   ),
               ],
@@ -551,10 +603,7 @@ class _ExamList extends StatelessWidget {
 }
 
 class _ActionGrid extends StatelessWidget {
-  const _ActionGrid({
-    required this.actions,
-    required this.onTap,
-  });
+  const _ActionGrid({required this.actions, required this.onTap});
 
   final List<CampusAction> actions;
   final ValueChanged<CampusAction> onTap;
@@ -571,7 +620,12 @@ class _ActionGrid extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () => onTap(action),
               icon: const Icon(Icons.open_in_new_rounded, size: 18),
-              label: Text(action.label),
+              label: Text(
+                localizedCampusActionLabel(
+                  Localizations.localeOf(context),
+                  action.label,
+                ),
+              ),
             ),
           ),
       ],
@@ -580,20 +634,20 @@ class _ActionGrid extends StatelessWidget {
 }
 
 class _MapRow extends StatelessWidget {
-  const _MapRow({
-    required this.map,
-    required this.onTap,
-  });
+  const _MapRow({required this.map, required this.onTap});
 
   final CampusMap map;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final Locale locale = Localizations.localeOf(context);
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(map.name),
-      subtitle: map.description.isEmpty ? null : Text(map.description),
+      title: Text(localizedCampusMapName(locale, map.name)),
+      subtitle: map.description.isEmpty
+          ? null
+          : Text(localizedCampusMapDescription(locale, map.description)),
       trailing: const Icon(Icons.open_in_new_rounded),
       onTap: onTap,
     );
@@ -601,10 +655,7 @@ class _MapRow extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -620,7 +671,9 @@ class _InfoRow extends StatelessWidget {
             child: Text(
               label,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.56),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.56),
               ),
             ),
           ),

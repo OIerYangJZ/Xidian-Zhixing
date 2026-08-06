@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Release builds must not speak plaintext HTTP: the app carries a bearer session
+  token and campus credentials, both of which a network attacker could read or
+  rewrite over cleartext.  Local development backends are the only exception and
+  are enumerated explicitly below rather than enabled app-wide.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- Loopback and the Android emulator's host alias, for `flutter run`
+         against a backend started with start_backend.bat. -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">localhost</domain>
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">10.0.3.2</domain>
+    </domain-config>
+</network-security-config>

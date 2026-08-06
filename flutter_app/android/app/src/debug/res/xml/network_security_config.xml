@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug-only override.  `flutter run` commonly targets a LAN backend over plain
+  HTTP (http://192.168.x.x:8080), which the release config in
+  app/src/main/res/xml/ deliberately forbids.  This file shadows it for debug
+  builds only and is never part of a release APK.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
