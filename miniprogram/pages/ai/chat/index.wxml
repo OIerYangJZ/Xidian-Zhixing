@@ -14,7 +14,7 @@
           <view class="references" wx:if="{{item.references && item.references.length}}">
             <view class="reference-title">
               <text class="seal-badge-hollow" style="font-size: 16rpx; height: 32rpx; line-height: 28rpx; padding: 0 6rpx; margin-right: 8rpx; display: inline-block; vertical-align: middle;">来源</text>
-              <text style="vertical-align: middle;">参考资料</text>
+              <text style="vertical-align: middle;">相关原帖</text>
             </view>
             <view class="reference-item" wx:for="{{item.references}}" wx:for-item="ref" wx:for-index="referenceIndex" wx:key="key">
               <view class="reference-link" data-message-index="{{messageIndex}}" data-reference-index="{{referenceIndex}}" bindtap="openReference">

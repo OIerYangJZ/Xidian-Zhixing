@@ -2416,6 +2416,14 @@ def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[
             "sourceUrl": "https://service.xidian.edu.cn/",
             "createdAt": created,
         },
+        {
+            "id": "ks-xidian-student-guide-2026",
+            "name": "西电学生经验手册（2026）",
+            "sourceType": "student_reference",
+            "sourceUrl": "",
+            "authority": "community",
+            "createdAt": created,
+        },
     ]
     guide_chunks = [
         {
@@ -2463,7 +2471,8 @@ def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[
             "content": (
                 "宿舍电费和水电缴费可通过学校缴费入口进入，查询时通常需要确认宿舍或缴费账号、剩余电量、欠费金额和缴费记录。"
                 "宿舍水机服务使用手机号、图形验证码和短信验证码登录，关注设备列表、设备二维码、开始/结束接水和接水状态。"
-                "订水入口为 https://order.xidian.edu.cn/mobile/thirdoauth/oauth2Xidian/1。"
+                "订水入口为 https://order.xidian.edu.cn/mobile/thirdoauth/oauth2Xidian/1。学生经验中还提到，纸质水票可能已停用，"
+                "桶装水、公共热水机和教学楼/图书馆供水的具体渠道与时间以西电后勤当年通知和现场标识为准。水电费也可能通过学校移动门户或南校区一站式服务中心办理。"
             ),
         },
         {
@@ -2519,7 +2528,8 @@ def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[
             "content": (
                 "常见校务办理包括请销假、后勤报修、缴费、空间预约和双创竞赛。请销假入口可从服务大厅事项进入；"
                 "后勤报修用于宿舍、楼宇、网络等维修事项；缴费系统处理电费等缴费；空间预约用于图书馆或校内空间预约；"
-                "双创竞赛平台用于查看项目、岗位、报名时间和状态。"
+                "双创竞赛平台用于查看项目、岗位、报名时间和状态。学校企业号、移动门户和学院/书院通知渠道可能提供消息、教务、客服、校园新闻、邮箱等服务；"
+                "具体功能以当年官方通知为准。遇到缴费、招生、社团招新或账号异常要求，应通过官网、辅导员或官方客服核验，不要向陌生账号转账或提交敏感信息。"
             ),
         },
         {
@@ -2532,10 +2542,306 @@ def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[
                 "不要在普通聊天内容中发送密码、验证码、付款码或完整个人敏感信息。"
             ),
         },
+        {
+            "id": "kc-xidian-living-expenses",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电学生月度生活费参考",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "生活费是学生个人消费的经验性估算，不是西电统一收费标准，实际金额会因校区、消费习惯和住宿情况变化。"
+                "按在校生账单整理，食堂正常荤素搭配约 8-12 元/餐，每日三餐约 25-35 元，纯食堂每月约 750-1050 元；"
+                "奶茶、外卖、夜宵和聚餐等弹性餐饮每月可另预留约 300-500 元。洗漱用品、洗衣、水果、零食和宿舍小物件约 100-300 元/月；"
+                "校内通常步行或骑车，公交地铁价格较低，话费、网费和偶尔打车可按约 100-200 元/月估算，校园网是否另行收费以学校当前通知为准；"
+                "社交娱乐支出弹性较大，图书馆、体育馆和自习室等校内资源通常可免费使用，学生证可能享受景区、影院和场馆优惠。"
+                "综合估算可分为：节省型约 1000-1300 元/月，标准型约 1500-2000 元/月，舒适型约 2500-3500 元/月及以上。"
+                "其中 1500 元左右通常可以覆盖较正常的校园生活，具体预算应以个人实际账单为准；家庭经济困难可关注学校勤工助学和助学金渠道。"
+            ),
+        },
+        {
+            "id": "kc-xidian-major-change",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电本科生调整专业信息参考",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "西电实行大类招生培养，学生可能通过不同阶段进行专业方向调整。按提供的校内介绍，常见机会包括：入校后参加教改班、卓越工程师班、"
+                "图灵人工智能等试点班选拔；第二学期末参加大类分流；大类分流后第二学年结束再申请一次转专业。"
+                "大类分流的具体专业和时间由学院安排。转专业通常需要满足目标学院的接收条件；提供信息中列出的参考条件包括专业必修课程平均学分绩排位在本专业年级前 5%、"
+                "无补考和违纪处分记录、完成规定学分，并满足目标专业对数学基础、编程能力等背景要求。申请一般需要转专业申请书、个人发展规划和成绩单，"
+                "还可能因专业名额、生师比等因素进行比例调节。对专业特长、原专业学习困难或健康原因等特殊情形，可能需要学院推荐和证明材料；"
+                "国防生、定向生以及国家规定不能改变专业的学生不能申请。特殊类型招生考生是否可以申请应以当年招生和教务文件为准。"
+                "以上为信息整理，具体机会、比例、成绩条件、时间和流程必须以西电教务处及所在学院发布的最新实施办法为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-freshman-registration",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电 2026 级新生报到时间与校区地址",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "按提供的西电迎新网信息，2026 年本科新生报到时间为 8 月 30 日（星期日）8:00-24:00；第二学士学位新生为 9 月 6 日（星期日）8:00-24:00；"
+                "预科新生为 9 月 15 日（星期二）8:00-20:00。具体报到安排、材料和流程以西电迎新网当年通知为准。"
+                "长安校区地址：陕西省西安市西沣路兴隆段 266 号；雁塔校区地址：陕西省西安市太白南路 2 号。"
+            ),
+        },
+        {
+            "id": "kc-xidian-freshman-transport",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电长安校区与雁塔校区新生到校交通参考",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "前往长安校区时，从西安站或西安北站可乘地铁 2 号线或 4 号线换乘 6 号线，在‘西电科大南校区·未来之瞳’站下车；"
+                "从西安东站可乘地铁 5 号线换乘 6 号线到达。西安咸阳国际机场可乘机场巴士长安大学城线，"
+                "再在西部大道与西沣路十字换乘 333 路公交到西安电子科技大学长安校区站，或在西港商务中心换乘地铁 6 号线。"
+                "前往雁塔校区时，从西安站或西安北站可乘地铁 2 号线或 4 号线换乘 3 号线，在太白南路站下车；"
+                "从西安站也可乘 608 路公交到西安电子科技大学站；从西安东站可乘地铁 5 号线换乘 6 号线到科技路 D 口，再乘 604 路公交。"
+                "机场到雁塔校区可乘西高新商务快线至志诚丽柏酒店后步行。线路、站点和运营时间可能调整，出行前应以西安地铁、公交和学校迎新通知为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-campuses-dormitory",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电南北校区与住宿费参考",
+            "sourceUrl": "https://xdyx.xidian.edu.cn/index.htm",
+            "content": (
+                "西安电子科技大学有南校区和北校区。南校区位于陕西省西安市西沣路兴隆段 266 号，东门位于西沣路；"
+                "南校区宿舍区主要包括竹园、海棠、丁香公寓，提供的住宿费参考为每人每年 1200 元。"
+                "北校区位于陕西省西安市太白南路 2 号，北门位于南二环路段西段，南门位于光华路；北校区宿舍分东、西区，"
+                "提供的住宿费参考为每人每年 600-800 元。住宿房型、收费标准和具体安排可能按年级、身份及学校当年安排变化，"
+                "应以学校财务、迎新网和住宿管理通知为准。学生经验中常见的宿舍生活配置包括空调、开水房、洗浴热水和公共洗衣设施；"
+                "空调供电时段、热水供应和使用费用可能调整，以宿舍管理和后勤通知为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-dining-guide",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电南北校区食堂与就餐价格参考",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "西安电子科技大学南、北两个校区共有 5 个食堂、12 个餐厅，档口总数约 278 个，总就餐面积约 26320 平方米。"
+                "南校区主要有海棠、丁香、竹园三大餐厅：海棠餐厅靠近海棠公寓和北操场，提供基本伙食和南北风味小吃；"
+                "丁香餐厅靠近丁香公寓，一、二层提供日常餐饮，三层主要承担教工餐饮、校内接待及零星点餐；"
+                "竹园餐厅靠近竹园公寓和信远楼，包含南北风味档口，竹三餐厅也提供民族风味餐饮。"
+                "北校区主要有西区学生餐厅、东区餐厅和位于东区学生餐厅二层的西军电餐厅。西区学生餐厅提供早、中、晚餐及民族和南北风味；"
+                "东区餐厅提供早餐、小吃、主食和快餐；西军电餐厅提供多种风味餐饮及团餐服务。"
+                "提供的参考价格包括：海棠餐厅麻辣香锅约 17 元/500 克、韩式烧肉饭约 9.9-15 元、金汤肥牛面约 12 元；"
+                "丁香餐厅新派干锅约 9-15 元、无骨烤鱼捞饭约 16 元、精品川菜约 10-15 元；"
+                "北校区西区学生餐厅葱油拌面约 7 元、腊汁肉夹馍约 5 元、新疆牛肉板面约 15 元；"
+                "东区餐厅提供约 1 元基础餐和约 8 元套餐，鸡蛋炒饼丝约 5 元；西军电餐厅兰州拉面约 8 元、土豆牛肉盖饭约 15 元、卤肉饭约 13 元。"
+                "食堂价格和低价餐可能包含学校保障性补助，部分时段可能提供一元餐或困难帮扶；具体供应、资格和金额以西电后勤及学生工作通知为准。"
+                "遇到食品、服务或支付问题，应通过餐厅现场公示的后勤投诉渠道反馈。上述数量、营业时间、档口和价格仅作就餐参考，可能随经营安排调整，以校内公告和现场信息为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-scholarships-aid",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电本科生奖学金与国家助学资助参考",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "国家奖学金面向西电全日制本科（含第二学士学位）中特别优秀的学生，提供信息中的奖励标准为每生每年 10000 元。"
+                "基本条件包括具有中国国籍、遵守法律和校规、诚实守信、上一学年成绩优异且综合表现突出；通常要求本科二年级及以上，"
+                "学习成绩和综合考评排名在专业前 10%，排名前 30%但其他方面特别突出的学生可按要求提交证明材料。"
+                "国家励志奖学金面向全日制本科二年级及以上、品学兼优且经认定为家庭经济困难的学生，提供信息中的奖励标准为每生每学年 5000 元，"
+                "通常要求学习成绩和综合测评在专业前 30%。"
+                "国家助学金面向家庭经济困难的全日制本科在校学生，包含预科和第二学士学位学生；退役士兵学生全部享受本科生国家助学金，"
+                "提供信息中的标准为每生每年 3300 元。普通学生资助档次和金额按教育部及学校当年政策执行。"
+                "本科毕业生奖学金面向毕业学年全日制计划内应届本科毕业生，提供信息中的标准为特等奖 3000 元、一等奖 1500 元、二等奖 1000 元、三等奖 600 元，"
+                "具体比例和申请条件以当年评选通知为准。校级奖学金包括校长奖、综合发展奖学金、单项奖学金和毕业生奖学金，金额、比例和 M2 等具体条件以学校当年文件为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-dormitory-facilities",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电学生宿舍设施与网上选房参考",
+            "sourceUrl": "https://xdyx.xidian.edu.cn/index.htm",
+            "content": (
+                "南校区学生公寓主要分布在竹园、海棠、丁香三个区域，常见配置包括上床下桌、开水房、自助洗衣设施和洗浴热水。"
+                "提供的信息中，南校区宿舍床铺参考尺寸为 1.9 米×0.9 米，生活热水通常在中午和晚间供应；空调使用可能采取宿舍集体申请和租赁方式，"
+                "相关费用按学校和服务商协议执行。"
+                "北校区学生公寓分布在东区、西区，硕士宿舍参考为四人间、博士宿舍参考为两人间，宿舍基本配备空调；"
+                "部分宿舍配置上床下桌、无线网络、洗澡房、洗衣机、烘干机、洗鞋机及公共吹风机、挂烫机等，具体以实际楼栋为准。"
+                "学校每年可能通过迎新网安排网上选房，入口为 https://xdyx.xidian.edu.cn/index.htm；选房时间、房型、床位和收费以当年迎新通知为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-academic-calendar-2026-2027",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电 2026—2027 学年校历",
+            "sourceUrl": "https://www.xidian.edu.cn/",
+            "content": (
+                "西安电子科技大学 2026—2027 学年校历显示：第一学期为 2026 年 9 月 7 日至 2027 年 1 月 17 日，共 19 周；"
+                "第二学期为 2027 年 2 月 22 日至 2027 年 6 月 27 日，共 18 周；国际创新实践周为 2027 年 6 月 28 日至 2027 年 7 月 18 日，共 3 周。"
+                "寒假为 2027 年 1 月 18 日至 2027 年 2 月 21 日，共 5 周；暑假为 2027 年 7 月 19 日至 2027 年 9 月 5 日，共 7 周。"
+                "校历图中标注的法定节假日及调休安排包括：2026 年中秋节 9 月 25 日，国庆节 10 月 1—3 日；"
+                "2027 年元旦 1 月 1 日，春节 2 月 5—8 日，元宵节 2 月 20 日，清明节 4 月 5 日，劳动节 5 月 1—2 日，端午节 6 月 9 日。"
+                "节假日具体放假、调休和课程安排以学校当年校历、教务处通知及国务院节假日安排为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-services",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电学生常用官方平台与服务入口参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册整理的常用平台包括：西安电子科技大学官方渠道用于学校通知；西电后勤用于食堂、设备、宿舍、报修和生活缴费；"
+                "西电信息中心用于校园网、VPN 等网络服务；西电学工用于学生工作通知；西电体育用于体育课程；西电青年用于团委和素质拓展；"
+                "西安电子科技大学图书馆用于入馆教育、馆藏和空间预约；西安电子科技大学医院用于体检和疫苗等服务；学院、书院及学院学工渠道用于本单位通知。"
+                "企业号和移动门户可能提供消息通知、校园新闻、客服、教务、缴费、邮箱等服务，具体入口和功能以学校当年通知为准。"
+                "西电一站式入口为 http://ehall.xidian.edu.cn/new/index.html；图书馆网站为 https://lib.xidian.edu.cn/；"
+                "学在西电平台入口为 https://xdspoc.xidian.edu.cn/；正版软件平台入口为 https://gsoft.xidian.edu.cn/。"
+                "非官方平台或第三方工具即使提供课表、成绩、电费、选课评价等便利，也不应作为唯一数据来源，使用前应核实权限、隐私和下载安全。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-security",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电新生缴费、账号与防诈骗提醒",
+            "sourceUrl": "https://xdyx.xidian.edu.cn/index.htm",
+            "content": (
+                "新生与辅导员、学校联系时应优先使用学校指定平台，不要因招生群、社团群或陌生账号的身份自称而转账或提供敏感信息。"
+                "学费、住宿费等费用应通过迎新网或学校指定的官方缴费入口办理；不要点击陌生人发送的缴费链接。"
+                "校园网账号、统一认证、邮箱、校园卡和银行卡信息属于个人敏感信息，不应在群聊、普通聊天或非官方平台发送密码、验证码、付款码和完整证件信息。"
+                "学校通知、招生信息、社团招新和所谓优惠活动中可能存在冒充、收集个人信息或诈骗行为，遇到异常要求应通过学校官网、辅导员或官方客服核实。"
+                "床上用品等生活物品可按迎新网说明自主购买或选择学校提供的正规渠道，注意产品质量和价格，不要轻信夸张宣传。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-daily-life",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电宿舍空调、饮水、洗衣与水电生活参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册称宿舍普遍安装空调，使用时主要承担电费；具体供电时段、空调覆盖和收费以宿舍管理及后勤当年通知为准。"
+                "宿舍内禁止使用热水壶等违章电器，饮水可使用楼道公共热水机、教学楼或图书馆的供水设施；教学楼和图书馆供水时间、冷热水设备以现场为准。"
+                "纸质水票是否停用、桶装水购买和配送渠道以西电后勤当前通知为准，不要把经验稿中的品牌或入口当成唯一渠道。"
+                "水电费可通过学校移动门户或一站式服务中心查询、充值；每层宿舍通常设有公共洗衣机，手册记录标准洗约 3 元/次，但价格可能调整。"
+                "公共吹风机等设施是否免费以实际楼栋为准。南校区宿舍床铺参考尺寸为 1.9 米×0.9 米，身高较高的学生可在学校信息采集时如实填写，是否提供加长床以宿舍安排为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-transport-delivery",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电校内出行、地铁与快递参考",
+            "sourceUrl": "",
+            "content": (
+                "校内出行可步行、骑自行车或使用共享单车；部分区域可能有校园接驳车，票价、路线和运营时间以现场公告为准。"
+                "南校区附近可通过地铁 6 号线及公交前往市区，站点、线路和开通状态可能变化，出行前应查询西安地铁、公交和学校通知。"
+                "快递通常集中到校内菜鸟驿站或快递服务中心，具体收货地址、取件位置、取件码和大件存放点以物流短信和驿站通知为准。"
+                "部分校内配送服务可能按包裹大小收费，价格和是否提供服务以当前快递点规则为准；长时间不取件可能按驿站规定处理。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-dining-support",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电食堂补助、低价餐与后勤服务参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册介绍，西电食堂承担基本伙食保障，部分窗口可能提供低价套餐或一元餐，具体供应时段、菜品和价格以西电后勤当期通知为准。"
+                "南校区综合楼可提供餐饮、药店、理发、文具、手机和洗衣等生活服务；具体商户和营业时间会变化。"
+                "食堂窗口和后勤渠道通常设有投诉或意见反馈方式，遇到食品、服务或支付问题应保留凭证并通过现场公示的官方渠道反馈。"
+                "对家庭经济困难学生，学校可能通过困难认定、助学金、勤工助学或食堂补助等方式提供帮助，申请条件和发放方式以学生工作处、学院和后勤通知为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-undergraduate-study",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电本科课程、绩点、综测与学习参考",
+            "sourceUrl": "",
+            "content": (
+                "西电学生经验手册将 GPA 称为绩点，将课程成绩按学分加权得到均分；综测用于学生综合排名，通常包含德智体美劳等模块，M2 与课程、竞赛等学习表现有关。"
+                "具体 GPA、均分、综测和加分规则应以学校当年本科生手册及学院文件为准，经验稿中的示例不能替代正式制度。"
+                "课程总评由平时成绩、考试或作业等部分构成，考勤、考试资格、补考、重修和学分要求由课程大纲及教务规定确定。"
+                "学生可通过一站式、教务系统或图书馆查询课表、成绩、考试和空闲教室；在空闲教室自习时应遵守楼宇和教室管理要求。"
+                "高等数学、线性代数、大学物理、C 语言、英语、编程和离散数学等课程可能是部分工科学院低年级的重要基础，具体课程安排因学院和专业而异。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-competitions",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电学生竞赛与常用学习技能参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册列举的常见竞赛包括 ACM、数学建模、大学生电子设计、软件精英挑战、硬件类竞赛及其他学校或学院竞赛。"
+                "竞赛是否计入综测、计入哪个模块、报名资格和时间以学校、学院及竞赛组委会当年通知为准。"
+                "新生可根据专业学习 Word、PPT、Excel、编程和论文排版等通用技能，也可在合规平台练习编程题；第三方课程和平台仅作为学习资源，不代表学校官方推荐。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-preparatory",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电预科生活、课程与考试参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册记录的预科安排仅适合作为往年经验参考：预科宿舍、课程、老师和选课通常由学院统一安排，课程可能分为必修和选修；"
+                "专业分流可能综合两学期必修课成绩、学分加权结果和学校规定的平时加分，并按省份或其他规则排序。"
+                "预科学生的奖助学金、困难认定、竞赛、考试、早晚自习和入团等事项，均可能因年份、学院和政策变化而调整。"
+                "预科是否参加开学考、四六级、期中考试、具体课程、分流规则和比赛资格，应以当年学院通知、学生手册和教务文件为准。"
+            ),
+        },
+        {
+            "id": "kc-xidian-student-guide-graduation",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电本科毕业条件与发展事项参考",
+            "sourceUrl": "",
+            "content": (
+                "学生经验手册提醒，本科毕业除修满培养方案要求的课程和学分外，部分专业或年级还可能有英语等级、社会实践、实验实践能力等培养要求。"
+                "是否必须通过英语四级、社会实践次数、实验实践能力测试和其他毕业条件，应以本人培养方案、学院通知和学校当年毕业审核文件为准。"
+                "考研是全国硕士研究生统一招生考试，保研是推荐优秀应届本科毕业生免试攻读研究生；报名条件、专业课、推免名额和考核方式以目标学校及西电当年通知为准。"
+                "入党、入团、学生组织和社团活动应遵守学校管理规定，具体流程、名额和时间以团委、学院或书院通知为准。"
+            ),
+        },
     ]
+    # Merge overlapping student-guide notes into the canonical topic chunks so
+    # retrieval returns one concise result per topic instead of near-duplicates.
+    chunks_by_id = {str(item.get("id", "")): item for item in guide_chunks}
+    chunks_by_id["kc-xidian-ids"]["content"] += (
+        "学生经验还提到，学校企业号、移动门户和邮箱可能承载通知、客服、教务和生活服务；"
+        "具体入口以学校当年通知为准。"
+    )
+    chunks_by_id["kc-xidian-dormitory-facilities"]["content"] += (
+        "宿舍空调、饮水、洗衣和水电使用的具体时段、价格与设备，以宿舍管理和后勤通知为准。"
+    )
+    chunks_by_id["kc-xidian-campuses-dormitory"]["content"] += (
+        "学生经验还记录，南校区宿舍常见上床下桌、开水房、洗浴热水和自助洗衣设施，参考床铺尺寸为 1.9 米×0.9 米；"
+        "北校区部分宿舍有上床下桌、无线网、洗澡房、洗衣机、烘干机、洗鞋机及公共吹风机、挂烫机等。"
+        "学校可能通过迎新网安排网上选房，房型、床位和具体设施以当年通知及实际楼栋为准。"
+    )
+    chunks_by_id["kc-xidian-dining-guide"]["content"] += (
+        "学生经验还提到，部分窗口可能提供低价套餐或一元餐，食堂现场通常设有投诉或意见反馈渠道；"
+        "具体供应、资格、金额和处理时限以西电后勤当期通知为准。"
+    )
+    chunks_by_id["kc-xidian-study"]["content"] += (
+        "学生经验中将 GPA 称为绩点，将课程成绩按学分加权得到均分；综测通常包含德智体美劳模块，"
+        "M2 可能与课程、竞赛等学习表现有关。具体 GPA、均分、综测、考勤、考试资格、补考、重修和毕业学分规则，"
+        "以学校本科生手册、课程大纲和学院教务文件为准。"
+    )
+    chunks_by_id["kc-xidian-affairs"]["content"] += (
+        "学生经验列举的常见竞赛包括 ACM、数学建模、电子设计、软件或硬件类竞赛；"
+        "是否计入综测、报名资格和时间以学校、学院及竞赛组委会当年通知为准。"
+    )
+    drop_ids = {
+        "kc-xidian-student-guide-services",
+        "kc-xidian-student-guide-daily-life",
+        "kc-xidian-student-guide-dining-support",
+        "kc-xidian-student-guide-undergraduate-study",
+        "kc-xidian-student-guide-competitions",
+        "kc-xidian-dormitory-facilities",
+    }
+    guide_chunks = [item for item in guide_chunks if str(item.get("id", "")) not in drop_ids]
+    for item in guide_chunks:
+        if (
+            item.get("sourceId") == "ks-xidian-student-guide-2026"
+            and item.get("sourceUrl") == "https://www.xidian.edu.cn/"
+        ):
+            item["sourceUrl"] = ""
     document_content = "\n\n".join(
         f"{item['title']}\n来源：{item['sourceUrl']}\n{item['content']}"
         for item in guide_chunks
+        if item.get("sourceId", "ks-xidian-services") == "ks-xidian-services"
+    )
+    student_document_content = "\n\n".join(
+        f"{item['title']}\n{item['content']}"
+        for item in guide_chunks
+        if item.get("sourceId") == "ks-xidian-student-guide-2026"
     )
     documents = [
         {
@@ -2545,13 +2851,25 @@ def _default_xidian_knowledge(created: str) -> tuple[list[dict[str, Any]], list[
             "content": document_content,
             "sourceUrl": "https://service.xidian.edu.cn/",
             "createdAt": created,
-        }
+        },
+        {
+            "id": "kd-xidian-student-guide-2026",
+            "sourceId": "ks-xidian-student-guide-2026",
+            "title": "西电学生经验手册（2026）整理版",
+            "content": student_document_content,
+            "sourceUrl": "",
+            "createdAt": created,
+        },
     ]
     chunks = [
         {
             "id": item["id"],
-            "sourceId": "ks-xidian-services",
-            "documentId": "kd-xidian-services",
+            "sourceId": item.get("sourceId", "ks-xidian-services"),
+            "documentId": (
+                "kd-xidian-student-guide-2026"
+                if item.get("sourceId") == "ks-xidian-student-guide-2026"
+                else "kd-xidian-services"
+            ),
             "title": item["title"],
             "content": f"{item['content']} 来源：{item['sourceUrl']}",
             "sourceUrl": item["sourceUrl"],
@@ -2679,6 +2997,21 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
             db[key] = []
             changed = True
     default_sources, default_documents, default_chunks = _default_xidian_knowledge(created)
+    merged_chunk_ids = {
+        "kc-xidian-student-guide-services",
+        "kc-xidian-student-guide-daily-life",
+        "kc-xidian-student-guide-dining-support",
+        "kc-xidian-student-guide-undergraduate-study",
+        "kc-xidian-student-guide-competitions",
+    }
+    existing_chunk_rows = db.get("knowledgeChunks", [])
+    filtered_chunk_rows = [
+        row for row in existing_chunk_rows
+        if str(row.get("id", "")).strip() not in merged_chunk_ids
+    ]
+    if len(filtered_chunk_rows) != len(existing_chunk_rows):
+        db["knowledgeChunks"] = filtered_chunk_rows
+        changed = True
     existing_sources = {
         str(item.get("id", "")).strip(): item
         for item in db.get("knowledgeSources", [])
@@ -2692,7 +3025,7 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
             existing_sources[source_id] = source
             changed = True
             continue
-        for key in ("name", "sourceType", "sourceUrl"):
+        for key in ("name", "sourceType", "sourceUrl", "authority"):
             if existing.get(key) != source.get(key):
                 existing[key] = source.get(key)
                 changed = True

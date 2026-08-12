@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler
 from typing import Any
 
 from helpers import json_error, now_iso, read_json_body, send_json
-from rag_service import citations, rebuild_rag_index, retrieve
+from rag_service import citations, forum_citations, rebuild_rag_index, retrieve
 from services import (
     add_audit_log,
     auth_admin,
@@ -738,8 +738,8 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
     if not selected_text:
         json_error(handler, HTTPStatus.BAD_REQUEST, "选中文本不能为空")
         return
-    citations = _search_items(db, f"{question} {selected_text}")[:6]
-    answer = f"已根据选中文本整理：{selected_text[:160]}。建议结合原帖语境判断，相关来源见引用。"
+    citations = forum_citations(retrieve(db, f"{question} {selected_text}", include_posts=True, limit=6))
+    answer = f"已根据选中文本整理：{selected_text[:160]}。如涉及论坛讨论，相关原帖会在下方提供。"
     send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": citations, "relatedActions": [], "usage": {"sourceCount": len(citations)}, "reviewStatus": "approved"}})
 
 

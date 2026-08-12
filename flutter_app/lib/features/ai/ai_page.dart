@@ -11,6 +11,8 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../repositories/ai_repository.dart';
+import '../../repositories/app_repositories.dart';
+import '../post/post_detail_page.dart';
 
 class AiPage extends ConsumerStatefulWidget {
   const AiPage({super.key});
@@ -38,7 +40,8 @@ class _AiPageState extends ConsumerState<AiPage> {
                 subtitle: uiText(
                   context,
                   zh: '基于校园知识库与审核通过的公开内容回答',
-                  en: 'Answers drawn from the campus knowledge base and '
+                  en:
+                      'Answers drawn from the campus knowledge base and '
                       'approved public content',
                 ),
                 trailing: OutlinedButton.icon(
@@ -118,10 +121,11 @@ class _AiStartCard extends StatelessWidget {
           Text(
             uiText(
               context,
-              zh: '进入对话后可询问办事流程、校园服务或公开社区内容。回答若引用资料，会在正文下方逐条列出来源。',
-              en: 'Ask about administrative procedures, campus services or '
-                  'public community content. Whenever an answer cites '
-                  'material, the sources are listed one by one beneath it.',
+              zh: '进入对话后可询问办事流程、校园服务或公开社区内容。检索到论坛帖子时，会在回答下方提供原帖入口。',
+              en:
+                  'Ask about administrative procedures, campus services or '
+                  'public community content. When a forum post is used, its '
+                  'original post is shown below the answer.',
             ),
             style: Theme.of(context).textTheme.bodyLarge,
           ),
@@ -158,30 +162,23 @@ class _AiPrinciplesCard extends StatelessWidget {
             message: uiText(
               context,
               zh: '检索到的参考资料会和回答分开呈现。',
-              en: 'Retrieved references are shown separately from the answer.',
+              en: 'Original forum posts are shown separately from the answer.',
             ),
           ),
           _AiPrinciple(
             icon: Icons.visibility_outlined,
-            title: uiText(
-              context,
-              zh: '能力边界透明',
-              en: 'Honest about its limits',
-            ),
+            title: uiText(context, zh: '能力边界透明', en: 'Honest about its limits'),
             message: uiText(
               context,
               zh: '服务器未配置时会明确提示，不生成替代回答。',
-              en: 'If the server has no AI configured it says so, rather than '
+              en:
+                  'If the server has no AI configured it says so, rather than '
                   'inventing a substitute answer.',
             ),
           ),
           _AiPrinciple(
             icon: Icons.lock_outline_rounded,
-            title: uiText(
-              context,
-              zh: '公开内容范围',
-              en: 'Public content only',
-            ),
+            title: uiText(context, zh: '公开内容范围', en: 'Public content only'),
             message: uiText(
               context,
               zh: '论坛内容仅使用审核通过的公开帖子。',
@@ -361,8 +358,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         ),
                         message: uiText(
                           context,
-                          zh: '回答中使用的校园资料会在下方标注来源。',
-                          en: 'Sources used in the answer are listed below it.',
+                          zh: '回答使用论坛帖子时，原帖会在下方提供。',
+                          en: 'Original forum posts are shown when used.',
                         ),
                       )
                     : ListView.builder(
@@ -379,6 +376,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                                 en: 'Looking up sources…',
                               ),
                               references: const <AiReference>[],
+                              onReferenceTap: null,
                             );
                           }
                           final AiMessage message = _messages[index];
@@ -386,6 +384,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                             role: message.role,
                             content: message.content,
                             references: message.references,
+                            onReferenceTap: _openReference,
                           );
                         },
                       ),
@@ -483,10 +482,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              uiTextGlobal(
-                zh: '发送失败：$error',
-                en: 'Send failed: $error',
-              ),
+              uiTextGlobal(zh: '发送失败：$error', en: 'Send failed: $error'),
             ),
           ),
         );
@@ -499,6 +495,23 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         _scrollToBottom();
       }
     }
+  }
+
+  Future<void> _openReference(AiReference reference) async {
+    if (reference.type != 'post' && reference.type != '帖子') {
+      return;
+    }
+    final String postId = reference.targetId.trim();
+    if (postId.isEmpty) {
+      return;
+    }
+    final post = await AppRepositories.posts.fetchPostDetail(postId);
+    if (!mounted) {
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => PostDetailPage(post: post)));
   }
 
   void _scrollToBottom() {
@@ -593,9 +606,7 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
               _status.diagnosticLine.isNotEmpty)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(
-                uiText(context, zh: '服务器返回', en: 'Server response'),
-              ),
+              title: Text(uiText(context, zh: '服务器返回', en: 'Server response')),
               subtitle: SelectableText(_status.diagnosticLine),
             ),
           if (_status.configured)
@@ -651,11 +662,13 @@ class _MessageBubble extends StatelessWidget {
     required this.role,
     required this.content,
     required this.references,
+    required this.onReferenceTap,
   });
 
   final String role;
   final String content;
   final List<AiReference> references;
+  final ValueChanged<AiReference>? onReferenceTap;
 
   @override
   Widget build(BuildContext context) {
@@ -669,7 +682,10 @@ class _MessageBubble extends StatelessWidget {
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         children: <Widget>[
-          if (!user) _AiAvatar(label: uiText(context, zh: '印', en: 'AI')),
+          if (!user)
+            _AiAvatar(
+              label: uiText(context, zh: '印', en: 'AI'),
+            ),
           Flexible(
             child: Container(
               margin: EdgeInsets.only(
@@ -697,28 +713,34 @@ class _MessageBubble extends StatelessWidget {
                   if (references.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 12),
                     Text(
-                      uiText(context, zh: '参考来源', en: 'Sources'),
+                      uiText(context, zh: '相关原帖', en: 'Original posts'),
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     for (final MapEntry<int, AiReference> entry
                         in references.asMap().entries)
-                      Container(
-                        width: double.infinity,
-                        margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-                        padding: const EdgeInsets.all(AppSpacing.sm),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          border: Border.all(color: SharedColors.divider),
-                          borderRadius: BorderRadius.circular(AppRadii.small),
-                        ),
-                        child: Text(
-                          '${entry.key + 1}. '
-                          '${localizedAiReferenceType(locale, entry.value.type)}'
-                          ' · ${entry.value.title}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 12,
+                      InkWell(
+                        onTap: onReferenceTap == null
+                            ? null
+                            : () => onReferenceTap!(entry.value),
+                        borderRadius: BorderRadius.circular(AppRadii.small),
+                        child: Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                          padding: const EdgeInsets.all(AppSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.surface,
+                            border: Border.all(color: SharedColors.divider),
+                            borderRadius: BorderRadius.circular(AppRadii.small),
+                          ),
+                          child: Text(
+                            '${entry.key + 1}. '
+                            '${localizedAiReferenceType(locale, entry.value.type)}'
+                            ' · ${entry.value.title}',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontSize: 12,
+                            ),
                           ),
                         ),
                       ),
@@ -727,7 +749,10 @@ class _MessageBubble extends StatelessWidget {
               ),
             ),
           ),
-          if (user) _AiAvatar(label: uiText(context, zh: '我', en: 'Me')),
+          if (user)
+            _AiAvatar(
+              label: uiText(context, zh: '我', en: 'Me'),
+            ),
         ],
       ),
     );

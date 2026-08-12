@@ -39,7 +39,33 @@ SEEDS = [
     "https://tyb.xidian.edu.cn/",
     "https://cwc.xidian.edu.cn/",
     "https://service.xidian.edu.cn/",
+    # Focused official entry points that were not explicit in the previous run.
+    "https://faculty.xidian.edu.cn/",
+    "https://yjspt.xidian.edu.cn/",
+    "https://yjsxk.xidian.edu.cn/",
+    "https://xdyx.xidian.edu.cn/",
+    "https://xgc.xidian.edu.cn/",
+    "https://xsw.xidian.edu.cn/",
+    # Public, non-official discussion/index pages.  They are imported as
+    # community references and are filtered by relevance below.
+    "https://yz.kaoyan.com/xidian/daoshi/",
+    "https://muchong.com/bbs/viewthread.php?tid=15967764&pid=9",
+    "https://www.houbaoyan.cn/articles/xidian-dept35-tuimian-2026",
 ]
+
+EXTERNAL_HOSTS = {
+    "yz.kaoyan.com",
+    "muchong.com",
+    "www.houbaoyan.cn",
+}
+COMMUNITY_KEYWORDS = (
+    "西电", "西安电子科技大学", "考研", "保研", "推免", "导师", "复试", "招生",
+    "宿舍", "食堂", "生活费", "选课", "转专业", "奖学金", "助学金", "答疑",
+)
+ADVERTISEMENT_MARKERS = (
+    "加微信", "扫码", "领取资料", "免费资料", "课程咨询", "报班", "招生代理",
+    "一对一辅导", "广告", "推广", "返现", "优惠券",
+)
 
 SKIP_EXTENSIONS = {
     ".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico",
@@ -120,7 +146,11 @@ def canonical_url(url: str) -> str:
 def allowed_url(url: str) -> bool:
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()
-    if parts.scheme not in {"http", "https"} or not (host == "xidian.edu.cn" or host.endswith(".xidian.edu.cn")):
+    if parts.scheme not in {"http", "https"} or not (
+        host == "xidian.edu.cn"
+        or host.endswith(".xidian.edu.cn")
+        or host in EXTERNAL_HOSTS
+    ):
         return False
     suffix = Path(parts.path.lower()).suffix
     return suffix not in SKIP_EXTENSIONS
@@ -148,6 +178,17 @@ def normalize_page_text(text: str) -> str:
         seen.add(clean)
         lines.append(clean)
     return "\n".join(lines)
+
+
+def is_community_page_relevant(url: str, text: str) -> bool:
+    host = (urlsplit(url).hostname or "").lower()
+    if host not in EXTERNAL_HOSTS:
+        return True
+    lowered = text.lower()
+    if not any(keyword.lower() in lowered for keyword in COMMUNITY_KEYWORDS):
+        return False
+    marker_hits = sum(marker.lower() in lowered for marker in ADVERTISEMENT_MARKERS)
+    return marker_hits < 3
 
 
 def fetch_page(url: str, timeout: int) -> CrawlResult:
@@ -191,6 +232,8 @@ def fetch_page(url: str, timeout: int) -> CrawlResult:
     title = re.sub(r"\s+", " ", " ".join(parser.title_parts)).strip()
     if len(text) < 80:
         return CrawlResult(url=final_url, ok=False, error="page text too short", content_type=content_type)
+    if not is_community_page_relevant(final_url, text):
+        return CrawlResult(url=final_url, ok=False, error="community page not relevant", content_type=content_type)
     links = []
     for href in parser.links:
         absolute = canonical_url(urljoin(final_url, href))
@@ -226,7 +269,17 @@ def upsert_pages(db: dict, pages: Iterable[CrawlResult], run_id: str) -> dict[st
     chunk_rows = db.setdefault("knowledgeChunks", [])
     source_by_id = {str(row.get("id")): row for row in source_rows}
     document_by_url = {str(row.get("sourceUrl")): row for row in document_rows if row.get("sourceUrl")}
-    added_documents = updated_documents = added_chunks = 0
+    existing_hashes = {
+        str(row.get("contentHash", ""))
+        for row in document_rows
+        if str(row.get("contentHash", "")).strip()
+    }
+    existing_chunk_hashes = {
+        hashlib.sha256(normalize_page_text(str(row.get("content", ""))).encode("utf-8")).hexdigest()
+        for row in chunk_rows
+        if str(row.get("content", "")).strip()
+    }
+    added_documents = updated_documents = skipped_documents = added_chunks = skipped_chunks = 0
     fetched_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     for page in pages:
         host = (urlsplit(page.url).hostname or "xidian.edu.cn").lower()
@@ -251,13 +304,18 @@ def upsert_pages(db: dict, pages: Iterable[CrawlResult], run_id: str) -> dict[st
         content_hash = hashlib.sha256(page.text.encode("utf-8")).hexdigest()
         document_id = stable_id("kd-web", page.url)
         if document is None:
+            if content_hash in existing_hashes:
+                skipped_documents += 1
+                continue
+            community = host in EXTERNAL_HOSTS
             document = {
                 "id": document_id,
                 "sourceId": source_id,
                 "title": page.title or page.url,
                 "content": page.text,
                 "sourceUrl": page.url,
-                "authority": "official",
+                "authority": "community" if community else "official",
+                "sourceType": "community_web" if community else "official_xidian_web",
                 "status": "published",
                 "contentHash": content_hash,
                 "crawlRunId": run_id,
@@ -266,8 +324,18 @@ def upsert_pages(db: dict, pages: Iterable[CrawlResult], run_id: str) -> dict[st
             }
             document_rows.append(document)
             document_by_url[page.url] = document
+            existing_hashes.add(content_hash)
             added_documents += 1
         elif document.get("contentHash") != content_hash:
+            old_document_chunks = [
+                row for row in chunk_rows
+                if str(row.get("documentId")) == str(document.get("id"))
+            ]
+            for old_chunk in old_document_chunks:
+                old_hash = hashlib.sha256(
+                    normalize_page_text(str(old_chunk.get("content", ""))).encode("utf-8")
+                ).hexdigest()
+                existing_chunk_hashes.discard(old_hash)
             document.update({
                 "title": page.title or page.url,
                 "content": page.text,
@@ -281,7 +349,12 @@ def upsert_pages(db: dict, pages: Iterable[CrawlResult], run_id: str) -> dict[st
             continue
         chunk_rows[:] = [row for row in chunk_rows if str(row.get("documentId")) != str(document.get("id"))]
         chunks = chunk_text(page.text)
+        community = host in EXTERNAL_HOSTS
         for index, content in enumerate(chunks, start=1):
+            chunk_hash = hashlib.sha256(normalize_page_text(content).encode("utf-8")).hexdigest()
+            if chunk_hash in existing_chunk_hashes:
+                skipped_chunks += 1
+                continue
             chunk_rows.append({
                 "id": stable_id("kc-web", page.url, str(index)),
                 "sourceId": source_id,
@@ -289,14 +362,21 @@ def upsert_pages(db: dict, pages: Iterable[CrawlResult], run_id: str) -> dict[st
                 "title": f"{document['title']} · {index}",
                 "content": content,
                 "sourceUrl": page.url,
-                "authority": "official",
+                "authority": "community" if community else "official",
                 "status": "published",
                 "crawlRunId": run_id,
                 "createdAt": fetched_at,
                 "updatedAt": fetched_at,
             })
+            existing_chunk_hashes.add(chunk_hash)
             added_chunks += 1
-    return {"addedDocuments": added_documents, "updatedDocuments": updated_documents, "addedChunks": added_chunks}
+    return {
+        "addedDocuments": added_documents,
+        "updatedDocuments": updated_documents,
+        "skippedDocuments": skipped_documents,
+        "addedChunks": added_chunks,
+        "skippedChunks": skipped_chunks,
+    }
 
 
 def crawl(max_pages: int, workers: int, timeout: int) -> tuple[list[CrawlResult], list[CrawlResult], int]:

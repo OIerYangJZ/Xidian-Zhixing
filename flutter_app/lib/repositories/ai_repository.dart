@@ -263,16 +263,28 @@ class AiMessage {
 }
 
 class AiReference {
-  const AiReference({required this.type, required this.title});
+  const AiReference({
+    required this.type,
+    required this.title,
+    this.targetId = '',
+    this.jumpUrl = '',
+    this.sourceUrl = '',
+  });
 
   final String type;
   final String title;
+  final String targetId;
+  final String jumpUrl;
+  final String sourceUrl;
 
   factory AiReference.fromJson(Map<String, dynamic> json) {
     return AiReference(
       type:
           readString(json, <String>['type', 'targetType', 'sourceType']) ?? '',
       title: readString(json, <String>['title']) ?? '',
+      targetId: readString(json, <String>['targetId', 'id']) ?? '',
+      jumpUrl: readString(json, <String>['jumpUrl', 'path']) ?? '',
+      sourceUrl: readString(json, <String>['sourceUrl', 'url']) ?? '',
     );
   }
 }

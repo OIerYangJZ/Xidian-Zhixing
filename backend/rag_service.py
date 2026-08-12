@@ -258,3 +258,13 @@ def citations(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
         }
         for row in results
     ]
+
+
+def forum_citations(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Build navigable references only for public forum posts.
+
+    Knowledge-base chunks are context for the answer, not user-facing
+    citations.  Forum posts retain their in-app jump URL so users can inspect
+    the original discussion.
+    """
+    return citations([row for row in results if row.get("type") == "post"])
