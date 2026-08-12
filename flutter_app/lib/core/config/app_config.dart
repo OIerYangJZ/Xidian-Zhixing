@@ -123,6 +123,14 @@ class AppConfig {
     return Uri.base.resolve(trimmed).toString();
   }
 
+  static String resolveMediaUrl(String value) {
+    final String trimmed = value.trim();
+    if (!trimmed.toLowerCase().startsWith('/api/storage/')) {
+      return '';
+    }
+    return resolveUrl(trimmed);
+  }
+
   static bool isWebUrl(String value) {
     final Uri? parsed = Uri.tryParse(value.trim());
     if (parsed == null || !parsed.hasScheme || !parsed.hasAuthority) {

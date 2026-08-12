@@ -115,7 +115,7 @@ def normalize_avatar_url(value: str) -> str:
     if not text:
         return ""
     lowered = text.lower()
-    if lowered.startswith("/api/storage/") or lowered.startswith("http://") or lowered.startswith("https://"):
+    if lowered.startswith("/api/storage/"):
         return text
     return ""
 
@@ -158,13 +158,10 @@ def normalize_media_url(value: str) -> str:
 
 def extract_local_object_key_from_url(value: str) -> str:
     text = value.strip()
-    if not text:
-        return ""
     marker = "/api/storage/"
-    idx = text.find(marker)
-    if idx < 0:
+    if not text.lower().startswith(marker):
         return ""
-    key = text[idx + len(marker):].strip().lstrip("/")
+    key = text[len(marker):].strip().lstrip("/")
     if not key or ".." in key:
         return ""
     return key

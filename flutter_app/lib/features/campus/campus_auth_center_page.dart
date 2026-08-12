@@ -55,16 +55,6 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       descEn: 'Physics lab enrolment and session schedule',
     ),
     _CampusSystem(
-      'sport',
-      _AuthType.password,
-      nameZh: '体育系统',
-      nameEn: 'PE system',
-      tagZh: '体育',
-      tagEn: 'Sports',
-      descZh: '体育课程、体测等系统访问',
-      descEn: 'Access to PE courses and fitness test records',
-    ),
-    _CampusSystem(
       'schoolnet',
       _AuthType.schoolnet,
       nameZh: '校园网自服务',
@@ -88,9 +78,11 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _schoolnetCaptchaController = TextEditingController();
+  final TextEditingController _schoolnetCaptchaController =
+      TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _dormWaterImageCodeController = TextEditingController();
+  final TextEditingController _dormWaterImageCodeController =
+      TextEditingController();
   final TextEditingController _dormWaterSmsController = TextEditingController();
 
   String _activeSystem = 'ids';
@@ -110,7 +102,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   @override
   void initState() {
     super.initState();
-    _activeSystem = _systems.any((_CampusSystem item) => item.id == widget.initialSystem)
+    _activeSystem =
+        _systems.any((_CampusSystem item) => item.id == widget.initialSystem)
         ? widget.initialSystem
         : 'ids';
     _loadState();
@@ -136,10 +129,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     if (decoded is Map) {
       setState(() {
         _states = decoded.map(
-          (dynamic key, dynamic value) => MapEntry<String, dynamic>(
-            key.toString(),
-            value,
-          ),
+          (dynamic key, dynamic value) =>
+              MapEntry<String, dynamic>(key.toString(), value),
         );
       });
     }
@@ -147,13 +138,17 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   Future<void> _saveState(String systemId, CampusAuthResult result) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final String studentId =
-        result.studentId.isEmpty ? _identifierController.text.trim() : result.studentId;
+    final String studentId = result.studentId.isEmpty
+        ? _identifierController.text.trim()
+        : result.studentId;
     final Map<String, dynamic> state = <String, dynamic>{
       'studentId': _mask(studentId),
       'updatedAt': _nowText(),
     };
-    final Map<String, dynamic> next = <String, dynamic>{..._states, systemId: state};
+    final Map<String, dynamic> next = <String, dynamic>{
+      ..._states,
+      systemId: state,
+    };
     await prefs.setString(_stateKey, jsonEncode(next));
     if (!mounted) {
       return;
@@ -238,9 +233,11 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                     child: Text(
                       uiText(
                         context,
-                        zh: '已保存账号 · ${state['studentId'] ?? ''} · '
+                        zh:
+                            '已保存账号 · ${state['studentId'] ?? ''} · '
                             '${state['updatedAt'] ?? ''}',
-                        en: 'Saved account · ${state['studentId'] ?? ''} · '
+                        en:
+                            'Saved account · ${state['studentId'] ?? ''} · '
                             '${state['updatedAt'] ?? ''}',
                       ),
                     ),
@@ -282,11 +279,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           obscureText: true,
           decoration: InputDecoration(
             labelText: _activeSystem == 'ids' || _activeSystem == 'payment'
-                ? uiText(
-                    context,
-                    zh: '统一认证密码',
-                    en: 'Unified login password',
-                  )
+                ? uiText(context, zh: '统一认证密码', en: 'Unified login password')
                 : uiText(
                     context,
                     zh: '$systemName密码',
@@ -359,9 +352,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           width: double.infinity,
           child: OutlinedButton(
             onPressed: _captchaBusy ? null : _refreshSchoolnetCaptcha,
-            child: Text(
-              uiText(context, zh: '刷新验证码', en: 'Refresh captcha'),
-            ),
+            child: Text(uiText(context, zh: '刷新验证码', en: 'Refresh captcha')),
           ),
         ),
         const SizedBox(height: 10),
@@ -474,21 +465,17 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       final repository = ref.read(campusRepositoryProvider);
       final CampusAuthResult result = switch (_activeSystem) {
         'payment' => await repository.loginPayment(
-            _identifierController.text.trim(),
-            _passwordController.text,
-          ),
+          _identifierController.text.trim(),
+          _passwordController.text,
+        ),
         'physics' => await repository.loginPhysics(
-            _identifierController.text.trim(),
-            _passwordController.text,
-          ),
-        'sport' => await repository.loginSport(
-            _identifierController.text.trim(),
-            _passwordController.text,
-          ),
+          _identifierController.text.trim(),
+          _passwordController.text,
+        ),
         _ => await repository.loginIds(
-            _identifierController.text.trim(),
-            _passwordController.text,
-          ),
+          _identifierController.text.trim(),
+          _passwordController.text,
+        ),
       };
       await _saveState(_activeSystem, result);
       _passwordController.clear();
@@ -562,13 +549,14 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      final CampusAuthResult result =
-          await ref.read(campusRepositoryProvider).loginSchoolnet(
-                attemptId: _schoolnetAttemptId,
-                identifier: _identifierController.text.trim(),
-                password: _passwordController.text,
-                captcha: _schoolnetCaptchaController.text.trim(),
-              );
+      final CampusAuthResult result = await ref
+          .read(campusRepositoryProvider)
+          .loginSchoolnet(
+            attemptId: _schoolnetAttemptId,
+            identifier: _identifierController.text.trim(),
+            password: _passwordController.text,
+            captcha: _schoolnetCaptchaController.text.trim(),
+          );
       await _saveState('schoolnet', result);
       _passwordController.clear();
       _schoolnetCaptchaController.clear();
@@ -593,8 +581,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      final CampusAuthResult result =
-          await ref.read(campusRepositoryProvider).createDormWaterCaptcha();
+      final CampusAuthResult result = await ref
+          .read(campusRepositoryProvider)
+          .createDormWaterCaptcha();
       setState(() {
         _dormWaterSessionId = result.sessionId;
         _dormWaterCaptchaImage = base64Decode(result.imageBase64);
@@ -630,7 +619,9 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      await ref.read(campusRepositoryProvider).sendDormWaterSms(
+      await ref
+          .read(campusRepositoryProvider)
+          .sendDormWaterSms(
             sessionId: _dormWaterSessionId,
             phone: _phoneController.text.trim(),
             imageCode: _dormWaterImageCodeController.text.trim(),
@@ -673,11 +664,13 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _error = null;
     });
     try {
-      final CampusAuthResult result =
-          await ref.read(campusRepositoryProvider).loginDormWater(
-                phone: _phoneController.text.trim(),
-                smsCode: _dormWaterSmsController.text.trim(),
-              );
+      final CampusAuthResult result = await ref
+          .read(campusRepositoryProvider)
+          .loginDormWater(
+            sessionId: _dormWaterSessionId,
+            phone: _phoneController.text.trim(),
+            smsCode: _dormWaterSmsController.text.trim(),
+          );
       await _saveState('dormWater', result);
       _dormWaterSmsController.clear();
     } catch (error) {
@@ -696,15 +689,11 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
 
   bool _requireIdentifierAndPassword() {
     if (_identifierController.text.trim().isEmpty) {
-      _setError(
-        uiTextGlobal(zh: '请输入学号', en: 'Enter your student ID'),
-      );
+      _setError(uiTextGlobal(zh: '请输入学号', en: 'Enter your student ID'));
       return false;
     }
     if (_passwordController.text.isEmpty) {
-      _setError(
-        uiTextGlobal(zh: '请输入密码', en: 'Enter your password'),
-      );
+      _setError(uiTextGlobal(zh: '请输入密码', en: 'Enter your password'));
       return false;
     }
     return true;
@@ -768,7 +757,9 @@ class _SystemCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: active ? primary.withValues(alpha: 0.08) : Theme.of(context).colorScheme.surface,
+          color: active
+              ? primary.withValues(alpha: 0.08)
+              : Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: active ? primary : SharedColors.divider),
         ),
@@ -779,16 +770,16 @@ class _SystemCard extends StatelessWidget {
               children: <Widget>[
                 Text(
                   system.tag(locale),
-                  style: TextStyle(
-                    color: primary,
-                    fontWeight: FontWeight.w900,
-                  ),
+                  style: TextStyle(color: primary, fontWeight: FontWeight.w900),
                 ),
                 const Spacer(),
                 if (verified)
                   Text(
                     uiText(context, zh: '已验证', en: 'Verified'),
-                    style: TextStyle(color: primary, fontWeight: FontWeight.w700),
+                    style: TextStyle(
+                      color: primary,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
               ],
             ),
@@ -803,7 +794,9 @@ class _SystemCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.62),
               ),
             ),
           ],
@@ -844,8 +837,8 @@ class _CaptchaBox extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : image == null
-                ? Text(uiText(context, zh: '获取', en: 'Load'))
-                : Image.memory(image!, fit: BoxFit.contain),
+            ? Text(uiText(context, zh: '获取', en: 'Load'))
+            : Image.memory(image!, fit: BoxFit.contain),
       ),
     );
   }

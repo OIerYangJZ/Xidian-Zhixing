@@ -3,9 +3,12 @@ from __future__ import annotations
 import base64
 import hashlib
 import html
+import ipaddress
+import json
 import random
 import re
 import secrets
+import socket
 import string
 import threading
 import time
@@ -53,6 +56,8 @@ PHYSICS_SELECT_URL = "http://wlsy.xidian.edu.cn/PhyEws/student/select.aspx"
 SPORT_BASE_URL = "http://tybjxgl.xidian.edu.cn/app"
 SCHOOLNET_BASE_URL = "https://zfw.xidian.edu.cn"
 DORM_WATER_BASE_URL = "https://i.ilife798.com"
+_MAX_CAMPUS_TEXT_BYTES = 2 * 1024 * 1024
+_MAX_CAMPUS_IMAGE_BYTES = 5 * 1024 * 1024
 
 
 class CampusAuthError(Exception):
@@ -78,6 +83,17 @@ class _SchoolnetAttempt:
     csrf_value: str
     public_key: str
     expires_at: float
+
+
+@dataclass(slots=True)
+class _DormWaterAttempt:
+    owner_user_id: str
+    expires_at: float
+    phone: str = ""
+
+
+_DORM_WATER_LOCK = threading.Lock()
+_DORM_WATER_ATTEMPTS: dict[str, _DormWaterAttempt] = {}
 
 
 class _InputCollector(HTMLParser):
@@ -129,8 +145,35 @@ def _strip_html(value: str) -> str:
 
 
 def _decode_response_text(response: Any, encoding: str = "utf-8") -> str:
-    response.encoding = encoding
-    return response.text
+    return _read_response_bytes(response, _MAX_CAMPUS_TEXT_BYTES).decode(
+        encoding,
+        errors="replace",
+    )
+
+
+def _read_response_bytes(response: Any, max_bytes: int) -> bytes:
+    try:
+        declared = str(response.headers.get("Content-Length", "") or "").strip()
+        if declared:
+            try:
+                if int(declared) > max_bytes:
+                    raise CampusAuthError("目标系统响应超过大小限制")
+            except ValueError as exc:
+                raise CampusAuthError("目标系统返回了无效的内容长度") from exc
+        chunks: list[bytes] = []
+        total = 0
+        for chunk in response.iter_content(chunk_size=64 * 1024):
+            if not chunk:
+                continue
+            total += len(chunk)
+            if total > max_bytes:
+                raise CampusAuthError("目标系统响应超过大小限制")
+            chunks.append(bytes(chunk))
+        return b"".join(chunks)
+    finally:
+        close = getattr(response, "close", None)
+        if callable(close):
+            close()
 
 
 def _collect_inputs(page_html: str) -> list[dict[str, str]]:
@@ -169,10 +212,17 @@ def _require_phone(value: str) -> str:
     return phone
 
 
+def normalize_dorm_water_phone(value: str) -> str:
+    """Return the one canonical phone value used by validation and throttling."""
+    return _require_phone(value)
+
+
 def _json_response(response: Any) -> dict[str, Any]:
     try:
-        data = response.json()
-    except ValueError as exc:
+        data = json.loads(
+            _read_response_bytes(response, _MAX_CAMPUS_TEXT_BYTES).decode("utf-8"),
+        )
+    except (UnicodeDecodeError, ValueError) as exc:
         raise CampusAuthError("目标系统响应不是有效 JSON") from exc
     if not isinstance(data, dict):
         raise CampusAuthError("目标系统响应格式异常")
@@ -237,18 +287,25 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
             params={"service": target_url},
             allow_redirects=False,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise XidianAuthUnavailableError("无法连接西电统一认证，请稍后重试") from exc
 
     if response.status_code == 401:
-        raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+        raise XidianAuthPasswordError(
+            _parse_password_error_message(_decode_response_text(response)),
+        )
     if response.status_code in (301, 302):
         return session, _validated_service_ticket_redirect(response, target_url)
     if response.status_code != 200:
         raise XidianAuthUnavailableError(f"统一认证服务异常（状态码 {response.status_code}）")
 
-    payload = _build_login_payload(student_id, password, _extract_inputs(response.text))
+    payload = _build_login_payload(
+        student_id,
+        password,
+        _extract_inputs(_decode_response_text(response)),
+    )
     _solve_slider_captcha(session)
 
     try:
@@ -258,6 +315,7 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
             params={"service": target_url},
             allow_redirects=False,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise XidianAuthUnavailableError("统一认证登录请求失败，请稍后重试") from exc
@@ -265,12 +323,15 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
     if response.status_code in (301, 302):
         return session, _validated_service_ticket_redirect(response, target_url)
     if response.status_code == 401:
-        raise XidianAuthPasswordError(_parse_password_error_message(response.text))
-    error_message = _extract_login_error_message(response.text)
+        raise XidianAuthPasswordError(
+            _parse_password_error_message(_decode_response_text(response)),
+        )
+    response_text = _decode_response_text(response)
+    error_message = _extract_login_error_message(response_text)
     if error_message:
-        raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+        raise XidianAuthPasswordError(_parse_password_error_message(response_text))
 
-    continue_inputs = _extract_inputs(response.text, form_id="continue")
+    continue_inputs = _extract_inputs(response_text, form_id="continue")
     if continue_inputs:
         try:
             response = session.post(
@@ -278,23 +339,61 @@ def _login_ids_for_service(student_id: str, password: str, target_url: str) -> t
                 data=continue_inputs,
                 allow_redirects=False,
                 timeout=_requests_timeout(),
+                stream=True,
             )
         except requests.RequestException as exc:
             raise XidianAuthUnavailableError("统一认证登录续跳失败，请稍后重试") from exc
         if response.status_code in (301, 302):
             return session, _validated_service_ticket_redirect(response, target_url)
         if response.status_code == 401:
-            raise XidianAuthPasswordError(_parse_password_error_message(response.text))
-        error_message = _extract_login_error_message(response.text)
+            raise XidianAuthPasswordError(
+                _parse_password_error_message(_decode_response_text(response)),
+            )
+        response_text = _decode_response_text(response)
+        error_message = _extract_login_error_message(response_text)
         if error_message:
-            raise XidianAuthPasswordError(_parse_password_error_message(response.text))
+            raise XidianAuthPasswordError(_parse_password_error_message(response_text))
 
     raise XidianAuthUnavailableError("统一认证登录失败：未返回目标系统跳转")
 
 
-def _follow_redirects(session: Any, location: str, *, max_steps: int = 8) -> str:
+def _validate_campus_redirect(url: str, allowed_hosts: set[str]) -> str:
+    parsed = urlsplit(url)
+    host = (parsed.hostname or "").strip().lower()
+    if (
+        parsed.scheme.lower() != "https"
+        or not host
+        or host not in allowed_hosts
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port not in {None, 443}
+    ):
+        raise CampusAuthError("目标系统返回了不受信任的跳转地址")
+    try:
+        addresses = {
+            item[4][0]
+            for item in socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+        }
+    except OSError as exc:
+        raise CampusAuthError("目标系统跳转地址无法解析") from exc
+    if not addresses:
+        raise CampusAuthError("目标系统跳转地址无法解析")
+    for value in addresses:
+        address = ipaddress.ip_address(value)
+        if not address.is_global:
+            raise CampusAuthError("目标系统跳转地址指向非公网地址")
+    return url
+
+
+def _follow_redirects(
+    session: Any,
+    location: str,
+    *,
+    allowed_hosts: set[str],
+    max_steps: int = 8,
+) -> str:
     requests = _import_requests()
-    current = location
+    current = _validate_campus_redirect(location, allowed_hosts)
     for _ in range(max_steps):
         if not current:
             break
@@ -303,19 +402,31 @@ def _follow_redirects(session: Any, location: str, *, max_steps: int = 8) -> str
                 current,
                 allow_redirects=False,
                 timeout=_requests_timeout(),
+                stream=True,
             )
         except requests.RequestException as exc:
             raise CampusAuthError("目标系统跳转失败，请稍后重试") from exc
         next_location = response.headers.get("Location", "")
+        response_url = response.url or current
+        close = getattr(response, "close", None)
+        if callable(close):
+            close()
         if not next_location:
-            return response.url or current
-        current = urljoin(response.url or current, next_location)
+            return response_url
+        current = _validate_campus_redirect(
+            urljoin(response_url, next_location),
+            allowed_hosts,
+        )
     return current
 
 
 def _ensure_ehall_session(session: Any, location: str = "") -> None:
     if location:
-        _follow_redirects(session, location)
+        _follow_redirects(
+            session,
+            location,
+            allowed_hosts={"ehall.xidian.edu.cn"},
+        )
     requests = _import_requests()
     try:
         response = session.get(
@@ -323,12 +434,13 @@ def _ensure_ehall_session(session: Any, location: str = "") -> None:
             params={"type": "uv"},
             headers=_ehall_headers(),
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("一站式登录状态检查失败") from exc
     try:
-        data = response.json()
-    except ValueError:
+        data = _json_response(response)
+    except CampusAuthError:
         data = {}
     if isinstance(data, dict) and data.get("hasLogin") is True:
         return
@@ -344,13 +456,17 @@ def _use_ehall_app(session: Any, app_id: str) -> str:
             headers=_ehall_headers(),
             allow_redirects=False,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("一站式应用跳转失败") from exc
     location = response.headers.get("Location", "")
     if not location:
         raise CampusAuthError("一站式应用未返回跳转地址")
-    return re.sub(r";jsessionid=.*?\?", "?", urljoin(response.url, location))
+    return _validate_campus_redirect(
+        re.sub(r";jsessionid=.*?\?", "?", urljoin(response.url, location)),
+        {"ehall.xidian.edu.cn"},
+    )
 
 
 def _open_ehall_app(session: Any, app_id: str, *, method: str = "get") -> None:
@@ -363,6 +479,7 @@ def _open_ehall_app(session: Any, app_id: str, *, method: str = "get") -> None:
                 headers=_ehall_headers(),
                 allow_redirects=False,
                 timeout=_requests_timeout(),
+                stream=True,
             )
         else:
             response = session.get(
@@ -370,12 +487,17 @@ def _open_ehall_app(session: Any, app_id: str, *, method: str = "get") -> None:
                 headers=_ehall_headers(),
                 allow_redirects=False,
                 timeout=_requests_timeout(),
+                stream=True,
             )
     except requests.RequestException as exc:
         raise CampusAuthError("一站式应用初始化失败") from exc
     next_location = response.headers.get("Location", "")
     if next_location:
-        _follow_redirects(session, urljoin(response.url or location, next_location))
+        _follow_redirects(
+            session,
+            urljoin(response.url or location, next_location),
+            allowed_hosts={"ehall.xidian.edu.cn"},
+        )
 
 
 def _post_ehall_json(session: Any, url: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -386,6 +508,7 @@ def _post_ehall_json(session: Any, url: str, data: dict[str, Any] | None = None)
             data=data or {},
             headers=_ehall_headers(),
             timeout=_requests_timeout(),
+            stream=True,
         )
         response.raise_for_status()
     except requests.RequestException as exc:
@@ -538,7 +661,11 @@ def _sync_graduate_course_schedules(
     if not password:
         return []
     session, location = _login_ids_for_service(student_id, password, YJSPT_CLASSTABLE_SERVICE_URL)
-    _follow_redirects(session, location)
+    _follow_redirects(
+        session,
+        location,
+        allowed_hosts={"yjspt.xidian.edu.cn"},
+    )
     requests = _import_requests()
     today = datetime.now().date()
     try:
@@ -546,9 +673,10 @@ def _sync_graduate_course_schedules(
             "https://yjspt.xidian.edu.cn/gsapp/sys/yjsemaphome/portal/queryRcap.do",
             data={"day": today.strftime("%Y%m%d")},
             timeout=_requests_timeout(),
+            stream=True,
         )
         week_response.raise_for_status()
-        week_data = week_response.json()
+        week_data = _json_response(week_response)
     except requests.RequestException as exc:
         raise CampusAuthError("研究生课表当前周次接口请求失败") from exc
     except ValueError as exc:
@@ -565,6 +693,7 @@ def _sync_graduate_course_schedules(
             YJSPT_CLASSTABLE_URL,
             data={"XNXQDM": semester_code},
             timeout=_requests_timeout(),
+            stream=True,
         )
         response.raise_for_status()
     except requests.RequestException as exc:
@@ -763,7 +892,11 @@ def login_payment(identifier: str, password: str) -> dict[str, Any]:
         _require_password(password, "统一认证密码"),
         PAYMENT_SERVICE_URL,
     )
-    final_url = _follow_redirects(session, location)
+    final_url = _follow_redirects(
+        session,
+        location,
+        allowed_hosts={"ignypt.xidian.edu.cn"},
+    )
     query = parse_qs(urlsplit(final_url).query)
     if not query.get("code"):
         raise CampusAuthError("缴费/水电系统未返回有效授权码")
@@ -778,6 +911,8 @@ def login_payment(identifier: str, password: str) -> dict[str, Any]:
 
 
 def login_physics(identifier: str, password: str) -> dict[str, Any]:
+    if urlsplit(PHYSICS_LOGIN_URL).scheme.lower() != "https":
+        raise CampusAuthError("物理实验系统未提供安全的 HTTPS 登录地址，当前功能已停用")
     student_id = _require_identifier(identifier)
     password = _require_password(password, "物理实验密码")
     requests = _import_requests()
@@ -789,7 +924,11 @@ def login_physics(identifier: str, password: str) -> dict[str, Any]:
     })
 
     try:
-        response = session.get(PHYSICS_LOGIN_URL, timeout=_requests_timeout())
+        response = session.get(
+            PHYSICS_LOGIN_URL,
+            timeout=_requests_timeout(),
+            stream=True,
+        )
         response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("无法连接物理实验系统") from exc
@@ -814,6 +953,7 @@ def login_physics(identifier: str, password: str) -> dict[str, Any]:
             data=payload,
             allow_redirects=False,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("物理实验系统登录请求失败") from exc
@@ -838,7 +978,11 @@ def login_physics(identifier: str, password: str) -> dict[str, Any]:
         raise CampusAuthError("物理实验系统未返回有效的学生端跳转")
 
     try:
-        select_response = session.get(PHYSICS_SELECT_URL, timeout=_requests_timeout())
+        select_response = session.get(
+            PHYSICS_SELECT_URL,
+            timeout=_requests_timeout(),
+            stream=True,
+        )
         select_response.raise_for_status()
         select_text = _decode_response_text(select_response, "gb18030")
     except requests.RequestException as exc:
@@ -885,6 +1029,8 @@ def _sport_sign(params: dict[str, Any]) -> str:
 
 
 def login_sport(identifier: str, password: str) -> dict[str, Any]:
+    if urlsplit(SPORT_BASE_URL).scheme.lower() != "https":
+        raise CampusAuthError("体育系统尚未提供 HTTPS 登录地址，已停止代登录")
     student_id = _require_identifier(identifier)
     password = _require_password(password, "体育系统密码")
     requests = _import_requests()
@@ -909,6 +1055,7 @@ def login_sport(identifier: str, password: str) -> dict[str, Any]:
             data=payload,
             headers=headers,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("无法连接体育系统") from exc
@@ -946,11 +1093,15 @@ def create_schoolnet_captcha(identifier: str = "") -> dict[str, Any]:
         "Host": "zfw.xidian.edu.cn",
     })
     try:
-        response = session.get(f"{SCHOOLNET_BASE_URL}/login", timeout=_requests_timeout())
+        response = session.get(
+            f"{SCHOOLNET_BASE_URL}/login",
+            timeout=_requests_timeout(),
+            stream=True,
+        )
         response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("无法连接校园网自服务") from exc
-    inputs = _collect_inputs(response.text)
+    inputs = _collect_inputs(_decode_response_text(response))
     csrf_name = ""
     csrf_value = ""
     public_key = ""
@@ -968,10 +1119,12 @@ def create_schoolnet_captcha(identifier: str = "") -> dict[str, Any]:
             f"{SCHOOLNET_BASE_URL}/site/captcha",
             params={"refresh": 1, "_": str(int(time.time() * 1000))},
             timeout=_requests_timeout(),
+            stream=True,
         )
         image_response = session.get(
             f"{SCHOOLNET_BASE_URL}/site/captcha",
             timeout=_requests_timeout(),
+            stream=True,
         )
         image_response.raise_for_status()
     except requests.RequestException as exc:
@@ -987,9 +1140,12 @@ def create_schoolnet_captcha(identifier: str = "") -> dict[str, Any]:
             public_key=public_key,
             expires_at=time.time() + _ATTEMPT_TTL_SECONDS,
         )
+    image_bytes = _read_response_bytes(image_response, _MAX_CAMPUS_IMAGE_BYTES)
+    if detect_image_type(image_bytes) is None:
+        raise CampusAuthError("校园网验证码响应不是有效图片")
     return {
         "attemptId": attempt_id,
-        "imageBase64": base64.b64encode(image_response.content).decode("ascii"),
+        "imageBase64": base64.b64encode(image_bytes).decode("ascii"),
         "imageContentType": image_response.headers.get("Content-Type", "image/png").split(";", 1)[0],
         "expiresInSeconds": _ATTEMPT_TTL_SECONDS,
     }
@@ -1045,6 +1201,7 @@ def login_schoolnet(attempt_id: str, identifier: str, password: str, captcha: st
             data=validate_payload,
             headers=headers,
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("校园网登录预校验失败") from exc
@@ -1071,14 +1228,19 @@ def login_schoolnet(attempt_id: str, identifier: str, password: str, captcha: st
             data=login_payload,
             headers=headers,
             timeout=_requests_timeout(),
+            stream=True,
         )
         login_response.raise_for_status()
-        home_response = attempt.session.get(f"{SCHOOLNET_BASE_URL}/home", timeout=_requests_timeout())
+        home_response = attempt.session.get(
+            f"{SCHOOLNET_BASE_URL}/home",
+            timeout=_requests_timeout(),
+            stream=True,
+        )
         home_response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("校园网登录后查询失败") from exc
     home_url = str(getattr(home_response, "url", "") or "").lower()
-    home_page = str(home_response.text or "")
+    home_page = _decode_response_text(home_response)
     if (
         "/login" in home_url
         or re.search(
@@ -1125,7 +1287,26 @@ def _random_digits(length: int) -> str:
     return "".join(random.choice(string.digits) for _ in range(length))
 
 
-def create_dorm_water_captcha() -> dict[str, Any]:
+def _load_dorm_water_attempt(session_id: str, owner_user_id: str) -> _DormWaterAttempt:
+    normalized_session_id = str(session_id or "").strip()
+    normalized_owner = str(owner_user_id or "").strip()
+    with _DORM_WATER_LOCK:
+        now_ts = time.time()
+        for key in [
+            key for key, row in _DORM_WATER_ATTEMPTS.items()
+            if row.expires_at <= now_ts
+        ]:
+            _DORM_WATER_ATTEMPTS.pop(key, None)
+        attempt = _DORM_WATER_ATTEMPTS.get(normalized_session_id)
+        if attempt is None or attempt.owner_user_id != normalized_owner:
+            raise CampusAuthExpiredError("宿舍水机验证码已过期，请重新获取")
+        return attempt
+
+
+def create_dorm_water_captcha(owner_user_id: str) -> dict[str, Any]:
+    normalized_owner = str(owner_user_id or "").strip()
+    if not normalized_owner:
+        raise CampusAuthInputError("请先登录")
     requests = _import_requests()
     session_id = _random_digits(16)
     try:
@@ -1138,25 +1319,41 @@ def create_dorm_water_captcha() -> dict[str, Any]:
                 "accept-language": "zh-Hans-US;q=1, en-US;q=0.8",
             },
             timeout=_requests_timeout(),
+            stream=True,
         )
         response.raise_for_status()
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机验证码获取失败") from exc
-    if detect_image_type(bytes(response.content)) is None:
+    image_bytes = _read_response_bytes(response, _MAX_CAMPUS_IMAGE_BYTES)
+    if detect_image_type(image_bytes) is None:
         raise CampusAuthError("宿舍水机验证码响应不是有效图片")
+    with _DORM_WATER_LOCK:
+        _DORM_WATER_ATTEMPTS[session_id] = _DormWaterAttempt(
+            owner_user_id=normalized_owner,
+            expires_at=time.time() + 5 * 60,
+        )
     return {
         "sessionId": session_id,
-        "imageBase64": base64.b64encode(response.content).decode("ascii"),
+        "imageBase64": base64.b64encode(image_bytes).decode("ascii"),
         "imageContentType": response.headers.get("Content-Type", "image/png").split(";", 1)[0],
     }
 
 
-def send_dorm_water_sms(session_id: str, phone: str, image_code: str) -> dict[str, Any]:
+def send_dorm_water_sms(
+    session_id: str,
+    phone: str,
+    image_code: str,
+    *,
+    owner_user_id: str,
+) -> dict[str, Any]:
     phone = _require_phone(phone)
     session_id = str(session_id or "").strip()
     image_code = str(image_code or "").strip()
     if not session_id or not image_code:
         raise CampusAuthInputError("请先填写图形验证码")
+    attempt = _load_dorm_water_attempt(session_id, owner_user_id)
+    if attempt.phone and attempt.phone != phone:
+        raise CampusAuthInputError("验证码会话与手机号不匹配")
     requests = _import_requests()
     try:
         response = requests.post(
@@ -1168,6 +1365,7 @@ def send_dorm_water_sms(session_id: str, phone: str, image_code: str) -> dict[st
                 "User-Agent": "iOS_ilife798_3.1.1",
             },
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机短信发送失败") from exc
@@ -1177,12 +1375,25 @@ def send_dorm_water_sms(session_id: str, phone: str, image_code: str) -> dict[st
         raise CampusAuthError("宿舍水机短信发送失败") from exc
     data = _json_response(response)
     if data.get("code") != 0:
-        raise CampusAuthInputError(str(data.get("msg") or "宿舍水机短信发送失败"))
+        raise CampusAuthInputError("宿舍水机短信发送失败，请检查图形验证码")
+    with _DORM_WATER_LOCK:
+        current = _DORM_WATER_ATTEMPTS.get(session_id)
+        if current is not None:
+            current.phone = phone
     return {"system": "dormWater", "status": "smsSent", "phone": phone, "message": "短信验证码已发送"}
 
 
-def login_dorm_water(phone: str, sms_code: str) -> dict[str, Any]:
+def login_dorm_water(
+    session_id: str,
+    phone: str,
+    sms_code: str,
+    *,
+    owner_user_id: str,
+) -> dict[str, Any]:
     phone = _require_phone(phone)
+    attempt = _load_dorm_water_attempt(session_id, owner_user_id)
+    if not attempt.phone or attempt.phone != phone:
+        raise CampusAuthInputError("请先为当前手机号发送短信验证码")
     sms_code = str(sms_code or "").strip()
     if not sms_code:
         raise CampusAuthInputError("请输入短信验证码")
@@ -1197,6 +1408,7 @@ def login_dorm_water(phone: str, sms_code: str) -> dict[str, Any]:
                 "User-Agent": "iOS_ilife798_3.1.1",
             },
             timeout=_requests_timeout(),
+            stream=True,
         )
     except requests.RequestException as exc:
         raise CampusAuthError("宿舍水机登录失败") from exc
@@ -1206,11 +1418,13 @@ def login_dorm_water(phone: str, sms_code: str) -> dict[str, Any]:
         raise CampusAuthError("宿舍水机登录失败") from exc
     data = _json_response(response)
     if data.get("code") != 0:
-        raise CampusAuthCredentialError(str(data.get("msg") or "宿舍水机登录失败"))
+        raise CampusAuthCredentialError("宿舍水机登录失败，请检查验证码")
     payload = data.get("data") if isinstance(data.get("data"), dict) else {}
     account = payload.get("al") if isinstance(payload.get("al"), dict) else {}
     if not str(account.get("token", "")).strip():
         raise CampusAuthCredentialError("宿舍水机未返回有效登录凭证")
+    with _DORM_WATER_LOCK:
+        _DORM_WATER_ATTEMPTS.pop(str(session_id or "").strip(), None)
     return {
         "system": "dormWater",
         "status": "authenticated",

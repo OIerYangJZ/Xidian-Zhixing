@@ -1042,6 +1042,12 @@ def build_export_payload(
     import io
     import json
 
+    def spreadsheet_safe(value: object) -> str:
+        text = str(value)
+        if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+            return "'" + text
+        return text
+
     rows: list[list[str]] = []
     headers: list[str] = []
     
@@ -1184,8 +1190,8 @@ def build_export_payload(
     if export_format == "csv":
         si = io.StringIO()
         writer = csv.writer(si)
-        writer.writerow(headers)
-        writer.writerows(rows)
+        writer.writerow([spreadsheet_safe(value) for value in headers])
+        writer.writerows([[spreadsheet_safe(value) for value in row] for row in rows])
         output = si.getvalue()
     else:
         output = json.dumps({"headers": headers, "rows": rows}, ensure_ascii=False)
@@ -1546,14 +1552,17 @@ def serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_i
         )
     )
     is_anonymous = bool(comment.get("isAnonymous", False))
+    public_author_id = "" if is_anonymous else author_id
     return {
         "id": comment.get("id", ""),
         "postId": comment.get("postId", ""),
         "content": comment.get("content", ""),
         "authorAlias": comment.get("authorAlias", "匿名同学"),
-        "authorId": author_id,
-        "authorAvatarUrl": user_avatar_url(author_user) if author_user else "",
-        "authorUserId": "" if is_anonymous else author_id,
+        "authorId": public_author_id,
+        "authorAvatarUrl": (
+            "" if is_anonymous else user_avatar_url(author_user) if author_user else ""
+        ),
+        "authorUserId": public_author_id,
         "likeCount": max(0, int(comment.get("likeCount", 0) or 0)),
         "liked": liked,
         "createdAt": comment.get("createdAt", ""),
@@ -1879,14 +1888,14 @@ def _default_campus_services(created: str) -> tuple[list[dict[str, Any]], list[d
             "groupName": "学习事务",
             "kind": "sport",
             "iconKey": "activity",
-            "authType": "sportPassword",
-            "status": "打开官方入口",
-            "summary": "查看体育课程、体测成绩、分项成绩和等级。",
-            "requiredAccess": "体育系统账号密码。",
+            "authType": "unavailable",
+            "status": "暂不可用",
+            "summary": "体育系统当前仅提供 HTTP 登录地址，本站已停止收集和转发体育系统密码。",
+            "requiredAccess": "等待学校提供 HTTPS 登录地址后重新评估。",
             "features": ["体育课程", "体测总分", "体测分项", "成绩等级"],
             "dataFields": ["学期", "课程名称", "教师", "上课时间", "课程成绩", "体测项目", "等级"],
             "emptyText": "当前没有体育信息。",
-            "actions": [{"label": "打开体育系统", "type": "external", "url": "http://tybjxgl.xidian.edu.cn/app/"}],
+            "actions": [{"label": "等待 HTTPS 服务", "type": "notice", "url": ""}],
         },
         {
             "name": "宿舍电费",
@@ -3427,6 +3436,36 @@ def migrate_db(db: dict[str, Any]) -> bool:
             if k not in notification:
                 notification[k] = v
                 changed = True
+    retained_notification_ids: set[str] = set()
+    notification_users = {
+        str(row.get("userId", "")).strip()
+        for row in db.get("notifications", [])
+        if str(row.get("userId", "")).strip()
+    }
+    for user_id in notification_users:
+        rows = [
+            row for row in db.get("notifications", [])
+            if str(row.get("userId", "")).strip() == user_id
+        ]
+        rows.sort(
+            key=lambda row: (
+                str(row.get("createdAt", "")),
+                str(row.get("id", "")),
+            ),
+            reverse=True,
+        )
+        retained_notification_ids.update(
+            str(row.get("id", "")).strip()
+            for row in rows[:_globals.NOTIFICATION_MAX_PER_USER]
+        )
+    bounded_notifications = [
+        row for row in db.get("notifications", [])
+        if not str(row.get("userId", "")).strip()
+        or str(row.get("id", "")).strip() in retained_notification_ids
+    ]
+    if bounded_notifications != db.get("notifications", []):
+        db["notifications"] = bounded_notifications
+        changed = True
 
     for upload in db.get("mediaUploads", []):
         for k, v in {

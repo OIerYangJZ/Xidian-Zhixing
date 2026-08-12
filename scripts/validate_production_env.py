@@ -125,6 +125,27 @@ def validate(values: dict[str, str]) -> list[str]:
             )
             break
 
+    college_assignments = [
+        item.strip()
+        for item in values.get(
+            "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS",
+            "",
+        ).split(",")
+        if item.strip()
+    ]
+    for assignment in college_assignments:
+        student_id, separator, section_id = assignment.partition("=")
+        if (
+            not separator
+            or is_placeholder(student_id)
+            or not re.fullmatch(r"[0-9A-Za-z]{6,20}", student_id.strip())
+            or not re.fullmatch(r"[0-9A-Za-z_-]{1,80}", section_id.strip())
+        ):
+            errors.append(
+                "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS must contain studentId=sectionId pairs",
+            )
+            break
+
     if values.get("BACKEND_ENABLE_XIDIAN_AUTH", "").strip().lower() != "true":
         errors.append(
             "BACKEND_ENABLE_XIDIAN_AUTH must be true in production",

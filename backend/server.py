@@ -751,6 +751,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return None
             return own_student_id
 
+        content_type = str(self.headers.get("Content-Type", "")).lower()
+        if "multipart/form-data" not in content_type:
+            self._cached_json_body = read_json_body(self)
+
         if path == "/api/campus/auth/ids":
             user = require_campus_auth_user()
             if user is None:
@@ -851,27 +855,57 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
         if path == "/api/campus/auth/dorm-water/captcha":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
-            send_campus_auth_result(lambda: _campus_auth.create_dorm_water_captcha())
+            send_campus_auth_result(lambda: _campus_auth.create_dorm_water_captcha(
+                str(user.get("id", "")),
+            ))
             return
         if path == "/api/campus/auth/dorm-water/sms":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
+            try:
+                phone = _campus_auth.normalize_dorm_water_phone(
+                    body.get("phone", ""),
+                )
+            except Exception as error:
+                status, message = _campus_auth.map_campus_auth_error(error)
+                json_error(self, status, message)
+                return
+            allowed, retry_after = consume_rate_limit(
+                {},
+                user_id=f"dorm-phone::{phone}",
+                action="dorm_water_sms",
+                setting_key="dormWaterSmsRateLimit",
+                default_limit=3,
+            )
+            if not allowed:
+                send_rate_limit_error(
+                    self,
+                    action_text="宿舍水机短信",
+                    retry_after_seconds=retry_after,
+                )
+                return
             send_campus_auth_result(lambda: _campus_auth.send_dorm_water_sms(
                 body.get("sessionId", ""),
-                body.get("phone", ""),
+                phone,
                 body.get("imageCode", ""),
+                owner_user_id=str(user.get("id", "")),
             ))
             return
         if path == "/api/campus/auth/dorm-water/login":
-            if require_campus_auth_user() is None:
+            user = require_campus_auth_user()
+            if user is None:
                 return
             body = read_json_body(self)
             send_campus_auth_result(lambda: _campus_auth.login_dorm_water(
+                body.get("sessionId", ""),
                 body.get("phone", ""),
                 body.get("smsCode", ""),
+                owner_user_id=str(user.get("id", "")),
             ))
             return
 
@@ -1183,6 +1217,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_patch(self, path: str) -> None:
+        self._cached_json_body = read_json_body(self)
         with DB_LOCK:
             db = load_db()
 

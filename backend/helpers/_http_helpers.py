@@ -63,6 +63,10 @@ def _send_cors_headers(handler: BaseHTTPRequestHandler) -> None:
 def read_json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     import _globals
 
+    cached = getattr(handler, "_cached_json_body", None)
+    if isinstance(cached, dict):
+        return dict(cached)
+
     length_str = handler.headers.get("Content-Length", "0")
     try:
         length = max(0, int(length_str))

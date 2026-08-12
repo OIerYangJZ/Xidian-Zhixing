@@ -71,6 +71,16 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     return user
 
 
+def _require_message_sender(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
+    user = _require_auth(handler, db)
+    if user is None:
+        return None
+    if user.get("muted"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送私信")
+        return None
+    return user
+
+
 def _resolve_post_dm_target(
     db: dict[str, Any],
     *,
@@ -160,7 +170,7 @@ def handle_send_request(
     db: dict[str, Any],
 ) -> None:
     """POST /api/messages/requests"""
-    user = _require_auth(handler, db)
+    user = _require_message_sender(handler, db)
     if user is None:
         return
 
@@ -445,7 +455,7 @@ def handle_direct_conversation(
     db: dict[str, Any],
 ) -> None:
     """POST /api/messages/conversations/direct — find or create conversation directly (WeChat-style)"""
-    user = _require_auth(handler, db)
+    user = _require_message_sender(handler, db)
     if user is None:
         return
 
@@ -641,7 +651,7 @@ def handle_send_message(
     conversation_id: str,
 ) -> None:
     """POST /api/messages/conversations/<id>/messages"""
-    user = _require_auth(handler, db)
+    user = _require_message_sender(handler, db)
     if user is None:
         return
 

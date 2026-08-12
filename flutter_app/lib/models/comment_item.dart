@@ -121,11 +121,14 @@ class CommentItem {
       }
     }
 
-    final String resolvedAuthorUserId = _firstNonEmptyString(<dynamic>[
-      json['authorUserId'],
-      json['authorId'],
-      json['userId'],
-    ]);
+    final bool isAnonymous = _toBool(json['isAnonymous']) ?? false;
+    final String resolvedAuthorUserId = isAnonymous
+        ? ''
+        : _firstNonEmptyString(<dynamic>[
+            json['authorUserId'],
+            json['authorId'],
+            json['userId'],
+          ]);
 
     return CommentItem(
       id: (json['id'] ?? json['commentId'] ?? '').toString(),
@@ -134,13 +137,15 @@ class CommentItem {
       content: (json['content'] ?? '').toString(),
       createdAt: createdAt,
       likeCount: _toInt(json['likeCount']) ?? 0,
-      authorAvatar: AppConfig.resolveUrl(
-        (json['authorAvatar'] ??
-                json['authorAvatarUrl'] ??
-                json['avatar'] ??
-                '')
-            .toString(),
-      ),
+      authorAvatar: isAnonymous
+          ? null
+          : AppConfig.resolveUrl(
+              (json['authorAvatar'] ??
+                      json['authorAvatarUrl'] ??
+                      json['avatar'] ??
+                      '')
+                  .toString(),
+            ),
       isLiked: _toBool(json['isLiked'] ?? json['liked']) ?? false,
       isPinned: _toBool(json['isPinned'] ?? json['pinned']) ?? false,
       parentId: (json['parentId'] ?? '').toString(),

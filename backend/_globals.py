@@ -109,6 +109,9 @@ ENABLE_XIDIAN_AUTH: bool = False
 XIDIAN_AUTHORIZED_PUBLIC_ORIGIN = "https://zhixing.xidian.edu.cn"
 CORS_ALLOWED_ORIGINS: set[str] = set()
 AUTH_ALLOWED_STUDENT_IDS: set[str] = set()
+# Server-owned authorization map.  The editable profile `college` field is
+# display-only and must never grant access to a college section.
+AUTH_STUDENT_COLLEGE_SECTIONS: dict[str, str] = {}
 MAX_REQUEST_BODY_BYTES: int = 20 * 1024 * 1024
 
 # Only peers inside these networks may set X-Forwarded-For / X-Real-IP.  An
@@ -131,9 +134,26 @@ IP_RATE_LIMITS: dict[str, dict[str, Any]] = {}
 ALLOWED_IMAGE_TYPES: set[str] = set()
 
 RATE_LIMIT_EVENT_MAX = 300
+RATE_LIMIT_SUBJECT_MAX = 20_000
+NOTIFICATION_MAX_PER_USER = 500
 SPAM_REPEAT_REGEX: re.Pattern | None = None
+ADMIN_MIN_PASSWORD_LENGTH = 12
+UNSAFE_ADMIN_PASSWORDS = frozenset({
+    "admin123456",
+    "change-me-now",
+    "replace-me",
+    "changeme",
+})
 
 BACKEND_VERSION: str = "0.2"
+
+
+def admin_password_policy_error(password: str) -> str:
+    if len(password) < ADMIN_MIN_PASSWORD_LENGTH:
+        return f"密码长度至少 {ADMIN_MIN_PASSWORD_LENGTH} 位"
+    if password.lower() in UNSAFE_ADMIN_PASSWORDS:
+        return "密码不能使用已知默认值或占位值"
+    return ""
 
 
 def configure() -> None:
@@ -143,7 +163,8 @@ def configure() -> None:
         SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD, \
         SMTP_FROM_EMAIL, SMTP_FROM_NAME, SMTP_USE_SSL, SMTP_USE_STARTTLS, \
         BACKEND_XIDIAN_PUBLIC_ORIGIN, ENABLE_XIDIAN_AUTH, CORS_ALLOWED_ORIGINS, \
-        AUTH_ALLOWED_STUDENT_IDS, MAX_REQUEST_BODY_BYTES, TRUSTED_PROXY_NETWORKS, \
+        AUTH_ALLOWED_STUDENT_IDS, AUTH_STUDENT_COLLEGE_SECTIONS, \
+        MAX_REQUEST_BODY_BYTES, TRUSTED_PROXY_NETWORKS, \
         DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
         AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
@@ -156,20 +177,14 @@ def configure() -> None:
     runtime_env = os.environ.get("BACKEND_ENV", "development").strip().lower()
     configured_admin_username = os.environ.get("BACKEND_ADMIN_USERNAME", "").strip()
     configured_admin_password = os.environ.get("BACKEND_ADMIN_PASSWORD", "").strip()
-    unsafe_admin_passwords = {
-        "admin123456",
-        "change-me-now",
-        "replace-me",
-        "changeme",
-    }
     if not configured_admin_password:
         raise RuntimeError("BACKEND_ADMIN_PASSWORD is required")
-    if configured_admin_password.lower() in unsafe_admin_passwords:
+    if configured_admin_password.lower() in UNSAFE_ADMIN_PASSWORDS:
         raise RuntimeError("BACKEND_ADMIN_PASSWORD must not use a known placeholder or default value")
     if runtime_env == "production":
         if not configured_admin_username:
             raise RuntimeError("BACKEND_ADMIN_USERNAME is required in production")
-        if len(configured_admin_password) < 12:
+        if admin_password_policy_error(configured_admin_password):
             raise RuntimeError(
                 "BACKEND_ADMIN_PASSWORD must contain at least 12 characters in production"
             )
@@ -226,7 +241,9 @@ def configure() -> None:
         "passwordResetRateLimit": 5,
         "appealRateLimit": 5,
         "campusAuthRateLimit": 20,
+        "dormWaterSmsRateLimit": 3,
         "aiChatRateLimit": 30,
+        "interactionRateLimit": 60,
     })
     DEFAULT_SENSITIVE_WORDS[:] = ["引流", "广告", "辱骂", "诈骗"]
 
@@ -288,7 +305,9 @@ def configure() -> None:
         "password_reset": 600,
         "appeal": 3600,
         "campus_auth": 900,
+        "dorm_water_sms": 3600,
         "ai_chat": 3600,
+        "interaction": 3600,
     })
     IP_RATE_LIMITS.clear()
     IP_RATE_LIMITS.update({
@@ -304,6 +323,7 @@ def configure() -> None:
         "appeal": {"limit": 15, "window": 3600},
         "campus_auth": {"limit": 40, "window": 900},
         "ai_chat": {"limit": 60, "window": 3600},
+        "interaction": {"limit": 180, "window": 3600},
     })
 
     ALLOWED_IMAGE_TYPES.clear()
@@ -340,6 +360,27 @@ def configure() -> None:
         ).split(",")
         if student_id.strip()
     )
+    AUTH_STUDENT_COLLEGE_SECTIONS.clear()
+    for assignment in os.environ.get(
+        "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS",
+        "",
+    ).split(","):
+        candidate = assignment.strip()
+        if not candidate:
+            continue
+        student_id, separator, section_id = candidate.partition("=")
+        student_id = student_id.strip().lower()
+        section_id = section_id.strip()
+        if (
+            not separator
+            or not re.fullmatch(r"[0-9A-Za-z]{6,20}", student_id)
+            or not re.fullmatch(r"[0-9A-Za-z_-]{1,80}", section_id)
+        ):
+            raise RuntimeError(
+                "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS must contain "
+                "studentId=sectionId pairs"
+            )
+        AUTH_STUDENT_COLLEGE_SECTIONS[student_id] = section_id
     # Reverse-proxy trust boundary.  X-Forwarded-For is only honoured when the
     # direct peer is one of these networks; otherwise any client could forge
     # its own source address and bypass every IP-keyed rate limit.
@@ -630,17 +671,20 @@ __all__ = [
     "PASSWORD_HASH_SCHEME", "PASSWORD_HASH_ITERATIONS", "PASSWORD_SALT_BYTES",
     "ADMIN_USERNAME_SETTING_KEY", "ADMIN_PASSWORD_HASH_SETTING_KEY",
     "DEFAULT_ADMIN_USERNAME", "DEFAULT_ADMIN_PASSWORD",
+    "ADMIN_MIN_PASSWORD_LENGTH", "UNSAFE_ADMIN_PASSWORDS", "admin_password_policy_error",
     "ADMIN_ROLE_PRIMARY", "ADMIN_ROLE_SECONDARY",
     "USER_LEVEL_ONE", "USER_LEVEL_TWO",
     "PIN_DURATION_OPTIONS",
     "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD",
     "SMTP_FROM_EMAIL", "SMTP_FROM_NAME", "SMTP_USE_SSL", "SMTP_USE_STARTTLS",
     "BACKEND_XIDIAN_PUBLIC_ORIGIN", "ENABLE_XIDIAN_AUTH", "XIDIAN_AUTHORIZED_PUBLIC_ORIGIN",
-    "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_STUDENT_IDS", "MAX_REQUEST_BODY_BYTES",
+    "CORS_ALLOWED_ORIGINS", "AUTH_ALLOWED_STUDENT_IDS",
+    "AUTH_STUDENT_COLLEGE_SECTIONS", "MAX_REQUEST_BODY_BYTES",
     "TRUSTED_PROXY_NETWORKS",
     "is_auth_student_id_allowed",
     "PASSWORD_RESET_CODE_PREFIX",
     "RATE_LIMIT_WINDOWS_SECONDS", "IP_RATE_LIMITS", "ALLOWED_IMAGE_TYPES",
-    "RATE_LIMIT_EVENT_MAX", "SPAM_REPEAT_REGEX",
+    "RATE_LIMIT_EVENT_MAX", "RATE_LIMIT_SUBJECT_MAX", "SPAM_REPEAT_REGEX",
+    "NOTIFICATION_MAX_PER_USER",
     "BACKEND_VERSION",
 ]

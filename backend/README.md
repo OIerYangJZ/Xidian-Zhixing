@@ -25,6 +25,7 @@ python3 backend/server.py
 - `BACKEND_PORT`（默认 `8080`）
 - `BACKEND_ENABLE_XIDIAN_AUTH`（普通用户登录必须启用；生产环境必须为 `true`）
 - `BACKEND_AUTH_ALLOWED_STUDENT_IDS`（可选学号白名单；留空允许所有统一认证用户，非空时只允许英文逗号分隔的学号）
+- `BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`（可选服务端学院授权映射，格式为英文逗号分隔的 `学号=分区ID`；个人资料学院字段不授予权限）
 - `BACKEND_XIDIAN_PUBLIC_ORIGIN`（启用统一认证时必填；必须是 IDS 已登记的 HTTPS Origin，当前为 `https://zhixing.xidian.edu.cn`）
 - `BACKEND_AI_BASE_URL`（服务器端 OpenAI 兼容接口地址；不得下发到客户端）
 - `BACKEND_AI_API_KEY`（服务器端模型密钥；不得写入小程序、Flutter 或请求体）
@@ -95,6 +96,7 @@ BACKEND_HOST=0.0.0.0 BACKEND_PORT=8080 ./scripts/run_backend_beta.sh
    - `BACKEND_ADMIN_PASSWORD`
    - `BACKEND_CORS_ALLOWED_ORIGINS=https://<service-name>.onrender.com`
    - `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
+   - `BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`
 4. 部署成功后访问：
    - `https://<service-name>.onrender.com`
    - `https://<service-name>.onrender.com/api/channels`
@@ -131,11 +133,13 @@ sudo ./scripts/prepare_offline_debs_ubuntu2204.sh
 
 通过 WinSCP/SFTP 上传 release、deb、wheel 目录，以及
 `install_offline_debs.sh`、`install_ubuntu_offline.sh`、
-`validate_production_env.py` 后，服务器离线执行：
+`validate_production_env.py` 及已经核对证书路径的 HTTPS Nginx 配置后，服务器离线执行：
 
 ```bash
 sudo ./scripts/install_offline_debs.sh /home/ubuntu/treehole/offline/ubuntu2204-amd64-debs
-sudo ./scripts/install_ubuntu_offline.sh /path/to/treehole-release.tar.gz
+sudo ./scripts/install_ubuntu_offline.sh \
+  /path/to/treehole-release.tar.gz \
+  /path/to/rendered-tls-nginx.conf
 ```
 
 首次运行安装脚本会创建受保护的环境模板并停止；填写模板后重新执行安装脚本。部署目录为 `/home/ubuntu/treehole`，服务名为 `treehole.service`。
@@ -148,7 +152,7 @@ sudoedit /home/ubuntu/treehole/shared/config/backend.env
 
 普通用户登录依赖统一认证回调地址。部署时重点确认：
 
-1. `/home/ubuntu/treehole/shared/config/backend.env` 中已设置 `BACKEND_ENABLE_XIDIAN_AUTH=true`；`BACKEND_AUTH_ALLOWED_STUDENT_IDS` 留空时开放给所有统一认证用户，非空时只开放给列出的学号
+1. `/home/ubuntu/treehole/shared/config/backend.env` 中已设置 `BACKEND_ENABLE_XIDIAN_AUTH=true`；`BACKEND_AUTH_ALLOWED_STUDENT_IDS` 留空时开放给所有统一认证用户，非空时只开放给列出的学号；需要学院分区发帖的学号必须配置在 `BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`
 2. Nginx `server_name` 与 HTTPS 证书已配置完成
 3. 移动端正式构建时使用：
 
@@ -161,6 +165,7 @@ flutter build apk --release \
 
 - `BACKEND_ADMIN_PASSWORD`
 - `BACKEND_AUTH_ALLOWED_STUDENT_IDS`
+- `BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS`
 
 应用修改：
 
@@ -190,6 +195,7 @@ curl http://127.0.0.1:8080/api/channels
 BACKEND_ENABLE_XIDIAN_AUTH=true \
 BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn \
 BACKEND_AUTH_ALLOWED_STUDENT_IDS= \
+BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS= \
 python3 backend/server.py
 ```
 

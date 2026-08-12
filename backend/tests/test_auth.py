@@ -147,8 +147,8 @@ class TestAuthHelpers:
         # 有效的存储路径
         assert normalize_avatar_url("/api/storage/avatar.png") == "/api/storage/avatar.png"
 
-        # 有效的 HTTP URL
-        assert normalize_avatar_url("https://example.com/avatar.png") == "https://example.com/avatar.png"
+        # 外部 URL 会暴露查看者网络元数据，头像只允许本站存储路径。
+        assert normalize_avatar_url("https://example.com/avatar.png") == ""
 
         # 无效值
         assert normalize_avatar_url("") == ""

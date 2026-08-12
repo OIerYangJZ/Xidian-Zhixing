@@ -26,7 +26,7 @@
      /home/ubuntu/treehole/shared/config/backend.env
    ```
 
-生产必填项包括管理员凭据、SQLite 和对象目录、Web 根目录以及正式 CORS 来源。可选学号白名单及真实学号、管理员密码和 AI/S3 密钥只能写入服务器环境文件。
+生产必填项包括管理员凭据、SQLite 和对象目录、Web 根目录以及正式 CORS 来源。可选学号白名单、学院授权映射及真实学号、管理员密码和 AI/S3 密钥只能写入服务器环境文件。
 
 网页端生产 API 使用同源 `/api`，由 Nginx 反向代理到 `127.0.0.1:8080`。移动 App 和小程序需要在各自构建配置中显式注入正式 HTTPS 地址。
 
@@ -34,6 +34,7 @@
 
 - `BACKEND_CORS_ALLOWED_ORIGINS=https://zhixing.xidian.edu.cn`
 - `BACKEND_AUTH_ALLOWED_STUDENT_IDS=` 留空允许所有通过学校统一认证的用户；非空时只允许英文逗号分隔的学号
+- `BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS=` 使用 `学号=分区ID` 的英文逗号分隔映射；未映射用户不能在学院分区发帖，个人资料中的学院字段不授予权限
 - `BACKEND_ENABLE_XIDIAN_AUTH=true`
 - `BACKEND_XIDIAN_PUBLIC_ORIGIN=https://zhixing.xidian.edu.cn`
 - `BACKEND_ALLOW_DEBUG_VERIFY_CODE=false`
@@ -82,6 +83,8 @@ sudo ln -sfn /etc/nginx/sites-available/treehole.conf /etc/nginx/sites-enabled/t
 sudo nginx -t
 sudo systemctl reload nginx
 ```
+
+离线安装和 `scripts/deploy_tencent.sh` 不再安装归档内的 HTTP 示例配置。必须把上述已渲染、已核对证书绝对路径的 `/tmp/treehole.conf` 作为安装脚本第二个参数，或通过 `DEPLOY_NGINX_CONFIG=/tmp/treehole.conf` 传给部署脚本。
 
 配置包含：
 

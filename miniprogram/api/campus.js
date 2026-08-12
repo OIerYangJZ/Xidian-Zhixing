@@ -186,8 +186,9 @@ export const sendDormWaterSms = async (sessionId, phone, imageCode) => {
   return result;
 };
 
-export const loginDormWater = async (phone, smsCode) => {
+export const loginDormWater = async (sessionId, phone, smsCode) => {
   const response = await request.post('/api/campus/auth/dorm-water/login', {
+    sessionId,
     phone,
     smsCode
   }, CAMPUS_AUTH_OPTIONS);

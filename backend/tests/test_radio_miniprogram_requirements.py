@@ -292,12 +292,17 @@ def test_ids_course_sync_uses_graduate_classtable_when_ehall_has_no_rows(monkeyp
         def __init__(self, payload: dict) -> None:
             self._payload = payload
             self.status_code = 200
+            self.headers: dict[str, str] = {}
 
         def raise_for_status(self) -> None:
             pass
 
         def json(self) -> dict:
             return self._payload
+
+        def iter_content(self, chunk_size: int):
+            del chunk_size
+            yield json.dumps(self._payload).encode("utf-8")
 
     class FakeGraduateSession:
         def post(self, url: str, **kwargs):
@@ -620,6 +625,36 @@ def test_production_env_validator_checks_nonempty_xidian_allowlist() -> None:
     )
 
 
+def test_production_env_validator_rejects_invalid_college_mapping() -> None:
+    from scripts.validate_production_env import validate
+
+    values = {
+        "BACKEND_ENV": "production",
+        "BACKEND_HOST": "127.0.0.1",
+        "BACKEND_PORT": "8080",
+        "BACKEND_ADMIN_USERNAME": "admin",
+        "BACKEND_ADMIN_PASSWORD": "NotARealProductionPassword-2026",
+        "BACKEND_DB_FILE": "/home/ubuntu/treehole/shared/data/treehole.db",
+        "BACKEND_STORAGE_DIR": "/home/ubuntu/treehole/shared/storage/objects",
+        "BACKEND_WEB_ROOT": "/home/ubuntu/treehole/current/web",
+        "BACKEND_OBJECT_STORAGE_BACKEND": "local",
+        "BACKEND_ALLOW_DEBUG_VERIFY_CODE": "false",
+        "BACKEND_INCLUDE_DEBUG_CODE": "false",
+        "BACKEND_SEED_DEMO_DATA": "false",
+        "BACKEND_CORS_ALLOWED_ORIGINS": "https://zhixing.xidian.edu.cn",
+        "BACKEND_AUTH_ALLOWED_STUDENT_IDS": "",
+        "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS": "2023000001",
+        "BACKEND_ENABLE_XIDIAN_AUTH": "true",
+        "BACKEND_MAX_REQUEST_BODY_MB": "20",
+        "BACKEND_XIDIAN_PUBLIC_ORIGIN": "https://zhixing.xidian.edu.cn",
+    }
+
+    assert (
+        "BACKEND_AUTH_STUDENT_COLLEGE_SECTIONS must contain studentId=sectionId pairs"
+        in validate(values)
+    )
+
+
 @pytest.mark.parametrize(
     "path",
     [
@@ -789,23 +824,101 @@ def test_my_feedbacks_returns_only_current_user_rows() -> None:
     assert [row["id"] for row in rows] == ["fb1"]
 
 
-def test_college_section_post_requires_matching_user_college() -> None:
+def test_college_section_post_requires_matching_server_mapping(monkeypatch) -> None:
+    import _globals
     from handlers._post_handler import handle_create_post
 
     db = make_db()
     user = next(row for row in db["users"] if row["id"] == "u1")
     user["college"] = "电子工程学院"
+    monkeypatch.setattr(
+        _globals,
+        "AUTH_STUDENT_COLLEGE_SECTIONS",
+        {str(user["studentId"]): "college-ee"},
+    )
+    db["sections"].append({
+        "id": "cs",
+        "sectionType": "college",
+        "sectionName": "计算机科学与技术学院",
+        "enabled": True,
+    })
     handler = FakeHandler(body={
         "content": "想在计算机学院分区发一条帖子",
         "sectionType": "college",
         "sectionId": "cs",
-        "sectionName": "计算机科学与技术学院",
+        "sectionName": "",
     })
 
     handle_create_post(handler, db)
 
     assert handler.status_code == 403
     assert "只能在本学院分区发帖" in handler.payload()["message"]
+
+
+def test_college_section_post_persists_server_canonical_fields(monkeypatch) -> None:
+    import _globals
+    from handlers import _post_handler
+
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+
+    db = make_db()
+    user = next(row for row in db["users"] if row["id"] == "u1")
+    user["college"] = "电子工程学院"
+    monkeypatch.setattr(
+        _globals,
+        "AUTH_STUDENT_COLLEGE_SECTIONS",
+        {str(user["studentId"]): "college-ee"},
+    )
+    handler = FakeHandler(body={
+        "content": "本学院帖子",
+        "sectionType": "college",
+        "sectionId": "college-ee",
+        "sectionName": "攻击者提供的名称",
+    })
+
+    _post_handler.handle_create_post(handler, db)
+
+    assert handler.status_code == 200
+    created = next(row for row in db["posts"] if row["content"] == "本学院帖子")
+    assert created["sectionId"] == "ee"
+    assert created["sectionName"] == "电子工程学院"
+
+
+@pytest.mark.parametrize(
+    "body,message",
+    [
+        ({"content": "x" * 10001}, "帖子正文"),
+        ({
+            "content": "正文",
+            "contentFormat": "markdown",
+            "markdownSource": "![tracking](https://tracker.example/pixel.png)",
+        }, "本站上传地址"),
+        ({"content": "正文", "tags": [f"tag-{index}" for index in range(11)]}, "标签"),
+    ],
+)
+def test_create_post_rejects_unbounded_or_remote_media_fields(body, message) -> None:
+    from handlers._post_handler import handle_create_post
+
+    db = make_db()
+    handler = FakeHandler(body=body)
+    handle_create_post(handler, db)
+
+    assert handler.status_code == 400
+    assert message in handler.payload()["message"]
+
+
+def test_hot_summary_get_is_read_only() -> None:
+    from copy import deepcopy
+    from handlers._radio_handler import handle_ai_hot_summary
+
+    db = make_db()
+    before = deepcopy(db)
+    handler = FakeHandler()
+    handle_ai_hot_summary(handler, db)
+
+    assert handler.status_code == 200
+    assert handler.payload()["data"]["reviewStatus"] == "approved"
+    assert db == before
 
 
 def test_miniprogram_does_not_persist_or_replay_campus_passwords() -> None:

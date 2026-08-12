@@ -116,6 +116,14 @@ from services import (
 )
 
 
+_DUMMY_ADMIN_PASSWORD_HASH = (
+    f"{_globals.PASSWORD_HASH_SCHEME}"
+    f"${_globals.PASSWORD_HASH_ITERATIONS}"
+    f"${'00' * _globals.PASSWORD_SALT_BYTES}"
+    f"${'00' * 32}"
+)
+
+
 _logger = logging.getLogger("treehole.admin")
 
 
@@ -299,6 +307,7 @@ def handle_admin_auth_login(
 
     account = find_admin_account_by_username(db, username, include_inactive=True)
     if account is None:
+        verify_password(_DUMMY_ADMIN_PASSWORD_HASH, password)
         _reject_invalid_credentials()
         return
     if not verify_password(str(account.get("passwordHash", "")), password):
@@ -793,8 +802,9 @@ def handle_admin_change_password(
     old_password = str(body.get("oldPassword", "")).strip()
     new_password = str(body.get("newPassword", "")).strip()
 
-    if len(new_password) < 6:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "新密码长度至少 6 位")
+    password_error = _globals.admin_password_policy_error(new_password)
+    if password_error:
+        json_error(handler, HTTPStatus.BAD_REQUEST, password_error)
         return
 
     account = find_admin_account_by_id(db, str(admin.get("adminId", "")))
@@ -1282,8 +1292,9 @@ def handle_admin_create_account(
     if not re.fullmatch(r"[A-Za-z0-9_.-]{3,32}", username):
         json_error(handler, HTTPStatus.BAD_REQUEST, "用户名格式不正确（3-32位字母数字下划线）")
         return
-    if len(password) < 6:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "密码长度至少 6 位")
+    password_error = _globals.admin_password_policy_error(password)
+    if password_error:
+        json_error(handler, HTTPStatus.BAD_REQUEST, password_error)
         return
 
     if find_admin_account_by_username(db, username) is not None:

@@ -5,7 +5,6 @@ import {
   loginCampusPayment,
   loginCampusPhysics,
   loginCampusSchoolnet,
-  loginCampusSport,
   loginDormWater,
   sendDormWaterSms
 } from '../../../api/campus';
@@ -37,14 +36,6 @@ const SYSTEMS = [
     tag: '实验',
     type: 'password',
     passwordPlaceholder: '物理实验密码'
-  },
-  {
-    id: 'sport',
-    name: '体育系统',
-    desc: '体育课程、体测等系统访问',
-    tag: '体育',
-    type: 'password',
-    passwordPlaceholder: '体育系统密码'
   },
   {
     id: 'schoolnet',
@@ -250,16 +241,14 @@ Page({
     const labels = {
       ids: '统一认证密码',
       payment: '统一认证密码',
-      physics: '物理实验密码',
-      sport: '体育系统密码'
+      physics: '物理实验密码'
     };
     if (!this.requireStudentAndPassword(labels[activeSystem] || '密码')) return;
 
     const actions = {
       ids: loginCampusIds,
       payment: loginCampusPayment,
-      physics: loginCampusPhysics,
-      sport: loginCampusSport
+      physics: loginCampusPhysics
     };
     const action = actions[activeSystem];
     if (!action) return;
@@ -369,15 +358,15 @@ Page({
 
   async submitDormWaterAuth() {
     if (this.data.submitting) return;
-    const { dormWaterPhone, dormWaterSmsCode } = this.data;
-    if (!dormWaterPhone || !dormWaterSmsCode) {
+    const { dormWaterSessionId, dormWaterPhone, dormWaterSmsCode } = this.data;
+    if (!dormWaterSessionId || !dormWaterPhone || !dormWaterSmsCode) {
       wx.showToast({ title: '请输入手机号和短信验证码', icon: 'none' });
       return;
     }
     this.setData({ submitting: true, resultMessage: '' });
     wx.showLoading({ title: '正在登录' });
     try {
-      const response = await loginDormWater(dormWaterPhone, dormWaterSmsCode);
+      const response = await loginDormWater(dormWaterSessionId, dormWaterPhone, dormWaterSmsCode);
       wx.hideLoading();
       this.showResult('dormWater', response.data || response || {});
     } catch (error) {

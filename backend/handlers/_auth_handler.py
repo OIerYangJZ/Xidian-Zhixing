@@ -532,6 +532,35 @@ def _update_attempt(attempt_id: str, **values: Any) -> dict[str, Any] | None:
         return dict(attempt)
 
 
+def _claim_attempt_for_validation(attempt_id: str) -> dict[str, Any] | None:
+    with _ATTEMPT_LOCK:
+        _cleanup_attempts_locked()
+        attempt = _XIDIAN_AUTH_ATTEMPTS.get(attempt_id)
+        if attempt is None or attempt.get("status") != "pending":
+            return None
+        attempt["status"] = "validating"
+        return dict(attempt)
+
+
+def _poll_attempt_once(attempt_id: str) -> tuple[dict[str, Any] | None, bool]:
+    with _ATTEMPT_LOCK:
+        _cleanup_attempts_locked()
+        attempt = _XIDIAN_AUTH_ATTEMPTS.get(attempt_id)
+        if attempt is None:
+            return None, False
+        deliver_result = (
+            attempt.get("status") == "authenticated"
+            and not bool(attempt.get("consumed"))
+        )
+        if deliver_result:
+            attempt["consumed"] = True
+            attempt["expiresAtTs"] = min(
+                float(attempt.get("expiresAtTs", time.time() + 30)),
+                time.time() + 30,
+            )
+        return dict(attempt), deliver_result
+
+
 def _send_auth_attempt_failure(
     handler: BaseHTTPRequestHandler,
     *,
@@ -726,7 +755,7 @@ def handle_xidian_auth_get_session(
     db: dict[str, Any],
     attempt_id: str,
 ) -> None:
-    attempt = _load_attempt(attempt_id)
+    attempt, deliver_result = _poll_attempt_once(attempt_id)
     if attempt is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "登录请求不存在或已过期")
         return
@@ -737,7 +766,7 @@ def handle_xidian_auth_get_session(
         "platform": attempt.get("platform", "web"),
     }
     if attempt.get("status") == "authenticated":
-        if attempt.get("consumed"):
+        if not deliver_result:
             payload["message"] = "登录结果已使用，请重新发起登录"
         else:
             payload.update(
@@ -747,14 +776,6 @@ def handle_xidian_auth_get_session(
                     "email": attempt.get("email", ""),
                     "studentId": attempt.get("studentId", ""),
                 }
-            )
-            _update_attempt(
-                attempt_id,
-                consumed=True,
-                expiresAtTs=min(
-                    float(attempt.get("expiresAtTs", time.time() + 30)),
-                    time.time() + 30,
-                ),
             )
     elif attempt.get("status") == "failed":
         payload["message"] = str(attempt.get("message", "")).strip() or "统一认证登录失败"
@@ -793,13 +814,13 @@ def handle_xidian_auth_callback(
 ) -> None:
     attempt_id = _read_cookie(handler, _WEB_ATTEMPT_COOKIE_NAME)
     ticket = _query_value(query, "ticket")
-    attempt = _load_attempt(attempt_id)
+    attempt = _claim_attempt_for_validation(attempt_id)
     if not attempt_id or attempt is None:
         _send_html_page(
             handler,
-            status=HTTPStatus.GONE,
-            title="登录已过期",
-            message="这次统一认证登录已失效，请返回电台重新发起登录。",
+            status=HTTPStatus.CONFLICT,
+            title="登录请求已使用",
+            message="这次统一认证登录已处理或已失效，请返回电台重新发起登录。",
             cookies=[_clear_attempt_cookie(handler)],
         )
         return

@@ -304,7 +304,10 @@ def handle_get_club(handler: BaseHTTPRequestHandler, db: dict[str, Any], club_id
         return
     viewer, _ = auth_user_helper(handler, db)
     viewer_user_id = str(viewer.get("id", "")).strip() if viewer else ""
-    members = [row for row in db.get("clubMembers", []) if str(row.get("clubId", "")) == club_id]
+    member_count = sum(
+        1 for row in db.get("clubMembers", [])
+        if str(row.get("clubId", "")) == club_id
+    )
     posts = [
         serialize_post(db, post, viewer_user_id=viewer_user_id)
         for post in list_posts(
@@ -314,7 +317,11 @@ def handle_get_club(handler: BaseHTTPRequestHandler, db: dict[str, Any], club_id
         )
         if str(post.get("publisherClubId", "")) == club_id or str(post.get("sectionId", "")) == str(club.get("sectionId", ""))
     ]
-    send_json(handler, HTTPStatus.OK, {"data": {**_serialize_club(club), "members": members, "posts": posts}})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": {**_serialize_club(club), "memberCount": member_count, "posts": posts}},
+    )
 
 
 def handle_apply_club(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -733,39 +740,17 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
         return
     citations = _search_items(db, f"{question} {selected_text}")[:6]
     answer = f"已根据选中文本整理：{selected_text[:160]}。建议结合原帖语境判断，相关来源见引用。"
-    message = {
-        "id": next_id(db, "aiMessage", "aim"),
-        "userId": str(user.get("id", "")),
-        "role": "assistant",
-        "content": answer,
-        "citations": citations,
-        "createdAt": now_iso(),
-    }
-    db.setdefault("aiMessages", []).append(message)
-    save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": citations, "relatedActions": [], "usage": {"sourceCount": len(citations)}, "reviewStatus": "approved"}})
 
 
 
 def handle_ai_hot_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    if not db.get("hotTopics"):
-        rebuild_hot_topics(db)
     topics = sorted(
         _public_hot_topics(db),
         key=lambda item: _safe_int(item.get("rank"), 0),
     )[:8]
     answer = "热榜总结：" + "；".join(f"{item.get('rank')}. {item.get('title')}" for item in topics) if topics else "暂无热榜内容。"
-    summary = {
-        "id": next_id(db, "hotTopicSummary", "hts"),
-        "title": "热榜 AI 总结",
-        "content": answer,
-        "reviewStatus": "pending",
-        "createdAt": now_iso(),
-    }
-    db.setdefault("hotTopicSummaries", []).append(summary)
-    add_moderation_task(db, target_type="hot_topic_summary", target_id=summary["id"], title=summary["title"], content=answer)
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": topics, "reviewStatus": "pending"}})
+    send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": topics, "reviewStatus": "approved"}})
 
 
 def handle_admin_knowledge_source(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:

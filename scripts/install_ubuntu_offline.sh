@@ -7,8 +7,19 @@ if [ "${EUID}" -ne 0 ]; then
 fi
 
 ARCHIVE_PATH="${1:-}"
-if [ -z "$ARCHIVE_PATH" ] || [ ! -f "$ARCHIVE_PATH" ]; then
-  echo "[install] usage: install_ubuntu_offline.sh /path/to/treehole-release.tar.gz" >&2
+NGINX_CONFIG_PATH="${2:-}"
+if [ -z "$ARCHIVE_PATH" ] || [ ! -f "$ARCHIVE_PATH" ] \
+  || [ -z "$NGINX_CONFIG_PATH" ] || [ ! -f "$NGINX_CONFIG_PATH" ]; then
+  echo "[install] usage: install_ubuntu_offline.sh /path/to/treehole-release.tar.gz /path/to/rendered-tls-nginx.conf" >&2
+  exit 1
+fi
+if ! grep -Eq '^[[:space:]]*listen[[:space:]]+443[[:space:]]+ssl([[:space:]]|;)' "$NGINX_CONFIG_PATH"; then
+  echo "[install] nginx config must contain an active 'listen 443 ssl' directive" >&2
+  exit 1
+fi
+if ! grep -Eq '^[[:space:]]*listen[[:space:]]+80([[:space:]]|;)' "$NGINX_CONFIG_PATH" \
+  || ! grep -Eq 'return[[:space:]]+30[18][[:space:]]+https://' "$NGINX_CONFIG_PATH"; then
+  echo "[install] nginx config must redirect HTTP port 80 to HTTPS" >&2
   exit 1
 fi
 
@@ -133,7 +144,7 @@ chmod -R g+rX,o-rwx "$VENV_DIR"
 
 install -m 0644 "$RELEASE_DIR/deploy/tencent/xdu-whisperbox.service" \
   /etc/systemd/system/treehole.service
-install -m 0644 "$RELEASE_DIR/deploy/tencent/nginx-xdu-whisperbox.conf" \
+install -m 0644 "$NGINX_CONFIG_PATH" \
   /etc/nginx/sites-available/treehole.conf
 ln -sfn /etc/nginx/sites-available/treehole.conf /etc/nginx/sites-enabled/treehole.conf
 rm -f /etc/nginx/sites-enabled/default

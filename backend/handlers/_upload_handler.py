@@ -35,7 +35,6 @@ from services import (
     auth_user as auth_user_helper,
     find_user_by_id,
     next_id,
-    remove_audit_log,
     save_db,
 )
 
@@ -293,6 +292,29 @@ def handle_upload_avatar(
         )
         return
 
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "upload")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="头像上传",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="upload",
+        setting_key="uploadRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["uploadRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="头像上传",
+            retry_after_seconds=retry_after,
+        )
+        return
+
     try:
         stored = _globals.OBJECT_STORAGE.put_bytes(
             data=avatar_bytes,
@@ -303,19 +325,49 @@ def handle_upload_avatar(
         json_error(handler, HTTPStatus.INTERNAL_SERVER_ERROR, "头像上传失败，请稍后重试")
         return
 
+    db_snapshot = copy.deepcopy(db)
     old_avatar_url = normalize_avatar_url(str(user.get("avatarUrl", "")))
     old_key = extract_local_object_key_from_url(old_avatar_url) if old_avatar_url else ""
+    owned_old_upload = None
+    if old_key:
+        owned_old_upload = next(
+            (
+                row for row in db.get("mediaUploads", [])
+                if str(row.get("objectKey", "")).strip() == old_key
+                and str(row.get("uploaderId", "")).strip() == str(user.get("id", "")).strip()
+                and not row.get("deleted")
+            ),
+            None,
+        )
+
+    upload = {
+        "id": next_id(db, "upload", "up"),
+        "url": stored.url,
+        "objectKey": stored.key,
+        "fileName": file_name,
+        "contentType": ct,
+        "sizeBytes": len(avatar_bytes),
+        "sha256": calc_sha256_hex(avatar_bytes),
+        "status": "approved",
+        "moderationReason": "",
+        "createdAt": now_iso(),
+        "postId": "",
+        "uploaderId": user["id"],
+        "usageType": "avatar",
+        "deleted": False,
+    }
+    db.setdefault("mediaUploads", []).append(upload)
+    if owned_old_upload is not None:
+        owned_old_upload["deleted"] = True
     user["avatarUrl"] = stored.url
-    # Roll back by id, not by saved length: add_audit_log trims the head of the
-    # table once it is full, so a positional slice can delete the wrong rows.
-    audit_entry_id = add_audit_log(
+    add_audit_log(
         db, user["id"], "upload_avatar", f"更换头像 {stored.key}"
     )
     try:
         save_db(db)
     except Exception:
-        user["avatarUrl"] = old_avatar_url
-        remove_audit_log(db, audit_entry_id)
+        db.clear()
+        db.update(db_snapshot)
         try:
             _globals.OBJECT_STORAGE.delete(stored.key)
         except Exception as cleanup_error:
@@ -328,9 +380,17 @@ def handle_upload_avatar(
         try:
             _globals.OBJECT_STORAGE.delete(old_key)
         except Exception:
-            user["avatarUrl"] = old_avatar_url
-            remove_audit_log(db, audit_entry_id)
-            save_db(db)
+            db.clear()
+            db.update(db_snapshot)
+            try:
+                save_db(db)
+            except Exception:
+                json_error(
+                    handler,
+                    HTTPStatus.BAD_GATEWAY,
+                    "旧头像删除失败且数据库回滚失败，头像状态需要人工核查",
+                )
+                return
             try:
                 _globals.OBJECT_STORAGE.delete(stored.key)
             except Exception:
@@ -346,5 +406,5 @@ def handle_upload_avatar(
     send_json(
         handler,
         HTTPStatus.OK,
-        {"data": {"avatarUrl": user["avatarUrl"]}},
+        {"data": {"avatarUrl": stored.url}},
     )

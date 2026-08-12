@@ -209,11 +209,12 @@ def handle_update_me(
         if "nickname" in body
         else None
     )
-    new_avatar = (
-        normalize_avatar_url(str(body.get("avatarUrl", "")))
-        if "avatarUrl" in body
-        else None
-    )
+    current_avatar = normalize_avatar_url(str(user.get("avatarUrl", "")))
+    requested_avatar = str(body.get("avatarUrl", "")).strip()
+    new_avatar = normalize_avatar_url(requested_avatar) if "avatarUrl" in body else None
+    if new_avatar is not None and new_avatar != current_avatar:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "请通过头像上传接口更换头像")
+        return
     new_background_image = (
         normalize_media_url(str(body.get("backgroundImageUrl", "")))
         if "backgroundImageUrl" in body
@@ -278,7 +279,7 @@ def handle_update_me(
         user["alias"] = new_nickname
         add_audit_log(db, user["id"], "update_nickname", f"更新昵称为 {new_nickname}")
 
-    if new_avatar is not None and new_avatar:
+    if new_avatar is not None:
         user["avatarUrl"] = new_avatar
 
     if new_bio is not None:

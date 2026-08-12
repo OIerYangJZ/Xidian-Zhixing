@@ -82,6 +82,16 @@ from services import (
     user_nickname,
 )
 
+_MAX_POST_TITLE_CHARS = 200
+_MAX_POST_CONTENT_CHARS = 10_000
+_MAX_MARKDOWN_SOURCE_CHARS = 20_000
+_MAX_COMMENT_CHARS = 2_000
+_MAX_TAGS = 10
+_MAX_TAG_CHARS = 40
+_MARKDOWN_IMAGE_RE = re.compile(
+    r"!\[[^\]]*\]\(([^)\s]+)(?:\s+['\"][^'\"]*['\"])?\)",
+)
+
 
 def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     user, _ = auth_user_helper(handler, db)
@@ -89,6 +99,36 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return None
     return user
+
+
+def _enforce_interaction_rate_limit(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    user: dict[str, Any],
+) -> bool:
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "interaction")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="互动操作",
+            retry_after_seconds=ip_retry_after,
+        )
+        return False
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=str(user.get("id", "")).strip(),
+        action="interaction",
+        setting_key="interactionRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["interactionRateLimit"]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="互动操作",
+            retry_after_seconds=retry_after,
+        )
+        return False
+    return True
 
 
 def _can_view_post(post: dict[str, Any], viewer_user_id: str) -> bool:
@@ -172,16 +212,17 @@ def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_
         like_count = max(0, int(like_count_raw or 0))
     except (TypeError, ValueError):
         like_count = 0
-    author_avatar_url = user_avatar_url(author_user)
+    public_author_id = "" if is_anonymous else author_id
+    author_avatar_url = "" if is_anonymous else user_avatar_url(author_user)
     return {
         "id": comment.get("id", ""),
         "postId": comment.get("postId", ""),
         "content": comment.get("content", ""),
         "authorAlias": _globals.sanitize_alias(str(comment.get("authorAlias", "")), fallback="匿名同学"),
-        "authorId": author_id,
+        "authorId": public_author_id,
         "authorAvatarUrl": author_avatar_url,
         "authorAvatar": author_avatar_url,
-        "authorUserId": "" if is_anonymous else author_id,
+        "authorUserId": public_author_id,
         "isOwnComment": bool(viewer_user_id and viewer_user_id == author_id),
         "likeCount": like_count,
         "liked": liked,
@@ -665,21 +706,79 @@ def handle_create_post(
     if not raw_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "帖子内容不能为空")
         return
+    if len(title) > _MAX_POST_TITLE_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"帖子标题不能超过 {_MAX_POST_TITLE_CHARS} 个字符")
+        return
+    if len(content) > _MAX_POST_CONTENT_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"帖子正文不能超过 {_MAX_POST_CONTENT_CHARS} 个字符")
+        return
+    if len(markdown_source) > _MAX_MARKDOWN_SOURCE_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"Markdown 不能超过 {_MAX_MARKDOWN_SOURCE_CHARS} 个字符")
+        return
+    if len(tags) > _MAX_TAGS or any(len(tag) > _MAX_TAG_CHARS for tag in tags):
+        json_error(handler, HTTPStatus.BAD_REQUEST, "标签数量或长度超出限制")
+        return
+    if content_format == "markdown":
+        unsafe_images = [
+            url for url in _MARKDOWN_IMAGE_RE.findall(markdown_source)
+            if not url.lower().startswith("/api/storage/")
+        ]
+        if unsafe_images:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "Markdown 图片必须使用本站上传地址")
+            return
     if section_type and section_type not in {"general", "college", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的分区类型")
         return
     if section_type == "college":
-        user_college = str(user.get("college", "")).strip()
-        if not user_college:
-            json_error(handler, HTTPStatus.FORBIDDEN, "请先在个人资料中完善学院后再发布学院分区帖子")
+        student_id = str(user.get("studentId", "")).strip().lower()
+        trusted_section_id = _globals.AUTH_STUDENT_COLLEGE_SECTIONS.get(
+            student_id,
+            "",
+        )
+        if not trusted_section_id:
+            json_error(handler, HTTPStatus.FORBIDDEN, "学院归属尚未由学校身份源确认")
             return
-        if section_name and user_college != section_name:
+        section = next(
+            (
+                row for row in db.get("sections", [])
+                if section_id in {
+                    str(row.get("id", "")).strip(),
+                    str(row.get("sectionId", "")).strip(),
+                }
+                and str(row.get("sectionType", "")).strip().lower() == "college"
+                and bool(row.get("enabled", True))
+            ),
+            None,
+        )
+        if section is None:
+            json_error(handler, HTTPStatus.BAD_REQUEST, "学院分区不存在或已停用")
+            return
+        canonical_section_name = str(
+            section.get("sectionName") or section.get("name") or "",
+        ).strip()
+        canonical_section_id = str(
+            section.get("sectionId") or section.get("id") or "",
+        ).strip()
+        if trusted_section_id not in {
+            canonical_section_id,
+            str(section.get("id", "")).strip(),
+        }:
             json_error(handler, HTTPStatus.FORBIDDEN, "只能在本学院分区发帖")
             return
+        section_id = canonical_section_id
+        section_name = canonical_section_name
     if publisher_type not in {"user", "club"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的发布身份")
         return
     if publisher_type == "club":
+        club = next(
+            (
+                row for row in db.get("clubs", [])
+                if str(row.get("id", "")).strip() == publisher_club_id
+                and str(row.get("status", "active")).strip().lower() == "active"
+            ),
+            None,
+        )
         member = next(
             (
                 row for row in db.get("clubMembers", [])
@@ -689,9 +788,41 @@ def handle_create_post(
             ),
             None,
         )
-        if member is None:
+        if club is None or member is None:
             json_error(handler, HTTPStatus.FORBIDDEN, "仅社团负责人可使用社团名义发布")
             return
+        if section_type == "club":
+            club_section_id = str(club.get("sectionId", "")).strip()
+            section = next(
+                (
+                    row for row in db.get("sections", [])
+                    if str(row.get("sectionType", "")).strip().lower() == "club"
+                    and bool(row.get("enabled", True))
+                    and club_section_id in {
+                        str(row.get("id", "")).strip(),
+                        str(row.get("sectionId", "")).strip(),
+                    }
+                ),
+                None,
+            )
+            submitted_section_ids = {section_id}
+            if section is not None:
+                submitted_section_ids = {
+                    str(section.get("id", "")).strip(),
+                    str(section.get("sectionId", "")).strip(),
+                }
+            if section is None or section_id not in submitted_section_ids:
+                json_error(handler, HTTPStatus.FORBIDDEN, "只能在本社团分区发布社团帖子")
+                return
+            section_id = str(
+                section.get("sectionId") or section.get("id") or "",
+            ).strip()
+            section_name = str(
+                section.get("sectionName") or section.get("name") or club.get("name") or "",
+            ).strip()
+    elif section_type == "club":
+        json_error(handler, HTTPStatus.FORBIDDEN, "社团分区仅允许负责人使用社团身份发布")
+        return
     if pin_duration_minutes is not None and not is_level_one_user(user):
         json_error(handler, HTTPStatus.FORBIDDEN, "仅一级用户可在发帖时直接置顶")
         return
@@ -870,6 +1001,9 @@ def handle_create_comment(
     if not comment_content:
         json_error(handler, HTTPStatus.BAD_REQUEST, "评论内容不能为空")
         return
+    if len(comment_content) > _MAX_COMMENT_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"评论内容不能超过 {_MAX_COMMENT_CHARS} 个字符")
+        return
     parent_id = str(body.get("parentId", body.get("replyToId", ""))).strip()
     if parent_id:
         parent_comment = next(
@@ -990,6 +1124,8 @@ def handle_toggle_like(
     user = _require_auth(handler, db)
     if user is None:
         return
+    if not _enforce_interaction_rate_limit(handler, db, user):
+        return
 
     post = next(
         (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
@@ -1045,6 +1181,8 @@ def handle_toggle_comment_like(
     """POST /api/comments/<id>/like"""
     user = _require_auth(handler, db)
     if user is None:
+        return
+    if not _enforce_interaction_rate_limit(handler, db, user):
         return
 
     comment = next(
@@ -1121,6 +1259,8 @@ def handle_toggle_favorite(
     user = _require_auth(handler, db)
     if user is None:
         return
+    if not _enforce_interaction_rate_limit(handler, db, user):
+        return
 
     post = next(
         (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),
@@ -1180,8 +1320,24 @@ def handle_increment_view(
     post_id: str,
 ) -> None:
     """POST /api/posts/<id>/view"""
-    viewer, _ = auth_user_helper(handler, db)
-    viewer_user_id = str(viewer.get("id", "")) if viewer else ""
+    viewer = _require_auth(handler, db)
+    if viewer is None:
+        return
+    viewer_user_id = str(viewer.get("id", ""))
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=viewer_user_id,
+        action="view",
+        setting_key="likeRateLimit",
+        default_limit=max(60, int(_globals.DEFAULT_SETTINGS["likeRateLimit"])),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="浏览帖子",
+            retry_after_seconds=retry_after,
+        )
+        return
 
     post = next(
         (p for p in db["posts"] if p.get("id") == post_id and not p.get("deleted")),

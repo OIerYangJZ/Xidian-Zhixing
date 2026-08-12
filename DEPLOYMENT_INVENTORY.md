@@ -121,7 +121,7 @@ Web 构建是 `index.html`、JavaScript、WASM/CanvasKit、字体和资源文件
 | Docker 忽略 | `.dockerignore` | 排除 Git、本地 DB/对象、env、证书、缓存、测试和前端源码 |
 | 开发 Compose | `docker-compose.yml` | 仅将 8080 绑定到 `127.0.0.1`；要求显式管理员账号密码 |
 | 生产 Compose | `docker-compose.prod.yml` | 仅使用预加载镜像；后端无宿主端口；Nginx 暂只开放 80，域名/证书完成后再启用 443 配置 |
-| HTTP Nginx | `deploy/tencent/nginx-xdu-whisperbox.conf` | 与域名无关，根目录 `/home/ubuntu/treehole/current/web`，代理回环 8080 |
+| HTTP Nginx | `deploy/tencent/nginx-xdu-whisperbox.conf` | 仅保留作开发/迁移参考；离线生产安装必须显式传入已渲染的 HTTPS 配置，不会自动安装此文件 |
 | HTTPS 模板 | `deploy/production/nginx-treehole-https.conf.template` | 通过 `scripts/render_nginx_https.py` 写入正式域名和证书绝对路径 |
 | 容器 Nginx | `deploy/production/nginx-container.conf` | Compose 内部代理 `backend:8080` |
 | systemd | `deploy/tencent/xdu-whisperbox.service` | 安装脚本将其安装为 `/etc/systemd/system/treehole.service` |

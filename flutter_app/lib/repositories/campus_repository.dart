@@ -12,7 +12,9 @@ class CampusRepository {
     final dynamic response = await _apiClient.get('/campus/services');
     return extractList(response)
         .map((dynamic item) => CampusService.fromJson(asMap(item)))
-        .where((CampusService item) => item.id.isNotEmpty && item.name.isNotEmpty)
+        .where(
+          (CampusService item) => item.id.isNotEmpty && item.name.isNotEmpty,
+        )
         .toList();
   }
 
@@ -20,7 +22,9 @@ class CampusRepository {
     final dynamic response = await _apiClient.get('/campus/services/$id');
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      throw Exception(uiTextGlobal(zh: '服务不存在', en: 'This service does not exist'));
+      throw Exception(
+        uiTextGlobal(zh: '服务不存在', en: 'This service does not exist'),
+      );
     }
     return CampusService.fromJson(map);
   }
@@ -103,7 +107,10 @@ class CampusRepository {
   }
 
   Future<CampusAuthResult> createDormWaterCaptcha() {
-    return _postAuth('/campus/auth/dorm-water/captcha', const <String, dynamic>{});
+    return _postAuth(
+      '/campus/auth/dorm-water/captcha',
+      const <String, dynamic>{},
+    );
   }
 
   Future<void> sendDormWaterSms({
@@ -122,16 +129,21 @@ class CampusRepository {
   }
 
   Future<CampusAuthResult> loginDormWater({
+    required String sessionId,
     required String phone,
     required String smsCode,
   }) {
     return _postAuth('/campus/auth/dorm-water/login', <String, dynamic>{
+      'sessionId': sessionId,
       'phone': phone,
       'smsCode': smsCode,
     });
   }
 
-  Future<CampusAuthResult> _postAuth(String path, Map<String, dynamic> body) async {
+  Future<CampusAuthResult> _postAuth(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     final dynamic response = await _apiClient.post(path, body: body);
     return CampusAuthResult.fromJson(extractMap(response));
   }

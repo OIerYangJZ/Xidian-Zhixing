@@ -4,11 +4,29 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:xdu_treehole_web/core/network/api_client.dart';
+import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'api_mocks.dart';
 
 void main() {
+  group('CommentItem', () {
+    test('匿名评论忽略旧接口残留的用户标识和头像', () {
+      final CommentItem comment = CommentItem.fromJson(<String, dynamic>{
+        'id': 'c1',
+        'authorAlias': '匿名同学',
+        'isAnonymous': true,
+        'authorUserId': 'stable-user-id',
+        'authorId': 'stable-user-id',
+        'userId': 'stable-user-id',
+        'authorAvatarUrl': '/api/storage/avatar/private.png',
+      });
+
+      expect(comment.authorUserId, isEmpty);
+      expect(comment.authorAvatar, isNull);
+    });
+  });
+
   group('PostRepository', () {
     late MockClient mockClient;
     late PostRepository postRepository;

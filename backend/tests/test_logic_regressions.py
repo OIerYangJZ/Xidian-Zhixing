@@ -1455,6 +1455,12 @@ def test_schoolnet_requires_actual_login_and_authenticated_home(
             self.status_code = status
             self.url = url
             self.text = text
+            self.content = (
+                text.encode("utf-8")
+                if text
+                else json.dumps(self._payload).encode("utf-8")
+            )
+            self.headers: dict[str, str] = {}
 
         def json(self) -> dict[str, Any]:
             return self._payload
@@ -1462,6 +1468,10 @@ def test_schoolnet_requires_actual_login_and_authenticated_home(
         def raise_for_status(self) -> None:
             if self.status_code >= 400:
                 raise requests.HTTPError(f"HTTP {self.status_code}")
+
+        def iter_content(self, chunk_size: int):
+            del chunk_size
+            yield self.content
 
     class Session:
         def __init__(self, login_status: int, home_url: str, home_text: str) -> None:
@@ -1875,6 +1885,10 @@ def test_physics_login_requires_authenticated_student_page(
             if self.status_code >= 400:
                 raise RuntimeError(f"HTTP {self.status_code}")
 
+        def iter_content(self, chunk_size: int):
+            del chunk_size
+            yield self.content
+
     class Session:
         def __init__(self, select_text: str) -> None:
             self.headers: dict[str, str] = {}
@@ -1909,6 +1923,16 @@ def test_physics_login_requires_authenticated_student_page(
             return Session(cls.select_text)
 
     monkeypatch.setattr(_campus_auth, "_import_requests", lambda: Requests)
+    monkeypatch.setattr(
+        _campus_auth,
+        "PHYSICS_LOGIN_URL",
+        "https://wlsy.xidian.edu.cn/PhyEws/default.aspx",
+    )
+    monkeypatch.setattr(
+        _campus_auth,
+        "PHYSICS_SELECT_URL",
+        "https://wlsy.xidian.edu.cn/PhyEws/student/select.aspx",
+    )
     with pytest.raises(_campus_auth.CampusAuthError, match="可验证"):
         _campus_auth.login_physics("2500211", "wrong-password")
 
@@ -1942,12 +1966,17 @@ def test_other_campus_logins_require_real_authorization_artifacts(
 
         def __init__(self, payload: dict[str, Any]) -> None:
             self.payload = payload
+            self.headers: dict[str, str] = {}
 
         def json(self) -> dict[str, Any]:
             return self.payload
 
         def raise_for_status(self) -> None:
             return None
+
+        def iter_content(self, chunk_size: int):
+            del chunk_size
+            yield json.dumps(self.payload).encode("utf-8")
 
     monkeypatch.setattr(
         _campus_auth,
@@ -1961,7 +1990,7 @@ def test_other_campus_logins_require_real_authorization_artifacts(
             {"returnCode": "200", "data": {"id": "sport-user"}}
         ),
     )
-    with pytest.raises(_campus_auth.CampusAuthError, match="登录凭证"):
+    with pytest.raises(_campus_auth.CampusAuthError, match="HTTPS"):
         _campus_auth.login_sport("2500213", "password")
 
     monkeypatch.setattr(
@@ -1971,8 +2000,22 @@ def test_other_campus_logins_require_real_authorization_artifacts(
             {"code": 0, "data": {"al": {"uid": "water-user"}}}
         ),
     )
+    monkeypatch.setitem(
+        _campus_auth._DORM_WATER_ATTEMPTS,
+        "dorm-water-session",
+        _campus_auth._DormWaterAttempt(
+            owner_user_id="u1",
+            expires_at=float("inf"),
+            phone="13800138000",
+        ),
+    )
     with pytest.raises(_campus_auth.CampusAuthCredentialError, match="登录凭证"):
-        _campus_auth.login_dorm_water("13800138000", "123456")
+        _campus_auth.login_dorm_water(
+            "dorm-water-session",
+            "13800138000",
+            "123456",
+            owner_user_id="u1",
+        )
 
 
 def test_invalid_post_status_returns_400_without_mutation(

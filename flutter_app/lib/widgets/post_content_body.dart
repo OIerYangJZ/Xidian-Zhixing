@@ -49,12 +49,17 @@ class PostContentBody extends StatelessWidget {
         'math-block': _MathElementBuilder(isBlock: true),
       },
       sizedImageBuilder: (MarkdownImageConfig config) {
-        final String resolvedUrl = AppConfig.resolveUrl(config.uri.toString());
+        final String resolvedUrl = AppConfig.resolveMediaUrl(
+          config.uri.toString(),
+        );
         final String rawSemanticLabel = (config.alt ?? config.title ?? '')
             .trim();
         final String semanticLabel = rawSemanticLabel.isEmpty
             ? uiText(context, zh: '图片', en: 'Image')
             : rawSemanticLabel;
+        if (resolvedUrl.isEmpty) {
+          return const SizedBox.shrink();
+        }
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: ClipRRect(

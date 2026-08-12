@@ -130,6 +130,27 @@ def consume_rate_limit(
     key = (user_id, action)
 
     with _globals.RATE_LIMIT_LOCK:
+        stale_keys: list[tuple[str, str]] = []
+        for existing_key, existing_queue in _globals.RATE_LIMIT_EVENTS.items():
+            existing_window = _globals.RATE_LIMIT_WINDOWS_SECONDS.get(
+                existing_key[1],
+                3600,
+            )
+            while existing_queue and now - existing_queue[0] >= existing_window:
+                existing_queue.popleft()
+            if not existing_queue:
+                stale_keys.append(existing_key)
+        for stale_key in stale_keys:
+            _globals.RATE_LIMIT_EVENTS.pop(stale_key, None)
+        if (
+            len(_globals.RATE_LIMIT_EVENTS) >= _globals.RATE_LIMIT_SUBJECT_MAX
+            and key not in _globals.RATE_LIMIT_EVENTS
+        ):
+            oldest_key = min(
+                _globals.RATE_LIMIT_EVENTS,
+                key=lambda item: _globals.RATE_LIMIT_EVENTS[item][-1],
+            )
+            _globals.RATE_LIMIT_EVENTS.pop(oldest_key, None)
         queue = _globals.RATE_LIMIT_EVENTS.setdefault(key, deque())
         while queue and now - queue[0] >= window_seconds:
             queue.popleft()

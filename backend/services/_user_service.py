@@ -897,14 +897,47 @@ def create_notification(
         include_deleted=True,
     ) is None:
         normalized_actor_id = ""
+    normalized_type = notification_type.strip() or "system"
+    normalized_related_type = related_type.strip()
+    normalized_related_id = related_id.strip()
+    if (
+        normalized_type in {"like", "favorite"}
+        and normalized_actor_id
+        and normalized_related_type
+        and normalized_related_id
+    ):
+        existing = next(
+            (
+                item for item in db.get("notifications", [])
+                if str(item.get("userId", "")).strip() == user_id.strip()
+                and str(item.get("type", "")).strip() == normalized_type
+                and str(item.get("relatedType", "")).strip()
+                == normalized_related_type
+                and str(item.get("relatedId", "")).strip()
+                == normalized_related_id
+                and str(item.get("actorId", "")).strip() == normalized_actor_id
+                and not item.get("deleted")
+            ),
+            None,
+        )
+        if existing is not None:
+            existing.update({
+                "title": title.strip(),
+                "content": content.strip(),
+                "postId": post_id.strip(),
+                "actorAlias": actor_alias.strip(),
+                "createdAt": now_iso(),
+                "readAt": "",
+            })
+            return existing
     row = {
         "id": next_id(db, "notification", "n"),
         "userId": user_id.strip(),
-        "type": notification_type.strip() or "system",
+        "type": normalized_type,
         "title": title.strip(),
         "content": content.strip(),
-        "relatedType": related_type.strip(),
-        "relatedId": related_id.strip(),
+        "relatedType": normalized_related_type,
+        "relatedId": normalized_related_id,
         "postId": post_id.strip(),
         "actorId": normalized_actor_id,
         "actorAlias": actor_alias.strip(),
@@ -913,6 +946,27 @@ def create_notification(
         "deleted": False,
     }
     db.setdefault("notifications", []).append(row)
+    target_rows = [
+        item for item in db["notifications"]
+        if str(item.get("userId", "")).strip() == user_id.strip()
+    ]
+    if len(target_rows) > _globals.NOTIFICATION_MAX_PER_USER:
+        target_rows.sort(
+            key=lambda item: (
+                str(item.get("createdAt", "")),
+                str(item.get("id", "")),
+            ),
+            reverse=True,
+        )
+        retained_ids = {
+            str(item.get("id", "")).strip()
+            for item in target_rows[:_globals.NOTIFICATION_MAX_PER_USER]
+        }
+        db["notifications"] = [
+            item for item in db["notifications"]
+            if str(item.get("userId", "")).strip() != user_id.strip()
+            or str(item.get("id", "")).strip() in retained_ids
+        ]
     return row
 
 
