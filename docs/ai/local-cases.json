@@ -74,10 +74,11 @@
   },
   {
     "id": "graduate-course-times",
-    "question": "2026年秋季研究生培养计划和选课分别从几月几日几点开始，到什么时候结束？只制定培养计划够不够？",
+    "question": "你是谁？2026年秋季研究生培养计划和选课分别从几月几日几点开始、什么时候结束？只制定培养计划够不够？",
     "intent": "campus_qa",
     "expectedDocument": "doc-b1df60d47ab6fe60e97e40c5",
     "contains": [
+      "小电",
       "9月8日",
       "9月18日",
       "17:00"

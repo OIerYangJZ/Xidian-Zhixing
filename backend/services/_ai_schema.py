@@ -10,8 +10,9 @@ def structured_output(name, properties):
     }}
 
 
+# Decide the route after writing the complete request, so an opening identity
+# question cannot prematurely suppress retrieval for later campus subquestions.
 QUERY_FORMAT = structured_output("xiaodian_query", {
-    "intent": {"type": "string", "enum": ["core", "campus_qa", "text", "general", "personal_data"]},
     "standaloneQuery": {"type": "string", "description": "供精排使用的独立完整问题。必须补回历史用户消息中的具体事项、学校和适用条件，脱离历史也能理解；不能只改写 queries 而遗漏此字段的主题。"},
     "queries": {"type": "array", "items": {"type": "string"}, "minItems": 1, "maxItems": 3},
     "campus": {"type": ["string", "null"], "enum": ["changan", "yanta", None]},
@@ -19,6 +20,7 @@ QUERY_FORMAT = structured_output("xiaodian_query", {
     "requestedFields": {"type": "array", "items": {"type": "string"}},
     "includeCommunity": {"type": "boolean"},
     "needsClarification": {"type": "boolean"},
+    "intent": {"type": "string", "enum": ["core", "campus_qa", "text", "general", "personal_data"]},
 })
 
 
