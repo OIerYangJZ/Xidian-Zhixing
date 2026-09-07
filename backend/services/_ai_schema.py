@@ -23,7 +23,8 @@ QUERY_FORMAT = structured_output("xiaodian_query", {
 
 
 def answer_format(source_ids):
-    sources = {"type": "array", "items": {"type": "string"}}
+    sources = {"type": "array", "items": {"type": "string"},
+        "description": "回答采用了本轮资料中的任何具体事实时，必须列出支持它的证据ID。混合身份介绍不免除其他事实的引用；只有完全未用资料时才为空。"}
     if source_ids:
         sources["items"]["enum"] = list(dict.fromkeys(source_ids))
     else:

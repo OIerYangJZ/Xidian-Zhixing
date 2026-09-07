@@ -11,7 +11,7 @@ def test_provider_receives_identity_core_knowledge_history_and_evidence(monkeypa
 
     def provider(request, timeout):
         captured.append(json.loads(request.data))
-        return {"choices": [{"message": {"content": json.dumps({"answer":"材料：\n1. 申请表\n2. 成绩单", "sourceIds":["test-source"]})}}]}
+        return {"choices": [{"message": {"content": json.dumps({"answer":"材料：\n1. 申请表\n2. 成绩单", "sourceIds":["S1"]})}}]}
 
     monkeypatch.setattr(_ai_handler, "_read_provider_json", provider)
     question = "那北校区呢"

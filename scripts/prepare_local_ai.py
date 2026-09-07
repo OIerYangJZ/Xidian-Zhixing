@@ -32,7 +32,8 @@ def main():
     config={'BACKEND_DB_FILE':str(target),'BACKEND_HOST':'127.0.0.1','BACKEND_PORT':'18080',
         'BACKEND_CORS_ALLOWED_ORIGINS':'http://127.0.0.1:18080','BACKEND_STORAGE_DIR':str(root/'storage'),
         'BACKEND_WEB_ROOT':str(root/'web'),'BACKEND_AI_BASE_URL':'http://127.0.0.1:11434/v1',
-        'BACKEND_AI_API_KEY':'local-ollama','BACKEND_AI_MODEL':'xiaodian-local',
+        'BACKEND_AI_API_KEY':'local-ollama','BACKEND_AI_MODEL':'xiaodian-local-instruct',
+        'BACKEND_AI_QUERY_TIMEOUT':'40','BACKEND_AI_CONTEXT_ITEMS':'4',
         'BACKEND_ADMIN_USERNAME':'local_ai_admin','BACKEND_ADMIN_PASSWORD':secrets.token_urlsafe(24),
         'BACKEND_RAG_URL':'http://127.0.0.1:8091','BACKEND_RAG_API_KEY':secrets.token_urlsafe(32)}
     (root/'backend-env.json').write_text(json.dumps(config,indent=2),encoding='utf8')
