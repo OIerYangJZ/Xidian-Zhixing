@@ -55,3 +55,6 @@ __pycache__/
 dist/
 offline/*
 !offline/README.md
+
+# 运维 Runbook：含堡垒机地址、端口与登录串，只留在本地
+RUNBOOK.md

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'admin_token_storage.dart' as web_storage;
+
 class AdminAuthStore {
   AdminAuthStore._();
 
@@ -25,7 +27,11 @@ class AdminAuthStore {
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
     if (!_useSecureStorage) {
-      _token = _prefs?.getString(_tokenKey);
+      // Web keeps the backoffice token in sessionStorage — see
+      // admin_token_storage_web.dart for why it is not SharedPreferences.
+      _token = web_storage.readAdminToken(_tokenKey);
+      // Purge any token an older build left in localStorage.
+      await _prefs?.remove(_tokenKey);
       return;
     }
     _token = await _secureStorage.read(key: _tokenKey);
@@ -46,13 +52,16 @@ class AdminAuthStore {
       await _prefs?.remove(_tokenKey);
       return;
     }
-    await _prefs?.setString(_tokenKey, token);
+    web_storage.writeAdminToken(_tokenKey, token);
+    await _prefs?.remove(_tokenKey);
   }
 
   Future<void> clear() async {
     _token = null;
     if (_useSecureStorage) {
       await _secureStorage.delete(key: _tokenKey);
+    } else {
+      web_storage.clearAdminToken(_tokenKey);
     }
     await _prefs?.remove(_tokenKey);
   }

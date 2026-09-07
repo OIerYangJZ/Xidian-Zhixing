@@ -2897,7 +2897,13 @@ def ensure_radio_schema(db: dict[str, Any]) -> bool:
         if key not in db.setdefault("seq", {}):
             db["seq"][key] = 0
             changed = True
-    if "ragIndex" not in db or not isinstance(db.get("ragIndex"), dict):
+    # The RAG index moved into a process-level cache (see rag_service).  Any
+    # copy left over in the state is dead weight that every load_db would have
+    # to JSON-decode out of the settings blob — 4.3 MB at 1500 posts.
+    if db.get("ragIndex"):
+        db["ragIndex"] = {}
+        changed = True
+    elif not isinstance(db.get("ragIndex"), dict):
         db["ragIndex"] = {}
         changed = True
     default_sections = _default_sections(created)

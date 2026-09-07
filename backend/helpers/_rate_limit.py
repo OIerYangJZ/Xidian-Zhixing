@@ -202,10 +202,18 @@ def _is_trusted_proxy(address: ipaddress.IPv4Address | ipaddress.IPv6Address | N
 def get_client_ip(handler: BaseHTTPRequestHandler) -> str:
     """Resolve the real client IP, honouring proxy headers only from trusted peers.
 
-    X-Forwarded-For is attacker-controlled on the leftmost entries: nginx appends
-    with $proxy_add_x_forwarded_for, so a forged header survives as a prefix.  We
-    therefore walk the chain right-to-left and return the first address that is
-    not itself a trusted proxy.
+    Behind our own nginx, X-Real-IP is authoritative: every deploy config sets
+    `proxy_set_header X-Real-IP $remote_addr`, which *overwrites* whatever the
+    client sent, so from a trusted peer it is the true socket address of the
+    caller.  It is preferred over X-Forwarded-For, whose leftmost entries stay
+    attacker-controlled (nginx appends with $proxy_add_x_forwarded_for, so a
+    forged prefix survives) and which therefore has to be walked right-to-left.
+
+    A client address in RFC1918 space is a normal client — campus NAT, VPN,
+    the docker bridge — and must not be mistaken for a proxy hop.  Treating it
+    as one used to make every such caller fall through to the peer address, so
+    they all shared a single rate-limit bucket and could exhaust each other's
+    login / upload / AI quota.  Only *intermediate* hops are skipped.
     """
     peer_raw = ""
     try:
@@ -218,18 +226,21 @@ def get_client_ip(handler: BaseHTTPRequestHandler) -> str:
         # Direct connection (or an unknown peer): never trust forwarding headers.
         return str(peer) if peer is not None else (peer_raw.strip() or "unknown")
 
-    forwarded_chain = handler.headers.get("X-Forwarded-For", "") or ""
-    for entry in reversed(forwarded_chain.split(",")):
-        candidate = _parse_ip(entry)
-        if candidate is None:
-            continue
-        if _is_trusted_proxy(candidate):
-            continue
-        return str(candidate)
-
     real_ip = _parse_ip(handler.headers.get("X-Real-IP", "") or "")
-    if real_ip is not None and not _is_trusted_proxy(real_ip):
+    if real_ip is not None:
         return str(real_ip)
+
+    # Fallback for a proxy that did not set X-Real-IP.  Take the *rightmost*
+    # X-Forwarded-For entry and nothing else: with $proxy_add_x_forwarded_for
+    # that is the address the trusted proxy itself observed, so it is the one
+    # entry a client cannot forge.  Anything further left is client-supplied.
+    # This assumes a single trusted hop, which is what every deploy config in
+    # this repo sets up; add X-Real-IP at the outermost proxy before adding a
+    # second layer.
+    for entry in reversed((handler.headers.get("X-Forwarded-For", "") or "").split(",")):
+        candidate = _parse_ip(entry)
+        if candidate is not None:
+            return str(candidate)
 
     return str(peer) if peer is not None else "unknown"
 

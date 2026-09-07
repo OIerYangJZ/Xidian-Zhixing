@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import io
 import json
 import logging
 import mimetypes
@@ -9,6 +10,7 @@ import re
 import secrets
 import signal
 import threading
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -217,11 +219,109 @@ def _get_version_info() -> dict[str, Any]:
     }
 
 
+# Endpoints reachable without a user session.  Everything else under /api
+# requires one — see _require_api_session.
+_SESSION_EXEMPT_PATHS = frozenset({
+    "/api/health",
+    "/api/version",
+    # Unified-auth handshake: by definition there is no session yet.
+    "/api/auth/xidian/session",
+    "/api/auth/xidian/start",
+    "/api/auth/xidian/callback",
+    # Public release manifest (version + download url only, no user data).
+    "/api/releases/android/latest",
+})
+_SESSION_EXEMPT_PATTERNS = (
+    # Poll for the result of a unified-auth attempt.
+    re.compile(r"/api/auth/xidian/session/[^/]+"),
+    # Capability urls: image loaders (<img>, cached_network_image, wx <image>)
+    # cannot attach an Authorization header, and the object keys carry 128 bits
+    # of entropy.  handle_storage_get does its own per-object moderation and
+    # visibility check.
+    re.compile(r"/api/storage/.+"),
+    # Admin console authenticates against ADMIN_SESSIONS, which is a separate
+    # namespace from db["sessions"]; every admin handler calls _require_admin /
+    # _require_primary_admin itself.
+    re.compile(r"/api/admin/.*"),
+    # Appeals are the escape hatch for accounts that cannot obtain a session
+    # (banned / cancelled), and verify credentials themselves.
+    re.compile(r"/api/appeals"),
+)
+
+
+def _is_session_exempt(path: str) -> bool:
+    if path in _SESSION_EXEMPT_PATHS:
+        return True
+    return any(pattern.fullmatch(path) for pattern in _SESSION_EXEMPT_PATTERNS)
+
+
+def _require_api_session(
+    handler: BaseHTTPRequestHandler,
+    path: str,
+    db: dict[str, Any],
+) -> bool:
+    """Enforce "no content before login" for every client, on the server.
+
+    All three clients gate their UI on a session, but that is cosmetic: the
+    request still reaches an endpoint that will happily answer without one.
+    This used to be keyed on the client-supplied X-Client-Type header, which
+    meant dropping the header exposed every read endpoint — posts, comments,
+    announcements, campus data — to the open internet.
+
+    Individual handlers still enforce their own authorization; this is the
+    floor, not a replacement for it.
+    """
+    if _is_session_exempt(path):
+        return True
+
+    user, _ = auth_user_helper(handler, db)
+    if user is None or user.get("deleted"):
+        json_error(handler, HTTPStatus.UNAUTHORIZED, "请先登录")
+        return False
+    if user.get("banned"):
+        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
+        return False
+    return True
+
+
+@contextmanager
+def _locked_response(handler: BaseHTTPRequestHandler) -> Any:
+    """`with DB_LOCK`, minus holding the lock while the response goes out.
+
+    DB_LOCK is process-wide and the dispatch blocks below write their response
+    from inside it.  handler.wfile is an *unbuffered* socket writer, so a client
+    that stops reading blocks that write as soon as the kernel send buffer fills
+    — and every other request in the process then queues behind the lock.  One
+    stalled reader was enough to freeze the service.
+
+    Buffer the response in memory instead and flush it once the lock is
+    released.  Bodies here are already fully materialised by send_json, so this
+    costs one transient copy and no streaming behaviour is lost.  The large
+    payloads (object storage, static web assets) are dispatched outside the lock
+    and never reach this path.
+    """
+    socket_wfile = handler.wfile
+    buffered = io.BytesIO()
+    handler.wfile = buffered
+    try:
+        with DB_LOCK:
+            yield
+    finally:
+        handler.wfile = socket_wfile
+        payload = buffered.getvalue()
+        if payload:
+            try:
+                socket_wfile.write(payload)
+            except OSError:
+                # The client went away before we could deliver (navigated off,
+                # lost signal).  That is a disconnect, not a server fault, and
+                # letting it escape a finally block would report it as a 500
+                # and then fail again trying to send that 500.
+                handler.close_connection = True
+
+
 class TreeholeHandler(BaseHTTPRequestHandler):
     server_version = "XduTreeholeBackend/0.2"
-    miniprogram_public_paths = {
-        "/api/auth/xidian/session",
-    }
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         if not request_origin_allowed(self):
@@ -279,9 +379,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
                 return
 
-            if not self._authorize_miniprogram_request(path):
-                return
-
             if method == "GET":
                 self._handle_get(path, query)
                 return
@@ -303,35 +400,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         except Exception:  # pragma: no cover
             _logger.exception("Unhandled error in _handle")
             json_error(self, HTTPStatus.INTERNAL_SERVER_ERROR, "Internal server error")
-
-    def _authorize_miniprogram_request(self, path: str) -> bool:
-        """Product rule: the miniprogram shows no content before login.
-
-        NOT a security boundary — X-Client-Type is a client-supplied string, so
-        anyone can skip this gate by omitting the header.  Every endpoint that
-        needs authentication must therefore still enforce it itself; this only
-        gives the miniprogram a consistent "please log in" response instead of
-        a half-populated page.  Never move an authorization decision here.
-        """
-        client_type = (self.headers.get("X-Client-Type", "") or "").strip().lower()
-        if client_type != "wechat-miniprogram":
-            return True
-        if path in self.miniprogram_public_paths:
-            return True
-        if re.fullmatch(r"/api/auth/xidian/session/[^/]+", path):
-            return True
-
-        with DB_LOCK:
-            db = load_db()
-            user, _ = auth_user_helper(self, db)
-
-        if user is None or user.get("deleted"):
-            json_error(self, HTTPStatus.UNAUTHORIZED, "请先登录")
-            return False
-        if user.get("banned"):
-            json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
-            return False
-        return True
 
     def _handle_web_get(self, path: str) -> None:
         index_file = WEB_ROOT_DIR / "index.html"
@@ -415,8 +483,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             _auth_handler.handle_xidian_auth_callback(self, None, query)
             return
 
-        with DB_LOCK:
+        with _locked_response(self):
             db = load_db()
+
+            if not _require_api_session(self, path, db):
+                return
 
             if path == "/api/sections":
                 _radio_handler.handle_get_sections(self, db)
@@ -754,79 +825,19 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         content_type = str(self.headers.get("Content-Type", "")).lower()
         if "multipart/form-data" not in content_type:
             self._cached_json_body = read_json_body(self)
-
-        if path == "/api/campus/auth/ids":
-            user = require_campus_auth_user()
-            if user is None:
-                return
-            body = read_json_body(self)
-            identifier = campus_identifier_for(user, body)
-            if identifier is None:
-                return
+        elif path == "/api/admin/releases/android":
+            # Drain the upload (up to 300MB) before taking DB_LOCK: reading it
+            # from inside the lock lets one slow uploader stall every other
+            # request for the duration of the transfer.  The handler's own
+            # error messages are preserved by replaying the failure there.
             try:
-                student_id, synced = _campus_auth.fetch_ids_academic_data(
-                    identifier,
-                    body.get("password", ""),
-                    owner_user_id=str(user.get("id", "")),
+                self._cached_multipart_form = _admin_handler.read_multipart_form(
+                    self,
+                    max_bytes=_admin_handler.ANDROID_RELEASE_MAX_BYTES,
                 )
-                with DB_LOCK:
-                    db = load_db()
-                    sync_counts = _campus_auth.apply_ids_academic_data(
-                        db,
-                        owner_user_id=str(user.get("id", "")),
-                        synced=synced,
-                    )
-                    save_db(db)
-                data = _campus_auth.build_ids_login_result(
-                    student_id=student_id,
-                    synced=synced,
-                    sync_counts=sync_counts,
-                )
-            except Exception as error:
-                status, message = _campus_auth.map_campus_auth_error(error)
-                json_error(self, HTTPStatus(status), message)
-                return
-            send_json(self, HTTPStatus.OK, {"data": data}, no_cache=True)
-            return
-        if path == "/api/campus/auth/payment":
-            user = require_campus_auth_user()
-            if user is None:
-                return
-            body = read_json_body(self)
-            identifier = campus_identifier_for(user, body)
-            if identifier is None:
-                return
-            send_campus_auth_result(lambda: _campus_auth.login_payment(
-                identifier,
-                body.get("password", ""),
-            ))
-            return
-        if path == "/api/campus/auth/physics":
-            user = require_campus_auth_user()
-            if user is None:
-                return
-            body = read_json_body(self)
-            identifier = campus_identifier_for(user, body)
-            if identifier is None:
-                return
-            send_campus_auth_result(lambda: _campus_auth.login_physics(
-                identifier,
-                body.get("password", ""),
-            ))
-            return
-        if path == "/api/campus/auth/sport":
-            user = require_campus_auth_user()
-            if user is None:
-                return
-            body = read_json_body(self)
-            identifier = campus_identifier_for(user, body)
-            if identifier is None:
-                return
-            send_campus_auth_result(lambda: _campus_auth.login_sport(
-                identifier,
-                body.get("password", ""),
-            ))
-            return
+            except Exception as error:  # replayed by read_multipart_form
+                self._cached_multipart_error = error
+
         if path == "/api/campus/auth/schoolnet/captcha":
             user = require_campus_auth_user()
             if user is None:
@@ -915,8 +926,26 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             _ai_handler.handle_ai_chat(self, db)
             return
 
-        with DB_LOCK:
+        # Retrieval rebuilds/patches the RAG index, which is pure-Python CPU.
+        # Running it inside the DB_LOCK dispatch block froze every other request
+        # for the duration; keep it out of the lock like /api/ai/chat.
+        if path == "/api/ai/search":
+            with DB_LOCK:
+                db = load_db()
+            _radio_handler.handle_ai_search(self, db)
+            return
+
+        if path == "/api/ai/post-selection":
+            with DB_LOCK:
+                db = load_db()
+            _radio_handler.handle_ai_post_selection(self, db)
+            return
+
+        with _locked_response(self):
             db = load_db()
+
+            if not _require_api_session(self, path, db):
+                return
 
             if path == "/api/admin/auth/login":
                 _admin_handler.handle_admin_auth_login(self, db)
@@ -948,14 +977,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             if path == "/api/hot-topics/rebuild":
                 _radio_handler.handle_rebuild_hot_topics(self, db)
-                return
-
-            if path == "/api/ai/search":
-                _radio_handler.handle_ai_search(self, db)
-                return
-
-            if path == "/api/ai/post-selection":
-                _radio_handler.handle_ai_post_selection(self, db)
                 return
 
             if path == "/api/admin/ai/knowledge-sources":
@@ -1084,6 +1105,28 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     return
                 if len(content) > 1000:
                     json_error(self, HTTPStatus.BAD_REQUEST, "反馈内容不能超过 1000 字")
+                    return
+                ip_allowed, ip_retry_after = check_ip_rate_limit(self, "feedback")
+                if not ip_allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="提交反馈",
+                        retry_after_seconds=ip_retry_after,
+                    )
+                    return
+                allowed, retry_after = consume_rate_limit(
+                    db,
+                    user_id=str(user.get("id", "")).strip(),
+                    action="feedback",
+                    setting_key="feedbackRateLimit",
+                    default_limit=_globals.DEFAULT_SETTINGS["feedbackRateLimit"],
+                )
+                if not allowed:
+                    send_rate_limit_error(
+                        self,
+                        action_text="提交反馈",
+                        retry_after_seconds=retry_after,
+                    )
                     return
                 feedback = {
                     "id": next_id(db, "feedback", "fb"),
@@ -1218,8 +1261,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
     def _handle_patch(self, path: str) -> None:
         self._cached_json_body = read_json_body(self)
-        with DB_LOCK:
+        with _locked_response(self):
             db = load_db()
+
+            if not _require_api_session(self, path, db):
+                return
 
             if path == "/api/admin/auth/password":
                 _admin_handler.handle_admin_change_password(self, db)
@@ -1272,8 +1318,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_delete(self, path: str) -> None:
-        with DB_LOCK:
+        with _locked_response(self):
             db = load_db()
+
+            if not _require_api_session(self, path, db):
+                return
 
             if path == "/api/users/me":
                 json_error(self, HTTPStatus.METHOD_NOT_ALLOWED, "请改用注销申请接口")

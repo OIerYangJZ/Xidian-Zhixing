@@ -6,8 +6,23 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 from typing import Any
 
-from helpers import json_error, now_iso, read_json_body, send_json
-from rag_service import citations, forum_citations, rebuild_rag_index, retrieve
+import _globals
+from helpers import (
+    check_ip_rate_limit,
+    consume_rate_limit,
+    json_error,
+    now_iso,
+    read_json_body,
+    send_json,
+    send_rate_limit_error,
+)
+from rag_service import (
+    citations,
+    forum_citations,
+    index_summary as rag_index_summary,
+    rebuild_rag_index,
+    retrieve,
+)
 from services import (
     add_audit_log,
     auth_admin,
@@ -334,6 +349,46 @@ def handle_apply_club(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> No
     if not name or not description:
         json_error(handler, HTTPStatus.BAD_REQUEST, "社团名称和申请说明不能为空")
         return
+
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "club_application")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="社团申请",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=str(user.get("id", "")).strip(),
+        action="club_application",
+        setting_key="clubApplicationRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["clubApplicationRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="社团申请",
+            retry_after_seconds=retry_after,
+        )
+        return
+
+    # A second submission for the same club while the first is still pending is
+    # a double-tap, not a new application.  Different club names stay allowed.
+    duplicate = next(
+        (
+            row
+            for row in db.get("clubApplications", [])
+            if str(row.get("applicantUserId", "")) == str(user.get("id", ""))
+            and _clean(row.get("name"), 80) == name
+            and str(row.get("status", "pending")).strip().lower() == "pending"
+        ),
+        None,
+    )
+    if duplicate is not None:
+        json_error(handler, HTTPStatus.CONFLICT, "该社团申请已提交，请等待审核")
+        return
+
     application = {
         "id": next_id(db, "clubApplication", "ca"),
         "name": name,
@@ -720,6 +775,29 @@ def handle_ai_search(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> Non
     if user is None:
         return
     body = read_json_body(handler)
+
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "ai_search")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 检索",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=str(user.get("id", "")).strip(),
+        action="ai_search",
+        setting_key="aiSearchRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["aiSearchRateLimit"]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 检索",
+            retry_after_seconds=retry_after,
+        )
+        return
     query_text = _clean(body.get("query") or body.get("content"), 300)
     if not query_text:
         json_error(handler, HTTPStatus.BAD_REQUEST, "检索内容不能为空")
@@ -733,6 +811,29 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
     if user is None:
         return
     body = read_json_body(handler)
+
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "ai_search")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 检索",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=str(user.get("id", "")).strip(),
+        action="ai_search",
+        setting_key="aiSearchRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["aiSearchRateLimit"]),
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="AI 检索",
+            retry_after_seconds=retry_after,
+        )
+        return
     selected_text = _clean(body.get("selectedText") or body.get("content"), 1200)
     question = _clean(body.get("question") or "解释这段内容并给出校园相关线索", 300)
     if not selected_text:
@@ -823,15 +924,11 @@ def handle_admin_list_knowledge_sources(handler: BaseHTTPRequestHandler, db: dic
             "contentLength": sum(len(str(row.get("content", ""))) for row in source_documents),
         })
     rows.sort(key=lambda item: str(item.get("updatedAt") or item.get("createdAt") or ""), reverse=True)
-    raw_index = db.get("ragIndex", {}) if isinstance(db.get("ragIndex", {}), dict) else {}
-    index_summary = {
-        "version": raw_index.get("version", 0),
-        "updatedAt": raw_index.get("updatedAt", ""),
-        "documentCount": raw_index.get("documentCount", 0),
-        "knowledgeCount": raw_index.get("knowledgeCount", 0),
-        "postCount": raw_index.get("postCount", 0),
-    }
-    send_json(handler, HTTPStatus.OK, {"data": {"items": rows, "index": index_summary}})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": {"items": rows, "index": rag_index_summary()}},
+    )
 
 
 def _replace_source_chunks(db: dict[str, Any], source: dict[str, Any], document: dict[str, Any]) -> int:

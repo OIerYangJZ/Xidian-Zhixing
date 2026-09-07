@@ -1,16 +1,24 @@
 """Private campus RAG indexing and retrieval.
 
-The service deliberately keeps the index in the existing application state so
-the JSON/SQLite repository remains the source of truth.  Retrieval uses a
-small BM25-style inverted index with Chinese character n-grams.  This keeps
-the first deployment self-contained while leaving the document metadata ready
-for a remote embedding/reranking service later.
+Retrieval uses a small BM25-style inverted index with Chinese character
+n-grams.  The index is derived data, so it lives in a process-level cache
+rather than in the application state dict:
+
+  * keeping it in the state meant every request paid to JSON-decode it out of
+    the settings blob (4.3 MB at 1500 posts, ~60 ms per request), and
+  * the read paths never saved the state they rebuilt it into, so the index was
+    reconstructed from scratch on *every* AI request and then thrown away
+    (11 s at 1500 posts, holding the GIL the whole time).
+
+The cache is maintained incrementally: a new post re-tokenises that one
+document instead of the entire corpus.
 """
 from __future__ import annotations
 
 import hashlib
 import math
 import re
+import threading
 from datetime import datetime, timezone
 from typing import Any
 
@@ -18,11 +26,20 @@ from services._user_service import is_post_private
 
 
 INDEX_KEY = "ragIndex"
-INDEX_VERSION = 2
-MAX_QUERY_TERMS = 80
+INDEX_VERSION = 3
 
-_WORD_RE = re.compile(r"[A-Za-z0-9_]+|[\u4e00-\u9fff]")
-_CJK_RUN_RE = re.compile(r"[\u4e00-\u9fff]{2,}")
+# Queries stay short on purpose — beyond a point extra terms only add noise.
+MAX_QUERY_TERMS = 80
+# Documents keep their whole vocabulary.  Truncating them to MAX_QUERY_TERMS
+# (as every earlier version did) meant a Chinese post was indexed by roughly
+# its first 80 single characters: no 2/3/4-grams survived, "图书馆" never made
+# it into the index, and every document reported the same length so BM25's
+# length normalisation did nothing.  The ceiling here only guards against a
+# pathological single document.
+MAX_DOCUMENT_TERMS = 20_000
+
+_WORD_RE = re.compile("[A-Za-z0-9_]+|[\\u4e00-\\u9fff]")
+_CJK_RUN_RE = re.compile("[\\u4e00-\\u9fff]{2,}")
 _ALIAS_EXPANSIONS = {
     "教学楼": ["教学楼", "教室", "楼"],
     "教室": ["教室", "教学楼", "上课"],
@@ -35,6 +52,12 @@ _ALIAS_EXPANSIONS = {
     "成绩": ["成绩", "教务", "考试"],
 }
 
+# Guards the cache and every read of the structures inside it: retrieve()
+# scores against the same dicts that an incremental update mutates.  Reentrant
+# so ensure_rag_index() can be called from inside a held section.
+_INDEX_LOCK = threading.RLock()
+_INDEX_CACHE: dict[bool, dict[str, Any]] = {}
+
 
 def _clean(value: Any, limit: int = 6000) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()[:limit]
@@ -44,31 +67,48 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _tokenize(text: str) -> list[str]:
-    text = str(text or "").lower()
+def _tokenize(text: str, *, limit: int) -> list[str]:
+    """Distinct terms of `text`, in a stable order, capped at `limit`.
+
+    Dedup goes through a set: the old list membership test made this O(n²) and
+    a single 2400-character post cost ~88 ms to tokenise.
+    """
+    lowered = str(text or "").lower()
+    seen: set[str] = set()
     tokens: list[str] = []
-    for match in _WORD_RE.finditer(text):
+
+    for match in _WORD_RE.finditer(lowered):
         token = match.group(0)
-        if token not in tokens:
+        if token not in seen:
+            seen.add(token)
             tokens.append(token)
-    for run in _CJK_RUN_RE.findall(text):
+            if len(tokens) >= limit:
+                return tokens
+
+    for run in _CJK_RUN_RE.findall(lowered):
         for size in (2, 3, 4):
             if len(run) < size:
                 continue
             for start in range(0, len(run) - size + 1):
                 token = run[start : start + size]
-                if token not in tokens:
+                if token not in seen:
+                    seen.add(token)
                     tokens.append(token)
-    return tokens[:MAX_QUERY_TERMS]
+                    if len(tokens) >= limit:
+                        return tokens
+    return tokens
 
 
 def _query_tokens(query: str) -> list[str]:
-    base = _tokenize(query)
+    base = _tokenize(query, limit=MAX_QUERY_TERMS)
     expanded = list(base)
+    seen = set(base)
     for token in base:
         for replacement in _ALIAS_EXPANSIONS.get(token, []):
-            if replacement not in expanded:
-                expanded.extend(_tokenize(replacement))
+            for extra in _tokenize(replacement, limit=MAX_QUERY_TERMS):
+                if extra not in seen:
+                    seen.add(extra)
+                    expanded.append(extra)
     return expanded[:MAX_QUERY_TERMS]
 
 
@@ -138,6 +178,17 @@ def _corpus(db: dict[str, Any], include_posts: bool = True) -> list[dict[str, An
     return rows
 
 
+_FINGERPRINT_FIELDS = (
+    "type", "id", "title", "content", "searchText", "sourceUrl",
+    "sourceName", "authority", "createdAt", "updatedAt", "jumpUrl", "channel",
+)
+
+
+def _row_fingerprint(row: dict[str, Any]) -> str:
+    payload = "\x1f".join(str(row.get(field, "")) for field in _FINGERPRINT_FIELDS)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def _signature(rows: list[dict[str, Any]]) -> str:
     payload = "\n".join(
         f"{row['key']}|{row.get('updatedAt', '')}|{row.get('content', '')}"
@@ -146,46 +197,148 @@ def _signature(rows: list[dict[str, Any]]) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
-def rebuild_rag_index(db: dict[str, Any], *, include_posts: bool = True) -> dict[str, Any]:
-    rows = _corpus(db, include_posts=include_posts)
-    inverted: dict[str, dict[str, int]] = {}
-    documents: dict[str, dict[str, Any]] = {}
-    total_length = 0
-    for row in rows:
-        tokens = _tokenize(row.get("searchText", ""))
-        counts: dict[str, int] = {}
-        for token in tokens:
-            counts[token] = counts.get(token, 0) + 1
-        for token, count in counts.items():
-            inverted.setdefault(token, {})[row["key"]] = count
-        total_length += len(tokens)
-        documents[row["key"]] = {
-            **row,
-            "length": len(tokens),
-        }
-    index = {
+def _add_document(index: dict[str, Any], row: dict[str, Any]) -> None:
+    tokens = _tokenize(row.get("searchText", ""), limit=MAX_DOCUMENT_TERMS)
+    counts: dict[str, int] = {}
+    for token in tokens:
+        counts[token] = counts.get(token, 0) + 1
+    inverted = index["inverted"]
+    key = row["key"]
+    for token, count in counts.items():
+        inverted.setdefault(token, {})[key] = count
+    index["documents"][key] = {
+        **row,
+        "length": len(tokens),
+        "fingerprint": _row_fingerprint(row),
+    }
+
+
+def _remove_document(index: dict[str, Any], key: str) -> None:
+    document = index["documents"].pop(key, None)
+    if document is None:
+        return
+    inverted = index["inverted"]
+    for token in _tokenize(document.get("searchText", ""), limit=MAX_DOCUMENT_TERMS):
+        posting = inverted.get(token)
+        if posting is None:
+            continue
+        posting.pop(key, None)
+        if not posting:
+            inverted.pop(token, None)
+
+
+def _refresh_stats(index: dict[str, Any], *, include_posts: bool) -> None:
+    documents = index["documents"]
+    total_length = sum(int(row.get("length", 0) or 0) for row in documents.values())
+    index["includePosts"] = include_posts
+    index["documentCount"] = len(documents)
+    index["knowledgeCount"] = sum(
+        1 for row in documents.values() if row.get("type") == "knowledge"
+    )
+    index["postCount"] = sum(
+        1 for row in documents.values() if row.get("type") == "post"
+    )
+    index["averageLength"] = (total_length / len(documents)) if documents else 1.0
+    index["updatedAt"] = _now()
+
+
+def _empty_index(include_posts: bool) -> dict[str, Any]:
+    return {
         "version": INDEX_VERSION,
-        "signature": _signature(rows),
+        "signature": "",
         "updatedAt": _now(),
         "includePosts": include_posts,
-        "documents": documents,
-        "inverted": inverted,
-        "documentCount": len(documents),
-        "knowledgeCount": sum(1 for row in rows if row["type"] == "knowledge"),
-        "postCount": sum(1 for row in rows if row["type"] == "post"),
-        "averageLength": (total_length / len(rows)) if rows else 1.0,
+        "documents": {},
+        "inverted": {},
+        "documentCount": 0,
+        "knowledgeCount": 0,
+        "postCount": 0,
+        "averageLength": 1.0,
     }
-    db[INDEX_KEY] = index
+
+
+def _sync_locked(
+    index: dict[str, Any],
+    rows: list[dict[str, Any]],
+    *,
+    include_posts: bool,
+) -> dict[str, Any]:
+    """Bring `index` in line with `rows`, touching only what moved."""
+    documents = index["documents"]
+    incoming = {row["key"]: row for row in rows}
+
+    stale = [key for key in documents if key not in incoming]
+    changed = [
+        key
+        for key, row in incoming.items()
+        if key in documents and documents[key].get("fingerprint") != _row_fingerprint(row)
+    ]
+    fresh = [key for key in incoming if key not in documents]
+
+    if not stale and not changed and not fresh:
+        return index
+
+    for key in stale:
+        _remove_document(index, key)
+    for key in changed:
+        _remove_document(index, key)
+        _add_document(index, incoming[key])
+    for key in fresh:
+        _add_document(index, incoming[key])
+
+    index["signature"] = _signature(rows)
+    _refresh_stats(index, include_posts=include_posts)
     return index
+
+
+def rebuild_rag_index(db: dict[str, Any], *, include_posts: bool = True) -> dict[str, Any]:
+    """Discard the cached index and build it again from scratch."""
+    rows = _corpus(db, include_posts=include_posts)
+    with _INDEX_LOCK:
+        index = _empty_index(include_posts)
+        for row in rows:
+            _add_document(index, row)
+        index["signature"] = _signature(rows)
+        _refresh_stats(index, include_posts=include_posts)
+        _INDEX_CACHE[include_posts] = index
+        return index
 
 
 def ensure_rag_index(db: dict[str, Any], *, include_posts: bool = True) -> dict[str, Any]:
     rows = _corpus(db, include_posts=include_posts)
-    current = db.get(INDEX_KEY)
-    signature = _signature(rows)
-    if not isinstance(current, dict) or current.get("version") != INDEX_VERSION or current.get("signature") != signature or current.get("includePosts") != include_posts:
-        return rebuild_rag_index(db, include_posts=include_posts)
-    return current
+    with _INDEX_LOCK:
+        cached = _INDEX_CACHE.get(include_posts)
+        if not isinstance(cached, dict) or cached.get("version") != INDEX_VERSION:
+            cached = _empty_index(include_posts)
+            _INDEX_CACHE[include_posts] = cached
+        return _sync_locked(cached, rows, include_posts=include_posts)
+
+
+def index_summary() -> dict[str, Any]:
+    """Stats for the admin knowledge-source page."""
+    with _INDEX_LOCK:
+        index = _INDEX_CACHE.get(True) or _INDEX_CACHE.get(False)
+        if not isinstance(index, dict):
+            return {
+                "version": 0,
+                "updatedAt": "",
+                "documentCount": 0,
+                "knowledgeCount": 0,
+                "postCount": 0,
+            }
+        return {
+            "version": index.get("version", 0),
+            "updatedAt": index.get("updatedAt", ""),
+            "documentCount": index.get("documentCount", 0),
+            "knowledgeCount": index.get("knowledgeCount", 0),
+            "postCount": index.get("postCount", 0),
+        }
+
+
+def reset_index_cache() -> None:
+    """Drop the cache; used by tests that need a cold start."""
+    with _INDEX_LOCK:
+        _INDEX_CACHE.clear()
 
 
 def _authority_boost(row: dict[str, Any]) -> float:
@@ -195,49 +348,53 @@ def _authority_boost(row: dict[str, Any]) -> float:
 
 
 def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limit: int = 8) -> list[dict[str, Any]]:
-    index = ensure_rag_index(db, include_posts=include_posts)
-    tokens = _query_tokens(query)
-    if not tokens:
-        return []
-    documents = index.get("documents", {})
-    inverted = index.get("inverted", {})
-    total_docs = max(1, int(index.get("documentCount", len(documents))))
-    average_length = max(1.0, float(index.get("averageLength", 1.0)))
-    scores: dict[str, float] = {}
-    k1, b = 1.35, 0.72
-    for token in tokens:
-        posting = inverted.get(token, {})
-        if not isinstance(posting, dict) or not posting:
-            continue
-        idf = math.log(1.0 + (total_docs - len(posting) + 0.5) / (len(posting) + 0.5))
-        for key, raw_tf in posting.items():
-            row = documents.get(key, {})
-            length = max(1, int(row.get("length", 1)))
-            tf = float(raw_tf)
-            score = idf * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + b * length / average_length)))
-            scores[key] = scores.get(key, 0.0) + score
-    ranked: list[tuple[float, dict[str, Any]]] = []
-    for key, score in scores.items():
-        row = documents.get(key)
-        if not isinstance(row, dict):
-            continue
-        ranked.append((score * _authority_boost(row), row))
-    ranked.sort(key=lambda item: (item[0], str(item[1].get("updatedAt", ""))), reverse=True)
-    results: list[dict[str, Any]] = []
-    seen_titles: set[str] = set()
-    for score, row in ranked:
-        title = str(row.get("title", ""))
-        if title in seen_titles and row.get("type") == "knowledge":
-            continue
-        seen_titles.add(title)
-        results.append({
-            **row,
-            "score": round(score, 6),
-            "summary": _clean(row.get("content"), 260),
-        })
-        if len(results) >= limit:
-            break
-    return results
+    # The whole scoring pass stays under the index lock: it reads the same
+    # dictionaries an incremental update mutates.
+    with _INDEX_LOCK:
+        index = ensure_rag_index(db, include_posts=include_posts)
+        tokens = _query_tokens(query)
+        if not tokens:
+            return []
+        documents = index.get("documents", {})
+        inverted = index.get("inverted", {})
+        total_docs = max(1, int(index.get("documentCount", len(documents))))
+        average_length = max(1.0, float(index.get("averageLength", 1.0)))
+        scores: dict[str, float] = {}
+        k1, b = 1.35, 0.72
+        for token in tokens:
+            posting = inverted.get(token, {})
+            if not isinstance(posting, dict) or not posting:
+                continue
+            idf = math.log(1.0 + (total_docs - len(posting) + 0.5) / (len(posting) + 0.5))
+            for key, raw_tf in posting.items():
+                row = documents.get(key, {})
+                length = max(1, int(row.get("length", 1)))
+                tf = float(raw_tf)
+                score = idf * ((tf * (k1 + 1)) / (tf + k1 * (1 - b + b * length / average_length)))
+                scores[key] = scores.get(key, 0.0) + score
+        ranked: list[tuple[float, dict[str, Any]]] = []
+        for key, score in scores.items():
+            row = documents.get(key)
+            if not isinstance(row, dict):
+                continue
+            ranked.append((score * _authority_boost(row), row))
+        ranked.sort(key=lambda item: (item[0], str(item[1].get("updatedAt", ""))), reverse=True)
+        results: list[dict[str, Any]] = []
+        seen_titles: set[str] = set()
+        for score, row in ranked:
+            title = str(row.get("title", ""))
+            if title in seen_titles and row.get("type") == "knowledge":
+                continue
+            seen_titles.add(title)
+            payload = {key: value for key, value in row.items() if key != "fingerprint"}
+            results.append({
+                **payload,
+                "score": round(score, 6),
+                "summary": _clean(row.get("content"), 260),
+            })
+            if len(results) >= limit:
+                break
+        return results
 
 
 def citations(results: list[dict[str, Any]]) -> list[dict[str, Any]]:

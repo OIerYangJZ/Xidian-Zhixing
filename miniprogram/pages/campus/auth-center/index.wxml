@@ -35,28 +35,7 @@
       <view class="saved-meta">{{activeState.updatedAt}} · {{activeState.studentId}}</view>
     </view>
 
-    <block wx:if="{{activeInfo.type === 'ids' || activeInfo.type === 'password'}}">
-      <view class="form-box">
-        <view class="form-row">
-          <view class="field-label">学号</view>
-          <input class="field-input" value="{{studentId}}" placeholder="请输入学号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
-        </view>
-        <view class="form-row">
-          <view class="field-label">密码</view>
-          <input
-            class="field-input"
-            type="password"
-            value="{{password}}"
-            placeholder="{{activeInfo.passwordPlaceholder}}"
-            placeholder-class="field-placeholder"
-            bindinput="onPasswordInput"
-          />
-        </view>
-      </view>
-      <button class="primary-action" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitPasswordAuth">验证{{activeInfo.name}}</button>
-    </block>
-
-    <block wx:elif="{{activeInfo.type === 'schoolnet'}}">
+    <block wx:if="{{activeInfo.type === 'schoolnet'}}">
       <view class="form-box">
         <view class="form-row">
           <view class="field-label">账号</view>

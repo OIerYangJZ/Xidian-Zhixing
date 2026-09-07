@@ -139,7 +139,7 @@ Page({
   },
 
   openIdsLogin() {
-    wx.navigateTo({ url: '/pages/campus/auth-center/index?system=ids' });
+    wx.navigateTo({ url: '/pages/campus/auth-center/index?system=schoolnet' });
   },
 
   openQuickLink(event) {

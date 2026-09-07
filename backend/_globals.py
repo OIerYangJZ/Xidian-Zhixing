@@ -240,9 +240,16 @@ def configure() -> None:
         "verificationCheckRateLimit": 10,
         "passwordResetRateLimit": 5,
         "appealRateLimit": 5,
+        # Every one of these appends a permanent row and save_db rewrites the
+        # whole database, so an unmetered caller is both a storage leak and an
+        # O(database) amplifier.
+        "clubApplicationRateLimit": 5,
+        "feedbackRateLimit": 5,
+        "pinRequestRateLimit": 10,
         "campusAuthRateLimit": 20,
         "dormWaterSmsRateLimit": 3,
         "aiChatRateLimit": 30,
+        "aiSearchRateLimit": 60,
         "interactionRateLimit": 60,
     })
     DEFAULT_SENSITIVE_WORDS[:] = ["引流", "广告", "辱骂", "诈骗"]
@@ -304,9 +311,13 @@ def configure() -> None:
         "verification_check": 600,
         "password_reset": 600,
         "appeal": 3600,
+        "club_application": 3600,
+        "feedback": 3600,
+        "pin_request": 3600,
         "campus_auth": 900,
         "dorm_water_sms": 3600,
         "ai_chat": 3600,
+        "ai_search": 3600,
         "interaction": 3600,
     })
     IP_RATE_LIMITS.clear()
@@ -321,8 +332,12 @@ def configure() -> None:
         "verification_check": {"limit": 30, "window": 600},
         "password_reset": {"limit": 15, "window": 600},
         "appeal": {"limit": 15, "window": 3600},
+        "club_application": {"limit": 15, "window": 3600},
+        "feedback": {"limit": 15, "window": 3600},
+        "pin_request": {"limit": 30, "window": 3600},
         "campus_auth": {"limit": 40, "window": 900},
         "ai_chat": {"limit": 60, "window": 3600},
+        "ai_search": {"limit": 120, "window": 3600},
         "interaction": {"limit": 180, "window": 3600},
     })
 

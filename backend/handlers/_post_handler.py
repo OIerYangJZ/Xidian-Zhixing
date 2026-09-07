@@ -57,6 +57,7 @@ from services import (
     find_user_by_id,
     iso_to_time_text,
     is_level_one_user,
+    is_post_anonymous,
     is_post_private,
     is_user_following,
     latest_pending_appeal_for_user,
@@ -303,8 +304,16 @@ def handle_get_posts(
             continue
         if allow_dm is not None and _globals.effective_post_allow_dm(db, post) != allow_dm:
             continue
-        if author_id and str(post.get("authorId", "")).strip() != author_id:
-            continue
+        if author_id:
+            if str(post.get("authorId", "")).strip() != author_id:
+                continue
+            # The query itself is the disclosure: emptying authorUserId in the
+            # response is not enough, because a caller who asked for authorId=X
+            # and got a post back has just learned that X wrote it.  Anonymous
+            # posts must therefore never be reachable through this filter for
+            # anyone but their own author.
+            if is_post_anonymous(db, post) and author_id != viewer_user_id:
+                continue
         if section_id and str(post.get("sectionId", "")).strip() != section_id:
             continue
         if section_type and str(post.get("sectionType", "")).strip() != section_type:
@@ -1383,6 +1392,29 @@ def handle_pin_request(
         json_error(handler, HTTPStatus.BAD_REQUEST, "请选择有效的置顶时长")
         return
     reason = str(body.get("reason", "")).strip()
+
+    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "pin_request")
+    if not ip_allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="置顶申请",
+            retry_after_seconds=ip_retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=user["id"],
+        action="pin_request",
+        setting_key="pinRequestRateLimit",
+        default_limit=_globals.DEFAULT_SETTINGS["pinRequestRateLimit"],
+    )
+    if not allowed:
+        send_rate_limit_error(
+            handler,
+            action_text="置顶申请",
+            retry_after_seconds=retry_after,
+        )
+        return
 
     if is_level_one_user(user):
         if is_post_pin_active(post):

@@ -58,34 +58,6 @@ class CampusRepository {
     return CampusCalendar.fromJson(extractMap(response));
   }
 
-  Future<CampusAuthResult> loginIds(String identifier, String password) {
-    return _postAuth('/campus/auth/ids', <String, dynamic>{
-      'identifier': identifier,
-      'password': password,
-    });
-  }
-
-  Future<CampusAuthResult> loginPayment(String identifier, String password) {
-    return _postAuth('/campus/auth/payment', <String, dynamic>{
-      'identifier': identifier,
-      'password': password,
-    });
-  }
-
-  Future<CampusAuthResult> loginPhysics(String identifier, String password) {
-    return _postAuth('/campus/auth/physics', <String, dynamic>{
-      'identifier': identifier,
-      'password': password,
-    });
-  }
-
-  Future<CampusAuthResult> loginSport(String identifier, String password) {
-    return _postAuth('/campus/auth/sport', <String, dynamic>{
-      'identifier': identifier,
-      'password': password,
-    });
-  }
-
   Future<CampusAuthResult> createSchoolnetCaptcha(String identifier) {
     return _postAuth('/campus/auth/schoolnet/captcha', <String, dynamic>{
       'identifier': identifier,

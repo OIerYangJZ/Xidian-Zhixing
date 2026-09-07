@@ -102,41 +102,6 @@ export const getCalendarSchedules = async (params = {}) => {
   return response;
 };
 
-export const loginCampusIds = async (identifier, password, options = {}) => {
-  const response = await request.post('/api/campus/auth/ids', { identifier, password }, {
-    ...CAMPUS_AUTH_OPTIONS,
-    ...options
-  });
-  return requireAuthResponse(response, 'ids');
-};
-
-export const loginCampusPayment = async (identifier, password) => {
-  const response = await request.post(
-    '/api/campus/auth/payment',
-    { identifier, password },
-    CAMPUS_AUTH_OPTIONS
-  );
-  return requireAuthResponse(response, 'payment');
-};
-
-export const loginCampusPhysics = async (identifier, password) => {
-  const response = await request.post(
-    '/api/campus/auth/physics',
-    { identifier, password },
-    CAMPUS_AUTH_OPTIONS
-  );
-  return requireAuthResponse(response, 'physics');
-};
-
-export const loginCampusSport = async (identifier, password) => {
-  const response = await request.post(
-    '/api/campus/auth/sport',
-    { identifier, password },
-    CAMPUS_AUTH_OPTIONS
-  );
-  return requireAuthResponse(response, 'sport');
-};
-
 export const createCampusSchoolnetCaptcha = async (identifier) => {
   const response = await request.post(
     '/api/campus/auth/schoolnet/captcha',

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/auth/admin_auth_store.dart';
 import 'core/auth/auth_store.dart';
+import 'core/config/app_config.dart';
 import 'core/state/app_locale_store.dart';
 import 'core/state/app_theme_store.dart';
 import 'features/admin/admin_portal_page.dart';
@@ -95,7 +96,8 @@ class XduTreeholeApp extends StatelessWidget {
     if (AuthStore.instance.isAuthenticated) {
       return const HomeShell();
     }
-    if (AdminAuthStore.instance.isAuthenticated) {
+    if (AppConfig.adminConsoleEnabled &&
+        AdminAuthStore.instance.isAuthenticated) {
       return const AdminPortalPage();
     }
     return const LoginPage();

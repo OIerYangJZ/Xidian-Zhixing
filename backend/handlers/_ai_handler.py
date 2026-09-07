@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
@@ -21,6 +22,8 @@ from helpers import (
 from rag_service import forum_citations, retrieve
 from services import auth_user as auth_user_helper, load_db, save_db
 
+
+logger = logging.getLogger("treehole.ai")
 
 MAX_CONTEXT_ITEMS = 8
 MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
@@ -104,14 +107,33 @@ def _read_provider_json(request: Request, timeout: int = 25) -> dict[str, Any]:
         with urlopen(request, timeout=timeout) as response:
             raw = _read_provider_body(response).decode("utf-8")
     except HTTPError as error:
+        # The provider's error body is echoed straight to the caller, so it must
+        # not travel any further than the log: it routinely names the upstream
+        # endpoint, the account, quota state and — on a misconfigured gateway —
+        # a fragment of the API key.
         detail = ""
         try:
             detail = _read_provider_body(error).decode("utf-8")
         except Exception:
             detail = str(error)
-        raise RuntimeError(f"模型接口返回 {error.code}: {detail[:240]}") from error
+        logger.warning(
+            "ai provider returned an error",
+            extra={"structured": {
+                "event": "ai_provider_error",
+                "status": int(error.code),
+                "detail": detail[:2000],
+            }},
+        )
+        raise RuntimeError(f"模型接口返回错误（状态码 {error.code}）") from error
     except URLError as error:
-        raise RuntimeError(f"无法连接模型接口: {error.reason}") from error
+        logger.warning(
+            "ai provider is unreachable",
+            extra={"structured": {
+                "event": "ai_provider_unreachable",
+                "reason": str(error.reason)[:2000],
+            }},
+        )
+        raise RuntimeError("无法连接模型接口") from error
     except TimeoutError as error:
         raise RuntimeError("模型接口响应超时") from error
     try:
