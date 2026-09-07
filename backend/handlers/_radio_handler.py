@@ -834,14 +834,20 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
             retry_after_seconds=retry_after,
         )
         return
-    selected_text = _clean(body.get("selectedText") or body.get("content"), 1200)
+    selected_text = str(body.get("selectedText") or body.get("content") or "").strip()
+    if len(selected_text) > 11000:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "选中文本最多 11000 字，请分段提取")
+        return
     question = _clean(body.get("question") or "解释这段内容并给出校园相关线索", 300)
     if not selected_text:
         json_error(handler, HTTPStatus.BAD_REQUEST, "选中文本不能为空")
         return
-    citations = forum_citations(retrieve(db, f"{question} {selected_text}", include_posts=True, limit=6))
-    answer = f"已根据选中文本整理：{selected_text[:160]}。如涉及论坛讨论，相关原帖会在下方提供。"
-    send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": citations, "relatedActions": [], "usage": {"sourceCount": len(citations)}, "reviewStatus": "approved"}})
+    from handlers import _ai_handler
+
+    _ai_handler.handle_ai_chat(handler, db, text_task=True, body={
+        "content": f"{question}\n\n以下是用户选中的待处理文本：\n<selected-text>\n{selected_text}\n</selected-text>",
+        "messages": [],
+    })
 
 
 

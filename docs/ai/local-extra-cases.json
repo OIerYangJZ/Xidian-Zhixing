@@ -1,0 +1,63 @@
+[
+  {
+    "id": "phd-duration-reference",
+    "question": "按西电2026年学术学位博士招生简章，普通招考、硕博连读和直博的学制分别几年？推荐意见至少需要几位什么资格的专家？",
+    "intent": "campus_qa",
+    "expectedCampus": null,
+    "expectedDocument": "doc-79ac436a580ce4b7c5aeb5bf",
+    "contains": [
+      "4年",
+      "5年",
+      "教授"
+    ],
+    "containsAny": [
+      [
+        "两名",
+        "2名",
+        "两位",
+        "2位"
+      ],
+      [
+        "书面"
+      ]
+    ]
+  },
+  {
+    "id": "graduate-retake-final-score",
+    "question": "根据西电2026年秋季研究生选课指南，重修后按最高分还是最后一次成绩计算？如果报名重修后缺考会怎样？",
+    "intent": "campus_qa",
+    "expectedCampus": null,
+    "expectedDocuments": [
+      "doc-b1df60d47ab6fe60e97e40c5",
+      "doc-d1dd04ab10851ff134982bb1"
+    ],
+    "contains": [
+      "最后一次"
+    ],
+    "containsAny": [
+      [
+        "0",
+        "零"
+      ]
+    ]
+  },
+  {
+    "id": "text-units",
+    "endpoint": "ai/post-selection",
+    "intent": "text",
+    "body": {
+      "selectedText": "普通生每年1200元；甲类每年900元；短期访学生按月100元。",
+      "question": "提取每类对象的金额及计费单位，保留差异。"
+    },
+    "contains": [
+      "1200",
+      "900",
+      "100",
+      "年",
+      "月"
+    ],
+    "excludes": [
+      "每年100元"
+    ]
+  }
+]

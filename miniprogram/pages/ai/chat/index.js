@@ -35,7 +35,7 @@ Page({
   data: {
     chatId: '',
     messages: [
-      { id: '1', role: 'assistant', content: '你好，我是电台 AI 助手。你可以问校园信息，也可以让我检索树洞里的公开讨论。' }
+      { id: '1', role: 'assistant', content: '你好，我是小电，西电知行平台智能助手。你可以问校园信息，也可以让我整理资料、检索电台里的公开讨论。' }
     ],
     inputVal: '',
     isSending: false,
@@ -205,7 +205,7 @@ Page({
     const message = this.data.messages[messageIndex];
     const reference = message && message.references ? message.references[referenceIndex] : null;
     if (!reference) return;
-    if (!openAppTarget(reference)) {
+    if (!openAppTarget({ ...reference, url: reference.sourceUrl })) {
       wx.showToast({ title: '该来源暂无可打开页面', icon: 'none' });
     }
   }

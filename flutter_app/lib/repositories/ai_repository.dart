@@ -10,12 +10,9 @@ class AiRepository {
 
   final ApiClient _apiClient;
 
-  /// The backend gives the upstream provider 20s for /models and 45s for
-  /// /chat. The client must wait longer than that, otherwise it always times
-  /// out first and the server's real error (bad key, unreachable host) never
-  /// reaches the UI.
+  /// Includes query understanding, retrieval and answer generation.
   static const Duration _statusTimeout = Duration(seconds: 30);
-  static const Duration _chatTimeout = Duration(seconds: 55);
+  static const Duration _chatTimeout = Duration(seconds: 165);
 
   Future<AiChatResponse> sendMessage({
     required String content,

@@ -148,6 +148,7 @@ def _corpus(db: dict[str, Any], include_posts: bool = True) -> list[dict[str, An
             "sourceName": _clean(source.get("name") or "校园知识库", 160),
             "authority": str(chunk.get("authority") or source.get("authority") or "verified"),
             "createdAt": str(chunk.get("createdAt") or source.get("createdAt") or ""),
+            "publishedAt": str(chunk.get("publishedAt") or ""),
             "updatedAt": str(chunk.get("updatedAt") or chunk.get("createdAt") or ""),
             "jumpUrl": str(chunk.get("jumpUrl") or ""),
         })
@@ -180,7 +181,7 @@ def _corpus(db: dict[str, Any], include_posts: bool = True) -> list[dict[str, An
 
 _FINGERPRINT_FIELDS = (
     "type", "id", "title", "content", "searchText", "sourceUrl",
-    "sourceName", "authority", "createdAt", "updatedAt", "jumpUrl", "channel",
+    "sourceName", "authority", "createdAt", "publishedAt", "updatedAt", "jumpUrl", "channel",
 )
 
 
@@ -347,7 +348,7 @@ def _authority_boost(row: dict[str, Any]) -> float:
     return 1.0
 
 
-def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limit: int = 8) -> list[dict[str, Any]]:
+def retrieve_lexical(db: dict[str, Any], query: str, *, include_posts: bool = True, limit: int = 8) -> list[dict[str, Any]]:
     # The whole scoring pass stays under the index lock: it reads the same
     # dictionaries an incremental update mutates.
     with _INDEX_LOCK:
@@ -380,12 +381,12 @@ def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limi
             ranked.append((score * _authority_boost(row), row))
         ranked.sort(key=lambda item: (item[0], str(item[1].get("updatedAt", ""))), reverse=True)
         results: list[dict[str, Any]] = []
-        seen_titles: set[str] = set()
+        seen_content: set[str] = set()
         for score, row in ranked:
-            title = str(row.get("title", ""))
-            if title in seen_titles and row.get("type") == "knowledge":
+            content = str(row.get("content", ""))
+            if content in seen_content and row.get("type") == "knowledge":
                 continue
-            seen_titles.add(title)
+            seen_content.add(content)
             payload = {key: value for key, value in row.items() if key != "fingerprint"}
             results.append({
                 **payload,
@@ -397,15 +398,37 @@ def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limi
         return results
 
 
+def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limit: int = 8) -> list[dict[str, Any]]:
+    """Production retrieval uses the configured hybrid service, never the old baseline."""
+    from services._rag_client import search_knowledge
+    return visible_context(db, search_knowledge(query, include_community=include_posts, limit=limit)["items"])
+
+
+def visible_context(db, items):
+    posts={str(p["id"]):p for p in db.get("posts",[])}
+    result=[]
+    for item in items:
+        if item.get("type")!="post":
+            result.append(item)
+            continue
+        post=posts.get(item.get("postId"))
+        if post and _post_allowed(post) and (
+            hashlib.sha256(str(post.get("content","")).encode("utf8")).hexdigest()==item.get("postContentHash")
+            and str(post.get("title",""))==item.get("postTitle")
+        ):
+            result.append(item)
+    return result
+
+
 def citations(results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {
             "sourceType": "帖子" if row.get("type") == "post" else "校园知识",
             "targetType": row.get("type", ""),
-            "targetId": row.get("id", ""),
+            "targetId": row.get("postId") or row.get("id", ""),
             "title": row.get("title", ""),
             "summary": row.get("summary", ""),
-            "publishedAt": row.get("createdAt", ""),
+            "publishedAt": row.get("publishedAt") if row.get("type") == "knowledge" else row.get("createdAt", ""),
             "updatedAt": row.get("updatedAt", ""),
             "publisher": row.get("channel") or row.get("sourceName", ""),
             "sourceUrl": row.get("sourceUrl", ""),

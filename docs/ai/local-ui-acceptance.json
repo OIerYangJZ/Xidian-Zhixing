@@ -1,0 +1,33 @@
+{
+  "environment": "local isolated DB; http://127.0.0.1:18080",
+  "date": "2026-09-07",
+  "productionTested": false,
+  "cases": [
+    {
+      "caseId": "identity-motto",
+      "client": "Flutter Web actual browser",
+      "question": "你是谁？西电的校训是什么？",
+      "actualAnswer": "我是小电，西电知行平台智能助手。西安电子科技大学（西电）的校训是'厚德、求真、砺学、笃行'。",
+      "traceId": "3dfdb4d5f2664caa95ddf008829dc31a",
+      "status": "passed",
+      "scope": "identity and stable core facts; no RAG required",
+      "limitation": "knowledge API trace persistence was unavailable during this run; outgoing system hash is in backend log"
+    },
+    {
+      "caseId": "graduate-course-times-ui",
+      "client": "Flutter Web actual browser",
+      "question": "2026年秋季研究生培养计划和选课分别从几点开始，什么时候结束？只制定培养计划够不够？",
+      "actualAnswer": "2026年秋季学期研究生培养计划系统开放时间为9月8日9:00至9月18日17:00；选课系统开放时间为9月8日14:00至9月18日17:00。先制定培养计划才能进行选课，仅制定培养计划不够，需要在对应学期的选课系统开放时间内完成选班操作。",
+      "traceId": "a303024b8b1b4c4188c76dfbe02361e9",
+      "status": "answer-and-citation-passed; query-scope-fixed-after-test",
+      "sourceUrlOpened": "https://gr.xidian.edu.cn/info/1037/20494.htm",
+      "retrievalMode": "dense_bm25_rrf_rerank",
+      "systemPayloadHash": "d370a7696bd0b2182173d3f8821d4eda1f5fcba40be79fdd40beac31c19f15b3",
+      "usedSourceIds": [
+        "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:1"
+      ],
+      "totalMs": 16898,
+      "limitation": "该次 queryPlan 擅自带入 yanta 筛选，已添加用户明示条件约束，最终回归单独验证该修复。"
+    }
+  ]
+}

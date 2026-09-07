@@ -753,7 +753,7 @@ def test_avatar_replacement_tracks_new_object_and_deletes_old(monkeypatch):
 
 
 def test_ai_post_selection_does_not_persist_unbounded_history(monkeypatch):
-    from handlers import _radio_handler
+    from handlers import _ai_handler, _radio_handler
     from services._db_service import default_db
 
     db = default_db()
@@ -765,12 +765,22 @@ def test_ai_post_selection_does_not_persist_unbounded_history(monkeypatch):
     monkeypatch.setattr(_radio_handler, "_search_items", lambda _db, _q: [])
     monkeypatch.setattr(_radio_handler, "save_db", lambda value: saved.append(value))
     handler = _RecordingHandler()
+    calls = []
+
+    def chat(h, state, *, body, text_task):
+        assert text_task is True
+        calls.append(body)
+        _radio_handler.send_json(h, HTTPStatus.OK, {"data": {"answer": "模型回答"}})
+
+    monkeypatch.setattr(_ai_handler, "handle_ai_chat", chat)
 
     _radio_handler.handle_ai_post_selection(handler, db)
 
     assert handler.status_code == HTTPStatus.OK
     assert db["aiMessages"] == [{"id": "existing"}]
     assert saved == []
+    assert calls[0]["messages"] == []
+    assert "测试" in calls[0]["content"]
 
 
 def test_interaction_notifications_are_deduplicated():
@@ -1776,7 +1786,7 @@ def test_web_entry_points_to_the_admin_console_are_all_guarded():
     web_files = [
         path
         for path in (Path(__file__).resolve().parents[2] / "flutter_app/lib").rglob("*.dart")
-        if "/mobile/" not in str(path) and "/features/admin/" not in str(path)
+        if "/mobile/" not in path.as_posix() and "/features/admin/" not in path.as_posix()
         and ("admin_portal_page.dart" in path.read_text()
              or "admin/admin_login_page.dart" in path.read_text())
     ]

@@ -124,6 +124,8 @@ AI_BASE_URL: str = ""
 AI_API_KEY: str = ""
 AI_MODEL: str = "gpt-4o-mini"
 AI_EMBEDDING_MODEL: str = ""
+RAG_URL: str = ""
+RAG_API_KEY: str = ""
 
 ALLOW_DEBUG_VERIFY_CODE: bool = False
 INCLUDE_DEBUG_CODE_IN_RESPONSE: bool = False
@@ -166,7 +168,7 @@ def configure() -> None:
         AUTH_ALLOWED_STUDENT_IDS, AUTH_STUDENT_COLLEGE_SECTIONS, \
         MAX_REQUEST_BODY_BYTES, TRUSTED_PROXY_NETWORKS, \
         DEFAULT_ADMIN_USERNAME, DEFAULT_ADMIN_PASSWORD, \
-        AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, \
+        AI_BASE_URL, AI_API_KEY, AI_MODEL, AI_EMBEDDING_MODEL, RAG_URL, RAG_API_KEY, \
         ALLOW_DEBUG_VERIFY_CODE, INCLUDE_DEBUG_CODE_IN_RESPONSE, \
         DEFAULT_CHANNELS, DEFAULT_TAGS, DEFAULT_SETTINGS, \
         DEFAULT_SENSITIVE_WORDS, SEED_POSTS, SEED_DEMO_DATA, \
@@ -473,6 +475,8 @@ def configure() -> None:
     AI_API_KEY = os.environ.get("BACKEND_AI_API_KEY", os.environ.get("AI_API_KEY", "")).strip()
     AI_MODEL = os.environ.get("BACKEND_AI_MODEL", os.environ.get("AI_MODEL", "gpt-4o-mini")).strip() or "gpt-4o-mini"
     AI_EMBEDDING_MODEL = os.environ.get("BACKEND_AI_EMBEDDING_MODEL", os.environ.get("AI_EMBEDDING_MODEL", "")).strip()
+    RAG_URL = os.environ.get("BACKEND_RAG_URL", "").strip().rstrip("/")
+    RAG_API_KEY = os.environ.get("BACKEND_RAG_API_KEY", "").strip()
 
     if runtime_env == "production" and (AI_BASE_URL or AI_API_KEY):
         if not AI_BASE_URL.startswith("https://"):

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/l10n/campus_text.dart';
 import '../../core/l10n/ui_text.dart';
@@ -34,7 +35,7 @@ class _AiPageState extends ConsumerState<AiPage> {
               AppSectionHeader(
                 title: uiText(
                   context,
-                  zh: '校园 AI 助手',
+                  zh: '小电 · 西电知行智能助手',
                   en: 'Campus AI assistant',
                 ),
                 subtitle: uiText(
@@ -293,7 +294,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   zh: '当前模型：${_status.model}',
                   en: 'Model: ${_status.model}',
                 )
-              : uiText(context, zh: 'AI 助手', en: 'AI assistant'),
+              : uiText(context, zh: '小电', en: 'Xiao Dian'),
         ),
         actions: <Widget>[
           IconButton(
@@ -353,12 +354,12 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         icon: Icons.auto_awesome_outlined,
                         title: uiText(
                           context,
-                          zh: '开始一次可核对的问答',
+                          zh: '你好，我是小电',
                           en: 'Start a question you can verify',
                         ),
                         message: uiText(
                           context,
-                          zh: '回答使用论坛帖子时，原帖会在下方提供。',
+                          zh: '西电知行平台智能助手。可以问校园问题，也可以让我整理和提取资料；回答依据会在下方提供。',
                           en: 'Original forum posts are shown when used.',
                         ),
                       )
@@ -499,6 +500,10 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Future<void> _openReference(AiReference reference) async {
     if (reference.type != 'post' && reference.type != '帖子') {
+      final Uri? uri = Uri.tryParse(reference.sourceUrl);
+      if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
       return;
     }
     final String postId = reference.targetId.trim();
@@ -631,7 +636,7 @@ class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
           ListTile(
             contentPadding: EdgeInsets.zero,
             title: Text(
-              uiText(context, zh: '论坛公开帖子', en: 'Public forum posts'),
+              uiText(context, zh: '回答依据', en: 'Sources'),
             ),
             subtitle: Text(
               uiText(
@@ -713,7 +718,7 @@ class _MessageBubble extends StatelessWidget {
                   if (references.isNotEmpty) ...<Widget>[
                     const SizedBox(height: 12),
                     Text(
-                      uiText(context, zh: '相关原帖', en: 'Original posts'),
+                      uiText(context, zh: '回答依据', en: 'Sources'),
                       style: Theme.of(context).textTheme.labelLarge,
                     ),
                     const SizedBox(height: AppSpacing.xs),

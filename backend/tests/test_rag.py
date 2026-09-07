@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from rag_service import rebuild_rag_index, retrieve
+from rag_service import rebuild_rag_index, retrieve_lexical as retrieve
 
 
 def _db() -> dict[str, Any]:
@@ -180,18 +180,18 @@ def test_index_is_not_rebuilt_on_every_retrieve(monkeypatch) -> None:
         lambda index, row: (added.append(row["key"]), original(index, row))[1],
     )
 
-    rag_service.retrieve(db, "图书馆 插座")
+    rag_service.retrieve_lexical(db, "图书馆 插座")
     first_pass = len(added)
     assert first_pass == 40
 
     added.clear()
-    rag_service.retrieve(db, "自习 座位")
+    rag_service.retrieve_lexical(db, "自习 座位")
     assert added == [], "语料没变时不应重新索引任何文档"
 
     # 新增一篇只应索引这一篇，而不是整个语料。
     db["posts"].append(_cjk_post("new", "北门咖啡打印是新补充的内容"))
     added.clear()
-    rag_service.retrieve(db, "北门咖啡打印")
+    rag_service.retrieve_lexical(db, "北门咖啡打印")
     assert added == ["post:new"]
 
 
@@ -205,7 +205,7 @@ def test_index_stays_out_of_the_application_state() -> None:
         "knowledgeChunks": [],
         "knowledgeSources": [],
     }
-    rag_service.retrieve(db, "图书馆")
+    rag_service.retrieve_lexical(db, "图书馆")
     assert rag_service.INDEX_KEY not in db
 
     rag_service.rebuild_rag_index(db)
@@ -225,10 +225,10 @@ def test_removed_posts_drop_out_of_the_index() -> None:
         "knowledgeChunks": [],
         "knowledgeSources": [],
     }
-    assert any(row["id"] == "gone" for row in rag_service.retrieve(db, secret))
+    assert any(row["id"] == "gone" for row in rag_service.retrieve_lexical(db, secret))
 
     db["posts"] = [row for row in db["posts"] if row["id"] != "gone"]
-    assert not any(row["id"] == "gone" for row in rag_service.retrieve(db, secret))
+    assert not any(row["id"] == "gone" for row in rag_service.retrieve_lexical(db, secret))
     assert rag_service.index_summary()["documentCount"] == 1
 
 

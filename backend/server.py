@@ -27,6 +27,7 @@ import _globals
 import handlers as _handlers
 import handlers._admin_handler as _admin_handler
 import handlers._ai_handler as _ai_handler
+import handlers._knowledge_handler as _knowledge_handler
 import handlers._auth_handler as _auth_handler
 import handlers._comment_handler as _comment_handler
 import handlers._message_handler as _message_handler
@@ -474,6 +475,17 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "存储对象不存在")
             return
 
+        if path == "/api/admin/ai/knowledge-sources":
+            with DB_LOCK:
+                db = load_db()
+            _knowledge_handler.list_sources(self, db)
+            return
+        if path.startswith("/api/admin/ai/traces/"):
+            with DB_LOCK:
+                db = load_db()
+            _knowledge_handler.read_trace(self, db, path.rsplit("/", 1)[-1])
+            return
+
         if path == "/api/ai/models":
             with DB_LOCK:
                 db = load_db()
@@ -734,9 +746,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/announcements":
                 _admin_handler.handle_admin_announcements(self, db)
                 return
-            if path == "/api/admin/ai/knowledge-sources":
-                _radio_handler.handle_admin_list_knowledge_sources(self, db)
-                return
             if path == "/api/admin/releases/android":
                 _admin_handler.handle_admin_android_release(self, db)
                 return
@@ -920,6 +929,13 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             ))
             return
 
+        if path in {"/api/admin/ai/knowledge-sources", "/api/admin/ai/reindex"}:
+            with DB_LOCK:
+                db = load_db()
+            action = _knowledge_handler.reindex if path.endswith("/reindex") else _knowledge_handler.write_source
+            action(self, db)
+            return
+
         if path == "/api/ai/chat":
             with DB_LOCK:
                 db = load_db()
@@ -979,13 +995,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_rebuild_hot_topics(self, db)
                 return
 
-            if path == "/api/admin/ai/knowledge-sources":
-                _radio_handler.handle_admin_knowledge_source(self, db)
-                return
 
-            if path == "/api/admin/ai/reindex":
-                _radio_handler.handle_admin_reindex(self, db)
-                return
 
             if path == "/api/auth/xidian/session":
                 _auth_handler.handle_xidian_auth_create_session(self, db)
@@ -1260,6 +1270,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_patch(self, path: str) -> None:
+        match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
+        if match_knowledge_source:
+            with DB_LOCK:
+                db = load_db()
+            _knowledge_handler.write_source(self, db, match_knowledge_source.group(1))
+            return
         self._cached_json_body = read_json_body(self)
         with _locked_response(self):
             db = load_db()
@@ -1310,14 +1326,16 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _radio_handler.handle_update_section(self, db, match_section.group(1))
                 return
 
-            match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
-            if match_knowledge_source:
-                _radio_handler.handle_admin_update_knowledge_source(self, db, match_knowledge_source.group(1))
-                return
 
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_delete(self, path: str) -> None:
+        match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
+        if match_knowledge_source:
+            with DB_LOCK:
+                db = load_db()
+            _knowledge_handler.delete_source(self, db, match_knowledge_source.group(1))
+            return
         with _locked_response(self):
             db = load_db()
 
@@ -1376,10 +1394,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _admin_handler.handle_admin_delete_tag(self, db, unquote(match_del_tag.group(1)))
                 return
 
-            match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
-            if match_knowledge_source:
-                _radio_handler.handle_admin_delete_knowledge_source(self, db, match_knowledge_source.group(1))
-                return
 
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 

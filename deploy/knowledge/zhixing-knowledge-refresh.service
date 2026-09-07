@@ -1,0 +1,13 @@
+[Unit]
+Description=Refresh official Xiao Dian knowledge sources
+After=zhixing-knowledge.service
+
+[Service]
+Type=oneshot
+User=zhixing
+WorkingDirectory=/opt/zhixing-knowledge/current
+EnvironmentFile=/opt/zhixing-knowledge/knowledge.env
+ExecStartPre=/usr/bin/mkdir -p /opt/zhixing-knowledge/data/maintenance
+ExecStart=/opt/zhixing-knowledge/venv/bin/python -m knowledge_service.discover --sources knowledge_service/sources.json --output /opt/zhixing-knowledge/data/maintenance/urls.json
+ExecStart=/opt/zhixing-knowledge/venv/bin/python -m knowledge_service.refresh --urls /opt/zhixing-knowledge/data/maintenance/urls.json --report /opt/zhixing-knowledge/data/maintenance/refresh.json
+TimeoutStartSec=4h

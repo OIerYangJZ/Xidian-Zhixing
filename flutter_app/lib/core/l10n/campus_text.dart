@@ -273,7 +273,11 @@ String localizedWeekdayLabel(Locale locale, String weekday) {
 /// The AI answer citations carry a Chinese `sourceType` from the server.
 String localizedAiReferenceType(Locale locale, String type) {
   if (locale.languageCode != 'en') {
-    return type;
+    return switch (type.trim()) {
+      'knowledge' => '校园知识',
+      'post' => '帖子',
+      _ => type,
+    };
   }
   switch (type.trim()) {
     case '帖子':
