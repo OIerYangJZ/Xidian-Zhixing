@@ -56,6 +56,22 @@ class AppConfig {
     defaultValue: 'dev',
   );
 
+  /// Whether this build contains the moderation backoffice.
+  ///
+  /// Off by default so the bundle every student downloads carries no admin UI,
+  /// no admin endpoint list and no admin code paths — and no admin token in the
+  /// same localStorage as their own session.  It is a compile-time constant, so
+  /// dart2js drops the whole console from the output rather than merely hiding
+  /// it; `scripts/build_web_admin.sh` produces the separate bundle that turns
+  /// it back on.
+  ///
+  /// The server is the actual authority either way: every /api/admin route
+  /// checks _require_admin / _require_primary_admin.
+  static const bool adminConsoleEnabled = bool.fromEnvironment(
+    'ENABLE_ADMIN_CONSOLE',
+    defaultValue: false,
+  );
+
   static const Duration requestTimeout = Duration(seconds: 15);
 
   // 生产/现网不再展示本地 mock 卡片，空数据时直接显示真实空状态。

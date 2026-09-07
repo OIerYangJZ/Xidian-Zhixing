@@ -62,6 +62,7 @@ for file in .env.example nginx-cache.conf nginx-container.conf nginx-treehole-ht
   install -m 0644 "$ROOT_DIR/deploy/production/$file" "$STAGING_DIR/deploy/production/$file"
 done
 for file in \
+  deploy-treehole.sh \
   health_check.sh \
   install_offline_debs.sh \
   install_ubuntu_offline.sh \
@@ -132,6 +133,21 @@ tar -C "$STAGING_DIR" -czf "$ARCHIVE_PATH" .
 
 python3 "$SCRIPT_DIR/verify_release_archive.py" "$ARCHIVE_PATH"
 
+# Sidecar checksum for the upload hop. deploy-treehole.sh refuses to deploy a
+# package whose sidecar does not match, so this must be generated here rather
+# than typed by hand. The name is relative so `sha256sum -c` works from any
+# directory the archive is copied into.
+ARCHIVE_NAME="$(basename "$ARCHIVE_PATH")"
+if command -v sha256sum >/dev/null 2>&1; then
+  (cd "$DIST_DIR" && sha256sum "$ARCHIVE_NAME" > "$ARCHIVE_NAME.sha256")
+elif command -v shasum >/dev/null 2>&1; then
+  (cd "$DIST_DIR" && shasum -a 256 "$ARCHIVE_NAME" > "$ARCHIVE_NAME.sha256")
+else
+  echo "[package] sha256sum or shasum is required" >&2
+  exit 1
+fi
+
 echo "[package] archive: $ARCHIVE_PATH"
+echo "[package] sha256:  $ARCHIVE_PATH.sha256"
 echo "[package] size: $(du -h "$ARCHIVE_PATH" | awk '{print $1}')"
 printf '%s\n' "$ARCHIVE_PATH"

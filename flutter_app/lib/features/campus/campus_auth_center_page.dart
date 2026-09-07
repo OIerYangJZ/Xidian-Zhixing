@@ -12,7 +12,7 @@ import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
 
 class CampusAuthCenterPage extends ConsumerStatefulWidget {
-  const CampusAuthCenterPage({super.key, this.initialSystem = 'ids'});
+  const CampusAuthCenterPage({super.key, this.initialSystem = 'schoolnet'});
 
   final String initialSystem;
 
@@ -24,36 +24,6 @@ class CampusAuthCenterPage extends ConsumerStatefulWidget {
 class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   static const String _stateKey = 'campus_auth_state';
   static const List<_CampusSystem> _systems = <_CampusSystem>[
-    _CampusSystem(
-      'ids',
-      _AuthType.password,
-      nameZh: '统一认证',
-      nameEn: 'Unified login',
-      tagZh: 'IDS',
-      tagEn: 'IDS',
-      descZh: '一站式、课表、成绩、考试等入口',
-      descEn: 'One-stop portal, schedules, grades and exams',
-    ),
-    _CampusSystem(
-      'payment',
-      _AuthType.password,
-      nameZh: '缴费/水电',
-      nameEn: 'Payments & utilities',
-      tagZh: '水电',
-      tagEn: 'Utilities',
-      descZh: '缴费平台和水电系统跳转验证',
-      descEn: 'Verification for the payment and utilities platforms',
-    ),
-    _CampusSystem(
-      'physics',
-      _AuthType.password,
-      nameZh: '物理实验',
-      nameEn: 'Physics labs',
-      tagZh: '实验',
-      tagEn: 'Labs',
-      descZh: '物理实验选课与实验安排',
-      descEn: 'Physics lab enrolment and session schedule',
-    ),
     _CampusSystem(
       'schoolnet',
       _AuthType.schoolnet,
@@ -85,7 +55,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       TextEditingController();
   final TextEditingController _dormWaterSmsController = TextEditingController();
 
-  String _activeSystem = 'ids';
+  String _activeSystem = 'schoolnet';
   Map<String, dynamic> _states = <String, dynamic>{};
   String _schoolnetAttemptId = '';
   Uint8List? _schoolnetCaptchaImage;
@@ -105,7 +75,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
     _activeSystem =
         _systems.any((_CampusSystem item) => item.id == widget.initialSystem)
         ? widget.initialSystem
-        : 'ids';
+        : 'schoolnet';
     _loadState();
     _identifierController.text =
         AuthStore.instance.currentUser?.studentId.trim() ?? '';
@@ -248,9 +218,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                   Text(_error!, style: const TextStyle(color: Colors.red)),
                 ],
                 const SizedBox(height: 14),
-                if (_active.type == _AuthType.password)
-                  _passwordForm()
-                else if (_active.type == _AuthType.schoolnet)
+                if (_active.type == _AuthType.schoolnet)
                   _schoolnetForm()
                 else
                   _dormWaterForm(),
@@ -259,51 +227,6 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _passwordForm() {
-    final Locale locale = Localizations.localeOf(context);
-    final String systemName = _active.name(locale);
-    return Column(
-      children: <Widget>[
-        TextField(
-          controller: _identifierController,
-          decoration: InputDecoration(
-            labelText: uiText(context, zh: '学号', en: 'Student ID'),
-          ),
-        ),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: _activeSystem == 'ids' || _activeSystem == 'payment'
-                ? uiText(context, zh: '统一认证密码', en: 'Unified login password')
-                : uiText(
-                    context,
-                    zh: '$systemName密码',
-                    en: '$systemName password',
-                  ),
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: FilledButton(
-            onPressed: _busy ? null : _submitPasswordAuth,
-            child: Text(
-              _busy
-                  ? uiText(context, zh: '正在验证', en: 'Verifying')
-                  : uiText(
-                      context,
-                      zh: '验证$systemName',
-                      en: 'Verify $systemName',
-                    ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -451,47 +374,6 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       _dormWaterSmsController.clear();
       _error = null;
     });
-  }
-
-  Future<void> _submitPasswordAuth() async {
-    if (!_requireIdentifierAndPassword()) {
-      return;
-    }
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      final repository = ref.read(campusRepositoryProvider);
-      final CampusAuthResult result = switch (_activeSystem) {
-        'payment' => await repository.loginPayment(
-          _identifierController.text.trim(),
-          _passwordController.text,
-        ),
-        'physics' => await repository.loginPhysics(
-          _identifierController.text.trim(),
-          _passwordController.text,
-        ),
-        _ => await repository.loginIds(
-          _identifierController.text.trim(),
-          _passwordController.text,
-        ),
-      };
-      await _saveState(_activeSystem, result);
-      _passwordController.clear();
-    } catch (error) {
-      final String systemName = _active.name(appLocale);
-      _setError(
-        uiTextGlobal(
-          zh: '$systemName验证失败：$error',
-          en: '$systemName verification failed: $error',
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _busy = false);
-      }
-    }
   }
 
   Future<void> _refreshSchoolnetCaptcha() async {
@@ -844,7 +726,7 @@ class _CaptchaBox extends StatelessWidget {
   }
 }
 
-enum _AuthType { password, schoolnet, phone }
+enum _AuthType { schoolnet, phone }
 
 class _CampusSystem {
   const _CampusSystem(

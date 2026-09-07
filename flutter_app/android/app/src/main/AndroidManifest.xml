@@ -8,10 +8,20 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28"/>
 
+    <!--
+      allowBackup/dataExtractionRules are off on purpose: app-private storage
+      holds the session token (EncryptedSharedPreferences) and cached campus
+      data.  With backup enabled that state leaves the device through adb
+      backup and Google's cloud backup, outside the Keystore protection the
+      token was put behind in the first place.
+    -->
     <application
         android:label="西电知行"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:networkSecurityConfig="@xml/network_security_config">
         <activity
             android:name=".MainActivity"

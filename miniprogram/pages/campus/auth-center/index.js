@@ -1,9 +1,6 @@
 import {
   createCampusSchoolnetCaptcha,
   createDormWaterCaptcha,
-  loginCampusIds,
-  loginCampusPayment,
-  loginCampusPhysics,
   loginCampusSchoolnet,
   loginDormWater,
   sendDormWaterSms
@@ -13,30 +10,6 @@ import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { CAMPUS_AUTH_STATE_KEY } from '../../../utils/campus_auth';
 
 const SYSTEMS = [
-  {
-    id: 'ids',
-    name: '统一认证',
-    desc: '一站式、课表、成绩、考试等入口',
-    tag: 'IDS',
-    type: 'ids',
-    passwordPlaceholder: '统一认证密码'
-  },
-  {
-    id: 'payment',
-    name: '缴费/水电',
-    desc: '缴费平台和水电系统跳转验证',
-    tag: '水电',
-    type: 'ids',
-    passwordPlaceholder: '统一认证密码'
-  },
-  {
-    id: 'physics',
-    name: '物理实验',
-    desc: '物理实验选课与实验安排',
-    tag: '实验',
-    type: 'password',
-    passwordPlaceholder: '物理实验密码'
-  },
   {
     id: 'schoolnet',
     name: '校园网自服务',
@@ -87,7 +60,7 @@ const buildSystemCards = (states = {}) => {
 Page({
   data: {
     systems: buildSystemCards({}),
-    activeSystem: 'ids',
+    activeSystem: 'schoolnet',
     activeInfo: SYSTEMS[0],
     studentId: '',
     password: '',
@@ -109,7 +82,7 @@ Page({
   },
 
   onLoad(options) {
-    const system = SYSTEM_MAP[options.system] ? options.system : 'ids';
+    const system = SYSTEM_MAP[options.system] ? options.system : 'schoolnet';
     this.setActiveSystem(system);
     this.loadAuthStates();
     this.loadStudentId();
@@ -225,47 +198,11 @@ Page({
 
   showResult(systemId, result) {
     this.persistAuthState(systemId, result || {});
-    if (systemId === 'ids') {
-      wx.setStorageSync('campusScheduleUpdatedAt', Date.now());
-    }
   },
 
   showError(error, fallback) {
     const message = errorMessage(error, fallback);
     wx.showToast({ title: message, icon: 'none' });
-  },
-
-  async submitPasswordAuth() {
-    if (this.data.submitting) return;
-    const { activeSystem, studentId, password } = this.data;
-    const labels = {
-      ids: '统一认证密码',
-      payment: '统一认证密码',
-      physics: '物理实验密码'
-    };
-    if (!this.requireStudentAndPassword(labels[activeSystem] || '密码')) return;
-
-    const actions = {
-      ids: loginCampusIds,
-      payment: loginCampusPayment,
-      physics: loginCampusPhysics
-    };
-    const action = actions[activeSystem];
-    if (!action) return;
-
-    this.setData({ submitting: true, resultMessage: '' });
-    wx.showLoading({ title: '正在验证' });
-    try {
-      const response = await action(studentId, password);
-      wx.hideLoading();
-      this.showResult(activeSystem, response.data || response || {});
-    } catch (error) {
-      wx.hideLoading();
-      console.error(error);
-      this.showError(error, `${SYSTEM_MAP[activeSystem].name}验证失败`);
-    } finally {
-      this.setData({ submitting: false, password: '' });
-    }
   },
 
   async refreshSchoolnetCaptcha() {

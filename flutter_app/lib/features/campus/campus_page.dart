@@ -308,7 +308,7 @@ class _IdsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Text(
-                    uiText(context, zh: '西电统一认证', en: 'XDU unified login'),
+                    uiText(context, zh: '校园系统登录', en: 'Campus system sign-in'),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -318,10 +318,10 @@ class _IdsCard extends StatelessWidget {
                   Text(
                     uiText(
                       context,
-                      zh: '管理统一认证、水电、物理实验等校园系统登录',
+                      zh: '管理校园网自服务、宿舍水机的登录状态',
                       en:
-                          'Manage sign-in for unified auth, utilities, physics '
-                          'labs and other campus systems',
+                          'Manage sign-in for the campus network self-service '
+                          'and the dorm water dispenser',
                     ),
                   ),
                 ],

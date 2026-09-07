@@ -79,7 +79,6 @@ class AdminPostPinRequestEntry {
     required this.postId,
     required this.postTitle,
     required this.userId,
-    required this.userEmail,
     required this.userNickname,
     required this.userLevel,
     required this.userLevelLabel,
@@ -100,7 +99,6 @@ class AdminPostPinRequestEntry {
   final String postId;
   final String postTitle;
   final String userId;
-  final String userEmail;
   final String userNickname;
   final int userLevel;
   final String userLevelLabel;
@@ -122,7 +120,6 @@ class AdminPostPinRequestEntry {
       postId: (json['postId'] ?? '').toString(),
       postTitle: (json['postTitle'] ?? '').toString(),
       userId: (json['userId'] ?? '').toString(),
-      userEmail: (json['userEmail'] ?? '').toString(),
       userNickname: (json['userNickname'] ?? '匿名同学').toString(),
       userLevel: _toInt(json['userLevel']) ?? 2,
       userLevelLabel: (json['userLevelLabel'] ?? '二级用户').toString(),

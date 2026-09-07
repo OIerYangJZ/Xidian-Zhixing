@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/navigation/url_query_state.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_locale_store.dart';
@@ -108,6 +109,9 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _openAdminLogin() {
+    if (!AppConfig.adminConsoleEnabled) {
+      return;
+    }
     Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => const AdminLoginPage()));
@@ -448,10 +452,13 @@ class _LoginForm extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              TextButton(
-                onPressed: isBusy ? null : onAdminLogin,
-                child: Text(l10n.adminLogin),
-              ),
+              // Only the separate admin bundle carries the backoffice; see
+              // AppConfig.adminConsoleEnabled.
+              if (AppConfig.adminConsoleEnabled)
+                TextButton(
+                  onPressed: isBusy ? null : onAdminLogin,
+                  child: Text(l10n.adminLogin),
+                ),
               TextButton(onPressed: onTerms, child: Text(l10n.agreements)),
             ],
           ),

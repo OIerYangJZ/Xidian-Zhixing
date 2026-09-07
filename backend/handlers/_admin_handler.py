@@ -158,11 +158,24 @@ def _require_primary_admin(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
 ANDROID_RELEASE_MAX_BYTES = 300 * 1024 * 1024
 
 
-def _read_multipart_form(
+def read_multipart_form(
     handler: BaseHTTPRequestHandler,
     *,
     max_bytes: int | None = None,
 ) -> dict[str, Any]:
+    """Parse a multipart body, reusing what server.py already drained.
+
+    server.py reads large uploads off the socket *before* taking DB_LOCK, so a
+    slow uploader cannot stall the process.  Any failure it hit is replayed
+    here, keeping this handler's specific error responses intact.
+    """
+    cached_error = getattr(handler, "_cached_multipart_error", None)
+    if cached_error is not None:
+        raise cached_error
+    cached_form = getattr(handler, "_cached_multipart_form", None)
+    if isinstance(cached_form, dict):
+        return cached_form
+
     content_type = handler.headers.get("Content-Type", "")
     match = re.search(r'boundary=(?:"([^"]+)"|([^;]+))', content_type)
     if match is None:
@@ -463,7 +476,11 @@ def handle_admin_users(
     db: dict[str, Any],
 ) -> None:
     """GET /api/admin/users"""
-    admin = _require_admin(handler, db)
+    # Every row carries email + studentId for the whole user base.  A secondary
+    # admin only handles pin requests and announcements and cannot act on users
+    # at all (handle_admin_user_action is primary-only), so handing them the
+    # full roster was privilege they had no use for.
+    admin = _require_primary_admin(handler, db)
     if admin is None:
         return
     send_json(handler, HTTPStatus.OK, {"data": build_admin_user_rows(db, include_deleted=True)})
@@ -841,7 +858,7 @@ def handle_admin_upload_android_release(
         return
 
     try:
-        form = _read_multipart_form(handler, max_bytes=ANDROID_RELEASE_MAX_BYTES)
+        form = read_multipart_form(handler, max_bytes=ANDROID_RELEASE_MAX_BYTES)
     except RequestBodyTooLarge:
         json_error(
             handler,

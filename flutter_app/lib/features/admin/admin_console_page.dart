@@ -1287,7 +1287,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         item.postId,
         item.postTitle,
         item.userId,
-        item.userEmail,
         item.userNickname,
         item.reason,
       ].join(' ').toLowerCase();
@@ -1382,7 +1381,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${item.userNickname} · ${item.userEmail} · ${item.userLevelLabel}',
+                    '${item.userNickname} · ${item.userLevelLabel}',
                   ),
                   Text('帖子ID：${item.postId}'),
                   Text(
@@ -1415,7 +1414,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               ? '帖子 ${item.postId}'
                               : item.postTitle,
                           subtitle:
-                              '${item.userNickname} · ${item.userEmail}\n'
+                              '${item.userNickname}\n'
                               '帖子ID：${item.postId}\n'
                               '置顶时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
                           content: item.reason.trim().isEmpty

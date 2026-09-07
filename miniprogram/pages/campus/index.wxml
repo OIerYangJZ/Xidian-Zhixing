@@ -20,8 +20,8 @@
     <view class="ids-card" bindtap="openIdsLogin">
       <view class="ids-mark"></view>
       <view class="ids-body">
-        <view class="ids-title">西电统一认证</view>
-        <view class="ids-desc">管理统一认证、水电、物理实验等校园系统登录</view>
+        <view class="ids-title">校园系统登录</view>
+        <view class="ids-desc">管理校园网自服务、宿舍水机的登录状态</view>
       </view>
       <view class="ids-arrow">›</view>
     </view>

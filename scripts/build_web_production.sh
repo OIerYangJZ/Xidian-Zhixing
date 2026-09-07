@@ -42,7 +42,12 @@ echo "[build] Running flutter pub get..."
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" pub get --enforce-lockfile)
 
 echo "[build] Running flutter build web..."
+# --no-web-resources-cdn keeps CanvasKit on our own origin instead of fetching
+# it from https://www.gstatic.com at runtime.  That removes a third-party
+# dependency from every page load (availability + supply chain) and is what
+# lets the nginx Content-Security-Policy drop its gstatic allowance.
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" build web --release \
+    --no-web-resources-cdn \
     --dart-define=API_BASE_URL=/api \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")

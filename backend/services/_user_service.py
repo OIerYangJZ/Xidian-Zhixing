@@ -1174,12 +1174,15 @@ def serialize_admin_post_pin_request(
         str(row.get("userId", "")).strip(),
         include_deleted=True,
     )
+    # Deliberately no userEmail: unlike the other request queues this list is
+    # readable by secondary admins (handle_admin_post_pin_requests only calls
+    # _require_admin), and approving a pin needs the post and the reason, not
+    # the requester's campus mailbox.  userId still identifies them.
     return {
         "id": str(row.get("id", "")),
         "postId": str(row.get("postId", "")),
         "postTitle": str(post.get("title", "")) if post else "",
         "userId": str(row.get("userId", "")),
-        "userEmail": str(user.get("email", "")) if user else "",
         "userNickname": user_nickname(user),
         "durationMinutes": int(row.get("durationMinutes", 0) or 0),
         "reason": str(row.get("reason", "")),

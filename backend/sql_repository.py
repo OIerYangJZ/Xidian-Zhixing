@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -13,6 +15,138 @@ def now_iso() -> str:
 
 # Bearer sessions expire after this long; see load_db().
 SESSION_MAX_AGE_DAYS = 30
+
+
+# ---------------------------------------------------------------------------
+# Selective rewrite
+#
+# save_state rewrites every table from scratch (DELETE + re-INSERT), because the
+# whole application state lives in one dict.  Left as-is, one like or one page
+# view re-writes every post, comment and audit-log row in the database, so the
+# cost of every write grows with total data size.
+#
+# Each table is derived from a fixed set of top-level db keys.  Fingerprinting
+# those keys at load time lets save_state skip the tables whose source data did
+# not move.  A missing or unreadable baseline always falls back to rewriting
+# everything, and _selective_rewrite_tests keeps the mapping honest.
+# ---------------------------------------------------------------------------
+
+# The settings table is a key/value catch-all: it stores db["settings"] plus a
+# "radioState" blob assembled from every key listed after it.
+_SETTINGS_SOURCE_KEYS: tuple[str, ...] = (
+    "settings",
+    "sections", "clubs", "clubApplications", "clubMembers",
+    "campusServices", "campusMaps",
+    "courseSchedules", "examSchedules", "experimentSchedules",
+    "hotTopics", "hotTopicSummaries",
+    "knowledgeSources", "knowledgeDocuments", "knowledgeChunks",
+    "ragCrawlRuns", "ragRetrievalLogs", "ragIndex",
+    "aiConversations", "aiMessages", "aiCitations",
+    "dailySummaries", "moderationTasks", "announcements",
+)
+
+TABLE_SOURCE_KEYS: dict[str, tuple[str, ...]] = {
+    "users": ("users",),
+    "sessions": ("sessions",),
+    "email_codes": ("emailCodes",),
+    "channels": ("channels",),
+    "tags": ("tags",),
+    "sensitive_words": ("sensitiveWords",),
+    "settings": _SETTINGS_SOURCE_KEYS,
+    "admin_accounts": ("adminAccounts",),
+    "meta_seq": ("seq",),
+    "posts": ("posts",),
+    "post_tags": ("posts",),
+    "comments": ("comments",),
+    "likes": ("likes",),
+    "favorites": ("favorites",),
+    "reports": ("reports",),
+    "dm_requests": ("dmRequests",),
+    "user_follows": ("userFollows",),
+    "user_blocks": ("userBlocks",),
+    "conversations": ("conversations",),
+    "direct_messages": ("directMessages",),
+    "feedbacks": ("feedbacks",),
+    "notifications": ("notifications",),
+    "appeals": ("appeals",),
+    "post_pin_requests": ("postPinRequests",),
+    "user_level_requests": ("userLevelRequests",),
+    "audit_logs": ("auditLogs",),
+    "account_cancellation_requests": ("accountCancellationRequests",),
+    "media_uploads": ("mediaUploads",),
+}
+
+def table_fingerprints(db: dict[str, Any]) -> dict[str, str]:
+    """Hash the db keys each table is rewritten from."""
+    per_key: dict[str, str] = {}
+    for source_keys in TABLE_SOURCE_KEYS.values():
+        for key in source_keys:
+            if key in per_key:
+                continue
+            payload = json.dumps(
+                db.get(key),
+                sort_keys=True,
+                ensure_ascii=False,
+                default=str,
+            )
+            per_key[key] = hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return {
+        table: hashlib.sha256(
+            "".join(per_key[key] for key in source_keys).encode("ascii"),
+        ).hexdigest()
+        for table, source_keys in TABLE_SOURCE_KEYS.items()
+    }
+
+
+class _EmptyCursor:
+    """Stands in for a suppressed write so accidental chaining cannot crash."""
+
+    rowcount = 0
+    lastrowid = None
+
+    def fetchone(self) -> None:
+        return None
+
+    def fetchall(self) -> list[Any]:
+        return []
+
+    def __iter__(self):
+        return iter(())
+
+
+_EMPTY_CURSOR = _EmptyCursor()
+_WRITE_TABLE_RE = re.compile(
+    r"(?:INSERT(?:\s+OR\s+\w+)?\s+INTO|DELETE\s+FROM)\s+(\w+)",
+    re.IGNORECASE,
+)
+
+
+class _SelectiveWriter:
+    """Passes SQL through, except writes aimed at unchanged tables.
+
+    _save_state_tx issues its DELETE/INSERT statements inline across several
+    hundred lines; routing them through this keeps the skip decision in one
+    place instead of wrapping every block in a conditional.  Reads are never
+    intercepted.
+    """
+
+    def __init__(self, conn: sqlite3.Connection, skip_tables: set[str]) -> None:
+        self._conn = conn
+        self._skip = skip_tables
+        self._suppressed: dict[str, bool] = {}
+
+    def execute(self, sql: str, parameters: Any = ()) -> Any:
+        suppressed = self._suppressed.get(sql)
+        if suppressed is None:
+            match = _WRITE_TABLE_RE.search(sql)
+            suppressed = bool(match) and match.group(1).lower() in self._skip
+            self._suppressed[sql] = suppressed
+        if suppressed:
+            return _EMPTY_CURSOR
+        return self._conn.execute(sql, parameters)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._conn, name)
 
 
 def _to_bool_int(value: Any) -> int:
@@ -81,6 +215,14 @@ def _infer_post_is_anonymous(
 class SqliteTreeholeRepository:
     def __init__(self, db_file: Path) -> None:
         self.db_file = db_file
+        # Fingerprints of what the database file currently holds, so a save can
+        # skip the tables it would rewrite identically.  Deliberately tracked on
+        # the repository rather than on the state dict: a handler that rolls a
+        # snapshot back after a successful save would otherwise carry a stale
+        # baseline that matched its own data, and the rollback would be skipped.
+        # None means "unknown" and forces a full rewrite.
+        self._persisted_fingerprints: dict[str, str] | None = None
+        self._dependents_cache: dict[str, set[str]] | None = None
 
     def initialize(self, seed_factory: Callable[[], dict[str, Any]]) -> None:
         self.db_file.parent.mkdir(parents=True, exist_ok=True)
@@ -95,6 +237,7 @@ class SqliteTreeholeRepository:
                         conn,
                         seed_factory(),
                         transaction_started=True,
+                        force_full_rewrite=True,
                     )
                 except Exception:
                     conn.rollback()
@@ -154,7 +297,9 @@ class SqliteTreeholeRepository:
 
     def load_state(self) -> dict[str, Any]:
         with self._connect() as conn:
-            return self._load_state_tx(conn)
+            db = self._load_state_tx(conn)
+        self._persisted_fingerprints = table_fingerprints(db)
+        return db
 
     def save_state(self, db: dict[str, Any]) -> None:
         with self._connect() as conn:
@@ -163,7 +308,7 @@ class SqliteTreeholeRepository:
     def reset(self, seed_factory: Callable[[], dict[str, Any]]) -> None:
         with self._connect() as conn:
             self._create_schema(conn)
-            self._save_state_tx(conn, seed_factory())
+            self._save_state_tx(conn, seed_factory(), force_full_rewrite=True)
 
     def _connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(str(self.db_file))
@@ -1376,15 +1521,86 @@ class SqliteTreeholeRepository:
 
         return db
 
+    def _foreign_key_dependents(
+        self,
+        conn: sqlite3.Connection,
+    ) -> dict[str, set[str]]:
+        """parent table -> tables holding a foreign key into it.
+
+        Read from the live schema rather than hand-maintained, so it cannot
+        drift out of sync with _create_schema.
+        """
+        if self._dependents_cache is not None:
+            return self._dependents_cache
+        graph: dict[str, set[str]] = {}
+        tables = [
+            str(row[0])
+            for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type = 'table'",
+            )
+        ]
+        for table in tables:
+            # Table names come from sqlite_master, never from a request.
+            for foreign_key in conn.execute(f"PRAGMA foreign_key_list({table})"):
+                parent = str(foreign_key["table"])
+                if parent != table:
+                    graph.setdefault(parent, set()).add(table)
+        self._dependents_cache = graph
+        return graph
+
+    def _close_over_foreign_keys(
+        self,
+        conn: sqlite3.Connection,
+        unchanged: set[str],
+    ) -> set[str]:
+        """Narrow the skip set so a wipe never strands a child table.
+
+        Deleting a parent row fires ON DELETE CASCADE (child rows vanish) or
+        ON DELETE SET NULL (child rows are altered).  Either way a table whose
+        parent is being rewritten must be rewritten too, or its rows are lost
+        for good — the wipe happens but the matching re-INSERT does not.
+        """
+        dependents = self._foreign_key_dependents(conn)
+        rewritten = set(TABLE_SOURCE_KEYS) - unchanged
+        queue = list(rewritten)
+        while queue:
+            parent = queue.pop()
+            for child in dependents.get(parent, ()):
+                if child in TABLE_SOURCE_KEYS and child not in rewritten:
+                    rewritten.add(child)
+                    queue.append(child)
+        return set(TABLE_SOURCE_KEYS) - rewritten
+
     def _save_state_tx(
         self,
         conn: sqlite3.Connection,
         db: dict[str, Any],
         *,
         transaction_started: bool = False,
+        force_full_rewrite: bool = False,
     ) -> None:
         if not transaction_started:
             conn.execute("BEGIN")
+
+        # No baseline (fresh process, reset, seeding) falls back to rewriting
+        # every table, so the worst case is the old behaviour, never a dropped
+        # write.
+        current_fingerprints = table_fingerprints(db)
+        baseline = None if force_full_rewrite else self._persisted_fingerprints
+        skipped: set[str] = set()
+        if baseline:
+            unchanged = {
+                table
+                for table, fingerprint in current_fingerprints.items()
+                if baseline.get(table) == fingerprint
+            }
+            skipped = self._close_over_foreign_keys(conn, unchanged)
+
+        real_conn = conn
+        if skipped:
+            conn = _SelectiveWriter(conn, skipped)
+        # Until the commit lands, what the file holds is unknown.
+        self._persisted_fingerprints = None
         try:
             for table in [
                 "media_uploads",
@@ -2154,8 +2370,9 @@ class SqliteTreeholeRepository:
                     ),
                 )
 
-            self._mark_initialized(conn)
-            conn.commit()
+            self._mark_initialized(real_conn)
+            real_conn.commit()
         except Exception:
-            conn.rollback()
+            real_conn.rollback()
             raise
+        self._persisted_fingerprints = current_fingerprints
