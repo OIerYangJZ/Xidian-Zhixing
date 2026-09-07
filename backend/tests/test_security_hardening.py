@@ -8,6 +8,7 @@ import base64
 import io
 import ipaddress
 import json
+import re
 from http import HTTPStatus
 from pathlib import Path
 
@@ -1818,3 +1819,63 @@ def test_admin_token_is_not_stored_beside_the_user_token_on_web():
     # 普通用户令牌走的是另一套存储，两者不会共处一地。
     user_store = _flutter("lib/core/auth/auth_store.dart")
     assert "sessionStorage" not in user_store
+
+
+# --- nginx: CanvasKit 的 .wasm 必须以 application/wasm 发出 -------------------
+
+
+@pytest.mark.parametrize("relative", _NGINX_CONFIGS)
+def test_wasm_is_served_with_the_type_webassembly_requires(relative):
+    """nginx 自带的 mime.types 没有 wasm 条目。
+
+    少了这条覆盖，CanvasKit 的 .wasm 会以 default_type（application/octet-stream）
+    发出，浏览器抛 "Incorrect response MIME type. Expected 'application/wasm'"。
+    那是个 unhandled promise rejection，页面不报错、只是永远停在启动画面 ——
+    2026-09-07 网页端就是这样停了两小时。
+
+    `types { }` 必须是空的：写成 `types { application/wasm wasm; }` 会替换掉
+    整张继承来的映射表，连 js/css 都变成 octet-stream。
+    """
+    source = (Path(__file__).resolve().parents[2] / relative).read_text()
+
+    blocks = dict(_nginx_location_blocks(source))
+    header = next(
+        (line for line in blocks if line.startswith("location ~* \\.wasm$")),
+        None,
+    )
+    assert header is not None, f"{relative}: 没有 .wasm 专用 location"
+
+    body = blocks[header]
+    assert "default_type application/wasm;" in body, f"{relative}: {body}"
+    assert re.search(r"types\s*\{\s*\}", body), f"{relative}: types 必须为空"
+
+
+@pytest.mark.parametrize("relative", _NGINX_CONFIGS)
+def test_the_wasm_location_precedes_anything_else_matching_it(relative):
+    """nginx 取第一个匹配的正则 location，所以顺序即语义。
+
+    通用静态规则 `~* \\.(?:js|css|...|wasm)$` 也匹配 .wasm；它排在前面的话
+    专用覆盖永远不生效，而配置看起来完全正确。
+    """
+    source = (Path(__file__).resolve().parents[2] / relative).read_text()
+    lines = source.splitlines()
+
+    def first_index(predicate) -> int | None:
+        return next(
+            (i for i, line in enumerate(lines) if predicate(line.strip())),
+            None,
+        )
+
+    wasm_at = first_index(lambda s: s.startswith("location ~* \\.wasm$"))
+    assert wasm_at is not None, f"{relative}: 没有 .wasm 专用 location"
+
+    shadow_at = first_index(
+        lambda s: s.startswith("location ~")
+        and "\\.wasm$" not in s
+        and "wasm" in s
+    )
+    if shadow_at is not None:
+        assert wasm_at < shadow_at, (
+            f"{relative}: .wasm location 在第 {wasm_at + 1} 行，"
+            f"但第 {shadow_at + 1} 行有更早的规则也匹配 .wasm"
+        )

@@ -68,6 +68,27 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
+    # nginx's packaged mime.types carries no wasm entry, so CanvasKit's .wasm
+    # went out as application/octet-stream and the browser refused it:
+    #   TypeError: Failed to execute 'compile' on 'WebAssembly':
+    #   Incorrect response MIME type. Expected 'application/wasm'.
+    # That rejection is an unhandled promise, so the app just never paints its
+    # first frame instead of reporting an error.
+    #
+    # The empty `types {}` scopes the override to this location.  A bare
+    # `types { application/wasm wasm; }` at server level would REPLACE the
+    # whole inherited map and serve js/css as octet-stream too.
+    #
+    # Must stay above any location that would otherwise match \.wasm$ —
+    # nginx takes the first matching regex location.
+    location ~* \.wasm$ {
+        types { }
+        default_type application/wasm;
+        expires 7d;
+        access_log off;
+        try_files $uri =404;
+    }
+
     location ~* \.(?:js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|wasm)$ {
         expires 7d;
         access_log off;
