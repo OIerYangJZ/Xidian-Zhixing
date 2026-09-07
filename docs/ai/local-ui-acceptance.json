@@ -11,7 +11,8 @@
       "traceId": "3dfdb4d5f2664caa95ddf008829dc31a",
       "status": "passed",
       "scope": "identity and stable core facts; no RAG required",
-      "limitation": "knowledge API trace persistence was unavailable during this run; outgoing system hash is in backend log"
+      "limitation": "knowledge API trace persistence was unavailable during this run; outgoing system hash is in backend log",
+      "historical": true
     },
     {
       "caseId": "graduate-course-times-ui",
@@ -27,7 +28,62 @@
         "doc-b1df60d47ab6fe60e97e40c5:9ece79e234d3:1"
       ],
       "totalMs": 16898,
-      "limitation": "该次 queryPlan 擅自带入 yanta 筛选，已添加用户明示条件约束，最终回归单独验证该修复。"
+      "limitation": "该次 queryPlan 擅自带入 yanta 筛选，已添加用户明示条件约束，最终回归单独验证该修复。",
+      "historical": true
+    },
+    {
+      "caseId": "identity-graduate-course-times-final-ui",
+      "client": "Flutter Web actual browser",
+      "status": "passed",
+      "historical": false,
+      "question": "你是谁？2026年秋季研究生培养计划和选课分别从几月几日几点开始、什么时候结束？只制定培养计划够不够？",
+      "actualAnswerExcerpt": "你好，我是小电，西电知行平台智能助手。培养计划制定系统开放时间为9月8日9:00至9月18日17:00；选课系统开放时间为9月8日14:00至9月18日17:00。只制定培养计划是不够的，必须在对应学期的选课时间内完成选班操作。",
+      "checkedFields": [
+        "identity",
+        "planStart",
+        "courseStart",
+        "endTime",
+        "mustSelectClass",
+        "sourceClick"
+      ],
+      "sourceUrlOpened": "https://gr.xidian.edu.cn/info/1073/20504.htm",
+      "traceId": "0550666d96bb4133bcd80914e9c160d4",
+      "promptVersion": "xiaodian-2026-09-07.3",
+      "systemPayloadHash": "1479b32d9ba7c7d910bcf00027921cff704ee754ba882e8001e6572d20b4146a",
+      "contextPayloadHash": "42c0c619ee8b785518d138a6c4822850e27a8454014b858299646e78d6d28f0a",
+      "messageRoles": [
+        "system",
+        "user",
+        "user"
+      ],
+      "queryPlan": {
+        "standaloneQuery": "你是谁？2026年秋季研究生培养计划和选课分别从几月几日几点开始、什么时候结束？只制定培养计划够不够？",
+        "queries": [
+          "2026年秋季研究生培养计划开始时间",
+          "2026年秋季研究生选课开始时间",
+          "2026年秋季研究生培养计划结束时间"
+        ],
+        "campus": null,
+        "educationLevel": "graduate",
+        "requestedFields": [
+          "培养计划开始时间",
+          "选课开始时间",
+          "培养计划结束时间",
+          "是否只制定培养计划够不够"
+        ],
+        "includeCommunity": false,
+        "needsClarification": false,
+        "intent": "campus_qa"
+      },
+      "retrievalMode": "dense_bm25_rrf_rerank",
+      "indexVersion": "zhixing_v2_42734889811242fb",
+      "corpusHash": "d90255b478d4a4f38421ed121d5a46bc224481bc98af7ae5e1da1843f0822e37",
+      "usedSourceIds": [
+        "doc-d1dd04ab10851ff134982bb1:9ece79e234d3:1",
+        "doc-d1dd04ab10851ff134982bb1:9ece79e234d3:0",
+        "doc-d1dd04ab10851ff134982bb1:9ece79e234d3:2"
+      ],
+      "totalMs": 22462
     }
   ]
 }
