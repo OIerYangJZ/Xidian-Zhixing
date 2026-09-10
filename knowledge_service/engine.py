@@ -14,6 +14,26 @@ from .lexical import BM25, reciprocal_rank_fusion
 from .store import KnowledgeStore, content_hash, utcnow
 
 
+def narrow_candidates(rows,*,today,campus=None,level=None,limit=12):
+    """Dedup, drop out-of-scope rows, then keep the top `limit` in input order.
+
+    `rows` arrives in RRF order and the slice has to stay last.  Reranking a pair
+    costs about a hundred times what recalling it does, so only `limit` pairs can
+    be afforded -- but cutting before the filters would let a withdrawn, superseded
+    or out-of-scope chunk occupy one of those slots and silently starve recall.
+    Returns the filtered list and the slice, so callers can trace both counts.
+    """
+    distinct={}
+    for row in rows:
+        distinct.setdefault(row["contentHash"],row)
+    kept=[row for row in distinct.values()
+        if (not campus or not row.get("campuses") or campus in row["campuses"])
+        and (not level or not row.get("educationLevels") or level in row["educationLevels"])
+        and (not row.get("effectiveFrom") or row["effectiveFrom"]<=today)
+        and (not row.get("effectiveTo") or row["effectiveTo"]>=today)]
+    return kept,kept[:limit]
+
+
 class HybridEngine:
     def __init__(self,store:KnowledgeStore,models):
         self.store,self.models=store,models
@@ -21,6 +41,13 @@ class HybridEngine:
             api_key=os.environ.get("KNOWLEDGE_QDRANT_API_KEY") or None,timeout=30)
         self.lock=threading.RLock()
         self.index_write_lock=threading.Lock()
+        # Required, not defaulted: a rerank threshold is only meaningful for the
+        # model it was calibrated against, and inheriting another model's cutoff
+        # either drops good evidence or admits unrelated passages -- neither of
+        # which shows up as an error.  Fail at startup instead.
+        if "KNOWLEDGE_RERANK_THRESHOLD" not in os.environ:
+            raise RuntimeError("必须设置 KNOWLEDGE_RERANK_THRESHOLD，且需针对当前重排模型重新校准")
+        self.rerank_threshold=float(os.environ["KNOWLEDGE_RERANK_THRESHOLD"])
         self._load_lexical()
 
     def _load_lexical(self):
@@ -114,7 +141,9 @@ class HybridEngine:
         if include_community:
             authorities.append("community")
         allowed={key for key,row in lexical.rows.items() if row["authority"] in authorities}
+        encode_started=time.perf_counter()
         vector_queries=self.models.encode(queries)
+        encode_ms=round((time.perf_counter()-encode_started)*1000)
         rankings=[]
         stages=[]
         for text,vector in zip(queries,vector_queries):
@@ -127,22 +156,18 @@ class HybridEngine:
             stages.append({"query":text,"dense":dense_rows,"bm25":sparse_rows})
         fused=reciprocal_rank_fusion(rankings,limit=60)
         # The current relational state decides visibility, even if old vectors remain.
-        candidates=self.store.get_chunks([key for key,_ in fused])
-        distinct={}
-        for row in candidates:
-            distinct.setdefault(row["contentHash"],row)
-        candidates=list(distinct.values())
-        campus=filters.get("campus")
-        level=filters.get("educationLevel")
-        today=datetime.now(timezone(timedelta(hours=8))).date().isoformat()
-        candidates=[row for row in candidates
-            if (not campus or not row.get("campuses") or campus in row["campuses"])
-            and (not level or not row.get("educationLevels") or level in row["educationLevels"])
-            and (not row.get("effectiveFrom") or row["effectiveFrom"]<=today)
-            and (not row.get("effectiveTo") or row["effectiveTo"]>=today)]
+        # get_chunks returns rows in the order of the ids it is given, so the RRF
+        # ranking survives into narrow_candidates, which relies on it.
+        fetched=self.store.get_chunks([key for key,_ in fused])
+        filtered,candidates=narrow_candidates(fetched,
+            today=datetime.now(timezone(timedelta(hours=8))).date().isoformat(),
+            campus=filters.get("campus"),level=filters.get("educationLevel"),
+            limit=int(os.environ.get("KNOWLEDGE_RERANK_CANDIDATES","12")))
+        filtered_count=len(filtered)
+        rerank_stats={}
         rerank_started=time.perf_counter()
-        ranked=self.models.rerank(query,candidates)
-        threshold=float(os.environ.get("KNOWLEDGE_RERANK_THRESHOLD","0.05"))
+        ranked=self.models.rerank(query,candidates,stats=rerank_stats)
+        threshold=self.rerank_threshold
         selected=[]
         counts=Counter()
         for row in ranked:
@@ -173,6 +198,14 @@ class HybridEngine:
             "query":query,"queries":queries,"filters":filters,"stages":stages,"fused":fused,
             "reranked":[{"id":r["id"],"score":r["rerankScore"]} for r in ranked],
             "contextIds":[r["id"] for r in results],
+            # Counts at every narrowing step: a drop from fused to filtered points at
+            # visibility or scope, a drop from filtered to reranked is this host's
+            # latency budget, and truncatedPairs says whether the budget cost evidence.
+            "queryCount":len(queries),"fusedCount":len(fused),"filteredCount":filtered_count,
+            "rerankedCount":len(ranked),"selectedCount":len(selected),
+            **rerank_stats,
+            "rerankThreshold":threshold,
+            "encodeMs":encode_ms,
             "rerankMs":round((time.perf_counter()-rerank_started)*1000),
             "retrievalMs":round((time.perf_counter()-started)*1000)}
         self.store.trace(trace_id,trace)
