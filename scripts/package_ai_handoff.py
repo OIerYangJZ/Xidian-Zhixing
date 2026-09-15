@@ -76,7 +76,7 @@ def main():
             *((p,n) for n,p in sorted(raws.items()))]))
     if args.models:
         model_files=[]
-        for name in ['bge-m3','bge-reranker-v2-m3']:
+        for name in ['bge-m3','bge-reranker-base']:
             model_files.extend(tree(Path(args.models)/name,'models/'+name))
         manifest['archives'].append(archive(out/'xiaodian-bge-models.zip',model_files,compressed=False))
     (out/'HANDOFF.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2),encoding='utf8')
