@@ -185,6 +185,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               child: const Icon(Icons.notifications_none_rounded),
             ),
           ),
+          if (!desktop)
+            IconButton(
+              onPressed: _openSettings,
+              tooltip: l10n.settings,
+              icon: const Icon(Icons.settings_outlined),
+            ),
           if (desktop && _currentIndex == 0) ...<Widget>[
             const SizedBox(width: AppSpacing.xs),
             FilledButton.icon(

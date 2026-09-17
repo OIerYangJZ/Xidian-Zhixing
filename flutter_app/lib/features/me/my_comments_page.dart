@@ -51,9 +51,8 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                                 content: Text(
                                   uiText(
                                     context,
-                                    zh: '原帖跳转下一步接入。',
-                                    en:
-                                        'Opening the original post is coming soon.',
+                                    zh: '原帖暂时无法打开。',
+                                    en: 'The original post is temporarily unavailable.',
                                   ),
                                 ),
                               ),
@@ -65,9 +64,7 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
                         ),
                         TextButton(
                           onPressed: _actionBusy ? null : () => _delete(row.id),
-                          child: Text(
-                            uiText(context, zh: '删除', en: 'Delete'),
-                          ),
+                          child: Text(uiText(context, zh: '删除', en: 'Delete')),
                         ),
                       ],
                     ),
@@ -91,7 +88,8 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
     });
 
     try {
-      final List<MyCommentItem> items = await AppRepositories.users.fetchMyComments();
+      final List<MyCommentItem> items = await AppRepositories.users
+          .fetchMyComments();
       if (!mounted) {
         return;
       }

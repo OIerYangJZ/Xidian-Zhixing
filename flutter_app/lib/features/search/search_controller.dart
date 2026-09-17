@@ -6,8 +6,6 @@ import '../../models/public_user_profile.dart';
 import '../../repositories/post_repository.dart';
 import '../../core/l10n/ui_text.dart';
 
-const Object _statusUnchanged = Object();
-
 enum SearchResultTab { posts, users }
 
 class SearchState {
@@ -15,10 +13,7 @@ class SearchState {
     this.channels = const <String>['全部'],
     this.selectedChannel = '全部',
     this.keyword = '',
-    this.imageOnly = false,
-    this.dmOnly = false,
     this.sort = PostSort.latest,
-    this.status,
     this.results = const <PostItem>[],
     this.userResults = const <PublicUserProfile>[],
     this.selectedTab = SearchResultTab.posts,
@@ -30,10 +25,7 @@ class SearchState {
   final List<String> channels;
   final String selectedChannel;
   final String keyword;
-  final bool imageOnly;
-  final bool dmOnly;
   final PostSort sort;
-  final PostStatus? status;
   final List<PostItem> results;
   final List<PublicUserProfile> userResults;
   final SearchResultTab selectedTab;
@@ -45,10 +37,7 @@ class SearchState {
     List<String>? channels,
     String? selectedChannel,
     String? keyword,
-    bool? imageOnly,
-    bool? dmOnly,
     PostSort? sort,
-    Object? status = _statusUnchanged,
     List<PostItem>? results,
     List<PublicUserProfile>? userResults,
     SearchResultTab? selectedTab,
@@ -61,10 +50,7 @@ class SearchState {
       channels: channels ?? this.channels,
       selectedChannel: selectedChannel ?? this.selectedChannel,
       keyword: keyword ?? this.keyword,
-      imageOnly: imageOnly ?? this.imageOnly,
-      dmOnly: dmOnly ?? this.dmOnly,
       sort: sort ?? this.sort,
-      status: status == _statusUnchanged ? this.status : status as PostStatus?,
       results: results ?? this.results,
       userResults: userResults ?? this.userResults,
       selectedTab: selectedTab ?? this.selectedTab,
@@ -109,9 +95,9 @@ class SearchController extends StateNotifier<SearchState> {
         loading: false,
         searching: false,
         error: uiTextGlobal(
-        zh: '频道加载失败：$error',
-        en: 'Could not load channels: $error',
-      ),
+          zh: '频道加载失败：$error',
+          en: 'Could not load channels: $error',
+        ),
       );
     }
   }
@@ -122,21 +108,6 @@ class SearchController extends StateNotifier<SearchState> {
 
   Future<void> updateChannel(String value) async {
     state = state.copyWith(selectedChannel: value);
-    await search();
-  }
-
-  Future<void> updateImageOnly(bool value) async {
-    state = state.copyWith(imageOnly: value);
-    await search();
-  }
-
-  Future<void> updateDmOnly(bool value) async {
-    state = state.copyWith(dmOnly: value);
-    await search();
-  }
-
-  Future<void> updateStatus(PostStatus? value) async {
-    state = state.copyWith(status: value);
     await search();
   }
 
@@ -163,9 +134,6 @@ class SearchController extends StateNotifier<SearchState> {
                   ? null
                   : state.selectedChannel,
               keyword: normalizedKeyword.isEmpty ? null : normalizedKeyword,
-              hasImage: state.imageOnly ? true : null,
-              allowDm: state.dmOnly ? true : null,
-              status: state.status,
               sort: state.sort,
             ),
         normalizedKeyword.isEmpty

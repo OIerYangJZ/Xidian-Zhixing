@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
@@ -6,6 +7,7 @@ import 'package:markdown/markdown.dart' as md;
 import '../core/config/app_config.dart';
 import '../core/theme/app_typography.dart';
 import '../core/l10n/ui_text.dart';
+import '../features/search/search_page.dart';
 
 class PostContentBody extends StatelessWidget {
   const PostContentBody({
@@ -32,9 +34,9 @@ class PostContentBody extends StatelessWidget {
         context,
       ).textTheme.bodyLarge?.copyWith(height: 1.6);
       if (selectable) {
-        return SelectableText(content, style: style);
+        return SelectableText.rich(_hashtagSpan(context, content, style));
       }
-      return Text(content, style: style);
+      return Text.rich(_hashtagSpan(context, content, style));
     }
 
     return MarkdownBody(
@@ -42,7 +44,7 @@ class PostContentBody extends StatelessWidget {
       selectable: selectable,
       softLineBreak: true,
       extensionSet: md.ExtensionSet.gitHubFlavored,
-      inlineSyntaxes: <md.InlineSyntax>[_InlineMathSyntax()],
+      inlineSyntaxes: <md.InlineSyntax>[_InlineMathSyntax(), _HashtagSyntax()],
       blockSyntaxes: <md.BlockSyntax>[_BlockMathSyntax()],
       builders: <String, MarkdownElementBuilder>{
         'math-inline': _MathElementBuilder(isBlock: false),
@@ -134,6 +136,58 @@ class PostContentBody extends StatelessWidget {
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
+        a: TextStyle(
+          color: Theme.of(context).colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      onTapLink: (String text, String? href, String title) {
+        if (href == null || !href.startsWith('tag:')) {
+          return;
+        }
+        _openTag(context, href.substring(4));
+      },
+    );
+  }
+
+  TextSpan _hashtagSpan(BuildContext context, String source, TextStyle? style) {
+    final RegExp expression = RegExp(
+      r'(?<![\w#])#([\u4e00-\u9fffA-Za-z0-9_-]{1,40})',
+    );
+    final List<InlineSpan> spans = <InlineSpan>[];
+    int cursor = 0;
+    for (final RegExpMatch match in expression.allMatches(source)) {
+      if (match.start > cursor) {
+        spans.add(TextSpan(text: source.substring(cursor, match.start)));
+      }
+      final String tag = match.group(1)!;
+      spans.add(
+        TextSpan(
+          text: '#$tag',
+          style: style?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () => _openTag(context, tag),
+        ),
+      );
+      cursor = match.end;
+    }
+    if (cursor < source.length) {
+      spans.add(TextSpan(text: source.substring(cursor)));
+    }
+    return TextSpan(style: style, children: spans);
+  }
+
+  void _openTag(BuildContext context, String tag) {
+    final String normalized = tag.trim();
+    if (normalized.isEmpty) {
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => SearchPage(initialKeyword: '#$normalized'),
       ),
     );
   }
@@ -217,6 +271,23 @@ class _InlineMathSyntax extends md.InlineSyntax {
     final md.Element element = md.Element.text('math-inline', expression)
       ..attributes['tex'] = expression;
     parser.addNode(element);
+    return true;
+  }
+}
+
+class _HashtagSyntax extends md.InlineSyntax {
+  _HashtagSyntax() : super(r'(?<![\w#])#([\u4e00-\u9fffA-Za-z0-9_-]{1,40})');
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    final String tag = match.group(1) ?? '';
+    if (tag.isEmpty) {
+      return false;
+    }
+    parser.addNode(
+      md.Element('a', <md.Node>[md.Text('#$tag')])
+        ..attributes['href'] = 'tag:$tag',
+    );
     return true;
   }
 }

@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/auth_store.dart';
-import '../core/state/app_locale_store.dart';
-import '../core/state/app_theme_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../core/widgets/app_surfaces.dart';
-import '../core/widgets/language_toggle.dart';
-import '../core/widgets/theme_dropdown.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../core/l10n/ui_text.dart';
 
@@ -56,13 +52,7 @@ class DiscussionHomeScaffold extends StatelessWidget {
           ? null
           : AppBar(
               titleSpacing: AppSpacing.md,
-              title: Row(
-                children: <Widget>[
-                  const AppSealMark(size: 30),
-                  const SizedBox(width: AppSpacing.sm),
-                  Text(destinations[currentIndex].label),
-                ],
-              ),
+              title: const SizedBox.shrink(),
               actions: <Widget>[
                 if (currentIndex == 0)
                   IconButton(
@@ -87,6 +77,16 @@ class DiscussionHomeScaffold extends StatelessWidget {
                     ),
                     child: const Icon(Icons.notifications_none_rounded),
                   ),
+                ),
+                IconButton(
+                  tooltip: l10n.conversations,
+                  onPressed: onMessages,
+                  icon: const Icon(Icons.chat_bubble_outline_rounded),
+                ),
+                IconButton(
+                  tooltip: l10n.settings,
+                  onPressed: onSettings,
+                  icon: const Icon(Icons.settings_outlined),
                 ),
                 const SizedBox(width: AppSpacing.xs),
               ],
@@ -190,19 +190,25 @@ class _DiscussionRail extends StatelessWidget {
               horizontal: expanded ? AppSpacing.sm : AppSpacing.xs,
             ),
             child: expanded
-                ? Row(
-                    children: <Widget>[
-                      const AppSealMark(size: 36),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          l10n.brandShort,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
+                ? Align(
+                    alignment: Alignment.centerLeft,
+                    child: InkWell(
+                      onTap: () => onSelect(0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(AppSpacing.xxs),
+                        child: AppSealMark(size: 36),
                       ),
-                    ],
+                    ),
                   )
-                : const AppSealMark(size: 36),
+                : Center(
+                    child: InkWell(
+                      onTap: () => onSelect(0),
+                      child: const Padding(
+                        padding: EdgeInsets.all(AppSpacing.xxs),
+                        child: AppSealMark(size: 36),
+                      ),
+                    ),
+                  ),
           ),
           const SizedBox(height: AppSpacing.xl),
           for (int index = 0; index < destinations.length; index++)
@@ -307,27 +313,6 @@ class _DiscussionRail extends StatelessWidget {
               ),
             ),
           ),
-          if (expanded) ...<Widget>[
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: ThemeDropdown(
-                    themeKey: AppThemeStore.instance.themeKey,
-                    locale: Localizations.localeOf(context),
-                    onChanged: AppThemeStore.instance.setThemeKey,
-                    compact: true,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                LanguageToggle(
-                  locale: Localizations.localeOf(context),
-                  onChanged: AppLocaleStore.instance.setLocale,
-                  compact: true,
-                ),
-              ],
-            ),
-          ],
         ],
       ),
     );
@@ -365,7 +350,7 @@ class _RailAction extends StatelessWidget {
       child: Tooltip(
         message: expanded ? '' : label,
         child: Material(
-          color: selected ? colors.primarySubtle : Colors.transparent,
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),

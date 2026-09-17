@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_theme_store.dart';
 import '../../core/theme/design_tokens.dart';
@@ -27,10 +26,6 @@ class SettingsPage extends StatelessWidget {
           children: <Widget>[
             AppSectionHeader(
               title: text('界面与偏好', 'Appearance and preferences'),
-              subtitle: text(
-                '网页端设置不会改变 Android、iOS 或微信小程序。',
-                'Web settings do not affect Android, iOS, or WeChat Mini Program.',
-              ),
             ),
             const SizedBox(height: AppSpacing.md),
             Card(
@@ -101,13 +96,7 @@ class SettingsPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            AppSectionHeader(
-              title: text('规则与隐私', 'Rules and privacy'),
-              subtitle: text(
-                '了解社区边界、举报流程与数据处理方式。',
-                'Learn about community rules, reports, and data handling.',
-              ),
-            ),
+            AppSectionHeader(title: text('规则与隐私', 'Rules and privacy')),
             const SizedBox(height: AppSpacing.sm),
             Card(
               child: Column(
@@ -134,20 +123,6 @@ class SettingsPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            AppInlineMessage(
-              title: text('访问说明', 'Access information'),
-              message: text(
-                '当前使用学校统一身份认证登录，仅向项目组白名单学号开放。',
-                'Sign-in uses Xidian unified authentication and is currently limited to allowlisted student IDs.',
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text(
-              '${text('西电知行', 'Xidian Zhixing')} v${AppConfig.appVersion}',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.lg),
           ],

@@ -3,10 +3,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlsplit
 
 
 def utcnow() -> str:
@@ -86,6 +88,66 @@ class KnowledgeStore:
         with self.connect() as con:
             row = con.execute("SELECT data FROM documents WHERE id=?", (doc_id,)).fetchone()
         return json.loads(row[0]) if row else None
+
+    def get_document_content(self, doc_id: str) -> dict | None:
+        """Return the complete source document used for grounded generation.
+
+        Captured originals are kept outside SQLite.  When available, reread the
+        original file from the server-owned raw directory so a parser update or
+        a repaired canonical row is reflected in agent context.  The endpoint
+        never accepts a caller-provided path and falls back to the stored
+        canonical body when the original is unavailable.
+        """
+        with self.connect() as con:
+            row = con.execute(
+                "SELECT data FROM documents WHERE id=? AND status='published'",
+                (doc_id,),
+            ).fetchone()
+        if row is None:
+            return None
+        document = json.loads(row[0])
+        content = self._read_original_content(document) or document.get("content", "")
+        return {
+            "id": document.get("id", ""),
+            "documentId": document.get("id", ""),
+            "title": document.get("title", ""),
+            "content": content,
+            "sourceUrl": document.get("sourceUrl", ""),
+            "publishedAt": document.get("publishedAt"),
+            "updatedAt": document.get("updatedAt", ""),
+        }
+
+    @staticmethod
+    def _read_original_content(document: dict) -> str:
+        raw_key = str(document.get("rawObjectKey", "")).strip()
+        raw_root = str(os.environ.get("KNOWLEDGE_RAW_DIR", "")).strip()
+        if not raw_key or not raw_root:
+            return ""
+        try:
+            path = Path(raw_key).resolve()
+            root = Path(raw_root).resolve()
+            if not path.is_file() or not path.is_relative_to(root):
+                return ""
+            # Keep one malformed or unexpectedly large capture from exhausting
+            # a worker while dozens of requests are reading source documents.
+            if path.stat().st_size > 8 * 1024 * 1024:
+                return ""
+            payload = path.read_bytes()
+            source_url = str(document.get("sourceUrl", ""))
+            suffix = Path(urlsplit(source_url).path).suffix.lower()
+            if suffix == ".pdf" or payload[:5] == b"%PDF-":
+                from pypdf import PdfReader
+                from io import BytesIO
+                reader = PdfReader(BytesIO(payload))
+                return "\n\n".join((page.extract_text() or "").strip() for page in reader.pages).strip()
+            if suffix in {".docx", ".xlsx", ".doc", ".xls"}:
+                from .attachments import office_text
+                return office_text(payload, suffix).strip()
+            from .html_body import parse_html
+            _title, text, _date, _pages = parse_html(payload, source_url)
+            return str(text or "").strip()
+        except Exception:
+            return ""
 
     def get_chunks(self, ids: list[str]) -> list[dict]:
         if not ids:

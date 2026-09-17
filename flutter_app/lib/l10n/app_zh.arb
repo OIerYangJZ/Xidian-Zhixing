@@ -18,9 +18,8 @@
   "welcomeBack": "欢迎回来",
   "loginDescription": "前往西电官方统一身份认证页面完成登录。",
   "loggingIn": "等待官方认证",
-  "betaAccessMessage": "账号登录时，学号和密码仅在西电官方页面输入，西电知行不会接触或保存统一认证密码。首次认证成功后自动创建账号；当前仅开放白名单学号。",
   "adminLogin": "管理员后台登录",
-  "agreements": "用户协议 · 隐私政策 · 社区规范",
+  "agreements": "用户协议",
   "loginFailed": "登录失败：{error}",
   "@loginFailed": {
     "placeholders": {

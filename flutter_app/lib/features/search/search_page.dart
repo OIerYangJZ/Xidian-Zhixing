@@ -248,38 +248,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           ),
         ),
         SizedBox(
-          width: 150,
-          child: DropdownButtonFormField<PostStatus?>(
-            initialValue: state.status,
-            decoration: InputDecoration(
-              labelText: uiText(context, zh: '状态', en: 'Status'),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 8,
-              ),
-            ),
-            items: <DropdownMenuItem<PostStatus?>>[
-              DropdownMenuItem<PostStatus?>(
-                value: null,
-                child: Text(uiText(context, zh: '全部状态', en: 'All statuses')),
-              ),
-              ...PostStatus.values.map(
-                (PostStatus status) => DropdownMenuItem<PostStatus?>(
-                  value: status,
-                  child: Text(status.label),
-                ),
-              ),
-            ],
-            onChanged: state.searching
-                ? null
-                : (PostStatus? value) {
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .updateStatus(value);
-                  },
-          ),
-        ),
-        SizedBox(
           width: 180,
           child: DropdownButtonFormField<PostSort>(
             initialValue: state.sort,
@@ -309,28 +277,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                         .updateSort(value);
                   },
           ),
-        ),
-        FilterChip(
-          label: Text(uiText(context, zh: '仅看有图', en: 'With images')),
-          selected: state.imageOnly,
-          onSelected: state.searching
-              ? null
-              : (bool selected) {
-                  ref
-                      .read(searchControllerProvider.notifier)
-                      .updateImageOnly(selected);
-                },
-        ),
-        FilterChip(
-          label: Text(uiText(context, zh: '仅看可私信', en: 'Messageable')),
-          selected: state.dmOnly,
-          onSelected: state.searching
-              ? null
-              : (bool selected) {
-                  ref
-                      .read(searchControllerProvider.notifier)
-                      .updateDmOnly(selected);
-                },
         ),
         FilledButton.icon(
           onPressed: state.searching ? null : _submitSearch,

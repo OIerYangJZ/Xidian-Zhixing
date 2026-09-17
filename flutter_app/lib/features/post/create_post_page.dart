@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/ui_text.dart';
 import '../../core/media/image_picker_adapter.dart';
@@ -13,7 +15,6 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
-import '../../models/user_profile.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 import '../../widgets/post_content_body.dart';
@@ -28,11 +29,11 @@ class CreatePostPage extends ConsumerStatefulWidget {
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   static const int _plainTextMaxLength = 3000;
+  static const String _draftKey = 'xiaodian_create_post_draft';
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
-  final TextEditingController _tagsController = TextEditingController();
   final TextEditingController _anonymousAliasController =
       TextEditingController();
   final FocusNode _contentFocusNode = FocusNode();
@@ -41,6 +42,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   PostStatus _status = PostStatus.ongoing;
   bool _useAnonymousAlias = false;
   bool _useMarkdown = false;
+  String _plainDraft = '';
+  String _markdownDraft = '';
   bool _privateOnly = false;
   int? _selectedPinDurationMinutes;
   bool _pickingImages = false;
@@ -56,6 +59,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       focusNode: _contentFocusNode,
       onImagesPasted: _handleMarkdownImagesPasted,
     );
+    unawaited(_loadDraft());
     Future<void>.microtask(
       () => ref.read(createPostControllerProvider.notifier).loadChannels(),
     );
@@ -66,7 +70,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     _detachMarkdownPasteListener?.call();
     _titleController.dispose();
     _contentController.dispose();
-    _tagsController.dispose();
     _anonymousAliasController.dispose();
     _contentFocusNode.dispose();
     super.dispose();
@@ -78,697 +81,639 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final CreatePostState state = ref.watch(createPostControllerProvider);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
-    final String levelLabel = userLevelLabelForLevel(
-      locale,
-      state.isLevelOneUser ? 1 : 2,
-    );
     final List<String> channels = state.channels;
     final bool hasChannels = channels.isNotEmpty;
     final String? selectedChannel = hasChannels
         ? _deriveSelectedChannel(channels)
         : null;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(uiText(context, zh: '发布帖子', en: 'New post')),
-      ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: AppLayout.readingMaxWidth,
-          ),
-          child: AsyncPageState(
-            loading: state.loadingChannels,
-            loadingLabel: uiText(
-              context,
-              zh: '正在准备发布表单',
-              en: 'Preparing the compose form',
+    return PopScope<Object?>(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (didPop) {
+          unawaited(_saveDraft());
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(uiText(context, zh: '发布帖子', en: 'New post')),
+        ),
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: AppLayout.readingMaxWidth,
             ),
-            error: state.error,
-            onRetry: () =>
-                ref.read(createPostControllerProvider.notifier).loadChannels(),
-            child: ListView(
-              key: const Key('create-post-form-scroll'),
-              padding: AppLayout.pagePadding(context),
-              children: <Widget>[
-                if (isBusy)
-                  _ProgressCard(
-                    text: _pastingMarkdownImages
-                        ? uiText(
-                            context,
-                            zh: '上传粘贴图片中...',
-                            en: 'Uploading pasted images...',
-                          )
-                        : _pickingImages
-                        ? uiText(
-                            context,
-                            zh: '读取图片中...',
-                            en: 'Reading images...',
-                          )
-                        : (state.progressText ??
+            child: AsyncPageState(
+              loading: state.loadingChannels,
+              loadingLabel: uiText(
+                context,
+                zh: '正在准备发布表单',
+                en: 'Preparing the compose form',
+              ),
+              error: state.error,
+              onRetry: () => ref
+                  .read(createPostControllerProvider.notifier)
+                  .loadChannels(),
+              child: ListView(
+                key: const Key('create-post-form-scroll'),
+                padding: AppLayout.pagePadding(context),
+                children: <Widget>[
+                  if (isBusy)
+                    _ProgressCard(
+                      text: _pastingMarkdownImages
+                          ? uiText(
+                              context,
+                              zh: '上传粘贴图片中...',
+                              en: 'Uploading pasted images...',
+                            )
+                          : _pickingImages
+                          ? uiText(
+                              context,
+                              zh: '读取图片中...',
+                              en: 'Reading images...',
+                            )
+                          : (state.progressText ??
+                                uiText(
+                                  context,
+                                  zh: '提交中...',
+                                  en: 'Submitting...',
+                                )),
+                    ),
+                  if (isBusy) const SizedBox(height: AppSpacing.sm),
+                  AppSurfaceCard(
+                    padding: EdgeInsets.all(
+                      AppBreakpoints.isCompact(context)
+                          ? AppSpacing.md
+                          : AppSpacing.lg,
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          AppSectionHeader(
+                            title: uiText(context, zh: '发布', en: 'New post'),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          Shortcuts(
+                            shortcuts: const <ShortcutActivator, Intent>{
+                              SingleActivator(LogicalKeyboardKey.tab):
+                                  DoNothingAndStopPropagationIntent(),
+                              SingleActivator(
+                                LogicalKeyboardKey.tab,
+                                shift: true,
+                              ): DoNothingAndStopPropagationIntent(),
+                            },
+                            child: TextFormField(
+                              key: const Key('create-post-title'),
+                              controller: _titleController,
+                              maxLength: 60,
+                              decoration: InputDecoration(
+                                labelText: uiText(
+                                  context,
+                                  zh: '标题',
+                                  en: 'Title',
+                                ),
+                                hintText: uiText(
+                                  context,
+                                  zh: '一句话概括你的问题或诉求',
+                                  en: 'Sum up your question or request in one line',
+                                ),
+                              ),
+                              validator: (String? value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return uiTextFor(
+                                    locale,
+                                    zh: '请输入标题',
+                                    en: 'Please enter a title',
+                                  );
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          SwitchListTile(
+                            value: _useMarkdown,
+                            onChanged: isBusy ? null : _handleMarkdownToggle,
+                            title: Text(
                               uiText(
                                 context,
-                                zh: '提交中...',
-                                en: 'Submitting...',
-                              )),
-                  ),
-                if (isBusy) const SizedBox(height: AppSpacing.sm),
-                AppSurfaceCard(
-                  padding: EdgeInsets.all(
-                    AppBreakpoints.isCompact(context)
-                        ? AppSpacing.md
-                        : AppSpacing.lg,
-                  ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        AppSectionHeader(
-                          title: uiText(
-                            context,
-                            zh: '分享一条校园内容',
-                            en: 'Share something from campus',
+                                zh: '使用 Markdown 编辑',
+                                en: 'Compose in Markdown',
+                              ),
+                            ),
+                            subtitle: Text(
+                              uiText(
+                                context,
+                                zh: '开启后可编写 Markdown 源码，发出后按渲染效果展示',
+                                en: 'Write Markdown source; the post renders it once published',
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.zero,
                           ),
-                          subtitle: uiText(
-                            context,
-                            zh: '清楚的标题和上下文，更容易获得有效回应。',
-                            en:
-                                'A clear title and enough context get better replies.',
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        Shortcuts(
-                          shortcuts: const <ShortcutActivator, Intent>{
-                            SingleActivator(LogicalKeyboardKey.tab):
-                                DoNothingAndStopPropagationIntent(),
-                            SingleActivator(
-                              LogicalKeyboardKey.tab,
-                              shift: true,
-                            ): DoNothingAndStopPropagationIntent(),
-                          },
-                          child: TextFormField(
-                            key: const Key('create-post-title'),
-                            controller: _titleController,
-                            maxLength: 60,
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            key: ValueKey<String>(
+                              _useMarkdown
+                                  ? 'create-post-markdown-editor'
+                                  : 'create-post-plain-editor',
+                            ),
+                            controller: _contentController,
+                            focusNode: _contentFocusNode,
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
+                            minLines: 6,
+                            maxLines: 10,
+                            maxLength: _useMarkdown
+                                ? null
+                                : _plainTextMaxLength,
+                            maxLengthEnforcement: _useMarkdown
+                                ? null
+                                : MaxLengthEnforcement.enforced,
+                            autocorrect: !_useMarkdown,
+                            enableSuggestions: !_useMarkdown,
+                            enableIMEPersonalizedLearning: !_useMarkdown,
+                            smartDashesType: _useMarkdown
+                                ? SmartDashesType.disabled
+                                : SmartDashesType.enabled,
+                            smartQuotesType: _useMarkdown
+                                ? SmartQuotesType.disabled
+                                : SmartQuotesType.enabled,
+                            spellCheckConfiguration: _useMarkdown
+                                ? const SpellCheckConfiguration.disabled()
+                                : null,
                             decoration: InputDecoration(
-                              labelText: uiText(
-                                context,
-                                zh: '标题',
-                                en: 'Title',
-                              ),
-                              hintText: uiText(
-                                context,
-                                zh: '一句话概括你的问题或诉求',
-                                en: 'Sum up your question or request in one line',
-                              ),
+                              alignLabelWithHint: true,
+                              labelText: _useMarkdown
+                                  ? uiText(
+                                      context,
+                                      zh: 'Markdown 源码',
+                                      en: 'Markdown source',
+                                    )
+                                  : uiText(context, zh: '正文', en: 'Body'),
+                              hintText: _useMarkdown
+                                  ? uiText(
+                                      context,
+                                      zh: '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```',
+                                      en: '# Heading\n- List item\n> Quote\n```dart\nprint("Hello");\n```',
+                                    )
+                                  : uiText(
+                                      context,
+                                      zh: '描述越完整，越容易获得帮助',
+                                      en: 'The more detail you give, the easier it is to help',
+                                    ),
+                              helperText: _useMarkdown
+                                  ? uiText(
+                                      context,
+                                      zh: '支持直接粘贴图片并自动插入链接。',
+                                      en: 'Paste images directly and insert their links automatically.',
+                                    )
+                                  : uiText(
+                                      context,
+                                      zh: '纯文本正文最多 3000 字。',
+                                      en: 'Plain text is limited to 3000 characters.',
+                                    ),
+                              helperMaxLines: 2,
                             ),
                             validator: (String? value) {
                               if (value == null || value.trim().isEmpty) {
                                 return uiTextFor(
                                   locale,
-                                  zh: '请输入标题',
-                                  en: 'Please enter a title',
+                                  zh: '请输入正文',
+                                  en: 'Please enter the body',
                                 );
                               }
-                              if (value.trim().length < 4) {
+                              if (!_useMarkdown &&
+                                  value.length > _plainTextMaxLength) {
                                 return uiTextFor(
                                   locale,
-                                  zh: '标题至少 4 个字',
-                                  en: 'The title needs at least 4 characters',
+                                  zh: '纯文本正文最多 $_plainTextMaxLength 字',
+                                  en: 'Plain text is limited to $_plainTextMaxLength characters',
                                 );
                               }
                               return null;
                             },
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        SwitchListTile(
-                          value: _useMarkdown,
-                          onChanged: isBusy ? null : _handleMarkdownToggle,
-                          title: Text(
-                            uiText(
-                              context,
-                              zh: '使用 Markdown 编辑',
-                              en: 'Compose in Markdown',
-                            ),
+                          const SizedBox(height: 4),
+                          EmojiAssistantBar(
+                            controller: _contentController,
+                            compact: true,
                           ),
-                          subtitle: Text(
-                            uiText(
-                              context,
-                              zh: '开启后可编写 Markdown 源码，发出后按渲染效果展示',
-                              en:
-                                  'Write Markdown source; the post renders it once published',
-                            ),
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: 6),
-                        TextFormField(
-                          key: ValueKey<String>(
-                            _useMarkdown
-                                ? 'create-post-markdown-editor'
-                                : 'create-post-plain-editor',
-                          ),
-                          controller: _contentController,
-                          focusNode: _contentFocusNode,
-                          keyboardType: TextInputType.multiline,
-                          textInputAction: TextInputAction.newline,
-                          minLines: 6,
-                          maxLines: 10,
-                          maxLength: _useMarkdown ? null : _plainTextMaxLength,
-                          maxLengthEnforcement: _useMarkdown
-                              ? null
-                              : MaxLengthEnforcement.enforced,
-                          autocorrect: !_useMarkdown,
-                          enableSuggestions: !_useMarkdown,
-                          enableIMEPersonalizedLearning: !_useMarkdown,
-                          smartDashesType: _useMarkdown
-                              ? SmartDashesType.disabled
-                              : SmartDashesType.enabled,
-                          smartQuotesType: _useMarkdown
-                              ? SmartQuotesType.disabled
-                              : SmartQuotesType.enabled,
-                          spellCheckConfiguration: _useMarkdown
-                              ? const SpellCheckConfiguration.disabled()
-                              : null,
-                          decoration: InputDecoration(
-                            alignLabelWithHint: true,
-                            labelText: _useMarkdown
-                                ? uiText(
-                                    context,
-                                    zh: 'Markdown 源码',
-                                    en: 'Markdown source',
-                                  )
-                                : uiText(context, zh: '正文', en: 'Body'),
-                            hintText: _useMarkdown
-                                ? uiText(
-                                    context,
-                                    zh:
-                                        '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```',
-                                    en:
-                                        '# Heading\n- List item\n> Quote\n```dart\nprint("Hello");\n```',
-                                  )
-                                : uiText(
-                                    context,
-                                    zh: '描述越完整，越容易获得帮助',
-                                    en:
-                                        'The more detail you give, the easier it is to help',
+                          if (_useMarkdown) ...<Widget>[
+                            const SizedBox(height: 10),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .outlineVariant
+                                      .withValues(alpha: 0.6),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    uiText(
+                                      context,
+                                      zh: '实时预览',
+                                      en: 'Live preview',
+                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                            helperText: _useMarkdown
-                                ? uiText(
-                                    context,
-                                    zh:
-                                        'Markdown 模式不限制字数，支持直接粘贴图片并自动插入链接。切换模式会清空当前正文。',
-                                    en:
-                                        'Markdown mode has no length limit and supports pasting images. Switching modes clears the body.',
-                                  )
-                                : uiText(
-                                    context,
-                                    zh: '纯文本模式最多 3000 字。切换模式会清空当前正文。',
-                                    en:
-                                        'Plain text is limited to 3000 characters. Switching modes clears the body.',
+                                  const SizedBox(height: 10),
+                                  ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable: _contentController,
+                                    builder:
+                                        (
+                                          BuildContext context,
+                                          TextEditingValue value,
+                                          Widget? child,
+                                        ) {
+                                          final String source = value.text
+                                              .trim();
+                                          if (source.isEmpty) {
+                                            return Text(
+                                              uiText(
+                                                context,
+                                                zh: '输入 Markdown 源码后，这里会显示渲染效果。',
+                                                en: 'Type Markdown source and the rendered result appears here.',
+                                              ),
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.58),
+                                              ),
+                                            );
+                                          }
+                                          return PostContentBody(
+                                            content: '',
+                                            contentFormat: 'markdown',
+                                            markdownSource: source,
+                                            selectable: false,
+                                          );
+                                        },
                                   ),
-                            helperMaxLines: 2,
-                          ),
-                          validator: (String? value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return uiTextFor(
-                                locale,
-                                zh: '请输入正文',
-                                en: 'Please enter the body',
-                              );
-                            }
-                            if (value.trim().length < 8) {
-                              return uiTextFor(
-                                locale,
-                                zh: '正文至少 8 个字',
-                                en: 'The body needs at least 8 characters',
-                              );
-                            }
-                            if (!_useMarkdown &&
-                                value.length > _plainTextMaxLength) {
-                              return uiTextFor(
-                                locale,
-                                zh: '纯文本正文最多 $_plainTextMaxLength 字',
-                                en:
-                                    'Plain text is limited to $_plainTextMaxLength characters',
-                              );
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 4),
-                        EmojiAssistantBar(
-                          controller: _contentController,
-                          compact: true,
-                        ),
-                        if (_useMarkdown) ...<Widget>[
-                          const SizedBox(height: 10),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outlineVariant
-                                    .withValues(alpha: 0.6),
+                                ],
                               ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Text(
-                                  uiText(
-                                    context,
-                                    zh: '实时预览',
-                                    en: 'Live preview',
-                                  ),
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                          ],
+                          const SizedBox(height: 10),
+                          if (hasChannels)
+                            DropdownButtonFormField<String>(
+                              initialValue: selectedChannel,
+                              decoration: InputDecoration(
+                                labelText: uiText(
+                                  context,
+                                  zh: '频道',
+                                  en: 'Channel',
                                 ),
-                                const SizedBox(height: 10),
-                                ValueListenableBuilder<TextEditingValue>(
-                                  valueListenable: _contentController,
-                                  builder:
-                                      (
-                                        BuildContext context,
-                                        TextEditingValue value,
-                                        Widget? child,
-                                      ) {
-                                        final String source = value.text.trim();
-                                        if (source.isEmpty) {
-                                          return Text(
-                                            uiText(
-                                              context,
-                                              zh:
-                                                  '输入 Markdown 源码后，这里会显示渲染效果。',
-                                              en:
-                                                  'Type Markdown source and the rendered result appears here.',
-                                            ),
-                                            style: TextStyle(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.58),
-                                            ),
-                                          );
-                                        }
-                                        return PostContentBody(
-                                          content: '',
-                                          contentFormat: 'markdown',
-                                          markdownSource: source,
-                                          selectable: false,
-                                        );
-                                      },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 10),
-                        if (hasChannels)
-                          DropdownButtonFormField<String>(
-                            initialValue: selectedChannel,
+                              ),
+                              items: channels
+                                  .map(
+                                    (String channel) =>
+                                        DropdownMenuItem<String>(
+                                          value: channel,
+                                          child: Text(
+                                            localizedChannel(locale, channel),
+                                          ),
+                                        ),
+                                  )
+                                  .toList(),
+                              onChanged: isBusy
+                                  ? null
+                                  : (String? value) {
+                                      if (value == null) {
+                                        return;
+                                      }
+                                      setState(() {
+                                        _selectedChannel = value;
+                                      });
+                                    },
+                            )
+                          else
+                            const _EmptyChannelCard(),
+                          const SizedBox(height: 10),
+                          DropdownButtonFormField<PostStatus>(
+                            initialValue: _status,
                             decoration: InputDecoration(
                               labelText: uiText(
                                 context,
-                                zh: '频道',
-                                en: 'Channel',
+                                zh: '状态',
+                                en: 'Status',
                               ),
                             ),
-                            items: channels
+                            items: PostStatus.values
                                 .map(
-                                  (String channel) => DropdownMenuItem<String>(
-                                    value: channel,
-                                    child: Text(
-                                      localizedChannel(locale, channel),
-                                    ),
-                                  ),
+                                  (PostStatus status) =>
+                                      DropdownMenuItem<PostStatus>(
+                                        value: status,
+                                        child: Text(status.labelFor(locale)),
+                                      ),
                                 )
                                 .toList(),
                             onChanged: isBusy
                                 ? null
-                                : (String? value) {
+                                : (PostStatus? value) {
                                     if (value == null) {
                                       return;
                                     }
                                     setState(() {
-                                      _selectedChannel = value;
+                                      _status = value;
                                     });
                                   },
-                          )
-                        else
-                          const _EmptyChannelCard(),
-                        const SizedBox(height: 10),
-                        DropdownButtonFormField<PostStatus>(
-                          initialValue: _status,
-                          decoration: InputDecoration(
-                            labelText: uiText(
-                              context,
-                              zh: '状态',
-                              en: 'Status',
-                            ),
                           ),
-                          items: PostStatus.values
-                              .map(
-                                (PostStatus status) =>
-                                    DropdownMenuItem<PostStatus>(
-                                      value: status,
-                                      child: Text(status.labelFor(locale)),
-                                    ),
-                              )
-                              .toList(),
-                          onChanged: isBusy
-                              ? null
-                              : (PostStatus? value) {
-                                  if (value == null) {
-                                    return;
-                                  }
-                                  setState(() {
-                                    _status = value;
-                                  });
-                                },
-                        ),
-                        const SizedBox(height: 10),
-                        TextFormField(
-                          controller: _tagsController,
-                          decoration: InputDecoration(
-                            labelText: uiText(
-                              context,
-                              zh: '标签（可选）',
-                              en: 'Tags (optional)',
-                            ),
-                            hintText: uiText(
-                              context,
-                              zh: '例如：北校区, 学习, 周末',
-                              en: 'e.g. North campus, study, weekend',
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SwitchListTile(
-                          value: _useAnonymousAlias,
-                          onChanged: isBusy
-                              ? null
-                              : (bool value) {
-                                  setState(() {
-                                    _useAnonymousAlias = value;
-                                  });
-                                },
-                          title: Text(
-                            uiText(
-                              context,
-                              zh: '本帖使用匿名身份',
-                              en: 'Post anonymously',
-                            ),
-                          ),
-                          subtitle: Text(
-                            uiText(
-                              context,
-                              zh: '仅影响当前帖子，不影响你的账号昵称',
-                              en:
-                                  'Affects this post only, not your account nickname',
-                            ),
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        if (_useAnonymousAlias) ...<Widget>[
-                          TextFormField(
-                            controller: _anonymousAliasController,
-                            decoration: InputDecoration(
-                              labelText: uiText(
+                          const SizedBox(height: 10),
+                          SwitchListTile(
+                            value: _useAnonymousAlias,
+                            onChanged: isBusy
+                                ? null
+                                : (bool value) {
+                                    setState(() {
+                                      _useAnonymousAlias = value;
+                                    });
+                                  },
+                            title: Text(
+                              uiText(
                                 context,
-                                zh: '匿名昵称（可选）',
-                                en: 'Anonymous nickname (optional)',
-                              ),
-                              hintText: uiText(
-                                context,
-                                zh: '例如：热心同学',
-                                en: 'e.g. Helpful classmate',
+                                zh: '本帖使用匿名身份',
+                                en: 'Post anonymously',
                               ),
                             ),
-                            validator: (String? value) {
-                              if (value == null || value.trim().isEmpty) {
+                            subtitle: Text(
+                              uiText(
+                                context,
+                                zh: '仅影响当前帖子，不影响你的账号昵称',
+                                en: 'Affects this post only, not your account nickname',
+                              ),
+                            ),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          if (_useAnonymousAlias) ...<Widget>[
+                            TextFormField(
+                              controller: _anonymousAliasController,
+                              decoration: InputDecoration(
+                                labelText: uiText(
+                                  context,
+                                  zh: '匿名昵称（可选）',
+                                  en: 'Anonymous nickname (optional)',
+                                ),
+                                hintText: uiText(
+                                  context,
+                                  zh: '例如：热心同学',
+                                  en: 'e.g. Helpful classmate',
+                                ),
+                              ),
+                              validator: (String? value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return null;
+                                }
+                                if (value.trim().length > 24) {
+                                  return uiTextFor(
+                                    locale,
+                                    zh: '匿名昵称最长 24 个字符',
+                                    en: 'The anonymous nickname is limited to 24 characters',
+                                  );
+                                }
                                 return null;
-                              }
-                              if (value.trim().length > 24) {
-                                return uiTextFor(
-                                  locale,
-                                  zh: '匿名昵称最长 24 个字符',
-                                  en:
-                                      'The anonymous nickname is limited to 24 characters',
-                                );
-                              }
-                              return null;
-                            },
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: _privateOnly ? 'private' : 'public',
-                          decoration: InputDecoration(
-                            labelText: uiText(
-                              context,
-                              zh: '可见范围',
-                              en: 'Visibility',
-                            ),
-                          ),
-                          items: <DropdownMenuItem<String>>[
-                            DropdownMenuItem<String>(
-                              value: 'public',
-                              child: Text(
-                                uiText(
-                                  context,
-                                  zh: '所有人可见',
-                                  en: 'Visible to everyone',
-                                ),
-                              ),
-                            ),
-                            DropdownMenuItem<String>(
-                              value: 'private',
-                              child: Text(
-                                uiText(
-                                  context,
-                                  zh: '仅自己可见',
-                                  en: 'Visible only to me',
-                                ),
-                              ),
+                              },
                             ),
                           ],
-                          onChanged: isBusy
-                              ? null
-                              : (String? value) {
-                                  setState(() {
-                                    _privateOnly = value == 'private';
-                                  });
-                                },
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _privateOnly
-                              ? uiText(
-                                  context,
-                                  zh: '仅你自己能在“我的帖子”里看到这条内容。',
-                                  en:
-                                      'Only you can see this post, under “My posts”.',
-                                )
-                              : uiText(
-                                  context,
-                                  zh:
-                                      '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
-                                  en:
-                                      'On a public, non-anonymous post, others can message you directly if you allow messages from strangers.',
-                                ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.onSurface.withValues(alpha: 0.58),
-                          ),
-                        ),
-                        if (state.isLevelOneUser) ...<Widget>[
                           const SizedBox(height: 8),
-                          DropdownButtonFormField<int?>(
-                            initialValue: _selectedPinDurationMinutes,
+                          DropdownButtonFormField<String>(
+                            initialValue: _privateOnly ? 'private' : 'public',
                             decoration: InputDecoration(
                               labelText: uiText(
                                 context,
-                                zh: '发帖后立即置顶（可选）',
-                                en: 'Pin immediately after posting (optional)',
-                              ),
-                              helperText: uiText(
-                                context,
-                                zh: '当前身份：$levelLabel',
-                                en: 'Current role: $levelLabel',
+                                zh: '可见范围',
+                                en: 'Visibility',
                               ),
                             ),
-                            items: <DropdownMenuItem<int?>>[
-                              DropdownMenuItem<int?>(
-                                value: null,
+                            items: <DropdownMenuItem<String>>[
+                              DropdownMenuItem<String>(
+                                value: 'public',
                                 child: Text(
                                   uiText(
                                     context,
-                                    zh: '不置顶',
-                                    en: 'Do not pin',
+                                    zh: '所有人可见',
+                                    en: 'Visible to everyone',
                                   ),
                                 ),
                               ),
-                              DropdownMenuItem<int?>(
-                                value: 30,
+                              DropdownMenuItem<String>(
+                                value: 'private',
                                 child: Text(
                                   uiText(
                                     context,
-                                    zh: '30 分钟',
-                                    en: '30 minutes',
+                                    zh: '仅自己可见',
+                                    en: 'Visible only to me',
                                   ),
-                                ),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 60,
-                                child: Text(
-                                  uiText(context, zh: '1 小时', en: '1 hour'),
-                                ),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 120,
-                                child: Text(
-                                  uiText(context, zh: '2 小时', en: '2 hours'),
-                                ),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 180,
-                                child: Text(
-                                  uiText(context, zh: '3 小时', en: '3 hours'),
-                                ),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 1440,
-                                child: Text(
-                                  uiText(context, zh: '1 天', en: '1 day'),
-                                ),
-                              ),
-                              DropdownMenuItem<int?>(
-                                value: 4320,
-                                child: Text(
-                                  uiText(context, zh: '3 天', en: '3 days'),
                                 ),
                               ),
                             ],
                             onChanged: isBusy
                                 ? null
-                                : (int? value) {
+                                : (String? value) {
                                     setState(() {
-                                      _selectedPinDurationMinutes = value;
+                                      _privateOnly = value == 'private';
                                     });
                                   },
                           ),
-                        ],
-                        const Divider(height: 28),
-                        Row(
-                          children: <Widget>[
-                            Text(
-                              uiText(
-                                context,
-                                zh: '图片（${_pickedImages.length}/9）',
-                                en: 'Images (${_pickedImages.length}/9)',
-                              ),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const Spacer(),
-                            OutlinedButton.icon(
-                              onPressed: isBusy ? null : _pickImages,
-                              icon: const Icon(
-                                Icons.add_photo_alternate_outlined,
-                              ),
-                              label: Text(
-                                uiText(
-                                  context,
-                                  zh: '选择图片',
-                                  en: 'Choose images',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        if (_pickedImages.isEmpty)
+                          const SizedBox(height: 4),
                           Text(
-                            uiText(
-                              context,
-                              zh: '未选择图片。支持 jpg/png/webp/gif。',
-                              en:
-                                  'No images selected. jpg / png / webp / gif are supported.',
-                            ),
+                            _privateOnly
+                                ? uiText(
+                                    context,
+                                    zh: '仅你自己能在“我的帖子”里看到这条内容。',
+                                    en: 'Only you can see this post, under “My posts”.',
+                                  )
+                                : uiText(
+                                    context,
+                                    zh: '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                                    en: 'On a public, non-anonymous post, others can message you directly if you allow messages from strangers.',
+                                  ),
                             style: TextStyle(
+                              fontSize: 12,
                               color: Theme.of(
                                 context,
                               ).colorScheme.onSurface.withValues(alpha: 0.58),
                             ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _pickedImages
-                                .asMap()
-                                .entries
-                                .map(
-                                  (MapEntry<int, PickedImageData> entry) =>
-                                      _PickedImageCard(
-                                        image: entry.value,
-                                        onRemove: isBusy
-                                            ? null
-                                            : () {
-                                                setState(() {
-                                                  _pickedImages.removeAt(
-                                                    entry.key,
-                                                  );
-                                                });
-                                              },
-                                      ),
-                                )
-                                .toList(),
                           ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.icon(
-                            key: const Key('create-post-submit'),
-                            onPressed: isBusy || selectedChannel == null
-                                ? null
-                                : () => _submit(selectedChannel),
-                            icon: const Icon(Icons.send_rounded),
-                            label: Text(
-                              state.submitting
-                                  ? uiText(
-                                      context,
-                                      zh: '发布中...',
-                                      en: 'Publishing...',
-                                    )
-                                  : uiText(
-                                      context,
-                                      zh: '发布帖子',
-                                      en: 'Publish post',
-                                    ),
+                          const Divider(height: 28),
+                          Row(
+                            children: <Widget>[
+                              Text(
+                                uiText(
+                                  context,
+                                  zh: '图片（${_pickedImages.length}/9）',
+                                  en: 'Images (${_pickedImages.length}/9)',
+                                ),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const Spacer(),
+                              OutlinedButton.icon(
+                                onPressed: isBusy ? null : _pickImages,
+                                icon: const Icon(
+                                  Icons.add_photo_alternate_outlined,
+                                ),
+                                label: Text(
+                                  uiText(
+                                    context,
+                                    zh: '选择图片',
+                                    en: 'Choose images',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          if (_pickedImages.isEmpty)
+                            Text(
+                              uiText(
+                                context,
+                                zh: '未选择图片。支持 jpg/png/webp/gif。',
+                                en: 'No images selected. jpg / png / webp / gif are supported.',
+                              ),
+                              style: TextStyle(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.58),
+                              ),
+                            )
+                          else
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _pickedImages
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (MapEntry<int, PickedImageData> entry) =>
+                                        _PickedImageCard(
+                                          image: entry.value,
+                                          onRemove: isBusy
+                                              ? null
+                                              : () {
+                                                  setState(() {
+                                                    _pickedImages.removeAt(
+                                                      entry.key,
+                                                    );
+                                                  });
+                                                },
+                                        ),
+                                  )
+                                  .toList(),
+                            ),
+                          const SizedBox(height: 20),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              key: const Key('create-post-submit'),
+                              onPressed: isBusy || selectedChannel == null
+                                  ? null
+                                  : () => _submit(selectedChannel),
+                              icon: const Icon(Icons.send_rounded),
+                              label: Text(
+                                state.submitting
+                                    ? uiText(
+                                        context,
+                                        zh: '发布中...',
+                                        en: 'Publishing...',
+                                      )
+                                    : uiText(
+                                        context,
+                                        zh: '发布帖子',
+                                        en: 'Publish post',
+                                      ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _loadDraft() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String raw = prefs.getString(_draftKey) ?? '';
+    if (raw.trim().isEmpty) {
+      return;
+    }
+    final dynamic decoded = jsonDecode(raw);
+    if (decoded is! Map) {
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    final Map<String, dynamic> draft = Map<String, dynamic>.from(decoded);
+    final String title = draft['title']?.toString() ?? '';
+    final String content = draft['content']?.toString() ?? '';
+    final bool markdown = draft['markdown'] == true;
+    setState(() {
+      _titleController.text = title;
+      _useMarkdown = markdown;
+      _plainDraft = markdown ? '' : content;
+      _markdownDraft = markdown ? content : '';
+      _contentController.text = content;
+      _selectedChannel = draft['channel']?.toString();
+      _privateOnly = draft['privateOnly'] == true;
+      _useAnonymousAlias = draft['anonymous'] == true;
+      _anonymousAliasController.text =
+          draft['anonymousAlias']?.toString() ?? '';
+      final String status = draft['status']?.toString() ?? '';
+      _status = PostStatus.values.firstWhere(
+        (PostStatus item) => item.name == status,
+        orElse: () => PostStatus.ongoing,
+      );
+    });
+  }
+
+  Future<void> _saveDraft() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String title = _titleController.text.trim();
+    final String content = _contentController.text;
+    if (title.isEmpty && content.trim().isEmpty) {
+      await prefs.remove(_draftKey);
+      return;
+    }
+    await prefs.setString(
+      _draftKey,
+      jsonEncode(<String, dynamic>{
+        'title': title,
+        'content': content,
+        'markdown': _useMarkdown,
+        'channel': _selectedChannel,
+        'status': _status.name,
+        'privateOnly': _privateOnly,
+        'anonymous': _useAnonymousAlias,
+        'anonymousAlias': _anonymousAliasController.text,
+      }),
+    );
+  }
+
+  Future<void> _clearDraft() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_draftKey);
   }
 
   String _deriveSelectedChannel(List<String> channels) {
@@ -799,9 +744,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       const int maxImages = 9;
       final int remaining = maxImages - _pickedImages.length;
       if (remaining <= 0) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               uiText(
@@ -826,10 +769,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             content: Text(
               uiText(
                 context,
-                zh:
-                    '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
-                en:
-                    'Up to 9 images: kept the first $remaining, skipped ${selected.length - accepted.length}.',
+                zh: '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+                en: 'Up to 9 images: kept the first $remaining, skipped ${selected.length - accepted.length}.',
               ),
             ),
           ),
@@ -847,8 +788,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               uiText(
                 context,
                 zh: '提示：${largeFiles.length} 张图片超过 5MB，可能上传较慢。',
-                en:
-                    'Heads up: ${largeFiles.length} image(s) exceed 5MB and may upload slowly.',
+                en: 'Heads up: ${largeFiles.length} image(s) exceed 5MB and may upload slowly.',
               ),
             ),
             duration: const Duration(seconds: 3),
@@ -859,9 +799,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             uiText(
@@ -891,12 +829,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final String submittedContent = _useMarkdown
         ? rawContent
         : rawContent.trim();
-    final List<String> tags = _tagsController.text
-        .split(RegExp(r'[,，\s\n]+'))
-        .map((String item) => item.trim())
-        .where((String item) => item.isNotEmpty)
-        .toSet()
-        .toList();
     final List<UploadPayload> uploadPayloads = _pickedImages
         .map(
           (PickedImageData image) => UploadPayload(
@@ -916,7 +848,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           content: submittedContent,
           useMarkdown: _useMarkdown,
           channel: selectedChannel,
-          tags: tags,
+          tags: const <String>[],
           privateOnly: _privateOnly,
           status: _status,
           useAnonymousAlias: _useAnonymousAlias,
@@ -952,6 +884,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         ),
       ),
     );
+    await _clearDraft();
     Navigator.of(context).pop(true);
   }
 
@@ -960,29 +893,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       return;
     }
     setState(() {
+      if (_useMarkdown) {
+        _markdownDraft = _contentController.text;
+      } else {
+        _plainDraft = _contentController.text;
+      }
       _useMarkdown = value;
-      _contentController.value = const TextEditingValue();
-      _markdownImageUploadIdsByUrl.clear();
-    });
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            value
-                ? uiText(
-                    context,
-                    zh: '已切换到 Markdown 编辑，当前正文已清空。',
-                    en: 'Switched to Markdown editing; the body was cleared.',
-                  )
-                : uiText(
-                    context,
-                    zh: '已切换到纯文本编辑，当前正文已清空。',
-                    en: 'Switched to plain text editing; the body was cleared.',
-                  ),
-          ),
-        ),
+      final String nextDraft = value ? _markdownDraft : _plainDraft;
+      _contentController.value = TextEditingValue(
+        text: nextDraft,
+        selection: TextSelection.collapsed(offset: nextDraft.length),
       );
+    });
   }
 
   Future<void> _handleMarkdownImagesPasted(List<PickedImageData> images) async {
@@ -996,9 +918,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         maxImages -
         (_pickedImages.length + _markdownImageUploadIdsByUrl.length);
     if (remaining <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             uiText(
@@ -1060,8 +980,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
               uiText(
                 context,
                 zh: '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
-                en:
-                    'Up to 9 images: ${images.length - accepted.length} were not inserted.',
+                en: 'Up to 9 images: ${images.length - accepted.length} were not inserted.',
               ),
             ),
           ),

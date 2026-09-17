@@ -5,13 +5,12 @@ import '../../core/config/app_config.dart';
 import '../../core/navigation/url_query_state.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_locale_store.dart';
-import '../../core/state/app_theme_store.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../core/widgets/language_toggle.dart';
-import '../../core/widgets/theme_dropdown.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -46,64 +45,73 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Scaffold(
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final bool desktop = constraints.maxWidth >= AppBreakpoints.medium;
-            if (desktop) {
-              return Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 11,
-                    child: _LoginManifesto(
-                      locale: Localizations.localeOf(context),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 9,
-                    child: ColoredBox(
-                      color: colors.page,
-                      child: _LoginForm(
-                        isBusy: _isBusy,
-                        errorText: _errorText,
-                        onLogin: _login,
-                        onAdminLogin: _openAdminLogin,
-                        onTerms: _openTerms,
+    final Locale locale = Localizations.localeOf(context);
+    return Theme(
+      data: AppTheme.lightThemeFor(locale, themeKey: 'mozhuxinye'),
+      child: Builder(
+        builder: (BuildContext context) {
+          final EditorialColors colors = EditorialColors.of(context);
+          return Scaffold(
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final bool desktop =
+                      constraints.maxWidth >= AppBreakpoints.medium;
+                  if (desktop) {
+                    return Row(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 11,
+                          child: _LoginManifesto(
+                            locale: Localizations.localeOf(context),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 9,
+                          child: ColoredBox(
+                            color: colors.page,
+                            child: _LoginForm(
+                              isBusy: _isBusy,
+                              errorText: _errorText,
+                              onLogin: _login,
+                              onAdminLogin: _openAdminLogin,
+                              onTerms: _openTerms,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return ColoredBox(
+                    color: colors.page,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                        AppSpacing.md,
+                        AppSpacing.xxl,
+                      ),
+                      child: Column(
+                        children: <Widget>[
+                          const _CompactBrandHeader(),
+                          const SizedBox(height: AppSpacing.lg),
+                          _LoginForm(
+                            showLanguage: false,
+                            isBusy: _isBusy,
+                            errorText: _errorText,
+                            onLogin: _login,
+                            onAdminLogin: _openAdminLogin,
+                            onTerms: _openTerms,
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              );
-            }
-            return ColoredBox(
-              color: colors.page,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.md,
-                  AppSpacing.xxl,
-                ),
-                child: Column(
-                  children: <Widget>[
-                    const _CompactBrandHeader(),
-                    const SizedBox(height: AppSpacing.lg),
-                    _LoginForm(
-                      showLanguage: false,
-                      isBusy: _isBusy,
-                      errorText: _errorText,
-                      onLogin: _login,
-                      onAdminLogin: _openAdminLogin,
-                      onTerms: _openTerms,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -169,10 +177,7 @@ class _LoginPageState extends State<LoginPage> {
       if (session.isFailed) {
         throw StateError(
           session.message ??
-              uiTextGlobal(
-                zh: '统一认证登录失败',
-                en: 'Single sign-on failed',
-              ),
+              uiTextGlobal(zh: '统一认证登录失败', en: 'Single sign-on failed'),
         );
       }
       if (!session.isAuthenticated) {
@@ -222,20 +227,6 @@ class _LoginManifesto extends StatelessWidget {
       color: colors.darkPanel,
       child: Stack(
         children: <Widget>[
-          Positioned(
-            right: 0,
-            top: 0,
-            width: 168,
-            height: 168,
-            child: ColoredBox(color: colors.coral),
-          ),
-          Positioned(
-            right: 168,
-            top: 0,
-            width: 72,
-            height: 168,
-            child: ColoredBox(color: colors.apricot),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(56, 40, 56, 48),
             child: Column(
@@ -368,13 +359,6 @@ class _LoginForm extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      ThemeDropdown(
-                        themeKey: AppThemeStore.instance.themeKey,
-                        locale: locale,
-                        onChanged: AppThemeStore.instance.setThemeKey,
-                        compact: true,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
                       LanguageToggle(
                         locale: locale,
                         onChanged: AppLocaleStore.instance.setLocale,
@@ -397,29 +381,7 @@ class _LoginForm extends StatelessWidget {
                 ).textTheme.bodyLarge?.copyWith(color: colors.mutedInk),
               ),
               const SizedBox(height: AppSpacing.xl),
-              Container(
-                key: const Key('official-auth-notice'),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: colors.info.withValues(alpha: 0.08),
-                  border: Border.all(
-                    color: colors.info.withValues(alpha: 0.32),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Icon(Icons.verified_user_outlined, color: colors.info),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        l10n.betaAccessMessage,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(key: Key('official-auth-notice'), height: 0),
               if (errorText != null) ...<Widget>[
                 const SizedBox(height: AppSpacing.sm),
                 AppInlineMessage(
@@ -483,13 +445,6 @@ class _CompactBrandHeader extends StatelessWidget {
           children: <Widget>[
             const _Wordmark(),
             const Spacer(),
-            ThemeDropdown(
-              themeKey: AppThemeStore.instance.themeKey,
-              locale: locale,
-              onChanged: AppThemeStore.instance.setThemeKey,
-              compact: true,
-            ),
-            const SizedBox(width: AppSpacing.xs),
             LanguageToggle(
               locale: locale,
               onChanged: AppLocaleStore.instance.setLocale,
@@ -508,21 +463,6 @@ class _CompactBrandHeader extends StatelessWidget {
               fontSize: locale.languageCode == 'en' ? 38 : 42,
             ),
           ),
-        ),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: SizedBox(
-                height: 10,
-                child: ColoredBox(color: colors.coral),
-              ),
-            ),
-            SizedBox(
-              width: 72,
-              height: 10,
-              child: ColoredBox(color: colors.apricot),
-            ),
-          ],
         ),
       ],
     );
@@ -579,9 +519,7 @@ class _LoginTermsRoute extends StatelessWidget {
         children: <Widget>[
           ListTile(
             leading: const Icon(Icons.description_outlined),
-            title: Text(
-              uiText(context, zh: '用户协议', en: 'Terms of Service'),
-            ),
+            title: Text(uiText(context, zh: '用户协议', en: 'Terms of Service')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(
@@ -593,9 +531,7 @@ class _LoginTermsRoute extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.privacy_tip_outlined),
-            title: Text(
-              uiText(context, zh: '隐私政策', en: 'Privacy Policy'),
-            ),
+            title: Text(uiText(context, zh: '隐私政策', en: 'Privacy Policy')),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               Navigator.of(context).push(

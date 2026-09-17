@@ -18,9 +18,8 @@
   "welcomeBack": "Welcome back",
   "loginDescription": "Continue to Xidian's official identity provider to sign in.",
   "loggingIn": "Waiting for Xidian",
-  "betaAccessMessage": "For account sign-in, enter your student ID and password only on Xidian's official page. Xidian Zhixing never receives or stores that sign-in password. Your account is created after the first successful sign-in and access remains allowlisted.",
   "adminLogin": "Admin sign in",
-  "agreements": "Terms · Privacy · Community rules",
+  "agreements": "Terms of Service",
   "loginFailed": "Sign-in failed: {error}",
   "@loginFailed": {
     "placeholders": {

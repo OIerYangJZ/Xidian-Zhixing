@@ -319,7 +319,10 @@ class AppColorThemes {
     };
   }
 
-  static bool usesDiscussionLayout(String key) => key == 'mozhuxinye';
+  /// The discussion shell is the single Web experience across every theme.
+  /// Themes only provide color tokens; they must not switch the application
+  /// back to the retired AppBar/NavigationBar shell on narrow viewports.
+  static bool usesDiscussionLayout(String key) => true;
 }
 
 @immutable

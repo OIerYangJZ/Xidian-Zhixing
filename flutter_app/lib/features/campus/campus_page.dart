@@ -518,14 +518,16 @@ class _ServiceTile extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                AppStatusTag(
-                  label: service.authType.trim().isEmpty
-                      ? uiText(context, zh: '可使用', en: 'Open')
-                      : uiText(context, zh: '需认证', en: 'Sign-in'),
-                  color: service.authType.trim().isEmpty
-                      ? SharedColors.success
-                      : SharedColors.warning,
-                ),
+                if (_statusLabel(context, service) case final String label)
+                  AppStatusTag(
+                    label: label,
+                    color:
+                        service.authType == 'public' ||
+                            service.authType.trim().isEmpty ||
+                            service.authReady
+                        ? SharedColors.success
+                        : SharedColors.warning,
+                  ),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -567,6 +569,22 @@ class _ServiceTile extends StatelessWidget {
       return Icons.water_drop_outlined;
     if (text.contains('实验')) return Icons.science_outlined;
     return Icons.apps_rounded;
+  }
+
+  String? _statusLabel(BuildContext context, CampusService service) {
+    final String authType = service.authType.trim();
+    if (authType.isEmpty || service.authReady) {
+      return uiText(context, zh: '可使用', en: 'Ready');
+    }
+    if (authType == 'public') {
+      return uiText(context, zh: '公开入口', en: 'Open');
+    }
+    // Unified identity services inherit the current sign-in session. They do
+    // not expose a second credential flow or a repeated authentication warning.
+    if (authType == 'ids') {
+      return null;
+    }
+    return uiText(context, zh: '需单独登录', en: 'Separate sign-in');
   }
 }
 

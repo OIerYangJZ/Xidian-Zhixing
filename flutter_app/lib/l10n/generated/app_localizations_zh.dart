@@ -63,14 +63,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loggingIn => '等待官方认证';
 
   @override
-  String get betaAccessMessage =>
-      '账号登录时，学号和密码仅在西电官方页面输入，西电知行不会接触或保存统一认证密码。首次认证成功后自动创建账号；当前仅开放白名单学号。';
-
-  @override
   String get adminLogin => '管理员后台登录';
 
   @override
-  String get agreements => '用户协议 · 隐私政策 · 社区规范';
+  String get agreements => '用户协议';
 
   @override
   String loginFailed(String error) {

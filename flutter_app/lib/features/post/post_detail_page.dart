@@ -15,6 +15,12 @@ import '../../widgets/post_content_body.dart';
 import '../messages/chat_page.dart';
 import '../profile/public_user_profile_page.dart';
 
+String _formatDateTime(DateTime value) {
+  final DateTime local = value.toLocal();
+  String two(int number) => number.toString().padLeft(2, '0');
+  return '${local.year}-${two(local.month)}-${two(local.day)} ${two(local.hour)}:${two(local.minute)}';
+}
+
 class PostDetailPage extends StatefulWidget {
   const PostDetailPage({super.key, required this.post});
 
@@ -56,12 +62,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
     return Scaffold(
       appBar: AppBar(
-        title: Text(uiText(context, zh: '帖子详情', en: 'Post')),
+        title: const SizedBox.shrink(),
+        actions: <Widget>[
+          IconButton(
+            tooltip: uiText(context, zh: '返回', en: 'Back'),
+            onPressed: () => Navigator.of(context).maybePop(),
+            icon: const Icon(Icons.close_rounded),
+          ),
+        ],
       ),
-      body: Center(
+      body: Align(
+        alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: AppLayout.readingMaxWidth,
+            maxWidth: AppLayout.contentMaxWidth,
           ),
           child: _loading
               ? AppStatePanel(
@@ -89,13 +103,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: () => _loadDetail(),
-                            child: Text(
-                              uiText(context, zh: '重试', en: 'Retry'),
-                            ),
+                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
                           ),
                         ),
                       ),
-                    AppSurfaceCard(
+                    Padding(
                       padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,9 +134,46 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           const SizedBox(height: AppSpacing.sm),
                           Row(
                             children: <Widget>[
+                              GestureDetector(
+                                onTap:
+                                    _post.canViewAuthorProfile &&
+                                        _post.authorUserId.isNotEmpty
+                                    ? _openAuthorProfile
+                                    : null,
+                                child: CircleAvatar(
+                                  radius: 18,
+                                  backgroundImage:
+                                      _post.isAnonymous ||
+                                          _post.authorAvatarUrl.trim().isEmpty
+                                      ? null
+                                      : NetworkImage(
+                                          AppConfig.resolveUrl(
+                                            _post.authorAvatarUrl.trim(),
+                                          ),
+                                        ),
+                                  child:
+                                      _post.isAnonymous ||
+                                          _post.authorAvatarUrl.trim().isEmpty
+                                      ? Text(
+                                          _post.isAnonymous
+                                              ? uiText(
+                                                  context,
+                                                  zh: '匿',
+                                                  en: 'A',
+                                                )
+                                              : _post
+                                                    .authorAliasFor(locale)
+                                                    .trim()
+                                                    .characters
+                                                    .first,
+                                        )
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
                               Expanded(
                                 child: Text(
-                                  '${_post.isAnonymous ? uiText(context, zh: '匿名身份', en: 'Anonymous') : _post.authorAliasFor(locale)} · ${_post.createdAt.toLocal()}',
+                                  '${_post.isAnonymous ? uiText(context, zh: '匿名身份', en: 'Anonymous') : _post.authorAliasFor(locale)} · ${_formatDateTime(_post.createdAt)}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ),
@@ -159,8 +208,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 uiText(
                                   context,
                                   zh: '图片暂时不可用，请稍后重试',
-                                  en:
-                                      'Images are temporarily unavailable. Please try again later.',
+                                  en: 'Images are temporarily unavailable. Please try again later.',
                                 ),
                                 style: TextStyle(
                                   color: Theme.of(context).colorScheme.onSurface
@@ -169,13 +217,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 6,
-                            children: _post.tags
-                                .map((String tag) => Chip(label: Text('#$tag')))
-                                .toList(),
-                          ),
                           const SizedBox(height: 12),
                           Wrap(
                             spacing: 8,
@@ -278,7 +319,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    AppSurfaceCard(
+                    Padding(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -305,8 +346,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               message: uiText(
                                 context,
                                 zh: '欢迎留下第一条友善、具体的回复。',
-                                en:
-                                    'Be the first to leave a kind, specific reply.',
+                                en: 'Be the first to leave a kind, specific reply.',
                               ),
                               compact: true,
                             )
@@ -388,8 +428,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                   ? uiText(
                                       context,
                                       zh: '发表评论（支持楼中楼回复）',
-                                      en:
-                                          'Write a comment (threaded replies supported)',
+                                      en: 'Write a comment (threaded replies supported)',
                                     )
                                   : uiText(
                                       context,
@@ -508,9 +547,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _submitComment() async {
     final String content = _commentController.text.trim();
     if (content.isEmpty) {
-      _feedback(
-        uiTextGlobal(zh: '评论不能为空', en: 'A comment cannot be empty'),
-      );
+      _feedback(uiTextGlobal(zh: '评论不能为空', en: 'A comment cannot be empty'));
       return;
     }
 
@@ -592,9 +629,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             : uiTextGlobal(zh: '已取消收藏', en: 'Removed from favorites'),
       );
     } catch (error) {
-      _feedback(
-        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
-      );
+      _feedback(uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -663,11 +698,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        uiText(
-                          context,
-                          zh: '请选择举报原因：',
-                          en: 'Choose a reason:',
-                        ),
+                        uiText(context, zh: '请选择举报原因：', en: 'Choose a reason:'),
                       ),
                       const SizedBox(height: 8),
                       ...reasons.map(
@@ -830,9 +861,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             : uiTextGlobal(zh: '已取消关注', en: 'Unfollowed'),
       );
     } catch (error) {
-      _feedback(
-        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
-      );
+      _feedback(uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -886,9 +915,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       await action();
       _feedback(success);
     } catch (error) {
-      _feedback(
-        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
-      );
+      _feedback(uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -988,7 +1015,6 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
   @override
   Widget build(BuildContext context) {
     final CommentItem comment = widget.comment;
-    final double leftInset = widget.depth == 0 ? 0 : 12;
     final String avatarUrl = AppConfig.resolveUrl(
       (comment.authorAvatar ?? '').trim(),
     );
@@ -1001,161 +1027,198 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
     final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.58);
 
     return Padding(
-      padding: EdgeInsets.only(left: leftInset, top: 8),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: widget.depth == 0
-              ? theme.colorScheme.surface
-              : theme.colorScheme.primary.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: widget.depth == 0
-                ? theme.dividerColor
-                : theme.colorScheme.primary.withValues(alpha: 0.1),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                GestureDetector(
-                  onTap: comment.authorUserId.isEmpty
-                      ? null
-                      : () => widget.onOpenAuthor(comment.authorUserId),
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundImage: avatarUrl.isEmpty
+      padding: const EdgeInsets.only(top: 8),
+      child: Stack(
+        children: <Widget>[
+          if (widget.depth > 0)
+            Positioned(
+              left: 5,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 1,
+                color: theme.colorScheme.primary.withValues(alpha: 0.35),
+              ),
+            ),
+          if (widget.depth > 0)
+            Positioned(
+              left: 5,
+              top: 28,
+              child: Container(
+                width: 12,
+                height: 1,
+                color: theme.colorScheme.primary.withValues(alpha: 0.35),
+              ),
+            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: comment.authorUserId.isEmpty
                         ? null
-                        : NetworkImage(avatarUrl),
-                    child: avatarUrl.isEmpty ? Text(fallback) : null,
+                        : () => widget.onOpenAuthor(comment.authorUserId),
+                    child: CircleAvatar(
+                      radius: 18,
+                      backgroundImage: avatarUrl.isEmpty
+                          ? null
+                          : NetworkImage(avatarUrl),
+                      child: avatarUrl.isEmpty ? Text(fallback) : null,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: comment.authorUserId.isEmpty
-                                  ? null
-                                  : () => widget.onOpenAuthor(
-                                      comment.authorUserId,
-                                    ),
-                              child: Text(
-                                authorAlias,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: comment.authorUserId.isEmpty
-                                      ? theme.colorScheme.onSurface
-                                      : theme.colorScheme.primary,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          children: <Widget>[
+                            Flexible(
+                              child: GestureDetector(
+                                onTap: comment.authorUserId.isEmpty
+                                    ? null
+                                    : () => widget.onOpenAuthor(
+                                        comment.authorUserId,
+                                      ),
+                                child: Text(
+                                  authorAlias,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: comment.authorUserId.isEmpty
+                                        ? theme.colorScheme.onSurface
+                                        : theme.colorScheme.primary,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          if (widget.floorLabel != null)
-                            Text(
-                              widget.floorLabel!,
-                              style: TextStyle(color: muted, fontSize: 12),
+                            const SizedBox(width: 8),
+                            SizedBox(
+                              width: AppBreakpoints.isCompact(context)
+                                  ? 104
+                                  : 116,
+                              child: Text(
+                                _formatDateTime(comment.createdAt),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  color: muted,
+                                  fontSize: 12,
+                                  fontFeatures: const <FontFeature>[
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        comment.createdAt.toLocal().toString(),
-                        style: TextStyle(color: muted, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              comment.content,
-              style: TextStyle(
-                fontSize: 14,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.84),
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: <Widget>[
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  onPressed: widget.onReply == null
-                      ? null
-                      : () => widget.onReply!(comment),
-                  icon: const Icon(Icons.reply_outlined, size: 16),
-                  label: Text(uiText(context, zh: '回复', en: 'Reply')),
-                ),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: _isLiked
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                  ),
-                  onPressed: _busy ? null : _toggleLike,
-                  icon: Icon(
-                    _isLiked ? Icons.thumb_up_alt : Icons.thumb_up_alt_outlined,
-                    size: 16,
-                  ),
-                  label: Text('$_likeCount'),
-                ),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  onPressed: widget.onReport == null
-                      ? null
-                      : () => widget.onReport!(comment.id),
-                  icon: const Icon(Icons.flag_outlined, size: 16),
-                  label: Text(uiText(context, zh: '举报', en: 'Report')),
-                ),
-                if (comment.effectiveReplyCount > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, top: 8),
-                    child: Text(
-                      uiText(
-                        context,
-                        zh: '${comment.effectiveReplyCount} 条回复',
-                        en: comment.effectiveReplyCount == 1
-                            ? '1 reply'
-                            : '${comment.effectiveReplyCount} replies',
-                      ),
-                      style: TextStyle(color: muted, fontSize: 12),
+                            if (widget.floorLabel != null)
+                              const SizedBox(width: 8),
+                            if (widget.floorLabel != null)
+                              SizedBox(
+                                width: AppBreakpoints.isCompact(context)
+                                    ? 36
+                                    : 40,
+                                child: Text(
+                                  widget.floorLabel!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.clip,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(color: muted, fontSize: 12),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                      ],
                     ),
                   ),
-              ],
-            ),
-            if (comment.replies.isNotEmpty) ...<Widget>[
-              const SizedBox(height: 4),
-              ...comment.replies.map(
-                (CommentItem reply) => _CommentThreadTile(
-                  comment: reply,
-                  depth: widget.depth + 1,
-                  onReply: widget.onReply,
-                  onReport: widget.onReport,
-                  onOpenAuthor: widget.onOpenAuthor,
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                comment.content,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.84),
+                  height: 1.5,
                 ),
               ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: <Widget>[
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: widget.onReply == null
+                        ? null
+                        : () => widget.onReply!(comment),
+                    icon: const Icon(Icons.reply_outlined, size: 16),
+                    label: Text(uiText(context, zh: '回复', en: 'Reply')),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      visualDensity: VisualDensity.compact,
+                      foregroundColor: _isLiked
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                    onPressed: _busy ? null : _toggleLike,
+                    icon: Icon(
+                      _isLiked
+                          ? Icons.thumb_up_alt
+                          : Icons.thumb_up_alt_outlined,
+                      size: 16,
+                    ),
+                    label: Text('$_likeCount'),
+                  ),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    onPressed: widget.onReport == null
+                        ? null
+                        : () => widget.onReport!(comment.id),
+                    icon: const Icon(Icons.flag_outlined, size: 16),
+                    label: Text(uiText(context, zh: '举报', en: 'Report')),
+                  ),
+                  if (comment.effectiveReplyCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, top: 8),
+                      child: Text(
+                        uiText(
+                          context,
+                          zh: '${comment.effectiveReplyCount} 条回复',
+                          en: comment.effectiveReplyCount == 1
+                              ? '1 reply'
+                              : '${comment.effectiveReplyCount} replies',
+                        ),
+                        style: TextStyle(color: muted, fontSize: 12),
+                      ),
+                    ),
+                ],
+              ),
+              if (comment.replies.isNotEmpty) ...<Widget>[
+                const SizedBox(height: 4),
+                ...comment.replies.map(
+                  (CommentItem reply) => _CommentThreadTile(
+                    comment: reply,
+                    depth: widget.depth + 1,
+                    onReply: widget.onReply,
+                    onReport: widget.onReport,
+                    onOpenAuthor: widget.onOpenAuthor,
+                  ),
+                ),
+              ],
             ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

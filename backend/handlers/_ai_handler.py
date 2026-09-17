@@ -35,6 +35,38 @@ logger = logging.getLogger("treehole.ai")
 
 MAX_CONTEXT_ITEMS = int(os.environ.get("BACKEND_AI_CONTEXT_ITEMS", "8"))
 MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
+MAX_ORIGINAL_DOCUMENTS = 4
+MAX_ORIGINAL_DOCUMENT_CHARS = 24000
+MAX_ORIGINAL_CONTEXT_CHARS = 48000
+
+
+def _needs_campus_retrieval(plan: dict[str, Any], question: str) -> bool:
+    intent = str(plan.get("intent", "")).strip()
+    if intent in {"campus_qa", "personal_data"}:
+        return True
+    if intent == "core":
+        # Query planning may classify a short location question as a core fact.
+        # Concrete campus places and services still need the indexed corpus.
+        return any(
+            marker in question
+            for marker in (
+                "校区", "教学楼", "教室", "图书馆", "宿舍", "食堂", "校门",
+                "校园", "路线", "怎么走", "附近", "打印", "楼",
+            )
+        )
+    if intent != "general":
+        return False
+    # The planner may classify a short, underspecified campus question as
+    # general. Keep retrieval available for those requests without adding the
+    # campus corpus to ordinary writing or explanation prompts.
+    markers = (
+        "西电", "西安电子科技大学", "校园", "校医院", "教学楼", "图书馆",
+        "宿舍", "食堂", "教务", "课表", "考试", "学院", "校区", "一网通办",
+        "统一认证", "校园网", "校车", "门禁", "实验室", "教室", "楼",
+        "校门", "路线", "怎么走", "附近", "打印", "快递", "澡堂",
+        "电费", "水费", "校园卡", "一卡通", "图书", "借阅", "自习",
+    )
+    return any(marker in question for marker in markers)
 
 
 def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> dict[str, Any] | None:
@@ -183,6 +215,8 @@ def _context_text(items: list[dict[str, Any]]) -> str:
     if not items:
         return "暂无可用检索资料。"
     lines: list[str] = []
+    original_documents: set[str] = set()
+    original_context_chars = 0
     for index, item in enumerate(items, start=1):
         if item.get("type") == "post":
             kind = "论坛帖子"
@@ -197,6 +231,24 @@ def _context_text(items: list[dict[str, Any]]) -> str:
             f" 原文发布日期:{item.get('publishedAt') or '未知'}"
             f" 入库时间:{item.get('createdAt', '')}\n{item.get('content', '')}"
         )
+        document_id = str(item.get("documentId", "")).strip()
+        original = str(item.get("originalContent", "")).strip()
+        if (
+            document_id
+            and original
+            and document_id not in original_documents
+            and len(original_documents) < MAX_ORIGINAL_DOCUMENTS
+            and original_context_chars < MAX_ORIGINAL_CONTEXT_CHARS
+        ):
+            original_documents.add(document_id)
+            remaining = MAX_ORIGINAL_CONTEXT_CHARS - original_context_chars
+            original_text = original[: min(MAX_ORIGINAL_DOCUMENT_CHARS, remaining)]
+            original_context_chars += len(original_text)
+            lines.append(
+                f"[S{index} 原始文档全文] {item.get('originalTitle') or item.get('title', '')}"
+                f" 来源:{item.get('originalSourceUrl') or item.get('sourceUrl') or item.get('sourceName', '')}\n"
+                f"{original_text}"
+            )
     return "\n\n".join(lines)
 
 
@@ -214,6 +266,10 @@ def _call_chat_completion(
         '\n仅输出JSON对象：{"answer":"完整回答正文","sourceIds":["实际支持回答的证据ID"]}。'
         'sourceIds只能取自本轮资料中的S编号。答案使用了retrieved-data里的任何事实，就必须列出支持该事实的S编号。'
         '只有答案完全未使用retrieved-data里的信息时，sourceIds才为空。逐项回答用户的所有子问题。'
+        'retrieved-data 中标有“原始文档全文”的内容是服务器已经主动读取的正式资料，必须优先逐段使用其中的具体信息；'
+        '不得说自己无法访问原文、只能看到摘要、不能主动打开文件或没有权限读取原始资料。'
+        '原始全文没有所问内容时，直接说明“当前原文未找到该信息”，不要编造或用空泛表述替代。'
+        '引用原始全文时仍使用对应的 S 编号。'
     )
     if trace is not None and trace.get('queryPlan',{}).get('intent') in {'campus_qa','personal_data'} and not context_items:
         system_prompt += ('\n本次校园检索结果为空。先核实问题前提，只使用基础核心信息，'
@@ -342,10 +398,14 @@ def handle_ai_chat(
         trace["retrievalMode"] = "not_required"
         # Personal affairs can need public service instructions too. Intent does
         # not authorize private data access or suppress public campus evidence.
-        if plan["intent"] in {"campus_qa", "personal_data"}:
+        retrieve_for_question = _needs_campus_retrieval(plan, question)
+        if retrieve_for_question:
             retrieved = search_knowledge(plan["standaloneQuery"],queries=plan["queries"],
                 filters={"campus":plan.get("campus"),"educationLevel":plan.get("educationLevel")},
-                include_community=include_posts and plan.get("includeCommunity") is True,
+                # Campus answers may benefit from recent student experience even
+                # when the planner conservatively labels the question as general.
+                # The server still filters posts through visible_context below.
+                include_community=include_posts,
                 limit=MAX_CONTEXT_ITEMS,trace_id=trace_id)
             with _globals.DB_LOCK:
                 visibility_db = load_db()
@@ -357,11 +417,11 @@ def handle_ai_chat(
             api_key=api_key,
             model=model,
             question=(question + "\n本轮追问的主题补全（仍须回答上述原始问题的所有子问题）：" + plan["standaloneQuery"])
-                if plan["intent"] in {"campus_qa", "personal_data"} else question,
+                if retrieve_for_question else question,
             # Query planning consumes history. Campus generation consumes only
             # the resolved question and current evidence, so withdrawn facts
             # cannot re-enter its context through an old assistant answer.
-            messages=[] if plan["intent"] in {"campus_qa", "personal_data"} else messages,
+            messages=[] if retrieve_for_question else messages,
             context_items=context_items,
             trace=trace,
         )
@@ -403,9 +463,7 @@ def handle_ai_chat(
             "answer": reply,
             "reply": reply,
             "role": "assistant",
-            "model": model,
             "traceId": trace_id,
-            "promptVersion": PROMPT_VERSION,
             "citations": reference_rows,
             "references": reference_rows,
             "relatedActions": [],

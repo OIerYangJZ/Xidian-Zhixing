@@ -206,12 +206,6 @@ abstract class AppLocalizations {
   /// **'等待官方认证'**
   String get loggingIn;
 
-  /// No description provided for @betaAccessMessage.
-  ///
-  /// In zh, this message translates to:
-  /// **'账号登录时，学号和密码仅在西电官方页面输入，西电知行不会接触或保存统一认证密码。首次认证成功后自动创建账号；当前仅开放白名单学号。'**
-  String get betaAccessMessage;
-
   /// No description provided for @adminLogin.
   ///
   /// In zh, this message translates to:
@@ -221,7 +215,7 @@ abstract class AppLocalizations {
   /// No description provided for @agreements.
   ///
   /// In zh, this message translates to:
-  /// **'用户协议 · 隐私政策 · 社区规范'**
+  /// **'用户协议'**
   String get agreements;
 
   /// No description provided for @loginFailed.

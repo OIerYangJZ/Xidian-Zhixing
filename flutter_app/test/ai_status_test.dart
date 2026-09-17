@@ -16,8 +16,8 @@ void main() {
       expect(status.configured, isFalse);
       expect(status.problem, AiStatusProblem.notConfigured);
       expect(status.diagnosticLine, contains('HTTP 503'));
-      expect(status.problemMessageFor(zh), contains('BACKEND_AI_BASE_URL'));
-      expect(status.problemMessageFor(en), contains('BACKEND_AI_API_KEY'));
+      expect(status.problemMessageFor(zh), isNot(contains('BACKEND_')));
+      expect(status.problemMessageFor(en), isNot(contains('API_KEY')));
     });
 
     test('401 is a login problem, not a configuration problem', () {
@@ -53,7 +53,7 @@ void main() {
       );
 
       expect(status.problem, AiStatusProblem.timeout);
-      expect(status.problemMessageFor(zh), contains('BACKEND_AI_BASE_URL'));
+      expect(status.problemMessageFor(zh), isNot(contains('BACKEND_')));
       expect(status.problemMessageFor(zh), isNot(contains('检查网络连接')));
     });
 
@@ -69,18 +69,20 @@ void main() {
       expect(status.problemTitleFor(zh), isNot(contains('服务可用')));
     });
 
-    test('a healthy response is configured and reports the model', () {
-      const AiServerStatus status = AiServerStatus(
-        model: 'gpt-4o-mini',
-        models: <String>['gpt-4o-mini'],
-      );
+    test(
+      'a healthy response is configured without exposing provider details',
+      () {
+        const AiServerStatus status = AiServerStatus(
+          model: 'gpt-4o-mini',
+          models: <String>['gpt-4o-mini'],
+        );
 
-      expect(status.configured, isTrue);
-      expect(status.problemMessageFor(zh), contains('gpt-4o-mini'));
-    });
+        expect(status.configured, isTrue);
+        expect(status.problemMessageFor(zh), isNot(contains('gpt-4o-mini')));
+      },
+    );
 
-    test('every problem has a distinct, non-empty explanation', () {
-      final Set<String> titles = <String>{};
+    test('every problem has a non-empty user-facing explanation', () {
       for (final AiStatusProblem problem in AiStatusProblem.values) {
         final AiServerStatus status = AiServerStatus(
           model: problem == AiStatusProblem.none ? 'm' : '',
@@ -89,9 +91,7 @@ void main() {
         );
         expect(status.problemTitleFor(zh), isNotEmpty);
         expect(status.problemMessageFor(en), isNotEmpty);
-        titles.add(status.problemTitleFor(en));
       }
-      expect(titles.length, AiStatusProblem.values.length);
     });
   });
 }

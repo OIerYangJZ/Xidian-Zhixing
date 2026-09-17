@@ -121,12 +121,7 @@ void main() {
 
         expect(find.text('Appearance and preferences'), findsOneWidget);
         expect(find.text('Rules and privacy'), findsOneWidget);
-        await tester.scrollUntilVisible(
-          find.text('Access information'),
-          240,
-          scrollable: find.byType(Scrollable).first,
-        );
-        expect(find.text('Access information'), findsOneWidget);
+        expect(find.text('Access information'), findsNothing);
         expect(find.textContaining('内测'), findsNothing);
         expect(find.textContaining('非官方'), findsNothing);
       },

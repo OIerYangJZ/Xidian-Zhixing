@@ -138,7 +138,11 @@ def _serialize_club(club: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _serialize_campus_service(row: dict[str, Any]) -> dict[str, Any]:
+def _serialize_campus_service(
+    row: dict[str, Any],
+    *,
+    auth_ready: bool = False,
+) -> dict[str, Any]:
     actions = []
     for item in _as_list(row.get("actions")):
         if not isinstance(item, dict):
@@ -163,6 +167,9 @@ def _serialize_campus_service(row: dict[str, Any]) -> dict[str, Any]:
         "kind": str(row.get("kind", "integration")),
         "iconKey": str(row.get("iconKey", "service")),
         "authType": str(row.get("authType", "")),
+        # `ids` uses the identity that authenticated the current account.  The
+        # client must not ask the user to enter the same credentials again.
+        "authReady": auth_ready and str(row.get("authType", "")).strip() == "ids",
         "status": str(row.get("status", "待接入")),
         "description": str(row.get("description", "")),
         "requiredAccess": str(row.get("requiredAccess", "")),
@@ -513,13 +520,21 @@ def handle_admin_club_application_action(
 
 def handle_campus_services(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
+    user, _ = auth_user_helper(handler, db)
+    auth_ready = bool(user and str(user.get("studentId", "")).strip())
     rows = [row for row in db.get("campusServices", []) if bool(row.get("enabled", True))]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
-    send_json(handler, HTTPStatus.OK, {"data": [_serialize_campus_service(row) for row in rows]})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": [_serialize_campus_service(row, auth_ready=auth_ready) for row in rows]},
+    )
 
 
 def handle_campus_service_detail(handler: BaseHTTPRequestHandler, db: dict[str, Any], service_id: str) -> None:
     ensure_radio_schema(db)
+    user, _ = auth_user_helper(handler, db)
+    auth_ready = bool(user and str(user.get("studentId", "")).strip())
     row = next(
         (
             item
@@ -531,7 +546,7 @@ def handle_campus_service_detail(handler: BaseHTTPRequestHandler, db: dict[str, 
     if row is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "校园服务不存在")
         return
-    payload = _serialize_campus_service(row)
+    payload = _serialize_campus_service(row, auth_ready=auth_ready)
     map_ids = set(payload.get("mapIds") or [])
     maps = db.get("campusMaps", [])
     payload["maps"] = [item for item in maps if str(item.get("id", "")) in map_ids] if map_ids else []
@@ -545,13 +560,19 @@ def handle_campus_maps(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> N
 
 def handle_campus_quick_links(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
+    user, _ = auth_user_helper(handler, db)
+    auth_ready = bool(user and str(user.get("studentId", "")).strip())
     rows = [
         row
         for row in db.get("campusServices", [])
         if row.get("groupId") in {"quick", "tools"} and bool(row.get("enabled", True))
     ]
     rows.sort(key=lambda item: _safe_int(item.get("sortOrder"), 0))
-    send_json(handler, HTTPStatus.OK, {"data": [_serialize_campus_service(row) for row in rows]})
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {"data": [_serialize_campus_service(row, auth_ready=auth_ready) for row in rows]},
+    )
 
 
 def _time_minutes(value: str) -> int:

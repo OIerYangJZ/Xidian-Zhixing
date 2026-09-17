@@ -1,19 +1,20 @@
-import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/l10n/campus_text.dart';
-import '../../core/l10n/ui_text.dart';
-import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
-import '../../core/theme/shared_colors.dart';
-import '../../core/widgets/app_surfaces.dart';
+import '../../core/l10n/ui_text.dart';
+import '../../models/post_item.dart';
 import '../../repositories/ai_repository.dart';
 import '../../repositories/app_repositories.dart';
 import '../post/post_detail_page.dart';
+
+const String _indexKey = 'xiaodian_conversation_index';
+const String _conversationKeyPrefix = 'xiaodian_conversation_';
 
 class AiPage extends ConsumerStatefulWidget {
   const AiPage({super.key});
@@ -23,216 +24,130 @@ class AiPage extends ConsumerStatefulWidget {
 }
 
 class _AiPageState extends ConsumerState<AiPage> {
+  List<_ConversationPreview> _conversations = const <_ConversationPreview>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConversations();
+  }
+
+  Future<void> _loadConversations() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final dynamic decoded = _decodeJsonList(prefs.getString(_indexKey));
+    if (!mounted || decoded is! List) return;
+    setState(() {
+      _conversations = decoded
+          .whereType<Map>()
+          .map(
+            (dynamic value) => _ConversationPreview.fromJson(
+              Map<String, dynamic>.from(value as Map),
+            ),
+          )
+          .where((item) => item.id.isNotEmpty)
+          .toList();
+    });
+  }
+
+  Future<void> _openChat([String? conversationId]) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => AiChatPage(conversationId: conversationId),
+      ),
+    );
+    await _loadConversations();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AppPageFrame(
-      child: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final bool expanded = constraints.maxWidth >= AppBreakpoints.medium;
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 100),
-            children: <Widget>[
-              AppSectionHeader(
-                title: uiText(
-                  context,
-                  zh: '小电 · 西电知行智能助手',
-                  en: 'Campus AI assistant',
-                ),
-                subtitle: uiText(
-                  context,
-                  zh: '基于校园知识库与审核通过的公开内容回答',
-                  en:
-                      'Answers drawn from the campus knowledge base and '
-                      'approved public content',
-                ),
-                trailing: OutlinedButton.icon(
-                  onPressed: _openSettings,
-                  icon: const Icon(Icons.tune_rounded, size: 18),
-                  label: Text(uiText(context, zh: '设置', en: 'Settings')),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              if (expanded)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(
-                      flex: 3,
-                      child: _AiStartCard(onOpenChat: _openChat),
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 920),
+            child: CustomScrollView(
+              slivers: <Widget>[
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+                  sliver: SliverToBoxAdapter(
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            uiText(context, zh: '对话', en: 'Conversations'),
+                            style: Theme.of(context).textTheme.headlineMedium,
+                          ),
+                        ),
+                        FilledButton.icon(
+                          onPressed: () => _openChat(),
+                          icon: const Icon(Icons.add_rounded),
+                          label: Text(
+                            uiText(context, zh: '新对话', en: 'New chat'),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: AppSpacing.lg),
-                    const Expanded(flex: 2, child: _AiPrinciplesCard()),
-                  ],
-                )
-              else
-                Column(
-                  children: <Widget>[
-                    _AiStartCard(onOpenChat: _openChat),
-                    const SizedBox(height: AppSpacing.lg),
-                    const _AiPrinciplesCard(),
-                  ],
+                  ),
                 ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _openChat() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const AiChatPage()));
-  }
-
-  void _openSettings() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const AiSettingsPage()));
-  }
-}
-
-class _AiStartCard extends StatelessWidget {
-  const _AiStartCard({required this.onOpenChat});
-
-  final VoidCallback onOpenChat;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSurfaceCard(
-      highlighted: true,
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          AppSealMark(
-            label: uiText(context, zh: '问', en: 'Q'),
-            size: 46,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            uiText(
-              context,
-              zh: '从一个校园问题开始',
-              en: 'Start with a campus question',
-            ),
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            uiText(
-              context,
-              zh: '进入对话后可询问办事流程、校园服务或公开社区内容。检索到论坛帖子时，会在回答下方提供原帖入口。',
-              en:
-                  'Ask about administrative procedures, campus services or '
-                  'public community content. When a forum post is used, its '
-                  'original post is shown below the answer.',
-            ),
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          FilledButton.icon(
-            onPressed: onOpenChat,
-            icon: const Icon(Icons.arrow_forward_rounded),
-            label: Text(
-              uiText(context, zh: '发起新对话', en: 'Start a conversation'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AiPrinciplesCard extends StatelessWidget {
-  const _AiPrinciplesCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return AppSurfaceCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          AppSectionTitle(
-            title: uiText(context, zh: '回答原则', en: 'How answers work'),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          _AiPrinciple(
-            icon: Icons.source_outlined,
-            title: uiText(context, zh: '来源可核对', en: 'Checkable sources'),
-            message: uiText(
-              context,
-              zh: '检索到的参考资料会和回答分开呈现。',
-              en: 'Original forum posts are shown separately from the answer.',
-            ),
-          ),
-          _AiPrinciple(
-            icon: Icons.visibility_outlined,
-            title: uiText(context, zh: '能力边界透明', en: 'Honest about its limits'),
-            message: uiText(
-              context,
-              zh: '服务器未配置时会明确提示，不生成替代回答。',
-              en:
-                  'If the server has no AI configured it says so, rather than '
-                  'inventing a substitute answer.',
-            ),
-          ),
-          _AiPrinciple(
-            icon: Icons.lock_outline_rounded,
-            title: uiText(context, zh: '公开内容范围', en: 'Public content only'),
-            message: uiText(
-              context,
-              zh: '论坛内容仅使用审核通过的公开帖子。',
-              en: 'Forum material is limited to approved public posts.',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AiPrinciple extends StatelessWidget {
-  const _AiPrinciple({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Icon(icon, size: 19, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(message, style: Theme.of(context).textTheme.bodySmall),
+                if (_conversations.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: FilledButton(
+                        onPressed: () => _openChat(),
+                        child: Text(
+                          uiText(
+                            context,
+                            zh: '开始一段对话',
+                            en: 'Start a conversation',
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
+                    sliver: SliverList.builder(
+                      itemCount: _conversations.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        final _ConversationPreview item = _conversations[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                          ),
+                          leading: const Icon(
+                            Icons.chat_bubble_outline_rounded,
+                          ),
+                          title: Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          subtitle: Text(
+                            item.preview,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: Text(item.updatedAt),
+                          onTap: () => _openChat(item.id),
+                        );
+                      },
+                    ),
+                  ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class AiChatPage extends ConsumerStatefulWidget {
-  const AiChatPage({super.key});
+  const AiChatPage({super.key, this.conversationId});
+
+  final String? conversationId;
 
   @override
   ConsumerState<AiChatPage> createState() => _AiChatPageState();
@@ -242,17 +157,16 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   final TextEditingController _inputController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<AiMessage> _messages = <AiMessage>[];
+  late final String _conversationId;
   bool _sending = false;
-  AiServerStatus _status = const AiServerStatus(
-    model: '',
-    models: <String>[],
-    problem: AiStatusProblem.loading,
-  );
 
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(_loadConfig);
+    _conversationId =
+        widget.conversationId ??
+        DateTime.now().microsecondsSinceEpoch.toString();
+    _loadMessages();
   }
 
   @override
@@ -262,87 +176,105 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     super.dispose();
   }
 
-  Future<void> _loadConfig() async {
+  Future<void> _loadMessages() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final dynamic decoded = _decodeJsonList(
+      prefs.getString('$_conversationKeyPrefix$_conversationId'),
+    );
+    if (!mounted || decoded is! List) return;
     setState(() {
-      _status = const AiServerStatus(
-        model: '',
-        models: <String>[],
-        problem: AiStatusProblem.loading,
-      );
+      _messages
+        ..clear()
+        ..addAll(
+          decoded
+              .whereType<Map>()
+              .map((dynamic value) {
+                final Map<String, dynamic> map = Map<String, dynamic>.from(
+                  value as Map,
+                );
+                return AiMessage(
+                  role: map['role']?.toString() ?? 'user',
+                  content: map['content']?.toString() ?? '',
+                  references: _decodeReferences(map['references']),
+                );
+              })
+              .where((item) => item.content.isNotEmpty),
+        );
     });
-    final AiServerStatus status = await ref
-        .read(aiRepositoryProvider)
-        .fetchStatus();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _status = status;
-    });
+  }
+
+  Future<void> _saveMessages() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '$_conversationKeyPrefix$_conversationId',
+      jsonEncode(
+        _messages
+            .map(
+              (item) => <String, dynamic>{
+                'role': item.role,
+                'content': item.content,
+                'references': item.references
+                    .map(
+                      (reference) => <String, String>{
+                        'type': reference.type,
+                        'title': reference.title,
+                        'targetId': reference.targetId,
+                        'jumpUrl': reference.jumpUrl,
+                        'sourceUrl': reference.sourceUrl,
+                      },
+                    )
+                    .toList(),
+              },
+            )
+            .toList(),
+      ),
+    );
+    final AiMessage first = _messages.firstWhere(
+      (item) => item.role == 'user',
+      orElse: () => const AiMessage(role: 'user', content: '新对话'),
+    );
+    final dynamic decoded = _decodeJsonList(prefs.getString(_indexKey));
+    final List<_ConversationPreview> rows = decoded is List
+        ? decoded
+              .whereType<Map>()
+              .map(
+                (dynamic value) => _ConversationPreview.fromJson(
+                  Map<String, dynamic>.from(value as Map),
+                ),
+              )
+              .toList()
+        : <_ConversationPreview>[];
+    rows.removeWhere((item) => item.id == _conversationId);
+    rows.insert(
+      0,
+      _ConversationPreview(
+        id: _conversationId,
+        title: first.content.length > 24
+            ? '${first.content.substring(0, 24)}…'
+            : first.content,
+        preview: _messages.isEmpty ? '' : _messages.last.content,
+        updatedAt: '${DateTime.now().month}/${DateTime.now().day}',
+      ),
+    );
+    await prefs.setString(
+      _indexKey,
+      jsonEncode(rows.map((item) => item.toJson()).toList()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
-    final bool configured = _status.configured;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          configured
-              ? uiText(
-                  context,
-                  zh: '当前模型：${_status.model}',
-                  en: 'Model: ${_status.model}',
-                )
-              : uiText(context, zh: '小电', en: 'Xiao Dian'),
+        leading: IconButton(
+          tooltip: uiText(context, zh: '返回', en: 'Back'),
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
-        actions: <Widget>[
-          IconButton(
-            tooltip: uiText(context, zh: 'AI 设置', en: 'AI settings'),
-            onPressed: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const AiSettingsPage()),
-              );
-              await _loadConfig();
-            },
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
+        title: const SizedBox.shrink(),
       ),
       body: Column(
         children: <Widget>[
-          if (!configured && !_status.isLoading)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: AppInlineMessage(
-                title: _status.problemTitleFor(locale),
-                message: _status.problemMessageFor(locale),
-                tone: _status.problem == AiStatusProblem.unauthorized
-                    ? AppMessageTone.warning
-                    : AppMessageTone.error,
-                action: TextButton(
-                  onPressed: _loadConfig,
-                  child: Text(uiText(context, zh: '重试', en: 'Retry')),
-                ),
-              ),
-            ),
-          if (!configured &&
-              !_status.isLoading &&
-              _status.diagnosticLine.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: SelectableText(
-                  _status.diagnosticLine,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.58),
-                  ),
-                ),
-              ),
-            ),
           Expanded(
             child: Center(
               child: ConstrainedBox(
@@ -350,17 +282,14 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   maxWidth: AppLayout.readingMaxWidth,
                 ),
                 child: _messages.isEmpty && !_sending
-                    ? AppStatePanel(
-                        icon: Icons.auto_awesome_outlined,
-                        title: uiText(
-                          context,
-                          zh: '你好，我是小电',
-                          en: 'Start a question you can verify',
-                        ),
-                        message: uiText(
-                          context,
-                          zh: '西电知行平台智能助手。可以问校园问题，也可以让我整理和提取资料；回答依据会在下方提供。',
-                          en: 'Original forum posts are shown when used.',
+                    ? Center(
+                        child: Text(
+                          uiText(
+                            context,
+                            zh: '有什么可以帮你？',
+                            en: 'How can I help?',
+                          ),
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                       )
                     : ListView.builder(
@@ -369,21 +298,21 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                         itemCount: _messages.length + (_sending ? 1 : 0),
                         itemBuilder: (BuildContext context, int index) {
                           if (index == _messages.length) {
-                            return _MessageBubble(
-                              role: 'assistant',
+                            return _AiMessageView(
                               content: uiText(
                                 context,
-                                zh: '正在查找相关资料…',
-                                en: 'Looking up sources…',
+                                zh: '正在思考…',
+                                en: 'Thinking…',
                               ),
+                              user: false,
                               references: const <AiReference>[],
                               onReferenceTap: null,
                             );
                           }
                           final AiMessage message = _messages[index];
-                          return _MessageBubble(
-                            role: message.role,
+                          return _AiMessageView(
                             content: message.content,
+                            user: message.role == 'user',
                             references: message.references,
                             onReferenceTap: _openReference,
                           );
@@ -394,34 +323,33 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           ),
           SafeArea(
             top: false,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: TextField(
-                      controller: _inputController,
-                      enabled: !_sending && configured,
-                      minLines: 1,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        hintText: configured
-                            ? uiText(
-                                context,
-                                zh: '输入问题...',
-                                en: 'Ask a question...',
-                              )
-                            : _status.problemTitleFor(locale),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: AppLayout.readingMaxWidth,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: _inputController,
+                        enabled: !_sending,
+                        minLines: 1,
+                        maxLines: 5,
+                        decoration: InputDecoration(
+                          hintText: uiText(context, zh: '输入消息', en: 'Message'),
+                        ),
+                        onSubmitted: (_) => _send(),
                       ),
-                      onSubmitted: (_) => _send(),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  FilledButton(
-                    onPressed: _sending || !configured ? null : _send,
-                    child: Text(uiText(context, zh: '发送', en: 'Send')),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    IconButton.filled(
+                      onPressed: _sending ? null : _send,
+                      icon: const Icon(Icons.arrow_upward_rounded),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -432,9 +360,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
 
   Future<void> _send() async {
     final String text = _inputController.text.trim();
-    if (text.isEmpty) {
-      return;
-    }
+    if (text.isEmpty) return;
     _inputController.clear();
     setState(() {
       _messages.add(AiMessage(role: 'user', content: text));
@@ -442,57 +368,39 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     });
     _scrollToBottom();
     try {
+      // Save the user turn before waiting on the network so a failed request
+      // still remains in the conversation history.
+      await _saveMessages();
       final AiChatResponse response = await ref
           .read(aiRepositoryProvider)
           .sendMessage(content: text, messages: _messages);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _messages.add(
-          AiMessage(
-            role: 'assistant',
-            content: response.answer,
-            references: response.references,
+      if (mounted)
+        setState(
+          () => _messages.add(
+            AiMessage(
+              role: 'assistant',
+              content: response.answer,
+              references: response.references,
+            ),
           ),
         );
-      });
-    } on ApiException catch (error) {
-      // Keep the status code visible: 401, 503 and 502 need very different fixes.
-      final String code = error.statusCode == null
-          ? ''
-          : uiTextGlobal(
-              zh: '（HTTP ${error.statusCode}）',
-              en: ' (HTTP ${error.statusCode})',
-            );
-      if (mounted) {
+      await _saveMessages();
+    } catch (_) {
+      if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              uiTextGlobal(
-                zh: '发送失败$code：${error.message}',
-                en: 'Send failed$code: ${error.message}',
+              uiText(
+                context,
+                zh: '暂时无法回复，请稍后再试',
+                en: 'Unable to reply right now. Try again later.',
               ),
             ),
           ),
         );
-      }
-      unawaited(_loadConfig());
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              uiTextGlobal(zh: '发送失败：$error', en: 'Send failed: $error'),
-            ),
-          ),
-        );
-      }
     } finally {
       if (mounted) {
-        setState(() {
-          _sending = false;
-        });
+        setState(() => _sending = false);
         _scrollToBottom();
       }
     }
@@ -501,291 +409,126 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   Future<void> _openReference(AiReference reference) async {
     if (reference.type != 'post' && reference.type != '帖子') {
       final Uri? uri = Uri.tryParse(reference.sourceUrl);
-      if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http')) {
+      if (uri != null && (uri.scheme == 'https' || uri.scheme == 'http'))
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
       return;
     }
     final String postId = reference.targetId.trim();
-    if (postId.isEmpty) {
-      return;
-    }
-    final post = await AppRepositories.posts.fetchPostDetail(postId);
-    if (!mounted) {
-      return;
-    }
-    await Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => PostDetailPage(post: post)));
+    if (postId.isEmpty) return;
+    final PostItem post = await AppRepositories.posts.fetchPostDetail(postId);
+    if (mounted)
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => PostDetailPage(post: post)),
+      );
   }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scrollController.hasClients) {
-        return;
-      }
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-      );
+      if (_scrollController.hasClients)
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+        );
     });
   }
 }
 
-class AiSettingsPage extends ConsumerStatefulWidget {
-  const AiSettingsPage({super.key});
-
-  @override
-  ConsumerState<AiSettingsPage> createState() => _AiSettingsPageState();
-}
-
-class _AiSettingsPageState extends ConsumerState<AiSettingsPage> {
-  AiServerStatus _status = const AiServerStatus(
-    model: '',
-    models: <String>[],
-    problem: AiStatusProblem.loading,
-  );
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(_load);
-  }
-
-  Future<void> _load() async {
-    setState(() {
-      _loading = true;
-      _status = const AiServerStatus(
-        model: '',
-        models: <String>[],
-        problem: AiStatusProblem.loading,
-      );
-    });
-    final AiServerStatus status = await ref
-        .read(aiRepositoryProvider)
-        .fetchStatus();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _status = status;
-      _loading = false;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(uiText(context, zh: 'AI 设置', en: 'AI settings')),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: <Widget>[
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(
-              _status.configured
-                  ? Icons.cloud_done_outlined
-                  : Icons.cloud_off_outlined,
-            ),
-            title: Text(uiText(context, zh: '服务器 AI', en: 'Server AI')),
-            subtitle: Text(_status.problemTitleFor(locale)),
-          ),
-          if (!_status.configured && !_status.isLoading)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-              child: AppInlineMessage(
-                title: uiText(context, zh: '如何修复', en: 'How to fix'),
-                message: _status.problemMessageFor(locale),
-                tone: _status.problem == AiStatusProblem.unauthorized
-                    ? AppMessageTone.warning
-                    : AppMessageTone.error,
-              ),
-            ),
-          if (!_status.configured &&
-              !_status.isLoading &&
-              _status.diagnosticLine.isNotEmpty)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(uiText(context, zh: '服务器返回', en: 'Server response')),
-              subtitle: SelectableText(_status.diagnosticLine),
-            ),
-          if (_status.configured)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(uiText(context, zh: '当前模型', en: 'Current model')),
-              subtitle: Text(_status.model),
-            ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              uiText(context, zh: '校园知识库', en: 'Campus knowledge base'),
-            ),
-            subtitle: Text(
-              uiText(
-                context,
-                zh: '由服务器统一维护并建立索引',
-                en: 'Maintained and indexed on the server',
-              ),
-            ),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              uiText(context, zh: '回答依据', en: 'Sources'),
-            ),
-            subtitle: Text(
-              uiText(
-                context,
-                zh: '审核通过后自动进入检索',
-                en: 'Indexed automatically once approved',
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          FilledButton.icon(
-            onPressed: _loading ? null : _load,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(
-              _loading
-                  ? uiText(context, zh: '读取中', en: 'Loading')
-                  : uiText(context, zh: '刷新状态', en: 'Refresh status'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MessageBubble extends StatelessWidget {
-  const _MessageBubble({
-    required this.role,
+class _AiMessageView extends StatelessWidget {
+  const _AiMessageView({
     required this.content,
+    required this.user,
     required this.references,
     required this.onReferenceTap,
   });
 
-  final String role;
   final String content;
+  final bool user;
   final List<AiReference> references;
   final ValueChanged<AiReference>? onReferenceTap;
 
   @override
   Widget build(BuildContext context) {
-    final bool user = role == 'user';
-    final Locale locale = Localizations.localeOf(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: user
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-        children: <Widget>[
-          if (!user)
-            _AiAvatar(
-              label: uiText(context, zh: '印', en: 'AI'),
-            ),
-          Flexible(
-            child: Container(
-              margin: EdgeInsets.only(
-                left: user ? 48 : 10,
-                right: user ? 10 : 48,
+    return Align(
+      alignment: user ? Alignment.centerRight : Alignment.centerLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                content,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(height: 1.6),
               ),
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: user
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadii.large),
-                border: user ? null : Border.all(color: SharedColors.divider),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    content,
-                    style: TextStyle(
-                      color: user ? Colors.white : null,
-                      height: 1.55,
-                    ),
-                  ),
-                  if (references.isNotEmpty) ...<Widget>[
-                    const SizedBox(height: 12),
-                    Text(
-                      uiText(context, zh: '回答依据', en: 'Sources'),
-                      style: Theme.of(context).textTheme.labelLarge,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    for (final MapEntry<int, AiReference> entry
-                        in references.asMap().entries)
-                      InkWell(
-                        onTap: onReferenceTap == null
-                            ? null
-                            : () => onReferenceTap!(entry.value),
-                        borderRadius: BorderRadius.circular(AppRadii.small),
-                        child: Container(
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(bottom: AppSpacing.xs),
-                          padding: const EdgeInsets.all(AppSpacing.sm),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            border: Border.all(color: SharedColors.divider),
-                            borderRadius: BorderRadius.circular(AppRadii.small),
-                          ),
-                          child: Text(
-                            '${entry.key + 1}. '
-                            '${localizedAiReferenceType(locale, entry.value.type)}'
-                            ' · ${entry.value.title}',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ],
-              ),
-            ),
+              for (final AiReference reference in references)
+                TextButton(
+                  onPressed: onReferenceTap == null
+                      ? null
+                      : () => onReferenceTap!(reference),
+                  child: Text(reference.title, textAlign: TextAlign.left),
+                ),
+            ],
           ),
-          if (user)
-            _AiAvatar(
-              label: uiText(context, zh: '我', en: 'Me'),
-            ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _AiAvatar extends StatelessWidget {
-  const _AiAvatar({required this.label});
+class _ConversationPreview {
+  const _ConversationPreview({
+    required this.id,
+    required this.title,
+    required this.preview,
+    required this.updatedAt,
+  });
 
-  final String label;
+  final String id;
+  final String title;
+  final String preview;
+  final String updatedAt;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 34,
-      height: 34,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: Theme.of(context).colorScheme.primary,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
+  Map<String, String> toJson() => <String, String>{
+    'id': id,
+    'title': title,
+    'preview': preview,
+    'updatedAt': updatedAt,
+  };
+
+  factory _ConversationPreview.fromJson(Map<String, dynamic> json) =>
+      _ConversationPreview(
+        id: json['id']?.toString() ?? '',
+        title: json['title']?.toString() ?? '',
+        preview: json['preview']?.toString() ?? '',
+        updatedAt: json['updatedAt']?.toString() ?? '',
+      );
+}
+
+dynamic _decodeJsonList(String? value) {
+  if (value == null || value.trim().isEmpty) {
+    return const <dynamic>[];
   }
+  try {
+    return jsonDecode(value);
+  } on FormatException {
+    return const <dynamic>[];
+  }
+}
+
+List<AiReference> _decodeReferences(dynamic value) {
+  if (value is! List) {
+    return const <AiReference>[];
+  }
+  return value
+      .whereType<Map>()
+      .map(
+        (dynamic item) =>
+            AiReference.fromJson(Map<String, dynamic>.from(item as Map)),
+      )
+      .where((AiReference item) => item.title.isNotEmpty)
+      .toList();
 }

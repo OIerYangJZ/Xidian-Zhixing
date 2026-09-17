@@ -65,14 +65,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loggingIn => 'Waiting for Xidian';
 
   @override
-  String get betaAccessMessage =>
-      'For account sign-in, enter your student ID and password only on Xidian\'s official page. Xidian Zhixing never receives or stores that sign-in password. Your account is created after the first successful sign-in and access remains allowlisted.';
-
-  @override
   String get adminLogin => 'Admin sign in';
 
   @override
-  String get agreements => 'Terms · Privacy · Community rules';
+  String get agreements => 'Terms of Service';
 
   @override
   String loginFailed(String error) {

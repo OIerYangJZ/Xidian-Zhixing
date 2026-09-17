@@ -193,29 +193,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               ),
               const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: editorial.info.withValues(alpha: 0.08),
-                  border: Border.all(
-                    color: editorial.info.withValues(alpha: 0.32),
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Icon(Icons.verified_user_outlined, color: editorial.info),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        l10n.betaAccessMessage,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox.shrink(),
               if (_errorMessage != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),

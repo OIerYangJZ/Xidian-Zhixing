@@ -304,7 +304,11 @@ class _DiscussionAvatar extends StatelessWidget {
     final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
     final String label = post.authorAlias.trim().isEmpty
         ? anonymousInitial
-        : post.authorAliasFor(Localizations.localeOf(context)).trim().characters.first;
+        : post
+              .authorAliasFor(Localizations.localeOf(context))
+              .trim()
+              .characters
+              .first;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
       return ClipOval(
         child: Image.network(
@@ -399,10 +403,6 @@ class _PostMeta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final List<String> tags = post.tags
-        .where((String tag) => tag.trim().isNotEmpty)
-        .take(2)
-        .toList(growable: false);
     return Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
@@ -424,11 +424,6 @@ class _PostMeta extends StatelessWidget {
         if (post.status != PostStatus.ongoing)
           _MetaPill(
             label: post.status.labelFor(Localizations.localeOf(context)),
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        for (final String tag in tags)
-          _MetaPill(
-            label: '#${tag.trim()}',
             color: theme.colorScheme.onSurfaceVariant,
           ),
       ],
@@ -475,7 +470,11 @@ class _Avatar extends StatelessWidget {
     final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
     final String label = post.authorAlias.trim().isEmpty
         ? anonymousInitial
-        : post.authorAliasFor(Localizations.localeOf(context)).trim().characters.first;
+        : post
+              .authorAliasFor(Localizations.localeOf(context))
+              .trim()
+              .characters
+              .first;
     if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(AppRadii.medium),

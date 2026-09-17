@@ -52,7 +52,11 @@ def serve():
             elif path=="/documents":
                 self.send(200,{"items":store.documents()})
             elif path.startswith("/documents/"):
-                doc=store.get_document(path.split("/")[-1])
+                parts=path.split("/")
+                if len(parts) == 4 and parts[-1] == "content":
+                    doc=store.get_document_content(parts[-2])
+                else:
+                    doc=store.get_document(parts[-1])
                 self.send(200 if doc else 404,doc or {"error":"Document not found"})
             elif path.startswith("/traces/"):
                 trace=store.get_trace(path.split("/")[-1])
@@ -85,7 +89,8 @@ def serve():
                         fetched,_=fetch_document(body["sourceUrl"],Path(os.environ["KNOWLEDGE_RAW_DIR"]))
                         body={**fetched,**body,"content":fetched["content"],
                             "title":body.get("title") or fetched["title"],"authority":"official",
-                            "publishedAt":fetched["publishedAt"]}
+                            "publishedAt":fetched["publishedAt"],
+                            "rawObjectKey":fetched.get("rawObjectKey", "")}
                     doc,chunks=make_document(body["title"],body["content"],body["sourceUrl"],
                         authority=body.get("authority","curated"),published_at=body.get("publishedAt"),
                         source_id=body.get("sourceId"),doc_id=body.get("id"))
@@ -94,6 +99,8 @@ def serve():
                             doc[field]=body[field]
                             for chunk in chunks:
                                 chunk[field]=body[field]
+                    if body.get("rawObjectKey"):
+                        doc["rawObjectKey"] = str(body["rawObjectKey"])
                     if (not doc["title"].strip() and doc["authority"]!="community") or not doc["content"].strip():
                         raise ValueError("标题和正文不能为空")
                     doc["chunkCount"]=len(chunks)

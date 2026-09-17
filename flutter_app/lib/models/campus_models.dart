@@ -36,6 +36,7 @@ class CampusService {
     required this.kind,
     required this.iconKey,
     required this.authType,
+    required this.authReady,
     required this.description,
     required this.calendarSource,
     required this.actions,
@@ -50,13 +51,15 @@ class CampusService {
   final String kind;
   final String iconKey;
   final String authType;
+  final bool authReady;
   final String description;
   final String calendarSource;
   final List<CampusAction> actions;
   final List<CampusMap> maps;
 
   bool get hasBusinessAction =>
-      groupId != 'account' && actions.any((CampusAction action) => action.type != 'notice');
+      groupId != 'account' &&
+      actions.any((CampusAction action) => action.type != 'notice');
 
   factory CampusService.fromJson(Map<String, dynamic> json) {
     return CampusService(
@@ -68,11 +71,15 @@ class CampusService {
       kind: readString(json, <String>['kind']) ?? '',
       iconKey: readString(json, <String>['iconKey']) ?? '',
       authType: readString(json, <String>['authType']) ?? '',
+      authReady: json['authReady'] == true,
       description: readString(json, <String>['description']) ?? '',
       calendarSource: readString(json, <String>['calendarSource']) ?? '',
       actions: asList(json['actions'])
           .map((dynamic item) => CampusAction.fromJson(asMap(item)))
-          .where((CampusAction item) => item.label.isNotEmpty || item.type.isNotEmpty)
+          .where(
+            (CampusAction item) =>
+                item.label.isNotEmpty || item.type.isNotEmpty,
+          )
           .toList(),
       maps: asList(json['maps'])
           .map((dynamic item) => CampusMap.fromJson(asMap(item)))
@@ -161,10 +168,7 @@ class CampusScheduleItem {
 }
 
 class CampusTodaySchedules {
-  const CampusTodaySchedules({
-    required this.date,
-    required this.items,
-  });
+  const CampusTodaySchedules({required this.date, required this.items});
 
   final String date;
   final List<CampusScheduleItem> items;
@@ -219,9 +223,9 @@ class CampusCalendar {
     return CampusCalendar(
       startDate: readString(json, <String>['startDate']) ?? '',
       endDate: readString(json, <String>['endDate']) ?? '',
-      days: asList(json['days'])
-          .map((dynamic item) => CampusCalendarDay.fromJson(asMap(item)))
-          .toList(),
+      days: asList(
+        json['days'],
+      ).map((dynamic item) => CampusCalendarDay.fromJson(asMap(item))).toList(),
     );
   }
 }
@@ -249,7 +253,8 @@ class CampusAuthResult {
       campusEmail: readString(json, <String>['campusEmail']) ?? '',
       attemptId: readString(json, <String>['attemptId']) ?? '',
       imageBase64: readString(json, <String>['imageBase64']) ?? '',
-      imageContentType: readString(json, <String>['imageContentType']) ?? 'image/png',
+      imageContentType:
+          readString(json, <String>['imageContentType']) ?? 'image/png',
       sessionId: readString(json, <String>['sessionId']) ?? '',
     );
   }

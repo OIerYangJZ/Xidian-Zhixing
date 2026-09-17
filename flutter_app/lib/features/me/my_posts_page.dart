@@ -5,7 +5,6 @@ import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
-import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../../widgets/post_card.dart';
 
@@ -20,7 +19,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
   List<PostItem> _posts = const <PostItem>[];
   bool _loading = true;
   bool _actionBusy = false;
-  int _userLevel = 2;
   String? _error;
 
   @override
@@ -31,10 +29,6 @@ class _MyPostsPageState extends State<MyPostsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String levelLabel = userLevelLabelForLevel(
-      Localizations.localeOf(context),
-      _userLevel,
-    );
     return Scaffold(
       appBar: AppBar(
         title: Text(uiText(context, zh: '我的帖子', en: 'My posts')),
@@ -80,38 +74,10 @@ class _MyPostsPageState extends State<MyPostsPage> {
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _actionBusy ? null : _loadData,
-                            child: Text(
-                              uiText(context, zh: '重试', en: 'Retry'),
-                            ),
+                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
                           ),
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 4,
-                      ),
-                      child: Text(
-                        _userLevel == 1
-                            ? uiText(
-                                context,
-                                zh: '当前身份：$levelLabel，可直接为自己的帖子设置置顶时长。',
-                                en:
-                                    'Current role: $levelLabel — you can pin your own posts directly.',
-                              )
-                            : uiText(
-                                context,
-                                zh: '当前身份：$levelLabel，发帖后如需置顶，请提交管理员审核。',
-                                en:
-                                    'Current role: $levelLabel — pinning a post requires moderator approval.',
-                              ),
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.58),
-                        ),
-                      ),
-                    ),
                     ..._posts.map(
                       (PostItem post) => Column(
                         children: <Widget>[
@@ -164,36 +130,22 @@ class _MyPostsPageState extends State<MyPostsPage> {
                                   ),
                                 ),
                                 FilledButton.tonalIcon(
-                                  onPressed:
-                                      _actionBusy ||
-                                          (_userLevel != 1 && post.isPinned)
+                                  onPressed: _actionBusy
                                       ? null
                                       : () => _handlePin(post),
                                   icon: const Icon(Icons.push_pin_outlined),
                                   label: Text(
-                                    _userLevel == 1
-                                        ? (post.isPinned
-                                              ? uiText(
-                                                  context,
-                                                  zh: '重新置顶',
-                                                  en: 'Re-pin',
-                                                )
-                                              : uiText(
-                                                  context,
-                                                  zh: '置顶帖子',
-                                                  en: 'Pin post',
-                                                ))
-                                        : (post.isPinned
-                                              ? uiText(
-                                                  context,
-                                                  zh: '已置顶',
-                                                  en: 'Pinned',
-                                                )
-                                              : uiText(
-                                                  context,
-                                                  zh: '申请置顶',
-                                                  en: 'Request pin',
-                                                )),
+                                    post.isPinned
+                                        ? uiText(
+                                            context,
+                                            zh: '重新置顶',
+                                            en: 'Re-pin',
+                                          )
+                                        : uiText(
+                                            context,
+                                            zh: '置顶帖子',
+                                            en: 'Pin post',
+                                          ),
                                   ),
                                 ),
                                 FilledButton.tonal(
@@ -222,8 +174,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
                         message: uiText(
                           context,
                           zh: '回到帖子流，使用发布按钮分享第一条内容。',
-                          en:
-                              'Go back to the feed and use the compose button to share your first post.',
+                          en: 'Go back to the feed and use the compose button to share your first post.',
                         ),
                       ),
                   ],
@@ -240,13 +191,11 @@ class _MyPostsPageState extends State<MyPostsPage> {
     });
 
     try {
-      final profile = await AppRepositories.users.fetchProfile();
       final List<PostItem> posts = await AppRepositories.posts.fetchMyPosts();
       if (!mounted) {
         return;
       }
       setState(() {
-        _userLevel = profile.userLevel;
         _posts = posts;
       });
     } catch (error) {
@@ -307,9 +256,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            uiText(context, zh: '删除这条帖子？', en: 'Delete this post?'),
-          ),
+          title: Text(uiText(context, zh: '删除这条帖子？', en: 'Delete this post?')),
           content: Text(
             uiText(
               context,
@@ -356,9 +303,7 @@ class _MyPostsPageState extends State<MyPostsPage> {
   }
 
   Future<void> _handlePin(PostItem post) async {
-    final _PinActionInput? input = await _showPinDialog(
-      direct: _userLevel == 1,
-    );
+    final _PinActionInput? input = await _showPinDialog(direct: false);
     if (input == null) {
       return;
     }
@@ -404,125 +349,109 @@ class _MyPostsPageState extends State<MyPostsPage> {
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder:
-              (BuildContext context, void Function(void Function()) setState) {
-                return AlertDialog(
-                  title: Text(
-                    direct
-                        ? uiText(
-                            context,
-                            zh: '选择置顶时长',
-                            en: 'Choose a pin duration',
-                          )
-                        : uiText(
-                            context,
-                            zh: '申请帖子置顶',
-                            en: 'Request a pinned post',
-                          ),
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      DropdownButtonFormField<int>(
-                        initialValue: selectedDuration,
-                        decoration: InputDecoration(
-                          labelText: uiText(
-                            context,
-                            zh: '置顶时长',
-                            en: 'Pin duration',
-                          ),
-                        ),
-                        items: <DropdownMenuItem<int>>[
-                          DropdownMenuItem(
-                            value: 30,
-                            child: Text(
-                              uiText(context, zh: '30 分钟', en: '30 minutes'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 60,
-                            child: Text(
-                              uiText(context, zh: '1 小时', en: '1 hour'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 120,
-                            child: Text(
-                              uiText(context, zh: '2 小时', en: '2 hours'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 180,
-                            child: Text(
-                              uiText(context, zh: '3 小时', en: '3 hours'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 1440,
-                            child: Text(
-                              uiText(context, zh: '1 天', en: '1 day'),
-                            ),
-                          ),
-                          DropdownMenuItem(
-                            value: 4320,
-                            child: Text(
-                              uiText(context, zh: '3 天', en: '3 days'),
-                            ),
-                          ),
-                        ],
-                        onChanged: (int? value) {
-                          if (value == null) {
-                            return;
-                          }
-                          setState(() {
-                            selectedDuration = value;
-                          });
-                        },
+          builder: (BuildContext context, void Function(void Function()) setState) {
+            return AlertDialog(
+              title: Text(
+                direct
+                    ? uiText(context, zh: '选择置顶时长', en: 'Choose a pin duration')
+                    : uiText(
+                        context,
+                        zh: '申请帖子置顶',
+                        en: 'Request a pinned post',
                       ),
-                      if (!direct) ...<Widget>[
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: reasonController,
-                          minLines: 2,
-                          maxLines: 4,
-                          decoration: InputDecoration(
-                            labelText: uiText(
-                              context,
-                              zh: '申请说明（可选）',
-                              en: 'Reason (optional)',
-                            ),
-                            hintText: uiText(
-                              context,
-                              zh: '例如：活动通知、紧急求助、时效性较强等',
-                              en:
-                                  'e.g. event announcement, urgent request, time-sensitive',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(uiText(context, zh: '取消', en: 'Cancel')),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedDuration,
+                    decoration: InputDecoration(
+                      labelText: uiText(
+                        context,
+                        zh: '置顶时长',
+                        en: 'Pin duration',
+                      ),
                     ),
-                    FilledButton(
-                      onPressed: () => Navigator.of(context).pop(
-                        _PinActionInput(
-                          durationMinutes: selectedDuration,
-                          reason: reasonController.text.trim(),
+                    items: <DropdownMenuItem<int>>[
+                      DropdownMenuItem(
+                        value: 30,
+                        child: Text(
+                          uiText(context, zh: '30 分钟', en: '30 minutes'),
                         ),
                       ),
-                      child: Text(
-                        direct
-                            ? uiText(context, zh: '确认置顶', en: 'Pin post')
-                            : uiText(context, zh: '提交申请', en: 'Submit request'),
+                      DropdownMenuItem(
+                        value: 60,
+                        child: Text(uiText(context, zh: '1 小时', en: '1 hour')),
+                      ),
+                      DropdownMenuItem(
+                        value: 120,
+                        child: Text(uiText(context, zh: '2 小时', en: '2 hours')),
+                      ),
+                      DropdownMenuItem(
+                        value: 180,
+                        child: Text(uiText(context, zh: '3 小时', en: '3 hours')),
+                      ),
+                      DropdownMenuItem(
+                        value: 1440,
+                        child: Text(uiText(context, zh: '1 天', en: '1 day')),
+                      ),
+                      DropdownMenuItem(
+                        value: 4320,
+                        child: Text(uiText(context, zh: '3 天', en: '3 days')),
+                      ),
+                    ],
+                    onChanged: (int? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        selectedDuration = value;
+                      });
+                    },
+                  ),
+                  if (!direct) ...<Widget>[
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: reasonController,
+                      minLines: 2,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: uiText(
+                          context,
+                          zh: '申请说明（可选）',
+                          en: 'Reason (optional)',
+                        ),
+                        hintText: uiText(
+                          context,
+                          zh: '例如：活动通知、紧急求助、时效性较强等',
+                          en: 'e.g. event announcement, urgent request, time-sensitive',
+                        ),
                       ),
                     ),
                   ],
-                );
-              },
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(uiText(context, zh: '取消', en: 'Cancel')),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(
+                    _PinActionInput(
+                      durationMinutes: selectedDuration,
+                      reason: reasonController.text.trim(),
+                    ),
+                  ),
+                  child: Text(
+                    direct
+                        ? uiText(context, zh: '确认置顶', en: 'Pin post')
+                        : uiText(context, zh: '提交申请', en: 'Submit request'),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     ).whenComplete(reasonController.dispose);

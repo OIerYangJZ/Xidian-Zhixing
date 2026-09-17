@@ -60,7 +60,6 @@ class ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
     String text(String zh, String en) => uiText(context, zh: zh, en: en);
     if (_loading) {
       return AppStatePanel(
@@ -80,7 +79,7 @@ class ProfilePageState extends State<ProfilePage> {
         title: text('个人资料加载失败', 'Could not load profile'),
         message:
             _error ??
-            text('服务端未返回有效的个人资料', 'The server did not return a valid profile.'),
+            text('个人资料暂时无法显示', 'Your profile is temporarily unavailable.'),
         action: FilledButton.tonalIcon(
           onPressed: _loadProfile,
           icon: const Icon(Icons.refresh),
@@ -92,8 +91,6 @@ class ProfilePageState extends State<ProfilePage> {
 
     final AccountCancellationRequestSummary? cancellationRequest =
         profile.accountCancellationRequest;
-    final UserLevelRequestSummary? levelUpgradeRequest =
-        profile.levelUpgradeRequest;
 
     return Center(
       child: ConstrainedBox(
@@ -115,54 +112,6 @@ class ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             _buildProfileHero(profile),
-            const SizedBox(height: 10),
-            Card(
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.workspace_premium_outlined),
-                    title: Text(text('账号等级', 'Account level')),
-                    subtitle: Text(
-                      profile.isLevelOneUser
-                          ? text(
-                              '当前为 ${profile.userLevelLabelFor(locale)}，可直接为帖子设置置顶时长',
-                              'Your current level allows you to set a pin duration for posts.',
-                            )
-                          : levelUpgradeRequest == null
-                          ? text(
-                              '当前为 ${profile.userLevelLabelFor(locale)}，可向一级管理员申请升级',
-                              'You can request an account-level upgrade from an administrator.',
-                            )
-                          : _levelUpgradeSubtitle(levelUpgradeRequest),
-                    ),
-                    trailing: Text(
-                      profile.userLevelLabelFor(locale),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  if (!profile.isLevelOneUser)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: FilledButton.tonalIcon(
-                          onPressed:
-                              _saving ||
-                                  levelUpgradeRequest?.status == 'pending'
-                              ? null
-                              : _promptLevelUpgradeRequest,
-                          icon: const Icon(Icons.arrow_circle_up_outlined),
-                          label: Text(
-                            levelUpgradeRequest?.status == 'pending'
-                                ? text('申请审核中', 'Request under review')
-                                : text('申请成为一级用户', 'Request level-one access'),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
             const SizedBox(height: 10),
             Card(
               child: Padding(
@@ -414,8 +363,8 @@ class ProfilePageState extends State<ProfilePage> {
                     title: Text(text('黑名单管理', 'Blocked accounts')),
                     onTap: () => _toast(
                       text(
-                        '黑名单管理页下一步接入。',
-                        'Blocked-account management is not available yet.',
+                        '黑名单管理暂时不可用',
+                        'Blocked accounts are temporarily unavailable.',
                       ),
                     ),
                   ),
@@ -628,27 +577,22 @@ class ProfilePageState extends State<ProfilePage> {
                         Text(
                           uiText(
                             context,
-                            zh:
-                                '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
-                            en:
-                                'Student ID: ${profile.studentId.isEmpty ? 'Not set' : profile.studentId}',
+                            zh: '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
+                            en: 'Student ID: ${profile.studentId.isEmpty ? 'Not set' : profile.studentId}',
                           ),
                         ),
                         Text(
                           uiText(
                             context,
                             zh: '邮箱：${profile.email.isEmpty ? '-' : profile.email}',
-                            en:
-                                'Email: ${profile.email.isEmpty ? '-' : profile.email}',
+                            en: 'Email: ${profile.email.isEmpty ? '-' : profile.email}',
                           ),
                         ),
                         Text(
                           uiText(
                             context,
-                            zh:
-                                '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
-                            en:
-                                'Verification: ${profile.verified ? 'Verified' : 'Not verified'} (${profile.verifiedAt})',
+                            zh: '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
+                            en: 'Verification: ${profile.verified ? 'Verified' : 'Not verified'} (${profile.verifiedAt})',
                           ),
                         ),
                       ],
@@ -771,9 +715,7 @@ class ProfilePageState extends State<ProfilePage> {
           backgroundImageUrl: _backgroundUrlController.text.trim(),
         );
       });
-      _toast(
-        uiTextGlobal(zh: '背景图上传成功', en: 'Background image uploaded'),
-      );
+      _toast(uiTextGlobal(zh: '背景图上传成功', en: 'Background image uploaded'));
     } catch (error) {
       _toast(
         uiTextGlobal(
@@ -932,9 +874,7 @@ class ProfilePageState extends State<ProfilePage> {
           showContactable: showContactable,
         );
       });
-      _toast(
-        uiTextGlobal(zh: '隐私设置已更新', en: 'Privacy settings updated'),
-      );
+      _toast(uiTextGlobal(zh: '隐私设置已更新', en: 'Privacy settings updated'));
     } catch (error) {
       _toast(uiTextGlobal(zh: '保存失败：$error', en: 'Save failed: $error'));
     } finally {
@@ -967,8 +907,8 @@ class ProfilePageState extends State<ProfilePage> {
               ),
               hintText: uiText(
                 context,
-                zh: '例如：不再使用、信息更换、测试账号清理等',
-                en: 'For example: no longer used, changing accounts, test cleanup',
+                zh: '例如：不再使用或信息变更等',
+                en: 'For example: no longer used or information changed',
               ),
             ),
           ),
@@ -1023,63 +963,6 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _promptLevelUpgradeRequest() async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            uiText(context, zh: '申请成为一级用户', en: 'Request level-one access'),
-          ),
-          content: Text(
-            uiText(
-              context,
-              zh: '确认提交一级用户申请吗？',
-              en: 'Submit a level-one access request?',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(uiText(context, zh: '确认提交', en: 'Submit')),
-            ),
-          ],
-        );
-      },
-    );
-    if (confirmed != true) {
-      return;
-    }
-    setState(() {
-      _saving = true;
-    });
-    try {
-      await AppRepositories.users.submitLevelUpgradeRequest();
-      await _loadProfile();
-      if (!mounted) {
-        return;
-      }
-      _toast(
-        uiTextGlobal(
-          zh: '一级用户申请已提交',
-          en: 'Level-one request submitted',
-        ),
-      );
-    } catch (error) {
-      _toast(uiTextGlobal(zh: '提交失败：$error', en: 'Submit failed: $error'));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
-    }
-  }
-
   String _accountCancellationSubtitle(
     AccountCancellationRequestSummary request,
   ) {
@@ -1088,16 +971,6 @@ class ProfilePageState extends State<ProfilePage> {
     text.write('${request.statusLabelFor(locale)} · ${request.createdAt}');
     if (request.reviewNote.trim().isNotEmpty) {
       text.write(' · ${request.reviewNote.trim()}');
-    }
-    return text.toString();
-  }
-
-  String _levelUpgradeSubtitle(UserLevelRequestSummary request) {
-    final Locale locale = Localizations.localeOf(context);
-    final StringBuffer text = StringBuffer();
-    text.write('${request.statusLabelFor(locale)} · ${request.createdAt}');
-    if (request.adminNote.trim().isNotEmpty) {
-      text.write(' · ${request.adminNote.trim()}');
     }
     return text.toString();
   }

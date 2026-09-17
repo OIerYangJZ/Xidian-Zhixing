@@ -54,7 +54,9 @@ class DiscussionFeedView extends StatelessWidget {
         }
         return Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 1184),
+            constraints: const BoxConstraints(
+              maxWidth: AppLayout.contentMaxWidth,
+            ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg,
@@ -111,34 +113,27 @@ class _DiscussionTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.line),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          children: <Widget>[
-            _DiscussionHeader(
-              channel: state.selectedChannel,
-              sort: state.sort,
-              onFilter: onFilter,
-              onSortChanged: onSortChanged,
+      decoration: BoxDecoration(color: colors.surface),
+      child: Column(
+        children: <Widget>[
+          _DiscussionHeader(
+            channel: state.selectedChannel,
+            sort: state.sort,
+            onFilter: onFilter,
+            onSortChanged: onSortChanged,
+          ),
+          Expanded(
+            child: _DiscussionFeedBody(
+              state: state,
+              onRefresh: onRefresh,
+              onLoadMore: onLoadMore,
+              onRetry: onRetry,
+              onPostOpen: onPostOpen,
+              onLike: onLike,
+              onFavorite: onFavorite,
             ),
-            Expanded(
-              child: _DiscussionFeedBody(
-                state: state,
-                onRefresh: onRefresh,
-                onLoadMore: onLoadMore,
-                onRetry: onRetry,
-                onPostOpen: onPostOpen,
-                onLike: onLike,
-                onFavorite: onFavorite,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
