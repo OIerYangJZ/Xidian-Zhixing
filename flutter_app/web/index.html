@@ -201,7 +201,12 @@
       const bootStatus = document.getElementById('boot-status');
       const bootError = document.getElementById('boot-error');
       const bootRetry = document.getElementById('boot-retry');
-      const cleanupVersion = '2026-06-17-web-bootstrap-v3';
+      // Bumping this re-runs the one-time service-worker / Cache Storage purge
+      // in every browser that has already visited.  Bumped for the 2026-09-07
+      // wasm MIME incident: nginx served canvaskit.wasm as
+      // application/octet-stream, and the Flutter service worker cached that
+      // mistyped response, so clearing it is not optional for returning users.
+      const cleanupVersion = '2026-09-07-wasm-mime-v4';
       const cleanupStorageKey = `xdu_treehole_boot_cleanup_${cleanupVersion}`;
       let bootFinished = false;
 
@@ -319,9 +324,13 @@
       async function loadFlutterApp() {
         try {
           watchFlutterMount();
+          // The purge has to precede the bootstrap. Called after it, the engine
+          // has already started off the stale service-worker cache by the time
+          // the purge runs, which is why the 2026-09-07 wasm MIME failure
+          // survived repeated reloads.
+          await maybeResetFlutterCaches();
           await injectFlutterScript();
           updateBootStatus('正在启动应用...');
-          maybeResetFlutterCaches();
         } catch (error) {
           console.error(error);
           showBootError(error?.message || '页面初始化失败，请稍后重试。');
