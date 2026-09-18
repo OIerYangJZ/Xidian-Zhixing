@@ -19,6 +19,25 @@ def content_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def raw_object_path(raw_key: str, raw_root: str | None = None) -> Path | None:
+    """Locate a captured original whichever way its key was recorded.
+
+    Live ingest stores an absolute path, while the handoff snapshot rewrites the
+    same field to ``data/raw/<name>`` so a corpus can move between hosts. A
+    relative key resolves against the process working directory, which under
+    systemd is ``current/`` rather than the ``data/`` directory beside it, so
+    reading it verbatim misses every captured file. Captures are flat inside the
+    raw directory, so the file name is the only part that identifies one; using
+    just the name also keeps a crafted key from escaping the root.
+    """
+    name = Path(str(raw_key or "").strip()).name
+    root = str(raw_root if raw_root is not None else os.environ.get("KNOWLEDGE_RAW_DIR", "")).strip()
+    if not name or not root:
+        return None
+    path = Path(root).resolve() / name
+    return path if path.is_file() else None
+
+
 class KnowledgeStore:
     def __init__(self, path: str):
         self.path = path
@@ -119,15 +138,10 @@ class KnowledgeStore:
 
     @staticmethod
     def _read_original_content(document: dict) -> str:
-        raw_key = str(document.get("rawObjectKey", "")).strip()
-        raw_root = str(os.environ.get("KNOWLEDGE_RAW_DIR", "")).strip()
-        if not raw_key or not raw_root:
+        path = raw_object_path(document.get("rawObjectKey", ""))
+        if path is None:
             return ""
         try:
-            path = Path(raw_key).resolve()
-            root = Path(raw_root).resolve()
-            if not path.is_file() or not path.is_relative_to(root):
-                return ""
             # Keep one malformed or unexpectedly large capture from exhausting
             # a worker while dozens of requests are reading source documents.
             if path.stat().st_size > 8 * 1024 * 1024:

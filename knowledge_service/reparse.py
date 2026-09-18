@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from .html_body import parse_html
 from .ingest import make_document
-from .store import KnowledgeStore
+from .store import KnowledgeStore, raw_object_path
 
 
 def main():
@@ -19,7 +19,13 @@ def main():
         docs=[d for d in docs if d['id'] in ids]
     def parse(old):
         print(json.dumps({'parsing':old['id'],'title':old['title']},ensure_ascii=False),flush=True)
-        title,text,date,pages=parse_html(Path(old['rawObjectKey']).read_bytes(),old['sourceUrl'])
+        # A missing capture must name itself: the failure path below disables the
+        # document, so a wrong KNOWLEDGE_RAW_DIR would otherwise retire the
+        # corpus one entry at a time with no indication of why.
+        raw=raw_object_path(old['rawObjectKey'])
+        if raw is None:
+            raise FileNotFoundError(f"原始资料不在 KNOWLEDGE_RAW_DIR 中：{old['rawObjectKey']}")
+        title,text,date,pages=parse_html(raw.read_bytes(),old['sourceUrl'])
         doc,chunks=make_document(title,text,old['sourceUrl'],published_at=date,pages=pages,
             doc_id=old['id'],source_id=old['sourceId'],authority=old['authority'])
         doc['rawObjectKey']=old['rawObjectKey'];doc['parserVersion']='xiaodian-body-2';doc['chunkCount']=len(chunks)
