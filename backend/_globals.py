@@ -153,6 +153,9 @@ UNSAFE_ADMIN_PASSWORDS = frozenset({
 })
 
 BACKEND_VERSION: str = "0.2"
+# Where a rejected appeal is told to go. Served to the client so the address
+# lives in one place instead of being copied into each page that mentions it.
+SUPPORT_CONTACT_EMAIL: str = "zhixing@xidian.edu.cn"
 
 
 def admin_password_policy_error(password: str) -> str:

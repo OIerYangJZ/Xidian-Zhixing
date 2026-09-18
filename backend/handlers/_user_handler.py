@@ -98,6 +98,10 @@ def handle_get_me(
                 "backgroundImageUrl": normalize_media_url(str(user.get("backgroundImageUrl", "")).strip()),
                 "verified": bool(user.get("verified")),
                 "verifiedAt": str(user.get("verifiedAt", "")).strip(),
+                # A banned session is allowed to read this endpoint so the
+                # client can route to the appeal screen after a reload.
+                "banned": bool(user.get("banned")),
+                "muted": bool(user.get("muted")),
                 "allowStrangerDm": bool(user.get("allowStrangerDm", True)),
                 "showContactable": bool(user.get("showContactable", True)),
                 "notifyComment": bool(user.get("notifyComment", True)),

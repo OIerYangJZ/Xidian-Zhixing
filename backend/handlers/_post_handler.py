@@ -1648,6 +1648,54 @@ def handle_submit_report(
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "id": report["id"]}})
 
 
+def handle_my_latest_appeal(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """GET /api/appeals/mine
+
+    A banned caller needs to know whether a request is still waiting, was
+    approved, or was turned down -- the last case is what sends them to the
+    mailbox instead of resubmitting.
+    """
+    user = _require_auth(handler, db)
+    if user is None:
+        return
+    user_id = str(user.get("id", "")).strip()
+    rows = [
+        row
+        for row in db.get("appeals", [])
+        if str(row.get("userId", "")).strip() == user_id
+    ]
+    rows.sort(
+        key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))),
+        reverse=True,
+    )
+    latest = rows[0] if rows else None
+    send_json(
+        handler,
+        HTTPStatus.OK,
+        {
+            "data": {
+                # The admin note is written by a human about this account, so it
+                # is shown back to its owner rather than kept internal.
+                "appeal": None if latest is None else {
+                    "id": str(latest.get("id", "")),
+                    "appealType": str(latest.get("appealType", "")),
+                    "title": str(latest.get("title", "")),
+                    "content": str(latest.get("content", "")),
+                    "status": str(latest.get("status", "pending")),
+                    "adminNote": str(latest.get("adminNote", "")),
+                    "createdAt": str(latest.get("createdAt", "")),
+                    "handledAt": str(latest.get("handledAt", "")),
+                },
+                "banned": bool(user.get("banned")),
+                "supportEmail": _globals.SUPPORT_CONTACT_EMAIL,
+            }
+        },
+    )
+
+
 def handle_submit_appeal(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],

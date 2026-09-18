@@ -1793,11 +1793,24 @@ def test_web_entry_points_to_the_admin_console_are_all_guarded():
     assert {path.name for path in web_files} == {"app.dart", "login_page.dart"}
 
 
-def test_public_web_build_never_enables_the_admin_console():
+def test_admin_console_exposure_is_explicit_and_overridable():
+    """公开产物现在带管理台，但这必须是显式选择，而不是默默继承默认值。
+
+    此前这里断言公开构建不得出现 ENABLE_ADMIN_CONSOLE。策略已改：登录页底部
+    的管理员入口是既有设计，管理员只有几个人、没有独立域名可去，而授权始终由
+    服务端的 _require_admin 把关，登录端点按 IP 与账号双重限流。保留下来的不
+    变量是产物隔离：另一种部署方式（公开产物不带后台、后台单独发布）仍然可用，
+    两份产物绝不能落在同一目录。
+    """
     root = Path(__file__).resolve().parents[2]
     public = (root / "scripts/build_web_production.sh").read_text()
     admin = (root / "scripts/build_web_admin.sh").read_text()
-    assert "ENABLE_ADMIN_CONSOLE" not in public.replace("#", "", 0).split("flutter build web", 1)[1]
+    build_args = public.split("flutter build web", 1)[1]
+    # 必须显式传递，且取值可由环境变量收回。
+    assert "--dart-define=ENABLE_ADMIN_CONSOLE=" in build_args
+    assert 'ENABLE_ADMIN_CONSOLE="${ENABLE_ADMIN_CONSOLE:-true}"' in public
+    # 默认值只能写在这一处，避免两个地方各说一套。
+    assert public.count("ENABLE_ADMIN_CONSOLE:-") == 1
     assert "--dart-define=ENABLE_ADMIN_CONSOLE=true" in admin
     # 两份产物必须落在不同目录，避免管理台覆盖公开站点。
     assert "build/web-admin" in admin

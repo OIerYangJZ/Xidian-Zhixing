@@ -1982,3 +1982,136 @@ def test_breach_window_covers_five_hours() -> None:
     assert _globals.RATE_LIMIT_WINDOWS_SECONDS["view_hourly"] == 3600
     assert _globals.DEFAULT_SETTINGS["viewRateLimit"] == 20
     assert _globals.DEFAULT_SETTINGS["viewHourlyRateLimit"] == 500
+
+
+def test_banned_account_receives_a_session_from_unified_auth(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A ban no longer blocks the ticket: without a session there is no way to appeal."""
+    from handlers import _auth_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    banned = _user("banned-1", "2500120@stu.xidian.edu.cn")
+    banned["banned"] = True
+    banned["studentId"] = "2500120"
+    db["users"].append(banned)
+    monkeypatch.setattr(_auth_handler, "save_db", lambda _db: None)
+    monkeypatch.setattr(
+        _auth_handler._globals,
+        "is_auth_student_id_allowed",
+        lambda _sid: True,
+    )
+
+    payload = _auth_handler._issue_auth_payload(
+        db, student_id="2500120", campus_email="2500120@stu.xidian.edu.cn"
+    )
+
+    assert payload["token"]
+    assert payload["banned"] is True
+    assert db["sessions"][payload["token"]] == banned["id"]
+
+
+def test_banned_session_is_refused_everywhere_but_the_appeal_surface() -> None:
+    """The gate is central, so a handler cannot forget to check the flag."""
+    import server
+
+    allowed = server.TreeholeHandler._BANNED_ALLOWED_PATHS
+    assert allowed["POST"] == frozenset({"/api/auth/logout", "/api/appeals"})
+    assert allowed["GET"] == frozenset({"/api/users/me", "/api/appeals/mine"})
+    # Writing content is what a ban is for; these must not be reachable.
+    for method, path in [
+        ("POST", "/api/posts"),
+        ("POST", "/api/posts/p1/comments"),
+        ("POST", "/api/messages/conversations/c1/messages"),
+        ("POST", "/api/ai/chat"),
+        ("GET", "/api/posts"),
+    ]:
+        assert path not in allowed.get(method, frozenset()), (method, path)
+
+
+def test_approving_a_ban_revoke_appeal_clears_the_ban(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Approving used to mark the appeal handled and leave the account locked."""
+    from handlers import _admin_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    target = _user("ban-appeal-user", "2500121@stu.xidian.edu.cn")
+    target["banned"] = True
+    db["users"].append(target)
+    appeal = {
+        "id": "ap-1",
+        "userId": target["id"],
+        "appealType": "ban_revoke",
+        "status": "pending",
+    }
+    db["appeals"].append(appeal)
+    _patch_admin(monkeypatch, {"action": "approve", "reviewNote": "误判"})
+
+    handler = FakeJsonHandler()
+    _admin_handler.handle_admin_appeal_action(handler, db, "ap-1")
+
+    assert handler.status_code == HTTPStatus.OK
+    assert appeal["status"] == "approved"
+    assert target["banned"] is False
+    # A mute is a separate decision and must not be lifted along with the ban.
+    assert target["deleted"] is False
+    assert any(
+        row["action"] == "appeal_approve_unban" for row in db["auditLogs"]
+    )
+
+
+def test_rejecting_a_ban_revoke_appeal_keeps_the_ban(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from handlers import _admin_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    target = _user("ban-reject-user", "2500122@stu.xidian.edu.cn")
+    target["banned"] = True
+    db["users"].append(target)
+    db["appeals"].append({
+        "id": "ap-2",
+        "userId": target["id"],
+        "appealType": "ban_revoke",
+        "status": "pending",
+    })
+    _patch_admin(monkeypatch, {"action": "reject", "reviewNote": "维持处理"})
+
+    handler = FakeJsonHandler()
+    _admin_handler.handle_admin_appeal_action(handler, db, "ap-2")
+
+    assert handler.status_code == HTTPStatus.OK
+    assert target["banned"] is True
+
+
+def test_latest_appeal_endpoint_reports_status_and_support_mailbox(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import _globals
+    from handlers import _post_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    viewer = _user("appeal-status-user", "2500123@stu.xidian.edu.cn")
+    viewer["banned"] = True
+    db["users"].append(viewer)
+    db["appeals"] = [
+        {"id": "ap-old", "userId": viewer["id"], "appealType": "ban_revoke",
+         "status": "rejected", "adminNote": "证据不足", "createdAt": "2026-09-01T00:00:00+00:00"},
+        {"id": "ap-new", "userId": viewer["id"], "appealType": "ban_revoke",
+         "status": "pending", "adminNote": "", "createdAt": "2026-09-18T00:00:00+00:00"},
+    ]
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: viewer)
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_my_latest_appeal(handler, db)
+
+    assert handler.status_code == HTTPStatus.OK
+    data = handler.payload()["data"]
+    assert data["appeal"]["id"] == "ap-new"
+    assert data["banned"] is True
+    assert data["supportEmail"] == _globals.SUPPORT_CONTACT_EMAIL == "zhixing@xidian.edu.cn"

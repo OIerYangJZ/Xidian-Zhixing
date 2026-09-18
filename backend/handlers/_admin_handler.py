@@ -1500,6 +1500,23 @@ def handle_admin_appeal_action(
                 actor_alias="管理员",
             )
         add_audit_log(db, admin.get("adminId", "-"), "appeal_approve_restore", f"申诉通过并恢复账号 {user_id}")
+    elif action == "approve" and appeal.get("appealType") == "ban_revoke":
+        # Approving this used to mark the appeal handled and leave the ban in
+        # place, so the account stayed locked out with nothing left to submit.
+        # Only the ban is cleared: a mute or a cancellation is a separate
+        # decision and must not ride along with it.
+        if target_user:
+            target_user["banned"] = False
+            create_notification(
+                db,
+                user_id=user_id,
+                notification_type="system",
+                title="账号已解封",
+                content="您的解封申诉已通过，账号已恢复正常使用。",
+                actor_id=str(admin.get("adminId", "")),
+                actor_alias="管理员",
+            )
+        add_audit_log(db, admin.get("adminId", "-"), "appeal_approve_unban", f"申诉通过并解封账号 {user_id}")
 
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})

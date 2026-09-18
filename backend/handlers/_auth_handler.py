@@ -655,8 +655,12 @@ def _upsert_user_from_xidian_identity(
             if key not in user:
                 user[key] = True
 
-    if user.get("banned"):
-        raise PermissionError("账号已被封禁")
+    # A banned account still receives a session. Refusing the ticket left the
+    # holder with no authenticated way to ask for review -- the ban_revoke
+    # appeal exists but needs either a session or a password, and an account
+    # created through unified auth never has a password. The session is not a
+    # licence to act: _handle in server.py restricts a banned caller to logout,
+    # its own profile and the appeal endpoints.
     return user
 
 
@@ -674,7 +678,13 @@ def _issue_auth_payload(
     )
     token = secrets.token_urlsafe(24)
     db["sessions"][token] = user["id"]
-    add_audit_log(db, user.get("id", "-"), audit_action, f"统一认证登录 {student_id}")
+    banned = bool(user.get("banned"))
+    add_audit_log(
+        db,
+        user.get("id", "-"),
+        audit_action,
+        f"统一认证登录 {student_id}" + ("（账号处于封禁状态）" if banned else ""),
+    )
     save_db(db)
     return {
         "token": token,
@@ -682,6 +692,9 @@ def _issue_auth_payload(
         "isAdmin": bool(user.get("isAdmin", False)),
         "email": campus_email,
         "studentId": student_id,
+        # Carried so the client can go straight to the appeal screen instead of
+        # loading a shell whose every request would be refused.
+        "banned": banned,
     }
 
 

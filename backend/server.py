@@ -348,6 +348,35 @@ class TreeholeHandler(BaseHTTPRequestHandler):
     # Methods that can change server state must carry a same-origin guarantee.
     _STATE_CHANGING_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
 
+    # What a banned session may still reach: sign out, read its own state, and
+    # ask for review. Everything else is refused here rather than in each
+    # handler -- only four non-admin call sites ever checked the flag, because
+    # until now a ban revoked the session and no banned caller could arrive.
+    # A new endpoint must be added to this set deliberately, not by default.
+    _BANNED_ALLOWED_PATHS: dict[str, frozenset[str]] = {
+        "GET": frozenset({"/api/users/me", "/api/appeals/mine"}),
+        "POST": frozenset({"/api/auth/logout", "/api/appeals"}),
+    }
+
+    def _reject_banned_caller(self, method: str, path: str) -> bool:
+        """Answer True once a refusal has been sent for a banned caller."""
+        if path in self._BANNED_ALLOWED_PATHS.get(method, frozenset()):
+            return False
+        # Unauthenticated traffic is not this gate's business; the individual
+        # endpoints decide what anonymous callers may do.
+        with DB_LOCK:
+            db = load_db()
+            user, _ = auth_user_helper(self, db)
+        if user is None or not user.get("banned"):
+            return False
+        json_error(
+            self,
+            HTTPStatus.FORBIDDEN,
+            "账号已被封禁，仅可提交解封申诉",
+            data={"accountState": "banned"},
+        )
+        return True
+
     def _handle(self, method: str) -> None:
         # This value is echoed back in a response header, so keep it to a safe
         # printable subset instead of reflecting whatever the client sent.
@@ -378,6 +407,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     self._handle_web_get(path)
                     return
                 json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
+                return
+
+            if self._reject_banned_caller(method, path):
                 return
 
             if method == "GET":
@@ -669,6 +701,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 return
             if path == "/api/feedback/mine":
                 _user_handler.handle_my_feedbacks(self, db)
+                return
+            if path == "/api/appeals/mine":
+                _post_handler.handle_my_latest_appeal(self, db)
                 return
             if path == "/api/users/me/blocks":
                 _user_handler.handle_get_blocks(self, db)
