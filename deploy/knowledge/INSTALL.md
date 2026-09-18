@@ -39,8 +39,12 @@ systemd 单元里写的是 `User=zhixing`，**这台机器上原本没有这个�
 sudo useradd --system --home-dir /opt/zhixing-knowledge --no-create-home \
              --shell /usr/sbin/nologin zhixing
 
-sudo tar -C /opt -xzf /home/ubuntu/treehole/incoming/zhixing-knowledge-<版本>.tar.gz
+sudo tar -C /opt --no-same-owner -xzf /home/ubuntu/treehole/incoming/zhixing-knowledge-<版本>.tar.gz
 ```
+
+`--no-same-owner` 不能省：包是在 macOS 上打的，里面带着那边的 uid/gid（501/staff），以 root
+解包会把这些数字原样搬过来，而主机上没有对应用户。第 7 步的 `chown` 会纠正，但中途失败就会
+留下一地属主错误的文件。
 
 ## 2. 放置模型（用主机上已有的那份）
 
@@ -55,15 +59,25 @@ sudo chown -R zhixing:zhixing /opt/zhixing-knowledge/models
 
 ## 3. Python 环境
 
-用离线包直接建到目标路径。venv 内部记录绝对路径，从 `~/ks-env` 复制过去会留下指向旧位置的
-console script，所以重建而不是拷贝：
+venv 内部记录绝对路径，从 `~/ks-env` 复制过去会留下指向旧位置的 console script，所以重建而
+不是拷贝。全程离线，wheel 取自 `ks-offline/wheels/`：
 
 ```bash
-sudo bash /home/ubuntu/treehole/incoming/ks-offline/install.sh /opt/zhixing-knowledge/venv
+sudo python3 -m venv /opt/zhixing-knowledge/venv
+sudo /opt/zhixing-knowledge/venv/bin/pip install --no-index --no-deps \
+     --find-links=/home/ubuntu/treehole/incoming/ks-offline/wheels \
+     -r /home/ubuntu/treehole/incoming/ks-offline/pinned.txt
+sudo /opt/zhixing-knowledge/venv/bin/pip install --no-index --no-build-isolation \
+     /home/ubuntu/treehole/incoming/ks-offline/sdist/jieba-0.42.1.tar.gz
 ```
 
-它全程离线（`--no-index`，wheel 取自 `ks-offline/wheels/`），开头会校验整个离线包（含 3.2 GB
-模型，要几分钟），结尾实测 import 并打印 `ALL_IMPORTS_OK`。
+`python3 -m venv` 需要 `python3.10-venv`。不可用时回退到离线包自带的 virtualenv：
+`PYTHONPATH=/home/ubuntu/treehole/incoming/ks-offline/bootstrap python3 -m virtualenv --no-download /opt/zhixing-knowledge/venv`。
+
+**不要用 `ks-offline/install.sh`。** 它的依赖安装是对的，但结尾那段验证打印
+`qdrant_client.__version__`，而 qdrant-client 1.15.1 没有这个属性，会在依赖其实已经装好的
+情况下以 `AttributeError` 退出（`set -e` 之下整个脚本随之失败）。`install-knowledge.sh`
+自带一份改用 `importlib.metadata` 的验证。
 
 已核对 `~/ks-env` 里的依赖与 `knowledge_service/requirements.txt` 逐项一致
 （torch 2.6.0+cpu、sentence-transformers 4.1.0、transformers 4.51.3、qdrant-client 1.15.1、

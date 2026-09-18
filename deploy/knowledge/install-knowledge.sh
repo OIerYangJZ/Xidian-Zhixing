@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# 小电知识服务：首次安装到 /opt/zhixing-knowledge
+# 小电知识服务：安装到 /opt/zhixing-knowledge
 #
-#   sudo bash /home/ubuntu/treehole/incoming/install-knowledge.sh
+#   sudo bash /home/ubuntu/treehole/incoming/install-knowledge.sh [包路径]
+#
+# 每一步都带状态判断，可以重复执行：已经做完的跳过，中断的补上。
+# 已有的 data/ 和 knowledge.env 不会被覆盖 —— 前者可能已被摄取修改过，
+# 后者的 API key 可能已经抄进后端配置。
 #
 # 不做的事：不建立向量索引（耗时长，单独跑）、不改后端 backend.env、
-# 不启用官方刷新与论坛同步 timer。这三件由人另外决定。
+# 不启用官方刷新与论坛同步 timer。这三件由人决定。
 set -euo pipefail
 
 KS=/opt/zhixing-knowledge
@@ -13,21 +17,16 @@ OFFLINE="$INCOMING/ks-offline"
 # 包名带构建哈希，而这个脚本自己也在包里，写死名字必然会过期。
 # 默认取 incoming/ 里最新的那个，也可以显式指定。
 PKG="${1:-$(ls -t "$INCOMING"/zhixing-knowledge-*.tar.gz 2>/dev/null | head -1)}"
-[ -n "$PKG" ] || { echo "!! $INCOMING 里找不到 zhixing-knowledge-*.tar.gz" >&2; exit 1; }
-echo "使用安装包：$PKG"
 
 [ "$(id -u)" -eq 0 ] || { echo "!! 需要 root：sudo bash $0" >&2; exit 1; }
+[ -n "$PKG" ] || { echo "!! $INCOMING 里找不到 zhixing-knowledge-*.tar.gz" >&2; exit 1; }
 
 echo "=== 0. 前置检查 ==="
-
-if [ -e "$KS" ]; then
-  echo "!! $KS 已存在。这个脚本只用于首次安装；" >&2
-  echo "!! 要重装请先自行确认并移走旧目录，避免覆盖已有数据和索引。" >&2
-  exit 1
-fi
+echo "安装包：$PKG"
 
 for path in "$PKG" "$PKG.sha256" \
-            "$OFFLINE/install.sh" \
+            "$OFFLINE/wheels" "$OFFLINE/pinned.txt" \
+            "$OFFLINE/sdist/jieba-0.42.1.tar.gz" \
             "$OFFLINE/models/bge-m3" \
             "$OFFLINE/models/bge-reranker-base" \
             "$OFFLINE/qdrant/qdrant-x86_64-unknown-linux-gnu.tar.gz"; do
@@ -35,7 +34,7 @@ for path in "$PKG" "$PKG.sha256" \
 done
 
 # sha256 旁文件里的名字是相对的，必须在同目录校验
-(cd "$INCOMING" && sha256sum -c "$(basename "$PKG").sha256")
+(cd "$(dirname "$PKG")" && sha256sum -c "$(basename "$PKG").sha256")
 
 python3 -c "import sys; assert sys.version_info[:2]==(3,10), sys.version" \
   || { echo "!! 需要 Python 3.10（离线 wheel 是按 3.10 解析的）" >&2; exit 1; }
@@ -53,16 +52,28 @@ else
 fi
 
 echo
-echo "=== 2. 解包代码与数据 ==="
-mkdir -p "$KS"
-tar -C /opt -xzf "$PKG"
-echo "已解包到 $KS"
-echo "  已发布文档：$(sqlite3 "$KS/data/knowledge.db" "SELECT count(*) FROM documents WHERE status='published';" 2>/dev/null || echo '需要 sqlite3 才能显示')"
+echo "=== 2. 代码与数据 ==="
+if [ -f "$KS/data/knowledge.db" ] && [ -f "$KS/current/knowledge_service/server.py" ]; then
+  echo "已解包，跳过（不覆盖现有 data/）"
+else
+  mkdir -p "$KS"
+  # --no-same-owner：包是在 macOS 上打的，带着那边的 uid/gid（501/staff）。
+  # 以 root 解包会把这些数字原样搬过来，而主机上没有这个用户。
+  tar -C /opt --no-same-owner -xzf "$PKG"
+  echo "已解包到 $KS"
+fi
+if command -v sqlite3 >/dev/null 2>&1; then
+  echo "  已发布文档：$(sqlite3 "$KS/data/knowledge.db" "SELECT count(*) FROM documents WHERE status='published';")"
+fi
 echo "  原始资料：$(find "$KS/data/raw" -type f | wc -l) 份"
 
 echo
 echo "=== 3. 模型（用主机上已有的，不重新传输）==="
-cp -a "$OFFLINE/models" "$KS/models"
+if [ -d "$KS/models/bge-m3" ] && [ -d "$KS/models/bge-reranker-base" ]; then
+  echo "已就位，跳过"
+else
+  cp -a "$OFFLINE/models" "$KS/models"
+fi
 for m in bge-m3 bge-reranker-base; do
   echo "  $m: $(du -sh "$KS/models/$m" | cut -f1)"
 done
@@ -70,41 +81,87 @@ done
 echo
 echo "=== 4. Qdrant ==="
 mkdir -p "$KS/qdrant/storage" "$KS/qdrant/snapshots"
-tmp="$(mktemp -d)"
-tar -C "$tmp" -xzf "$OFFLINE/qdrant/qdrant-x86_64-unknown-linux-gnu.tar.gz"
-bin="$(find "$tmp" -maxdepth 2 -type f -name qdrant | head -1)"
-[ -n "$bin" ] || { echo "!! 压缩包里找不到 qdrant 可执行文件" >&2; rm -rf "$tmp"; exit 1; }
-install -m 0755 "$bin" "$KS/qdrant/qdrant"
-rm -rf "$tmp"
+if [ -x "$KS/qdrant/qdrant" ]; then
+  echo "二进制已就位，跳过"
+else
+  tmp="$(mktemp -d)"
+  tar -C "$tmp" -xzf "$OFFLINE/qdrant/qdrant-x86_64-unknown-linux-gnu.tar.gz"
+  bin="$(find "$tmp" -maxdepth 2 -type f -name qdrant | head -1)"
+  [ -n "$bin" ] || { echo "!! 压缩包里找不到 qdrant 可执行文件" >&2; rm -rf "$tmp"; exit 1; }
+  install -m 0755 "$bin" "$KS/qdrant/qdrant"
+  rm -rf "$tmp"
+fi
 cp "$KS/qdrant.yaml" "$KS/qdrant/qdrant.yaml"
-file "$KS/qdrant/qdrant" 2>/dev/null || true
 echo "Qdrant 已就位"
 
 echo
-echo "=== 5. Python 环境（离线，会先校验 3.2 GB 离线包，需要几分钟）==="
-bash "$OFFLINE/install.sh" "$KS/venv"
+echo "=== 5. Python 环境 ==="
+# 依赖校验只用 importlib.metadata。ks-offline/install.sh 那份用的是
+# qdrant_client.__version__，而 qdrant-client 1.15.1 没有这个属性，
+# 会在依赖其实装好的情况下以 AttributeError 退出。
+verify_venv() {
+  "$KS/venv/bin/python" - <<'PY'
+import importlib.util, sys
+from importlib.metadata import version
+mods = ["jieba","numpy","torch","onnxruntime","qdrant_client","sentence_transformers",
+        "transformers","trafilatura","pypdf","docx","openpyxl","cv2"]
+missing = [m for m in mods if not importlib.util.find_spec(m)]
+if missing:
+    print("缺少模块:", ", ".join(missing)); sys.exit(1)
+import jieba
+print("  jieba 分词:", jieba.lcut("国家励志奖学金"))
+# 版本号只是给人看的。取不到不代表装得不对，不能让它决定安装成败。
+for dist in ["numpy","torch","onnxruntime","qdrant-client","sentence-transformers",
+             "transformers","trafilatura","pypdf","python-docx","openpyxl","opencv-python"]:
+    try:
+        print(f"  {dist} {version(dist)}")
+    except Exception as error:
+        print(f"  {dist} 版本未知（{type(error).__name__}）")
+print("ALL_IMPORTS_OK")
+PY
+}
+
+if [ -x "$KS/venv/bin/python" ] && verify_venv; then
+  echo "venv 已可用，跳过重建"
+else
+  echo "建 venv 并离线装依赖"
+  rm -rf "$KS/venv"
+  if ! (python3 -m venv "$KS/venv" 2>/dev/null && [ -x "$KS/venv/bin/pip" ]); then
+    echo "python3 -m venv 不可用，回退到离线包里的 virtualenv"
+    rm -rf "$KS/venv"
+    PYTHONPATH="$OFFLINE/bootstrap" python3 -m virtualenv --no-download "$KS/venv"
+  fi
+  "$KS/venv/bin/pip" install --quiet --no-index --no-deps \
+      --find-links="$OFFLINE/wheels" -r "$OFFLINE/pinned.txt"
+  # jieba 只有源码包；--no-build-isolation 用已装的 setuptools，避免联网取构建依赖
+  "$KS/venv/bin/pip" install --quiet --no-index --no-build-isolation \
+      "$OFFLINE/sdist/jieba-0.42.1.tar.gz"
+  verify_venv
+fi
 
 echo
 echo "=== 6. 配置 ==="
-cp "$KS/knowledge.env.example" "$KS/knowledge.env"
-key="$(openssl rand -hex 32)"
-sed -i "s|^KNOWLEDGE_API_KEY=.*|KNOWLEDGE_API_KEY=$key|" "$KS/knowledge.env"
+if [ -f "$KS/knowledge.env" ]; then
+  echo "knowledge.env 已存在，保留不动（其中的 API key 可能已抄进后端配置）"
+  key="$(sed -n 's/^KNOWLEDGE_API_KEY=//p' "$KS/knowledge.env" | head -1)"
+else
+  cp "$KS/knowledge.env.example" "$KS/knowledge.env"
+  key="$(openssl rand -hex 32)"
+  sed -i "s|^KNOWLEDGE_API_KEY=.*|KNOWLEDGE_API_KEY=$key|" "$KS/knowledge.env"
+  echo "已生成 knowledge.env，KNOWLEDGE_API_KEY 已填随机值"
+  echo "  KNOWLEDGE_APP_DB 仍是占位符。它只被论坛同步用到，本次不启用，可暂不填。"
+fi
 chmod 600 "$KS/knowledge.env"
-echo "已生成 knowledge.env（权限 600），KNOWLEDGE_API_KEY 已填随机值"
-echo
-echo "  !! 记下这个密钥，第 9 步要把同一个值写进后端 backend.env："
-echo "  $key"
-echo
-echo "  KNOWLEDGE_APP_DB 仍是占位符。它只被论坛同步用到，本次不启用，可暂不填。"
 
 echo
 echo "=== 7. 归属与 systemd ==="
+# 包是 macOS 打的，解包可能留下不存在的 uid；这里统一纠正。
 chown -R zhixing:zhixing "$KS"
 cp "$KS/systemd/qdrant.service" "$KS/systemd/zhixing-knowledge.service" /etc/systemd/system/
 # refresh/community 的单元先不装：官方刷新会覆盖人工下架状态，论坛同步还需要业务库权限。
 systemctl daemon-reload
 echo "已安装 qdrant.service 与 zhixing-knowledge.service"
-echo "（refresh/community 的 service/timer 故意没装，见 INSTALL.md 第 6 步）"
+echo "（refresh/community 的 service/timer 故意没装，见 INSTALL.md）"
 
 echo
 echo "=== 8. 启动 ==="
