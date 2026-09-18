@@ -10,7 +10,11 @@ set -euo pipefail
 KS=/opt/zhixing-knowledge
 INCOMING=/home/ubuntu/treehole/incoming
 OFFLINE="$INCOMING/ks-offline"
-PKG="$INCOMING/zhixing-knowledge-fe3cf8b.tar.gz"
+# 包名带构建哈希，而这个脚本自己也在包里，写死名字必然会过期。
+# 默认取 incoming/ 里最新的那个，也可以显式指定。
+PKG="${1:-$(ls -t "$INCOMING"/zhixing-knowledge-*.tar.gz 2>/dev/null | head -1)}"
+[ -n "$PKG" ] || { echo "!! $INCOMING 里找不到 zhixing-knowledge-*.tar.gz" >&2; exit 1; }
+echo "使用安装包：$PKG"
 
 [ "$(id -u)" -eq 0 ] || { echo "!! 需要 root：sudo bash $0" >&2; exit 1; }
 
