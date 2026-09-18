@@ -222,6 +222,18 @@ def _get_version_info() -> dict[str, Any]:
 
 # Endpoints reachable without a user session.  Everything else under /api
 # requires one — see _require_api_session.
+# What a banned session may still reach: sign out, read its own state, and ask
+# for review. Kept here rather than in each handler because only four non-admin
+# call sites ever checked the flag -- until a ban stopped revoking the session,
+# no banned caller could arrive, so posting and messaging never needed to look.
+# A path joins this set deliberately; the default is refusal.
+_BANNED_ALLOWED_PATHS = frozenset({
+    "/api/auth/logout",
+    "/api/users/me",
+    "/api/appeals",
+    "/api/appeals/mine",
+})
+
 _SESSION_EXEMPT_PATHS = frozenset({
     "/api/health",
     "/api/version",
@@ -279,8 +291,13 @@ def _require_api_session(
     if user is None or user.get("deleted"):
         json_error(handler, HTTPStatus.UNAUTHORIZED, "请先登录")
         return False
-    if user.get("banned"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
+    if user.get("banned") and path not in _BANNED_ALLOWED_PATHS:
+        json_error(
+            handler,
+            HTTPStatus.FORBIDDEN,
+            "账号已被封禁，仅可提交解封申诉",
+            data={"accountState": "banned"},
+        )
         return False
     return True
 
@@ -348,35 +365,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
     # Methods that can change server state must carry a same-origin guarantee.
     _STATE_CHANGING_METHODS = frozenset({"POST", "PATCH", "PUT", "DELETE"})
 
-    # What a banned session may still reach: sign out, read its own state, and
-    # ask for review. Everything else is refused here rather than in each
-    # handler -- only four non-admin call sites ever checked the flag, because
-    # until now a ban revoked the session and no banned caller could arrive.
-    # A new endpoint must be added to this set deliberately, not by default.
-    _BANNED_ALLOWED_PATHS: dict[str, frozenset[str]] = {
-        "GET": frozenset({"/api/users/me", "/api/appeals/mine"}),
-        "POST": frozenset({"/api/auth/logout", "/api/appeals"}),
-    }
-
-    def _reject_banned_caller(self, method: str, path: str) -> bool:
-        """Answer True once a refusal has been sent for a banned caller."""
-        if path in self._BANNED_ALLOWED_PATHS.get(method, frozenset()):
-            return False
-        # Unauthenticated traffic is not this gate's business; the individual
-        # endpoints decide what anonymous callers may do.
-        with DB_LOCK:
-            db = load_db()
-            user, _ = auth_user_helper(self, db)
-        if user is None or not user.get("banned"):
-            return False
-        json_error(
-            self,
-            HTTPStatus.FORBIDDEN,
-            "账号已被封禁，仅可提交解封申诉",
-            data={"accountState": "banned"},
-        )
-        return True
-
     def _handle(self, method: str) -> None:
         # This value is echoed back in a response header, so keep it to a safe
         # printable subset instead of reflecting whatever the client sent.
@@ -407,9 +395,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                     self._handle_web_get(path)
                     return
                 json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
-                return
-
-            if self._reject_banned_caller(method, path):
                 return
 
             if method == "GET":

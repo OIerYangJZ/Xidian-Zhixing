@@ -40,6 +40,7 @@ class UserProfile {
     required this.email,
     required this.verified,
     required this.verifiedAt,
+    required this.banned,
     required this.allowStrangerDm,
     required this.showContactable,
     required this.favoriteCount,
@@ -75,6 +76,9 @@ class UserProfile {
   final String email;
   final bool verified;
   final String verifiedAt;
+  /// Server-side account state. A banned profile is still readable by its
+  /// owner so the app can show the appeal screen after a reload.
+  final bool banned;
   final bool allowStrangerDm;
   final bool showContactable;
   final bool notifyComment;
@@ -132,6 +136,7 @@ class UserProfile {
       email: (json['email'] ?? '').toString(),
       verified: _toBool(json['verified']) ?? true,
       verifiedAt: (json['verifiedAt'] ?? json['verifyTime'] ?? '-').toString(),
+      banned: _toBool(json['banned']) ?? false,
       allowStrangerDm: _toBool(json['allowStrangerDm']) ?? true,
       showContactable: _toBool(json['showContactable']) ?? true,
       notifyComment: _toBool(json['notifyComment']) ?? true,
@@ -216,6 +221,7 @@ class UserProfile {
       email: email ?? this.email,
       verified: verified,
       verifiedAt: verifiedAt,
+      banned: banned,
       allowStrangerDm: allowStrangerDm ?? this.allowStrangerDm,
       showContactable: showContactable ?? this.showContactable,
       notifyComment: notifyComment ?? this.notifyComment,

@@ -54,6 +54,8 @@ class ApiEndpoints {
   static const String adminAccounts = '/admin/admin-accounts';
   static const String adminAccountCancellationRequests =
       '/admin/account-cancellation-requests';
+  static const String appeals = '/appeals';
+  static const String myLatestAppeal = '/appeals/mine';
   static const String adminAppeals = '/admin/appeals';
   static const String adminExport = '/admin/export';
   static const String adminChannelsTags = '/admin/channels-tags';

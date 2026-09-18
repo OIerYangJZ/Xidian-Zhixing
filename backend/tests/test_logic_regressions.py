@@ -2013,21 +2013,33 @@ def test_banned_account_receives_a_session_from_unified_auth(
 
 
 def test_banned_session_is_refused_everywhere_but_the_appeal_surface() -> None:
-    """The gate is central, so a handler cannot forget to check the flag."""
+    """The floor is central, so a handler cannot forget to check the flag."""
     import server
 
-    allowed = server.TreeholeHandler._BANNED_ALLOWED_PATHS
-    assert allowed["POST"] == frozenset({"/api/auth/logout", "/api/appeals"})
-    assert allowed["GET"] == frozenset({"/api/users/me", "/api/appeals/mine"})
+    allowed = server._BANNED_ALLOWED_PATHS
+    assert allowed == frozenset({
+        "/api/auth/logout",
+        "/api/users/me",
+        "/api/appeals",
+        "/api/appeals/mine",
+    })
     # Writing content is what a ban is for; these must not be reachable.
-    for method, path in [
-        ("POST", "/api/posts"),
-        ("POST", "/api/posts/p1/comments"),
-        ("POST", "/api/messages/conversations/c1/messages"),
-        ("POST", "/api/ai/chat"),
-        ("GET", "/api/posts"),
+    for path in [
+        "/api/posts",
+        "/api/posts/p1/comments",
+        "/api/posts/p1/view",
+        "/api/messages/conversations/c1/messages",
+        "/api/ai/chat",
+        "/api/notifications",
     ]:
-        assert path not in allowed.get(method, frozenset()), (method, path)
+        assert path not in allowed, path
+    # Submitting an appeal is public by design: the original route was email
+    # plus password for someone who could not sign in at all.
+    assert server._is_session_exempt("/api/appeals")
+    # The rest carry account data and must stay behind a session; they are
+    # reachable while banned only because of the allowlist above.
+    for path in ["/api/appeals/mine", "/api/users/me", "/api/auth/logout"]:
+        assert not server._is_session_exempt(path), path
 
 
 def test_approving_a_ban_revoke_appeal_clears_the_ban(

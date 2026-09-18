@@ -28,15 +28,34 @@ class AuthStore extends ChangeNotifier {
   SharedPreferences? _prefs;
   String? _token;
   UserProfile? _currentUser;
+  bool _banned = false;
 
   String? get token => _token;
 
   bool get isAuthenticated => _token != null && _token!.isNotEmpty;
 
+  /// A banned account holds a real session, but the server answers 403 to
+  /// everything except signing out, reading this profile and the appeal
+  /// endpoints. Routing reads this so the shell is never built for a session
+  /// whose every request would be refused.
+  bool get isBanned => _banned;
+
   UserProfile? get currentUser => _currentUser;
 
   void setCurrentUser(UserProfile? user) {
     _currentUser = user;
+    if (user != null && user.banned != _banned) {
+      _banned = user.banned;
+      notifyListeners();
+    }
+  }
+
+  void setBanned(bool banned) {
+    if (_banned == banned) {
+      return;
+    }
+    _banned = banned;
+    notifyListeners();
   }
 
   Future<void> init() async {
@@ -93,6 +112,7 @@ class AuthStore extends ChangeNotifier {
   Future<void> clear() async {
     _token = null;
     _currentUser = null;
+    _banned = false;
     await _prefs?.remove(_tokenKey);
     if (_useSecureStorage) {
       try {

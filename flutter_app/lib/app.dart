@@ -8,6 +8,7 @@ import 'core/state/app_locale_store.dart';
 import 'core/state/app_theme_store.dart';
 import 'features/admin/admin_portal_page.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/banned_account_page.dart';
 import 'features/auth/login_page.dart';
 import 'features/common/access_state_page.dart';
 import 'features/legal/privacy_policy_page.dart';
@@ -94,6 +95,11 @@ class XduTreeholeApp extends StatelessWidget {
 
   static Widget _initialPage() {
     if (AuthStore.instance.isAuthenticated) {
+      // A banned session can reach only the appeal endpoints, so building the
+      // shell would render a screen whose every request comes back 403.
+      if (AuthStore.instance.isBanned) {
+        return const BannedAccountPage();
+      }
       return const HomeShell();
     }
     if (AppConfig.adminConsoleEnabled &&

@@ -14,6 +14,7 @@ class XidianAuthSessionResult {
     this.token,
     this.email,
     this.studentId,
+    this.banned = false,
   });
 
   final String attemptId;
@@ -24,6 +25,9 @@ class XidianAuthSessionResult {
   final String? token;
   final String? email;
   final String? studentId;
+  /// The server reports this with the session so the app can route to the
+  /// appeal screen without first issuing a request that would be refused.
+  final bool banned;
 
   bool get isPending => status == 'pending';
   bool get isAuthenticated => status == 'authenticated';
@@ -66,6 +70,7 @@ class AuthRepository {
         throw FormatException(uiTextGlobal(zh: '统一认证结果缺少有效登录凭据', en: 'The CAS result is missing valid login credentials'));
       }
       await AuthStore.instance.saveToken(token);
+      AuthStore.instance.setBanned(result.banned);
     }
     return result;
   }
@@ -111,6 +116,7 @@ class AuthRepository {
       token: token,
       email: email,
       studentId: studentId,
+      banned: readBool(data, <String>['banned']) == true,
     );
   }
 }
