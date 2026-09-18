@@ -2,7 +2,7 @@
 import json
 import os
 from urllib.request import Request
-from services._ai_schema import QUERY_FORMAT
+from services._ai_schema import QUERY_FORMAT, structured_call
 
 
 QUERY_PROMPT = """你是西电知行的问题理解模块。只输出一个 JSON 对象，不回答用户问题。
@@ -19,15 +19,19 @@ core 仅用于助手身份和西电名称、校史、校训、校区地址等基
 
 
 def understand_query(question,history,*,base_url,api_key,model,read_json):
-    request=Request(base_url+"/chat/completions",method="POST",
-        headers={"Content-Type":"application/json","Authorization":"Bearer "+api_key},
-        data=json.dumps({"model":model,"temperature":0,"stream":False,"max_tokens":512,
-            "response_format":QUERY_FORMAT,
-            "messages":[{"role":"system","content":QUERY_PROMPT},
-                {"role":"user","content":json.dumps({"history":history,"question":question},ensure_ascii=False)}]
-        },ensure_ascii=False).encode("utf-8"))
-    data=read_json(request,timeout=int(os.environ.get("BACKEND_AI_QUERY_TIMEOUT","20")))
-    try:
+    def attempt(response_format):
+        request=Request(base_url+"/chat/completions",method="POST",
+            headers={"Content-Type":"application/json","Authorization":"Bearer "+api_key},
+            # Reasoning models charge their deliberation to max_tokens, so 512
+            # can be exhausted before the plan is emitted and content arrives
+            # empty.
+            data=json.dumps({"model":model,"temperature":0,"stream":False,
+                "max_tokens":int(os.environ.get("BACKEND_AI_QUERY_MAX_TOKENS","2048")),
+                "response_format":response_format,
+                "messages":[{"role":"system","content":QUERY_PROMPT},
+                    {"role":"user","content":json.dumps({"history":history,"question":question},ensure_ascii=False)}]
+            },ensure_ascii=False).encode("utf-8"))
+        data=read_json(request,timeout=int(os.environ.get("BACKEND_AI_QUERY_TIMEOUT","20")))
         result=json.loads(data["choices"][0]["message"]["content"])
         if result["intent"] not in {"core","campus_qa","text","general","personal_data"}:
             raise ValueError("invalid intent")
@@ -50,5 +54,8 @@ def understand_query(question,history,*,base_url,api_key,model,read_json):
         elif result.get('campus') not in campuses:
             result['campus']=None
         return result
+
+    try:
+        return structured_call(attempt,QUERY_FORMAT)
     except (KeyError,ValueError,TypeError,IndexError) as error:
         raise RuntimeError("问题理解模块返回格式错误") from error

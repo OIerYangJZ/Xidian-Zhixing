@@ -27,7 +27,12 @@ from rag_service import citations, visible_context
 from services import auth_user as auth_user_helper, load_db, save_db
 from services._ai_prompt import PROMPT_SHA256, PROMPT_VERSION, build_system_prompt
 from services._ai_query import understand_query
-from services._ai_schema import answer_format
+from services._ai_schema import (
+    ProviderRejectedResponseFormat,
+    answer_format,
+    rejects_response_format,
+    structured_call,
+)
 from services._rag_client import knowledge_request, search_knowledge
 
 
@@ -41,6 +46,15 @@ MAX_ORIGINAL_CONTEXT_CHARS = 48000
 # Labels the injected originals and gates the instructions that promise them.
 # Both sides read this one name so the prompt cannot claim what was not sent.
 ORIGINAL_FULLTEXT_MARKER = "原始文档全文"
+
+
+class _EmptyAnswer(ValueError):
+    """Generation produced no answer text.
+
+    A ValueError so structured_call retries it like any other shape violation:
+    on a reasoning model an exhausted token budget yields empty content rather
+    than an error. Typed so the caller can still name this case precisely.
+    """
 
 
 def _needs_campus_retrieval(plan: dict[str, Any], question: str) -> bool:
@@ -179,6 +193,12 @@ def _read_provider_json(request: Request, timeout: int = 25) -> dict[str, Any]:
                 "detail": detail[:2000],
             }},
         )
+        # Classified here because the body is the only evidence and it stops at
+        # this frame; the caller learns the kind of failure, never the text.
+        if rejects_response_format(error.code, detail):
+            raise ProviderRejectedResponseFormat(
+                "模型接口不支持 json_schema 结构化输出"
+            ) from error
         raise RuntimeError(f"模型接口返回错误（状态码 {error.code}）") from error
     except URLError as error:
         logger.warning(
@@ -305,24 +325,30 @@ def _call_chat_completion(
         trace["systemPayloadHash"] = hashlib.sha256(system_prompt.encode("utf-8")).hexdigest()
         trace["contextPayloadHash"] = hashlib.sha256(context_text.encode("utf-8")).hexdigest()
         trace["messageRoles"] = [m["role"] for m in payload_messages]
-    request = Request(
-        f"{base_url}/chat/completions",
-        data=json.dumps({
-            "model": model,
-            "messages": payload_messages,
-            "temperature": 0,
-            "stream": False,
-            "response_format": answer_format(list(source_map)),
-        }, ensure_ascii=False).encode("utf-8"),
-        headers=_auth_headers(api_key),
-        method="POST",
-    )
-    data = _read_provider_json(request, timeout=int(os.environ.get("BACKEND_AI_GENERATION_TIMEOUT", "90")))
-    choices = data.get("choices")
-    if not isinstance(choices, list) or not choices:
-        raise RuntimeError("模型接口没有返回回答")
-    message = choices[0].get("message") if isinstance(choices[0], dict) else {}
-    try:
+    def attempt(response_format):
+        request = Request(
+            f"{base_url}/chat/completions",
+            data=json.dumps({
+                "model": model,
+                "messages": payload_messages,
+                "temperature": 0,
+                "stream": False,
+                # Reasoning models spend this budget before the answer starts,
+                # so a tight cap returns an empty content field rather than an
+                # error.
+                "max_tokens": int(os.environ.get("BACKEND_AI_GENERATION_MAX_TOKENS", "4096")),
+                "response_format": response_format,
+            }, ensure_ascii=False).encode("utf-8"),
+            headers=_auth_headers(api_key),
+            method="POST",
+        )
+        data = _read_provider_json(request, timeout=int(os.environ.get("BACKEND_AI_GENERATION_TIMEOUT", "90")))
+        choices = data.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError("模型接口没有返回回答")
+        message = choices[0].get("message") if isinstance(choices[0], dict) else {}
+        # Shape violations raise out of here so structured_call can retry them;
+        # only the last attempt turns into a caller-visible error.
         result = json.loads(message["content"])
         reply = _strip_citation_markers(_clean_text(result["answer"], 12000))
         source_ids = result["sourceIds"]
@@ -330,11 +356,16 @@ def _call_chat_completion(
             raise ValueError("invalid source IDs")
         if not set(source_ids).issubset(source_map):
             raise ValueError("unknown evidence ID")
+        if not reply:
+            raise _EmptyAnswer("empty answer")
+        return {"answer": reply, "sourceIds": list(dict.fromkeys(source_map[value] for value in source_ids))}
+
+    try:
+        return structured_call(attempt, answer_format(list(source_map)))
+    except _EmptyAnswer as error:
+        raise RuntimeError("模型接口返回了空回答") from error
     except (ValueError,KeyError,TypeError) as error:
         raise RuntimeError("模型回答或证据来源格式错误") from error
-    if not reply:
-        raise RuntimeError("模型接口返回了空回答")
-    return {"answer": reply, "sourceIds": list(dict.fromkeys(source_map[value] for value in source_ids))}
 
 
 def handle_ai_models(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
