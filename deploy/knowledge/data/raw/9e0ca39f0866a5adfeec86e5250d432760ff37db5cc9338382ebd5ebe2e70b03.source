@@ -1,0 +1,456 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>赋能应急救护、共筑平安校园—校医院举办2026年“5·12”国际护士节暨急诊急救技能演练-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="赋能应急救护、共筑平安校园—校医院举办2026年“5·12”国际护士节暨急诊急救技能演练">
+<META Name="keywords" Content="西安电子科技大学-校医院,筑,节,平安,护士,国际,校园,举办,校,医院,急诊,共,急救,救护,技能,应急,赋,演练" />
+<META Name="description" Content="五月繁花似锦，初心历久弥坚，白衣执甲逆行，守护师生安康。为大力弘扬南丁格尔无私奉献、救死扶伤的崇高精神，全面提升校园应急救护保障能力，在第115个“5・12”国际护士节来临之际，校医院在长安校区举办2026年国际护士节主题活动暨急诊急救技能演练。活动邀请了网络安全与密码学部党委书记张美茹、学生社区党总支副书记卢毅，以及相关学院辅导员、西电青年志愿者协会负责人和学生代表参加，校医院党总支书记郭彤、院长李平平、相关科室主任及医护人员参会。..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1010,'/content.jsp',4316,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../ywgk.htm">院务公开</a>
+                <em>&gt;</em>
+                <a href="../../ywgk/yydt.htm">医院动态</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>赋能应急救护、共筑平安校园—校医院举办2026年“5·12”国际护士节暨急诊急救技能演练</h2>
+			<h3><span>作者：</span><span>时间：2026-05-15</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 4316)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="text-indent: 2em;">五月繁花似锦，初心历久弥坚，白衣执甲逆行，守护师生安康。为大力弘扬南丁格尔无私奉献、救死扶伤的崇高精神，全面提升校园应急救护保障能力，在第115个“5・12”国际护士节来临之际，校医院在长安校区举办2026年国际护士节主题活动暨急诊急救技能演练。活动邀请了网络安全与密码学部党委书记张美茹、学生社区党总支副书记卢毅，以及相关学院辅导员、西电青年志愿者协会负责人和学生代表参加，校医院党总支书记郭彤、院长李平平、相关科室主任及医护人员参会。</p><p style="text-align: center"><img src="/__local/C/69/E9/B0F79867CB1BE8860494E39657F_A68C76E6_3877D.jpg" width="400" vsbhref="vurl" vurl="/_vsl/C69E9B0F79867CB1BE8860494E39657F/A68C76E6/3877D" vheight="" vwidth="400" orisrc="/__local/4/5E/B3/C11C0171659FA279826DC019F19_CBE382A1_F175F.jpg" class="img_vsb_content"></p><p style="text-indent: 2em;">活动伊始，李平平致辞。她向坚守在校园医疗服务一线的全体护理工作者致以诚挚的节日问候与崇高敬意，向长期以来关心、支持校医院工作的各部门、各学院及广大师生，表示衷心感谢。李平平回顾了护理团队在日常诊疗、健康宣教、校园防疫、应急处置等工作中的坚守与付出，肯定了全体医护人员以爱心、耐心、责任心守护师生健康的职业担当。她强调，开展急诊急救技能演练，是提升校园应急处置能力、筑牢生命安全防线的关键举措，勉励全体医护人员持续精进专业技能，期待更多师生主动学习急救本领，携手共筑平安和谐校园。医务科主任袁生华结合临床经验讲解了心肺复苏操作流程、按压要点、频次深度等核心知识，配合直观示范拆解操作难点，帮助师生快速掌握急救理论基础。</p><p style="text-indent: 2em;">随后，校医院医护团队身着统一工装，现场进行心肺复苏规范操作展示，从判断意识、胸外按压到人工呼吸，动作精准规范、流程娴熟流畅，充分展现了医护团队扎实过硬的专业素养。实操演练环节中，医护人员与师生分组结对，一对一、手把手教学指导，耐心纠正按压姿势、精准调整操作节奏，演练的师生全神贯注、认真练习，全身心投入急救技能学习，现场呈现师生共学、教学相长的良好氛围。伴随着热烈的掌声进行了颁奖环节，为急诊急救演练优秀学员、优秀志愿服务组织、志愿服务先进个人颁发荣誉证书，肯定同学们在校园健康服务、应急志愿行动、急救技能学习中的优异表现。</p><p style="text-indent: 2em; text-align: center;"><img src="/__local/B/BF/31/5532466C4B3FE702E629D471CA7_3F9DA449_386A3.jpg" width="400" vsbhref="vurl" vurl="/_vsl/BBF315532466C4B3FE702E629D471CA7/3F9DA449/386A3" vheight="" vwidth="400" orisrc="/__local/F/F4/9F/E82E50DFBD95DC58B73AB8EDF29_3A933F75_317F3.jpg" class="img_vsb_content" style="text-align: center; white-space: normal;"><img src="/__local/C/2A/E2/149C0EA0C2CDDAD1A7359057AA8_210A43AC_40C1B.jpg" width="400" vsbhref="vurl" vurl="/_vsl/C2AE2149C0EA0C2CDDAD1A7359057AA8/210A43AC/40C1B" vheight="" vwidth="400" orisrc="/__local/F/D8/B7/71DEDB05535A20F80450AFD13CC_22EBE8F1_F5608.jpg" class="img_vsb_content" style="text-align: center; white-space: normal;"></p><p style="text-indent: 2em;">张美茹以国际护士节与南丁格尔精神为切入点指出，奉献、责任与担当的职业精神，是践行健康中国战略、筑牢平安校园防线、助力教育强国建设的重要精神指引。三者既是高校落实立德树人根本任务的核心要求，也是守护青年健康、维护校园稳定的关键抓手。针对后续工作，她提出：一是坚持常态长效，将应急救护、健康宣教、安全培训常态化推进；二是强化多方协同，整合内外资源，全面提升校园健康安全保障能力；三是充分发挥党建引领，培育敢担当、善救护的新时代青年，为建设教育强国、夯实健康中国根基、守护平安校园贡献青春力量。随后，网络安全与密码学部学生代表手捧鲜花，向在场医护送上节日祝福。</p><p style="text-indent: 2em;">郭彤总结发言。她表示，本次活动既是对全体护理工作者的节日致敬，也是对校园应急保障能力的实战锤炼，充分展现了校医院医护队伍专业、敬业、积极的精神风貌，搭建了医护与师生沟通的暖心桥梁。未来，校医院将坚持“以师生为中心”，持续加强医护队伍专业能力建设，常态化开展多元化健康服务与急救培训，不断提升校园医疗保障与应急处置水平，以更精湛的医术、更热忱的服务，全力守护全校师生生命健康，为建设高水平急救校园、推动学校高质量发展提供坚实有力的支撑。</p><p style="text-indent: 2em;">活动最后，全体参会人员合影留念，校医院2026年“5・12”国际护士节暨急诊急救技能演练活动圆满落下帷幕。</p><p style="text-indent: 2em; text-align: center;"><img src="/__local/E/E7/3D/95798FEDAACD22C717ED4B485FA_0A48C1F0_2711D.jpg" width="400" vsbhref="vurl" vurl="/_vsl/EE73D95798FEDAACD22C717ED4B485FA/0A48C1F0/2711D" vheight="" vwidth="400" orisrc="/__local/5/DC/B3/CCEA280F381BA201332D6ABAC81_461F9EC5_91F4E.jpg" class="img_vsb_content" style="text-align: center; white-space: normal;"></p><p style="text-indent: 2em;"><br></p><p style="text-indent: 2em; text-align: right;">护理部&nbsp; 马燕&nbsp;&nbsp;</p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le">上一条：<a href="4086.htm">校医院部署树立和践行正确政绩观学习教育</a></span>
+        <span class="bo-le fl">下一条：<a href="4296.htm">校医院举办2026年世界手卫生日宣传活动</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

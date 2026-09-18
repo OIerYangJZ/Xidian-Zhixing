@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>驰骋全国赛场，砺技逐光而行：西电跆拳道队全国总决赛获佳绩-西安电子科技大学体育部</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="驰骋全国赛场，砺技逐光而行：西电跆拳道队全国总决赛获佳绩">
+<META Name="keywords" Content="西安电子科技大学体育部,全国,队,逐,跆拳道,西电,行,光,砺技,总决赛,赛场,获,佳绩,驰骋" />
+<META Name="description" Content="（通讯员：张译丹）2026年7月24日至29日，学体联2025-2026年全国大学生跆拳道锦标赛（总决赛）于江苏省南京市江北新区顺利举办。作为全国高校跆拳道年度最高规格赛事，本次大赛汇聚全国185所高校的千余名运动员同台竞技，竞技强度与参赛水准均属国内顶尖水平。此次出征，西安电子科技大学跆拳道校队由领队张超、教练员李志带队，全队队员凝心聚力、奋勇拼搏，在激烈的全国性角逐中沉稳应战、突破自我，最终斩获一银、五个第五的优异成绩，..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META name="description" content=""><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1021,'/content.jsp',7482,1641759486)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header" class="w100">
+<DIV class="container">
+<DIV class="header_top">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+
+<A href="../../index.htm" title="体育部2020"><IMG alt="" src="../../images/logo.png"> </A></DIV>
+<DIV class="hd_r_top fr">
+<DIV class="search fr"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError" style="padding:3px;margin:0px;display:inline;font-family:宋体;font-size:12px;">
+
+    <input autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" class="txt" value="请输入关键字！">
+    <input type="image" src="../../images/search_icon.png" align="absmiddle" v-on:click="onSubmit()" class="btn">
+ </div>
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1641759486";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1641759486";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV>
+<DIV class="hd_r_link fr"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><A href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 61540)" target="_blank">学校主页</A> 
+<A href="http://tyben.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1641759486, 62678)" target="_blank">English</A> 
+</DIV></DIV></DIV><!-- nav start -->
+<DIV id="nav">
+<DIV class="nav_menu"><UL class="nav_list">
+<LI><A href="../../index.htm" title="首页">首页</A> 
+</LI>
+<LI><A href="../../bmgk1/bmjj.htm" title="部门概况">部门概况</A> 
+<DL class="menu">
+<DD><A href="../../bmgk1/bmjj.htm" title="部门简介">部门简介</A> </DD>
+<DD><A href="../../bmgk1/lsyg.htm" title="历史沿革">历史沿革</A> </DD>
+<DD><A href="../../bmgk1/xrld.htm" title="现任领导">现任领导</A> </DD>
+<DD><A href="../../bmgk1/jgsz.htm" title="机构设置">机构设置</A> </DD>
+<DD><A href="../../bmgk1/wyh.htm" title="委员会">委员会</A> </DD>
+<DD><A href="../../bmgk1/xcsp.htm" title="宣传视频">宣传视频</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../szdw.htm" title="师资队伍">师资队伍</A> 
+<DL class="menu">
+<DD><A href="../../szdw/js.htm" title="教授">教授</A> </DD>
+<DD><A href="../../szdw/fjs.htm" title="副教授">副教授</A> </DD>
+<DD><A href="../../szdw/js1.htm" title="讲师">讲师</A> </DD>
+<DD><A href="../../szdw/zj.htm" title="助教">助教</A> </DD>
+<DD><A href="../../szdw/zzgtjs.htm" title="专职公体教师">专职公体教师</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../djgz.htm" title="党建工作">党建工作</A> 
+<DL class="menu">
+<DD><A href="../../djgz/zzjg.htm" title="组织机构">组织机构</A> </DD>
+<DD><A href="../../djgz/gzdt.htm" title="工作动态">工作动态</A> </DD>
+<DD><A href="../../djgz/ztxx.htm" title="专题学习">专题学习</A> </DD>
+<DD><A href="../../djgz/ghgz.htm" title="工会工作">工会工作</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyjlb.htm" title="体育俱乐部">体育俱乐部</A> 
+<DL class="menu">
+<DD><A href="../../tyjlb/jlbjx.htm" title="俱乐部教学">俱乐部教学</A> </DD>
+<DD><A href="../../tyjlb/yjsjx.htm" title="研究生教学">研究生教学</A> </DD>
+<DD><A href="../../tyjlb/wskc.htm" title="网上课程">网上课程</A> </DD>
+<DD><A href="http://jpkc.xidian.edu.cn/dxty/" title="精品课程">精品课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../zspy.htm" title="招生培养">招生培养</A> 
+<DL class="menu">
+<DD><A href="../../zspy/sszs.htm" title="硕士招生">硕士招生</A> </DD>
+<DD><A href="../../zspy/sspy1.htm" title="硕士培养">硕士培养</A> </DD>
+<DD><A href="../../zspy/yddzsh.htm" title="运动队招生">运动队招生</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../tyky.htm" title="体育科研">体育科研</A> 
+<DL class="menu">
+<DD><A href="../../tyky/ktlx.htm" title="课题立项">课题立项</A> </DD>
+<DD><A href="../../tyky/xscg.htm" title="学术成果">学术成果</A> </DD>
+<DD><A href="../../tyky/kyhj.htm" title="科研获奖">科研获奖</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../ydjs.htm" title="运动竞赛">运动竞赛</A> 
+<DL class="menu">
+<DD><A href="../../ydjs/gspydd.htm" title="高水平运动队">高水平运动队</A> </DD>
+<DD><A href="../../ydjs/ptsydd.htm" title="普通生运动队">普通生运动队</A> </DD>
+<DD><A href="../../ydjs/xnjs.htm" title="校内竞赛">校内竞赛</A> </DD>
+<DD><A href="../../ydjs/syxw.htm" title="首页新闻">首页新闻</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../rydt.htm" title="荣誉殿堂">荣誉殿堂</A> 
+<DL class="menu">
+<DD><A href="../../rydt/xdqgry.htm" title="西电全国荣誉">西电全国荣誉</A> </DD>
+<DD><A href="../../rydt/xdsnry.htm" title="西电省内荣誉">西电省内荣誉</A> </DD>
+<DD><A href="../../rydt/xdxnry.htm" title="西电校内荣誉">西电校内荣誉</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../gzzd.htm" title="规章制度">规章制度</A> 
+</LI>
+<LI><A href="../../rczp.htm" title="人才招聘">人才招聘</A> 
+</LI>
+<LI><A href="#" title="下载专区">下载专区</A> 
+<DL class="menu">
+<DD><A href="../../xzzq1/xzzq.htm" title="下载专区">下载专区</A> </DD>
+<DD><A href="../../xzzq1/jxkyyb.htm" title="教学科研用表">教学科研用表</A> </DD>
+<DD><A href="../../xzzq1/rsfwxx.htm" title="人事服务信息">人事服务信息</A> </DD>
+<DD><A href="../../xzzq1/wskc.htm" title="网上课程">网上课程</A> </DD>
+</DL>
+</LI>
+<LI><A href="../../cggl.htm" title="场馆管理">场馆管理</A> 
+<DL class="menu">
+<DD><A href="../../cggl/cgjs.htm" title="场馆介绍">场馆介绍</A> </DD>
+<DD><A href="../../cggl/glgd.htm" title="管理规定">管理规定</A> </DD>
+<DD><A href="../../cggl/cgsq.htm" title="场馆申请">场馆申请</A> </DD>
+</DL>
+</LI>
+</UL></DIV></DIV><!-- end nav --></DIV></DIV><!-- end header --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con">    <IMG alt="" src="../../images/ej_banner.jpg"> </DIV>
+<DIV class="ej_banner_bd">
+<DIV class="lmmc"><!-- header start -->
+新闻动态</DIV></DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="sidebar"><UL>
+</UL>
+</DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+<DIV class="dqwz"><div>
+    位置: 
+                        <a href="../../index.htm">首页</a>
+                >
+                <a href="../../xwdt.htm">新闻动态</a>
+                >
+                正文
+</div>
+
+</DIV><SPAN class="line"></SPAN></DIV>
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="nr">
+	<div class="main_bd">
+	         <div class="con_title">
+   <h2 class="title">驰骋全国赛场，砺技逐光而行：西电跆拳道队全国总决赛获佳绩</h2>
+   <p class="info">来源：<span class="xxly">
+    </span>时间：<span class="time1">2026-08-10</span>点击数：<i class="djs"><script>_showDynClicks("wbnews", 1641759486, 7482)</script></i></p>
+                 </div>
+
+
+
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">（通讯员：张译丹）2026年7月24日至29日，学体联2025-2026年全国大学生跆拳道锦标赛（总决赛）于江苏省南京市江北新区顺利举办。作为全国高校跆拳道年度最高规格赛事，本次大赛汇聚全国185所高校的千余名运动员同台竞技，竞技强度与参赛水准均属国内顶尖水平。此次出征，西安电子科技大学跆拳道校队由领队张超、教练员李志带队，全队队员凝心聚力、奋勇拼搏，在激烈的全国性角逐中沉稳应战、突破自我，最终斩获一银、五个第五的优异成绩，充分展现了西电学子自强不息、敢打敢拼的体育风貌，为学校赢得了荣誉。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本次全国总决赛，西电跆拳道队精简阵容、精锐出征，共五名队员登上全国赛场，分别参与品势与竞技两大项目的角逐。队员们历经层层历练，在高手云集的赛场之上沉稳发挥、全力以赴，以扎实的训练功底和良好的竞技心态，圆满完成本次全国赛事征程。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">品势赛场之上，队员们严守武道礼仪，动作规整流畅、节奏把控精准，将跆拳道的气韵与底蕴展现得淋漓尽致。其中，电子工程学院的葛芾頔双线作战，同时征战甲组男子个人级位品势、甲组男子个人段位品势两大项目，赛场之上身姿挺拔、动作刚劲标准，整套招式行云流水、一气呵成，在全国众多选手中站稳脚跟，两项赛事均斩获全国第五名的优异成绩。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/0/FA/FD/40CFF19EEE76C085F3AC27AB433_E9EC7F9E_14BC4.jpeg" vsbhref="vurl" vurl="/_vsl/0FAFD40CFF19EEE76C085F3AC27AB433/E9EC7F9E/14BC4" vheight=" 276.25pt" vwidth=" 414.95pt" orisrc="/__local/5/D6/04/EBC443B701B50774385205446BC_3A4C50E6_139FE.jpeg" class="img_vsb_content" style="width: 414.95pt;height: 276.25pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/5/96/93/AF44AED25AB8AB4033E2E13A53A_68ED1283_17A54.jpeg" vsbhref="vurl" vurl="/_vsl/59693AF44AED25AB8AB4033E2E13A53A/68ED1283/17A54" vheight=" 280.3pt" vwidth=" 414.8pt" orisrc="/__local/2/87/28/FF88B5B67D5B029D8D2ABC71E13_B2DFBF82_163F1.jpeg" class="img_vsb_content" style="width: 414.8pt;height: 280.3pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">计算机科学与技术学院的张锦辉专注甲组男子个人级位品势赛事，比赛中心态沉稳、发挥稳定，每一个动作的力度、速度与节奏都拿捏得恰到好处，招式规整、气韵十足，凭借扎实的基本功在全国赛场突围，最终取得全国第五名的成绩。在甲组混双级位品势项目中，张锦辉与机电工程学院的张译丹默契搭档，二人动作整齐划一、配合协调无间，长期磨合的团队默契展露无遗，全程从容应战、稳扎稳打，同样斩获该项目全国第五名。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/3/A2/41/0B20CA56FC1914D210D49945856_7CC6F2D2_17CF1.jpeg" vsbhref="vurl" vurl="/_vsl/3A2410B20CA56FC1914D210D49945856/7CC6F2D2/17CF1" vheight=" 276.5pt" vwidth=" 414.7pt" orisrc="/__local/7/C2/D7/FA528967DA601F2115DCBE5E865_6DBB6EB8_1672D.jpeg" class="img_vsb_content" style="width: 414.7pt;height: 276.5pt"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/F/96/BB/BE0B11D09BB25164C58A48CE501_54DA26A9_13A00.jpeg" vsbhref="vurl" vurl="/_vsl/F96BBBE0B11D09BB25164C58A48CE501/54DA26A9/13A00" vheight=" 451px" vwidth=" 300px" width="300" height="451" border="0" vspace="0" hspace="0" title="" alt="" orisrc="/__local/1/31/20/44F8196DBE02849497CBAA45A18_28A87E43_129CE.jpeg" class="img_vsb_content" style="width: 300px; height: 451px;"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">竞技赛场对抗激烈、战况瞬息万变，各路顶尖选手同台争锋，比拼速度、力量与战术心态。计算机科学与技术学院的刘桂鑫出战甲组男子竞技54kg级别赛事，赛场上他全神贯注、动作快速干脆，进退攻防果断利落，与对手你来我往、互不相让，在跌宕起伏的对抗中拼尽全力、奋勇争先，充分展现出西电学子的拼搏风采，最终获得全国第五名。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">人工智能学院的唐振宇征战甲组男子竞技68kg级别赛事，作为队内实力老将，他赛场经验丰富、竞技状态出色。比赛中他动作干脆利落、迅疾如风，步伐灵活多变，攻防节奏快速切换，每一次出击都沉稳果断、精准高效，在高强度的全国级对抗中势如破竹，凭借精湛的技术和沉稳的心态一路突围，最终斩获赛事银牌，为校争光。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">从长期统治甲组68kg赛场的卫冕冠军，到坦然收获亚军，这一枚来之不易的银牌，是唐振宇大学生涯全国赛事中首次与冠军失之交臂，也让他的竞技之路更加完整厚重。三次省赛、三次分区赛、以及三次总决赛的冠军，过往无数枚金牌，见证着他日复一日的坚守、精益求精的打磨与所向披靡的实力；而这一枚银牌，让他真正读懂竞技体育的真谛：胜负从来不是衡量努力的唯一标尺，敢于突破自我、勇于直面挑战、坦然接纳成长，本身就是一种最珍贵的胜利。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/8/49/58/E19C434C7B6362B7994400CB464_6DAA2732_18807.jpeg" vsbhref="vurl" vurl="/_vsl/84958E19C434C7B6362B7994400CB464/6DAA2732/18807" vheight=" 451px" vwidth=" 300px" width="300" height="451" border="0" vspace="0" hspace="0" title="" alt="" orisrc="/__local/0/7A/6A/BFFDAA4B7065144C5A658B5932D_EBE3696D_16D72.jpeg" class="img_vsb_content" style="width: 300px; height: 451px;"></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/D/B1/CD/E553AF5820B7172FDF16C6B3CF7_B72A7B3D_29360.jpeg" vsbhref="vurl" vurl="/_vsl/DB1CDE553AF5820B7172FDF16C6B3CF7/B72A7B3D/29360" vheight=" 310.8pt" vwidth=" 414.55pt" orisrc="/__local/F/74/38/3E439A6C88E6D1DBA3DDC5F5B03_1DA916DD_27353.jpeg" class="img_vsb_content" style="width: 414.55pt;height: 310.8pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">纵观本次全国总决赛，面对全国顶尖的参赛阵容，西电跆拳道队的五名队员不惧强敌、敢打敢拼，在高水平竞技平台上锤炼自我、积累经验，既有斩获奖牌的亮眼突破，也有沉淀成长的宝贵收获。每一场比拼、每一次对峙，都让队员们进一步明晰自身优势与不足，赛场之上收获的阅历与成长，将成为他们未来逐梦武道、突破自我的宝贵财富。</span></p><p class="vsbcontent_img" style="font-size: 20px;"><img src="/__local/3/B5/76/BCEBC87D17B0024BBFBE62A7053_8C841AB6_21DD4.jpeg" vsbhref="vurl" vurl="/_vsl/3B576BCEBC87D17B0024BBFBE62A7053/8C841AB6/21DD4" vheight=" 233.25pt" vwidth=" 413.9pt" orisrc="/__local/7/E8/AA/61111B9536ED4FB1132999ED287_ACB381A2_207C0.jpeg" class="img_vsb_content" style="width: 413.9pt;height: 233.25pt"></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">西电跆拳道队在全国顶级赛场上，充分展现了西电学子坚韧不拔、永不言弃的奋斗精神和礼始礼终的武道素养。这份在赛场之上淬炼的勇气、毅力与拼搏精神，终将化为队员们成长路上的底气与力量，激励他们在人生的广阔“赛场”上踔厉奋发、勇往直前。同时，队员们的优异表现也将激励更多西电学子热爱体育运动、传承跆拳道精神，接续逐梦、再创佳绩。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">本次全国赛事取得的优异成绩，离不开学校的高度重视与大力支持。学校始终坚持“五育并举”的育人理念，积极搭建高水平体育竞技平台，为学子们提供专业的训练场地、优质的师资资源和完善的后勤保障，让西电学子得以兼顾学业与体育训练，全身心投入赛事备战与能力提升。优异成果的背后，更离不开李志教练、马丕领教练的悉心指导与无私付出，教练团队深耕日常训练、精准打磨技术细节、疏导队员赛前心态，为学子们奔赴全国赛场、突破自我、绽放光彩保驾护航。未来，西电跆拳道队将带着这份认可与厚爱砥砺前行，持续精进、不断突破，力争在各类顶级赛事中斩获更多荣誉，回报学校的培养与支持。</span></p><p style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">西安电子科技大学跆拳道校队常年对外招生，欢迎广大有跆拳道基础或热爱跆拳道运动的西电学子咨询加入！有意向者请联系李志教练。（QQ：261565795）</span></p><table align="center" style="font-size: 20px;"><tbody><tr class="firstRow"><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">姓名</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">性别</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">比赛成绩</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">所属学院</span></p></td></tr><tr><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">唐振宇</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">男</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">甲组男子个人竞技68kg亚军</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">人工智能学院</span></p></td></tr><tr><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">刘桂鑫</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">男</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">甲组男子个人竞技54kg第五名</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">计算机科学与技术学院</span></p></td></tr><tr><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">葛芾頔</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">男</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">甲组男子个人入阶品势、级位品势第五名</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">电子工程学院</span></p></td></tr><tr><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">张锦辉</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">男</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">甲组男子个人级位品势、甲组混双级位品势第五名</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">计算机科学与技术学院</span></p></td></tr><tr><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">张译丹</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">女</span></p></td><td><p><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">甲组混双级位品势第五名</span></p></td><td><p class="vsbcontent_end" style="font-size: 20px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 20px;">机电工程学院</span></p></td></tr></tbody></table>
+</div></div><div id="div_vote_id"></div>
+    
+<div class="page">
+  <p><span>上一条：</span><a href="7472.htm">我校男子排球队在陕西省第十八届运动会中取得优异成绩</a></p>
+  <p><span>下一条：</span><a href="7492.htm"> 我校网球队在第29届中国大学生网球锦标赛总决赛中获得佳绩</a></p>
+</div>
+
+
+</div></div>
+</form>
+</DIV></DIV></DIV></DIV><!-- end main --><!-- footer start -->
+<DIV id="footer" class="w100">
+<DIV class="container">
+<DIV class="foot_con clearfix">
+<DIV class="foot_top">
+<DIV class="address fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>北校区地址:西安市太白南路2号 邮编：710071</p> 
+<p>南校区地址:西安市西沣路兴隆段266号 邮编：710126</p> 
+<p>电话：（029）81891207 办公邮箱：tiyubu1294@126.com</p> 
+<p>意见投诉信箱：tyb@xidian.edu.cn</p> 
+<p>师德师风监督电话：（029）81891207</p></DIV>
+<DIV class="ft_ewm fr">    
+
+<IMG alt="" src="../../images/erweima.jpg"> 
+<P class="title">官方微信</P>
+</DIV></DIV>
+<DIV class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;© 2007-2021 西安电子科技大学体育部 版权所有 技术支持： <a href="https://xxzx.xidian.edu.cn/" style="text-decoration: none; color: white">信息网络技术中心 </a>&nbsp;&nbsp;西安聚力</p></DIV></DIV></DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

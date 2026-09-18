@@ -1,0 +1,419 @@
+﻿<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Academy of Advanced Disciplinary Research-XIDIAN UNIVERSITY</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="Academy of Advanced Disciplinary Research">
+<META Name="keywords" Content="XIDIAN UNIVERSITY,Academy,of,Advanced,Disciplinary,Research" />
+<META Name="description" Content="The Academy of Advanced Interdisciplinary Research (AAIR) of Xidian University (hereinafter referred to as AAIR) was founded in 2018, targeting the global science and technology frontiers, striving to fulfil the significant needs of the country, benefiting people’s lives and well-being and serving the main economic battlefield. Taking “the constant exploration of new fields” as our guiding p..." />
+
+        <link rel="stylesheet" href="../../css/css.css" />
+        <link rel="stylesheet" href="../../css/aos.css">
+        <!--公用文件 END-->
+        <script type="text/javascript" src="../../js/jquery_002.js"></script>
+        <script type="text/javascript" src="../../js/tiaohua.js"></script>
+        <script type="text/javascript" src="../../js/slide.js"></script>
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../k-contact.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1003,'/k-contact.jsp',2050,2133202801)</script>
+</head>
+    <body>
+
+        <!--banner开始-->
+        <div class="head3">
+            <div class="top clear">
+                <div class="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<A href="../../index.htm" title="西安电子科技大学英文25"></A></div>
+                <div class="top-r clear">
+                    <div class="top-links clear">
+                        <div class="top-links2">
+                            <div class="link-nr">
+                                <p><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>   <a href="https://faculty.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111306)">Faculty Profile</a>
+</p>
+                                <i></i>
+                                <p></p>
+                                <i></i>
+                                <!-- <div class="search-btn"></div> -->
+                                <div class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu3 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+  
+            
+              <input class="text" type="text" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" />
+  <input class="btn" type="button" value="Search" style="cursor: hand" v-on:click="onSubmit()"/>
+            
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "2133202801";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "2133202801";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></div>
+                                <div class="language"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111304)">中文</a>
+</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="navBar"><ul class="nav clearfix">
+<li id="m1" class="m">
+<h3><a href="../../About.htm" target="_blank">About</a></h3>
+<ul class="sub">
+<li><a href="../../About/XDU_Overview.htm" target="_blank">XDU Overview</a></li>
+<li><a href="../../About/Why_XDU.htm" target="_blank">Why XDU</a></li>
+<li><a href="../../About/History.htm" target="_blank">History</a></li>
+<li><a href="../../About/Reputation2.htm" target="_blank">Reputation</a></li>
+<li><a href="../../About/Current_Administrators.htm" target="_blank">Current Administrators</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Admission.htm" target="_blank">Admission</a></h3>
+<ul class="sub">
+<li><a href="../../Admission/International_Applicants.htm" target="_blank">International Applicants</a></li>
+<li><a href="https://www.xidian.edu.cn/zsjy.htm#A" target="_blank">Chinese Applicants</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Academics.htm" target="_blank">Academics</a></h3>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Research.htm" target="_blank">Research</a></h3>
+<ul class="sub">
+<li><a href="../../Research/Key_Research_Areas1.htm" target="_blank">Key Research Areas</a></li>
+<li><a href="../../Research/Platforms_Laboratories.htm" target="_blank">Platforms &amp; Laboratories</a></li>
+<li><a href="../../Research/Achievements.htm" target="_blank">Achievements</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Campus.htm" target="_blank">Campus</a></h3>
+<ul class="sub">
+<li><a href="../../Campus/Events1.htm" target="_blank">Events</a></li>
+<li><a href="../../Campus/Student_Life.htm" target="_blank">Student Life</a></li>
+<li><a href="../../Campus/Library.htm" target="_blank">Library</a></li>
+<li><a href="../../Campus/Exploring_XDU.htm" target="_blank">Exploring XDU</a></li>
+<li><a href="../../Campus/Campus_in_Photos.htm" target="_blank">Campus in Photos</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Global_Initiatives.htm" target="_blank">Global Initiatives</a></h3>
+<ul class="sub">
+<li><a href="../../Global_Initiatives/Joint_Education.htm" target="_blank">Joint Education</a></li>
+<li><a href="../../Global_Initiatives/Partner_Universities.htm" target="_blank">Partner Universities</a></li>
+<li><a href="../../Global_Initiatives/Joint_International_Institutes.htm" target="_blank">Joint International Institutes</a></li>
+<li><a href="../../Global_Initiatives/Confucius_Institute.htm" target="_blank">Confucius Institute</a></li>
+<li><a href="../../Global_Initiatives/Study_Abroad.htm" target="_blank">Study Abroad</a></li>
+<li><a href="../../Global_Initiatives/Summer_Schools.htm" target="_blank">Summer School  </a></li>
+<li><a href="../../Global_Initiatives/Working_at_XDU.htm" target="_blank">Working at XDU</a></li>
+<li><a href="../../Global_Initiatives/Contact_Us.htm" target="_blank">Contact Us</a></li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+                    <script type="text/javascript" src="../../js/jquery_002.js"></script>
+                         <script type="text/javascript" src="../../js/tiaohua.js"></script>
+                         <script type="text/javascript" src="../../js/slide.js"></script>
+                </div>
+            </div>
+        </div>
+        <div class="list-banner">
+            <div class="pic"><img src="../../images/list-banner.png"></div>
+            <div class="list-position">
+                <h5><a href="">Admission</a></h5>
+                <p><p>Position : 
+                        <a href="../../index.htm">Home</a>
+                        >
+                <a href="../../Admission.htm">Admission</a>
+                        >
+                Content
+        </p>
+</p>
+            </div>
+        </div>
+        <!-- list-events -->
+        <div class="list-box wrap">
+             <div class="show-schools">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="show-news01"><h5 times new roman";" style=" font-size: 30px;color:#333333;line-height:42px;margin-bottom:10px; text-align: center">Academy of Advanced Disciplinary Research</h5></div>
+    <div id="vsb_content" style="margin-bottom: 40px;font-size: 18px;color: #333333;line-height:30px;text-align:justify;display: block;margin: 30px auto;max-width: 1080px; min-height:800px;"><div class="v_news_content">
+<p style="text-align: justify; text-indent: 0em; margin-bottom: 0pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 2.0000;"><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">The Academy of Advanced Interdisciplinary Research (AAIR) of Xidian University (hereinafter referred to as AAIR) was founded in 2018, targeting the global science and technology frontiers, striving to fulfil the significant needs of the country, benefiting people’s lives and well-being and serving the main economic battlefield. Taking “the constant exploration of new fields” as our guiding principle and according to the fundamental thought of “problem orientation”, we adopt the organizational structure of “Core + Periphery”, explore development paths actively, innovate institutional mechanisms, and build an innovative, specialized zone for conducting “Organized Scientific Research” in Xidian University. Persisting in solving substantive interdisciplinary problems and relying on the advantages of electronic information disciplines, AAIR will continue to develop frontier and interdisciplinary directions, promote the synthesis and integration of different disciplines, build multi-disciplinary culture, and enhance the in-depth development of interdisciplinary research. Combining “Red Genes” with “Open Mentality”, we dedicate to creating a frontier interdisciplinary “Special Talent Zone” to further advance the core competitiveness and international influence of Xidian University, strive to build Xidian as one of the world-class universities, and better serve our national needs, industries and regional economic and social development, making a unique and leading contribution with Xidian characteristics.</span></p>
+<p class="MsoNormal" style="text-align: justify; text-indent: 24pt; margin-bottom: 0pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 2.0000;"><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">&nbsp;</span></p>
+<p style="text-align: justify; text-indent: 0em; margin-bottom: 0pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 2.0000;"><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">AAIR has established many cutting-edge research centers focused on a diverse range of research areas, including Quantum Information, XF International Joint Research, Advanced Remote Sensing, Extreme Sensing, Space Solar Power Station System, Flexible Electronics, Smart Sensor, AI and Security, Advanced Optics and Perception, Piezotronics, AI-based Big Medical Imaging Data, Intelligence-Aided Teaching, Language in Cybersecurity, Advanced Medical Theranostics, and Thin Films and Coatings for Device Applications etc.. These research centers bring together a high-level talent team consisting of academicians from the Chinese Academy of Sciences and the Chinese Academy of Engineering, internationally renowned scholars, national leading talents in innovation, and young scholars.</span></p>
+<p class="MsoNormal" style="text-align: justify; text-indent: 24pt; margin-bottom: 0pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 2.0000;"><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">&nbsp;</span></p>
+<p style="text-align: justify; text-indent: 0em; margin-bottom: 0pt; -ms-text-justify: inter-ideograph; mso-char-indent-count: 2.0000;"><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">Homepage: </span><a href="https://aai.xidian.edu.cn/en/"><span style="text-decoration: underline;"><span class="15" style="color: rgb(0, 0, 255); font-family: &quot;Times New Roman&quot;; font-size: 12pt; text-decoration: underline; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体; text-underline: single;">https://aai.xidian.edu.cn/en/</span></span></a><span style="font-family: &quot;Times New Roman&quot;; font-size: 12pt; mso-spacerun: &quot;yes&quot;; mso-fareast-font-family: 宋体;">&nbsp;</span></p>
+<!--EndFragment-->
+</div></div><div id="div_vote_id"></div>
+        <p align="left">
+        <b>Previous Page：</b><a href="2049.htm">School of Networking and Continuing Education</a><br /><br />
+        <b>Next page：</b><a href="2051.htm">State Key Laboratory of Integrated Services Networks</a>
+    </p>
+    <p align="right">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">Close</a>】</p>
+
+</form>
+</div>
+        </div>
+        <!-- footer -->
+            <div class="w10 footer">
+                <div class="w14">
+                    <div class="footer-top clear">
+                        <div class="footer-l fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>South Campus: 266 Xinglong Section of Xifeng Road, Xi’an, Shaanxi 710126</p> 
+<p>North Campus: No. 2 South Taibai Road, Xi’an, Shaanxi 710071</p></div>
+                        <div class="footer-c fl"><img src="../../images/footer04.png"></div>
+                        <div class="footer-r fr"><a href="../../Global_Initiatives/Contact_Us.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111307)">Contact</a></div>
+                    </div>
+                    <div class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;2019 © xidian university all rights reserved &nbsp;support:xianjuli</p></div>
+                </div>
+            </div>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript" src="../../js/index.js"></script>
+        <script type="text/javascript" src="../../js/base.js"></script>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript">
+            jQuery(".nav").slide({
+                type: "menu", //效果类型
+                titCell: ".m", // 鼠标触发对象
+                targetCell: ".sub", // 效果对象，必须被titCell包含
+                effect: "slideDown", //下拉效果
+                delayTime: 300, // 效果时间
+                triggerTime: 0, //鼠标延迟触发时间
+                returnDefault: true //返回默认状态
+            });
+        </script>
+        <!-- 头部固定开始 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.head3').addClass('head4');
+                    $('.back').fadeIn();
+                } else {
+                    $('.head3').removeClass('head4');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <!-- 头部固定结束 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.list-nav').addClass('list-nav2');
+                    $('.back').fadeIn();
+                } else {
+                    $('.list-nav2').removeClass('list-nav2');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <script>
+            AOS.init({
+                easing: 'ease-out-back',
+                duration: 1000
+            });
+        </script>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

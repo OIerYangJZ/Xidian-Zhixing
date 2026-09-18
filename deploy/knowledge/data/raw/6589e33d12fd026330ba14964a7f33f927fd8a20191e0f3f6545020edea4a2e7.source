@@ -1,0 +1,465 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>西安电子科技大学2025年本科招生章程-西安电子科技大学本科招生信息网</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="西安电子科技大学2025年本科招生章程">
+<META Name="keywords" Content="西安电子科技大学本科招生信息网,本科,科技,大学,招生,电子,西安,章程" />
+<META Name="description" Content="第一章 总则第一条 为保证学校本科生招生工作顺利进行，切实维护学校和考生的合法权益，根据《中华人民共和国教育法》《中华人民共和国高等教育法》等相关法律和教育部有关规定，以及《西安电子科技大学章程》，特制定本章程。第二条 学校全称为西安电子科技大学，是国家公办、全日制普通高等学校，国家“双一流”建设高校。学校建有南、北两个校区，北校区地址为陕西省西安市太白南路2号，邮编710071；南校区地址为陕西省西安市西沣路兴隆段266号，..." />
+
+<META charset="UTF-8">
+<META name="description" content="西安电子科技大学是以信息与电子学科为主，工、理、管、文多学科协调发展的全国重点大学，是国家“优势学科创新平台”项目和“211工程”项目重点建设高校之一，是国内最早建立信息论、信息系统工程、雷达、微波天线、电子机械、电子对抗等专业的高校之一" /><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1009,'/nry.jsp',5963,1638859082)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header"><!-- hd_top start -->
+<DIV class="hd_top">
+<DIV class="container">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><DIV class="hd_link fr">
+   教育部直属&nbsp;|&nbsp; 
+   国家“985优势学科创新平台”&nbsp;|&nbsp; 
+   国家“211工程”&nbsp;|&nbsp; 
+   国家“双一流”建设重点大学&nbsp;|&nbsp; 
+   <a href="https://zsbold.xidian.edu.cn/index.html" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62900)">旧版回顾</a>
+</DIV></DIV></DIV><!-- end hd_top --><!-- hd_bottom start -->
+<DIV class="hd_bottom">
+<DIV class="container">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科招生信息网2020"><img src="../../images/logo.png" width="510" height="70" border="0" alt="本科招生信息网2020" title="本科招生信息网2020"></a></DIV>
+<DIV class="hd_right fr">
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError" class="search fr">
+
+     <input type="text" placeholder="" style="position: absolute;
+           left: 8px;
+           top: 1px;
+    width: 164px;
+    height: 34px;
+    line-height: 34px;
+    vertical-align: top;
+    background: transparent;
+    text-indent: 10px;
+    color: #fff;
+    display: inline-block;
+    outline: none;
+    border: none;" value="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+
+     <input type="image" style="position: absolute;
+    top: 0px;
+    right: 14px;
+    width: 20px;
+    height: 34px;
+    cursor: pointer;
+    display: inline-block;
+    outline: none;
+    border: none;
+" src="../../images/search_icon.png"  v-on:click="onSubmit()">
+ </div>
+
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1638859082";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1638859082";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script> </DIV></DIV></DIV><!-- end hd_bottom --></DIV><!-- end header --><!-- nav start -->
+<DIV id="nav">
+<DIV class="container">
+<DIV class="nav_menu">
+<UL class="nav_list">
+
+<LI>
+<a href="../../index.htm" title="首页">首页</a>
+</LI>
+
+<LI>
+<a href="../../xdgk/xxjj.htm" title="西电概况">西电概况</a>
+<DL class="menu">
+
+<DD> <a href="../../xdgk/xxjj.htm" title="学校简介">学校简介</a></DD>
+
+<DD> <a href="../../xdgk/bkly.htm" title="报考理由">报考理由</a></DD>
+
+<DD> <a href="../../xdgk/zdxk.htm" title="重点学科">重点学科</a></DD>
+
+<DD> <a href="../../xdgk/ysky.htm" title="优势科研">优势科研</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../zsxx1.htm" title="招生信息">招生信息</a>
+<DL class="menu">
+
+<DD> <a href="https://flbook.com.cn/c/gRnNYIJeiw" target="_blank" title="报考指南">报考指南</a></DD>
+
+<DD> <a href="../../zsxx1/zszc.htm" title="招生政策">招生政策</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/" title="招生计划">招生计划</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lnfs" title="历年分数">历年分数</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lqcx" title="录取查询">录取查询</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../xkzy/yuan_xi_s.htm" title="学科专业">学科专业</a>
+<DL class="menu">
+
+<DD> <a href="../../xkzy/yuan_xi_s.htm" title="院系设置">院系设置</a></DD>
+
+<DD> <a href="../../xkzy/zszy.htm" title="招生专业">招生专业</a></DD>
+
+<DD> <a href="../../xkzy/tszy.htm" title="特色专业">特色专业</a></DD>
+
+<DD> <a href="../../xkzy/tspy.htm" title="特色培养">特色培养</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="https://www.xidian.edu.cn/hzjl/yjxy.htm" title="国际交流">国际交流</a>
+<DL class="menu">
+
+<DD> <a href="../../gjjl/zwhzbx.htm" title="中外合作办学">中外合作办学</a></DD>
+
+<DD> <a href="../../gjjl/jlxm.htm" title="交流项目">交流项目</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../jysz/jycy.htm" title="就业深造">就业深造</a>
+<DL class="menu">
+
+<DD> <a href="../../jysz/jycy.htm" title="就业创业">就业创业</a></DD>
+
+<DD> <a href="../../jysz/szcg.htm" title="深造出国">深造出国</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../lxwm/lxzb.htm" title="联系我们">联系我们</a>
+<DL class="menu">
+
+<DD> <a href="../../lxwm/lxzb.htm" title="联系招办">联系招办</a></DD>
+
+<DD> <a href="../../lxwm/lxyx.htm" title="联系院系">联系院系</a></DD>
+
+<DD> <a href="../../lxwm/zsQQq.htm" title="招生QQ群">招生QQ群</a></DD>
+</DL>
+</LI>
+</UL></DIV></DIV></DIV><!-- end nav --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con"><IMG alt="" src="../../images/ej_banner.jpg"> </DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="lmmc">
+招生信息</DIV>
+<DIV class="sidebar">
+<UL>
+    <LI><a href="https://flbook.com.cn/c/gRnNYIJeiw" target="_blank" title="报考指南">报考指南</a></LI>    
+    <LI class="active"><a href="../../zsxx1/zszc.htm" title="招生政策">招生政策</a></LI>    
+    <LI><a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/" title="招生计划">招生计划</a></LI>    
+    <LI><a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lnfs" title="历年分数">历年分数</a></LI>    
+    <LI><a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lqcx" title="录取查询">录取查询</a></LI>    
+
+
+</UL></DIV>
+<DIV class="sidebar_bottom"></DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+ <div class="dqwz">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &nbsp;&gt;&nbsp;
+                <a href="../../zsxx1.htm">招生信息</a>
+                &nbsp;&gt;&nbsp;
+                <a href="../../zsxx1/zszc.htm">招生政策</a>
+                &nbsp;&gt;&nbsp;
+                正文
+</div>
+
+</DIV>
+<DIV class="nr">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format501.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="main_bd">
+    <div class="con_title">
+                            <h2 class="title">西安电子科技大学2025年本科招生章程</h2>
+                            <p class="info">信息来源：<span class="xxly">
+    </span>时间：<span class="time1">2025/05/30</span>浏览次数：<i class="djs"><script>_showDynClicks("wbnews", 1638859082, 5963)</script></i></p>
+     </div>
+    <div id="vsb_content_501" class="content"><div class="v_news_content">
+<p class="vsbcontent_start" style="text-align: center; font-size: 21px;"><span style="font-size: 21px;"><strong>第一章 总则</strong></span></p><p><strong>第一条</strong> 为保证学校本科生招生工作顺利进行，切实维护学校和考生的合法权益，根据《中华人民共和国教育法》《中华人民共和国高等教育法》等相关法律和教育部有关规定，以及《西安电子科技大学章程》，特制定本章程。</p><p><strong>第二条</strong> 学校全称为西安电子科技大学，是国家公办、全日制普通高等学校，国家“双一流”建设高校。学校建有南、北两个校区，北校区地址为陕西省西安市太白南路2号，邮编710071；南校区地址为陕西省西安市西沣路兴隆段266号，邮编710126。</p><p><strong>第三条</strong> 颁发证书：在规定的年限内达到所在专业毕业要求者，颁发西安电子科技大学本科毕业证书；符合学校学位授予有关规定者，颁发普通高等教育本科毕业生学士学位证书。</p><p><strong>第四条 </strong>西安电子科技大学本科生的招生对象为：参加国家统一组织考试的高考生（含国家专项计划、高校专项计划、艺术类专业、少数民族预科班、内地新疆高中班、内地西藏高中班、新疆协作计划等）、运动训练单招考生以及保送生。</p><p><strong>第五条</strong> 2025年西安电子科技大学面向全国实行按专业大类招生，以通识教育和专业基础教育为核心，实施学生大类培养，提升学生社会责任感、创新精神和实践能力。具体招生专业大类名称详见我校公布的《2025年西安电子科技大学本科生招生专业（类）目录》。</p><p><strong>第六条</strong> 西安电子科技大学招生工作将全面贯彻教育部有关文件精神，全面贯彻实施高校招生“阳光工程”，本着公平、公正、公开的原则择优录取。</p><p style="text-align: center; font-size: 21px;"><span style="font-size: 21px;"><strong>第二章 组织机构及职责</strong></span></p><p><strong>第七条</strong> 学校根据教育部有关规定，成立西安电子科技大学招生工作领导小组，领导和监督学校的本科招生工作。招生工作领导小组是最高决策机构，统一领导学校本科招生工作，由校长担任组长，分管副校长、教务处、本科生招生办公室等部门负责人任组员。</p><p><strong>第八条 </strong>学校招生办公室作为学校的常设机构，负责组织实施学校本科招生工作及其他日常工作。其职责是：</p><p>1.执行教育部有关招生工作的政策及各省（自治区、直辖市招生委员会的补充规定和实施细则；</p><p>2.拟定学校本科招生章程及特殊类型招生简章；</p><p>3.按照教育部下达的年度招生计划及有关规定编制分地区、分专业招生来源计划；</p><p>4.组织开展招生宣传咨询；</p><p>5.组织实施本科生录取工作，负责协调和处理录取工作中的有关问题；</p><p>6.履行学校招生信息公开相应职责；</p><p>7.配合学校有关部门对录取的新生进行入学资格复查；</p><p>8.完成教育主管部门和学校交办的其它工作。</p><p><strong>第九条</strong> 西安电子科技大学本科招生工作实行上级主管部门、内部等多重监督机制，在教育部、学校纪检监察部门的监督下开展工作。</p><p style="text-align: center; font-size: 21px;"><span style="font-size: 21px;"><strong>第三章 招生计划</strong></span></p><p><strong>第十条</strong> 西安电子科技大学面向全国招生，根据国家政策要求，考虑各省高考报名人数情况，兼顾区域协调发展等因素，根据本校办学条件等实际情况，结合近年来本校来源计划编制情况及各省生源质量，综合分析、确定本校来源计划编制原则和办法，科学合理确定分省分专业计划。年度招生计划及分省分专业招生计划以各省级招生机构公布为准。</p><p><strong>第十一条 </strong>学校将招生计划总数的1%作为预留计划，主要用于调节各地统考上线生源的不平衡。预留计划使用时，坚持质量优先、公开透明的原则。</p><p><strong>第十二条 </strong>学校根据各省招生计划和考生报考情况确定提档比例。对于实行非平行志愿的投档批次，提档比例原则上不超过招生计划的120%；对于实行平行志愿的投档批次，提档比例原则上不超过招生计划的105%。</p><p style="text-align: center; font-size: 21px;"><span style="font-size: 21px;"><strong>第四章 招生类型与录取规则</strong></span></p><p>第十三条 学校采用投档成绩调取考生档案，在已调档的考生中，采用“分数优先、遵循志愿”的原则确定考生专业，各专业志愿之间不设分数级差。对于高考总分（不含排序分）相同的考生，依次按数学、外语、语文成绩排序录取及确定专业，同分排序后仍完全相同的，我校将使用预留计划录取。如考生所填报的所有专业志愿均不能被录取，且服从调剂，则根据考生成绩安排其他未满额专业。所有专业志愿都无法满足又不服从调剂的考生，作退档处理。</p><p><strong>第十四条 </strong>高考综合改革省份（自治区、直辖市）的投档考生须满足我校选考科目要求，并参照各省相关指导文件进行志愿填报。</p><p><strong>第十五条 </strong>按照顺序志愿投档的批次,在第一志愿考生生源不足的情况下，我校可接收非第一志愿考生，按照投档成绩择优录取。对于非第一志愿报考我校的考生，在第一志愿报考我校的考生未录取满额的专业中采用前述原则确定专业。若符合条件的非第一志愿考生生源仍不足，将征集志愿。按照平行志愿投档的批次，未完成的计划也将征集志愿。征集志愿仍不足则将剩余计划调剂到其他生源质量好的省份完成招生计划。</p><p><strong>第十六条</strong> 学校各专业招生无男女比例限制。</p><p><strong>第十七条</strong> 报考外国语言文学类（含英语、日语、翻译专业）相关专业（类）的考生，要求其高考外语科目为英语。我校公共外语课及相关专业课不具备非英语语种开设条件，请非英语语种的考生谨慎填报。</p><p><strong>第十八条</strong> 学校在提档及专业录取时认可教育部和各省（自治区、直辖市）招生主管部门审定的全国性政策性加分，同一考生符合多项政策性加分条件的，只采用最高一项加分，原则上加分不得超过20分，且加分政策不适用于不做分省计划的招生类型。</p><p><strong>第十九条</strong> 西安电子科技大学本科招生体检标准根据《普通高等学校招生体检工作相关规定》，结合我校实际制定，并纳入我校高考录取依据。详见我校《2025年招生专业体检标准》，请相关考生慎重填报。</p><p><strong>第二十条</strong> 我校艺术类专业、高校专项计划、运动训练专业、保送生招生相关政策以教育部等国家相关部门的规定及我校制定的相关招生简章为准。</p><p><strong>第二十一条</strong> 通信工程中外合作办学项目由我校与英国赫瑞-瓦特大学合作举办，2025年计划招生100人。报考学生的高考成绩达到所在省（自治区、直辖市）同批次录取控制线后，择优录取。录取考生入学注册后同时具有西安电子科技大学和英国赫瑞-瓦特大学学籍。本专业50%的专业核心课程由英方教师讲授。专业学制四年，采用“3+1”培养模式，完成全部四年学业（前三年在国内、第四年在英国）且达到授位条件的学生将被授予西安电子科技大学通信工程专业本科毕业证书和工学学士学位证书、英国赫瑞-瓦特大学通信工程专业工学学士学位证书。本专业全英文授课，建议非英语语种考生谨慎报考。经教育成本核算，由教育部批准，本项目学生前三学年在国内学习期间，学费为8万元/年；第四学年在英国学习期间，按照英国赫瑞-瓦特大学当年的国际学生标准缴纳学费，可参考2025年英国赫瑞-瓦特大学学费约2.25万英镑（学费每年度会有一定幅度上涨）。学生需另行自己承担在读期间的住宿费、教材费和学习、生活自主性消费支出。</p><p><strong>第二十二条</strong> 电子信息工程中外合作办学项目由我校与法国南特大学综合理工学院合作举办，2025年计划招生100人。报考学生的高考成绩达到所在省（自治区、直辖市）同批次录取控制线后，择优录取。在校学习期间，1/3以上的专业核心课程由法国教师承担，采用法文教材并实施法语授课。专业学制四年，完成学业要求且达到授位条件的学生将被授予西安电子科技大学电子信息工程专业本科毕业证书和工学学士学位证书。项目学生在校期间将接受三次赴法资格评审，评审通过者可在第四学年前往法国综合理工集团所属院校进行为期2年的法国工程师阶段学习（第四年学分与我校电子信息工程专业本科授位要求等同认定），达到法国毕业条件可获得法国工程师职衔委员会（CTI）颁发的工程师文凭。经教育成本核算，由教育部批准，本项目每学年的学费为7万元（无论第四学年是否赴法学习），其中不包括住宿费与教材费。学生在法国学习期间的学费根据法方的规定执行（目前法国综合理工集团免收学费），需自理每年给法方缴纳的注册费、住宿费和保险费等。</p><p><strong>第二十三条</strong> 数据科学与大数据技术中外合作办学项目由我校与英国赫瑞-瓦特大学合作举办，2025年计划招生120人。报考学生的高考成绩达到所在省（自治区、直辖市）同批次录取控制线后，择优录取。录取考生入学注册后同时具有西安电子科技大学和英国赫瑞-瓦特大学学籍。专业学制四年，采用“3+1”培养模式。完成全部四年学业（前三年在国内、第四年在英国）且达到授位条件的学生将被授予西安电子科技大学数据科学与大数据技术专业本科毕业证书和工学学士学位证书、英国赫瑞-瓦特大学数据科学与软件工程专业理学学士学位证书。本专业全英文授课，建议非英语语种考生谨慎报考。本项目依托我校“计算机科学与技术”双一流建设学科与ESI前万分之一学科的优势与英国赫瑞-瓦特大学国际化的教学科研资源办学。经教育成本核算，由教育部批准，本项目学生前三学年在国内学习期间，学费为8万元/年；第四学年在英国学习期间，按照英国赫瑞-瓦特大学当年的国际学生标准缴纳学费，可参考2025年英国赫瑞-瓦特大学学费约2.25万英镑（学费每年度会有一定幅度上涨）。学生需另行自己承担在读期间的住宿费、教材费和学习、生活自主性消费支出。</p><p><strong>第二十四条</strong> 大数据管理与应用中外合作办学项目由我校与美国弗吉尼亚理工大学合作举办，2025年计划招生120人。报考学生的高考成绩达到招生计划投放所在省（自治区、直辖市）同批次录取控制线后，择优录取。专业学制四年，采用“3+1”培养模式。完成全部四年学业（前三年在国内、第四年在美国）且达到授位条件的学生将被授予西安电子科技大学大数据管理与应用专业本科毕业证书和管理学学士学位证书、美国弗吉尼亚理工大学创业创新与技术管理专业商业管理理学学士学位证书。本专业全英文授课，1/3以上的专业核心课程由外籍教师讲授，第四年赴美升读英语水平要求较高，建议非英语语种考生谨慎报考。经教育成本核算，由教育部批准，本项目学生前三学年在国内学习期间，学费为6.8万元/年；第四年赴美学习期间，按6000元/年标准向西安电子科技大学缴纳学费，同时按弗吉尼亚理工大学当年的国际生标准向其缴纳学杂费。2025-2026学年美国弗吉尼亚理工大学中美合作办学项目秋、冬、春三学期学杂费约5.2万美元（美国大学学杂费标准每年度均会重新核定，一般会有一定幅度上涨）。赴美学习期间，学生需自行承担保险费、住宿费、教材费和生活自主性消费支出，约为2万美元。</p><p><strong>第二十五条</strong> 报考我校的考生可以通过各省级招生主管部门公布的查询方式查询本人的录取结果，也可以登录我校招生信息网https://zsb.xidian.edu.cn查询。</p><p style="text-align: center; font-size: 21px;"><span style="font-size: 21px;"><strong>第五章 附则</strong></span></p><p><strong>第二十六条 </strong>新生入学后，学校将依据教育部有关文件规定进行新生资格审查和身体复查，凡复查不合格的新生，将按照有关规定进行处理，直至取消入学资格。</p><p><strong>第二十七条</strong> 我校按照国家规定和陕西省物价局核准标准确定学费和住宿费标准。如果相关主管部门调整本年度本科生学费收费标准，我校将按照新规定收取学费。</p><p><strong>第二十八条 </strong>学校积极拓展资助渠道和形式，将解困与育人相结合，建立健全涵盖“奖、贷、助、补、勤、减、偿”等多项措施的精准化学生资助工作体系，秉承“经济资助，能力帮助”的双助理念，面向学生成长需求，从多维度对学生开展未来适应能力培训，全面助力家庭经济困难学生素质和能力的提升。</p><p><strong>第二十九条 </strong>我校招生咨询联系电话：029-88202335；传真：029-88204236；电子邮箱：zsb@mail.xidian.edu.cn；招生信息网址：https://zsb.xidian.edu.cn。学校纪检监察部门监督电话：029-81891725。</p><p><strong>第三十条 </strong>本章程由西安电子科技大学招生办公室负责解释，对于各种媒体节选公布的章程内容，如理解有误，以我校公布的完整的招生章程为准。</p><p><strong>第三十一条</strong> 本章程自公布之日起施行，原招生章程同时废止，如遇国家法律、法规、规章和上级有关政策变化，以变化后的规定为准。</p><p style="text-align: right;">西安电子科技大学招生办公室</p><p class="vsbcontent_end" style="text-align: right;">2025年5月29日</p>
+</div></div><div id="div_vote_id"></div>
+    
+    <p>
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1638859082&wbfileid=A6071F1CD95277A3D2F10C26414ABF3F">西安电子科技大学2025年招生专业体检标准.pdf</a>】已下载<span id="nattach16059747"><script language="javascript">getClickTimes(16059747,1638859082,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+    </p>
+    <div class="page">
+               <p><span>上一条：</span><a href="5973.htm">西安电子科技大学2025年艺术类专业招生简章</a></p>
+               <p><span>下一条：</span><a href="5713.htm">西安电子科技大学2025年第二学士学位招生简章</a></p>
+     </div>
+
+   </div>
+</form>
+</DIV></DIV></DIV></DIV></DIV><!-- end main --><!-- part3 start -->
+<DIV id="part3" class="w100">
+<DIV class="container">
+<DIV class="part3_con clearfix">
+
+<DIV class="part3_ewm fl">    
+
+<UL>
+<LI>
+<DIV class="pic"><IMG alt="" src="../../images/xxgzh_ewm.jpg"></DIV>
+<P class="title">西安电子科技大学</P></LI>
+<LI>
+<DIV class="pic"><IMG alt="" src="../../images/zbgzh_ewm.jpg"></DIV>
+<P class="title">西电招生办</P></LI>
+</UL></DIV>
+<DIV class="part3_lxwm fl">
+ <DIV class="lxwm">联系我们 <SPAN>/ Contact us </SPAN></DIV><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<div class="lxwm_txt">
+ <p>雁塔校区地址：西安市太白南路2号 邮编：710071</p>
+ <p>长安校区地址：西安市西沣路兴隆段266号 邮编：710126</p>
+ <p>招生咨询电话：（029）88202335 招生咨询传真：（029）88204236</p>
+ <p><span>E-mail：zsb@mail.xidian.edu.cn</span></p>
+</div>
+ </DIV>
+<DIV class="yq_links fl">
+<DIV class="yqlj">友情链接 <SPAN>/ links</SPAN></DIV>
+<DIV class="yqlj_list"><UL>
+    <LI><a href="http://www.moe.gov.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62053)">中华人民共和国教育部</a></li>
+    <LI><a href="https://gaokao.chsi.com.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62054)">阳光高考</a></li>
+    <LI><a href="http://www.sneea.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62055)">陕西省教育考试院</a></li>
+    <LI><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62056)">西安电子科技大学主页</a></li>
+</UL>
+
+</DIV></DIV>
+</DIV></DIV></DIV><!-- end part3 --><!-- footer start --><DIV id="footer" class="w100">
+<DIV class="container">
+<div class="middle">
+<div>
+<!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p style="margin-top: 10px">版权所有©2020西安电子科技大学本科招生办公室&nbsp; &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> 西安聚力</p>
+</div>
+<p>总访问量：<script language="javascript" src="../../_dwr/util.js"></script><script language="javascript" src="../../_dwr/interface/PageCounterDWR.js"></script><span id="a253699" name="a253699"></span>   
+
+<script>
+function getvisittimea253699()
+{       
+    PageCounterDWR.getVisittime('1638859082','1009','TOTAL_COUNTER','0','4',callbackdataa253699)
+}
+function callbackdataa253699(data)
+{
+    document.getElementById("a253699").innerHTML = data; 
+}
+getvisittimea253699();
+</script> | 今日访问量：<span id="a253700" name="a253700"></span>   
+
+<script>
+function getvisittimea253700()
+{       
+    PageCounterDWR.getVisittime('1638859082','1009','DATE_COUNTER','0','3',callbackdataa253700)
+}
+function callbackdataa253700(data)
+{
+    document.getElementById("a253700").innerHTML = data; 
+}
+getvisittimea253700();
+</script></p>
+
+</div>
+</DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

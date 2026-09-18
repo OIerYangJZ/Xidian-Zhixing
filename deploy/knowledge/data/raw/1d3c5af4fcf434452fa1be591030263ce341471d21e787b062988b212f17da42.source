@@ -1,0 +1,454 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>西安电子科技大学医院2025年在职及离退休职工健康体检通知-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="西安电子科技大学医院2025年在职及离退休职工健康体检通知">
+<META Name="keywords" Content="西安电子科技大学-校医院,离退休,医院,在职,职工,大学,科技,健康,电子,体检,西安,通知" />
+<META Name="description" Content="为落实学校“我为师生办实事”工作安排，校医院将于2025年3月3日开始2025年度在职及离退休职工健康体检工作。一、新增体检项目：眼科：裂隙灯检查、眼底照相、光学相干断层扫描检查（OCT）；放射科：胸部CT检查或胸部X线检查，任选一项。二、预约方式：网络预约、电话预约、现场预约方式同步进行。为确保每位职工顺利完成全部体检项目，每天预约人数不超过30人次。体检网络预约及体检结果查询流程详见2025年度在职及离退休职工健康体检网络预约流程。..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1109,'/content.jsp',3226,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../index/tjzt.htm">体检专题</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>西安电子科技大学医院2025年在职及离退休职工健康体检通知</h2>
+			<h3><span>作者：</span><span>时间：2025-02-27</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 3226)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">为落实学校“我为师生办实事”工作安排，校医院将于2025年3月3日开始2025年度在职及离退休职工健康体检工作。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">一、新增体检项目：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">眼科：裂隙灯检查、眼底照相、光学相干断层扫描检查（OCT）；</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">放射科：胸部CT检查或胸部X线检查，任选一项。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">二、预约方式：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">网络预约、电话预约、现场预约方式同步进行。为确保每位职工顺利完成全部体检项目，每天预约人数不超过30人次。体检网络预约及体检结果查询流程详见<a href="https://mp.weixin.qq.com/s/2Ya5Y6sBGFZN-Kn-GpWeoA" target="_self" title="2025年度在职及离退休职工健康体检网络预约流程">2025年度在职及离退休职工健康体检网络预约流程</a>。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">三、体检时段安排：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">春季学期体检时间：2025年3月3日-2025年7月25日，正常工作日上午8：00-11：20。秋季学期体检时间另行通知。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">四、体检项目及体检地点：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">所有体检项目均在北校区校医院进行。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">一楼放射科：胸部CT/胸部X线检查（自愿原则，任意选择一项）。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">二楼内走廊：内科查体室（内科：心肺听诊、测血压）、心电图、骨密度。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">二楼外走廊：检验科（抽血化验：肿瘤系列、肝功十项、空腹血糖、血脂四项、肾功三项、甲功五项、血常规）；眼科（裂隙灯检查、眼底照相、OCT）。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">三楼外走廊：B超室（肝胆胰脾、双肾、输尿管、膀胱、颈部血管、甲状腺、乳腺（女）、子宫附件（女）、前列腺（男）B超检查）；碳13呼气试验。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">四楼内走廊：妇科（妇科检查、液基细胞检查）。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">五、预约及体检流程：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1、网络预约：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2月27日起，在“西安电子科技大学”企业号预约。预约时限：30个工作日。预约成功后，请在预约日当天8:00-9:30至体检办公室（北校区医院二楼内走廊）领取个人体检单，并于当天按时参加体检。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2、电话预约：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2月27日起，工作日14:00-17:00，拨打体检办公室电话：88202743预约体检。预约成功后，请在预约日当天8:00-9:30至二楼体检办公室领取个人体检单（持本人身份证或一卡通），并于当天按时参加体检。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3、现场预约：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2月27日起，工作日14:00-17:00，至体检办公室现场预约体检。预约成功后，请在预约日当天8:00-9:30至二楼体检办公室领取个人体检单（持本人身份证或一卡通），并于当天按时参加体检。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">六、注意事项：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1.所有体检项目均在正常工作日上午8:00-11:20进行。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2.体检前三天注意饮食规律，限高脂、高蛋白饮食，避免发热、感冒、腹泻等。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3.体检当天需保持空腹状态8-12小时，可饮用少量水。慢性病患者可正常服用药物。妇科B超、前列腺B超需憋尿进行检查，查体时请穿着宽松、易穿脱衣服，勿穿着带有金属材质的上衣（含内衣）。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">4.抽血后，请压迫针孔3-5分钟，切记不能揉搓。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">5.抽血结束后，所有体检项目不分先后，体检人员可根据人流量自行安排。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">6.胸部CT检查或胸部X线检查均为筛查肺部疾患的检查手段，体检人员可根据自身情况，选择一种进行检查。为避免辐射过量，切勿进行重复检查。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">7.本年度不再统一发放纸质体检报告。所有体检人员均可在体检结束后10-15个工作日，在学校企业号里自行查看、下载体检报告。如需要纸质体检报告，在体检三周后可到体检办公室打印纸质报告。时间：每个工作日下午。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">8.为避免人员聚集，请各位老师务必根据预约时间按时前来。体检预约成功后，如有时间改变，请务必通过原预约方式取消。如无故爽约三次，系统将列入黑名单，无法再次预约体检。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">9.本次体检名单由学校人事处、离退休办提供，如身份证号码、手机号码错误，可能无法实现手机预约、查询、下载体检报告，请通过电话或现场预约方式预约及领取体检报告。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">10.所有体检项目原则上应于预约当日完成，如确有特殊情况，请在体检当日到体检办公室登记。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">11.校医院为参加体检人员提供免费早餐，请体检人员结束所有体检项目后，至体检办公室登记并领取早餐。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;"><br></span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">体检办公室地址：北校区医院二楼内走廊</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">咨询电话：88202743</span></p><p><br></p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le"></span>
+        <span class="bo-le fl">下一条：<a href="3106.htm">关于停止2024年度在职教职工、离退休人员体检服务的通知</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

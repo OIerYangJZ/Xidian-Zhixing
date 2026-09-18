@@ -1,0 +1,345 @@
+﻿<!DOCTYPE html>
+<HTML><HEAD><TITLE>新生书院开展“互联网+”大学生创新创业大赛经验分享会- 西安电子科技大学-党委学生工作部/学生工作处</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="新生书院开展“互联网+”大学生创新创业大赛经验分享会">
+<META Name="keywords" Content="西安电子科技大学,党委学生工作部/学生工作处,新生,书院,开展,互联网,互联,联网,大学生,大学,学生,创新,新创,创业,业大,大赛,经验,分享" />
+<META Name="description" Content=" 为拓展大一新生学习视野，鼓励和引领新生积极参与各类科创竞赛，为未来的专业学习和学涯规划做好准备充分的规划，12月20日下午，新生书院于B楼423开展“互联网+”大学生创新创业大赛经验分享会，本次活动邀请2020级人工智能学院的后胜涛进行分享，222名大一新生参加。后胜涛在宣讲会伊始，首先向新生书院的同学们介绍了自己在刚参加“互联网+”大学生创新创业竞赛时的想法，通过他的经历和目标鼓励同学们多思考，联系有相关研..." />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/super.js"></script><LINK rel="stylesheet" type="text/css" href="../../style/style.css" media="all">
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1034,'/content.jsp',11372,1370093333)</script>
+</HEAD>
+<BODY><!-- 头部开始 -->
+<DIV id="header">
+<DIV id="top">
+<DIV class="w cl">
+<DIV class="f fl">&nbsp; </DIV>
+<DIV class="f fr cl"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><div class="frr">
+    <ul>
+      <li class="line"><a href="http://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34050)">学校主页</a></li>
+      <li><a href="javascript:void(0)" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34052)">欢迎访问西安电子科技大学-党委学生工作部/学生工作处网站！</a></li>
+    </ul>
+</div></DIV></DIV><!--.w--></DIV><!--/top-->
+<DIV id="mid">
+<DIV class="logo w" style="overflow: hidden">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="学工处" style="float:left;"><img src="../../images/xgc_logo.png" width="742" height="67" border="0" alt="学工处" title="学工处"></a><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+ <table border='0' cellspacing="1" cellpadding="0" style="float:right;margin-top:57px;">
+  <tr>
+      <td>
+       <input size='12' style="height:28px;line-height:28px;background:url(../../images/inputtxtbg.png);border:none;width:174px;padding-left:15px;" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" >
+   </td>
+   <td align="absmiddle" nowrap="nowrap" height="1">
+       <input type="image" src="../../images/search-icon.png" align="absmiddle" valign="bottom" style="cursor: hand" value="" v-on:click="onSubmit()"/>
+   </td>
+  </tr>
+ </table>
+        </div>
+        
+        
+
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1370093333";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1370093333";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV><!--.logo--></DIV><!--/mid-->
+<DIV id="bot"><!--.nav 菜单开始-->
+<DIV class="nav w">
+<UL class="cl">
+<LI><A href="../../index.htm">网站首页</A> 
+
+<LI><A href="../../bmjs.htm">部门介绍</A> 
+<UL>
+<LI><A href="../../bmjs/ldfg.htm">领导分工</A></LI>
+<LI><A href="../../bmjs/bmjj.htm">部门简介</A></LI>
+<LI><A href="../../bmjs/jgsz.htm">机构设置</A></LI>
+</UL></LI>
+
+<LI><A href="../../gzzd.htm">规章制度</A> 
+<UL>
+<LI><A href="../../gzzd/gjfg.htm">国家法规</A></LI>
+<LI><A href="../../gzzd/xxgz.htm">学校规章</A></LI>
+</UL></LI>
+
+<LI><A href="../../tzgg1.htm">通知公告</A> 
+
+<LI><A href="../../xgyw.htm">学工要闻</A> 
+
+<LI><A href="../../xydt.htm">学院动态</A> 
+
+<LI><A href="../../bszn.htm">办事指南</A> 
+
+<LI><A href="../../bszn1.htm">下载专区</A> 
+
+</UL></DIV><!--.nav 菜单结束--></DIV><!--/bot--></DIV><!-- 头部结束 -->
+<DIV><img src="../../images/list-banner.png" width="100%" height="305" /></DIV><!-- main部分开始 -->
+<DIV class="main cl">
+<DIV class="kuaiXun">
+<DIV class="biaoTi"><span class="ico">
+    当前位置: 
+                        <a href="../../index.htm">网站首页</a>
+                >>
+                <a href="../../xydt.htm">学院动态</a>
+                >>
+                正文
+</span></DIV><!--biaoTi-->
+<DIV class="kuaiXun-con">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div style="min-height:300px;">
+    <h1 align="center">新生书院开展“互联网+”大学生创新创业大赛经验分享会</h1>
+    <div align="center" style="line-height:60px;color:#aaa;">时间：2023-12-24&nbsp;&nbsp;阅读次数：<script>_showDynClicks("wbnews", 1370093333, 11372)</script>&nbsp;</div>
+    <div id="vsb_content" style="line-height:24px;"><div class="v_news_content">
+<style><!--  /* Font Definitions */  @font-face {font-family:宋体; panose-1:2 1 6 0 3 1 1 1 1 1;} @font-face {font-family:"Cambria Math"; panose-1:2 4 5 3 5 4 6 3 2 4;} @font-face {font-family:Calibri; panose-1:2 15 5 2 2 2 4 3 2 4;} @font-face {font-family:微软雅黑; panose-1:2 11 5 3 2 2 4 2 2 4;} @font-face {font-family:"\@微软雅黑"; panose-1:2 11 5 3 2 2 4 2 2 4;} @font-face {font-family:"\@宋体"; panose-1:2 1 6 0 3 1 1 1 1 1;}  /* Style Definitions */  p.MsoNormal, li.MsoNormal, div.MsoNormal {margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:10.5pt; font-family:"Calibri","sans-serif";} a:link, span.MsoHyperlink {color:blue; text-decoration:underline;} a:visited, span.MsoHyperlinkFollowed {color:#7E1FAD; text-decoration:underline;} p {margin-right:0cm; margin-left:0cm; font-size:12.0pt; font-family:"Calibri","sans-serif";} p.MsoAcetate, li.MsoAcetate, div.MsoAcetate {mso-style-link:"批注框文本 Char"; margin:0cm; margin-bottom:.0001pt; text-align:justify; text-justify:inter-ideograph; font-size:9.0pt; font-family:"Calibri","sans-serif";} p.Style6, li.Style6, div.Style6 {mso-style-name:"_Style 6"; margin:0cm; margin-bottom:.0001pt; text-align:center; border:none; padding:0cm; font-size:8.0pt; font-family:"Arial","sans-serif"; display:none;} p.Style7, li.Style7, div.Style7 {mso-style-name:"_Style 7"; margin:0cm; margin-bottom:.0001pt; text-align:center; border:none; padding:0cm; font-size:8.0pt; font-family:"Arial","sans-serif"; display:none;} p.a, li.a, div.a {mso-style-name:""; margin:0cm; margin-bottom:.0001pt; text-align:center; border:none; padding:0cm; font-size:8.0pt; font-family:"Arial","sans-serif"; display:none;} p.a0, li.a0, div.a0 {mso-style-name:""; margin:0cm; margin-bottom:.0001pt; text-align:center; border:none; padding:0cm; font-size:8.0pt; font-family:"Arial","sans-serif"; display:none;} span.Char {mso-style-name:"批注框文本 Char"; mso-style-link:批注框文本; font-family:"Calibri","sans-serif";} .MsoChpDefault {font-size:10.0pt;} @page Section1 {size:595.3pt 841.9pt; margin:72.0pt 90.0pt 72.0pt 90.0pt; vsb_temp:15.6pt;} div.Section1 {page:Section1;} --></style>
+<div class="Section1" style="vsb_temp: 15.6pt;">
+ <p style="background: white; text-align: left; line-height: 2em;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 9.5pt;">&nbsp;<span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">为拓展大一新生学习视野，鼓励和引领新生积极参与各类科创竞赛，为未来的专业学习和学涯规划做好准备充分的规划，12月20日下午，新生书院于B楼423开展“互联网+”大学生创新创业大赛经验分享会，本次活动邀请2020级人工智能学院的后胜涛进行分享，222名大一新生参加。</span></span></p>
+ <p style="margin: 6pt 0cm; text-align: center; line-height: 2em;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;"><img width="620" height="412" id="图片 1" alt="IMG_256" src="/__local/E/0D/42/31D91EC9DC2ABCD348D389D6269_EF76ADED_9BC6.jpg" border="0" vsbhref="vurl" vurl="/_vsl/E0D4231D91EC9DC2ABCD348D389D6269/EF76ADED/9BC6" vheight="412" vwidth="620" orisrc="/__local/E/0D/42/31D91EC9DC2ABCD348D389D6269_EF76ADED_9BC6.jpg" class="img_vsb_content"></span></p>
+ <p style="margin: 6pt 0cm; line-height: 2em; text-indent: 21pt;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">后胜涛在宣讲会伊始，首先向新生书院的同学们介绍了自己在刚参加“互联网+”大学生创新创业竞赛时的想法，通过他的经历和目标鼓励同学们多思考，联系有相关研究方向的老师去实现自己的梦想。</span></p>
+ <p style="margin: 6pt 0cm; line-height: 2em; text-indent: 21pt;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">随后对于“怎么参加大学生创新创业训练计划、活动时间是多长”等问题，后胜涛提出了自己的见解。他总结到，大创有“时间长”，“压力小”，“队伍精”，“经费足”的特点，比赛赛道有“创新训练赛道“”，“创业训练赛道”和“创业实践赛道”三种可以选择，后胜涛提出，其中本科生最常参加的赛道是创新训练赛道，它可以锻炼大学生们分析问题，解决问题的能力。</span></p>
+ <p style="margin: 6pt 0cm; line-height: 2em; text-indent: 21pt;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">后胜涛告诉同学们，“互联网+”是西电参与最多、影响力也最大的双创类比赛。在这个比赛中同学们可以收获丰富的项目经历和学习经验。与“大学生创新创业训练计划”不同，“互联网+”注重商业应用价值，项目需要具有新颖的技术，实用的产品，合理的商业模式。赛道分为主赛道，产业赛道和红旅赛道。</span></p>
+ <p style="margin: 6pt 0cm; line-height: 2em; text-indent: 21pt;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">宣讲结束后，同学们积极向后胜涛提出问题，包括如何进入老师的实验室，怎么构建一个可以商业化的项目，大一期间需要做些什么，来为未来的竞赛打下基础等问题。后胜涛耐心地给同学们进行解答。同时，后胜涛鼓励同学们在大一的时候打好C语言、高数等知识的基础，为今后的学习和创新竞赛做好充分准备。他也提到，想要和得到之间只差一个做到，同学们一定要积极将自己的想法付诸于实践。</span></p>
+ <p style="margin: 6pt 0cm; text-align: center; line-height: 2em;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;"><img width="620" height="412" id="图片 2" alt="IMG_257" src="/__local/F/E1/E7/9836B14636DDB81E8EB63534591_E1FFB5C1_5BDE.jpg" border="0" vsbhref="vurl" vurl="/_vsl/FE1E79836B14636DDB81E8EB63534591/E1FFB5C1/5BDE" vheight="412" vwidth="620" orisrc="/__local/F/E1/E7/9836B14636DDB81E8EB63534591_E1FFB5C1_5BDE.jpg" class="img_vsb_content"></span></p>
+ <p style="margin: 6pt 0cm; line-height: 2em; text-indent: 21pt;"><span style="background: white; color: rgb(34, 34, 34); font-family: 宋体; font-size: 16px;">这次活动不仅开放了同学们的眼界，帮助同学们走近并了解了“互联网+”大赛，同时也为有兴趣参与的同学提供了思路和规划的参照，明确了今后学习和努力的方向。据悉，书院将会继续举办科创宣讲和课后相关实践活动，助力同学们全面发展、落实书院科创育人工作。</span></p>
+ <div style="border-width: 1pt medium medium; border-style: solid none none; border-color: rgb(0, 0, 0) #000000 #000000; padding: 1pt 0cm 0cm; border-image: none;">
+  <p class="a0"><span style="font-family: 宋体;">窗体底端</span></p>
+  <br>
+ </div>
+</div>
+</div></div><div id="div_vote_id"></div>
+        <p align="right">
+        上一条：<a href="11371.htm">新生书院组织入党积极分子参观八路军西安办事处纪念馆</a>
+        下一条：<a href="11368.htm">为心赋能：人文学院开展“焦虑情绪管理”心理团体辅导活动</a>
+    </p>
+    <p align="right">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+
+</DIV><!--kuaiXun--></DIV></DIV><!-- main部分结束 --><!-- 底部开始 -->
+<DIV id="footer">
+<DIV class="w cl">
+<DIV class="f fl"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p><p>
+    <span class="banquan">版权所有©西安电子科技大学党委学生工作部/学生工作处</span><span class="adress">地址：西安市西沣路兴隆段266号</span>
+</p>
+<p>
+    电话：029-81891096
+</p>
+<p>
+    技术支持：<a href="#" target="_blank">西安聚力</a>
+</p></p></DIV>
+<DIV class="f fr cl">    <div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="../../images/xuegong.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学工</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="../../images/xdxsjz.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学生奖助</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="../../images/jiuye.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电科大就业中心</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="../../images/hsmzdb.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">红色民族电波</p>
+</div>
+</DIV></DIV></DIV><!-- 底部结束 -->
+<DIV></DIV>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,456 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>校医院举办2026年度退休人员荣休仪式-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="校医院举办2026年度退休人员荣休仪式">
+<META Name="keywords" Content="西安电子科技大学-校医院,退休,人员,年度,举办,荣,休,医院,校,仪式" />
+<META Name="description" Content="为致敬深耕岗位、默默奉献的退休前辈，传承敬业担当的优良工作作风，7月15日上午，校医院分会为2026年度退休人员刘丽萍同志举办荣休仪式。活动由杨蕾副院长主持，校医院领导班子、相关科室负责人及医护代表参加。活动伊始，杨蕾同志发表致辞。她简要回顾了刘老师多年来立足岗位、深耕履职的工作历程，对刘老师始终恪尽职守、勤勉务实的工作态度给予充分肯定，感谢其为单位发展付出的辛勤努力与无私奉献。随后，刘老师结合自身多年工作经历分享感悟与体会。..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1010,'/content.jsp',4426,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../ywgk.htm">院务公开</a>
+                <em>&gt;</em>
+                <a href="../../ywgk/yydt.htm">医院动态</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>校医院举办2026年度退休人员荣休仪式</h2>
+			<h3><span>作者：</span><span>时间：2026-07-22</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 4426)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">为致敬深耕岗位、默默奉献的退休前辈，传承敬业担当的优良工作作风，7月15日上午，校医院分会为2026年度退休人员刘丽萍同志举办荣休仪式。活动由杨蕾副院长主持，校医院领导班子、相关科室负责人及医护代表参加。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">活动伊始，杨蕾同志发表致辞。她简要回顾了刘老师多年来立足岗位、深耕履职的工作历程，对刘老师始终恪尽职守、勤勉务实的工作态度给予充分肯定，感谢其为单位发展付出的辛勤努力与无私奉献。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">随后，刘老师结合自身多年工作经历分享感悟与体会。回首几十年履职生涯，她娓娓道来工作中的点滴经历、成长收获与履职心得，言语间饱含对岗位的热爱、对同事的不舍以及对医院的深厚情怀，朴实真诚的分享让在场同事深受触动。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">仪式现场，李平平院长为刘老师颁发荣休证书，致敬她几十年的默默奉献。紧接着，医护代表向刘老师献上鲜花，以诚挚的心意表达对前辈的尊敬与美好祝福。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">在交流发言环节，与会人员纷纷踊跃发言。大家结合日常工作相处点滴，回忆与刘老师共事的点点滴滴，由衷称赞她工作认真负责、坚守岗位、业务技术精湛，始终以身作则、率先垂范，是大家学习的榜样。大家同时暖心寄语，希望刘老师退休之后保重身体、乐享生活，常回医院看看，继续关心和支持医院的发展。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">最后，党总支书记郭彤总结发言。她再次对刘老师多年以来的辛勤付出和卓越贡献表示衷心感谢，充分肯定了她严谨务实的工作作风、精益求精的专业素养和甘于奉献的职业精神。她表示，前辈的坚守与担当是医院的宝贵财富，大家要以刘老师为榜样，传承敬业履职、踏实奋进的工作作风，立足本职、担当作为，持续推动各项工作稳步前行。同时，也祝愿刘老师退休生活舒心顺遂、安康喜乐。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;"></span></p><p style="text-align: center"><img src="/__local/B/13/05/44306A6FA2366B1EAB2930C6C20_C98059B0_516B6.jpg" width="573" height="384" vsbhref="vurl" vurl="/_vsl/B130544306A6FA2366B1EAB2930C6C20/C98059B0/516B6" vheight=" 384px" vwidth=" 573px" orisrc="/__local/C/8F/B4/AAADCCD3BD5F5E1440EACB288E8_1F636117_2AE18E.jpg" class="img_vsb_content" style="width: 573px; height: 384px;"></p><p style="text-indent: 2em; font-size: 21px; line-height: 1.75em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">仪式最后，大家共同合影留念，定格温馨瞬间，为本次荣休仪式圆满收尾。此次荣休仪式不仅是对退休前辈职业生涯的肯定与致敬，更凝聚了团队力量，激励全体职工不忘初心、砥砺前行。</span></p><p><br></p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le"></span>
+        <span class="bo-le fl">下一条：<a href="4386.htm">校医院组织收看中国共产党成立105周年大会直播</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

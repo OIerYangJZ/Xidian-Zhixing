@@ -1,0 +1,463 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>校医院加压冷热敷仪自行采购项目公告-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="校医院加压冷热敷仪自行采购项目公告">
+<META Name="keywords" Content="西安电子科技大学-校医院,仪,热敷,冷,自行,加压,采购,医院,项目,公告,校" />
+<META Name="description" Content="一、项目名称:校医院加压冷热敷仪自行采购项目二、数量：1台三、预算金额：3.8万元四、报名时间：2026年7月20日--2026年7月22日五、交付时间：合同签订后10日内六、交付地址：医院指定地点七、技术参数1.适用范围：在医生的指导下，该产品主要适用于对患者局部冷敷或者热敷。2.设备操作屏幕：≥采用12.1英寸液晶触摸屏，显示参数全面，操作方便。3.屏幕具有液位显示功能。4.设备工作时，屏幕有运行指示闪烁。5.制冷技术：采用医用级半导体制冷和制热技术。..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1011,'/content.jsp',4396,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../ywgk.htm">院务公开</a>
+                <em>&gt;</em>
+                <a href="../../ywgk/tzgg.htm">通知公告</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>校医院加压冷热敷仪自行采购项目公告</h2>
+			<h3><span>作者：</span><span>时间：2026-07-20</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 4396)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">一、项目名称:校医院加压冷热敷仪自行采购项目</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">二、数量：1台</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">三、预算金额：3.8万元</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">四、报名时间：2026年7月20日--2026年7月22日</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">五、交付时间：合同签订后10日内</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">六、交付地址：医院指定地点</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">七、技术参数</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1.适用范围：在医生的指导下，该产品主要适用于对患者局部冷敷或者热敷。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2.设备操作屏幕：≥采用12.1英寸液晶触摸屏，显示参数全面，操作方便。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3.屏幕具有液位显示功能。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">4.设备工作时，屏幕有运行指示闪烁。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">5.制冷技术：采用医用级半导体制冷和制热技术。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">6.设备采用紫铜水冷散热方式，制冷和制热速度快。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">*7.冷敷温度设定范围：1℃～30℃，温度步进调节：0.5℃。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">8.热敷温度设定范围：30℃～42℃，温度步进调节：0.5℃。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">9.工作状态下平均制冷速率：≥5℃/min。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">*10.工作状态下平均制热速率：≥10℃/min。（提供MA检验报告）</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">11.体温传感器测量范围：28℃～43℃；允差±0.5℃。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">12.治疗定时时间可调，范围1min～1000min，步进1min。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">*13.具有多种加压模式：≥9种加压模式。（提供MA检验报告）</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">14.具有持续模式：≥9种持续模式。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">*15.最大加压压力：≥70KPa。（提供MA检验报告）</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">16.产品具有音乐治疗功能。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">17.产品具有计次功能，可单独设定工作时间、间歇时间和使用次数。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">18. 产品制冷模组可单独拆出维修；风扇模组可单独移出清理灰尘。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">19. 显示实时液位。可以对音量、音效、背光亮度、报警时长、系统时间、恢复出厂、用户信息进行设置，可以查看机箱内环境温度、系统软件版本。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">20.当传感器检测到故障时，可以语音告知。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">八、售后服务体系</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1.供应商有厂家认可的售后服务团队，有专职工程师提供24小时的技术及售后服务；</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2.整机质保期3年。质保期内，免费更换配件，免费上门维修。质保期外维修只收取配件费，免上门费。保修期售后服务结束后，需继续提供售后服务，售后服务的响应时间同保修期内的售后服务响应时间。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3.设备终身维护升级。西安本地需有备件库及维修站点。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">4.免费进行全面的现场技术操作培训，直到所有参加培训的人员能独立熟练操作使用设备。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">5.仪器出现故障后，1小时内响应，在电话热线支持不能解决问题时在8小时内工程师到现场提供服务，直到解决问题。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">6.如不能解决的，当天给予相应产品替代更换保证设备运行正常。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">7.每年至少1-2次对仪器进行全面维护检测、保养。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">九、供应商资格</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1. 具有独立法人资格及医疗器械经营许可证</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2. 提供设备原厂授权书及售后服务承诺函。 &nbsp;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3. 无重大质量或商业纠纷记录。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十、报名方式（供应商需提供以下资料）</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1.提供法定代表人授权书及被授权人身份证复印件(如报名人为法人本人则需提供代表本公司报名的函件。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2.营业执照或事业单位法人证书复印件加盖公章;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3.提供厂家资质、医疗器械注册证、经营范围包含医疗设备维修的相关证明;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">4.法定代表人授权委托书复印件加盖公章，生产厂家的授权书或代理证书;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">5.报价清单;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">6.企业注册资金、财务经营及业绩、经营或社会荣誉（提供相应证明材料）情况等;</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">7.业绩一览表见附件。业绩需附合同方为有效业绩。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十一、本公告仅在校医院网站发布，未经授权的转载及由此给供应商带来的损失，校医院办公室概不负责。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十二、供应商报名及采购文件、资料获取地址</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">供应商报名、获取采购文件及其他资料的唯一地址为北校区医院办公室。</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十三、递交采购文件截止时间：2026年7月22日&nbsp; &nbsp; 17:30</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十四、采购时间：2026年7月24日&nbsp; &nbsp;14:40</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十五、咨询方式：029--88202728</span></p><p style="text-indent: 2em; font-size: 21px; text-align: justify; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">十六、其它相关具体操作程序另行通知，未尽事宜以采购文件为准。</span></p><p><br></p><p style="text-indent: 2em; font-size: 21px; text-align: right; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">西安电子科技大学医院办公室</span></p><p style="text-indent: 2em; font-size: 21px; text-align: right; line-height: 2em; margin-bottom: 5px; margin-top: 5px;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2026年7月20日</span></p><p><br></p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+    <p>
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1827564999&wbfileid=64EFBD9B2D1A74645E9DA57270D58955" target="_blank">附件1  业绩一览表.docx</a>】已下载<span id="nattach18313739"><script language="javascript">getClickTimes(18313739,1827564999,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1827564999&wbfileid=5813A183BAB5C3FA86B7B60A58D0075C" target="_blank">附件2 分项报价一览表.docx</a>】已下载<span id="nattach18313740"><script language="javascript">getClickTimes(18313740,1827564999,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+    </p>
+
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le"></span>
+        <span class="bo-le fl">下一条：<a href="4376.htm">校医院中医科、眼科、耳鼻喉科、口腔科医生招聘公告</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
