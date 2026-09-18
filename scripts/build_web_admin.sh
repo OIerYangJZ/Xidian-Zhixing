@@ -2,9 +2,11 @@
 # scripts/build_web_admin.sh
 # 管理后台专用 Web 构建。
 #
-# 公开的 build_web_production.sh 不带 ENABLE_ADMIN_CONSOLE，因此那份产物里
-# 完全没有后台代码（dart2js 会把整棵管理台子树剪掉）。这份产物是唯一带
-# 后台的，务必与公开站点分开发布，不要覆盖 build/web。
+# build_web_production.sh 现在默认 ENABLE_ADMIN_CONSOLE=true，所以公开产物里
+# 已经带后台，登录页底部的入口就是它。这份脚本用于另一种部署方式：公开产物用
+# ENABLE_ADMIN_CONSOLE=false 构建（dart2js 会把整棵管理台子树剪掉），后台单独
+# 出一份产物、发布到独立域名或受限路径。两种方式只能选一种，用哪种都不要把
+# build/web-admin 覆盖到 build/web 或放进 BACKEND_WEB_ROOT。
 #
 # 使用方式：
 #   ./build_web_admin.sh

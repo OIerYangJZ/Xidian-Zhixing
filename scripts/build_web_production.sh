@@ -46,9 +46,20 @@ echo "[build] Running flutter build web..."
 # it from https://www.gstatic.com at runtime.  That removes a third-party
 # dependency from every page load (availability + supply chain) and is what
 # lets the nginx Content-Security-Policy drop its gstatic allowance.
+# The backoffice ships with the public bundle: the admin sign-in link at the
+# bottom of the login page is the intended entry, and a handful of admins have
+# no separate host to reach. Authorization is unaffected either way -- every
+# /api/admin route checks _require_admin server side, and the login endpoint is
+# throttled per IP and per username before credentials are touched. Set this to
+# false to withhold the console from the public bundle again, in which case
+# build_web_admin.sh produces a separate bundle that carries it.
+ENABLE_ADMIN_CONSOLE="${ENABLE_ADMIN_CONSOLE:-true}"
+echo "[build] ADMIN CONSOLE: $ENABLE_ADMIN_CONSOLE"
+
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" build web --release \
     --no-web-resources-cdn \
     --dart-define=API_BASE_URL=/api \
+    --dart-define=ENABLE_ADMIN_CONSOLE="$ENABLE_ADMIN_CONSOLE" \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")
 
