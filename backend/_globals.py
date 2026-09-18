@@ -136,6 +136,11 @@ IP_RATE_LIMITS: dict[str, dict[str, Any]] = {}
 ALLOWED_IMAGE_TYPES: set[str] = set()
 
 RATE_LIMIT_EVENT_MAX = 300
+# Repeatedly exhausting the hourly browsing ceiling is scripted traffic, not a
+# fast reader: 500 posts an hour is already far beyond reading them. Three such
+# hours inside five ends the session rather than rate-limiting it forever.
+VIEW_BREACH_WINDOW_SECONDS = 5 * 3600
+VIEW_BREACH_FORCE_LOGOUT_THRESHOLD = 3
 RATE_LIMIT_SUBJECT_MAX = 20_000
 NOTIFICATION_MAX_PER_USER = 500
 SPAM_REPEAT_REGEX: re.Pattern | None = None
@@ -253,6 +258,11 @@ def configure() -> None:
         "aiChatRateLimit": 30,
         "aiSearchRateLimit": 60,
         "interactionRateLimit": 60,
+        # Browsing is the highest-frequency authenticated action, so it gets its
+        # own pair of windows instead of borrowing the interaction budget: a
+        # burst ceiling per minute and a sustained ceiling per hour.
+        "viewRateLimit": 20,
+        "viewHourlyRateLimit": 500,
     })
     DEFAULT_SENSITIVE_WORDS[:] = ["引流", "广告", "辱骂", "诈骗"]
 
@@ -321,6 +331,13 @@ def configure() -> None:
         "ai_chat": 3600,
         "ai_search": 3600,
         "interaction": 3600,
+        "view": 60,
+        "view_hourly": 3600,
+        # Holds the hourly-ceiling breaches that drive the forced logout below.
+        # The pruner trims every bucket to its own action's window, so this has
+        # to be registered or breaches would be discarded after an hour and the
+        # escalation could never accumulate.
+        "view_hourly_breach": VIEW_BREACH_WINDOW_SECONDS,
     })
     IP_RATE_LIMITS.clear()
     IP_RATE_LIMITS.update({

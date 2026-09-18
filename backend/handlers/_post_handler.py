@@ -26,6 +26,7 @@ Post, comment, report, favorite, like, and appeal endpoints:
 from __future__ import annotations
 
 import copy
+import logging
 import re
 from typing import Any
 
@@ -37,7 +38,10 @@ from object_storage import delete_objects_with_backups, restore_object_backups
 from helpers import (
     assess_text_risk,
     check_ip_rate_limit,
+    clear_rate_limit_breaches,
     consume_rate_limit,
+    get_client_ip,
+    record_rate_limit_breach,
     is_campus_email,
     json_error,
     now_iso,
@@ -85,6 +89,8 @@ from services import (
 
 _MAX_POST_TITLE_CHARS = 200
 _MAX_POST_CONTENT_CHARS = 10_000
+logger = logging.getLogger("treehole.posts")
+
 _MAX_MARKDOWN_SOURCE_CHARS = 20_000
 _MAX_COMMENT_CHARS = 2_000
 _MAX_TAGS = 10
@@ -1323,6 +1329,52 @@ def handle_toggle_favorite(
     send_json(handler, HTTPStatus.OK, {"data": {"favorited": favorited, "likeCount": like_count, "favoriteCount": favorite_count}})
 
 
+def _force_logout_for_view_abuse(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    viewer: dict[str, Any],
+    breaches: int,
+) -> None:
+    """Drop every session for a viewer that keeps exhausting the hourly ceiling.
+
+    All of the account's tokens go, not just the calling one, so the account is
+    signed out on every client rather than moving to whichever one still holds
+    a token. Answered 401 because that is what the clients already treat as a
+    dead session, and after this call it is literally true.
+    """
+    viewer_user_id = str(viewer.get("id", ""))
+    revoked = 0
+    for token, session_user_id in list(db.get("sessions", {}).items()):
+        if session_user_id == viewer_user_id:
+            db["sessions"].pop(token, None)
+            revoked += 1
+    # The breaches have been acted on. Leaving them would sign the account out
+    # again on its next request, before it could accumulate anything new.
+    clear_rate_limit_breaches(viewer_user_id, "view_hourly_breach")
+    detail = (
+        f"{_globals.VIEW_BREACH_WINDOW_SECONDS // 3600} 小时内第 {breaches} 次触达每小时浏览上限，"
+        f"已撤销 {revoked} 个会话"
+    )
+    add_audit_log(db, viewer_user_id, "force_logout_view_abuse", detail)
+    save_db(db)
+    logger.warning(
+        "forced logout after repeated view rate limit breaches",
+        extra={"structured": {
+            "event": "view_abuse_force_logout",
+            "userId": viewer_user_id,
+            "breaches": breaches,
+            "windowSeconds": _globals.VIEW_BREACH_WINDOW_SECONDS,
+            "revokedSessions": revoked,
+            "clientIp": get_client_ip(handler),
+        }},
+    )
+    json_error(
+        handler,
+        HTTPStatus.UNAUTHORIZED,
+        "浏览行为异常，账号已被强制登出，请重新登录",
+    )
+
+
 def handle_increment_view(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -1333,14 +1385,36 @@ def handle_increment_view(
     if viewer is None:
         return
     viewer_user_id = str(viewer.get("id", ""))
+    # Every client reaches this one route, so both ceilings and the escalation
+    # apply identically to the miniprogram, the app and the web build.
     allowed, retry_after = consume_rate_limit(
         db,
         user_id=viewer_user_id,
         action="view",
-        setting_key="interactionRateLimit",
-        default_limit=max(60, int(_globals.DEFAULT_SETTINGS["interactionRateLimit"])),
+        setting_key="viewRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["viewRateLimit"]),
     )
     if not allowed:
+        # A request refused by the burst ceiling was never served, so it must
+        # not also spend the hourly budget or count toward the escalation.
+        send_rate_limit_error(
+            handler,
+            action_text="浏览帖子",
+            retry_after_seconds=retry_after,
+        )
+        return
+    allowed, retry_after = consume_rate_limit(
+        db,
+        user_id=viewer_user_id,
+        action="view_hourly",
+        setting_key="viewHourlyRateLimit",
+        default_limit=int(_globals.DEFAULT_SETTINGS["viewHourlyRateLimit"]),
+    )
+    if not allowed:
+        breaches = record_rate_limit_breach(viewer_user_id, "view_hourly_breach")
+        if breaches >= _globals.VIEW_BREACH_FORCE_LOGOUT_THRESHOLD:
+            _force_logout_for_view_abuse(handler, db, viewer, breaches)
+            return
         send_rate_limit_error(
             handler,
             action_text="浏览帖子",

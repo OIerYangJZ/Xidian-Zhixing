@@ -1862,3 +1862,123 @@ def test_view_increment_uses_an_existing_rate_limit_setting(
     assert handler.status_code == HTTPStatus.OK
     assert db["posts"][0]["viewCount"] == 1
     assert handler.payload()["data"]["viewCount"] == 1
+
+
+def _view_db_with_viewer(viewer_id: str = "view-limit-user"):
+    from services._db_service import default_db
+
+    db = default_db()
+    viewer = _user(viewer_id, "2500111@stu.xidian.edu.cn")
+    db["users"].append(viewer)
+    db["posts"] = [{"id": "p1", "deleted": False, "viewCount": 0}]
+    db["sessions"] = {"tok-web": viewer_id, "tok-app": viewer_id, "tok-mini": viewer_id}
+    return db, viewer
+
+
+def _drain_view_quota(db, viewer, monkeypatch, count: int) -> list[int]:
+    from handlers import _post_handler
+
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: viewer)
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+    statuses = []
+    for _ in range(count):
+        handler = FakeJsonHandler()
+        _post_handler.handle_increment_view(handler, db, "p1")
+        statuses.append(handler.status_code)
+    return statuses
+
+
+def test_view_burst_ceiling_is_twenty_per_minute(monkeypatch: pytest.MonkeyPatch) -> None:
+    import _globals
+    from helpers import clear_rate_limit_breaches
+
+    _globals.RATE_LIMIT_EVENTS.clear()
+    clear_rate_limit_breaches("view-limit-user", "view_hourly_breach")
+    db, viewer = _view_db_with_viewer()
+
+    statuses = _drain_view_quota(db, viewer, monkeypatch, 21)
+
+    assert statuses[:20] == [HTTPStatus.OK] * 20
+    assert statuses[20] == HTTPStatus.TOO_MANY_REQUESTS
+    # The refused request must not have been counted as a view.
+    assert db["posts"][0]["viewCount"] == 20
+
+
+def test_third_hourly_breach_in_five_hours_forces_logout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The escalation fires on the third breach and signs out every client."""
+    import _globals
+    from handlers import _post_handler
+    from helpers import record_rate_limit_breach, clear_rate_limit_breaches
+
+    _globals.RATE_LIMIT_EVENTS.clear()
+    db, viewer = _view_db_with_viewer()
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: viewer)
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+    # Two earlier hours already breached; this request is the third.
+    clear_rate_limit_breaches(viewer["id"], "view_hourly_breach")
+    record_rate_limit_breach(viewer["id"], "view_hourly_breach")
+    record_rate_limit_breach(viewer["id"], "view_hourly_breach")
+    # Exhaust the hourly bucket so the next view trips it.
+    from collections import deque
+    import time
+
+    now = time.time()
+    _globals.RATE_LIMIT_EVENTS[(viewer["id"], "view_hourly")] = deque(
+        [now] * int(_globals.DEFAULT_SETTINGS["viewHourlyRateLimit"])
+    )
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_increment_view(handler, db, "p1")
+
+    assert handler.status_code == HTTPStatus.UNAUTHORIZED
+    assert db["sessions"] == {}, "every client must be signed out, not just the caller"
+    assert any(
+        row["action"] == "force_logout_view_abuse" and row["actorId"] == viewer["id"]
+        for row in db["auditLogs"]
+    )
+
+
+def test_earlier_hourly_breaches_do_not_force_logout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Breaches one and two rate-limit the account without ending the session."""
+    import _globals
+    from collections import deque
+    import time
+    from handlers import _post_handler
+    from helpers import clear_rate_limit_breaches
+
+    _globals.RATE_LIMIT_EVENTS.clear()
+    db, viewer = _view_db_with_viewer()
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: viewer)
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+    clear_rate_limit_breaches(viewer["id"], "view_hourly_breach")
+    now = time.time()
+    _globals.RATE_LIMIT_EVENTS[(viewer["id"], "view_hourly")] = deque(
+        [now] * int(_globals.DEFAULT_SETTINGS["viewHourlyRateLimit"])
+    )
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_increment_view(handler, db, "p1")
+
+    assert handler.status_code == HTTPStatus.TOO_MANY_REQUESTS
+    assert set(db["sessions"]) == {"tok-web", "tok-app", "tok-mini"}
+
+
+def test_breach_window_covers_five_hours() -> None:
+    import _globals
+
+    assert _globals.VIEW_BREACH_WINDOW_SECONDS == 5 * 3600
+    assert _globals.VIEW_BREACH_FORCE_LOGOUT_THRESHOLD == 3
+    # The pruner trims each bucket to its own action's window, so the breach
+    # bucket has to be registered or it would be cut back to an hour.
+    assert (
+        _globals.RATE_LIMIT_WINDOWS_SECONDS["view_hourly_breach"]
+        == _globals.VIEW_BREACH_WINDOW_SECONDS
+    )
+    assert _globals.RATE_LIMIT_WINDOWS_SECONDS["view"] == 60
+    assert _globals.RATE_LIMIT_WINDOWS_SECONDS["view_hourly"] == 3600
+    assert _globals.DEFAULT_SETTINGS["viewRateLimit"] == 20
+    assert _globals.DEFAULT_SETTINGS["viewHourlyRateLimit"] == 500

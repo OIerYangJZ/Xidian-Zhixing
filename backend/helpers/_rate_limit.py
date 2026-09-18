@@ -170,6 +170,45 @@ def consume_rate_limit(
         return True, 0
 
 
+def record_rate_limit_breach(user_id: str, action: str) -> int:
+    """Record one ceiling breach and return how many fall inside its window.
+
+    Separate from consume_rate_limit because this counts rather than gates: the
+    caller acts *on* the nth breach, whereas consume_rate_limit blocks once a
+    bucket is already full and so would only fire on the n+1th.
+
+    The window comes from RATE_LIMIT_WINDOWS_SECONDS under `action`, the same
+    table the pruner consults, so a breach bucket keeps its own retention.
+    """
+    window_seconds = _globals.RATE_LIMIT_WINDOWS_SECONDS.get(action, 3600)
+    now = time.time()
+    key = (user_id, action)
+
+    with _globals.RATE_LIMIT_LOCK:
+        if (
+            len(_globals.RATE_LIMIT_EVENTS) >= _globals.RATE_LIMIT_SUBJECT_MAX
+            and key not in _globals.RATE_LIMIT_EVENTS
+        ):
+            oldest_key = min(
+                _globals.RATE_LIMIT_EVENTS,
+                key=lambda item: _globals.RATE_LIMIT_EVENTS[item][-1],
+            )
+            _globals.RATE_LIMIT_EVENTS.pop(oldest_key, None)
+        queue = _globals.RATE_LIMIT_EVENTS.setdefault(key, deque())
+        while queue and now - queue[0] >= window_seconds:
+            queue.popleft()
+        queue.append(now)
+        while len(queue) > _globals.RATE_LIMIT_EVENT_MAX:
+            queue.popleft()
+        return len(queue)
+
+
+def clear_rate_limit_breaches(user_id: str, action: str) -> None:
+    """Forget a subject's breaches, so one forced logout is not counted twice."""
+    with _globals.RATE_LIMIT_LOCK:
+        _globals.RATE_LIMIT_EVENTS.pop((user_id, action), None)
+
+
 def _parse_ip(value: str) -> ipaddress.IPv4Address | ipaddress.IPv6Address | None:
     candidate = (value or "").strip()
     if not candidate:

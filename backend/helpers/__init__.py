@@ -41,9 +41,11 @@ from helpers._rate_limit import (
     assess_text_risk,
     check_duplicate_image_hash,
     check_ip_rate_limit,
+    clear_rate_limit_breaches,
     consume_rate_limit,
     get_client_ip,
     get_setting_int,
+    record_rate_limit_breach,
     send_rate_limit_error,
 )
 from helpers._http_helpers import (
@@ -95,9 +97,11 @@ __all__ = [
     "assess_text_risk",
     "check_duplicate_image_hash",
     "check_ip_rate_limit",
+    "clear_rate_limit_breaches",
     "consume_rate_limit",
     "get_client_ip",
     "get_setting_int",
+    "record_rate_limit_breach",
     "send_rate_limit_error",
     # http helpers
     "InvalidJsonBody",
