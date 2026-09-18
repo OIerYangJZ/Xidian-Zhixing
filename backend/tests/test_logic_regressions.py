@@ -1835,3 +1835,30 @@ def test_club_approval_rejects_missing_applicant(
     assert handler.status_code == HTTPStatus.NOT_FOUND
     assert application["status"] == "pending"
     assert db["clubs"] == []
+
+
+def test_view_increment_uses_an_existing_rate_limit_setting(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Regression: the view limiter read a setting key that was never defined.
+
+    consume_rate_limit resolves default_limit eagerly at the call site, so a
+    missing DEFAULT_SETTINGS entry raised KeyError before any limit was applied
+    and every view request answered 500.
+    """
+    from handlers import _post_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    viewer = _user("viewer-1", "2500110@stu.xidian.edu.cn")
+    db["users"].append(viewer)
+    db["posts"] = [{"id": "p1", "deleted": False, "viewCount": 0}]
+    monkeypatch.setattr(_post_handler, "_require_auth", lambda _h, _db: viewer)
+    monkeypatch.setattr(_post_handler, "save_db", lambda _db: None)
+
+    handler = FakeJsonHandler()
+    _post_handler.handle_increment_view(handler, db, "p1")
+
+    assert handler.status_code == HTTPStatus.OK
+    assert db["posts"][0]["viewCount"] == 1
+    assert handler.payload()["data"]["viewCount"] == 1

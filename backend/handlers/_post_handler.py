@@ -1337,8 +1337,8 @@ def handle_increment_view(
         db,
         user_id=viewer_user_id,
         action="view",
-        setting_key="likeRateLimit",
-        default_limit=max(60, int(_globals.DEFAULT_SETTINGS["likeRateLimit"])),
+        setting_key="interactionRateLimit",
+        default_limit=max(60, int(_globals.DEFAULT_SETTINGS["interactionRateLimit"])),
     )
     if not allowed:
         send_rate_limit_error(
