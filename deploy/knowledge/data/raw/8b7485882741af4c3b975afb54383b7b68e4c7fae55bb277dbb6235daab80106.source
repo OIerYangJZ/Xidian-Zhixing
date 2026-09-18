@@ -1,0 +1,769 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="format-detection" content="address=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+        <title>凤凰眼视觉团队李静：空间视频，看见更精彩的世界-西安电子科技大学学术网</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="凤凰眼视觉团队李静：空间视频，看见更精彩的世界">
+<META Name="keywords" Content="西安电子科技大学学术网,科技人物,视频,空间,李静,看见,团队,更,精彩,视觉,世界,凤凰眼" />
+<META Name="description" Content="【名师西电】凤凰眼视觉团队李静：空间视频，看见更精彩的世界" />
+
+        <meta name="renderer" content="webkit">
+        <link rel="shortcut icon" href="#" />
+        <link rel="stylesheet" href="../../css25/style.css">
+        <link rel="stylesheet" href="../../css25/swiper.min.css">
+        <script src="../../js25/jquery.js"></script>
+        <script src="../../js25/set.js"></script>
+        <script src="../../js25/swiper.min.js"></script>
+        <!--<![endif]-->
+        <!-- Compatible files -->
+        <!--[if lte IE 9]>
+        <i class="ie_bg"></i><div class="ie9tips"> <img src="../../images/logo.png"> <p>本站不再支持您的浏览器，请使用360浏览器8及以上（极速模式）、IE10及以上、Chrome5、Safari6、Firefox 3.6及以上、 Opera 10.5及以上浏览器观看。请升级您的浏览器到更高的版本以获得更好的观看效果。</p></div>
+        <![endif]-->
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1003,'/content.jsp',5881,2088836965)</script>
+</head>
+    <body>
+        <!--============================头部 开始=============================-->
+        <section class="header_box">
+            <header id="header">
+                <div class="w152">
+                    <div class="header flex">
+        <div id="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+            </div>
+                        <div class="headerNav">
+                       <ul class="header_top flex">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><li>
+<a href="https://www.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104755)">学校主页</a>
+<a href="https://dp.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104756)">发展规划部/一流建设办公室主页</a>
+</li>
+
+
+
+                       
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                            
+                        
+                                 <li class="search flex">
+                                    <input class="text" type="text" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                                    <input class="btn" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()">
+                                </li>   
+                                
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+                               
+                            </ul>
+                        </div>
+                        </div>
+                        <nav id="nav">
+                            <div class="navBox">
+<ul class="ul1 flex">
+
+<li class="on">
+<a href="../../index.htm">
+	<h3>首页</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kycg.htm">
+	<h3>科研成果</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kjrw.htm">
+	<h3>科技人物</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kyxs.htm">
+	<h3>科苑新声</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjl.htm">
+	<h3>学术交流</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjz.htm">
+	<h3>学术讲座</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../xsjz/jzbd.htm">讲座报道</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../xsjz/jzyg.htm">讲座预告</a>
+		
+	</div>
+</div>
+</li>
+
+<li class="on">
+<a href="../../tgrk.htm">
+	<h3>投稿入口</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../tgrk/zxtg.htm">在线投稿</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../tgrk/sjtg.htm">手机投稿</a>
+		
+	</div>
+</div>
+</li>
+</ul>
+                                
+                            </div>
+                        </nav>
+                    
+                </div>
+                </div>
+            </header>
+        </section>
+        <!-- 电脑搜索开始 -->
+        <div class="search-dialog-box">
+            <div class="search-bg"></div>
+            <div class="search-dialog">
+                <div class="search-inner">
+                    <div class="wrap-inner">
+                        <div class="search-input f-cb clearfix">
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="javascript:;" class="pub-close">
+                <span class="bg"></span>
+                <i></i>
+            </a>
+        </div>
+        <!-- 电脑搜索结束 -->
+        <!--pc header end-->
+        <!--wap header-->
+        <section class="m_header_box">
+            <header id="m_header">
+                <div id="logo">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+                        </div>
+                    </div>
+                </div>
+
+                <div id="nav_btn_box">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            <aside id="nav_btn">
+                                <div class="point" name="1" id="mbtn"> <span class="navbtn"></span> </div>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </section>
+        <nav id="m_nav">
+
+<p><a href="https://www.xidian.edu.cn/">学校主页</a></p>
+            
+
+
+<p><a href="https://dp.xidian.edu.cn/">发展规划部/一流建设办公室主页</a></p>
+            
+
+ 
+        <ul class="m_nav_list">
+<li class="title">
+<a class="a" href="../../index.htm">
+<h3>首页</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kycg.htm">
+<h3>科研成果</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kjrw.htm">
+<h3>科技人物</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kyxs.htm">
+<h3>科苑新声</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjl.htm">
+<h3>学术交流</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjz.htm">
+<h3>学术讲座</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzbd.htm">讲座报道</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzyg.htm">讲座预告</a>
+</div>
+</li>
+<li class="title">
+<a class="a" href="../../tgrk.htm">
+<h3>投稿入口</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/zxtg.htm">在线投稿</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/sjtg.htm">手机投稿</a>
+</div>
+</li>
+</ul>
+            
+            <div class="close">×</div>
+            <div class="tc_search">
+
+<!-- 3.1.3版本 -->
+
+
+
+<style>
+    #appu7 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu7 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu7"></div>
+<script type="text/html" id="htmlu7">
+    <div id="appu7">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                             
+                                
+                           <input type="text" name="showkeycode"  class="focus_js keyword" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                            <input class="btn_blue fl tc_close" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()" 
+ align="absmiddle"  style="cursor: hand" >
+                          
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu7").html($("#htmlu7").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu7",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu7 = document.querySelector("#appu7");
+   if (appElementu7 && appElementu7.__vue__) {
+
+   } else {
+      $("#divu7").html($("#htmlu7").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou7 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu7(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu7();
+        }
+      };
+
+      function onSubmitu7(e) {
+        queryInfou7.query.keyWord= $("#appu7  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou7.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+
+            </div>
+        </nav>
+        <section class="nav_mask"></section>
+        <!--============================头部 结束=============================-->
+        <!--============================主体 开始=============================-->
+        <section id="nav_slide">
+            <div class="n_title"> 
+                <a id="bnt_back" href="javascript:history.back(-1);">
+                    <img src="../../images25/icon_bnt_back2.png" alt="" />
+                </a>
+                <h1 class="margin_auto_1">
+
+科技人物
+</h1>
+                <div id="bnt_sub_nav">
+                    <img src="../../images25/bnt_sub_nav2.png" alt="" />
+                </div>
+            </div>
+            <div id="sub_nav_content">
+
+<ul class="am-list admin-sidebar-list" id="collapase-nav-1">
+</ul>
+                
+            </div>
+        </section>
+        <div class="listBox">
+            <div class="w14 flex">
+                <div class="n_left">
+                    <div class="con">
+                        <h1><span>
+
+科技人物
+</span></h1>
+                        <div class="sider_nav">
+
+
+
+
+<ul>
+</ul>
+
+                        </div>  
+                    </div>
+                </div>
+                <div class="listNr">
+                    <section class="mianbao flex">
+                        <h5>
+科技人物</h5>
+
+ <div class="position">当前位置 :
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+               > 
+                <a href="../../kjrw.htm">科技人物</a>
+               > 
+                正文
+</div>
+
+
+
+                       
+                    </section>
+                                    <div class="show">
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <div class="show01">
+<h5>凤凰眼视觉团队李静：空间视频，看见更精彩的世界</h5>
+<p><i>发布：2024-09-20</i><i>来源：党委宣传部（融媒体中心）
+    </i></p>
+</div>
+   
+    <div id="vsb_content" class="show02"><div class="v_news_content">
+<p style="text-align: left; text-indent: 2em; line-height: 2em;">■记者 <strong>蒙少华</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">“简单来说，空间视频是一种高维度、可交互的视频。伴随着影像技术的发展，记录的清晰度逐步提升，但长久以来，这些影像记录大都局限于二维平面，而我们却生活在三维空间之中。因此，我们渴望突破平面维度的束缚，实现对三维世界的记录与还原。例如，借助空间视频技术，观众能够穿越到虚拟的三维世界，获得独特非凡的视觉体验。”西安电子科技大学通信工程学院凤凰眼视觉团队负责人李静这样阐述空间视频技术的理念。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">秉持着“视频升维”的研究初衷，围绕“非完备采样条件下的光场表达与复原”这一科学问题，通信工程学院凤凰眼视觉团队与华为携手联合研发空间视频关键技术与系统，并在2023年杭州亚运会、2021年央视春晚、第十四届全运会、2020年湖南卫视《舞蹈风暴》、2019年成都世乒赛等重大赛事中成功落地应用，助力开创5G高新视频场景体验的崭新时代。</p><p style="text-align: center"><img src="/__local/6/1A/42/A9C57725AD4F90B5A052B87343E_D24CDEDC_40703.png" width="620" title="春晚亚运会.png" vsbhref="vurl" vurl="/_vsl/61A42A9C57725AD4F90B5A052B87343E/D24CDEDC/40703" vheight="" vwidth="620" orisrc="/__local/4/A8/1E/27A907C14AB6A0421A061604D60_E0D435D6_11B99.png" class="img_vsb_content"></p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><span style="text-indent: 2em;">“</span><strong style="text-indent: 2em;">勇敢了一次，打开了一扇门</strong><span style="text-indent: 2em;">”</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">基于华为高校技术合作处的牵线搭桥，李静与华为技术专家在前期多相机计算成像研究的基础上，不断深化合作，于2018年展开了空间视频生成技术的系列研究。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">彼时还是一名硕士研究生的代嫣冉，听到老师对空间视频愿景的描述，显得“既迷茫又有些兴奋”。“迷茫是因为当时对于空间视频的相关技术不了解，但有老师的指引与鼓励倒也不惧怕，是有些兴奋的，觉得自己不仅是在学习、做科研，还有使命扛在肩上。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">万事开头难，2019年底，凤凰眼视觉团队迎来了第一次正式的外场任务：在“2019国际乒联男子乒乓球世界杯”比赛现场，和华为一起完成国内首次空间视频自由视角直播。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">“接到任务时，时间紧，挑战大，那时确实有所犹豫，担心无法按期完成。团队内部随即展开讨论，剖析我们面临着哪些技术挑战，时间紧迫的压力能否克服。最终，团队决定齐心协力，勇敢地迎难而上！”回忆起初次筹备外场任务的场景，李静依旧记忆犹新，“科研过程中每时每刻都会遇到困难，但是一个个微创新的积累，我们的工作就会一点点进步。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">从系统研发、技术预案准备，到人员安排、设备部署、现场联调，整个团队拧成一股绳，战胜时间与心理上的压力，冲破重重阻碍，最终，与华为联合研发的空间视频自由视角直播系统成功应用于“2019年国际乒联男子世界杯”中，通过自由视角、自由缩放，观众可以在观看直播过程中可以任意切换视角，观看马龙、樊振东等运动员的精彩表现。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">回顾首次尝试的成功，李静老师感慨道：“那一次的勇敢，打开了空间视频研究的新局面。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><strong>“经过一次实战，队伍就锻炼了一次”</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">对于凤凰眼视觉团队来说，每一次外场任务都不是一件容易的事。从合作双方讨论需求，到团队内部需求论证、现场实景勘探，以及前期预案准备、现场落地应用都会面临各种各样的考验。“现场是一个不受控的环境，它会有突发情况，必须快速处理好”，李静说道。</p><p style="text-align: center"><img src="/__local/B/94/7B/28921042D9CAD1FFC2280FF2870_E58EAACB_C6C0.jpg" width="620" title="舞蹈风暴1.jpg" vsbhref="vurl" vurl="/_vsl/B947B28921042D9CAD1FFC2280FF2870/E58EAACB/C6C0" vheight="" vwidth="620" orisrc="/__local/4/BE/2D/D71E4AEFC2DC86FB135CCB77F59_EBB8BF74_918A.jpg" class="img_vsb_content"></p><p style="text-align: center"><img src="/__local/0/4D/8B/6F06C94B3154E2EA0443384B229_A075F19A_154A1.jpg" width="620" title="舞蹈风暴2.jpg" vsbhref="vurl" vurl="/_vsl/04D8B6F06C94B3154E2EA0443384B229/A075F19A/154A1" vheight="" vwidth="620" orisrc="/__local/7/23/4F/77767412405AFCBF862BC2C16AF_5DBDBF08_D9FC.jpg" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em; text-indent: 0em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;"><strong>《舞蹈风暴》现场工作照</strong></span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">2020年10月10日，《舞蹈风暴》第二季携势开播，李静团队同样全程参与并承担了多项关键技术研发。代嫣冉回忆起那次经历，显得印象深刻：“《舞蹈风暴》第二季采用了国际首创的‘3D蝶形立体风暴时刻’，140台高清影视相机有一半安装在可升降的蝶形拱桥上，并且每一台相机均配有动态云台，如何对数量众多，且可升降旋转的多相机阵列进行快速自动标定成为面临的首要挑战。我们和华为联合团队对这种全新的构型进行了大量仿真，并在湖南卫视搭建了全尺寸成像和标定系统，通过反复优化，在保证高精度的条件下将标定时间从小时缩短到数分钟，实现了3D立体风暴时刻的完美呈现。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">最终，凤凰眼视觉团队和华为联合打造的全新“3D立体风暴时刻”在《舞蹈风暴》第二季震撼亮相，该系统可以从空间任意角度全方位展现舞蹈细节，精准捕捉舞者表演的精彩瞬间，也为观众打开了舞蹈观赏的新视界。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">“在节目录制现场，来自不同岗位，不同团队的数百人协同工作，需要我们每个人都紧密配合，一遍遍演练，一遍遍调整”，李静老师说，“我们也要提前做好充分的预案，应对各种突发情况，这也就是为什么我们说经过一次实战，队伍就锻炼起来了。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><strong>“很有冲劲的时候，每个人都有大能量”</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">目前，凤凰眼视觉团队已经和华为一起将空间视频关键技术与系统搬上了多项重大赛事。“凝结时空”的自由视角技术全方位定格了吴京在央视春晚舞台上演绎太极拳、诠释精武国魂时的每一个刚柔并济收放自如的瞬间；“智能亚运体验空间”在杭州第19届亚运会期间受到市民的欢迎；苏炳添在十四运夺冠的精彩瞬间也被成功捕捉，观众可以近距离感受田径比赛中独特的科技魅力。</p><p style="text-align: center"><img src="/__local/4/36/F4/FEA46630A39AF9E0E413B06A6C4_1EB1C8BE_1B5FC.jpg" width="620" title="杭州亚运.jpg" word_img="" vsbhref="vurl" vurl="/_vsl/436F4FEA46630A39AF9E0E413B06A6C4/1EB1C8BE/1B5FC" vheight="" vwidth="620" orisrc="/__local/D/07/0B/AA4AD3740C6D07B22D35FDE5B16_94302E7D_12AFE.jpg" class="img_vsb_content"></p><p style="text-align: center; text-indent: 2em; line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">杭州亚运会现场工作照</span></p><p style="text-indent: 2em; line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;"></span></p><p style="text-align: center"><img src="/__local/1/51/AF/438CC0927CAD6EB3A69F2F3AD40_3C40CE25_13563.jpg" width="620" title="北体冰场.jpg" vsbhref="vurl" vurl="/_vsl/151AF438CC0927CAD6EB3A69F2F3AD40/3C40CE25/13563" vheight="" vwidth="620" orisrc="/__local/A/79/CD/7DBBEF3AB7D59BA3B7ECFC604F1_93C55C20_D6F3.jpg" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">北体冰场现场工作照</span></p><p style="line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;"></span></p><p style="text-align: center"><img src="/__local/9/51/C1/272FCFAC6C5119BE2990AA8A4C9_391B6E96_1C4CE.jpg" width="620" title="井下煤炭.jpg" vsbhref="vurl" vurl="/_vsl/951C1272FCFAC6C5119BE2990AA8A4C9/391B6E96/1C4CE" vheight="" vwidth="620" orisrc="/__local/3/8A/14/3930A52188F50A67EDFF8BE9910_3AF67D0E_13639.jpg" class="img_vsb_content"></p><p style="line-height: 2em; text-align: center;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">井下煤矿综采面三维成像工作照</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">而凤凰眼视觉团队的成员们，也在其中收获理论知识技能以及项目落地的经验。李静分享道：“学生们一起去做这个事儿，很有冲劲的时候，每个人都迸发出巨大的能量。因为大量一线的项目经历，学生们既接触到了行业最先进的技术和设备，也可以全程参与科研攻关、研发以及落地应用的过程，将所学的知识和实践做紧密地结合。同时，在实践过程中遇到困难，去攻克困难的过程可以很好地培养学生们的责任感、敬业精神以及攻克科研难题的信心。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">已经成为一名博士研究生的代嫣冉，回忆起这一段段珍贵的科研历程，坦言道：“能看到我们的科研成果落地应用，受到大家的欢迎和喜爱，心中满是成就感，我觉得自己做的事情非常有意义。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">除了选择继续深造以外，凤凰眼视觉团队中的不少成员选择进入互联网公司就职。“很多已经毕业的学生经常会非常高兴地跟我分享他们在工作中的进步与感悟”，对于学生们取得的每一点进步，李静都感到十分欣慰，“看到团队输送的人才在各自的岗位平台上充满后劲、持续成长，我们也感受到了人才培养的价值和满满的成就感。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">“强化校企科研合作，让更多科技成果尽快转化为现实生产力”，在全国教育大会上，习近平总书记对高校科技成果转化作出重要部署。依托西电与华为的长期深度合作，空间视频技术成功落地应用，凤凰眼视觉团队成员在各自工作岗位上独当一面、核心攻关，也充分体现了企业、高校产学研主体深度融合，在人才培养、科技成果转化方面形成新合力。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">2022年，李静获得华为火花奖。她谈到，“做难事，必有所得，有时候科研工作如同黑暗中前行，火花能够点燃、激励我们，照亮我们前进。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">2024年，回顾一路的科研和教学工作，李静说：“老师不应是学生的天花板，而应化作学生的阶梯，助力学生成长。对于大学生而言，最为关键的便是不惧失败、勇于开拓，在这个过程里、学生独立思考能力、学术能力、实践能力、合作能力以及做事的专业程度都会得到提升。涉足新兴学科、交叉领域、攻克一线难题，这一过程固然辛苦，然而一群人朝着同一个目标齐心协力、并肩作战的过程，亦是充满快乐的。”</p>
+</div></div><div id="div_vote_id"></div>
+     
+<div class="show03">
+ <p>上一篇：<a href="5831.htm">李娇娇：我有个超能力，能尽览山海，也能解锁宇宙奥秘</a></p>
+<p>下一篇：<a href="5891.htm">高卫峰：勇攀智能计算前沿的学术高峰</a></p>
+</div>
+
+
+
+
+
+</div>
+</form>
+
+
+                                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- footer start -->
+            <div class="footer">
+            <div class="w14 flex">
+
+                <div class="text">
+
+<!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>版权所有：<a href="https://dp.xidian.edu.cn/" target="_blank">西安电子科技大学发展规划部 / 一流建设办公室</a></p><p>技术支持：信息网络技术中心&nbsp; &nbsp; &nbsp; &nbsp;西安聚力</p><p>工作邮箱：fgb-xsw@xidian.edu.cn&nbsp; &nbsp; &nbsp; 联系电话：029-81891892</p><p><a href="https://beian.miit.gov.cn/" target="_blank">陕ICP备05016463号</a> &nbsp; &nbsp; <a href="https://beian.mps.gov.cn/#/query/webSearch" target="_blank">陕公网安备61019002002681号</a></p>
+                    
+                </div>
+    
+
+
+<div class="pic"><img src="../../images25/logo.png"></div>
+
+                
+            </div>
+        </div>
+    
+
+        <!--============================底部 结束=============================-->
+        <!--============================动画 开始=============================-->
+        <script src="../../js25/style.js"></script>
+        <!--============================动画 结束=============================-->
+
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

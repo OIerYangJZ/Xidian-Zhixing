@@ -1,0 +1,476 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>关于为2023级新生进行体检费退费的通知-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于为2023级新生进行体检费退费的通知">
+<META Name="keywords" Content="西安电子科技大学-校医院,关于,2023,级新生,新生,进行,体检,退费,通知" />
+<META Name="description" Content="2023级新生（本、硕、博)：根据校医院相关工作安排，现开始为已​在西安电子科技大学校医院医保及体检管理系统（https://ybtjxt.xidian.edu.cn）中成功报名并缴纳体检费用后，因重复缴费或在其他医院自行体检的同学退还体检费用。具体工作安排如下：1.退费登记时间：2023年11月27日至2023年12月31日2.登记途径：将相关内容提交到邮箱fbk88202708@163.com，提交信息内容详见附件。3.注意事项：（1）新生入学查体为必查项目，因自..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1109,'/content.jsp',2205,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../index/tjzt.htm">体检专题</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>关于为2023级新生进行体检费退费的通知</h2>
+			<h3><span>作者：</span><span>时间：2023-11-24</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 2205)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="line-height: 2em; text-indent: 0em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">2023级新生（本、硕、博)：</span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">根据校医院相关工作安排，现开始为已在西安电子科技大学校医院医保及体检管理系统（</span><a href="https://ybtjxt.xidian.edu.cn" style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px; text-decoration: underline;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">https://ybtjxt.xidian.edu.cn</span></a><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">）中成功报名并缴纳体检费用后，因重复缴费或在其他医院自行体检的同学退还体检费用。具体工作安排如下：<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">1.退费登记时间：<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">2023年11月27日至2023年12月31日<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">2.登记途径：<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">将相关内容提交到邮箱</span><a href="mailto:fbk88202708@163.com" style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px; text-decoration: underline;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">fbk88202708@163.com</span></a><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">，提交信息内容详见附件。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">3.注意事项：<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（1）<strong>新生入学查体为必查项目，因自身原因未参加体检的学生，请尽快到校医院进行补查，不属于此次退费范围</strong>。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（2）需提供银行卡号（<strong>本科生提交本人交通银行卡号</strong>；<strong>研究生提交本人中国银行卡号</strong>）。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（3）信息提交后，由校医院体检办公室进行审核，最终确定退费名单，并根据此名单进行退费。未通过审核的同学，不进行退费，且不另行通知。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（4）本次退费仅针对<strong>23级新生</strong>，且为唯一一次统一退费，未在退费登记时间内提交相关信息的，以后不再进行退费。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（5）退费到账具体时间目前不能确定，请耐心等待。<br></span></p>
+<p style="line-height: 2em; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">（6）咨询电话：029-88202743（体检办公室&nbsp; 正常工作日）<br></span></p>
+<p><br></p>
+<p style="text-align: right;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">西安电子科技大学医院<br></span></p>
+<p style="text-align: right; text-indent: 2em;"><span style="font-family: 仿宋_gb2312,fangsong_gb2312; font-size: 21px;">&nbsp; 2023年11月24日 &nbsp; <br></span></p>
+<p>&nbsp;</p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+    <p>
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1827564999&wbfileid=C17A191E61220C7CF16A4E1E2EB53BD4" target="_blank">2023级新生体检退费登记表.docx</a>】已下载<span id="nattach11887769"><script language="javascript">getClickTimes(11887769,1827564999,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+    </p>
+
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le">上一条：<a href="2406.htm">新生体检系统报名常见问题</a></span>
+        <span class="bo-le fl">下一条：<a href="1987.htm">离退休、在职教职工体检预约流程</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

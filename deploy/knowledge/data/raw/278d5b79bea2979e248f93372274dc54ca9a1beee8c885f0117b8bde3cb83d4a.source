@@ -1,0 +1,769 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="description" content="">
+        
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="format-detection" content="address=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+        <title>李娇娇：我有个超能力，能尽览山海，也能解锁宇宙奥秘-西安电子科技大学学术网</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="李娇娇：我有个超能力，能尽览山海，也能解锁宇宙奥秘">
+<META Name="keywords" Content="西安电子科技大学学术网,科技人物,海,能解,山,锁,览,超能力,宇宙,奥秘,李娇娇" />
+<META Name="description" Content="【名师西电】李娇娇：我有个超能力，能尽览山海，也能解锁宇宙奥秘" />
+
+        <meta name="renderer" content="webkit">
+        <link rel="shortcut icon" href="#" />
+        <link rel="stylesheet" href="../../css25/style.css">
+        <link rel="stylesheet" href="../../css25/swiper.min.css">
+        <script src="../../js25/jquery.js"></script>
+        <script src="../../js25/set.js"></script>
+        <script src="../../js25/swiper.min.js"></script>
+        <!--<![endif]-->
+        <!-- Compatible files -->
+        <!--[if lte IE 9]>
+        <i class="ie_bg"></i><div class="ie9tips"> <img src="../../images/logo.png"> <p>本站不再支持您的浏览器，请使用360浏览器8及以上（极速模式）、IE10及以上、Chrome5、Safari6、Firefox 3.6及以上、 Opera 10.5及以上浏览器观看。请升级您的浏览器到更高的版本以获得更好的观看效果。</p></div>
+        <![endif]-->
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1003,'/content.jsp',5831,2088836965)</script>
+</head>
+    <body>
+        <!--============================头部 开始=============================-->
+        <section class="header_box">
+            <header id="header">
+                <div class="w152">
+                    <div class="header flex">
+        <div id="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+            </div>
+                        <div class="headerNav">
+                       <ul class="header_top flex">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><li>
+<a href="https://www.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104755)">学校主页</a>
+<a href="https://dp.xidian.edu.cn/" target="_blank" onclick="_addDynClicks(&#34;wburl&#34;, 2088836965, 104756)">发展规划部/一流建设办公室主页</a>
+</li>
+
+
+
+                       
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                            
+                        
+                                 <li class="search flex">
+                                    <input class="text" type="text" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                                    <input class="btn" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()">
+                                </li>   
+                                
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+                               
+                            </ul>
+                        </div>
+                        </div>
+                        <nav id="nav">
+                            <div class="navBox">
+<ul class="ul1 flex">
+
+<li class="on">
+<a href="../../index.htm">
+	<h3>首页</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kycg.htm">
+	<h3>科研成果</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kjrw.htm">
+	<h3>科技人物</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../kyxs.htm">
+	<h3>科苑新声</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjl.htm">
+	<h3>学术交流</h3>
+</a>
+</li>
+
+<li class="on">
+<a href="../../xsjz.htm">
+	<h3>学术讲座</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../xsjz/jzbd.htm">讲座报道</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../xsjz/jzyg.htm">讲座预告</a>
+		
+	</div>
+</div>
+</li>
+
+<li class="on">
+<a href="../../tgrk.htm">
+	<h3>投稿入口</h3>
+</a>
+<div class="sub">
+
+	<div class="box">
+		<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../tgrk/zxtg.htm">在线投稿</a>
+		
+	</div>
+
+	<div class="box">
+		<a href="../../tgrk/sjtg.htm">手机投稿</a>
+		
+	</div>
+</div>
+</li>
+</ul>
+                                
+                            </div>
+                        </nav>
+                    
+                </div>
+                </div>
+            </header>
+        </section>
+        <!-- 电脑搜索开始 -->
+        <div class="search-dialog-box">
+            <div class="search-bg"></div>
+            <div class="search-dialog">
+                <div class="search-inner">
+                    <div class="wrap-inner">
+                        <div class="search-input f-cb clearfix">
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="javascript:;" class="pub-close">
+                <span class="bg"></span>
+                <i></i>
+            </a>
+        </div>
+        <!-- 电脑搜索结束 -->
+        <!--pc header end-->
+        <!--wap header-->
+        <section class="m_header_box">
+            <header id="m_header">
+                <div id="logo">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+
+<a href="../../index.htm"><img src="../../images25/logo.png"></a>	
+                        </div>
+                    </div>
+                </div>
+
+                <div id="nav_btn_box">
+                    <div class="box_table">
+                        <div class="box_table_cell">
+                            <aside id="nav_btn">
+                                <div class="point" name="1" id="mbtn"> <span class="navbtn"></span> </div>
+                            </aside>
+                        </div>
+                    </div>
+                </div>
+            </header>
+        </section>
+        <nav id="m_nav">
+
+<p><a href="https://www.xidian.edu.cn/">学校主页</a></p>
+            
+
+
+<p><a href="https://dp.xidian.edu.cn/">发展规划部/一流建设办公室主页</a></p>
+            
+
+ 
+        <ul class="m_nav_list">
+<li class="title">
+<a class="a" href="../../index.htm">
+<h3>首页</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kycg.htm">
+<h3>科研成果</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kjrw.htm">
+<h3>科技人物</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../kyxs.htm">
+<h3>科苑新声</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjl.htm">
+<h3>学术交流</h3>
+</a>
+</li>
+<li class="title">
+<a class="a" href="../../xsjz.htm">
+<h3>学术讲座</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzbd.htm">讲座报道</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../xsjz/jzyg.htm">讲座预告</a>
+</div>
+</li>
+<li class="title">
+<a class="a" href="../../tgrk.htm">
+<h3>投稿入口</h3>
+</a>
+<i></i>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/yxtg.htm">邮箱投稿</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/zxtg.htm">在线投稿</a>
+</div>
+<div class="list" style="opacity: 1; visibility: visible;">
+<a href="../../tgrk/sjtg.htm">手机投稿</a>
+</div>
+</li>
+</ul>
+            
+            <div class="close">×</div>
+            <div class="tc_search">
+
+<!-- 3.1.3版本 -->
+
+
+
+<style>
+    #appu7 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu7 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu7"></div>
+<script type="text/html" id="htmlu7">
+    <div id="appu7">
+        <div v-if="!isError">
+        <div class="search-input f-cb clearfix">
+                             
+                                
+                           <input type="text" name="showkeycode"  class="focus_js keyword" placeholder=""  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+                            <input class="btn_blue fl tc_close" type="image" src="../../images25/touming.png" name="submit_button"  v-on:click="onSubmit()" 
+ align="absmiddle"  style="cursor: hand" >
+                          
+                                
+                            </div>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu7").html($("#htmlu7").text());
+</script>
+<script>
+    var appOwner = "2088836965";
+    var token = gettoken(10);
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu7",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu7 = document.querySelector("#appu7");
+   if (appElementu7 && appElementu7.__vue__) {
+
+   } else {
+      $("#divu7").html($("#htmlu7").text());
+      var appOwner = "2088836965";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou7 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu7(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu7();
+        }
+      };
+
+      function onSubmitu7(e) {
+        queryInfou7.query.keyWord= $("#appu7  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou7.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+
+            </div>
+        </nav>
+        <section class="nav_mask"></section>
+        <!--============================头部 结束=============================-->
+        <!--============================主体 开始=============================-->
+        <section id="nav_slide">
+            <div class="n_title"> 
+                <a id="bnt_back" href="javascript:history.back(-1);">
+                    <img src="../../images25/icon_bnt_back2.png" alt="" />
+                </a>
+                <h1 class="margin_auto_1">
+
+科技人物
+</h1>
+                <div id="bnt_sub_nav">
+                    <img src="../../images25/bnt_sub_nav2.png" alt="" />
+                </div>
+            </div>
+            <div id="sub_nav_content">
+
+<ul class="am-list admin-sidebar-list" id="collapase-nav-1">
+</ul>
+                
+            </div>
+        </section>
+        <div class="listBox">
+            <div class="w14 flex">
+                <div class="n_left">
+                    <div class="con">
+                        <h1><span>
+
+科技人物
+</span></h1>
+                        <div class="sider_nav">
+
+
+
+
+<ul>
+</ul>
+
+                        </div>  
+                    </div>
+                </div>
+                <div class="listNr">
+                    <section class="mianbao flex">
+                        <h5>
+科技人物</h5>
+
+ <div class="position">当前位置 :
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+               > 
+                <a href="../../kjrw.htm">科技人物</a>
+               > 
+                正文
+</div>
+
+
+
+                       
+                    </section>
+                                    <div class="show">
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <div class="show01">
+<h5>李娇娇：我有个超能力，能尽览山海，也能解锁宇宙奥秘</h5>
+<p><i>发布：2024-10-15</i><i>来源：党委宣传部（融媒体中心）
+    </i></p>
+</div>
+   
+    <div id="vsb_content" class="show02"><div class="v_news_content">
+<p style="text-align: left; text-indent: 2em; line-height: 2em;">■学生记者 <strong>许坤</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">“工作到深夜对我来说是常态，每当我走出老科技楼，透过路边梧桐树婆娑的叶子看到月亮的时候，总会情不自禁地想，夜空多么浩瀚无垠，这颗距离我们最近的星球如此闪耀，而我能做的，就是更加清晰地‘看见’她。”李娇娇介绍自己的研究方向时，眼眸中仿佛闪烁着和月亮一样的光辉。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">作为通信工程学院的副教授、博士生导师，生活中的李娇娇热爱骑行运动、聊天谈笑风生，深受同学们的喜爱，工作中的她对待研究一丝不苟、教学严格细致，主持、参与多项国家重大科研项目，成果应用于TH-3、天问二号、高分二号、资源三号、西电一号等卫星。她还担任IEEE Senior Member，遥感领域二区期刊Remote Sensing的编委，中国CSIG遥感图像专委会、三维视觉专委会以及图像应用及系统集成专委会委员等。</p><p style="text-align: center"><img src="/__local/7/D8/06/65C5484E213D7268389C9A8EF16_EDFB689B_5C6C7.png" width="620" title="图片 1.png" vsbhref="vurl" vurl="/_vsl/7D80665C5484E213D7268389C9A8EF16/EDFB689B/5C6C7" vheight="" vwidth="620" orisrc="/__local/C/4A/09/73DAFAEE2DC372F6C7A4C812260_862DE1D0_F53E.png" class="img_vsb_content"></p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><strong>“科研，是对体力和脑力的双重考验”</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">李娇娇回忆与西电的第一次相遇，心中还是会有些命中注定的感觉。高考考出优异成绩的她在家里人的建议下，进入了西安电子科技大学进行学习，成为计算机科学与技术学院2005级的一名学生。得益于西电的综合素质教育，李娇娇学习了许多操作系统、计算机组成原理等知识，为她后来在通信工程学院攻读博士奠定了坚实的基础。“我的博士生导师是李云松教授，他带领我步入了遥感图像智能处理的领域，经过四年学习，我最终选择留在了团队进行任教，也继续从事该方向的研究。”近五年，李娇娇以第一作者或通讯作者身份发表学术论文60余篇，其中37篇发表在领域顶刊上，31篇发表在IEEE汇刊上，33篇发表在SCI一区刊物上，主编、参编英文学术特刊各1部。</p><p style="text-align: center"><img src="/__local/A/E9/A3/81D4DAEB17306CE7F3BF95E4022_0233D735_34909.png" width="620" title="图片 2.png" vsbhref="vurl" vurl="/_vsl/AE9A381D4DAEB17306CE7F3BF95E4022/0233D735/34909" vheight="" vwidth="620" orisrc="/__local/7/D4/57/209628B3C0300FDC2621781D774_5B640ADC_99A9.png" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai; text-indent: 0em;">右一为李娇娇，左一为李云松教授</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">在遥感图像智能处理的大方向下，李娇娇更多的时间用在高光谱图像高精度重建与精准解译上。基于计算光谱成像原理，协同前端传感器设计原理，她和团队一直致力于提升现有传感器性能，在低成本低功耗情况下可高效获取大范围区域高性能的重建与解译结果。这一过程本身就具有不确定性和不稳定性的问题，因此如何保证重建出的信息是高保真的是算法研究的重点之一。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">2020年，在计算机顶级会议IEEE CVPR 主办的NTIRE比赛中，光谱重建赛道吸引了来自世界各国的高校，如清华大学、斯坦福、ETH等等，最终，李娇娇和她的学生团队在该赛道获得了世界冠军的优秀成绩。除此之外，李娇娇还曾带领学生参加航天系统部主办的“天智杯”人工智能挑战赛，获全国冠军，还获得过国际冠军1项、国际季军2项等各种竞赛荣誉。“在业界，我们认为这个技术应用范围很广，比如可以装载在华为手机上，或是进一步在现有星载传感器的基础上提升其性能，等等。”</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">凭借着出色的科研能力，李娇娇得以开始参加国家重点项目。“科技部重大2030项目是具有战略意义的项目，它由杨孟飞院士牵头，李云松教授是其中一个课题的主要负责人，而我则作为技术负责人积极投入相关研究。”在了解到项目可能有关深空探测的智能化处理时，李娇娇和学生们非常激动，同时也感到了肩上的责任，能深入国家的先进科学研究是荣誉，但也是挑战。对于这些记忆，李娇娇仍然印象深刻，疫情期间突破重重阻碍线上线下交流，工作到深夜甚至凌晨成为生活常态。</p><p style="text-align: center"><img src="/__local/E/4C/6E/1BB7C44C1C5C9EA661DC3308A50_7147CDB2_3649D.png" width="620" title="图片 3.png" vsbhref="vurl" vurl="/_vsl/E4C6E1BB7C44C1C5C9EA661DC3308A50/7147CDB2/3649D" vheight="" vwidth="620" orisrc="/__local/5/3C/96/ADBE34B8FEFE54A301CC2A5F244_44F64130_9340.png" class="img_vsb_content"></p><p style="text-align: center"><img src="/__local/5/FC/3A/5187D5AD045B49987F8BC27113B_C9902AB0_55E69.png" width="620" title="图片 4.png" vsbhref="vurl" vurl="/_vsl/5FC3A5187D5AD045B49987F8BC27113B/C9902AB0/55E69" vheight="" vwidth="620" orisrc="/__local/2/6B/3F/F1A874F05D98141A77DEF50A128_9BA38A68_FFBF.png" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai; text-indent: 0em;">模拟月球外场实验中的李娇娇（上图右3、下图左1）</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">在探月项目中，她见到了许多厉害的前辈，包括中国科学院月球与深空探测总体部副主任、嫦娥八号任务副总师薛长斌，<span style="text-indent: 28px; text-wrap: wrap;">中国科学院</span>复杂航天系统电子信息技术重点实验室副主任、嫦娥八号有效载荷总师徐海涛等。这些优秀又谦逊的科学家激励着她在科研这条道路上付出更多努力。“我虽然已经成为老师，但我依然会经常做回学生，提醒自己要不断进步，至少在前人打好的基础上，我们作为后辈，理所当然需要花更多的时间和精力继往开来。这些做重大项目的经验，无论是对于我们这些年轻老师，还是参与工程的同学来说，都是难能可贵的机会。”</p><p style="text-align: center"><img src="/__local/2/42/6F/C11ED44A41FDA4EBCCB68183B08_34A02D32_589ED.png" width="620" title="图片 5.png" vsbhref="vurl" vurl="/_vsl/2426FC11ED44A41FDA4EBCCB68183B08/34A02D32/589ED" vheight="" vwidth="620" orisrc="/__local/F/47/15/15D7B609B378779E82661CF21C5_2867BD9D_1258F.png" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em;"><span style="text-indent: 0em; font-family: 楷体, 楷体_GB2312, SimKai;">李娇娇（后排站立左15）参加重大项目研讨会</span></p><p><br></p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><strong>“教学，不仅仅是上好课这么简单”</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">2016年左右，国外的许多著名高校开始把人工智能作为学校的必修课程。与此同时，李娇娇在2017年正式开始教学任务，成为通信工程学院人工智能课程的主讲课程负责人和主讲教师，她深深地明白自己的任务，光讲解课本的知识是不够的，她需要让同学们了解和学习现在的先进技术，虽然起步相对较晚，但是如果投入足够的精力和时间，还是很有机会追赶甚至超越。所以她尝试把课程和实际的应用结合起来，让大家产生兴趣，比如人工智能或者深度学习技术可以在深空探测中去做哪些类型的任务；三维点云语义分割或者一些典型高风险目标的辨识如何保障探测车的行径安全等等。凭借出色的能力，李娇娇参与教育部教改项目1项，主持和参与校级研究生教改项目2项，获第五届中国“互联网+”大学生创新创业大赛优秀创新创业导师。</p><p style="text-align: center"><img src="/__local/6/77/FC/069097B209A452688152BEDA496_484E35B6_3C014.png" width="620" title="图片 6.png" vsbhref="vurl" vurl="/_vsl/677FC069097B209A452688152BEDA496/484E35B6/3C014" vheight="" vwidth="620" orisrc="/__local/D/D4/57/B3638A6BC9E875B4F09D61666B8_50B3E22D_D0B8.png" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em; text-indent: 0em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">李娇娇（右4）带领团队获得“天智杯”人工智能挑战赛全国冠军</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">除了上课、科研的一丝不苟，在日常相处中，李娇娇也会及时和学生沟通。“包括我的父母在内，我们家里有许多教育工作者，所以我从小就在教育方面受到许多耳濡目染，我理解教育的辛苦，也很珍惜收获的温暖。”李娇娇觉得自己是一个“i人”，学生们大多是“e人”，待在一起时，她很少做谈话的主导，乐意倾听同学们对于研究方向的看法。在工作不忙碌时，她也会和同学们一起吃饭，周末一起玩耍、骑车、爬山等等，有各种各样的活动。李娇娇的博士学生冷奕泓激动地说，“有一次我们一起骑车去秦岭，遇到一个大斜坡，我们都骑不动只能把自行车推上去，只有李老师一鼓作气上去了，当时我们都很震惊！”在这个过程中，李娇娇和同学们也更容易敞开心扉交流彼此心中的想法，明确共同的目标。“不仅能锻炼身体，这也是促进沟通、互相进步的好机会。我在和学生们的沟通中提升自己的科研能力和教学能力，学生则去提升自己的学习能力和动手能力。”李娇娇笑着回答。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;">凭借着对学生的真诚与耐心，李娇娇指导的同学们也收获颇丰，其中指导的本科生获中国“互联网+”大学生创新创业大赛主赛道全国金奖、国家奖学金4项、省级优秀毕业生1项等；指导的研究生获国家奖学金10余项、陕西省优秀毕业生1项、校长奖学金1项以及社会奖学金多项。</p><p style="text-align: center"><img src="/__local/D/9A/07/6D6883129CC47A6B41517B9A669_D06A8A59_83C19.png" width="620" title="图片 7.png" vsbhref="vurl" vurl="/_vsl/D9A076D6883129CC47A6B41517B9A669/D06A8A59/83C19" vheight="" vwidth="620" orisrc="/__local/D/C4/16/C78F6EABAD167A48653F18D268B_E1BCDBB4_1D0CE.png" class="img_vsb_content"></p><p style="text-align: center"><img src="/__local/6/FB/D8/E96B704FBD00258183C1A3B7260_5AEF60BE_4A537.png" width="620" title="图片 8.png" vsbhref="vurl" vurl="/_vsl/6FBD8E96B704FBD00258183C1A3B7260/5AEF60BE/4A537" vheight="" vwidth="620" orisrc="/__local/E/9A/41/0BEFC9C2D4B433DB21597C198C1_CBA6412C_F2F8.png" class="img_vsb_content"></p><p style="text-align: center; line-height: 2em; text-indent: 0em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">李娇娇（上图第1排左4，下图左2）和学生们在户外团建</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">思政教育也是李娇娇的重点教学内容之一。尤其是本科生的教授中，她经常将国外在深空探测或者深海探索等领域的发展进度分享给同学们，让大家更好地理解到技术的发展方向，帮助他们对未来进行规划的同时，鼓励他们认真学习，投身到祖国相关行业的发展中去。“科技强国建设是需要每一个西电人深入参与的，不管是青年教师还是尚在读书的同学们。”李娇娇动容地说。</p><p style="text-align: left; text-indent: 2em; line-height: 2em;"><strong>“生活，需要用希望与信念铸造”</strong></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">对于青年学者或者博士、博士后，李娇娇给出了自己的建议。“科研的道路是始终艰辛的，尤其面对一些世界公认的难题时。在攻坚克难的过程中，首先要沉下自己的心，不能浮躁，必须投入足够多的精力和时间才能看到回报，另外，对自己的科研方向要坚定，一定要相信自己的研究可以给国家的重大需求或者任务提供可靠技术，不能轻易放弃，最后，要注重和团队成员和学生们的沟通交流，及时发现问题解决问题。当然，别忘了给自己适当的放松，比如跑跑步骑骑车出出汗，在未来如果想成为更优秀的人，健康的身体和坚定的内心都是必不可少的。”</p><p style="text-align: center"><img src="/__local/C/C3/39/BE036C5C0904A664C9B91BEABEB_BF90ADDE_3DB68.png" width="400" title="图片 9.png" word_img="" height="534" border="0" vspace="0" alt="图片 9.png" vsbhref="vurl" vurl="/_vsl/CC339BE036C5C0904A664C9B91BEABEB/BF90ADDE/3DB68" vheight=" 534px" vwidth=" 400px" orisrc="/__local/5/79/7A/4145A192C26D7403CD3A2A49E25_93E95C66_99E8.png" class="img_vsb_content" style="width: 400px; height: 534px;"></p><p style="text-align: center; line-height: 2em; text-indent: 0em;"><span style="font-family: 楷体, 楷体_GB2312, SimKai;">李娇娇作为优秀教师代表上台领奖</span></p><p style="text-align: left; text-indent: 2em; line-height: 2em;">对于未来，李娇娇充满信心，她计划进一步把图像处理的算法与前端的传感设备结合起来，做成基于计算成像和智能处理的一体化系统，这样可以更好地完成深空探测任务等等。对于团队，她会继续坚持学习、坚持和老师们沟通，努力起到带头作用。在学生、年轻老师的发展遇到困惑时，她也希望可以作为一个前辈或者是“知心大姐姐”，帮助他们解决问题，让整个团队良性发展。“我的身体没办法翻越群山或是顺着洋流畅游海底，但我的研究可以，也许某一天，它还能承载更多人的希望，飞出大气层，帮我们看见广阔宇宙中其他静静等待着被探索的星球。”李娇娇笑着说。</p>
+</div></div><div id="div_vote_id"></div>
+     
+<div class="show03">
+ <p>上一篇：<a href="5821.htm">焦李成教授荣获2024年度“求是人工智能科教奖”杰出贡献奖</a></p>
+<p>下一篇：<a href="5881.htm">凤凰眼视觉团队李静：空间视频，看见更精彩的世界</a></p>
+</div>
+
+
+
+
+
+</div>
+</form>
+
+
+                                       </div>
+                </div>
+            </div>
+        </div>
+        <!-- footer start -->
+            <div class="footer">
+            <div class="w14 flex">
+
+                <div class="text">
+
+<!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>版权所有：<a href="https://dp.xidian.edu.cn/" target="_blank">西安电子科技大学发展规划部 / 一流建设办公室</a></p><p>技术支持：信息网络技术中心&nbsp; &nbsp; &nbsp; &nbsp;西安聚力</p><p>工作邮箱：fgb-xsw@xidian.edu.cn&nbsp; &nbsp; &nbsp; 联系电话：029-81891892</p><p><a href="https://beian.miit.gov.cn/" target="_blank">陕ICP备05016463号</a> &nbsp; &nbsp; <a href="https://beian.mps.gov.cn/#/query/webSearch" target="_blank">陕公网安备61019002002681号</a></p>
+                    
+                </div>
+    
+
+
+<div class="pic"><img src="../../images25/logo.png"></div>
+
+                
+            </div>
+        </div>
+    
+
+        <!--============================底部 结束=============================-->
+        <!--============================动画 开始=============================-->
+        <script src="../../js25/style.js"></script>
+        <!--============================动画 结束=============================-->
+
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

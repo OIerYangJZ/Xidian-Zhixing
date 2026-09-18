@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>关于开展2025年校级教学成果奖（本科）申报评选工作的通知-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于开展2025年校级教学成果奖（本科）申报评选工作的通知">
+<META Name="keywords" Content="本科生院,西安电子科技大学,本科,成果奖,申报,评选,教学,工作,校级,开展,通知" />
+<META Name="description" Content="各单位：为凝练我校近年来教学建设和改革取得的经验，充分发挥教学成果的引领激励作用，推动教育高质量发展，为陕西省教学成果奖遴选推荐做好准备，学校决定启动2025年校级教学成果奖（本科）的推荐及评选工作。现将相关事项通知如下：一、评选原则推荐成果应为聚焦国家战略需求与区域经济社会发展，在高素质人才培养方面形成的具有导向性、创新性和实效性的教学成果，基本原则如下：1.注重导向。坚持为党育人、为国育才，坚持正确的育人导向，..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1054,'/content.jsp',28172,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+教学研究</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>关于开展2025年校级教学成果奖（本科）申报评选工作的通知</h3>
+   <div class="time"><span>发布时间：</span>2025-06-30 09:55:35<span>来源：</span>教研科
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 28172)</script></div>
+
+    
+    <div id="vsb_content"><div class="v_news_content">
+<style>.docx-wrapper { background: gray; padding: 30px; padding-bottom: 0px; display: flex; flex-flow: column; align-items: center;} .docx-wrapper>section.docx { background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); margin-bottom: 30px;}.docx { color: black; hyphens: auto;}section.docx { box-sizing: border-box; display: flex; flex-flow: column nowrap; position: relative; overflow: hidden;}section.docx>article { margin-bottom: auto; z-index: 1;}section.docx>footer { z-index: 1;}.docx table { border-collapse: collapse;}.docx table td, .docx table th { vertical-align: top;}.docx p { margin: 0pt !important; min-height: 1em;}.docx span { white-space: pre-wrap; overflow-wrap: break-word;}.docx a { color: inherit; text-decoration: inherit;}</style><style>.docx {  --docx-majorhansi-font: Cambria;  --docx-minorhansi-font: Calibri;  --docx-dk1-color: #000000;  --docx-lt1-color: #FFFFFF;  --docx-dk2-color: #1F497D;  --docx-lt2-color: #EEECE1;  --docx-accent1-color: #4F81BD;  --docx-accent2-color: #C0504D;  --docx-accent3-color: #9BBB59;  --docx-accent4-color: #8064A2;  --docx-accent5-color: #4BACC6;  --docx-accent6-color: #F79646;  --docx-hlink-color: #0000FF;  --docx-folhlink-color: #800080;}</style><style>.docx span {  font-family: Times New Roman;}.docx p, p.docx_1 {  text-align: justify;}.docx p, p.docx_1 span {  min-height: 10.50pt;  font-size: 10.50pt;}.docx table, table.docx_6 td {  padding-top: 0.00pt;  padding-left: 5.40pt;  padding-bottom: 0.00pt;  padding-right: 5.40pt;}p.docx_2 {  text-align: left;}p.docx_2 span {  min-height: 10.50pt;  font-size: 10.50pt;}p.docx_2 span {  min-height: 10.50pt;  font-size: 10.50pt;}p.docx_3 {  text-align: left;}p.docx_3 span {  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_3 span {  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_4 {  border-top: 0.00pt solid black;  border-left: 0.00pt solid black;  border-bottom: 0.00pt solid black;  border-right: 0.00pt solid black;  line-height: 1.00;  text-align: justify;}p.docx_4 span {  font-family: Times New Roman;  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_5 span {  font-weight: bold;  min-height: 10.50pt;  font-size: 10.50pt;}p.docx_5 {  text-align: left;}p.docx_5 span {  font-weight: bold;  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_8 {  font-weight: bold;}span.docx_9 {  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_10 {  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_10 p {  text-align: left;}span.docx_10 {  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_11 {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_11 p {  text-align: left;}span.docx_11 {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_12 {  font-weight: bold;  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_12 {  font-weight: bold;  min-height: 10.50pt;  font-size: 10.50pt;}span.docx_12 p {  text-align: left;}p.docx_13 {}p.docx_13 span {  font-family: 仿宋_GB2312;  color: #000000;  min-height: 12.00pt;  font-size: 12.00pt;}</style><style>p.docx-num-2-0:before {  content: ""counter(docx-num-2-0, decimal)".\9";  counter-increment: docx-num-2-0;}p.docx-num-2-0 {  display: list-item;  list-style-position: inside;  list-style-type: none;}p.docx-num-1-0:before {  content: ""counter(docx-num-1-0, simp-chinese-informal)"、";  counter-increment: docx-num-1-0;}p.docx-num-1-0 {  display: list-item;  list-style-position: inside;  list-style-type: none;}:root {  counter-reset: docx-num-2-0 0 docx-num-1-0 5;}</style><section class="docx"><article><p style="min-height: 28pt; line-height: 28pt; text-align: center; text-indent: 0pt;"><br></p><p style="min-height: 28pt; line-height: 28pt; text-align: center; text-indent: 0pt;"><br></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 0pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">各单位：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">为凝练我校近年来教学建设和改革取得的经验，</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">充分发挥教学成果的引领激励作用，</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">推动教育高质量发展，为陕西省教学成果奖遴选推荐做好准备，</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">学校决定启动2</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">02</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">5年校级教学成果奖（本科）的推荐及评选工作。现将相关事项通知如下</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31.35pt;"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">一、评选原则</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">推荐成果应</span><span lang="en-US" style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">为</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">聚焦国家战略需求与区域经济社会发展，在高素质人才培养方面形成</span><span lang="en-US" style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">的</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">具有导向性、创新性和实效性的教学成果，基本原则如下：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">1.</span><span style="font-family: 仿宋_GB2312; font-weight: bold; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">注重导向。</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">坚持为党育人、为国育才，坚持正确的育人导向，深化高等教育教学改革，构建高水平人才培养体系，全面提高高等教育质量。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">2.</span><span style="font-family: 仿宋_GB2312; font-weight: bold; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">注重创新。</span><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">深入探索</span><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">，</span><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">在</span><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">加强拔尖创新人才培养，深化新工科、新文科建设，深化科教融汇、产教融合协同育人，深化创新创业教育改革，推进“人工智能+高等教育”应用，提高教师教学能力，深化教育教学评价改革，健全教育质量保障体系等方面</span><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">取得新突破。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32.15pt;"><span style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 16pt; font-size: 16pt;">3.</span><span style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 16pt; font-size: 16pt;">注重实效。</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">教学成果需具备显著的育人成效，在提升人才培养质量、教师教学发展等方面成果突出，形成可复制、可推广的模式与实践经验。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">二、申报条件</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">（一）</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">成果应经过2年以上教育教学实践检验（申报特等奖和一等奖的成果一般应经过不低于4年的教育教学实践检验）</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">，实践检验的起始时间，应从正式实施（包括试行）教育教学方案的时间开始计算，不含研讨、论证及制定方案的时间。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">（二）</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">成果主要完成人应符合下列条件：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">1.</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">学校正式在编的教师、教辅人员和管理人员。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">2.</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">在联合培养人才过程中做出贡献的校外人员。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">3.</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">成果的主要完成人应直接参加成果的方案设计、论证、研究和实施全过程，并作出主要贡献。个人作为成果负责人的限报1项，参与的限报3项(含主持)，</span><span lang="en-US" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">每项</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">成果完成人数限10人。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">（三）重点奖励依托教育部、陕西省或学校的重点建设和教学改革项目，</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">在本科教</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">学改革</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">实践与人才培养中创新性强、</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">长效性</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">、凝练成可推广范式并</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">可</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">显著提升教学质量的成果。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（四）本科与研究生共用教学成果只能选择本科或研究生其中之一申报，不可重复申报。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">三、成果奖励等级和名额</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（一）2025年校级优秀教学成果奖设特等奖、一等奖、二等奖，具体奖励名额视申报情况而定。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（二）属于国内首创，在教育教学理论上有创新，在教育教学改革方面取得重大突破，对提高教学质量、实现培养目标有突出贡献，取得特别重大人才培养效益，具有重大应用推广价值的，可申请</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">教学成果特等奖</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">；达到省级先进水平，在教育教学理论或实践方面有较大突破，取得较大人才培养效益，具有全省应用推广价值的，可申请</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">教学成果一等奖</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">；达到校内先进水平，在教育教学改革方面取得一定突破、已取得一定培养效益，具有继续推广应用价值的，可申请</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">教学成果二等奖</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（三）学校将根据省级教学成果奖申报限额，从校级特等奖和一等奖成果中择优推荐申报省级教学成果奖。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（四）对获奖成果授予校级成果奖荣誉证书。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">四、材料要求</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（一）《2025年校级教学成果奖推荐成果汇总表》（附件2）（Excel格式及盖章PDF格式）。</span></p><section class="docx"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;"> &nbsp; &nbsp; &nbsp; （二）《学院评审意见表》（附件3），系统页面附件材料处上传。</span></section><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（三）《</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">西安电子科技大学教学成果奖申请书》（附件4），系统在</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">线填写。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（四）成果如为教材，须提交教材电子文档，电子文档包括教材封面、出版信息页、目录及精选内容等（PDF格式上传系统）。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">（</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">五</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">）教学成果应用及效果证明材料、其他与成果有关的支撑材料（PDF格式上传系统，教学成果应用及效果证明材料作为支撑材料目录第一部分列入）。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">（六）</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">教学成果中如含视频材料的，可提供FLV格式的视频材料，视频时长控制在10分钟以内。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">本届教学成果奖的评选实行各单位限额推荐与学校差额评选。各推荐单位务必严格按照《西安电子科技大学本科教学成果奖推荐名额分配表》（附件1）进行推荐。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">各单位须于2025年9月18日（周四）前完成申报推荐工作，逾期不予受理，汇总表发送至</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">jyk@xidian.edu.cn</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">五、申报程序</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">本次教学成果奖的申报时间大致安排如下：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31.1pt;"><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">第一阶段：</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">宣传动员、统筹规划阶段。</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">7月2日（周三）前</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">，各单位向本单位人员传达文件精神，并组织有关专家对本单位的申报题材和类型进行认真论证、统筹规划。</span></p><p class="docx_13" style="min-height: 28pt; line-height: 28pt; text-indent: 31.1pt; text-align: justify;"><span lang="null" style="font-weight: bold; color: black; min-height: 15.5pt; font-size: 15.5pt;">第二阶段：</span><span lang="null" style="color: black; min-height: 15.5pt; font-size: 15.5pt;">正式申报阶段。各学院（部）成立专家组（至少五人）对申报成果材料进行严格审核及认真初评<span style="font-family: 仿宋_GB2312; font-size: 20.6667px; text-align: justify; text-indent: 41.4667px; white-space: pre-wrap;">，</span>并对推荐参加学校教学成果奖评选的成果进行排序，组织推荐成果教师进行“教学改革服务”线上系统填报，并将《学院评审意见表》</span><span style="font-size: 15.5pt; text-indent: 31.1pt;">上传</span><span lang="null" style="font-size: 15.5pt; text-indent: 31.1pt; min-height: 15.5pt;">填报页面附件处，各单位请于</span><span lang="null" style="font-size: 15.5pt; text-indent: 31.1pt; font-weight: bold; min-height: 15.5pt;">9月18日（周四）前</span><span lang="null" style="font-size: 15.5pt; text-indent: 31.1pt; min-height: 15.5pt;">在系统上完成申报成果审核工作，并上<span style="font-size: 15.5pt; text-indent: 31.1pt;">报</span><span style="font-size: 15.5pt; text-indent: 31.1pt;">推荐成果</span></span><span lang="null" style="font-size: 15.5pt; text-indent: 31.1pt; min-height: 15.5pt;"><span style="font-size: 15.5pt; text-indent: 31.1pt;">汇</span></span><span lang="null" style="font-size: 15.5pt; text-indent: 31.1pt; min-height: 15.5pt;">总表。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31.1pt;"><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">第三阶段：</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">学校评审阶段，</span><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">9月下旬进行</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">。</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">本科生院</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">收到各单位申报推荐</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">后，组织评审专家对申报成果进行评审。校级教学成果奖评审结果在教务处网站公示，无异议后由学校正式下文公布获奖名单。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 31.1pt;"><span lang="null" style="font-family: 仿宋_GB2312; font-weight: bold; min-height: 15.5pt; font-size: 15.5pt;">线上系统https://ehall.xidian.edu.cn/，搜索“教学改革服务”</span><span lang="null" style="font-family: 仿宋_GB2312; min-height: 15.5pt; font-size: 15.5pt;">，进入“项目申请批次”页面，选择或者搜索“2025年校级教学成果奖（本科）”点击“申请”进行填报。</span></p><p style="text-indent: 41.4667px; min-height: 28pt; line-height: 28pt;"><br></p><section class="docx"><span style="font-family: 黑体; min-height: 16pt; font-size: 16pt;">六、注意事项</span></section><p><br></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">1.往届校级教学成果奖严禁重复申报。对于已获得过教学成果奖的项目，在内容基本相同而没有特别创新的情况下再次申报者，一经核实，将取消其评审资格。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">2.严禁弄虚作假，成果完成人必须是成果的主要实际参与者。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">3.学院</span><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">在成果推荐中要进行严格审查，成果务必真实有效，保证质量；申报材料务必充分翔实；支撑材料应能够充分反映成果所体现的教育理念及实践效果。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">学校评审后，将对拟获奖成果予以公示。任何单位和个人对公示的材料持有异议，在公示期内向本科生院实名以书面形式（包括必要的证明材料）提出，并加盖本单位公章，写明通讯地址与电话。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">联 系 人：</span><span style="color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">王梦琪 张希颖</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">联系电话：81891764</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">附件：</span></p><p class="docx-num-2-0" style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">西安电子科技大学本科教学成果奖推荐名额分配表</span></p><p class="docx-num-2-0" style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">2025年校级教学成果奖推荐成果汇总表</span></p><p class="docx-num-2-0" style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">学院评审意见表</span></p><p class="docx-num-2-0" style="min-height: 28pt; line-height: 28pt; text-indent: 31pt;"><span lang="null" style="font-family: 仿宋_GB2312; color: rgb(0, 0, 0); min-height: 15.5pt; font-size: 15.5pt;">西安电子科技大学教学成果奖申请书</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 288pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;本科生院</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 20</span><span style="font-family: 仿宋_GB2312; min-height: 16pt; font-size: 16pt;">25年6月27日</span></p></article><footer><p class="docx_3" style="text-indent: 0pt;"><span lang="zh-CN" style="font-family: 宋体; min-height: 14pt; font-size: 14pt;">2</span></p></footer></section>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：</div>
+    
+    
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=9279E11E52F311DA6B8990CAF775711C" target="_blank">附件1：教学成果奖推荐名额分配表(2).xlsx</a>】已下载<span id="nattach16091392"><script language="javascript">getClickTimes(16091392,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=1FEE9FC7E7D85449AD5646A405B9D3D7" target="_blank">附件2：2025年校级教学成果奖推荐成果汇总表.xlsx</a>】已下载<span id="nattach16091393"><script language="javascript">getClickTimes(16091393,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=CC3B1AFB66F3C664A9D24B5DB1F27871" target="_blank">附件3：学院评审意见表.docx</a>】已下载<span id="nattach16091394"><script language="javascript">getClickTimes(16091394,1482657449,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1482657449&wbfileid=B6C6BF9652E1B6F9F98CD69B0C71A26A" target="_blank">附件4：西安电子科技大学教学成果奖申请书.docx</a>】已下载<span id="nattach16091395"><script language="javascript">getClickTimes(16091395,1482657449,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+  
+
+
+
+
+<div class="pn"> 
+<br />
+          <br />
+          <span>下一篇：</span><a href="27212.htm">西安电子科技大学2024-2025年第二学期微专业招生通知</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

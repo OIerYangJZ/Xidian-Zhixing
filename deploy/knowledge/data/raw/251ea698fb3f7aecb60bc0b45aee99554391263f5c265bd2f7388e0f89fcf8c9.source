@@ -1,0 +1,425 @@
+﻿<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Xidian University Hosts the 40th Campus Dance Competition and the 3rd Campus Group Dance Competition-XIDIAN UNIVERSITY</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="Xidian University Hosts the 40th Campus Dance Competition and the 3rd Campus Group Dance Competition">
+<META Name="keywords" Content="XIDIAN UNIVERSITY,Campus,Dance,th,Hosts,Competition,rd,University,Group,Xidian" />
+<META Name="description" Content="On the evening of May 15, the 40th Campus Dance Competition and the 3rd Campus Group Dance Competition, organized by Xidian University under the guidance of the Shaanxi Dance Association, took place at the Chang’an Campus.This year’s event set a new record for scale, with all 18 schools across the university fielding teams. Undergraduates and graduate students competed side by side, school leaders ..." />
+
+        <link rel="stylesheet" href="../../css/css.css" />
+        <link rel="stylesheet" href="../../css/aos.css">
+        <!--公用文件 END-->
+        <script type="text/javascript" src="../../js/jquery_002.js"></script>
+        <script type="text/javascript" src="../../js/tiaohua.js"></script>
+        <script type="text/javascript" src="../../js/slide.js"></script>
+        <style type="text/css">
+        <!--    font-size: 18px;
+    color: #333333;
+    line-height: 30px;
+    text-align: justify;-->
+        </style> 
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../show-study.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1063,'/show-study.jsp',9721,2133202801)</script>
+</head>
+    <body>
+
+        <!--banner开始-->
+            <div class="head3">
+                <div class="top clear">
+                    <div class="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<A href="../../index.htm" title="西安电子科技大学英文25"></A></div>
+                    <div class="top-r clear">
+                        <div class="top-links clear">
+                            <div class="top-links2">
+                            <div class="link-nr">
+                            <p><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>   <a href="https://faculty.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111306)">Faculty Profile</a>
+</p>
+                            <i></i>
+                            <p></p>
+                            <i></i>
+                            <!-- <div class="search-btn"></div> -->
+                            <div class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu3 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+  
+            
+              <input class="text" type="text" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" />
+  <input class="btn" type="button" value="Search" style="cursor: hand" v-on:click="onSubmit()"/>
+            
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "2133202801";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "2133202801";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></div>
+                            <div class="language"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111304)">中文</a>
+</div>
+                            </div>
+                        </div>
+                        </div>
+                        <div class="navBar"><ul class="nav clearfix">
+<li id="m1" class="m">
+<h3><a href="../../About.htm" target="_blank">About</a></h3>
+<ul class="sub">
+<li><a href="../../About/XDU_Overview.htm" target="_blank">XDU Overview</a></li>
+<li><a href="../../About/Why_XDU.htm" target="_blank">Why XDU</a></li>
+<li><a href="../../About/History.htm" target="_blank">History</a></li>
+<li><a href="../../About/Reputation2.htm" target="_blank">Reputation</a></li>
+<li><a href="../../About/Current_Administrators.htm" target="_blank">Current Administrators</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Admission.htm" target="_blank">Admission</a></h3>
+<ul class="sub">
+<li><a href="../../Admission/International_Applicants.htm" target="_blank">International Applicants</a></li>
+<li><a href="https://www.xidian.edu.cn/zsjy.htm#A" target="_blank">Chinese Applicants</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Academics.htm" target="_blank">Academics</a></h3>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Research.htm" target="_blank">Research</a></h3>
+<ul class="sub">
+<li><a href="../../Research/Key_Research_Areas1.htm" target="_blank">Key Research Areas</a></li>
+<li><a href="../../Research/Platforms_Laboratories.htm" target="_blank">Platforms &amp; Laboratories</a></li>
+<li><a href="../../Research/Achievements.htm" target="_blank">Achievements</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Campus.htm" target="_blank">Campus</a></h3>
+<ul class="sub">
+<li><a href="../../Campus/Events1.htm" target="_blank">Events</a></li>
+<li><a href="../../Campus/Student_Life.htm" target="_blank">Student Life</a></li>
+<li><a href="../../Campus/Library.htm" target="_blank">Library</a></li>
+<li><a href="../../Campus/Exploring_XDU.htm" target="_blank">Exploring XDU</a></li>
+<li><a href="../../Campus/Campus_in_Photos.htm" target="_blank">Campus in Photos</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Global_Initiatives.htm" target="_blank">Global Initiatives</a></h3>
+<ul class="sub">
+<li><a href="../../Global_Initiatives/Joint_Education.htm" target="_blank">Joint Education</a></li>
+<li><a href="../../Global_Initiatives/Partner_Universities.htm" target="_blank">Partner Universities</a></li>
+<li><a href="../../Global_Initiatives/Joint_International_Institutes.htm" target="_blank">Joint International Institutes</a></li>
+<li><a href="../../Global_Initiatives/Confucius_Institute.htm" target="_blank">Confucius Institute</a></li>
+<li><a href="../../Global_Initiatives/Study_Abroad.htm" target="_blank">Study Abroad</a></li>
+<li><a href="../../Global_Initiatives/Summer_Schools.htm" target="_blank">Summer School  </a></li>
+<li><a href="../../Global_Initiatives/Working_at_XDU.htm" target="_blank">Working at XDU</a></li>
+<li><a href="../../Global_Initiatives/Contact_Us.htm" target="_blank">Contact Us</a></li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+                         <script type="text/javascript" src="../../js/jquery_002.js"></script>
+        <script type="text/javascript" src="../../js/tiaohua.js"></script>
+        <script type="text/javascript" src="../../js/slide.js"></script>
+                    </div>
+                </div>
+            </div>
+            <div class="list-banner">
+                <div class="pic"><img src="../../images/list-banner.png"></div>
+                <div class="list-position">
+                    <h5><a href="">News</a></h5><p>Position : 
+                        <a href="../../index.htm">Home</a>
+                        >
+                <a href="../../News.htm">News</a>
+                        >
+                Content
+        </p>
+</div>
+            </div>
+            <!-- list-events -->
+            <div class="list-box wrap">
+                <div class="list-nav fl"><ul>
+<li class="on"><a href="../../News.htm" title="News">News</a></li>
+</ul></div>
+                <div class="list-r fr">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="show-news show-study">
+<div class="show-news01">
+    <h5 align="center" style="font-weight:bold;">Xidian University Hosts the 40th Campus Dance Competition and the 3rd Campus Group Dance Competition</h5>
+	<p><i>Time:&nbsp;May 19, 2026</i></p></div>
+	<div id="vsb_content_2" style="font-size: 18px;color: #333333;line-height: 30px;text-align: justify;"><div class="v_news_content">
+<p class="vsbcontent_start">On the evening of May 15, the 40th Campus Dance Competition and the 3rd Campus Group Dance Competition, organized by Xidian University under the guidance of the Shaanxi Dance Association, took place at the Chang’an Campus.</p><p class="vsbcontent_img"><img src="/__local/3/13/74/8809C66142DB88CA5F15461FDC0_697328C6_65107.png" vsbhref="vurl" vurl="/_vsl/313748809C66142DB88CA5F15461FDC0/697328C6/65107" vheight=" 233.45pt" vwidth=" 415.3pt" orisrc="/__local/D/09/DD/48829BA32856197D565CB238183_645721ED_6518E.png" class="img_vsb_content" style="width: 415.3pt;height: 233.45pt"></p><p>This year’s event set a new record for scale, with all 18 schools across the university fielding teams. Undergraduates and graduate students competed side by side, school leaders cheered them on from the sidelines, faculty members also actively formed teams to participate, and retired faculty, as well as a youth team from the university’s affiliated elementary school, also took the stage. This truly realized a “full-age, all-inclusive” participation model. From the “hoarse-voiced” cheers to the “collective” enthusiasm, the competition venue was not only filled with the radiance and passion of the stage but also embodied the enterprising spirit of XDU youth in the new era—uniting in purpose, dancing together, and advancing hand in hand.</p><p><span style="text-indent: 28px;">The schools engaged in head-to-head 1v1 competitions, with the School of Electronic Engineering and the Faculty of Integrated Circuit taking the stage first. Their fan-dancing performance captivated the entire audience. Their brilliant performance of “The Youth of China” drew waves of applause with its perfectly synchronized choreography. School of Mechano-Electronic Engineering and the School of Optoelectronic Engineering delivered a powerful rendition of “Counterattack,” with a rhythm that was both strong and dynamic. The students vividly embodied the spirit of Xidian University students—daring to take on challenges and striving to reach new heights—with their full energy, and every pose showcased the sharp, enterprising edge of their youth. The School of Humanities and the School of Aerospace Science and Technology jointly presented “My Future,” with students performing with agile steps and radiant energy, showcasing the boundless aspirations and unwavering confidence of Xidian’s youth as they pursue their dreams.</span></p><p><span style="text-indent: 28px;"><span style="text-indent: 28px;">As the event drew to a close, all Xidian students joined together to perform “Youth Ignites Dreams” When the familiar melody echoed through the venue, dreams and passion resonated in unison, and the torch of original aspirations and mission was passed on. With boundless enthusiasm and high spirits, the students of Xidian University strode confidently toward the new journey.</span></span></p><p class="vsbcontent_img"><img src="/__local/1/76/1C/86EF1921F0FEF52A88A306E1B4C_A5BDA499_36355.jpeg" vsbhref="vurl" vurl="/_vsl/1761C86EF1921F0FEF52A88A306E1B4C/A5BDA499/36355" vheight=" 276.85pt" vwidth=" 415.3pt" orisrc="/__local/1/F8/BB/F9D720033D4A87E5D1012534CD7_3957E06C_364AE.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 276.85pt"></p><p class="vsbcontent_img"><img src="/__local/7/31/30/741D19E18783C44306BB9AB5649_AA7C85F6_37875.jpeg" vsbhref="vurl" vurl="/_vsl/73130741D19E18783C44306BB9AB5649/AA7C85F6/37875" vheight=" 276.85pt" vwidth=" 415.3pt" orisrc="/__local/B/8F/8D/94929DC0EF2B9C885F22E4262EC_13D2D82A_3795A.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 276.85pt"></p><p class="vsbcontent_img"><img src="/__local/B/A0/85/89DB8F9C3BA93CA2894002ABC44_53F9F297_3F697.jpeg" vsbhref="vurl" vurl="/_vsl/BA08589DB8F9C3BA93CA2894002ABC44/53F9F297/3F697" vheight=" 276.85pt" vwidth=" 415.3pt" orisrc="/__local/2/FC/41/A4F41FAA7A4DBB2BF3F3D25B962_6002299C_3F87B.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 276.85pt"></p><p class="vsbcontent_img"><img src="/__local/9/AF/09/A9E22FAE0ECE1D9DD8795F8370F_D10C67A7_3E602.jpeg" vsbhref="vurl" vurl="/_vsl/9AF09A9E22FAE0ECE1D9DD8795F8370F/D10C67A7/3E602" vheight=" 276.85pt" vwidth=" 415.3pt" orisrc="/__local/3/95/47/493DAD3BD44944BD443D4D97718_E22CC468_3E825.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 276.85pt"></p><p class="vsbcontent_img"><img src="/__local/1/82/12/60D33BB52357A96A968DBDC691E_5039E5D2_6DBD0.jpeg" vsbhref="vurl" vurl="/_vsl/1821260D33BB52357A96A968DBDC691E/5039E5D2/6DBD0" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/3/B8/A1/172CA40862E2C74A9B96EA9BBB0_61463B0A_6DD90.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/9/46/D0/E8E40AE3B19BAE68994B11790AA_47C9A8CD_63892.jpeg" vsbhref="vurl" vurl="/_vsl/946D0E8E40AE3B19BAE68994B11790AA/47C9A8CD/63892" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/9/10/1C/3E22A4D808908397E64501CF78B_3861BE03_63A2E.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/8/05/2C/AB68927487D6F596332E43FD1B7_4E2EF3E4_607CC.jpeg" vsbhref="vurl" vurl="/_vsl/8052CAB68927487D6F596332E43FD1B7/4E2EF3E4/607CC" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/A/C3/D1/6720CCC045DD03F384CAF1CABC6_0F5A693A_60A2D.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/F/49/82/BEC7695D29412D9401C3BC189A8_3822102F_631FA.jpeg" vsbhref="vurl" vurl="/_vsl/F4982BEC7695D29412D9401C3BC189A8/3822102F/631FA" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/6/25/00/8EFB1EDEEBF5EF8379E89BE33D4_BD4EAB00_633C2.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/4/BC/39/BAE0708D5AF93F9C8B7103F22F8_B49EE81A_6452A.jpeg" vsbhref="vurl" vurl="/_vsl/4BC39BAE0708D5AF93F9C8B7103F22F8/B49EE81A/6452A" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/6/27/75/603A4EE1FE5377692FD45F739EF_EC97F47D_6465D.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/4/56/37/8483E8F4CE6410A1A3D97A16654_C85819AB_65819.jpeg" vsbhref="vurl" vurl="/_vsl/456378483E8F4CE6410A1A3D97A16654/C85819AB/65819" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/A/E4/DB/9146038B602FFFC83B636FF5077_162D0289_659B8.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/5/8F/38/79D0D41B29E1BC0E5DEE4E093A6_79A0549A_65237.jpeg" vsbhref="vurl" vurl="/_vsl/58F3879D0D41B29E1BC0E5DEE4E093A6/79A0549A/65237" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/9/A9/6C/45992FED001948044A1B25D9501_6E6CCD65_65523.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/1/AC/4E/D43A4CC1E58077220E0BBE0B7E0_E0695A17_5B796.jpeg" vsbhref="vurl" vurl="/_vsl/1AC4ED43A4CC1E58077220E0BBE0B7E0/E0695A17/5B796" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/D/A3/F5/F46AF598DE6F7F640E523A3D7C0_7B31CCF1_5B92C.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/1/5B/53/910DEA2F9D900D4EED2376E9673_4C15E59E_750ED.jpeg" vsbhref="vurl" vurl="/_vsl/15B53910DEA2F9D900D4EED2376E9673/4C15E59E/750ED" vheight=" 415.3pt" vwidth=" 415.3pt" orisrc="/__local/9/E7/26/2EE9CBCC79BDD5F18205E384A66_33227783_752A2.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 415.3pt"></p><p class="vsbcontent_img"><img src="/__local/1/5A/B0/6FE84FFE3E3B3B829F4180C3884_09ACB9B6_3A2C8.jpeg" vsbhref="vurl" vurl="/_vsl/15AB06FE84FFE3E3B3B829F4180C3884/09ACB9B6/3A2C8" vheight=" 312pt" vwidth=" 415.3pt" orisrc="/__local/C/F0/65/BBA842607C5712CCB09490DDF26_A5C365B6_3A308.jpeg" class="img_vsb_content" style="width: 415.3pt;height: 312pt"></p><p class="vsbcontent_end"><br></p>
+</div></div><div id="div_vote_id"></div>
+    	<div class="show-news03">
+	<p>NEXT：<a href="9591.htm">XDU Shen Jai Confucius Institute in Malaysia Carries Out Chinese Language Teaching and Cultural Exchange Activities</a></p></div>
+    <p align="right">【<a href="javascript:window.opener=null;window.open('','_self');window.close();" style="font-family:微软雅黑; font-size:14px; color:#000000;">Close</a>】</p>
+</div>
+</form>
+</div>
+                <div class="clear"></div>
+            </div>
+            
+            
+            <!-- footer -->
+               <div class="w10 footer">
+                <div class="w14">
+                    <div class="footer-top clear">
+                        <div class="footer-l fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>South Campus: 266 Xinglong Section of Xifeng Road, Xi’an, Shaanxi 710126</p> 
+<p>North Campus: No. 2 South Taibai Road, Xi’an, Shaanxi 710071</p></div>
+                        <div class="footer-c fl"><img src="../../images/footer04.png"></div>
+                        <div class="footer-r fr"><a href="../../Global_Initiatives/Contact_Us.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111307)">Contact</a></div>
+                    </div>
+                    <div class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;2019 © xidian university all rights reserved &nbsp;support:xianjuli</p></div>
+                </div>
+            </div>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript" src="../../js/index.js"></script>
+        <script type="text/javascript" src="../../js/base.js"></script>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript">
+            jQuery(".nav").slide({
+                type: "menu", //效果类型
+                titCell: ".m", // 鼠标触发对象
+                targetCell: ".sub", // 效果对象，必须被titCell包含
+                effect: "slideDown", //下拉效果
+                delayTime: 300, // 效果时间
+                triggerTime: 0, //鼠标延迟触发时间
+                returnDefault: true //返回默认状态
+            });
+        </script>
+        <!-- 头部固定开始 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.head3').addClass('head4');
+                    $('.back').fadeIn();
+                } else {
+                    $('.head3').removeClass('head4');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <!-- 头部固定结束 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.list-nav').addClass('list-nav2');
+                    $('.back').fadeIn();
+                } else {
+                    $('.list-nav2').removeClass('list-nav2');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <script>
+            AOS.init({
+                easing: 'ease-out-back',
+                duration: 1000
+            });
+        </script>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

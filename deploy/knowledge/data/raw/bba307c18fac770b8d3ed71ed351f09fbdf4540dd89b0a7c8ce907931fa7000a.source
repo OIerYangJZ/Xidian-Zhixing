@@ -1,0 +1,452 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>【学在西电】西电学子在第三届 “生益杯”微波毫米波设计大赛斩获佳绩-西安电子科技大学本科招生信息网</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="【学在西电】西电学子在第三届 “生益杯”微波毫米波设计大赛斩获佳绩">
+<META Name="keywords" Content="西安电子科技大学本科招生信息网,毫米波,微波,生,设计,益,学子,大赛,西电,斩获,佳绩,学在" />
+<META Name="description" Content="西电新闻网讯（通讯员 黄建辉）近日，第三届“生益杯”微波毫米波设计大赛总决赛在第十四届亚太天线与传播会议（APCAP）现场举行。西电电子工程学院李龙教授指导的两支队伍从五十余支参赛团队中脱颖而出，晋级总决赛，分别斩获大赛一等奖与三等奖。充分彰显了该团队在微波毫米波、可重构智能超表面及卫星通信天线领域的科研实力与人才培养成效。刘振宇、田哲源、张韶沣三位同学的作品《Ku 波段双频双圆极化共口径反射型可编程超表面》..." />
+
+<META charset="UTF-8">
+<META name="description" content="西安电子科技大学是以信息与电子学科为主，工、理、管、文多学科协调发展的全国重点大学，是国家“优势学科创新平台”项目和“211工程”项目重点建设高校之一，是国内最早建立信息论、信息系统工程、雷达、微波天线、电子机械、电子对抗等专业的高校之一" /><LINK rel="stylesheet" href="../../css/reset.css"><LINK rel="stylesheet" href="../../css/style.css"><script type="text/javascript" src="../../js/bdtxk.js"></script><script type="text/javascript" src="../../js/slide.js"></script><script type="text/javascript" src="../../js/index.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../nry.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1034,'/nry.jsp',6913,1638859082)</script>
+</HEAD>
+<BODY><!-- header start -->
+<DIV id="header"><!-- hd_top start -->
+<DIV class="hd_top">
+<DIV class="container">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><DIV class="hd_link fr">
+   教育部直属&nbsp;|&nbsp; 
+   国家“985优势学科创新平台”&nbsp;|&nbsp; 
+   国家“211工程”&nbsp;|&nbsp; 
+   国家“双一流”建设重点大学&nbsp;|&nbsp; 
+   <a href="https://zsbold.xidian.edu.cn/index.html" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62900)">旧版回顾</a>
+</DIV></DIV></DIV><!-- end hd_top --><!-- hd_bottom start -->
+<DIV class="hd_bottom">
+<DIV class="container">
+<DIV class="logo fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科招生信息网2020"><img src="../../images/logo.png" width="510" height="70" border="0" alt="本科招生信息网2020" title="本科招生信息网2020"></a></DIV>
+<DIV class="hd_right fr">
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError" class="search fr">
+
+     <input type="text" placeholder="" style="position: absolute;
+           left: 8px;
+           top: 1px;
+    width: 164px;
+    height: 34px;
+    line-height: 34px;
+    vertical-align: top;
+    background: transparent;
+    text-indent: 10px;
+    color: #fff;
+    display: inline-block;
+    outline: none;
+    border: none;" value="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+
+     <input type="image" style="position: absolute;
+    top: 0px;
+    right: 14px;
+    width: 20px;
+    height: 34px;
+    cursor: pointer;
+    display: inline-block;
+    outline: none;
+    border: none;
+" src="../../images/search_icon.png"  v-on:click="onSubmit()">
+ </div>
+
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1638859082";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1638859082";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script> </DIV></DIV></DIV><!-- end hd_bottom --></DIV><!-- end header --><!-- nav start -->
+<DIV id="nav">
+<DIV class="container">
+<DIV class="nav_menu">
+<UL class="nav_list">
+
+<LI>
+<a href="../../index.htm" title="首页">首页</a>
+</LI>
+
+<LI>
+<a href="../../xdgk/xxjj.htm" title="西电概况">西电概况</a>
+<DL class="menu">
+
+<DD> <a href="../../xdgk/xxjj.htm" title="学校简介">学校简介</a></DD>
+
+<DD> <a href="../../xdgk/bkly.htm" title="报考理由">报考理由</a></DD>
+
+<DD> <a href="../../xdgk/zdxk.htm" title="重点学科">重点学科</a></DD>
+
+<DD> <a href="../../xdgk/ysky.htm" title="优势科研">优势科研</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../zsxx1.htm" title="招生信息">招生信息</a>
+<DL class="menu">
+
+<DD> <a href="https://flbook.com.cn/c/gRnNYIJeiw" target="_blank" title="报考指南">报考指南</a></DD>
+
+<DD> <a href="../../zsxx1/zszc.htm" title="招生政策">招生政策</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/" title="招生计划">招生计划</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lnfs" title="历年分数">历年分数</a></DD>
+
+<DD> <a href="https://zsxc.xidian.edu.cn/auth/zsdata/lqxx/#/lqcx" title="录取查询">录取查询</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../xkzy/yuan_xi_s.htm" title="学科专业">学科专业</a>
+<DL class="menu">
+
+<DD> <a href="../../xkzy/yuan_xi_s.htm" title="院系设置">院系设置</a></DD>
+
+<DD> <a href="../../xkzy/zszy.htm" title="招生专业">招生专业</a></DD>
+
+<DD> <a href="../../xkzy/tszy.htm" title="特色专业">特色专业</a></DD>
+
+<DD> <a href="../../xkzy/tspy.htm" title="特色培养">特色培养</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="https://www.xidian.edu.cn/hzjl/yjxy.htm" title="国际交流">国际交流</a>
+<DL class="menu">
+
+<DD> <a href="../../gjjl/zwhzbx.htm" title="中外合作办学">中外合作办学</a></DD>
+
+<DD> <a href="../../gjjl/jlxm.htm" title="交流项目">交流项目</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../jysz/jycy.htm" title="就业深造">就业深造</a>
+<DL class="menu">
+
+<DD> <a href="../../jysz/jycy.htm" title="就业创业">就业创业</a></DD>
+
+<DD> <a href="../../jysz/szcg.htm" title="深造出国">深造出国</a></DD>
+</DL>
+</LI>
+
+<LI>
+<a href="../../lxwm/lxzb.htm" title="联系我们">联系我们</a>
+<DL class="menu">
+
+<DD> <a href="../../lxwm/lxzb.htm" title="联系招办">联系招办</a></DD>
+
+<DD> <a href="../../lxwm/lxyx.htm" title="联系院系">联系院系</a></DD>
+
+<DD> <a href="../../lxwm/zsQQq.htm" title="招生QQ群">招生QQ群</a></DD>
+</DL>
+</LI>
+</UL></DIV></DIV></DIV><!-- end nav --><!-- ej_banner start -->
+<DIV id="ej_banner" class="w100">
+<DIV class="ej_banner_con"><IMG alt="" src="../../images/ej_banner.jpg"> </DIV></DIV><!-- end ej_banner --><!-- main start -->
+<DIV id="main" class="w100">
+<DIV class="container">
+<DIV class="main_con clearfix">
+<DIV class="main_con_l fl">
+<DIV class="lmmc">
+走进西电</DIV>
+<DIV class="sidebar">
+<UL>
+
+
+</UL></DIV>
+<DIV class="sidebar_bottom"></DIV></DIV>
+<DIV class="main_con_r fr">
+<DIV class="main_hd">
+ <div class="dqwz">
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                &nbsp;&gt;&nbsp;
+                <a href="../../zjxd.htm">走进西电</a>
+                &nbsp;&gt;&nbsp;
+                正文
+</div>
+
+</DIV>
+<DIV class="nr">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="main_bd">
+    <div class="con_title">
+                            <h2 class="title">【学在西电】西电学子在第三届 “生益杯”微波毫米波设计大赛斩获佳绩</h2>
+                            <p class="info">信息来源：<span class="xxly">西电要闻
+    </span>时间：<span class="time1">2026/09/07</span>浏览次数：<i class="djs"><script>_showDynClicks("wbnews", 1638859082, 6913)</script></i></p>
+     </div>
+    <div id="vsb_content_2" class="content"><div class="v_news_content">
+<p class="vsbcontent_start">西电新闻网讯（通讯员 黄建辉）近日，第三届“生益杯”微波毫米波设计大赛总决赛在第十四届亚太天线与传播会议（APCAP）现场举行。西电电子工程学院李龙教授指导的两支队伍从五十余支参赛团队中脱颖而出，晋级总决赛，分别斩获大赛一等奖与三等奖。充分彰显了该团队在微波毫米波、可重构智能超表面及卫星通信天线领域的科研实力与人才培养成效。</p><p class="vsbcontent_img"><img src="/__local/A/75/F8/38985C3DCB449FE609D897154FB_FDAF8F8C_1CD52.jpeg" vsbhref="vurl" vurl="/_vsl/A75F838985C3DCB449FE609D897154FB/FDAF8F8C/1CD52" vheight=" 277.3pt" vwidth=" 415.25pt" orisrc="/__local/F/3D/21/9054C1AD4DBAA8D66270A738AE0_A3FD0C1B_1CD5F.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 277.3pt"></p><p>刘振宇、田哲源、张韶沣三位同学的作品《Ku 波段双频双圆极化共口径反射型可编程超表面》摘得本次大赛一等奖。团队紧扣低轨卫星通信大容量、多波束、小型化装载的实际工程需求，创新提出Ku波段双频双圆极化共口径反射型可编程超表面整体方案。在单一有限物理口径下，通过超表面单元电磁特性优化，同时实现双频工作、双圆极化复用以及数字化可编程波束灵活调控，有效解决传统卫星通信天线口径资源紧张、波束切换不灵活、极化适配单一等痛点，为高通量低轨卫星星上智能赋形天线、地面卫星接收智能反射面提供了全新技术路径。 作品完整完成理论建模、全波电磁仿真、结构工艺设计、实物制版加工与暗室射频性能实测，在波束扫描范围、极化隔离度、双频兼容性等关键指标上表现突出，获得现场评审专家高度认可。</p><p class="vsbcontent_img"><img src="/__local/7/3A/E0/6B181CCE31A019E019ACC05ED23_68F62AFD_65AF1.jpeg" vsbhref="vurl" vurl="/_vsl/73AE06B181CCE31A019E019ACC05ED23/68F62AFD/65AF1" vheight=" 311.45pt" vwidth=" 415.25pt" orisrc="/__local/B/55/01/63B8E01F5764A4FEDD8FBC44562_052CB6F5_65B78.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 311.45pt"></p><p>黄建辉、王怡彤、何泽雨团队参赛项目《面向低轨卫星通信的低功耗双频 RIS 阵列天线》荣获三等奖。 项目聚焦X/Ka双频段卫星通信协同应用场景，以可重构智能超表面（RIS）阵列为核心载体，重点攻克双频共口径单元设计、射频馈电网络布局、无源/低功耗可重构控制模块三大难点。所设计的双频RIS阵列可实现空域动态波束扫描，能够自适应增强卫星通信无线传输链路质量，大幅降低阵列系统整体功耗，可应用于星载轻量化终端、地面便携卫星通信站、智能电磁传播环境调控等场景，对下一代低功耗卫星互联网终端设备研发具备重要参考价值。</p><p class="vsbcontent_img"><img src="/__local/3/80/97/B8301B01DF5D0E3CF1AC1B87DE6_834D7BCA_5D192.jpeg" vsbhref="vurl" vurl="/_vsl/38097B8301B01DF5D0E3CF1AC1B87DE6/834D7BCA/5D192" vheight=" 311.45pt" vwidth=" 415.25pt" orisrc="/__local/7/92/C2/AEEDCFE6C3468E92ED7B86E6C64_BB91747C_5D27C.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 311.45pt"></p><p>本届大赛由生益科技集团、国家电子电路基材工程技术研究中心、电子科技大学电子科学与工程学院、东南大学毫米波全国重点实验室、西安电子科技大学超高速电路设计与电磁兼容监狱不重点实验室、南京理工大学工信部重点实验室、五域欣辰联合主办，共筑微波毫米波领域学术研究与产业应用的桥梁，深化校企协同创新，促进产学研资源互通共享。</p><p class="vsbcontent_img"><img src="/__local/4/00/03/D94559534D7EAF1CDB5E887A9A7_C3CEA9F3_2368A.jpeg" vsbhref="vurl" vurl="/_vsl/40003D94559534D7EAF1CDB5E887A9A7/C3CEA9F3/2368A" vheight=" 277.3pt" vwidth=" 415.25pt" orisrc="/__local/A/80/BC/9D86ACF892C3CC869C6C5813B92_FB4B197A_236CF.jpeg" class="img_vsb_content" style="width: 415.25pt;height: 277.3pt"></p><p>本次大赛对作品创新性、工程落地性要求严苛。历经5个多月的备赛，两支团队历经方案设计、电磁仿真、样品加工、系统调试与实验测试全流程，逐一攻克电磁耦合、阵列优化、仿真与实测偏差等技术难题，切实把专业理论转化为实物成果，全面提升了工程设计、科研攻关与团队协作能力。</p><p class="vsbcontent_end">本次获奖是超材料创新团队赛研融合、实践育人的阶段性成果。后续学院将持续依托学科竞赛锤炼学生创新与工程实践能力，引导学子紧盯行业前沿、服务国家重大战略需求，为新一代电子信息技术产业发展贡献力量。</p><p class="vsbcontent_end" style="text-align: right;"><br></p><p class="vsbcontent_end" style="text-align: right;">责任编辑：唐羽琴</p>
+</div></div><div id="div_vote_id"></div>
+        <div class="page">
+               <p><span>上一条：</span><a href="6633.htm">校长高新波带队赴山东开展招生宣传</a></p>
+               <p><span>下一条：</span><a href="6603.htm">【大师总师进校园】中国科学院院士徐宗本应邀来校交流并作报告</a></p>
+     </div>
+
+   </div>
+</form>
+</DIV></DIV></DIV></DIV></DIV><!-- end main --><!-- part3 start -->
+<DIV id="part3" class="w100">
+<DIV class="container">
+<DIV class="part3_con clearfix">
+
+<DIV class="part3_ewm fl">    
+
+<UL>
+<LI>
+<DIV class="pic"><IMG alt="" src="../../images/xxgzh_ewm.jpg"></DIV>
+<P class="title">西安电子科技大学</P></LI>
+<LI>
+<DIV class="pic"><IMG alt="" src="../../images/zbgzh_ewm.jpg"></DIV>
+<P class="title">西电招生办</P></LI>
+</UL></DIV>
+<DIV class="part3_lxwm fl">
+ <DIV class="lxwm">联系我们 <SPAN>/ Contact us </SPAN></DIV><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<div class="lxwm_txt">
+ <p>雁塔校区地址：西安市太白南路2号 邮编：710071</p>
+ <p>长安校区地址：西安市西沣路兴隆段266号 邮编：710126</p>
+ <p>招生咨询电话：（029）88202335 招生咨询传真：（029）88204236</p>
+ <p><span>E-mail：zsb@mail.xidian.edu.cn</span></p>
+</div>
+ </DIV>
+<DIV class="yq_links fl">
+<DIV class="yqlj">友情链接 <SPAN>/ links</SPAN></DIV>
+<DIV class="yqlj_list"><UL>
+    <LI><a href="http://www.moe.gov.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62053)">中华人民共和国教育部</a></li>
+    <LI><a href="https://gaokao.chsi.com.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62054)">阳光高考</a></li>
+    <LI><a href="http://www.sneea.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62055)">陕西省教育考试院</a></li>
+    <LI><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1638859082, 62056)">西安电子科技大学主页</a></li>
+</UL>
+
+</DIV></DIV>
+</DIV></DIV></DIV><!-- end part3 --><!-- footer start --><DIV id="footer" class="w100">
+<DIV class="container">
+<div class="middle">
+<div>
+<!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p style="margin-top: 10px">版权所有©2020西安电子科技大学本科招生办公室&nbsp; &nbsp;技术支持： <a href="https://xxzx.xidian.edu.cn/" target="_blank">信息网络技术中心</a> 西安聚力</p>
+</div>
+<p>总访问量：<script language="javascript" src="../../_dwr/util.js"></script><script language="javascript" src="../../_dwr/interface/PageCounterDWR.js"></script><span id="a253699" name="a253699"></span>   
+
+<script>
+function getvisittimea253699()
+{       
+    PageCounterDWR.getVisittime('1638859082','1034','TOTAL_COUNTER','0','4',callbackdataa253699)
+}
+function callbackdataa253699(data)
+{
+    document.getElementById("a253699").innerHTML = data; 
+}
+getvisittimea253699();
+</script> | 今日访问量：<span id="a253700" name="a253700"></span>   
+
+<script>
+function getvisittimea253700()
+{       
+    PageCounterDWR.getVisittime('1638859082','1034','DATE_COUNTER','0','3',callbackdataa253700)
+}
+function callbackdataa253700(data)
+{
+    document.getElementById("a253700").innerHTML = data; 
+}
+getvisittimea253700();
+</script></p>
+
+</div>
+</DIV></DIV><!-- end footer --><!-- back start -->
+<DIV id="back"></DIV><!-- end back -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
