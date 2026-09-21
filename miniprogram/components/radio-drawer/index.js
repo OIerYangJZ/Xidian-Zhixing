@@ -1,5 +1,6 @@
 import { getUserInfo } from '../../api/auth';
 import { getConversations } from '../../api/messages';
+import { getLanguage } from '../../utils/i18n';
 import { avatarInitial } from '../../utils/format';
 
 Component({
@@ -14,7 +15,8 @@ Component({
     profile: null,
     conversations: [],
     avatarInitial: '电',
-    errorMessage: ''
+    errorMessage: '',
+    english: false
   },
 
   observers: {
@@ -25,7 +27,7 @@ Component({
 
   methods: {
     async loadDrawerData() {
-      this.setData({ errorMessage: '' });
+      this.setData({ errorMessage: '', english: getLanguage() === 'en' });
       try {
         const [profileResponse, conversations] = await Promise.all([
           getUserInfo(),
@@ -56,6 +58,11 @@ Component({
 
     stop() {},
 
+    goCampus() { this.close(); wx.navigateTo({ url: '/pages/campus/index' }); },
+    goFavorites() { this.close(); wx.navigateTo({ url: '/pages/profile/favorites/index' }); },
+    goHistory() { this.close(); wx.navigateTo({ url: '/pages/ai/history/index' }); },
+    goMessages() { this.close(); wx.switchTab({ url: '/pages/profile/conversations/index' }); },
+    goReports() { this.close(); wx.navigateTo({ url: '/pages/profile/my-reports/index' }); },
     goProfile() {
       this.close();
       wx.navigateTo({ url: '/pages/profile/index' });

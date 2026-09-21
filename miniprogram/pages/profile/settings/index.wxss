@@ -23,7 +23,11 @@
 
 .settings-brand {
   padding: 40rpx 0 0;
-  color: rgba(199, 199, 204, .6);
+  color: var(--app-divider);
   font-size: 24rpx;
   text-align: center;
 }
+
+/* Approved reference layout. */
+.logout-button { min-height:44px; margin:28rpx 0 0; border-radius:26px; }
+.settings-brand { color:var(--app-text-secondary); }

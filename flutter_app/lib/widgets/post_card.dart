@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/l10n/ui_text.dart';
-import '../core/state/app_theme_store.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
 import '../models/post_item.dart';
@@ -22,125 +21,7 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (AppColorThemes.usesDiscussionLayout(AppThemeStore.instance.themeKey)) {
-      return _buildDiscussionCard(context);
-    }
-    final ThemeData theme = Theme.of(context);
-    final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.56);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.small),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxs,
-            vertical: AppSpacing.lg,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _Avatar(post: post),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            post.authorAlias.isEmpty
-                                ? uiText(
-                                    context,
-                                    zh: '匿名用户',
-                                    en: 'Anonymous user',
-                                  )
-                                : post.authorAliasFor(
-                                    Localizations.localeOf(context),
-                                  ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          _relativeTime(context, post.createdAt),
-                          style: TextStyle(color: muted, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    _PostMeta(post: post),
-                    if (post.title.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        post.title.trim(),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          height: 1.55,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                    if (post.content.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        post.content.trim(),
-                        maxLines: post.imageUrls.isEmpty ? 4 : 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.88,
-                          ),
-                          height: 1.75,
-                        ),
-                      ),
-                    ],
-                    if (post.imageUrls.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
-                      _ImageStrip(urls: post.imageUrls),
-                    ],
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: <Widget>[
-                        _Action(
-                          icon: post.isLiked
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          value: post.likeCount,
-                          active: post.isLiked,
-                          onTap: onLike,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _Action(
-                          icon: Icons.mode_comment_outlined,
-                          value: post.commentCount,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _Action(
-                          icon: post.isFavorited
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          value: post.favoriteCount,
-                          active: post.isFavorited,
-                          onTap: onFavorite,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return _buildDiscussionCard(context);
   }
 
   Widget _buildDiscussionCard(BuildContext context) {
@@ -151,7 +32,10 @@ class PostCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         hoverColor: colors.primarySubtle.withValues(alpha: 0.34),
-        child: Padding(
+        child: Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: colors.line)),
+          ),
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
             AppSpacing.lg,
@@ -218,7 +102,7 @@ class PostCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colors.ink,
-                          height: 1.65,
+                          height: 1.4,
                         ),
                       ),
                     ],
@@ -395,129 +279,6 @@ class _DiscussionAction extends StatelessWidget {
   }
 }
 
-class _PostMeta extends StatelessWidget {
-  const _PostMeta({required this.post});
-
-  final PostItem post;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: <Widget>[
-        _MetaPill(
-          label: post.channel.trim().isEmpty
-              ? uiText(context, zh: '未分类', en: 'Uncategorized')
-              : localizedChannel(
-                  Localizations.localeOf(context),
-                  post.channel.trim(),
-                ),
-          color: theme.colorScheme.primary,
-        ),
-        if (post.isPinned)
-          _MetaPill(
-            label: uiText(context, zh: '置顶', en: 'Pinned'),
-            color: theme.colorScheme.secondary,
-          ),
-        if (post.status != PostStatus.ongoing)
-          _MetaPill(
-            label: post.status.labelFor(Localizations.localeOf(context)),
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-      ],
-    );
-  }
-}
-
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 180),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadii.small),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.post});
-
-  final PostItem post;
-
-  @override
-  Widget build(BuildContext context) {
-    final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
-    final String label = post.authorAlias.trim().isEmpty
-        ? anonymousInitial
-        : post
-              .authorAliasFor(Localizations.localeOf(context))
-              .trim()
-              .characters
-              .first;
-    if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-        child: Image.network(
-          post.authorAvatarUrl,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _FallbackAvatar(label: label),
-        ),
-      );
-    }
-    return _FallbackAvatar(label: post.isAnonymous ? anonymousInitial : label);
-  }
-}
-
-class _FallbackAvatar extends StatelessWidget {
-  const _FallbackAvatar({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _ImageStrip extends StatelessWidget {
   const _ImageStrip({required this.urls});
 
@@ -530,7 +291,7 @@ class _ImageStrip extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final double gap = count > 1 ? 6 : 0;
         final double itemWidth = count == 1
-            ? constraints.maxWidth.clamp(180, 360)
+            ? constraints.maxWidth.clamp(0, 360)
             : (constraints.maxWidth - gap * (count - 1)) / count;
         return Row(
           children: <Widget>[
@@ -581,49 +342,6 @@ class _ImageStrip extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _Action extends StatelessWidget {
-  const _Action({
-    required this.icon,
-    required this.value,
-    this.active = false,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final int value;
-  final bool active;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color color = active
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.48);
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 5),
-            Text(
-              '$value',
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

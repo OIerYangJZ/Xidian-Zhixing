@@ -177,7 +177,7 @@
 
 .bubble.mine {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   border-color: var(--app-primary);
 }
 
@@ -254,7 +254,7 @@
   height: 28rpx;
   border-radius: 50%;
   background: var(--app-error);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 22rpx;
   font-weight: 800;
   line-height: 28rpx;
@@ -363,7 +363,7 @@
   height: 70rpx;
   border-radius: 14rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 26rpx;
   line-height: 70rpx;
 }
@@ -450,4 +450,20 @@
 .picker-empty {
   padding: 28rpx 0;
 }
+
+
+/* Approved reference layout. */
+.chat-page { padding-bottom:calc(180rpx + env(safe-area-inset-bottom)); }
+.peer-avatar, .avatar, .picker-avatar { border-radius:50%; }
+.chat-header-normal { padding:16rpx 36rpx; }
+.header-more { min-width:44px; min-height:44px; background:transparent; }
+.message-list { padding-left:24rpx; padding-right:24rpx; }
+.bubble { border:1px solid var(--app-divider); border-radius:28rpx 28rpx 28rpx 6rpx; background:var(--app-background); color:var(--app-text-primary); }
+.bubble.mine { border-radius:28rpx 28rpx 6rpx 28rpx; background:var(--app-control); color:var(--app-text-primary); }
+.bubble-content { font-size:34rpx; line-height:1.5; }
+.chat-actions { background:var(--app-background); padding:16rpx 24rpx calc(16rpx + env(safe-area-inset-bottom)); border-top:1px solid var(--app-divider); }
+.chat-input { min-height:44px; border:1px solid var(--app-divider); border-radius:28px; background:var(--app-control); font-size:32rpx; padding:0 24rpx; }
+.send-button { min-width:44px; min-height:44px; border-radius:26px; background:var(--app-primary); color:var(--app-on-primary); }
+.warning-banner { background:var(--app-control); color:var(--app-text-secondary); font-size:26rpx; line-height:1.6; }
+.warning-close { min-width:44px; min-height:44px; }
 

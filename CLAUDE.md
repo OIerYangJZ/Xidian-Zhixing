@@ -10,7 +10,7 @@
 - 服务是 systemd `treehole`，跑在 `127.0.0.1:8080`，站点 `zhixing.xidian.edu.cn`
 
 链路：Mac → `vmgw`(Windows VM 172.16.188.134，需 aTrust 连着) → 堡垒机 10.255.53.2:50022 → 服务器 10.255.73.81。
-完整说明见 [RUNBOOK.md](RUNBOOK.md)。
+当前部署约束和操作边界以本文件及 `scripts/package_release.sh`、`scripts/deploy-treehole.sh` 为准；仓库不保存真实服务器连接参数。
 
 ## 服务器目录布局
 

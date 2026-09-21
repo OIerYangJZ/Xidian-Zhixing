@@ -25,7 +25,7 @@
 
 .admin-tab.active {
   background: var(--app-primary);
-  color: #fff;
+  color: var(--app-on-primary);
 }
 
 .admin-body {
@@ -83,7 +83,7 @@
 
 .filter-chip.active {
   background: var(--app-primary);
-  color: #fff;
+  color: var(--app-on-primary);
 }
 
 .admin-card {
@@ -167,7 +167,7 @@
 .action-button.primary,
 .full-button {
   background: var(--app-primary);
-  color: #fff;
+  color: var(--app-on-primary);
 }
 
 .action-button.danger,
@@ -269,3 +269,19 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Approved reference layout. */
+.admin-tabs { border-bottom:1px solid var(--app-divider); background:var(--app-background); }
+.admin-tab { min-height:52px; padding:24rpx; border-radius:0; background:transparent; border-bottom:2px solid transparent; }
+.admin-tab.active { background:transparent; color:var(--app-primary); border-bottom-color:var(--app-primary); }
+.admin-body { padding:0 36rpx 32rpx; }
+.admin-card { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.metric-grid { gap:0; }
+.metric-card { border:0; border-bottom:1px solid var(--app-divider); border-radius:0; background:transparent; padding:32rpx 16rpx; }
+.card-title { font-size:34rpx; }
+.card-content { font-size:30rpx; line-height:1.6; }
+.action-row { flex-wrap:wrap; gap:16rpx; }
+.action-button, .small-button, .full-button, .text-button { min-height:44px; height:auto; line-height:44px; border-radius:26px; }
+.form-input, .form-textarea { border:1px solid var(--app-divider); border-radius:24rpx; font-size:32rpx; padding:24rpx; }
+.form-input { min-height:44px; }
+.filter-chip { min-height:44px; border:1px solid var(--app-divider); border-radius:26px; }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
@@ -38,6 +39,7 @@ class ProfilePageState extends State<ProfilePage> {
   UserProfile? _profile;
   bool _loading = true;
   bool _saving = false;
+  bool _editing = false;
   String? _error;
   String _gender = '';
 
@@ -89,12 +91,9 @@ class ProfilePageState extends State<ProfilePage> {
     }
     final UserProfile profile = loadedProfile;
 
-    final AccountCancellationRequestSummary? cancellationRequest =
-        profile.accountCancellationRequest;
-
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 880),
+        constraints: const BoxConstraints(maxWidth: 720),
         child: ListView(
           padding: AppLayout.pagePadding(context),
           children: <Widget>[
@@ -113,135 +112,150 @@ class ProfilePageState extends State<ProfilePage> {
               ),
             _buildProfileHero(profile),
             const SizedBox(height: 10),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      text('个人信息', 'Personal information'),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _nicknameController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('用户昵称', 'Nickname'),
-                        prefixIcon: const Icon(Icons.badge_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _avatarUrlController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('头像 URL', 'Avatar URL'),
-                        hintText: 'https://...',
-                        prefixIcon: const Icon(Icons.image_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _saving ? null : _pickAndUploadAvatar,
-                        icon: const Icon(Icons.file_upload_outlined),
-                        label: Text(
-                          text('选择图片并上传头像', 'Choose and upload avatar'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _bioController,
-                      enabled: !_saving,
-                      maxLines: 2,
-                      maxLength: 100,
-                      decoration: InputDecoration(
-                        labelText: text('个性签名', 'Bio'),
-                        hintText: text(
-                          '介绍一下自己吧',
-                          'Tell others a little about yourself',
-                        ),
-                        prefixIcon: const Icon(Icons.edit_note_outlined),
-                        alignLabelWithHint: true,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      initialValue: _gender,
-                      decoration: InputDecoration(
-                        labelText: text('性别', 'Gender'),
-                        prefixIcon: const Icon(Icons.wc_outlined),
-                      ),
-                      items: <DropdownMenuItem<String>>[
-                        DropdownMenuItem<String>(
-                          value: '',
-                          child: Text(text('不显示', 'Prefer not to say')),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '男',
-                          child: Text(text('男', 'Male')),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '女',
-                          child: Text(text('女', 'Female')),
-                        ),
-                      ],
-                      onChanged: _saving
-                          ? null
-                          : (String? value) {
-                              setState(() {
-                                _gender = value ?? '';
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _backgroundUrlController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('主页背景图 URL', 'Profile background URL'),
-                        hintText: 'https://...',
-                        prefixIcon: const Icon(Icons.wallpaper_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _saving
-                            ? null
-                            : _pickAndUploadBackgroundImage,
-                        icon: const Icon(Icons.landscape_outlined),
-                        label: Text(
-                          text('选择图片并上传背景图', 'Choose and upload background'),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _saving ? null : _saveProfile,
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(
-                          _saving
-                              ? text('保存中...', 'Saving...')
-                              : text('保存资料', 'Save profile'),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            OutlinedButton.icon(
+              onPressed: () => setState(() => _editing = !_editing),
+              icon: Icon(_editing ? Icons.close_rounded : Icons.edit_outlined),
+              label: Text(
+                _editing
+                    ? text('关闭编辑', 'Close editor')
+                    : text('编辑个人资料', 'Edit profile'),
               ),
             ),
+            if (_editing)
+              FeatureSection(
+                padding: EdgeInsets.zero,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        text('个人信息', 'Personal information'),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _nicknameController,
+                        enabled: !_saving,
+                        decoration: InputDecoration(
+                          labelText: text('用户昵称', 'Nickname'),
+                          prefixIcon: const Icon(Icons.badge_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _avatarUrlController,
+                        enabled: !_saving,
+                        decoration: InputDecoration(
+                          labelText: text('头像 URL', 'Avatar URL'),
+                          hintText: 'https://...',
+                          prefixIcon: const Icon(Icons.image_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _saving ? null : _pickAndUploadAvatar,
+                          icon: const Icon(Icons.file_upload_outlined),
+                          label: Text(
+                            text('选择图片并上传头像', 'Choose and upload avatar'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _bioController,
+                        enabled: !_saving,
+                        maxLines: 2,
+                        maxLength: 100,
+                        decoration: InputDecoration(
+                          labelText: text('个性签名', 'Bio'),
+                          hintText: text(
+                            '介绍一下自己吧',
+                            'Tell others a little about yourself',
+                          ),
+                          prefixIcon: const Icon(Icons.edit_note_outlined),
+                          alignLabelWithHint: true,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        initialValue: _gender,
+                        decoration: InputDecoration(
+                          labelText: text('性别', 'Gender'),
+                          prefixIcon: const Icon(Icons.wc_outlined),
+                        ),
+                        items: <DropdownMenuItem<String>>[
+                          DropdownMenuItem<String>(
+                            value: '',
+                            child: Text(text('不显示', 'Prefer not to say')),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: '男',
+                            child: Text(text('男', 'Male')),
+                          ),
+                          DropdownMenuItem<String>(
+                            value: '女',
+                            child: Text(text('女', 'Female')),
+                          ),
+                        ],
+                        onChanged: _saving
+                            ? null
+                            : (String? value) {
+                                setState(() {
+                                  _gender = value ?? '';
+                                });
+                              },
+                      ),
+                      const SizedBox(height: 10),
+                      TextField(
+                        controller: _backgroundUrlController,
+                        enabled: !_saving,
+                        decoration: InputDecoration(
+                          labelText: text(
+                            '主页背景图 URL',
+                            'Profile background URL',
+                          ),
+                          hintText: 'https://...',
+                          prefixIcon: const Icon(Icons.wallpaper_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _saving
+                              ? null
+                              : _pickAndUploadBackgroundImage,
+                          icon: const Icon(Icons.landscape_outlined),
+                          label: Text(
+                            text('选择图片并上传背景图', 'Choose and upload background'),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: _saving ? null : _saveProfile,
+                          icon: const Icon(Icons.save_outlined),
+                          label: Text(
+                            _saving
+                                ? text('保存中...', 'Saving...')
+                                : text('保存资料', 'Save profile'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             const SizedBox(height: 10),
-            Card(
+            FeatureSection(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: <Widget>[
                   ListTile(
@@ -302,26 +316,12 @@ class ProfilePageState extends State<ProfilePage> {
                       await _loadProfile();
                     },
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline),
-                    title: Text(text('注销账号申请', 'Account deletion request')),
-                    subtitle: Text(
-                      cancellationRequest == null
-                          ? text(
-                              '提交后将进入管理员后台审核，通过后账号才会注销',
-                              'Your account is deleted only after an administrator approves the request.',
-                            )
-                          : _accountCancellationSubtitle(cancellationRequest),
-                    ),
-                    onTap: _saving || cancellationRequest?.status == 'pending'
-                        ? null
-                        : _promptAccountCancellationRequest,
-                  ),
                 ],
               ),
             ),
             const SizedBox(height: 6),
-            Card(
+            FeatureSection(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: <Widget>[
                   SwitchListTile(
@@ -361,12 +361,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ListTile(
                     leading: const Icon(Icons.block_outlined),
                     title: Text(text('黑名单管理', 'Blocked accounts')),
-                    onTap: () => _toast(
-                      text(
-                        '黑名单管理暂时不可用',
-                        'Blocked accounts are temporarily unavailable.',
-                      ),
-                    ),
+                    onTap: () => _openBlockedAccounts(),
                   ),
                   ListTile(
                     leading: const Icon(Icons.emoji_emotions_outlined),
@@ -413,7 +408,8 @@ class ProfilePageState extends State<ProfilePage> {
               ),
             ),
             const SizedBox(height: 6),
-            Card(
+            FeatureSection(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: <Widget>[
                   ListTile(
@@ -494,37 +490,32 @@ class ProfilePageState extends State<ProfilePage> {
     return Container(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
+        border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Container(
-            height: 144,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+          if (backgroundImageUrl.isNotEmpty)
+            Container(
+              height: 144,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+                color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                image: backgroundImageUrl.isEmpty
+                    ? null
+                    : DecorationImage(
+                        image: NetworkImage(backgroundImageUrl),
+                        fit: BoxFit.cover,
+                      ),
               ),
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              image: backgroundImageUrl.isEmpty
-                  ? null
-                  : DecorationImage(
-                      image: NetworkImage(backgroundImageUrl),
-                      fit: BoxFit.cover,
-                    ),
             ),
-          ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Transform.translate(
-                  offset: const Offset(0, -24),
-                  child: _buildAvatar(profile.avatarUrl, profile.nickname),
-                ),
-                const SizedBox(width: 12),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 12),
@@ -598,6 +589,11 @@ class ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   ),
+                ),
+                const SizedBox(width: 16),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: _buildAvatar(profile.avatarUrl, profile.nickname),
                 ),
               ],
             ),
@@ -886,93 +882,57 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _promptAccountCancellationRequest() async {
-    final TextEditingController controller = TextEditingController();
-    final String? reason = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            uiText(context, zh: '提交注销申请', en: 'Submit a deletion request'),
-          ),
-          content: TextField(
-            controller: controller,
-            minLines: 3,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: uiText(
-                context,
-                zh: '申请说明（可选）',
-                en: 'Reason (optional)',
-              ),
-              hintText: uiText(
-                context,
-                zh: '例如：不再使用或信息变更等',
-                en: 'For example: no longer used or information changed',
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: Text(uiText(context, zh: '确认提交', en: 'Submit')),
-            ),
-          ],
-        );
-      },
-    );
-    controller.dispose();
-    if (reason == null) {
-      return;
-    }
-    await _submitAccountCancellationRequest(reason: reason);
-  }
-
-  Future<void> _submitAccountCancellationRequest({String? reason}) async {
-    setState(() {
-      _saving = true;
-    });
-
+  Future<void> _openBlockedAccounts() async {
+    List<Map<String, dynamic>> blocks = <Map<String, dynamic>>[];
     try {
-      await AppRepositories.users.submitAccountCancellationRequest(
-        reason: reason,
-      );
-      await _loadProfile();
-      if (!mounted) {
-        return;
-      }
+      blocks = await AppRepositories.users.fetchBlocks();
+    } catch (error) {
       _toast(
         uiTextGlobal(
-          zh: '注销申请已提交，等待管理员审核',
-          en: 'Deletion request submitted, awaiting administrator review',
+          zh: '黑名单加载失败：$error',
+          en: 'Could not load blocked accounts: $error',
         ),
       );
-    } catch (error) {
-      _toast(uiTextGlobal(zh: '提交失败：$error', en: 'Submit failed: $error'));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
+      return;
     }
-  }
-
-  String _accountCancellationSubtitle(
-    AccountCancellationRequestSummary request,
-  ) {
-    final Locale locale = Localizations.localeOf(context);
-    final StringBuffer text = StringBuffer();
-    text.write('${request.statusLabelFor(locale)} · ${request.createdAt}');
-    if (request.reviewNote.trim().isNotEmpty) {
-      text.write(' · ${request.reviewNote.trim()}');
-    }
-    return text.toString();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: <Widget>[
+            ListTile(
+              title: Text(
+                uiText(sheetContext, zh: '黑名单管理', en: 'Blocked accounts'),
+              ),
+            ),
+            if (blocks.isEmpty)
+              ListTile(
+                title: Text(
+                  uiText(sheetContext, zh: '暂无屏蔽用户', en: 'No blocked accounts'),
+                ),
+              ),
+            for (final Map<String, dynamic> item in blocks)
+              ListTile(
+                leading: AppSealMark(size: 36),
+                title: Text((item['nickname'] ?? '西电同学').toString()),
+                trailing: TextButton(
+                  onPressed: () async {
+                    await AppRepositories.users.unblockUser(
+                      (item['id'] ?? '').toString(),
+                    );
+                    if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                    _openBlockedAccounts();
+                  },
+                  child: Text(uiText(sheetContext, zh: '解除屏蔽', en: 'Unblock')),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _logout() async {

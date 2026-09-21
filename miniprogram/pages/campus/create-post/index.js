@@ -6,7 +6,7 @@ import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
-const MAX_IMAGE_COUNT = 9;
+const MAX_IMAGE_COUNT = 20;
 const CONTENT_LIMIT = 2000;
 const TITLE_LIMIT = 50;
 const STATUS_OPTIONS = [

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/auth/auth_store.dart';
+import '../../l10n/generated/app_localizations.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
@@ -7,6 +9,7 @@ import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
+import '../post/create_post_page.dart';
 import 'feed_controller.dart';
 
 class DiscussionFeedView extends StatelessWidget {
@@ -35,53 +38,23 @@ class DiscussionFeedView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final bool desktop = constraints.maxWidth >= AppBreakpoints.expanded;
-        final Widget timeline = _DiscussionTimeline(
-          state: state,
-          onRefresh: onRefresh,
-          onLoadMore: onLoadMore,
-          onRetry: onRetry,
-          onFilter: onFilter,
-          onSortChanged: onSortChanged,
-          onPostOpen: onPostOpen,
-          onLike: onLike,
-          onFavorite: onFavorite,
-        );
-        if (!desktop) {
-          return timeline;
-        }
-        return Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: AppLayout.contentMaxWidth,
-            ),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                0,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Expanded(child: timeline),
-                  const SizedBox(width: AppSpacing.xl),
-                  SizedBox(
-                    width: 304,
-                    child: _DiscussionAside(
-                      posts: state.posts,
-                      onPostOpen: onPostOpen,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+    return AppPageFrame(
+      maxWidth: AppBreakpoints.isDesktop(context)
+          ? AppLayout.referenceFeed *
+                AppLayout.shellScale(MediaQuery.sizeOf(context).width)
+          : double.infinity,
+      padding: EdgeInsets.zero,
+      child: _DiscussionTimeline(
+        state: state,
+        onRefresh: onRefresh,
+        onLoadMore: onLoadMore,
+        onRetry: onRetry,
+        onFilter: onFilter,
+        onSortChanged: onSortChanged,
+        onPostOpen: onPostOpen,
+        onLike: onLike,
+        onFavorite: onFavorite,
+      ),
     );
   }
 }
@@ -112,25 +85,132 @@ class _DiscussionTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
-    return DecoratedBox(
-      decoration: BoxDecoration(color: colors.surface),
-      child: Column(
-        children: <Widget>[
-          _DiscussionHeader(
-            channel: state.selectedChannel,
-            sort: state.sort,
-            onFilter: onFilter,
-            onSortChanged: onSortChanged,
+    final desktop = AppBreakpoints.isDesktop(context);
+    final scale = AppLayout.shellScale(MediaQuery.sizeOf(context).width);
+    final radius = desktop
+        ? BorderRadius.vertical(top: Radius.circular(34 * scale))
+        : BorderRadius.zero;
+    return Column(
+      children: <Widget>[
+        _DiscussionHeader(
+          channel: state.selectedChannel,
+          sort: state.sort,
+          onFilter: onFilter,
+          onSortChanged: onSortChanged,
+        ),
+        Expanded(
+          child: Container(
+            key: const Key('discussion-feed-panel'),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: colors.surface,
+              borderRadius: radius,
+              border: desktop ? Border.all(color: colors.line) : null,
+            ),
+            child: Column(
+              children: <Widget>[
+                if (desktop)
+                  _DesktopComposer(onRefresh: onRefresh, scale: scale),
+                Expanded(
+                  child: _DiscussionFeedBody(
+                    state: state,
+                    onRefresh: onRefresh,
+                    onLoadMore: onLoadMore,
+                    onRetry: onRetry,
+                    onPostOpen: onPostOpen,
+                    onLike: onLike,
+                    onFavorite: onFavorite,
+                  ),
+                ),
+              ],
+            ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DesktopComposer extends StatelessWidget {
+  const _DesktopComposer({required this.onRefresh, required this.scale});
+
+  final Future<void> Function() onRefresh;
+  final double scale;
+
+  Future<void> _create(BuildContext context) async {
+    // Use the authenticated app's existing editor and current section navigator.
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(builder: (_) => const CreatePostPage()),
+    );
+    if (created == true) await onRefresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final colors = EditorialColors.of(context);
+    return Container(
+      key: const Key('desktop-feed-composer'),
+      constraints: BoxConstraints(minHeight: (105 * scale).clamp(72, 105)),
+      padding: EdgeInsets.symmetric(
+        horizontal: 33 * scale,
+        vertical: 16 * scale,
+      ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.line)),
+      ),
+      child: Row(
+        children: <Widget>[
+          ListenableBuilder(
+            listenable: AuthStore.instance,
+            builder: (context, _) {
+              final user = AuthStore.instance.currentUser;
+              final avatar = user?.avatarUrl.trim() ?? '';
+              final name = user?.nickname.trim() ?? '';
+              return CircleAvatar(
+                radius: 25 * scale,
+                backgroundColor: colors.primarySubtle,
+                foregroundColor: colors.ink,
+                backgroundImage: avatar.isEmpty ? null : NetworkImage(avatar),
+                child: avatar.isNotEmpty
+                    ? null
+                    : Text(
+                        name.isEmpty
+                            ? uiText(context, zh: '匿', en: 'A')
+                            : name.characters.first,
+                      ),
+              );
+            },
+          ),
+          SizedBox(width: 17 * scale),
           Expanded(
-            child: _DiscussionFeedBody(
-              state: state,
-              onRefresh: onRefresh,
-              onLoadMore: onLoadMore,
-              onRetry: onRetry,
-              onPostOpen: onPostOpen,
-              onLike: onLike,
-              onFavorite: onFavorite,
+            child: TextButton(
+              key: const Key('desktop-feed-compose-prompt'),
+              onPressed: () => _create(context),
+              style: TextButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.zero,
+                foregroundColor: colors.mutedInk,
+                textStyle: Theme.of(context).textTheme.bodyLarge,
+              ),
+              child: Text(uiText(context, zh: '有什么新鲜事？', en: "What's new?")),
+            ),
+          ),
+          SizedBox(width: 17 * scale),
+          OutlinedButton(
+            key: const Key('desktop-feed-compose-post'),
+            onPressed: () => _create(context),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(64, 40),
+              padding: EdgeInsets.symmetric(horizontal: 22 * scale),
+              side: BorderSide(color: colors.line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15 * scale),
+              ),
+            ),
+            child: Text(
+              l10n.createPost,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
         ],
@@ -190,8 +270,7 @@ class _DiscussionFeedBody extends StatelessWidget {
           itemCount: state.posts.isEmpty
               ? 1
               : state.posts.length + (state.loadingMore ? 1 : 0),
-          separatorBuilder: (_, __) =>
-              Divider(height: 1, color: EditorialColors.of(context).line),
+          separatorBuilder: (_, __) => const SizedBox.shrink(),
           itemBuilder: (BuildContext context, int index) {
             if (state.posts.isEmpty) {
               return SizedBox(
@@ -313,104 +392,6 @@ class _DiscussionTab extends StatelessWidget {
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
             color: selected ? colors.ink : colors.mutedInk,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DiscussionAside extends StatelessWidget {
-  const _DiscussionAside({required this.posts, required this.onPostOpen});
-
-  final List<PostItem> posts;
-  final ValueChanged<PostItem> onPostOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final List<PostItem> discussions = posts.take(5).toList(growable: false);
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.line),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  child: Text(
-                    uiText(context, zh: '正在讨论', en: 'In discussion'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                Icon(Icons.trending_up_rounded, color: colors.primary),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (discussions.isEmpty)
-              Text(
-                uiText(context, zh: '暂时没有讨论', en: 'No discussions yet'),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: colors.mutedInk),
-              )
-            else
-              for (final PostItem post in discussions)
-                InkWell(
-                  onTap: () => onPostOpen(post),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: AppSpacing.sm,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          post.title.trim().isEmpty
-                              ? post.content.trim()
-                              : post.title.trim(),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: AppSpacing.xxs),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '${post.commentCount} 条回复',
-                            en: '${post.commentCount} replies',
-                          ),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colors.mutedInk),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            const SizedBox(height: AppSpacing.md),
-            Divider(color: colors.line),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              uiText(context, zh: '社区共识', en: 'Community principles'),
-              style: Theme.of(context).textTheme.titleSmall,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              uiText(
-                context,
-                zh: '尊重每一次认真表达。匿名不等于无边界。',
-                en: 'Respect every sincere contribution. Anonymity still has boundaries.',
-              ),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: colors.mutedInk),
-            ),
-          ],
         ),
       ),
     );

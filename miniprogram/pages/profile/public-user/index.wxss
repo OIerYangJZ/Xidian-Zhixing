@@ -95,7 +95,7 @@
 
 .primary {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
 }
 
 .secondary {
@@ -120,3 +120,15 @@
   font-size: 27rpx;
   text-align: center;
 }
+
+/* Approved reference layout. */
+.public-page { padding:0 0 env(safe-area-inset-bottom); }
+.profile-head { margin:0; padding:36rpx; border-radius:0; text-align:left; }
+.avatar { border-radius:50%; }
+.name { font-size:44rpx; font-weight:700; }
+.bio { font-size:34rpx; line-height:1.5; }
+.stats { justify-content:flex-start; font-size:28rpx; }
+.actions { margin:20rpx 36rpx 0; }
+.primary, .secondary { min-height:44px; border-radius:26px; border:1px solid var(--app-divider); }
+.secondary { background:transparent; color:var(--app-text-primary); }
+.post-section { border-top:1px solid var(--app-divider); padding-top:24rpx; }

@@ -31,3 +31,11 @@
 .report-result {
   color: var(--app-text-primary);
 }
+
+/* Approved reference layout. */
+.page { padding:0 36rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.comment-card, .report-card, .history-card { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; background:var(--app-background); }
+.comment-content, .report-desc, .answer { font-size:32rpx; line-height:1.6; }
+.comment-post, .report-target, .question { font-size:34rpx; font-weight:700; }
+.head { min-height:60px; padding:12rpx 0; border-bottom:1px solid var(--app-divider); }
+.clear, .danger { min-height:44px; display:flex; align-items:center; }

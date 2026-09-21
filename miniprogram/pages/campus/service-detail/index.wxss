@@ -274,7 +274,7 @@
   width: 10rpx;
   height: 10rpx;
   border-radius: 50%;
-  background: rgba(120, 104, 179, 0.28);
+  background: var(--app-divider);
 }
 
 .week-dot.active {
@@ -392,7 +392,7 @@
   border-radius: 14rpx;
   background: var(--schedule-bg);
   color: var(--app-text-primary);
-  box-shadow: 0 10rpx 24rpx rgba(45, 37, 34, 0.05);
+  box-shadow: none;
 }
 
 .schedule-block.exam {
@@ -417,57 +417,10 @@
   word-break: break-all;
 }
 
-.block--cyan {
-  --schedule-accent: #a8332c;
-  --schedule-line: rgba(168, 51, 44, 0.18);
-  --schedule-bg: #fff7f6;
-}
-
-.block--purple {
-  --schedule-accent: #8f514a;
-  --schedule-line: rgba(143, 81, 74, 0.18);
-  --schedule-bg: #fff8f4;
-}
-
-.block--indigo {
-  --schedule-accent: #7b625d;
-  --schedule-line: rgba(123, 98, 93, 0.18);
-  --schedule-bg: #faf7f5;
-}
-
-.block--pink {
-  --schedule-accent: #b45464;
-  --schedule-line: rgba(180, 84, 100, 0.18);
-  --schedule-bg: #fff6f8;
-}
-
-.block--green {
-  --schedule-accent: #806a54;
-  --schedule-line: rgba(128, 106, 84, 0.18);
-  --schedule-bg: #fbf8f4;
-}
-
-.block--blue {
-  --schedule-accent: #6f7773;
-  --schedule-line: rgba(111, 119, 115, 0.18);
-  --schedule-bg: #f7f9f8;
-}
-
-.block--rose {
-  --schedule-accent: #a8332c;
-  --schedule-line: rgba(168, 51, 44, 0.24);
-  --schedule-bg: #fff1ef;
-}
-
-.color-mode-dark .block--cyan,
-.color-mode-dark .block--purple,
-.color-mode-dark .block--indigo,
-.color-mode-dark .block--pink,
-.color-mode-dark .block--green,
-.color-mode-dark .block--blue,
-.color-mode-dark .block--rose {
-  --schedule-line: rgba(255, 255, 255, 0.14);
-  --schedule-bg: rgba(255, 255, 255, 0.06);
+.schedule-block {
+  --schedule-accent: var(--app-primary);
+  --schedule-line: var(--app-divider);
+  --schedule-bg: var(--app-control);
 }
 
 .schedule-empty {
@@ -561,3 +514,11 @@
   font-size: 24rpx;
   line-height: 1.35;
 }
+
+/* Approved reference layout. */
+.section-card, .exam-card { margin:0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; padding:28rpx 36rpx; box-shadow:none; }
+.calendar-section { border-radius:0; border-color:var(--app-divider); }
+.action-grid { gap:0; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.action-card { border:0; border-bottom:1px solid var(--app-divider); border-radius:0; min-height:112rpx; background:var(--app-background); box-shadow:none; }
+.schedule-block { background:var(--app-control); border:1px solid var(--app-divider); color:var(--app-text-primary); }
+.nav-button, .top-week-arrow, .schedule-back { min-width:44px; min-height:44px; }

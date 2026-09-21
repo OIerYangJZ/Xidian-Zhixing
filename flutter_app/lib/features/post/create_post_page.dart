@@ -151,10 +151,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          AppSectionHeader(
-                            title: uiText(context, zh: '发布', en: 'New post'),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
                           Shortcuts(
                             shortcuts: const <ShortcutActivator, Intent>{
                               SingleActivator(LogicalKeyboardKey.tab):
@@ -554,8 +550,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                               Text(
                                 uiText(
                                   context,
-                                  zh: '图片（${_pickedImages.length}/9）',
-                                  en: 'Images (${_pickedImages.length}/9)',
+                                  zh: '图片（${_pickedImages.length}/20）',
+                                  en: 'Images (${_pickedImages.length}/20)',
                                 ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
@@ -741,7 +737,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         return;
       }
 
-      const int maxImages = 9;
+      const int maxImages = 20;
       final int remaining = maxImages - _pickedImages.length;
       if (remaining <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -749,8 +745,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             content: Text(
               uiText(
                 context,
-                zh: '最多上传 9 张图片',
-                en: 'You can upload up to 9 images',
+                zh: '最多上传 20 张图片',
+                en: 'You can upload up to 20 images',
               ),
             ),
           ),
@@ -769,8 +765,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             content: Text(
               uiText(
                 context,
-                zh: '最多上传 9 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
-                en: 'Up to 9 images: kept the first $remaining, skipped ${selected.length - accepted.length}.',
+                zh: '最多上传 20 张图片，已自动保留前 $remaining 张。超出 ${selected.length - accepted.length} 张未选中。',
+                en: 'Up to 20 images: kept the first $remaining, skipped ${selected.length - accepted.length}.',
               ),
             ),
           ),
@@ -913,7 +909,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
 
     _pruneMarkdownImageMappings();
-    const int maxImages = 9;
+    const int maxImages = 20;
     final int remaining =
         maxImages -
         (_pickedImages.length + _markdownImageUploadIdsByUrl.length);
@@ -923,8 +919,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           content: Text(
             uiText(
               context,
-              zh: '最多上传 9 张图片',
-              en: 'You can upload up to 9 images',
+              zh: '最多上传 20 张图片',
+              en: 'You can upload up to 20 images',
             ),
           ),
         ),
@@ -979,8 +975,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             content: Text(
               uiText(
                 context,
-                zh: '最多上传 9 张图片，超出 ${images.length - accepted.length} 张未插入。',
-                en: 'Up to 9 images: ${images.length - accepted.length} were not inserted.',
+                zh: '最多上传 20 张图片，超出 ${images.length - accepted.length} 张未插入。',
+                en: 'Up to 20 images: ${images.length - accepted.length} were not inserted.',
               ),
             ),
           ),

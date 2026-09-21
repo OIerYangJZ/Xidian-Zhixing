@@ -1,7 +1,5 @@
 <view class="map-page {{themeClass}}">
   <view class="map-head">
-    <view class="map-kicker">Xidian GIS</view>
-    <view class="map-title">校园地图</view>
     <view class="map-subtitle">南校区常用地点索引，导航由学校官方系统提供。</view>
     <button class="map-button" bindtap="openOfficialMap">打开学校导航系统</button>
   </view>

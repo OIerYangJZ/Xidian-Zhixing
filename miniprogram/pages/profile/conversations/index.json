@@ -1,4 +1,5 @@
 {
-  "navigationBarTitleText": "私信",
-  "enablePullDownRefresh": true
+  "navigationBarTitleText": "",
+  "enablePullDownRefresh": true,
+  "navigationStyle": "custom"
 }

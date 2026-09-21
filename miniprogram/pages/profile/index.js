@@ -1,15 +1,16 @@
 import { getUserInfo } from '../../api/auth';
-import { getFavoritePosts, togglePostLike } from '../../api/posts';
+import { getFavoritePosts } from '../../api/posts';
 import {
   getFollowers,
   getFollowing,
   getMyComments,
   getMyPosts
 } from '../../api/user';
-import { avatarInitial, resolveUrl } from '../../utils/format';
+import { avatarInitial, normalizePost, resolveUrl } from '../../utils/format';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../utils/feed_images';
+import { togglePostFavoriteInList, togglePostLikeInList } from '../../utils/post_actions';
 
 const TABS = [
   { key: 'posts', label: '帖子' },
@@ -41,21 +42,11 @@ const buildFollowUser = (raw = {}) => {
 };
 
 const buildPost = (raw = {}) => {
-  const imageUrls = Array.isArray(raw.imageUrls)
-    ? raw.imageUrls
-    : Array.isArray(raw.images)
-      ? raw.images
-      : [];
-  const normalizedImageUrls = imageUrls.map(resolveUrl).filter(Boolean);
+  const normalized = normalizePost(raw);
   return {
-    ...raw,
-    id: String(raw.id || raw.postId || ''),
-    images: normalizedImageUrls,
-    imageUrls: normalizedImageUrls,
-    liked: Boolean(raw.liked || raw.isLiked),
-    isLiked: Boolean(raw.liked || raw.isLiked),
-    likeCount: Number(raw.likeCount || 0),
-    commentCount: Number(raw.commentCount || 0)
+    ...normalized,
+    images: normalized.imageUrls,
+    isLiked: normalized.liked
   };
 };
 
@@ -292,7 +283,7 @@ Page({
   stopTouchMove() {},
 
   goPostDetail(event) {
-    const id = event.currentTarget.dataset.id;
+    const id = event.detail.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
 
@@ -306,30 +297,22 @@ Page({
   },
 
   async toggleLike(event) {
-    const source = event.currentTarget.dataset.source;
-    const index = Number(event.currentTarget.dataset.index);
-    const key = source === 'favorites' ? 'favoritePosts' : 'posts';
-    const posts = this.data[key].slice();
-    const post = posts[index];
-    if (!post || !post.id) return;
-    const before = Boolean(post.liked || post.isLiked);
-    const result = await togglePostLike(post.id);
-    const liked = Boolean(result.liked);
-    const delta = liked === before ? 0 : liked ? 1 : -1;
-    posts[index] = {
-      ...post,
-      liked,
-      isLiked: liked,
-      likeCount: Math.max(0, Number(post.likeCount || 0) + delta)
-    };
+    const key = event.detail.listKey || 'posts';
+    const posts = await togglePostLikeInList(this.data[key], event.detail.index);
+    this.setData({ [key]: posts });
+  },
+
+  async toggleFavorite(event) {
+    const key = event.detail.listKey || 'posts';
+    const posts = await togglePostFavoriteInList(this.data[key], event.detail.index);
     this.setData({ [key]: posts });
   },
 
   previewPostImage(event) {
-    const source = event.currentTarget.dataset.source;
-    const postIndex = Number(event.currentTarget.dataset.postIndex);
-    const current = event.currentTarget.dataset.url;
-    const posts = source === 'favorites' ? this.data.favoritePosts : this.data.posts;
+    const source = event.detail.listKey;
+    const postIndex = Number(event.detail.index);
+    const current = event.detail.url;
+    const posts = this.data[source] || [];
     const post = posts[postIndex];
     const urls = (post && (post.displayImages || post.imageUrls)) || [];
     if (current && urls.length) {

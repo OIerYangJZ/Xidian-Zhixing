@@ -1,11 +1,11 @@
 import { getUserInfo } from '../../api/auth';
-import { getPosts } from '../../api/post';
-import { favoritePost, togglePostLike as togglePostLikeApi, unfavoritePost } from '../../api/posts';
+import { getPosts } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
 import { avatarInitial } from '../../utils/format';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../utils/feed_images';
+import { togglePostFavoriteInList, togglePostLikeInList } from '../../utils/post_actions';
 
 const SORT_OPTIONS = [
   { label: '最新', value: 'latest' },
@@ -16,7 +16,6 @@ Page({
   data: {
     posts: [],
     sectionTree: { sections: [], colleges: [], clubs: [] },
-    postLayout: 'threads',
     loading: false,
     hasMore: true,
     page: 1,
@@ -39,7 +38,6 @@ Page({
 
   onLoad() {
     this.initCustomNav();
-    this.loadPostLayout();
     setTimeout(async () => {
       if (!requireLoginPage()) return;
       try {
@@ -59,7 +57,6 @@ Page({
   onShow() {
     applyThemeAndLanguage(this);
     this.initCustomNav();
-    this.loadPostLayout();
   },
 
   onPullDownRefresh() {
@@ -72,10 +69,6 @@ Page({
       navTop: app.globalData.navTop || 44,
       navHeight: app.globalData.navHeight || 32
     });
-  },
-
-  loadPostLayout() {
-    this.setData({ postLayout: wx.getStorageSync('treeholePostLayout') || 'threads' });
   },
 
   async loadSections() {
@@ -193,9 +186,9 @@ Page({
 
     this.setData({ loading: true, errorMessage: '' });
     try {
-      const res = await getPosts(params);
+      const rows = await getPosts(params);
       const currentUserId = String((this.data.userInfo && this.data.userInfo.id) || '').trim();
-      const newPosts = ((res.data && res.data.items) || []).map((post) => {
+      const newPosts = rows.map((post) => {
         const authorUserId = String(post.authorUserId || post.authorId || '').trim();
         const isFollowingAuthor = Boolean(post.followingAuthor || post.isFollowingAuthor || post.isFollowing);
         return attachDisplayImages({
@@ -206,7 +199,7 @@ Page({
       this.setData({
         posts: this.data.posts.concat(newPosts),
         page: this.data.page + 1,
-        hasMore: res.data && res.data.hasMore !== undefined ? res.data.hasMore : newPosts.length >= this.data.limit,
+        hasMore: newPosts.length >= this.data.limit,
         loading: false
       });
       await this.hydrateFeedImages();
@@ -252,57 +245,36 @@ Page({
   },
 
   goToDetail(event) {
-    wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${event.currentTarget.dataset.id}` });
+    wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${event.detail.id}` });
   },
 
   goTagPosts(event) {
-    const tag = event.currentTarget.dataset.tag;
+    const tag = event.detail.tag;
     if (!tag) return;
     wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
   },
 
   async togglePostLike(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const post = this.data.posts[index];
-    if (!post || !post.id) return;
-    const result = await togglePostLikeApi(post.id);
-    const liked = Boolean(result.liked);
-    const posts = this.data.posts.slice();
-    posts[index] = {
-      ...post,
-      liked,
-      isLiked: liked,
-      likeCount: Math.max(0, Number(post.likeCount || 0) + (liked ? 1 : -1))
-    };
+    const index = Number(event.detail.index);
+    const posts = await togglePostLikeInList(this.data.posts, index);
     this.setData({ posts });
   },
 
   async togglePostFavorite(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const post = this.data.posts[index];
-    if (!post || !post.id) return;
-    const favorited = Boolean(post.favorited || post.isFavorited);
-    const result = favorited ? await unfavoritePost(post.id) : await favoritePost(post.id);
-    const nextFavorited = !favorited;
-    const posts = this.data.posts.slice();
-    posts[index] = {
-      ...post,
-      favorited: nextFavorited,
-      isFavorited: nextFavorited,
-      favoriteCount: Number(result.favoriteCount)
-    };
+    const index = Number(event.detail.index);
+    const posts = await togglePostFavoriteInList(this.data.posts, index);
     this.setData({ posts });
   },
 
   openAuthorProfile(event) {
-    const userId = event.currentTarget.dataset.userId || '';
-    const isAnonymous = String(event.currentTarget.dataset.anonymous || '0') === '1';
+    const userId = event.detail.userId || '';
+    const isAnonymous = String(event.detail.anonymous || '0') === '1';
     if (!userId || isAnonymous) return;
     wx.navigateTo({ url: `/pages/profile/public-user/index?id=${userId}` });
   },
 
   goSearch() {
-    wx.navigateTo({ url: '/pages/campus/search/index' });
+    wx.switchTab({ url: '/pages/campus/search/index' });
   },
 
   goCreatePost() {

@@ -1,0 +1,13 @@
+@import "../../styles/icons.wxss";
+:host { display: block; }
+.social-header { display:flex; align-items:center; box-sizing:border-box; padding-left:12px; padding-right:100px; padding-bottom:8px; background:var(--app-background); color:var(--app-text-primary); border-bottom:1px solid var(--app-divider); }
+.fixed { position:fixed; top:0; left:0; right:0; z-index:60; }
+.avatar-button { width:44px; height:44px; padding:0; margin:0; display:flex; align-items:center; justify-content:center; background:transparent; color:inherit; }
+.avatar-button::after { border:0; }
+.avatar { display:flex; align-items:center; justify-content:center; width:29px; height:29px; border-radius:50%; background:var(--app-control); font-size:17px; }
+.header-center { flex:1; min-width:0; display:flex; align-items:center; justify-content:center; }
+.header-center>.icon-brand { width:30px; height:34px; position:absolute; left:50%; transform:translateX(-50%); pointer-events:none; }
+.header-actions { display:flex; align-items:center; }
+.pressed { opacity:.6; }
+
+.profile-error .avatar { outline:1px solid var(--app-error); }

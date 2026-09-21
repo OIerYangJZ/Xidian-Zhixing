@@ -138,9 +138,6 @@ Page({
     wx.navigateTo({ url: `/pages/campus/service-detail/index?id=${service.id}&name=${encodeURIComponent(service.name)}` });
   },
 
-  openIdsLogin() {
-    wx.navigateTo({ url: '/pages/campus/auth-center/index?system=schoolnet' });
-  },
 
   openQuickLink(event) {
     const service = this.data.services.find((item) => item.id === event.currentTarget.dataset.id);

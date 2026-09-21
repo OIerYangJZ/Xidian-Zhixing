@@ -11,25 +11,19 @@ class AppSettingsStore extends ChangeNotifier {
 
   SharedPreferences? _prefs;
 
-  static const String _brightnessKey =
-      'treehole_brightness'; // ThemeMode.index: 0=system, 1=light, 2=dark
   static const String _localeKey = 'treehole_localization'; // 'zh_CN', 'en_US'
   static const String _legacyLocaleKey = 'treehole_locale';
   static const String _themeKeyStorageKey = 'treehole_theme_key';
 
-  // ignore: unused_field
-  ThemeMode _themeMode = ThemeMode.light;
   Locale? _locale;
   String _themeKey = AppColorThemes.defaultKey;
 
-  ThemeMode get themeMode => ThemeMode.light;
   Locale? get locale => _locale;
   String get themeKey => _themeKey;
 
   /// 应用启动时调用，从 SharedPreferences 恢复持久化状态。
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
-    _themeMode = ThemeMode.values[_prefs!.getInt(_brightnessKey) ?? 1];
     final String? storedThemeKey = _prefs!.getString(_themeKeyStorageKey);
     _themeKey = AppColorThemes.resolveStoredKey(storedThemeKey);
     if (storedThemeKey != null && storedThemeKey != _themeKey) {
@@ -40,13 +34,6 @@ class AppSettingsStore extends ChangeNotifier {
         _prefs!.getString(_legacyLocaleKey) ??
         'zh_CN';
     _locale = _parseLocaleCode(loc);
-    notifyListeners();
-  }
-
-  /// 设置主题亮度并持久化（保留接口，始终为 light）。
-  Future<void> setBrightness(ThemeMode mode) async {
-    _themeMode = mode;
-    await _prefs?.setInt(_brightnessKey, mode.index);
     notifyListeners();
   }
 

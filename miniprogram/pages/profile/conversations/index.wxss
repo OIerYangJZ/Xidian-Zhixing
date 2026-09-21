@@ -51,7 +51,7 @@
 .delete-button {
   padding: 0;
   background: transparent;
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 28rpx;
   line-height: 1;
 }
@@ -146,3 +146,11 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Approved reference layout. */
+.conversations-page { padding:0 0 var(--tab-height); }
+.conversation-row { min-height:174rpx; padding:30rpx 34rpx; gap:24rpx; }
+.avatar { width:98rpx; height:98rpx; border-radius:50%; }
+.name { font-size:34rpx; }
+.time, .message { font-size:28rpx; }
+.badge { min-width:32rpx; border-radius:50%; background:var(--app-primary); color:var(--app-on-primary); text-align:center; padding:4rpx; }

@@ -35,6 +35,15 @@ class UserRepository {
     );
   }
 
+  Future<List<Map<String, dynamic>>> fetchBlocks() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.meBlocks);
+    return extractList(response).map((dynamic item) => asMap(item)).toList();
+  }
+
+  Future<void> unblockUser(String userId) async {
+    await _apiClient.delete(ApiEndpoints.meBlock(userId));
+  }
+
   Future<void> updateNotificationPreferences({
     required bool notifyComment,
     required bool notifyReply,

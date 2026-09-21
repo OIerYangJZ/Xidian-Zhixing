@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -144,40 +146,49 @@ class _CampusServiceDetailPageState
                       ),
               ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            )
-          : service == null
-          ? const SizedBox.shrink()
-          : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
-              children: <Widget>[
-                if (_isExamService(service))
-                  _ExamList(calendar: _calendar)
-                else if (service.kind == 'schedule' ||
-                    service.calendarSource.isNotEmpty)
-                  _ScheduleGrid(calendar: _calendar, sectionRows: _sectionRows),
-                if (_businessActions(service).isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 16),
-                  _BlockTitle(uiText(context, zh: '操作', en: 'Actions')),
-                  const SizedBox(height: 10),
-                  _ActionGrid(
-                    actions: _businessActions(service),
-                    onTap: _runAction,
-                  ),
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              )
+            : service == null
+            ? const SizedBox.shrink()
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                children: <Widget>[
+                  if (_isExamService(service))
+                    _ExamList(calendar: _calendar)
+                  else if (service.kind == 'schedule' ||
+                      service.calendarSource.isNotEmpty)
+                    _ScheduleGrid(
+                      calendar: _calendar,
+                      sectionRows: _sectionRows,
+                    ),
+                  if (_businessActions(service).isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 16),
+                    _BlockTitle(uiText(context, zh: '操作', en: 'Actions')),
+                    const SizedBox(height: 10),
+                    _ActionGrid(
+                      actions: _businessActions(service),
+                      onTap: _runAction,
+                    ),
+                  ],
+                  if (service.maps.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 16),
+                    _BlockTitle(
+                      uiText(context, zh: '相关地图', en: 'Related maps'),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final CampusMap map in service.maps)
+                      _MapRow(map: map, onTap: _openCampusMap),
+                  ],
                 ],
-                if (service.maps.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 16),
-                  _BlockTitle(uiText(context, zh: '相关地图', en: 'Related maps')),
-                  const SizedBox(height: 10),
-                  for (final CampusMap map in service.maps)
-                    _MapRow(map: map, onTap: _openCampusMap),
-                ],
-              ],
-            ),
+              ),
+      ),
     );
   }
 

@@ -3,10 +3,6 @@
     <view class="profile-back-button" bindtap="goBack" aria-label="返回">
       <view class="profile-back-icon"></view>
     </view>
-    <view class="nav-title">
-      <view class="nav-name" style="color: var(--brand-deep);">我的</view>
-      <view class="nav-subtitle" style="color: var(--text-secondary);">管理你的身份、内容与设置</view>
-    </view>
   </view>
 
   <view class="profile-header" style="margin-top: {{navTop + navHeight + 8}}px;">
@@ -22,7 +18,7 @@
       </view>
       <view class="profile-actions">
         <view class="profile-pill-button" bindtap="goToEditProfile">编辑资料</view>
-        <view class="profile-icon-button" bindtap="goToSettings">⚙</view>
+        <view class="profile-icon-button" bindtap="goToSettings" role="button" aria-label="设置"><view class="ui-icon icon-settings"></view></view>
       </view>
     </view>
 
@@ -70,53 +66,31 @@
 
   <view class="profile-tab-body">
     <block wx:if="{{activeTab === 'posts'}}">
-      <view wx:if="{{loadingPosts}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:if="{{loadingPosts}}" class="profile-loading">加载中...</view>
       <view wx:elif="{{postsError}}" class="profile-loading" bindtap="loadPosts">{{postsError}} · 点击重试</view>
       <view wx:elif="{{!posts.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
-        <view class="empty-image-placeholder"></view>
+        <view class="social-empty-illustration ui-icon icon-chat" aria-hidden="true"></view>
         <view class="empty-state-title">还没有发过帖子</view>
-        <view class="empty-state-desc">第一枚印章，等你盖下。</view>
+        <view class="empty-state-desc">分享你的第一条校园动态。</view>
       </view>
       <view wx:else class="profile-feed">
-        <view class="feed-card profile-post-card" wx:for="{{posts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <view wx:if="{{item.isAnonymous}}" class="feed-avatar anonymous-feed-avatar">{{item.authorInitial || '匿'}}</view>
-          <block wx:else>
-            <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-            <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
-          </block>
-          <view class="feed-body">
-            <view class="feed-head">
-              <text class="feed-author">{{item.authorAlias}}</text>
-              <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
-              <block wx:if="{{item.sectionName}}">
-                <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
-                <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
-              </block>
-              <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
-              <text class="feed-time">{{item.timeText}}</text>
-            </view>
-            <view wx:if="{{item.title}}" class="feed-title">{{item.title}}</view>
-            <swiper wx:if="{{item.displayImages && item.displayImages.length}}" class="profile-card-images" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
-                <image class="profile-card-image" src="{{img}}" mode="aspectFill" data-source="posts" data-post-index="{{postIndex}}" data-url="{{img}}" catchtap="previewPostImage"></image>
-              </swiper-item>
-            </swiper>
-            <view wx:else class="feed-summary">{{item.summary || item.content}}</view>
-            <view class="feed-tags" wx:if="{{item.tags && item.tags.length}}">
-              <text class="feed-tag" wx:for="{{item.tags}}" wx:key="*this">#{{item}}</text>
-            </view>
-            <view class="feed-actions">
-              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-              <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-              <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
-            </view>
-          </view>
-        </view>
+        <post-row
+          wx:for="{{posts}}"
+          wx:key="id"
+          item="{{item}}"
+          index="{{index}}"
+          list-key="posts"
+          preview-images="true"
+          bind:open="goPostDetail"
+          bind:image="previewPostImage"
+          bind:like="toggleLike"
+          bind:favorite="toggleFavorite"
+        />
       </view>
     </block>
 
     <block wx:elif="{{activeTab === 'favorites'}}">
-      <view wx:if="{{loadingFavorites}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:if="{{loadingFavorites}}" class="profile-loading">加载中...</view>
       <view wx:elif="{{favoritesError}}" class="profile-loading" bindtap="loadFavorites">{{favoritesError}} · 点击重试</view>
       <view wx:elif="{{!favoritePosts.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
         <view class="empty-image-placeholder"></view>
@@ -124,45 +98,23 @@
         <view class="empty-state-desc">遇到有共鸣的内容，可以悄悄收起来。</view>
       </view>
       <view wx:else class="profile-feed">
-        <view class="feed-card profile-post-card" wx:for="{{favoritePosts}}" wx:for-index="postIndex" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-          <view wx:if="{{item.isAnonymous}}" class="feed-avatar anonymous-feed-avatar">{{item.authorInitial || '匿'}}</view>
-          <block wx:else>
-            <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-            <view wx:else class="feed-avatar">{{item.authorInitial}}</view>
-          </block>
-          <view class="feed-body">
-            <view class="feed-head">
-              <text class="feed-author">{{item.authorAlias}}</text>
-              <text wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</text>
-              <block wx:if="{{item.sectionName}}">
-                <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
-                <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
-              </block>
-              <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
-              <text class="feed-time">{{item.timeText}}</text>
-            </view>
-            <view wx:if="{{item.title}}" class="feed-title">{{item.title}}</view>
-            <swiper wx:if="{{item.displayImages && item.displayImages.length}}" class="profile-card-images" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
-                <image class="profile-card-image" src="{{img}}" mode="aspectFill" data-source="favorites" data-post-index="{{postIndex}}" data-url="{{img}}" catchtap="previewPostImage"></image>
-              </swiper-item>
-            </swiper>
-            <view wx:else class="feed-summary">{{item.summary || item.content}}</view>
-            <view class="feed-tags" wx:if="{{item.tags && item.tags.length}}">
-              <text class="feed-tag" wx:for="{{item.tags}}" wx:key="*this">#{{item}}</text>
-            </view>
-            <view class="feed-actions">
-              <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-              <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-              <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
-            </view>
-          </view>
-        </view>
+        <post-row
+          wx:for="{{favoritePosts}}"
+          wx:key="id"
+          item="{{item}}"
+          index="{{index}}"
+          list-key="favoritePosts"
+          preview-images="true"
+          bind:open="goPostDetail"
+          bind:image="previewPostImage"
+          bind:like="toggleLike"
+          bind:favorite="toggleFavorite"
+        />
       </view>
     </block>
 
     <block wx:else>
-      <view wx:if="{{loadingComments}}" class="profile-loading">正在寻找声音...</view>
+      <view wx:if="{{loadingComments}}" class="profile-loading">加载中...</view>
       <view wx:elif="{{commentsError}}" class="profile-loading" bindtap="loadComments">{{commentsError}} · 点击重试</view>
       <view wx:elif="{{!comments.length}}" class="empty-state-container" style="padding: 100rpx 40rpx;">
         <view class="empty-image-placeholder"></view>

@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
-import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
 
 class CampusAuthCenterPage extends ConsumerStatefulWidget {
@@ -135,97 +136,95 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
       appBar: AppBar(
         title: Text(uiText(context, zh: '登录管理', en: 'Sign-in manager')),
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-        children: <Widget>[
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final int columns = constraints.maxWidth >= 900 ? 3 : 2;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                  childAspectRatio: columns == 3 ? 2.3 : 1.45,
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+          children: <Widget>[
+            for (final _CampusSystem system in _systems)
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                title: Text(system.name(locale)),
+                subtitle: Text(system.desc(locale)),
+                selected: system.id == _activeSystem,
+                leading: Icon(
+                  system.id == _activeSystem
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
                 ),
-                itemCount: _systems.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final _CampusSystem system = _systems[index];
-                  return _SystemCard(
-                    system: system,
-                    active: system.id == _activeSystem,
-                    verified: _states.containsKey(system.id),
-                    onTap: () => _switchSystem(system.id),
-                  );
-                },
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SharedColors.divider),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
+                trailing: _states.containsKey(system.id)
+                    ? const Icon(Icons.check_rounded)
+                    : null,
+                onTap: () => _switchSystem(system.id),
+              ),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).dividerColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          _active.name(locale),
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      if (_states.containsKey(_activeSystem))
+                        TextButton(
+                          onPressed: _clearCurrentState,
+                          child: Text(uiText(context, zh: '清除', en: 'Clear')),
+                        ),
+                    ],
+                  ),
+                  if (_states[_activeSystem] case final Map state) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Text(
-                        _active.name(locale),
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
+                        uiText(
+                          context,
+                          zh:
+                              '已保存账号 · ${state['studentId'] ?? ''} · '
+                              '${state['updatedAt'] ?? ''}',
+                          en:
+                              'Saved account · ${state['studentId'] ?? ''} · '
+                              '${state['updatedAt'] ?? ''}',
                         ),
                       ),
                     ),
-                    if (_states.containsKey(_activeSystem))
-                      TextButton(
-                        onPressed: _clearCurrentState,
-                        child: Text(uiText(context, zh: '清除', en: 'Clear')),
-                      ),
                   ],
-                ),
-                if (_states[_activeSystem] case final Map state) ...<Widget>[
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: SharedColors.softRed.withValues(alpha: 0.58),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      uiText(
-                        context,
-                        zh:
-                            '已保存账号 · ${state['studentId'] ?? ''} · '
-                            '${state['updatedAt'] ?? ''}',
-                        en:
-                            'Saved account · ${state['studentId'] ?? ''} · '
-                            '${state['updatedAt'] ?? ''}',
-                      ),
-                    ),
-                  ),
+                  if (_error != null) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Text(_error!, style: const TextStyle(color: Colors.red)),
+                  ],
+                  const SizedBox(height: 14),
+                  if (_active.type == _AuthType.schoolnet)
+                    _schoolnetForm()
+                  else
+                    _dormWaterForm(),
                 ],
-                if (_error != null) ...<Widget>[
-                  const SizedBox(height: 10),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
-                ],
-                const SizedBox(height: 14),
-                if (_active.type == _AuthType.schoolnet)
-                  _schoolnetForm()
-                else
-                  _dormWaterForm(),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -616,78 +615,6 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
   }
 }
 
-class _SystemCard extends StatelessWidget {
-  const _SystemCard({
-    required this.system,
-    required this.active,
-    required this.verified,
-    required this.onTap,
-  });
-
-  final _CampusSystem system;
-  final bool active;
-  final bool verified;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final Color primary = Theme.of(context).colorScheme.primary;
-    final Locale locale = Localizations.localeOf(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: active
-              ? primary.withValues(alpha: 0.08)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: active ? primary : SharedColors.divider),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Text(
-                  system.tag(locale),
-                  style: TextStyle(color: primary, fontWeight: FontWeight.w900),
-                ),
-                const Spacer(),
-                if (verified)
-                  Text(
-                    uiText(context, zh: '已验证', en: 'Verified'),
-                    style: TextStyle(
-                      color: primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              system.name(locale),
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              system.desc(locale),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.62),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _CaptchaBox extends StatelessWidget {
   const _CaptchaBox({
     required this.image,
@@ -710,7 +637,7 @@ class _CaptchaBox extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SharedColors.divider),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: busy
             ? const SizedBox(

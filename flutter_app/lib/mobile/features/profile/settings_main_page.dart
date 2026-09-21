@@ -128,7 +128,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
             _buildMenuTile(
               icon: Icons.lock_outline,
               title: '账号与安全',
-              subtitle: '统一认证、用户等级、注销账号',
+              subtitle: '统一认证、用户等级',
               onTap: () => context.push('/profile/settings/account'),
             ),
             _buildMenuTile(
@@ -150,7 +150,7 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
             _buildMenuTile(
               icon: Icons.palette_outlined,
               title: '界面外观',
-              subtitle: '深色模式、多语言',
+              subtitle: '配色主题、多语言',
               onTap: () => context.push('/profile/settings/display'),
             ),
           ]),

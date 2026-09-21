@@ -14,7 +14,7 @@
   height: 160rpx;
   border-radius: 40rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 96rpx;
   line-height: 160rpx;
   text-align: center;
@@ -47,3 +47,10 @@
   font-size: 22rpx;
   text-align: center;
 }
+
+/* Approved reference layout. */
+.brand-card { background:transparent; border:0; border-radius:0; padding:36rpx 0; }
+.brand-logo { background:transparent; color:var(--app-text-primary); width:64px; height:64px; border-radius:0; display:flex; align-items:center; justify-content:center; }
+.brand-logo .ui-icon { width:48px; height:48px; }
+.brand-title { font-size:44rpx; }
+.brand-subtitle, .version, .copyright { color:var(--app-text-secondary); }

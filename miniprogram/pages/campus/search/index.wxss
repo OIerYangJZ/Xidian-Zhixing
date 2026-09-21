@@ -23,7 +23,7 @@
   height: 76rpx;
   border-radius: 20rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 28rpx;
   font-weight: 600;
   line-height: 76rpx;
@@ -136,7 +136,7 @@
 
 .type-chip.active {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-weight: 600;
 }
 
@@ -166,7 +166,7 @@
 
 .filter-chip.active {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-weight: 600;
 }
 
@@ -292,3 +292,18 @@
 .inline-tag {
   color: var(--app-primary);
 }
+
+/* Approved reference layout. */
+.search-page { padding:0 0 var(--tab-height); }
+.type-row { gap:0; padding:0 16rpx; border-bottom:1px solid var(--app-divider); }
+.type-chip { min-height:44px; height:auto; display:flex; align-items:center; justify-content:center; border-radius:0; background:transparent; font-size:34rpx; border-bottom:2px solid transparent; }
+.type-chip.active { color:var(--app-text-primary); background:transparent; border-bottom-color:var(--app-primary); }
+.sort-row { padding:12rpx 24rpx; }
+.sort-chip { min-height:44px; display:flex; align-items:center; justify-content:center; }
+.history { padding:32rpx 36rpx; }
+.hot-row, .user-card { padding:28rpx 36rpx; }
+.hot-rank { background:transparent; font-size:36rpx; }
+.hot-name, .user-name { font-size:34rpx; }
+.hot-summary, .user-bio { font-size:30rpx; }
+.hot-meta { font-size:26rpx; }
+.hot-summary-btn, .clear, .user-action { min-height:44px; display:flex; align-items:center; justify-content:center; }

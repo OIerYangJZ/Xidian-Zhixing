@@ -740,7 +740,11 @@ def handle_send_message(
         )
         return
 
-    _, high_risk, risk_reasons = assess_text_risk(db, content)
+    _, high_risk, risk_reasons = assess_text_risk(
+        db,
+        content,
+        block_on_match=True,
+    )
     if high_risk:
         json_error(
             handler,

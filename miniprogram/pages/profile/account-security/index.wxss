@@ -16,3 +16,8 @@
 .danger-title {
   color: var(--app-error);
 }
+
+/* Approved reference layout. */
+.mobile-tile, .switch-row { min-height:120rpx; }
+.option-row { min-height:112rpx; }
+.check-mark { color:var(--app-text-primary); }

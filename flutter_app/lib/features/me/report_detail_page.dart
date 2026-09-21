@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
 import '../../core/theme/design_tokens.dart';
@@ -75,13 +76,12 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _loadDetail,
-                            child: Text(
-                              uiText(context, zh: '重试', en: 'Retry'),
-                            ),
+                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
                           ),
                         ),
                       ),
-                    Card(
+                    FeatureSection(
+                      padding: EdgeInsets.zero,
                       child: Padding(
                         padding: const EdgeInsets.all(14),
                         child: Column(
@@ -162,7 +162,11 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
                               : const Icon(Icons.open_in_new_outlined),
                           label: Text(
                             _openingTarget
-                                ? uiText(context, zh: '打开中...', en: 'Opening...')
+                                ? uiText(
+                                    context,
+                                    zh: '打开中...',
+                                    en: 'Opening...',
+                                  )
                                 : uiText(
                                     context,
                                     zh: '查看被举报帖子',
@@ -241,9 +245,7 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             uiTextGlobal(

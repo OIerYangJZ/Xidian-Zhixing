@@ -20,3 +20,8 @@
 .switch-row + .switch-row {
   border-top: 1rpx solid var(--app-divider);
 }
+
+/* Approved reference layout. */
+.mobile-tile, .switch-row { min-height:120rpx; }
+.option-row { min-height:112rpx; }
+.check-mark { color:var(--app-text-primary); }

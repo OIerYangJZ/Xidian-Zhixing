@@ -1,3 +1,4 @@
+import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
 
 Page({
@@ -7,6 +8,7 @@ Page({
     loading: true,
     errorMessage: ''
   },
+  onShow() { applyThemeAndLanguage(this); },
   async onLoad() {
     await this.loadTopics();
   },

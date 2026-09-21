@@ -4,13 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/config/app_config.dart';
 import '../../core/navigation/url_query_state.dart';
 import '../../core/network/api_exception.dart';
-import '../../core/state/app_locale_store.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
-import '../../core/widgets/language_toggle.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -45,73 +41,19 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
-    return Theme(
-      data: AppTheme.lightThemeFor(locale, themeKey: 'mozhuxinye'),
-      child: Builder(
-        builder: (BuildContext context) {
-          final EditorialColors colors = EditorialColors.of(context);
-          return Scaffold(
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final bool desktop =
-                      constraints.maxWidth >= AppBreakpoints.medium;
-                  if (desktop) {
-                    return Row(
-                      children: <Widget>[
-                        Expanded(
-                          flex: 11,
-                          child: _LoginManifesto(
-                            locale: Localizations.localeOf(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 9,
-                          child: ColoredBox(
-                            color: colors.page,
-                            child: _LoginForm(
-                              isBusy: _isBusy,
-                              errorText: _errorText,
-                              onLogin: _login,
-                              onAdminLogin: _openAdminLogin,
-                              onTerms: _openTerms,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return ColoredBox(
-                    color: colors.page,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                        AppSpacing.md,
-                        AppSpacing.xxl,
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          const _CompactBrandHeader(),
-                          const SizedBox(height: AppSpacing.lg),
-                          _LoginForm(
-                            showLanguage: false,
-                            isBusy: _isBusy,
-                            errorText: _errorText,
-                            onLogin: _login,
-                            onAdminLogin: _openAdminLogin,
-                            onTerms: _openTerms,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        },
+    return Scaffold(
+      body: SafeArea(
+        child: AppPageFrame(
+          maxWidth: 560,
+          padding: EdgeInsets.zero,
+          child: _LoginForm(
+            isBusy: _isBusy,
+            errorText: _errorText,
+            onLogin: _login,
+            onAdminLogin: _openAdminLogin,
+            onTerms: _openTerms,
+          ),
+        ),
       ),
     );
   }
@@ -214,115 +156,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class _LoginManifesto extends StatelessWidget {
-  const _LoginManifesto({required this.locale});
-
-  final Locale locale;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors colors = EditorialColors.of(context);
-    return ColoredBox(
-      color: colors.darkPanel,
-      child: Stack(
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(56, 40, 56, 48),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const _Wordmark(onDark: true),
-                const Spacer(),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 660),
-                  child: Text(
-                    l10n.tagline,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: colors.onDarkPanel,
-                      fontSize: locale.languageCode == 'en' ? 66 : 74,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Text(
-                    l10n.taglineSupporting,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: colors.onDarkPanel.withValues(alpha: 0.76),
-                      height: 1.7,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: _ManifestoNote(
-                        title: l10n.readFirst,
-                        description: l10n.readFirstDescription,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: _ManifestoNote(
-                        title: l10n.crossScreen,
-                        description: l10n.crossScreenDescription,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ManifestoNote extends StatelessWidget {
-  const _ManifestoNote({required this.title, required this.description});
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Container(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: colors.onDarkPanel.withValues(alpha: 0.32)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: colors.onDarkPanel),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colors.onDarkPanel.withValues(alpha: 0.66),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _LoginForm extends StatelessWidget {
   const _LoginForm({
-    this.showLanguage = true,
     required this.isBusy,
     required this.errorText,
     required this.onLogin,
@@ -330,7 +165,6 @@ class _LoginForm extends StatelessWidget {
     required this.onTerms,
   });
 
-  final bool showLanguage;
   final bool isBusy;
   final String? errorText;
   final VoidCallback onLogin;
@@ -341,7 +175,6 @@ class _LoginForm extends StatelessWidget {
   Widget build(BuildContext context) {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final EditorialColors colors = EditorialColors.of(context);
-    final Locale locale = Localizations.localeOf(context);
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xxl,
@@ -353,22 +186,6 @@ class _LoginForm extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              if (showLanguage) ...<Widget>[
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      LanguageToggle(
-                        locale: locale,
-                        onChanged: AppLocaleStore.instance.setLocale,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 72),
-              ] else
-                const SizedBox(height: AppSpacing.sm),
               Text(
                 l10n.welcomeBack,
                 style: Theme.of(context).textTheme.displaySmall,
@@ -430,83 +247,6 @@ class _LoginForm extends StatelessWidget {
   }
 }
 
-class _CompactBrandHeader extends StatelessWidget {
-  const _CompactBrandHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors colors = EditorialColors.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            const _Wordmark(),
-            const Spacer(),
-            LanguageToggle(
-              locale: locale,
-              onChanged: AppLocaleStore.instance.setLocale,
-              compact: true,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          color: colors.darkPanel,
-          child: Text(
-            l10n.tagline,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              color: colors.onDarkPanel,
-              fontSize: locale.languageCode == 'en' ? 38 : 42,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Wordmark extends StatelessWidget {
-  const _Wordmark({this.onDark = false});
-
-  final bool onDark;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
-          color: colors.primary,
-          child: Text(
-            '知',
-            style: AppTypography.accentStyle(
-              const Locale('zh', 'CN'),
-              fontSize: 17,
-              color: colors.page,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          AppLocalizations.of(context)!.appTitle,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: onDark ? colors.onDarkPanel : colors.ink,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _LoginTermsRoute extends StatelessWidget {
   const _LoginTermsRoute();
 
@@ -515,47 +255,51 @@ class _LoginTermsRoute extends StatelessWidget {
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.agreements)),
-      body: ListView(
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: Text(uiText(context, zh: '用户协议', en: 'Terms of Service')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const TermsOfServicePage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
-            title: Text(uiText(context, zh: '隐私政策', en: 'Privacy Policy')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const PrivacyPolicyPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.gavel_outlined),
-            title: Text(
-              uiText(context, zh: '社区规范', en: 'Community Guidelines'),
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: ListView(
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.description_outlined),
+              title: Text(uiText(context, zh: '用户协议', en: 'Terms of Service')),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const TermsOfServicePage(),
+                  ),
+                );
+              },
             ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const CommunityGuidelinesPage(),
-                ),
-              );
-            },
-          ),
-        ],
+            ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: Text(uiText(context, zh: '隐私政策', en: 'Privacy Policy')),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const PrivacyPolicyPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.gavel_outlined),
+              title: Text(
+                uiText(context, zh: '社区规范', en: 'Community Guidelines'),
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CommunityGuidelinesPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

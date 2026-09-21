@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -16,6 +18,7 @@ class MessagesPage extends ConsumerStatefulWidget {
 }
 
 class _MessagesPageState extends ConsumerState<MessagesPage> {
+  String? _selectedId;
   @override
   void initState() {
     super.initState();
@@ -52,17 +55,54 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         ),
         centerTitle: true,
       ),
-      body: AsyncPageState(
-        loading: state.loading,
-        error: state.error,
-        onRetry: () =>
-            ref.read(messagesControllerProvider.notifier).loadInitial(),
-        child: _buildConversations(state),
+      body: AppPageFrame(
+        maxWidth: 1160,
+        padding: EdgeInsets.zero,
+        child: AsyncPageState(
+          loading: state.loading,
+          error: state.error,
+          onRetry: () =>
+              ref.read(messagesControllerProvider.notifier).loadInitial(),
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              if (constraints.maxWidth < 900) return _buildConversations(state);
+              final ConversationItem? selected = state.conversations
+                  .where((ConversationItem item) => item.id == _selectedId)
+                  .firstOrNull;
+              return Row(
+                children: <Widget>[
+                  SizedBox(
+                    width: 340,
+                    child: _buildConversations(state, split: true),
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(
+                    child: selected == null
+                        ? AppStatePanel(
+                            icon: Icons.chat_bubble_outline,
+                            title: uiText(
+                              context,
+                              zh: '选择会话',
+                              en: 'Select a conversation',
+                            ),
+                            message: uiText(
+                              context,
+                              zh: '从左侧打开一段对话',
+                              en: 'Open a conversation from the list.',
+                            ),
+                          )
+                        : _chatFor(selected, embedded: true),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildConversations(MessagesState state) {
+  Widget _buildConversations(MessagesState state, {bool split = false}) {
     if (state.conversations.isEmpty) {
       return RefreshIndicator(
         onRefresh: () =>
@@ -81,8 +121,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     }
     return RefreshIndicator(
       onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+      child: ListView.separated(
+        separatorBuilder: (_, __) => const Divider(height: 1),
+        padding: EdgeInsets.zero,
         itemCount: state.conversations.length,
         itemBuilder: (BuildContext context, int index) {
           final ConversationItem session = state.conversations[index];
@@ -130,52 +171,11 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
               color: Colors.red,
               child: const Icon(Icons.delete, color: Colors.white),
             ),
-            child: Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 leading: GestureDetector(
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ChatPage(
-                          conversation: session,
-                          onConversationRead: () {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .markConversationRead(session.id);
-                          },
-                          onConversationRemoved: () {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .removeConversation(session.id);
-                          },
-                          onConversationFlagsChanged:
-                              ({bool? blockedByMe, bool? blockedByPeer}) {
-                                ref
-                                    .read(messagesControllerProvider.notifier)
-                                    .updateConversationFlags(
-                                      conversationId: session.id,
-                                      blockedByMe: blockedByMe,
-                                      blockedByPeer: blockedByPeer,
-                                    );
-                              },
-                          onMessageSent: (String content) {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .updateConversationPreview(
-                                  conversationId: session.id,
-                                  message: content,
-                                );
-                          },
-                        ),
-                      ),
-                    );
-                    if (!mounted) {
-                      return;
-                    }
-                    await ref
-                        .read(messagesControllerProvider.notifier)
-                        .refresh();
-                  },
+                  onTap: () => _openConversation(session, split: split),
                   child: _buildAvatar(session.avatarUrl, session.name),
                 ),
                 title: Row(
@@ -217,52 +217,58 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     ],
                   ],
                 ),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ChatPage(
-                        conversation: session,
-                        onConversationRead: () {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .markConversationRead(session.id);
-                        },
-                        onConversationRemoved: () {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .removeConversation(session.id);
-                        },
-                        onConversationFlagsChanged:
-                            ({bool? blockedByMe, bool? blockedByPeer}) {
-                              ref
-                                  .read(messagesControllerProvider.notifier)
-                                  .updateConversationFlags(
-                                    conversationId: session.id,
-                                    blockedByMe: blockedByMe,
-                                    blockedByPeer: blockedByPeer,
-                                  );
-                            },
-                        onMessageSent: (String content) {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .updateConversationPreview(
-                                conversationId: session.id,
-                                message: content,
-                              );
-                        },
-                      ),
-                    ),
-                  );
-                  if (!mounted) {
-                    return;
-                  }
-                  await ref.read(messagesControllerProvider.notifier).refresh();
-                },
+                onTap: () => _openConversation(session, split: split),
               ),
             ),
           );
         },
       ),
+    );
+  }
+
+  Future<void> _openConversation(
+    ConversationItem session, {
+    required bool split,
+  }) async {
+    if (split) {
+      setState(() => _selectedId = session.id);
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => _chatFor(session)));
+    if (mounted) await ref.read(messagesControllerProvider.notifier).refresh();
+  }
+
+  Widget _chatFor(ConversationItem session, {bool embedded = false}) {
+    return ChatPage(
+      key: ValueKey(session.id),
+      conversation: session,
+      embedded: embedded,
+      peerUserId: session.peerUserId.isEmpty ? null : session.peerUserId,
+      onConversationRead: () => ref
+          .read(messagesControllerProvider.notifier)
+          .markConversationRead(session.id),
+      onConversationRemoved: () {
+        ref
+            .read(messagesControllerProvider.notifier)
+            .removeConversation(session.id);
+        if (mounted) setState(() => _selectedId = null);
+      },
+      onConversationFlagsChanged: ({bool? blockedByMe, bool? blockedByPeer}) =>
+          ref
+              .read(messagesControllerProvider.notifier)
+              .updateConversationFlags(
+                conversationId: session.id,
+                blockedByMe: blockedByMe,
+                blockedByPeer: blockedByPeer,
+              ),
+      onMessageSent: (String content) => ref
+          .read(messagesControllerProvider.notifier)
+          .updateConversationPreview(
+            conversationId: session.id,
+            message: content,
+          ),
     );
   }
 

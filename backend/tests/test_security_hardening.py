@@ -862,15 +862,12 @@ def test_release_configs_stream_apk_body_to_backend_before_buffering():
         assert "proxy_request_buffering on;" not in block
 
 
-def test_offline_install_requires_explicit_tls_nginx_config():
+def test_offline_installer_requires_explicit_tls_nginx_config():
     root = Path(__file__).resolve().parents[2]
     installer = (root / "scripts/install_ubuntu_offline.sh").read_text()
-    deploy = (root / "scripts/deploy_tencent.sh").read_text()
 
     assert "NGINX_CONFIG_PATH" in installer
     assert "listen 443 ssl" in installer
-    assert "DEPLOY_NGINX_CONFIG" in deploy
-    assert "https://$DEPLOY_HOST/" in deploy
 
 
 # --- 按作者过滤不得成为匿名帖的归属证明 -------------------------------------

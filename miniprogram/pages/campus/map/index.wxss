@@ -35,7 +35,7 @@
   margin-top: 26rpx;
   border-radius: 18rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 30rpx;
   font-weight: 700;
   line-height: 88rpx;
@@ -124,3 +124,12 @@
   line-height: 1.25;
   text-align: center;
 }
+
+/* Approved reference layout. */
+.map-head { padding:32rpx 36rpx; background:var(--app-background); border-bottom:1px solid var(--app-divider); }
+.map-group { margin:0; padding:28rpx 36rpx; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.map-title { font-size:36rpx; }
+.map-subtitle { font-size:30rpx; line-height:1.6; }
+.place-row { padding:24rpx 0; min-height:112rpx; }
+.place-name { font-size:32rpx; }
+.map-button { border-radius:26px; min-height:44px; }

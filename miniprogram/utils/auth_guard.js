@@ -3,10 +3,11 @@ import { clearCampusAuthSession } from './campus_auth';
 const LOGIN_PAGE = '/pages/profile/auth/index';
 
 const TABBAR_PAGES = [
-  '/pages/campus/index',
-  '/pages/ai/index',
-  '/pages/profile/conversations/index',
-  '/pages/profile/index'
+  "/pages/treehole/index",
+  "/pages/campus/search/index",
+  "/pages/ai/index",
+  "/pages/profile/notifications/index",
+  "/pages/profile/conversations/index"
 ];
 
 let isNavigating = false;

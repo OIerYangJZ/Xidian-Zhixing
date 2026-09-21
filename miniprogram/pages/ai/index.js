@@ -8,9 +8,10 @@ import { avatarInitial } from '../../utils/format';
 Page({
   data: {
     history: [],
+    draft: '',
     configured: false,
     currentModel: '',
-    subtitleText: '正在读取服务器 AI 状态',
+    subtitleText: '正在读取 AI 状态',
     configError: '',
     drawerOpen: false,
     touchStartX: 0,
@@ -60,7 +61,7 @@ Page({
       history: rows,
       configured: false,
       currentModel: '',
-      subtitleText: '正在读取服务器 AI 状态',
+      subtitleText: '正在读取 AI 状态',
       configError: ''
     });
     try {
@@ -68,14 +69,14 @@ Page({
       this.setData({
         configured: Boolean(status.configured),
         currentModel: status.model || '',
-        subtitleText: status.configured ? `当前模型：${status.model}` : '服务器 AI 尚未配置',
+        subtitleText: status.configured ? `当前模型：${status.model}` : 'AI 尚未启用',
         configError: ''
       });
     } catch (error) {
       this.setData({
         configured: false,
         currentModel: '',
-        subtitleText: '服务器 AI 状态加载失败',
+        subtitleText: 'AI 状态加载失败',
         configError: 'AI 状态加载失败，请重试'
       });
     }
@@ -107,6 +108,15 @@ Page({
 
   retryLoadAiStatus() {
     this.loadHistory();
+  },
+
+  onDraftInput(event) { this.setData({ draft: event.detail.value }); },
+
+  submitQuestion() {
+    const question = this.data.draft.trim();
+    if (!question || !this.data.configured || !requireLoginPage()) return;
+    wx.navigateTo({ url: `/pages/ai/chat/index?prefill=${encodeURIComponent(question)}` });
+    this.setData({ draft: '' });
   },
 
   startNewChat() {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
@@ -504,7 +505,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             ),
           ],
         ),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Wrap(
@@ -562,7 +564,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             ),
           ),
         ),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Wrap(
@@ -646,7 +649,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           subtitle: '人工审核帖子与评论，处理通过、驳回、风险标记和删除。',
         ),
         const SizedBox(height: 12),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -717,7 +721,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             ),
           ),
         ),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -775,7 +780,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ..._reviews.map(
-          (AdminReviewItem item) => Card(
+          (AdminReviewItem item) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -924,7 +930,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -985,7 +992,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminReportEntry report) => Card(
+          (AdminReportEntry report) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1088,7 +1096,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -1139,7 +1148,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ..._imageReviews.map(
-          (AdminImageReviewItem item) => Card(
+          (AdminImageReviewItem item) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Row(
@@ -1299,7 +1309,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -1360,7 +1371,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminPostPinRequestEntry item) => Card(
+          (AdminPostPinRequestEntry item) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1380,9 +1392,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${item.userNickname} · ${item.userLevelLabel}',
-                  ),
+                  Text('${item.userNickname} · ${item.userLevelLabel}'),
                   Text('帖子ID：${item.postId}'),
                   Text(
                     '申请时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
@@ -1487,7 +1497,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -1548,7 +1559,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminUserLevelRequestEntry item) => Card(
+          (AdminUserLevelRequestEntry item) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1674,7 +1686,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -1737,7 +1750,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminAccountCancellationRequest request) => Card(
+          (AdminAccountCancellationRequest request) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -1886,7 +1900,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -1948,7 +1963,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminAppealEntry appeal) => Card(
+          (AdminAppealEntry appeal) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -2118,7 +2134,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Wrap(
@@ -2183,7 +2200,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         ...rows.map(
-          (AdminUserEntry user) => Card(
+          (AdminUserEntry user) => FeatureSection(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Column(
@@ -2405,7 +2423,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2465,7 +2484,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
             ),
           ),
         ),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2522,7 +2542,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         const SizedBox(height: 12),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2626,7 +2647,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2699,7 +2721,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           ),
         ),
         const SizedBox(height: 12),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2842,7 +2865,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         const SizedBox(height: 12),
         if (_isPrimaryAdmin) _buildAdminAccountCard(),
         if (_isPrimaryAdmin) const SizedBox(height: 12),
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -2934,7 +2958,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     final int userAdminCount = _users
         .where((AdminUserEntry user) => user.isAdmin)
         .length;
-    return Card(
+    return FeatureSection(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -3155,7 +3180,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }) {
     return SizedBox(
       width: 188,
-      child: Card(
+      child: FeatureSection(
+        padding: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(

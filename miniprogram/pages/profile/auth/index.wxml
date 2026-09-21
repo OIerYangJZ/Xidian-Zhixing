@@ -1,7 +1,7 @@
 <view class="auth-page {{themeClass}}">
   <view class="auth-main">
     <view class="brand-block">
-      <view class="brand-mark">电</view>
+      <view class="brand-mark"><view class="ui-icon icon-brand" aria-label="SeeRadio"></view></view>
       <view class="brand-name">SeeRadio</view>
       <view class="brand-subtitle">西电统一身份认证登录</view>
     </view>

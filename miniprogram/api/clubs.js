@@ -1,5 +1,5 @@
 import request from '../utils/request';
-import { getData, toArray } from '../utils/format';
+import { getData, normalizePost, toArray } from '../utils/format';
 
 export const getClubs = async () => {
   const response = await request.get('/api/clubs');
@@ -8,7 +8,11 @@ export const getClubs = async () => {
 
 export const getClubDetail = async (id) => {
   const response = await request.get(`/api/clubs/${id}`);
-  return getData(response, {});
+  const club = getData(response, {});
+  return {
+    ...club,
+    posts: toArray(club.posts).map(normalizePost)
+  };
 };
 
 export const submitClubApplication = async (payload) => {

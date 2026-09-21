@@ -9,7 +9,7 @@ Page({
     models: [],
     modelsText: '',
     loading: false,
-    statusText: '正在读取服务器 AI 状态'
+    statusText: '正在读取 AI 状态'
   },
 
   onShow() {
@@ -26,7 +26,7 @@ Page({
       model: '',
       models: [],
       modelsText: '',
-      statusText: '正在读取服务器 AI 状态'
+      statusText: '正在读取 AI 状态'
     });
     try {
       const status = await fetchAiModels();
@@ -35,10 +35,10 @@ Page({
         model: status.model || '',
         models: status.models || [],
         modelsText: (status.models || []).join('、'),
-        statusText: status.configured ? '服务器 AI 已启用' : '服务器 AI 尚未配置'
+        statusText: status.configured ? 'AI 已启用' : 'AI 尚未启用'
       });
     } catch (error) {
-      this.setData({ configured: false, statusText: '无法读取服务器 AI 状态' });
+      this.setData({ configured: false, statusText: '无法读取 AI 状态' });
     } finally {
       this.setData({ loading: false });
     }

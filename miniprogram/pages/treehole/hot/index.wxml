@@ -1,8 +1,7 @@
-<view class="page hot-page">
+<view class="page hot-page {{themeClass}}">
   <view class="hot-header-container">
     <view class="hot-header">
       <view class="hot-title-group">
-        <view class="hot-title" style="color: var(--brand-deep);">热榜</view>
         <view class="hot-subtitle" style="color: var(--text-secondary); font-size: 24rpx; margin-top: 4rpx;">正在被大家悄悄讨论</view>
       </view>
       <button class="summary-btn" bindtap="summarize">AI 总结</button>

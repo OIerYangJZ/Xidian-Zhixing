@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   padding-left: 24rpx;
-  padding-right: 260rpx;
+  padding-right: 24rpx;
   padding-bottom: 8px;
   background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
@@ -308,3 +308,14 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Approved reference layout. */
+.campus-scroll { box-sizing:border-box; padding-bottom:env(safe-area-inset-bottom); }
+.today-section { margin-top:32rpx; }
+.today-list { border-width:1px 0; margin:0 36rpx; }
+.today-row { padding:24rpx 0; }
+.today-empty { border:0; border-radius:0; padding:24rpx 0; margin:0 36rpx; }
+.service-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0; padding:0 36rpx 24rpx; }
+.service-card { display:flex; align-items:center; gap:20rpx; min-height:112rpx; padding:24rpx 12rpx; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; text-align:left; }
+.service-symbol { margin:0; width:44rpx; height:44rpx; border-width:2rpx; border-radius:8rpx; flex:0 0 auto; }
+.service-name { font-size:30rpx; white-space:normal; }

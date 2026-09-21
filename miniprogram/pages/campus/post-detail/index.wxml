@@ -58,19 +58,19 @@
       </view>
       <view class="post-footer">
         <view class="detail-action {{post.liked ? 'active' : ''}}" bindtap="handleLike">
-          <view class="detail-action-icon like-icon"></view>
+          <view class="detail-action-icon ui-icon icon-heart"></view>
           <text wx:if="{{post.likeCount > 0}}" class="{{post.liked ? 'active' : ''}}">{{post.likeCount}}</text>
         </view>
         <view class="detail-action {{post.favorited ? 'favorited' : ''}}" bindtap="handleFavorite">
-          <view class="detail-action-icon bookmark-icon"></view>
+          <view class="detail-action-icon ui-icon icon-bookmark"></view>
           <text wx:if="{{post.favoriteCount > 0}}" class="{{post.favorited ? 'active' : ''}}">{{post.favoriteCount}}</text>
         </view>
         <view class="detail-action" bindtap="scrollToComments">
-          <view class="detail-action-icon comment-icon"></view>
+          <view class="detail-action-icon ui-icon icon-chat"></view>
           <text wx:if="{{post.commentCount > 0}}">{{post.commentCount}}</text>
         </view>
         <button class="detail-share-button" open-type="share">
-          <view class="detail-action-icon share-icon"></view>
+          <view class="detail-action-icon ui-icon icon-share"></view>
         </button>
       </view>
     </view>
@@ -99,11 +99,11 @@
           <view class="comment-text"><text>{{item.content}}</text></view>
           <view class="comment-actions">
             <view class="comment-action {{item.liked ? 'active' : ''}}" data-index="{{index}}" bindtap="likeComment">
-              <view class="comment-action-icon like-icon"></view>
+              <view class="comment-action-icon ui-icon icon-heart"></view>
               <text wx:if="{{item.likeCount}}">{{item.likeCount || 0}}</text>
             </view>
             <view class="comment-action" data-index="{{index}}" bindtap="setReplyTarget">
-              <view class="comment-action-icon comment-icon"></view>
+              <view class="comment-action-icon ui-icon icon-chat"></view>
             </view>
           </view>
         </view>
@@ -111,7 +111,7 @@
     </view>
   </scroll-view>
 
-  <view class="loading-state detail-loading" wx:if="{{loading}}" style="padding-top: {{navTop + navHeight + 8}}px;">正在寻找声音...</view>
+  <view class="loading-state detail-loading" wx:if="{{loading}}" style="padding-top: {{navTop + navHeight + 8}}px;">加载中...</view>
   <view class="empty-state detail-empty" wx:if="{{!loading && errorMessage && !post}}" style="padding-top: {{navTop + navHeight + 8}}px;">
     <view>{{errorMessage}}</view>
     <button bindtap="retryLoadDetail">重新加载</button>
@@ -130,7 +130,7 @@
       <view class="reply-banner-close" bindtap="clearReplyTarget">×</view>
     </view>
     <view class="comment-compose">
-      <view class="emoji-toggle" bindtap="toggleEmojiPanel">☺</view>
+      <view class="emoji-toggle" bindtap="toggleEmojiPanel" aria-label="表情"><view class="ui-icon icon-smile"></view></view>
       <input class="comment-input" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
       <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">发送</button>
     </view>

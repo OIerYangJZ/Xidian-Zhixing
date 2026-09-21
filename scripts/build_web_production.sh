@@ -19,7 +19,6 @@ source "$SCRIPT_DIR/version.sh"
 
 FLUTTER_BIN="${FLUTTER_BIN:-flutter}"
 FLUTTER_PROJECT_DIR="$ROOT_DIR/flutter_app"
-FLUTTER_OUTPUT_DIR="$FLUTTER_PROJECT_DIR/build/web"
 WEB_DIST_DIR="$ROOT_DIR/build/web"
 
 if ! command -v "$FLUTTER_BIN" >/dev/null 2>&1; then
@@ -58,19 +57,16 @@ echo "[build] ADMIN CONSOLE: $ENABLE_ADMIN_CONSOLE"
 
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" build web --release \
     --no-web-resources-cdn \
+    --output="$WEB_DIST_DIR" \
     --dart-define=API_BASE_URL=/api \
     --dart-define=ENABLE_ADMIN_CONSOLE="$ENABLE_ADMIN_CONSOLE" \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")
 
-if [ ! -f "$FLUTTER_OUTPUT_DIR/index.html" ]; then
-  echo "[build] Flutter output is incomplete: $FLUTTER_OUTPUT_DIR/index.html" >&2
+if [ ! -f "$WEB_DIST_DIR/index.html" ]; then
+  echo "[build] Web output is incomplete: $WEB_DIST_DIR/index.html" >&2
   exit 1
 fi
-
-rm -rf "$WEB_DIST_DIR"
-mkdir -p "$(dirname "$WEB_DIST_DIR")"
-cp -R "$FLUTTER_OUTPUT_DIR" "$WEB_DIST_DIR"
 
 python3 - "$WEB_DIST_DIR/.version.json" \
   "$APP_VERSION" "$GIT_HASH" "$GIT_BRANCH" "$GIT_TAG" "$GIT_DIRTY" \

@@ -1,0 +1,12 @@
+/* Latin uses Times New Roman; Chinese glyphs use 华文中宋. */
+@font-face{font-family:'Reference Latin';src:local('Times New Roman');font-style:normal;font-weight:400;unicode-range:U+0000-024F,U+1E00-1EFF,U+2000-206F}
+@font-face{font-family:'Reference Latin';src:local('Times New Roman Bold');font-style:normal;font-weight:700 900;unicode-range:U+0000-024F,U+1E00-1EFF,U+2000-206F}
+@font-face{font-family:'Reference Chinese';src:local('STZhongsong'),local('华文中宋');font-style:normal;font-weight:100 900;unicode-range:U+2E80-2FFF,U+3000-303F,U+31C0-31EF,U+3400-4DBF,U+4E00-9FFF,U+F900-FAFF,U+FE30-FE4F,U+FF00-FFEF,U+20000-323AF}
+body.reference-shell,body.reference-shell *{font-family:'Reference Latin','Reference Chinese','Times New Roman','STZhongsong','华文中宋',serif!important}
+/* Hierarchy measured on the Grok reference's 1996 px design plane. */
+:root{--type-brand:44px;--type-heading:30px;--type-body:22px;--type-control:21px;--type-meta:18px}
+.reference-shell .x-nav,.reference-shell .t-head h1,.reference-shell .t-profile-top h2,.reference-shell .t-list h1,.reference-shell .t-identity h2{font-size:var(--type-heading);line-height:1.25}
+.reference-shell .ai-wordmark{font-size:var(--type-brand)}
+.reference-shell .main,.reference-shell .t-copy,.reference-shell .t-author strong,.reference-shell .t-edit-dialog,.reference-shell .compose-modal-card,.reference-shell .grok-question input,.reference-shell .t-settings-row{font-size:var(--type-body);line-height:1.35}
+.reference-shell .grok-shortcuts button,.reference-shell .t-outline,.reference-shell .t-pill,.reference-shell .t-inbox-tabs button,.reference-shell .t-profile-buttons button{font-size:var(--type-control)}
+.reference-shell .t-head small,.reference-shell .t-actions,.reference-shell .t-edit-row p,.reference-shell .t-settingnav p,.reference-shell .t-chatdate,.reference-shell .t-settings-row .end{font-size:var(--type-meta);line-height:1.4}

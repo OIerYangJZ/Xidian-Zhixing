@@ -62,3 +62,15 @@
   color: var(--app-text-secondary);
   font-size: 23rpx;
 }
+
+/* Approved reference layout. */
+.notification-page { padding:0 0 var(--tab-height); }
+.head { min-height:60px; margin:0; padding:12rpx 36rpx; border-bottom:1px solid var(--app-divider); }
+.read-all { min-height:44px; display:flex; align-items:center; }
+.notice { padding:32rpx 36rpx; gap:20rpx; }
+.notice.read { opacity:1; }
+.notice.read .notice-title { font-weight:400; }
+.notice-title { font-size:34rpx; }
+.notice-content { font-size:32rpx; line-height:1.5; }
+.notice-time { font-size:26rpx; }
+.dot { background:var(--app-primary); }

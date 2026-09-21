@@ -23,7 +23,6 @@ source "$SCRIPT_DIR/version.sh"
 
 FLUTTER_BIN="${FLUTTER_BIN:-flutter}"
 FLUTTER_PROJECT_DIR="$ROOT_DIR/flutter_app"
-FLUTTER_OUTPUT_DIR="$FLUTTER_PROJECT_DIR/build/web"
 ADMIN_DIST_DIR="$ROOT_DIR/build/web-admin"
 # 后台一般部署在独立域名/独立路径下，因此 API 地址需要显式指定绝对地址；
 # 留空则沿用同源 /api。
@@ -41,19 +40,16 @@ echo "[admin-build] API_BASE_URL : $ADMIN_API_BASE_URL"
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" pub get --enforce-lockfile)
 (cd "$FLUTTER_PROJECT_DIR" && "$FLUTTER_BIN" build web --release \
     --no-web-resources-cdn \
+    --output="$ADMIN_DIST_DIR" \
     --dart-define=ENABLE_ADMIN_CONSOLE=true \
     --dart-define=API_BASE_URL="$ADMIN_API_BASE_URL" \
     --dart-define=APP_VERSION="$FULL_VERSION" \
     --dart-define=APP_BUILD_TYPE="$BUILD_TYPE")
 
-if [ ! -f "$FLUTTER_OUTPUT_DIR/index.html" ]; then
+if [ ! -f "$ADMIN_DIST_DIR/index.html" ]; then
   echo "[admin-build] Flutter output is incomplete" >&2
   exit 1
 fi
-
-rm -rf "$ADMIN_DIST_DIR"
-mkdir -p "$(dirname "$ADMIN_DIST_DIR")"
-cp -R "$FLUTTER_OUTPUT_DIR" "$ADMIN_DIST_DIR"
 
 echo "[admin-build] 产物: $ADMIN_DIST_DIR"
 echo "[admin-build] 提醒: 请部署到与公开站点不同的域名或受限路径，"

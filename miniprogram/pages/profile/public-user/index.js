@@ -3,6 +3,7 @@ import { getPosts } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { togglePostFavoriteInList, togglePostLikeInList } from '../../../utils/post_actions';
 
 Page({
   onShow() {
@@ -69,7 +70,17 @@ Page({
   },
 
   openPost(event) {
-    const id = event.currentTarget.dataset.id;
+    const id = event.detail.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
+  },
+
+  async togglePostLike(event) {
+    const posts = await togglePostLikeInList(this.data.posts, event.detail.index);
+    this.setData({ posts });
+  },
+
+  async togglePostFavorite(event) {
+    const posts = await togglePostFavoriteInList(this.data.posts, event.detail.index);
+    this.setData({ posts });
   }
 });

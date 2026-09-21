@@ -84,7 +84,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-离线安装和 `scripts/deploy_tencent.sh` 不再安装归档内的 HTTP 示例配置。必须把上述已渲染、已核对证书绝对路径的 `/tmp/treehole.conf` 作为安装脚本第二个参数，或通过 `DEPLOY_NGINX_CONFIG=/tmp/treehole.conf` 传给部署脚本。
+离线安装必须把上述已渲染、已核对证书绝对路径的 `/tmp/treehole.conf` 作为安装脚本第二个参数。生产切版使用目标机已有的 `/usr/local/sbin/deploy-treehole`，仓库中的 `scripts/deploy-treehole.sh` 仅作为版本控制和审计基线；当前堡垒机禁止 SSH exec，不使用旧的直连部署脚本。
 
 配置包含：
 

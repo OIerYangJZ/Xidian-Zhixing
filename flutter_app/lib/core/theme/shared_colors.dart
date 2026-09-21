@@ -1,9 +1,50 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 /// 跨端共享的品牌颜色常量
 /// 两端主题均引用此文件，确保品牌色彩一致
 class SharedColors {
   SharedColors._();
+
+  static const EditorialColors threadLight = EditorialColors(
+    page: Color(0xFFFFFFFF),
+    surface: Color(0xFFFFFFFF),
+    ink: Color(0xFF141414),
+    mutedInk: Color(0xFF666666),
+    line: Color(0xFFEAEAEA),
+    primary: Color(0xFF141414),
+    primaryActive: Color(0xFF333333),
+    coral: Color(0xFF666666),
+    apricot: Color(0xFFEAEAEA),
+    primarySubtle: Color(0xFFF3F3F3),
+    infoSubtle: Color(0xFFF3F3F3),
+    darkPanel: Color(0xFF141414),
+    onDarkPanel: Color(0xFFFFFFFF),
+    success: Color(0xFF444444),
+    warning: Color(0xFF666666),
+    danger: Color(0xFF333333),
+    info: Color(0xFF666666),
+  );
+
+  static const EditorialColors threadDark = EditorialColors(
+    page: Color(0xFF000000),
+    surface: Color(0xFF000000),
+    ink: Color(0xFFE8E8E8),
+    mutedInk: Color(0xFF888888),
+    line: Color(0xFF282828),
+    primary: Color(0xFFE8E8E8),
+    primaryActive: Color(0xFFFFFFFF),
+    coral: Color(0xFFAAAAAA),
+    apricot: Color(0xFF282828),
+    primarySubtle: Color(0xFF202020),
+    infoSubtle: Color(0xFF202020),
+    darkPanel: Color(0xFFE8E8E8),
+    onDarkPanel: Color(0xFF000000),
+    success: Color(0xFFBBBBBB),
+    warning: Color(0xFFAAAAAA),
+    danger: Color(0xFFDDDDDD),
+    info: Color(0xFFAAAAAA),
+  );
 
   /// 人本·初创：当前朱赤、暖白与杏黄体系。
   static const EditorialColors light = EditorialColors(
@@ -219,7 +260,20 @@ class AppColorThemes {
 
   static const String defaultKey = 'zhushachi';
 
-  static const List<AppColorThemeOption> options = <AppColorThemeOption>[
+  static const List<AppColorThemeOption> options = kIsWeb
+      ? <AppColorThemeOption>[
+          AppColorThemeOption(
+            key: defaultKey,
+            labelZh: '黑白',
+            labelEn: 'Monochrome',
+            descriptionZh: '跟随系统浅色或深色',
+            descriptionEn: 'System light or dark appearance',
+            previewColors: <Color>[Colors.white, Colors.black],
+          ),
+        ]
+      : _legacyOptions;
+
+  static const List<AppColorThemeOption> _legacyOptions = <AppColorThemeOption>[
     AppColorThemeOption(
       key: 'zhushachi',
       labelZh: '人本·初创',
@@ -286,8 +340,11 @@ class AppColorThemes {
   static String resolveStoredKey(String? key) {
     return switch (key) {
       null || '' => defaultKey,
-      'zhushachi' || 'zhuqing' || 'xingrenhuang' || 'mozhuxinye' => key,
-      'haiyanqing' => 'zhuqing',
+      'zhushachi' ||
+      'zhuqing' ||
+      'xingrenhuang' ||
+      'mozhuxinye' => kIsWeb ? defaultKey : key,
+      'haiyanqing' => kIsWeb ? defaultKey : 'zhuqing',
       'minimal' ||
       'yanzhihong' ||
       'chitaonuan' ||
@@ -300,6 +357,7 @@ class AppColorThemes {
   }
 
   static EditorialColors lightFor(String key) {
+    if (kIsWeb) return SharedColors.threadLight;
     return switch (key) {
       'zhushachi' => SharedColors.light,
       'zhuqing' => SharedColors.academyTealLight,
@@ -310,6 +368,7 @@ class AppColorThemes {
   }
 
   static EditorialColors darkFor(String key) {
+    if (kIsWeb) return SharedColors.threadDark;
     return switch (key) {
       'zhushachi' => SharedColors.dark,
       'zhuqing' => SharedColors.academyTealDark,
@@ -318,11 +377,6 @@ class AppColorThemes {
       _ => throw ArgumentError.value(key, 'key', 'Unsupported color theme'),
     };
   }
-
-  /// The discussion shell is the single Web experience across every theme.
-  /// Themes only provide color tokens; they must not switch the application
-  /// back to the retired AppBar/NavigationBar shell on narrow viewports.
-  static bool usesDiscussionLayout(String key) => true;
 }
 
 @immutable

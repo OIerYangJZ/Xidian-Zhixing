@@ -1,8 +1,9 @@
 import { getUserInfo } from '../../../api/auth';
-import { favoritePost, getPosts, togglePostLike, unfavoritePost } from '../../../api/posts';
+import { getPosts } from '../../../api/posts';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
+import { togglePostFavoriteInList, togglePostLikeInList } from '../../../utils/post_actions';
 
 const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
@@ -113,7 +114,7 @@ Page({
   },
 
   goPostDetail(event) {
-    const id = event.currentTarget.dataset.id;
+    const id = event.detail.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
 
@@ -122,46 +123,25 @@ Page({
   },
 
   goTagPosts(event) {
-    const tag = event.currentTarget.dataset.tag;
+    const tag = event.detail.tag;
     if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
   },
 
   async togglePostLike(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const post = this.data.posts[index];
-    if (!post || !post.id) return;
-    const result = await togglePostLike(post.id);
-    const liked = Boolean(result.liked);
-    const posts = this.data.posts.slice();
-    posts[index] = {
-      ...post,
-      liked,
-      isLiked: liked,
-      likeCount: Math.max(0, Number(post.likeCount || 0) + (liked ? 1 : -1))
-    };
+    const index = Number(event.detail.index);
+    const posts = await togglePostLikeInList(this.data.posts, index);
     this.setData({ posts });
   },
 
   async togglePostFavorite(event) {
-    const index = Number(event.currentTarget.dataset.index);
-    const post = this.data.posts[index];
-    if (!post || !post.id) return;
-    const favorited = Boolean(post.favorited || post.isFavorited);
-    const result = favorited ? await unfavoritePost(post.id) : await favoritePost(post.id);
-    const nextFavorited = !favorited;
-    const posts = this.data.posts.slice();
-    posts[index] = {
-      ...post,
-      favorited: nextFavorited,
-      isFavorited: nextFavorited,
-      favoriteCount: Number(result.favoriteCount)
-    };
+    const index = Number(event.detail.index);
+    const posts = await togglePostFavoriteInList(this.data.posts, index);
     this.setData({ posts });
   },
 
   openAuthorProfile(event) {
-    const userId = event.currentTarget.dataset.userId || '';
-    const isAnonymous = String(event.currentTarget.dataset.anonymous || '0') === '1';
+    const userId = event.detail.userId || '';
+    const isAnonymous = String(event.detail.anonymous || '0') === '1';
     if (!userId || isAnonymous) return;
     wx.navigateTo({ url: `/pages/profile/public-user/index?id=${userId}` });
   }

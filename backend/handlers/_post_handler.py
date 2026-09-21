@@ -900,6 +900,7 @@ def handle_create_post(
         author_alias = anonymous_alias or "匿名同学"
     has_image = False
     picked_uploads: list[dict[str, Any]] = []
+    image_risk_reasons: list[str] = []
     for img_id in image_ids:
         upload = next((u for u in db.get("mediaUploads", []) if u.get("id") == img_id), None)
         if upload is None or upload.get("deleted"):
@@ -912,8 +913,17 @@ def handle_create_post(
             json_error(handler, HTTPStatus.BAD_REQUEST, f"图片已绑定帖子: {img_id}")
             return
         picked_uploads.append(upload)
-        if str(upload.get("status", "approved")).strip().lower() != "rejected":
+        upload_status = str(upload.get("status", "approved")).strip().lower()
+        if upload_status != "rejected":
             has_image = True
+        if upload_status != "approved":
+            image_risk_reasons.append(
+                f"图片未通过审核: {img_id} ({upload_status or 'pending'})"
+            )
+
+    if image_risk_reasons:
+        risk_marked = True
+        risk_reasons.extend(image_risk_reasons)
 
     post = {
         "id": next_id(db, "post", "p"),
@@ -1067,7 +1077,11 @@ def handle_create_comment(
         )
         return
 
-    risk_marked, high_risk, risk_reasons = assess_text_risk(db, comment_content)
+    risk_marked, high_risk, risk_reasons = assess_text_risk(
+        db,
+        comment_content,
+        block_on_match=True,
+    )
     if high_risk:
         json_error(
             handler,

@@ -1,4 +1,5 @@
-<view class="page notification-page {{themeClass}}">
+<view class="page notification-page {{themeClass}} social-tab-page">
+  <social-header />
   <view class="head" wx:if="{{items.length}}">
     <view class="count">{{unreadCount}} 条未读</view>
     <view class="read-all" bindtap="markAllRead">全部已读</view>

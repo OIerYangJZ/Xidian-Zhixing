@@ -1,23 +1,20 @@
-<view class="page club-detail {{themeClass}}" wx:if="{{club}}">
+<view class="page club-detail {{themeClass}}">
+  <status-view wx:if="{{errorMessage}}" mode="error" text="{{errorMessage}}" show-retry="true" bind:retry="retryLoad" />
+  <status-view wx:elif="{{!club}}" mode="loading" text="加载中..." />
+  <block wx:else>
   <view class="club-title">{{club.name}}</view>
   <view class="club-owner">负责人：{{club.ownerName}}</view>
   <view class="club-text">{{club.description}}</view>
   <view class="section-title">社团发布</view>
-  <view class="feed-card" wx:for="{{club.posts}}" wx:key="id" data-id="{{item.id}}" bindtap="openPost">
-    <view class="feed-avatar">{{item.authorInitial || club.name[0]}}</view>
-    <view class="feed-body">
-      <view class="feed-head">
-        <text class="feed-author">{{item.authorAlias || club.name}}</text>
-        <text class="feed-time">{{item.timeText || item.createdAt}}</text>
-      </view>
-      <view class="feed-title">{{item.displayTitle || item.title}}</view>
-      <view class="feed-summary">{{item.summary}}</view>
-      <view class="feed-actions">
-        <view class="feed-action"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-        <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-        <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
-      </view>
-    </view>
-  </view>
-  <view wx:if="{{!club.posts.length}}" class="empty-posts">暂无发布</view>
+  <post-row
+    wx:for="{{club.posts}}"
+    wx:key="id"
+    item="{{item}}"
+    index="{{index}}"
+    bind:open="openPost"
+    bind:like="togglePostLike"
+    bind:favorite="togglePostFavorite"
+  />
+  <status-view wx:if="{{!club.posts.length}}" mode="empty" text="暂无发布" />
+  </block>
 </view>

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/widgets/app_surfaces.dart';
+
 import '../../core/config/app_brand.dart';
 
 class TermsOfServicePage extends StatelessWidget {
@@ -11,111 +13,115 @@ class TermsOfServicePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(_title)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: <Widget>[
-          _buildHeader(context),
-          const SizedBox(height: 20),
-          _buildSection(
-            context,
-            title: '一、服务条款的确认和接受',
-            content:
-                '欢迎使用${AppBrand.displayName}（以下简称"本平台"）。在使用本平台服务之前，请您仔细阅读本用户协议。\n\n'
-                '您在使用本平台时，即表示您已阅读、理解并同意接受本协议的全部条款。如果您不同意本协议的任何内容，请停止使用本平台服务。\n\n'
-                '本平台有权随时修改本协议，修改后的协议一经公布即生效。如果您继续使用本平台服务，视为您接受修改后的协议。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '二、服务说明',
-            content:
-                '本平台为西安电子科技大学在校师生提供校园匿名社交服务，包括但不限于：\n\n'
-                '• 发布和浏览匿名帖子\n'
-                '• 评论和互动功能\n'
-                '• 私信交流\n'
-                '• 举报违规内容\n\n'
-                '本平台保留随时变更、中断或终止部分或全部服务的权利。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '三、用户身份与账号',
-            content:
-                '1. 使用资格\n'
-                '   用户须为西安电子科技大学在校学生，并通过学校官方统一身份认证页面完成身份验证。首次验证成功后，平台会自动创建本站账号，无需单独注册。\n\n'
-                '2. 账号安全\n'
-                '   用户须妥善保管统一身份认证凭据，不得出借账号。账号登录时，学号和密码仅在学校官方认证页面输入，平台不接收、不保存该登录密码。校园服务中心如另行要求连接其他校内系统，将在相应页面单独说明处理方式。\n\n'
-                '3. 账号注销\n'
-                '   用户可申请注销账号，提交申请后需经管理员审核通过方可完成注销。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '四、用户行为规范',
-            content:
-                '用户在使用本平台时，应遵守以下行为规范：\n\n'
-                '【禁止行为】\n'
-                '• 发布违反法律法规的内容\n'
-                '• 发布危害国家安全、社会稳定的内容\n'
-                '• 发布侵犯他人合法权益的内容\n'
-                '• 发布虚假信息或恶意造谣\n'
-                '• 骚扰、诽谤、侮辱他人\n'
-                '• 传播淫秽、色情、暴力内容\n'
-                '• 商业广告、推广信息（除平台允许外）\n'
-                '• 其他违反公序良俗的行为\n\n'
-                '【鼓励行为】\n'
-                '• 积极传播正能量\n'
-                '• 分享有价值的校园信息\n'
-                '• 友善交流，尊重他人\n'
-                '• 举报违规内容，维护社区秩序',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '五、内容管理',
-            content:
-                '1. 本平台有权对用户发布的内容进行审核，对违规内容进行删除、屏蔽等处理。\n\n'
-                '2. 用户发布的内容不代表本平台立场，本平台不对用户发布的内容承担责任。\n\n'
-                '3. 因用户发布违规内容造成的法律责任，由发布者自行承担。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '六、隐私保护',
-            content:
-                '本平台重视用户隐私保护，具体政策请参阅《隐私政策》。\n\n'
-                '用户在使用本平台时，即表示同意本平台按照隐私政策收集、使用、存储和保护用户信息。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '七、免责声明',
-            content:
-                '1. 本平台不对用户发布的内容的真实性、准确性、完整性进行保证。\n\n'
-                '2. 因不可抗力导致的服务中断，本平台不承担责任。\n\n'
-                '3. 用户因使用本平台服务而遭受的损失，本平台在法律允许范围内免责。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '八、协议修改',
-            content: '本平台有权随时修改本协议，修改后的协议将在本平台公布。用户在修改后继续使用本平台服务，视为接受修改后的协议。',
-          ),
-          const SizedBox(height: 16),
-          _buildSection(
-            context,
-            title: '九、联系我们',
-            content:
-                '如您对本协议有任何疑问，请通过以下方式联系我们：\n\n'
-                '• 发送邮件至平台管理员邮箱\n'
-                '• 通过站内私信联系管理员\n\n'
-                '感谢您使用${AppBrand.displayName}！',
-          ),
-          const SizedBox(height: 32),
-          _buildFooter(context),
-          const SizedBox(height: 16),
-        ],
+      appBar: AppBar(title: const SizedBox.shrink()),
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: <Widget>[
+            _buildHeader(context),
+            const SizedBox(height: 20),
+            _buildSection(
+              context,
+              title: '一、服务条款的确认和接受',
+              content:
+                  '欢迎使用${AppBrand.displayName}（以下简称"本平台"）。在使用本平台服务之前，请您仔细阅读本用户协议。\n\n'
+                  '您在使用本平台时，即表示您已阅读、理解并同意接受本协议的全部条款。如果您不同意本协议的任何内容，请停止使用本平台服务。\n\n'
+                  '本平台有权随时修改本协议，修改后的协议一经公布即生效。如果您继续使用本平台服务，视为您接受修改后的协议。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '二、服务说明',
+              content:
+                  '本平台为西安电子科技大学在校师生提供校园匿名社交服务，包括但不限于：\n\n'
+                  '• 发布和浏览匿名帖子\n'
+                  '• 评论和互动功能\n'
+                  '• 私信交流\n'
+                  '• 举报违规内容\n\n'
+                  '本平台保留随时变更、中断或终止部分或全部服务的权利。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '三、用户身份与账号',
+              content:
+                  '1. 使用资格\n'
+                  '   用户须为西安电子科技大学在校学生，并通过学校官方统一身份认证页面完成身份验证。首次验证成功后，平台会自动创建本站账号，无需单独注册。\n\n'
+                  '2. 账号安全\n'
+                  '   用户须妥善保管统一身份认证凭据，不得出借账号。账号登录时，学号和密码仅在学校官方认证页面输入，平台不接收、不保存该登录密码。校园服务中心如另行要求连接其他校内系统，将在相应页面单独说明处理方式。\n\n'
+                  '3. 账号注销\n'
+                  '   用户可申请注销账号，提交申请后需经管理员审核通过方可完成注销。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '四、用户行为规范',
+              content:
+                  '用户在使用本平台时，应遵守以下行为规范：\n\n'
+                  '【禁止行为】\n'
+                  '• 发布违反法律法规的内容\n'
+                  '• 发布危害国家安全、社会稳定的内容\n'
+                  '• 发布侵犯他人合法权益的内容\n'
+                  '• 发布虚假信息或恶意造谣\n'
+                  '• 骚扰、诽谤、侮辱他人\n'
+                  '• 传播淫秽、色情、暴力内容\n'
+                  '• 商业广告、推广信息（除平台允许外）\n'
+                  '• 其他违反公序良俗的行为\n\n'
+                  '【鼓励行为】\n'
+                  '• 积极传播正能量\n'
+                  '• 分享有价值的校园信息\n'
+                  '• 友善交流，尊重他人\n'
+                  '• 举报违规内容，维护社区秩序',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '五、内容管理',
+              content:
+                  '1. 本平台有权对用户发布的内容进行审核，对违规内容进行删除、屏蔽等处理。\n\n'
+                  '2. 用户发布的内容不代表本平台立场，本平台不对用户发布的内容承担责任。\n\n'
+                  '3. 因用户发布违规内容造成的法律责任，由发布者自行承担。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '六、隐私保护',
+              content:
+                  '本平台重视用户隐私保护，具体政策请参阅《隐私政策》。\n\n'
+                  '用户在使用本平台时，即表示同意本平台按照隐私政策收集、使用、存储和保护用户信息。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '七、免责声明',
+              content:
+                  '1. 本平台不对用户发布的内容的真实性、准确性、完整性进行保证。\n\n'
+                  '2. 因不可抗力导致的服务中断，本平台不承担责任。\n\n'
+                  '3. 用户因使用本平台服务而遭受的损失，本平台在法律允许范围内免责。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '八、协议修改',
+              content: '本平台有权随时修改本协议，修改后的协议将在本平台公布。用户在修改后继续使用本平台服务，视为接受修改后的协议。',
+            ),
+            const SizedBox(height: 16),
+            _buildSection(
+              context,
+              title: '九、联系我们',
+              content:
+                  '如您对本协议有任何疑问，请通过以下方式联系我们：\n\n'
+                  '• 发送邮件至平台管理员邮箱\n'
+                  '• 通过站内私信联系管理员\n\n'
+                  '感谢您使用${AppBrand.displayName}！',
+            ),
+            const SizedBox(height: 32),
+            _buildFooter(context),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
@@ -125,8 +131,9 @@ class TermsOfServicePage extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Column(
         children: <Widget>[
@@ -134,7 +141,7 @@ class TermsOfServicePage extends StatelessWidget {
             width: 60,
             height: 60,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(
@@ -175,8 +182,9 @@ class TermsOfServicePage extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,39 +1,32 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-/// The only font families used by the product.
-///
-/// Font selection is locale-aware so Chinese and English never fall through to
-/// an unrelated system UI font. The accent face is intentionally reserved for
-/// short signatures and quotes.
+/// Web reuses the existing pubspec font families, with Latin first for mixed
+/// text and STZhongsong for Chinese. Asset licensing is managed separately.
 class AppTypography {
   AppTypography._();
 
-  static const String chineseDisplay = 'STZhongsong';
-  static const String chineseBody = 'STSong';
-  static const String chineseAccent = 'STKaiti';
-  static const List<String> chineseDisplayFallback = <String>[
-    '华文中宋',
-    'STSong',
-    '华文宋体',
-    'SimSun',
-    '宋体',
-  ];
-  static const List<String> chineseBodyFallback = <String>[
-    '华文宋体',
-    'SimSun',
-    '宋体',
-  ];
+  static const String chineseDisplay = kIsWeb
+      ? 'STZhongsong'
+      : 'Microsoft YaHei UI';
+  static const String chineseBody = chineseDisplay;
+  static const String chineseAccent = chineseDisplay;
+  static const List<String> chineseDisplayFallback = kIsWeb
+      ? <String>['STZhongsong', '华文中宋', 'serif']
+      : <String>['PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Arial'];
+  static const List<String> chineseBodyFallback = kIsWeb
+      ? <String>['STZhongsong', '华文中宋', 'serif']
+      : <String>['PingFang SC', 'Microsoft YaHei', 'Segoe UI', 'Arial'];
 
-  static const String englishDisplay = 'Anthropic Serif Web';
-  static const String englishBody = 'Times New Roman';
-  static const String englishAccent = 'Apple Chancery';
-  static const List<String> englishDisplayFallback = <String>[
-    'Anthropic Serif Web Text',
-    'Times New Roman',
-  ];
-  static const List<String> englishBodyFallback = <String>[
-    'Anthropic Serif Web',
-  ];
+  static const String englishDisplay = kIsWeb ? 'Times New Roman' : 'Segoe UI';
+  static const String englishBody = englishDisplay;
+  static const String englishAccent = englishDisplay;
+  static const List<String> englishDisplayFallback = kIsWeb
+      ? <String>['Arial', 'sans-serif']
+      : <String>['Arial', 'sans-serif'];
+  static const List<String> englishBodyFallback = kIsWeb
+      ? <String>['Arial', 'sans-serif']
+      : <String>['Arial', 'sans-serif'];
 
   static bool isEnglish(Locale locale) => locale.languageCode == 'en';
 

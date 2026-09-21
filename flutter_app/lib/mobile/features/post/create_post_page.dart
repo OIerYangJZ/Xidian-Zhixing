@@ -123,7 +123,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       );
 
       if (images.isNotEmpty) {
-        final maxImages = 9 - _selectedImages.length;
+        final maxImages = 20 - _selectedImages.length;
         final imagesToAdd = images.take(maxImages).toList();
 
         setState(() {

@@ -1,11 +1,5 @@
-<view class="page conversations-page {{themeClass}}">
-  <view class="page-header">
-    <view>
-      <view class="page-title">消息</view>
-      <view class="page-subtitle">查看私信会话</view>
-    </view>
-  </view>
-
+<view class="page conversations-page {{themeClass}} social-tab-page">
+  <social-header />
   <view wx:if="{{loading}}" class="empty">加载中...</view>
   <view wx:elif="{{errorMessage}}" class="empty">
     <view>{{errorMessage}}</view>

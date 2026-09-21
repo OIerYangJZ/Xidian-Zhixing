@@ -126,6 +126,11 @@ AI_MODEL: str = "gpt-4o-mini"
 AI_EMBEDDING_MODEL: str = ""
 RAG_URL: str = ""
 RAG_API_KEY: str = ""
+IMAGE_MODERATION_URL: str = ""
+IMAGE_OCR_URL: str = ""
+IMAGE_MODERATION_TIMEOUT_SECONDS: float = 3.0
+IMAGE_NSFW_REVIEW_THRESHOLD: float = 0.60
+IMAGE_NSFW_BLOCK_THRESHOLD: float = 0.85
 
 ALLOW_DEBUG_VERIFY_CODE: bool = False
 INCLUDE_DEBUG_CODE_IN_RESPONSE: bool = False
@@ -182,6 +187,8 @@ def configure() -> None:
         DEFAULT_SENSITIVE_WORDS, SEED_POSTS, SEED_DEMO_DATA, \
         PIN_DURATION_OPTIONS, RATE_LIMIT_WINDOWS_SECONDS, IP_RATE_LIMITS, \
         ALLOWED_IMAGE_TYPES, \
+        IMAGE_MODERATION_URL, IMAGE_OCR_URL, IMAGE_MODERATION_TIMEOUT_SECONDS, \
+        IMAGE_NSFW_REVIEW_THRESHOLD, IMAGE_NSFW_BLOCK_THRESHOLD, \
         _smtp_host, _smtp_port, _smtp_from_email
 
     runtime_env = os.environ.get("BACKEND_ENV", "development").strip().lower()
@@ -497,6 +504,20 @@ def configure() -> None:
     AI_EMBEDDING_MODEL = os.environ.get("BACKEND_AI_EMBEDDING_MODEL", os.environ.get("AI_EMBEDDING_MODEL", "")).strip()
     RAG_URL = os.environ.get("BACKEND_RAG_URL", "").strip().rstrip("/")
     RAG_API_KEY = os.environ.get("BACKEND_RAG_API_KEY", "").strip()
+    IMAGE_MODERATION_URL = os.environ.get("BACKEND_IMAGE_MODERATION_URL", "").strip().rstrip("/")
+    IMAGE_OCR_URL = os.environ.get("BACKEND_IMAGE_OCR_URL", "").strip().rstrip("/")
+    try:
+        IMAGE_MODERATION_TIMEOUT_SECONDS = max(
+            0.5, float(os.environ.get("BACKEND_IMAGE_MODERATION_TIMEOUT_SECONDS", "3"))
+        )
+        IMAGE_NSFW_REVIEW_THRESHOLD = min(
+            1.0, max(0.0, float(os.environ.get("BACKEND_IMAGE_NSFW_REVIEW_THRESHOLD", "0.60")))
+        )
+        IMAGE_NSFW_BLOCK_THRESHOLD = min(
+            1.0, max(0.0, float(os.environ.get("BACKEND_IMAGE_NSFW_BLOCK_THRESHOLD", "0.85")))
+        )
+    except ValueError as error:
+        raise RuntimeError("image moderation thresholds must be numeric") from error
 
     if runtime_env == "production" and (AI_BASE_URL or AI_API_KEY):
         if not AI_BASE_URL.startswith("https://"):

@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
-import 'package:xdu_treehole_web/core/state/app_providers.dart';
-import 'package:xdu_treehole_web/models/post_item.dart';
-import 'package:xdu_treehole_web/models/public_user_profile.dart';
+import '../../../features/search/search_controller.dart' as shared_search;
 import '../home/post_card.dart';
 import '../widgets/avatar_widget.dart';
 
@@ -19,20 +17,11 @@ class SearchPage extends ConsumerStatefulWidget {
   ConsumerState<SearchPage> createState() => _SearchPageState();
 }
 
-enum SearchTab { posts, users }
-
 class _SearchPageState extends ConsumerState<SearchPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   late TabController _tabController;
-
-  SearchTab _currentTab = SearchTab.posts;
-  bool _isSearching = false;
-  bool _hasSearched = false;
-  String? _searchError;
-  List<PostItem> _postResults = <PostItem>[];
-  List<PublicUserProfile> _userResults = <PublicUserProfile>[];
 
   @override
   void initState() {
@@ -40,16 +29,13 @@ class _SearchPageState extends ConsumerState<SearchPage>
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        setState(() {
-          _currentTab = _tabController.index == 0
-              ? SearchTab.posts
-              : SearchTab.users;
-          _hasSearched = false;
-          _searchError = null;
-          _postResults = <PostItem>[];
-          _userResults = <PublicUserProfile>[];
-          _searchController.clear();
-        });
+        ref.read(shared_search.searchControllerProvider.notifier).updateTab(
+          _tabController.index == 0
+              ? shared_search.SearchResultTab.posts
+              : shared_search.SearchResultTab.users,
+        );
+        _searchController.clear();
+        ref.read(shared_search.searchControllerProvider.notifier).clearQuery();
       }
     });
   }
@@ -68,52 +54,17 @@ class _SearchPageState extends ConsumerState<SearchPage>
       return;
     }
 
-    setState(() {
-      _isSearching = true;
-      _hasSearched = true;
-      _searchError = null;
-      _postResults = <PostItem>[];
-      _userResults = <PublicUserProfile>[];
-    });
-
-    try {
-      if (_currentTab == SearchTab.posts) {
-        final List<PostItem> results = await ref
-            .read(postRepositoryProvider)
-            .fetchPosts(keyword: keyword);
-        if (mounted) {
-          setState(() {
-            _postResults = results;
-          });
-        }
-      } else {
-        final List<PublicUserProfile> users = await ref
-            .read(userRepositoryProvider)
-            .searchUsers(keyword);
-        if (mounted) {
-          setState(() {
-            _userResults = users;
-          });
-        }
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _searchError = '搜索失败，请稍后重试';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSearching = false;
-        });
-      }
-    }
+    final shared_search.SearchController controller =
+        ref.read(shared_search.searchControllerProvider.notifier);
+    controller.setKeyword(keyword);
+    await controller.search();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = MobileColors.of(context);
+    final shared_search.SearchState state =
+        ref.watch(shared_search.searchControllerProvider);
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
@@ -131,11 +82,11 @@ class _SearchPageState extends ConsumerState<SearchPage>
               ],
             ),
             Expanded(
-              child: _isSearching
+              child: state.searching
                   ? const Center(child: CircularProgressIndicator())
-                  : _currentTab == SearchTab.posts
-                  ? _buildPostResults()
-                  : _buildUserResult(),
+                  : state.selectedTab == shared_search.SearchResultTab.posts
+                  ? _buildPostResults(state)
+                  : _buildUserResult(state),
             ),
           ],
         ),
@@ -145,6 +96,8 @@ class _SearchPageState extends ConsumerState<SearchPage>
 
   Widget _buildSearchBar() {
     final colors = MobileColors.of(context);
+    final shared_search.SearchState state =
+        ref.watch(shared_search.searchControllerProvider);
     return Container(
       color: colors.surface,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -155,24 +108,23 @@ class _SearchPageState extends ConsumerState<SearchPage>
               controller: _searchController,
               focusNode: _focusNode,
               textInputAction: TextInputAction.search,
-              onChanged: (_) => setState(() {}),
+               onChanged: (value) => ref
+                   .read(shared_search.searchControllerProvider.notifier)
+                   .setKeyword(value),
               onSubmitted: (_) => _handleSearch(),
               decoration: InputDecoration(
-                hintText: _currentTab == SearchTab.posts
+                hintText: state.selectedTab == shared_search.SearchResultTab.posts
                     ? '搜索帖子...'
                     : '输入昵称关键词...',
                 prefixIcon: const Icon(Icons.search, size: 20),
-                suffixIcon: _searchController.text.isNotEmpty
+                suffixIcon: state.keyword.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
                           _searchController.clear();
-                          setState(() {
-                            _hasSearched = false;
-                            _searchError = null;
-                            _postResults = <PostItem>[];
-                            _userResults = <PublicUserProfile>[];
-                          });
+                          ref
+                              .read(shared_search.searchControllerProvider.notifier)
+                              .clearQuery();
                         },
                       )
                     : null,
@@ -193,7 +145,9 @@ class _SearchPageState extends ConsumerState<SearchPage>
           SizedBox(
             height: 40,
             child: ElevatedButton(
-              onPressed: _isSearching ? null : _handleSearch,
+              onPressed: ref.watch(shared_search.searchControllerProvider).searching
+                  ? null
+                  : _handleSearch,
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -209,11 +163,11 @@ class _SearchPageState extends ConsumerState<SearchPage>
     );
   }
 
-  Widget _buildPostResults() {
-    if (_searchError != null) {
-      return _buildSearchError();
+  Widget _buildPostResults(shared_search.SearchState state) {
+    if (state.error != null) {
+      return _buildSearchError(state);
     }
-    if (!_hasSearched && _searchController.text.trim().isEmpty) {
+    if (state.keyword.trim().isEmpty) {
       return Center(
         child: Text(
           '输入关键词搜索帖子',
@@ -221,7 +175,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
         ),
       );
     }
-    if (_postResults.isEmpty) {
+    if (state.results.isEmpty) {
       return Center(
         child: Text(
           '没有找到匹配帖子',
@@ -230,10 +184,10 @@ class _SearchPageState extends ConsumerState<SearchPage>
       );
     }
     return ListView.separated(
-      itemCount: _postResults.length,
+      itemCount: state.results.length,
       separatorBuilder: (context, index) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final post = _postResults[index];
+        final post = state.results[index];
         return PostCard(
           post: post,
           onTap: () => context.push('/post/${post.id}'),
@@ -242,11 +196,11 @@ class _SearchPageState extends ConsumerState<SearchPage>
     );
   }
 
-  Widget _buildUserResult() {
-    if (_searchError != null) {
-      return _buildSearchError();
+  Widget _buildUserResult(shared_search.SearchState state) {
+    if (state.error != null) {
+      return _buildSearchError(state);
     }
-    if (!_hasSearched && _searchController.text.trim().isEmpty) {
+    if (state.keyword.trim().isEmpty) {
       return Center(
         child: Text(
           '输入昵称后可模糊搜索用户',
@@ -254,7 +208,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
         ),
       );
     }
-    if (_userResults.isEmpty) {
+    if (state.userResults.isEmpty) {
       return Center(
         child: Text(
           '没有找到匹配用户',
@@ -265,10 +219,10 @@ class _SearchPageState extends ConsumerState<SearchPage>
     final colors = MobileColors.of(context);
     return ListView.separated(
       padding: const EdgeInsets.all(16),
-      itemCount: _userResults.length,
+      itemCount: state.userResults.length,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final user = _userResults[index];
+        final user = state.userResults[index];
         return GestureDetector(
           onTap: () => context.push('/user/${user.userId}'),
           child: Container(
@@ -319,7 +273,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
     );
   }
 
-  Widget _buildSearchError() {
+  Widget _buildSearchError(shared_search.SearchState state) {
     final colors = MobileColors.of(context);
     return Center(
       child: Column(
@@ -327,7 +281,7 @@ class _SearchPageState extends ConsumerState<SearchPage>
         children: [
           Icon(Icons.error_outline, size: 42, color: colors.textTertiary),
           const SizedBox(height: 10),
-          Text(_searchError!, style: TextStyle(color: colors.textSecondary)),
+          Text(state.error!, style: TextStyle(color: colors.textSecondary)),
           const SizedBox(height: 10),
           TextButton(onPressed: _handleSearch, child: const Text('重试')),
         ],

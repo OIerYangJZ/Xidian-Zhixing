@@ -1,7 +1,5 @@
 <view class="auth-center-page safe-bottom {{themeClass}}">
   <view class="hero-block">
-    <view class="hero-kicker">校园服务</view>
-    <view class="hero-title">登录管理</view>
     <view class="hero-desc">统一认证、缴费/水电、物理实验、体育、校园网和宿舍水机集中在这里验证。</view>
   </view>
 

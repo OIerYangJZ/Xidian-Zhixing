@@ -1,0 +1,47 @@
+/* Geometry measured against the supplied 2880 x 1800 reference.
+   The coordinate plane below is 1996 x 1247.5; scaling preserves ratios. */
+body.reference-shell{--ref-bg:#fff;--ref-ink:#0f1419;--ref-secondary:#536471;--ref-border:#eff3f4;--ref-input:#e5eaec;background:var(--ref-bg);color:var(--ref-ink);font-family:Arial,'Microsoft YaHei',sans-serif;overflow-x:hidden}
+body.reference-shell.ref-dark{--ref-bg:#000;--ref-ink:#e7e9ea;--ref-secondary:#71767b;--ref-border:#2f3336;--ref-input:#202327}
+.reference-shell .app{display:block;width:1996px;min-height:var(--ref-height);padding:0;margin:0;zoom:var(--ref-scale);background:var(--ref-bg);color:var(--ref-ink)}
+.reference-shell .rail{position:fixed;inset:0 auto auto 0;width:493px;height:var(--ref-height);border-right:1px solid var(--ref-border);padding:0 0 0 123px;display:block;background:var(--ref-bg);color:var(--ref-ink);z-index:20}
+.reference-shell .right,.reference-shell .mark,.reference-shell .post-cta,.reference-shell .user-mini{display:none}
+.reference-shell .main{margin-left:493px;width:1357px;min-height:var(--ref-height);border:0;border-right:1px solid var(--ref-border);padding:0;background:var(--ref-bg);color:var(--ref-ink)}
+.reference-shell.ai-active .topbar{display:none}
+.reference-shell .x-brand{display:flex;align-items:center;justify-content:center;width:77px;height:83px;color:var(--ref-ink);padding:0;background:transparent}
+.reference-shell .x-brand svg{width:40px;height:41px;fill:currentColor}
+.reference-shell .x-navigation{display:block;margin-top:5px}
+.reference-shell .x-nav{height:77.4px;display:flex;align-items:center;gap:32px;width:max-content;max-width:346px;padding:0 19px;border-radius:42px;background:transparent;color:var(--ref-ink);font-size:30px;line-height:1;font-weight:400;text-align:left;white-space:nowrap;position:relative}
+.reference-shell .x-nav:hover{background:color-mix(in srgb,var(--ref-ink) 7%,transparent)}
+.reference-shell .x-nav[aria-current=page]{font-weight:700}
+.reference-shell .x-icon{display:inline-flex;width:39px;height:39px;align-items:center;justify-content:center;flex-shrink:0;position:relative}
+.reference-shell .x-icon svg{width:36px;height:36px;stroke:currentColor;stroke-width:2.15;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.reference-shell .badge-count{position:absolute;background:#f91880;color:white;font:18px/26px Arial;width:26px;height:26px;top:-9px;right:-6px;border-radius:50%;border:1px solid var(--ref-bg);text-align:center}
+.reference-shell .grok-nav-mark{width:41px;height:41px;border-radius:9px;background-image:url('assets/ai.png');background-size:1996px 1247.5px;background-position:-141px -492px}
+.reference-shell .x-post{width:322px;height:80px;margin-top:10px;border-radius:50px;background:var(--ref-ink);color:var(--ref-bg);font-size:27px;font-weight:700;display:block}
+.reference-shell .x-account{position:absolute;bottom:33px;left:141px;width:321px;display:flex;gap:17px;align-items:center;text-align:left;background:none;padding:0;color:var(--ref-ink)}
+.reference-shell .x-account-avatar{width:61px;height:61px;border-radius:50%;background-image:url('assets/ai.png');background-size:1996px 1247.5px;background-position:-141px -1149px;flex-shrink:0}
+.reference-shell .x-account strong{display:block;font-size:24px;line-height:31px}.reference-shell .x-account small{display:block;font-size:24px;color:var(--ref-secondary);line-height:31px}.reference-shell .x-account .ellipsis{margin-left:auto;font-size:26px;font-weight:bold}
+.reference-shell #view-ai{height:var(--ref-height);min-height:900px;position:relative;background:var(--ref-bg);color:var(--ref-ink)}
+.reference-shell .grok-top{height:105px;padding:0 51px 0 38px;display:flex;align-items:center;gap:48px}
+.reference-shell .grok-top button{background:transparent;color:var(--ref-ink);font-size:22px;font-weight:700;display:flex;align-items:center;gap:8px;padding:8px 0}
+.reference-shell .grok-top button:first-child{margin-right:auto}.reference-shell .grok-top .x-icon,.reference-shell .grok-top .x-icon svg{width:26px;height:26px}
+.reference-shell .grok-center{position:absolute;left:148px;right:148px;top:calc(var(--ref-height) * .385);display:flex;flex-direction:column;align-items:center}
+.reference-shell .grok-logo{width:168px;height:63px;background-image:url('assets/ai.png');background-size:1996px 1247.5px;background-position:-1088px -479px;margin-bottom:23px}
+.reference-shell.ref-dark .grok-logo{filter:invert(1)}
+.reference-shell .grok-question{width:1060px;height:95px;border-radius:60px;background:var(--ref-input);display:flex;align-items:center;padding:0 20px 0 25px;gap:22px;margin:0}
+.reference-shell .grok-question button{color:var(--ref-ink);background:none;padding:0;display:flex;align-items:center;justify-content:center;min-height:44px}
+.reference-shell .grok-question .attach{color:var(--ref-secondary);width:28px;flex-shrink:0}.reference-shell .grok-question .attach svg{width:27px;height:27px}
+.reference-shell .grok-question input{font-family:Arial,'Microsoft YaHei',sans-serif;min-width:0;flex:1;border:0;outline:0;background:none;color:var(--ref-ink);font-size:23px;padding:0;height:60px}
+.reference-shell .grok-question input::placeholder{color:#7a8187}.reference-shell .grok-question .mode-button{gap:10px;white-space:nowrap;font-size:22px;font-weight:700;margin-right:5px}.reference-shell .grok-question .mode-button svg{width:25px;height:25px}
+.reference-shell .grok-question .voice-button{width:49px;height:49px;min-height:49px;background:var(--ref-ink);color:var(--ref-bg);border-radius:50%;flex-shrink:0}.reference-shell .voice-button svg{width:31px;height:31px}
+.reference-shell .grok-shortcuts{display:flex;gap:18px;margin-top:24px}.reference-shell .grok-shortcuts button{height:59px;border:1.5px solid #cfd9de;border-radius:40px;padding:0 20px;display:flex;align-items:center;gap:10px;font-size:21px;font-weight:700;background:transparent;color:var(--ref-secondary);white-space:nowrap}.reference-shell .grok-shortcuts .x-icon,.reference-shell .grok-shortcuts svg{width:23px;height:23px}
+.reference-shell .x-popover{position:fixed;z-index:50;left:145px;bottom:105px;width:310px;padding:10px;background:var(--ref-bg);color:var(--ref-ink);border:1px solid var(--ref-border);border-radius:18px;box-shadow:0 3px 20px #0002;zoom:var(--ref-scale)}
+.reference-shell .x-popover button{display:block;width:100%;padding:17px;text-align:left;background:transparent;color:inherit;font-size:23px;border-radius:10px}.reference-shell .x-popover button:hover{background:var(--ref-input)}
+.reference-shell .grok-drawer{position:absolute;right:0;top:100px;width:450px;background:var(--ref-bg);padding:30px;border:1px solid var(--ref-border);z-index:4;box-shadow:0 8px 30px #0001}.reference-shell .grok-drawer h2{font-size:24px;margin:0 0 28px}.reference-shell .grok-drawer p{color:var(--ref-secondary);font-size:20px;line-height:1.6}.reference-shell .grok-drawer button{color:var(--ref-ink);background:var(--ref-input);padding:12px 20px;border-radius:20px}
+.reference-shell .grok-transcript{width:1060px;margin-top:30px;border-top:1px solid var(--ref-border);padding:20px 0;font-size:22px;line-height:1.7}.reference-shell .grok-transcript p{margin:10px 0;color:var(--ref-secondary)}
+.reference-shell .x-toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%);padding:13px 24px;border-radius:15px;background:var(--ref-ink);color:var(--ref-bg);font-size:17px;z-index:80}
+.reference-shell.ref-dark .grok-shortcuts button{border-color:var(--ref-border)}
+.reference-shell button:focus-visible{outline:2px solid var(--ref-secondary);outline-offset:4px}
+.reference-shell .ai-wordmark{height:63px;margin-bottom:23px;display:flex;align-items:center;gap:13px;font:bold 44px Arial;color:var(--ref-ink)}
+.reference-shell .ai-wordmark .x-icon,.reference-shell .ai-wordmark svg{width:55px;height:55px}
+.reference-shell .language-switch{position:absolute;left:409px;top:26px;height:38px;min-width:51px;padding:0 9px;border:1px solid var(--ref-border);border-radius:20px;background:var(--ref-bg);color:var(--ref-secondary);font:18px Arial}

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/design_tokens.dart';
@@ -21,6 +22,12 @@ class ThemeDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = Theme.of(context).extension<EditorialColors>();
+    if (kIsWeb ||
+        palette == SharedColors.threadLight ||
+        palette == SharedColors.threadDark) {
+      return const SizedBox.shrink();
+    }
     final AppColorThemeOption selected = AppColorThemes.optionFor(themeKey);
     final ColorScheme colors = Theme.of(context).colorScheme;
 

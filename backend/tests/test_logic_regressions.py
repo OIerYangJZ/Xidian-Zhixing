@@ -1139,6 +1139,55 @@ def test_binding_risk_image_to_post_does_not_auto_approve(
     assert db["mediaUploads"][0]["status"] == "risk"
 
 
+def test_image_moderation_worker_blocks_nsfw_and_reviews_ocr_marketing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from handlers import _upload_handler
+    from services._db_service import default_db
+
+    db = default_db()
+    monkeypatch.setattr(_upload_handler._globals, "IMAGE_MODERATION_URL", "http://local/nsfw")
+    monkeypatch.setattr(_upload_handler._globals, "IMAGE_OCR_URL", "http://local/ocr")
+    monkeypatch.setattr(
+        _upload_handler,
+        "_call_image_service",
+        lambda url, _image, _content_type: (
+            {"result": {"nsfw_probability": 0.91}}
+            if url.endswith("nsfw")
+            else {"text": "加微信领取优惠券"}
+        ),
+    )
+
+    status, reason = _upload_handler.moderate_image_upload(
+        file_name="normal.png",
+        content_type="image/png",
+        size_bytes=128,
+        db=db,
+        image_bytes=b"image-bytes",
+    )
+    assert status == "rejected"
+    assert "不适宜" in reason
+
+    monkeypatch.setattr(
+        _upload_handler,
+        "_call_image_service",
+        lambda url, _image, _content_type: (
+            {"result": {"nsfw_probability": 0.01}}
+            if url.endswith("nsfw")
+            else {"text": "加微信领取优惠券"}
+        ),
+    )
+    status, reason = _upload_handler.moderate_image_upload(
+        file_name="normal.png",
+        content_type="image/png",
+        size_bytes=128,
+        db=db,
+        image_bytes=b"image-bytes",
+    )
+    assert status == "rejected"
+    assert "图片文字" in reason
+
+
 @pytest.mark.parametrize(
     ("content", "expected_category"),
     [

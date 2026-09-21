@@ -1,0 +1,5 @@
+# Optional local moderation workers. The main backend does not import these
+# packages; install them only on the machine that runs the workers.
+opennsfw2[keras3]
+paddlepaddle
+paddleocr

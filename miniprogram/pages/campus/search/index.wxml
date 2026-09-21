@@ -1,9 +1,7 @@
-<view class="page search-page {{themeClass}}">
-  <view class="search-row">
-    <input value="{{keyword}}" placeholder="输入关键词" confirm-type="search" bindinput="onInput" bindconfirm="search" focus />
-    <view class="search-button" bindtap="search">搜索</view>
-  </view>
-
+<view class="page search-page {{themeClass}} social-tab-page">
+  <social-header brand="{{false}}">
+    <view slot="center" class="social-search"><view class="ui-icon icon-search"></view><input value="{{keyword}}" placeholder="{{currentLanguage === 'en' ? 'Search' : '搜索'}}" aria-label="搜索关键词" confirm-type="search" bindinput="onInput" bindconfirm="search" /></view>
+  </social-header>
   <view class="type-row">
     <view class="type-chip {{activeType === 'hot' ? 'active' : ''}}" data-type="hot" bindtap="onTypeTap">热榜</view>
     <view class="type-chip {{activeType === 'posts' ? 'active' : ''}}" data-type="posts" bindtap="onTypeTap">帖子</view>
@@ -56,46 +54,16 @@
   </view>
 
   <view wx:if="{{activeType === 'posts' && !loading && !errorMessage}}">
-    <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-      <view class="feed-avatar">{{item.authorInitial}}</view>
-      <view class="feed-body">
-        <view class="feed-head">
-          <text class="feed-author">{{item.authorAlias}}</text>
-          <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
-          <block wx:if="{{item.sectionName}}">
-            <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
-            <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
-          </block>
-          <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
-          <text class="feed-time">{{item.timeText}}</text>
-        </view>
-        <view class="feed-title">
-          <block wx:for="{{item.displayTitleSegments}}" wx:for-item="segment" wx:key="index">
-            <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-            <text wx:else>{{segment.text}}</text>
-          </block>
-        </view>
-        <view class="feed-summary">
-          <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
-            <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-            <text wx:else>{{segment.text}}</text>
-          </block>
-        </view>
-        <view class="feed-actions">
-          <view class="feed-action {{item.liked ? 'active' : ''}}">
-            <view class="feed-action-icon like-icon"></view>
-            <text>{{item.likeCount}}</text>
-          </view>
-          <view class="feed-action">
-            <view class="feed-action-icon comment-icon"></view>
-            <text>{{item.commentCount}}</text>
-          </view>
-          <view class="feed-action share">
-            <view class="feed-action-icon bookmark-icon"></view>
-          </view>
-        </view>
-      </view>
-    </view>
+    <post-row
+      wx:for="{{posts}}"
+      wx:key="id"
+      item="{{item}}"
+      index="{{index}}"
+      bind:open="goPostDetail"
+      bind:tag="goTagPosts"
+      bind:like="togglePostLike"
+      bind:favorite="togglePostFavorite"
+    />
   </view>
 
   <view wx:if="{{activeType === 'users' && !loading && !errorMessage}}">

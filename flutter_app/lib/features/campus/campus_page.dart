@@ -10,7 +10,6 @@ import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
-import 'campus_auth_center_page.dart';
 import 'campus_service_detail_page.dart';
 
 class CampusPage extends ConsumerStatefulWidget {
@@ -22,6 +21,7 @@ class CampusPage extends ConsumerStatefulWidget {
 
 class _CampusPageState extends ConsumerState<CampusPage> {
   bool _loading = true;
+  String _query = '';
   String? _error;
   List<CampusService> _services = const <CampusService>[];
   CampusTodaySchedules _today = const CampusTodaySchedules(
@@ -72,56 +72,69 @@ class _CampusPageState extends ConsumerState<CampusPage> {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
-    final Map<String, List<CampusService>> groups = _groupServices(_services);
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final bool expanded = constraints.maxWidth >= AppBreakpoints.expanded;
-        final Widget services = _ServicesGrid(
-          groups: groups,
-          expanded: expanded,
-          onOpen: _openService,
-        );
-        return RefreshIndicator(
-          onRefresh: _load,
-          child: ListView(
-            padding: EdgeInsets.fromLTRB(
-              expanded ? AppSpacing.xl : AppSpacing.md,
-              AppSpacing.md,
-              expanded ? AppSpacing.xl : AppSpacing.md,
-              110,
-            ),
-            children: <Widget>[
-              if (_error != null)
-                _ErrorBanner(message: _error!, onRetry: _load),
-              if (expanded)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(child: services),
-                    const SizedBox(width: AppSpacing.xl),
-                    SizedBox(
-                      width: AppLayout.asideWidth,
-                      child: Column(
-                        children: <Widget>[
-                          _IdsCard(onTap: _openAuthCenter),
-                          const SizedBox(height: AppSpacing.md),
-                          _TodayCard(today: _today, onTap: _openScheduleSource),
-                        ],
-                      ),
-                    ),
-                  ],
-                )
-              else ...<Widget>[
-                _IdsCard(onTap: _openAuthCenter),
-                const SizedBox(height: AppSpacing.md),
-                _TodayCard(today: _today, onTap: _openScheduleSource),
-                const SizedBox(height: AppSpacing.xl),
-                services,
-              ],
-            ],
+    final Map<String, List<CampusService>> groups = _groupServices(
+      _services.where((CampusService service) {
+        final String searchable = <String>[
+          service.name,
+          service.description,
+          service.slug,
+          localizedCampusServiceName(
+            const Locale('en'),
+            slug: service.slug,
+            name: service.name,
           ),
-        );
-      },
+          localizedCampusServiceName(
+            const Locale('zh', 'CN'),
+            slug: service.slug,
+            name: service.name,
+          ),
+        ].join(' ').toLowerCase();
+        return searchable.contains(_query.trim().toLowerCase());
+      }).toList(),
+    );
+    return AppPageFrame(
+      maxWidth: 720,
+      padding: EdgeInsets.zero,
+      child: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
+          children: <Widget>[
+            if (_error != null) _ErrorBanner(message: _error!, onRetry: _load),
+            _TodayCard(today: _today, onTap: _openScheduleSource),
+            const SizedBox(height: 24),
+            TextField(
+              decoration: InputDecoration(
+                hintText: uiText(
+                  context,
+                  zh: '搜索校园服务',
+                  en: 'Search campus services',
+                ),
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
+              onChanged: (String value) => setState(() => _query = value),
+            ),
+            const SizedBox(height: 24),
+            _ServicesGrid(groups: groups, onOpen: _openService),
+            if (groups.isEmpty && _query.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Text(
+                  uiText(
+                    context,
+                    zh: '没有匹配的校园服务',
+                    en: 'No matching campus services',
+                  ),
+                ),
+              ),
+            const Divider(height: 32),
+            const _OfflineDinoCard(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -137,12 +150,6 @@ class _CampusPageState extends ConsumerState<CampusPage> {
       groups.putIfAbsent(name, () => <CampusService>[]).add(service);
     }
     return groups;
-  }
-
-  void _openAuthCenter() {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const CampusAuthCenterPage()),
-    );
   }
 
   void _openScheduleSource(CampusScheduleItem item) {
@@ -202,15 +209,67 @@ class _CampusPageState extends ConsumerState<CampusPage> {
   }
 }
 
+class _OfflineDinoCard extends StatefulWidget {
+  const _OfflineDinoCard();
+
+  @override
+  State<_OfflineDinoCard> createState() => _OfflineDinoCardState();
+}
+
+class _OfflineDinoCardState extends State<_OfflineDinoCard> {
+  int _score = 0;
+  bool _jumping = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return Semantics(
+      button: true,
+      label: '离线小游戏',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadii.large),
+        onTap: () => setState(() {
+          _score += 1;
+          _jumping = !_jumping;
+        }),
+        child: AppSurfaceCard(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: SizedBox(
+            height: 86,
+            child: Stack(
+              children: <Widget>[
+                Text(
+                  '离线小游戏 · Dino',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                Align(
+                  alignment: Alignment(-0.55, _jumping ? -0.25 : 0.55),
+                  child: Icon(
+                    Icons.directions_run_rounded,
+                    size: 30,
+                    color: colors.primary,
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Text(
+                    '点击跳跃  $_score',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ServicesGrid extends StatelessWidget {
-  const _ServicesGrid({
-    required this.groups,
-    required this.expanded,
-    required this.onOpen,
-  });
+  const _ServicesGrid({required this.groups, required this.onOpen});
 
   final Map<String, List<CampusService>> groups;
-  final bool expanded;
   final ValueChanged<CampusService> onOpen;
 
   @override
@@ -236,101 +295,11 @@ class _ServicesGrid extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final int columns = constraints.maxWidth >= 820
-                  ? 4
-                  : constraints.maxWidth >= 520
-                  ? 3
-                  : 2;
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: columns,
-                  crossAxisSpacing: AppSpacing.sm,
-                  mainAxisSpacing: AppSpacing.sm,
-                  childAspectRatio: expanded ? 1.28 : 1.08,
-                ),
-                itemCount: entry.value.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final CampusService service = entry.value[index];
-                  return _ServiceTile(
-                    service: service,
-                    onTap: () => onOpen(service),
-                  );
-                },
-              );
-            },
-          ),
+          for (final CampusService service in entry.value)
+            _ServiceTile(service: service, onTap: () => onOpen(service)),
           const SizedBox(height: AppSpacing.xl),
         ],
       ],
-    );
-  }
-}
-
-class _IdsCard extends StatelessWidget {
-  const _IdsCard({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadii.large),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: SharedColors.divider),
-        ),
-        child: Row(
-          children: <Widget>[
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(AppRadii.medium),
-              ),
-              child: const Icon(
-                Icons.key_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    uiText(context, zh: '校园系统登录', en: 'Campus system sign-in'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    uiText(
-                      context,
-                      zh: '管理校园网自服务、宿舍水机的登录状态',
-                      en:
-                          'Manage sign-in for the campus network self-service '
-                          'and the dorm water dispenser',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.chevron_right_rounded),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -348,7 +317,7 @@ class _TodayCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadii.large),
-        border: Border.all(color: SharedColors.divider),
+        border: Border.all(color: EditorialColors.of(context).line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -486,72 +455,33 @@ class _ServiceTile extends StatelessWidget {
       slug: service.slug,
       description: service.description,
     );
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadii.large),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppRadii.large),
-          border: Border.all(color: SharedColors.divider),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        leading: Icon(_iconForService(service)),
+        title: Text(
+          localizedCampusServiceName(
+            locale,
+            slug: service.slug,
+            name: service.name,
+          ),
+        ),
+        subtitle: description.trim().isEmpty ? null : Text(description),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Row(
-              children: <Widget>[
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppRadii.medium),
-                  ),
-                  child: Icon(
-                    _iconForService(service),
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 20,
-                  ),
-                ),
-                const Spacer(),
-                if (_statusLabel(context, service) case final String label)
-                  AppStatusTag(
-                    label: label,
-                    color:
-                        service.authType == 'public' ||
-                            service.authType.trim().isEmpty ||
-                            service.authReady
-                        ? SharedColors.success
-                        : SharedColors.warning,
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              localizedCampusServiceName(
-                locale,
-                slug: service.slug,
-                name: service.name,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            if (description.trim().isNotEmpty) ...<Widget>[
-              const SizedBox(height: AppSpacing.xxs),
-              Text(
-                description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
+            if (_statusLabel(context, service) case final String label)
+              AppStatusTag(label: label, outlined: true),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right_rounded),
           ],
         ),
+        onTap: onTap,
       ),
     );
   }

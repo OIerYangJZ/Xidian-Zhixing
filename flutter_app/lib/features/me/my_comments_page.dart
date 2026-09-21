@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 
 import '../../models/my_comment_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -29,49 +32,58 @@ class _MyCommentsPageState extends State<MyCommentsPage> {
       appBar: AppBar(
         title: Text(uiText(context, zh: '我的评论', en: 'My comments')),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: _items.length,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemBuilder: (BuildContext context, int index) {
-                final MyCommentItem row = _items[index];
-                return Card(
-                  child: ListTile(
-                    title: Text(row.postTitle),
-                    subtitle: Text('${row.content}\n${row.timeText}'),
-                    isThreeLine: true,
-                    trailing: Wrap(
-                      spacing: 8,
-                      children: <Widget>[
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  uiText(
-                                    context,
-                                    zh: '原帖暂时无法打开。',
-                                    en: 'The original post is temporarily unavailable.',
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.builder(
+                itemCount: _items.length,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemBuilder: (BuildContext context, int index) {
+                  final MyCommentItem row = _items[index];
+                  return FeatureSection(
+                    padding: EdgeInsets.zero,
+                    child: ListTile(
+                      title: Text(row.postTitle),
+                      subtitle: Text('${row.content}\n${row.timeText}'),
+                      isThreeLine: true,
+                      trailing: Wrap(
+                        spacing: 8,
+                        children: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    uiText(
+                                      context,
+                                      zh: '原帖暂时无法打开。',
+                                      en: 'The original post is temporarily unavailable.',
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                          child: Text(
-                            uiText(context, zh: '原帖', en: 'Original post'),
+                              );
+                            },
+                            child: Text(
+                              uiText(context, zh: '原帖', en: 'Original post'),
+                            ),
                           ),
-                        ),
-                        TextButton(
-                          onPressed: _actionBusy ? null : () => _delete(row.id),
-                          child: Text(uiText(context, zh: '删除', en: 'Delete')),
-                        ),
-                      ],
+                          TextButton(
+                            onPressed: _actionBusy
+                                ? null
+                                : () => _delete(row.id),
+                            child: Text(
+                              uiText(context, zh: '删除', en: 'Delete'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
+      ),
       bottomNavigationBar: _error == null
           ? null
           : Padding(

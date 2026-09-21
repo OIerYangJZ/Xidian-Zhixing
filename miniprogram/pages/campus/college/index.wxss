@@ -24,7 +24,7 @@
 
 .college-chip.active {
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-weight: 600;
 }
 
@@ -57,3 +57,8 @@
   font-size: 31rpx;
   font-weight: 700;
 }
+
+/* Approved reference layout. */
+.college-card { border-radius:0; border:0; border-bottom:1px solid var(--app-divider); margin:0; padding:28rpx 36rpx; }
+.college-name { font-size:34rpx; }
+.college-actions { gap:16rpx; }

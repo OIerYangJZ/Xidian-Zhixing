@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
@@ -19,6 +21,7 @@ class ChatPage extends StatefulWidget {
   const ChatPage({
     super.key,
     required this.conversation,
+    this.embedded = false,
     this.onMessageSent,
     this.onConversationRead,
     this.onConversationRemoved,
@@ -27,6 +30,7 @@ class ChatPage extends StatefulWidget {
   });
 
   final ConversationItem conversation;
+  final bool embedded;
   final ValueChanged<String>? onMessageSent;
   final VoidCallback? onConversationRead;
   final VoidCallback? onConversationRemoved;
@@ -76,6 +80,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: GestureDetector(
           onTap: widget.peerUserId != null
               ? () => _navigateToProfile(context, widget.peerUserId!)
@@ -139,139 +144,145 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      body: Column(
-        children: <Widget>[
-          if (_error != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
-              child: Row(
-                children: <Widget>[
-                  Icon(
-                    Icons.error_outline,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                  ),
-                  if (_lastFailedContent != null && !_loading)
-                    TextButton(
-                      onPressed: _sending
-                          ? null
-                          : () => _send(
-                              retryContent: _lastFailedContent,
-                              retryReplyTarget: _lastFailedReplyTarget,
-                            ),
-                      child: Text(
-                        uiText(context, zh: '重试发送', en: 'Resend'),
-                      ),
-                    ),
-                  TextButton(
-                    onPressed: _loading ? null : _loadMessages,
-                    child: Text(uiText(context, zh: '重试', en: 'Retry')),
-                  ),
-                ],
-              ),
-            ),
-          if (blockedByMe || blockedByPeer)
-            _buildBlockBanner(
-              blockedByMe: blockedByMe,
-              blockedByPeer: blockedByPeer,
-            ),
-          Expanded(child: _buildMessageList()),
-          SafeArea(
-            top: false,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                border: Border(
-                  top: BorderSide(color: Theme.of(context).dividerColor),
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: <Widget>[
+            if (_error != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  if (_replyingTo != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _buildReplyBanner(_replyingTo!),
+                color: Theme.of(
+                  context,
+                ).colorScheme.error.withValues(alpha: 0.1),
+                child: Row(
+                  children: <Widget>[
+                    Icon(
+                      Icons.error_outline,
+                      size: 18,
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: <Widget>[
-                      Expanded(
-                        child: TextField(
-                          controller: _inputController,
-                          focusNode: _inputFocusNode,
-                          minLines: 1,
-                          maxLines: 4,
-                          enabled: inputEnabled,
-                          decoration: InputDecoration(
-                            hintText: blockedByPeer
-                                ? uiText(
-                                    context,
-                                    zh: '对方已屏蔽你，暂时无法发送消息',
-                                    en:
-                                        'This user has blocked you, so messages cannot be sent.',
-                                  )
-                                : blockedByMe
-                                ? uiText(
-                                    context,
-                                    zh: '你已屏蔽对方，解除屏蔽后可继续发送',
-                                    en:
-                                        'You blocked this user. Unblock them to keep chatting.',
-                                  )
-                                : _replyingTo != null
-                                ? uiText(
-                                    context,
-                                    zh: '回复 ${_displaySender(_replyingTo!)}',
-                                    en:
-                                        'Reply to ${_displaySender(_replyingTo!)}',
-                                  )
-                                : uiText(
-                                    context,
-                                    zh: '输入消息',
-                                    en: 'Type a message',
-                                  ),
-                          ),
-                          onSubmitted: (_) => _send(),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      EmojiAssistantBar(
-                        controller: _inputController,
-                        compact: true,
+                    ),
+                    if (_lastFailedContent != null && !_loading)
+                      TextButton(
+                        onPressed: _sending
+                            ? null
+                            : () => _send(
+                                retryContent: _lastFailedContent,
+                                retryReplyTarget: _lastFailedReplyTarget,
+                              ),
+                        child: Text(uiText(context, zh: '重试发送', en: 'Resend')),
                       ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        onPressed: busy || !inputEnabled ? null : () => _send(),
-                        icon: _sending
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.send_rounded),
-                        tooltip: uiText(context, zh: '发送', en: 'Send'),
-                      ),
-                    ],
+                    TextButton(
+                      onPressed: _loading ? null : _loadMessages,
+                      child: Text(uiText(context, zh: '重试', en: 'Retry')),
+                    ),
+                  ],
+                ),
+              ),
+            if (blockedByMe || blockedByPeer)
+              _buildBlockBanner(
+                blockedByMe: blockedByMe,
+                blockedByPeer: blockedByPeer,
+              ),
+            Expanded(child: _buildMessageList()),
+            SafeArea(
+              top: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border(
+                    top: BorderSide(color: Theme.of(context).dividerColor),
                   ),
-                ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    if (_replyingTo != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _buildReplyBanner(_replyingTo!),
+                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: <Widget>[
+                        Expanded(
+                          child: TextField(
+                            controller: _inputController,
+                            focusNode: _inputFocusNode,
+                            minLines: 1,
+                            maxLines: 4,
+                            enabled: inputEnabled,
+                            decoration: InputDecoration(
+                              hintText: blockedByPeer
+                                  ? uiText(
+                                      context,
+                                      zh: '对方已屏蔽你，暂时无法发送消息',
+                                      en: 'This user has blocked you, so messages cannot be sent.',
+                                    )
+                                  : blockedByMe
+                                  ? uiText(
+                                      context,
+                                      zh: '你已屏蔽对方，解除屏蔽后可继续发送',
+                                      en: 'You blocked this user. Unblock them to keep chatting.',
+                                    )
+                                  : _replyingTo != null
+                                  ? uiText(
+                                      context,
+                                      zh: '回复 ${_displaySender(_replyingTo!)}',
+                                      en: 'Reply to ${_displaySender(_replyingTo!)}',
+                                    )
+                                  : uiText(
+                                      context,
+                                      zh: '输入消息',
+                                      en: 'Type a message',
+                                    ),
+                            ),
+                            onSubmitted: (_) => _send(),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        EmojiAssistantBar(
+                          controller: _inputController,
+                          compact: true,
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
+                          onPressed: busy || !inputEnabled
+                              ? null
+                              : () => _send(),
+                          icon: _sending
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Icon(Icons.send_rounded),
+                          tooltip: uiText(context, zh: '发送', en: 'Send'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -370,17 +381,14 @@ class _ChatPageState extends State<ChatPage> {
               : Alignment.centerLeft,
           child: GestureDetector(
             onLongPress: () => _showMessageActions(context, message),
+            onSecondaryTap: () => _showMessageActions(context, message),
             child: Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(10),
               constraints: const BoxConstraints(maxWidth: 420),
               decoration: BoxDecoration(
-                color: message.fromMe
-                    ? Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.12)
-                    : Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: Theme.of(
                     context,
@@ -394,9 +402,7 @@ class _ChatPageState extends State<ChatPage> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 4),
                       child: Text(
-                        message.senderAliasFor(
-                          Localizations.localeOf(context),
-                        ),
+                        message.senderAliasFor(Localizations.localeOf(context)),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -506,9 +512,7 @@ class _ChatPageState extends State<ChatPage> {
       case _MessageAction.copy:
         await Clipboard.setData(ClipboardData(text: message.content));
         if (!mounted) return;
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               uiText(context, zh: '已复制到剪贴板', en: 'Copied to clipboard'),
@@ -534,9 +538,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _handleRecall(DirectMessageItem message) async {
     if (!message.canRecall) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             uiText(
@@ -572,9 +574,7 @@ class _ChatPageState extends State<ChatPage> {
       if (recalledLastMessage) {
         widget.onMessageSent?.call(_conversationPreviewText(remaining));
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(uiText(context, zh: '消息已撤回', en: 'Message recalled')),
         ),
@@ -872,10 +872,7 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _lastFailedContent = content;
         _lastFailedReplyTarget = replyTarget;
-        _error = uiTextGlobal(
-          zh: '发送失败：$error',
-          en: 'Send failed: $error',
-        );
+        _error = uiTextGlobal(zh: '发送失败：$error', en: 'Send failed: $error');
       });
     } finally {
       if (mounted) {
@@ -918,9 +915,7 @@ class _ChatPageState extends State<ChatPage> {
         blockedByMe: updated.blockedByMe,
         blockedByPeer: updated.blockedByPeer,
       );
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             block
@@ -932,10 +927,7 @@ class _ChatPageState extends State<ChatPage> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = uiTextGlobal(
-          zh: '操作失败：$error',
-          en: 'Action failed: $error',
-        );
+        _error = uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error');
       });
     }
   }
@@ -945,15 +937,12 @@ class _ChatPageState extends State<ChatPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            uiText(context, zh: '删除会话', en: 'Delete conversation'),
-          ),
+          title: Text(uiText(context, zh: '删除会话', en: 'Delete conversation')),
           content: Text(
             uiText(
               context,
               zh: '删除后仅从你的列表中移除，会话历史不会立即物理删除。',
-              en:
-                  'This only removes the conversation from your list; the history is not deleted immediately.',
+              en: 'This only removes the conversation from your list; the history is not deleted immediately.',
             ),
           ),
           actions: <Widget>[
@@ -974,16 +963,14 @@ class _ChatPageState extends State<ChatPage> {
       await AppRepositories.messages.deleteConversation(_conversation.id);
       if (!mounted) return;
       widget.onConversationRemoved?.call();
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             uiText(context, zh: '会话已删除', en: 'Conversation deleted'),
           ),
         ),
       );
-      Navigator.of(context).pop();
+      if (!widget.embedded) Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
       setState(() {

@@ -8,3 +8,10 @@
 .club-text { margin-top: 24rpx; color: var(--app-text-primary); font-size: 29rpx; line-height: 1.6; }
 .section-title { margin-top: 36rpx; color: var(--app-text-secondary); font-size: 25rpx; font-weight: 650; }
 .empty-posts { padding: 28rpx 0; color: var(--app-text-secondary); font-size: 26rpx; text-align: center; }
+
+/* Approved reference layout. */
+.page { padding:24rpx 36rpx; }
+.club-title { font-size:40rpx; }
+.club-owner { font-size:28rpx; color:var(--app-text-secondary); }
+.club-text { font-size:34rpx; line-height:1.7; margin:24rpx 0; }
+.section-title { border-top:1px solid var(--app-divider); padding-top:24rpx; font-size:34rpx; }

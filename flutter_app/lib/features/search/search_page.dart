@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -60,154 +63,166 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       appBar: AppBar(
         title: Text(uiText(context, zh: '搜索', en: 'Search')),
       ),
-      body: AsyncPageState(
-        loading: state.loading,
-        error: state.error,
-        onRetry: () =>
-            ref.read(searchControllerProvider.notifier).loadInitial(),
-        child: ListView(
-          padding: const EdgeInsets.all(12),
-          children: <Widget>[
-            TextField(
-              controller: _queryController,
-              autofocus: widget.autofocus,
-              decoration: InputDecoration(
-                hintText: uiText(
-                  context,
-                  zh: '输入关键词搜索帖子，或按昵称搜索用户',
-                  en: 'Search posts by keyword or users by nickname',
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: AsyncPageState(
+          loading: state.loading,
+          error: state.error,
+          onRetry: () =>
+              ref.read(searchControllerProvider.notifier).loadInitial(),
+          child: ListView(
+            padding: const EdgeInsets.all(12),
+            children: <Widget>[
+              TextField(
+                controller: _queryController,
+                autofocus: widget.autofocus,
+                decoration: InputDecoration(
+                  hintText: uiText(
+                    context,
+                    zh: '输入关键词搜索帖子，或按昵称搜索用户',
+                    en: 'Search posts by keyword or users by nickname',
+                  ),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: IconButton(
+                    onPressed: _submitSearch,
+                    tooltip: uiText(context, zh: '搜索', en: 'Search'),
+                    icon: const Icon(Icons.arrow_forward_rounded),
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
                 ),
-                prefixIcon: const Icon(Icons.search),
+                onSubmitted: (_) => _submitSearch(),
               ),
-              onSubmitted: (_) => _submitSearch(),
-            ),
-            const SizedBox(height: 10),
-            SegmentedButton<SearchResultTab>(
-              segments: <ButtonSegment<SearchResultTab>>[
-                ButtonSegment<SearchResultTab>(
-                  value: SearchResultTab.posts,
-                  label: Text(
-                    uiText(
-                      context,
-                      zh: '帖子 ${state.results.length}',
-                      en: 'Posts ${state.results.length}',
-                    ),
-                  ),
-                  icon: const Icon(Icons.article_outlined),
-                ),
-                ButtonSegment<SearchResultTab>(
-                  value: SearchResultTab.users,
-                  label: Text(
-                    uiText(
-                      context,
-                      zh: '用户 ${state.userResults.length}',
-                      en: 'Users ${state.userResults.length}',
-                    ),
-                  ),
-                  icon: const Icon(Icons.person_search_outlined),
-                ),
-              ],
-              selected: <SearchResultTab>{state.selectedTab},
-              onSelectionChanged: (Set<SearchResultTab> value) {
-                ref
-                    .read(searchControllerProvider.notifier)
-                    .updateTab(value.first);
-              },
-            ),
-            const SizedBox(height: 10),
-            if (state.selectedTab == SearchResultTab.posts) ...<Widget>[
-              _buildPostFilters(state),
               const SizedBox(height: 10),
-              if (state.searching)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: LinearProgressIndicator(minHeight: 2),
-                ),
-              Text(
-                uiText(
-                  context,
-                  zh: '共找到 ${state.results.length} 条帖子',
-                  en: '${state.results.length} posts found',
-                ),
-              ),
-              const SizedBox(height: 6),
-              ...state.results.map(
-                (PostItem post) => PostCard(
-                  post: post,
-                  onTap: () async {
-                    final PostItem? updated = await openPostDetailPage(
-                      context,
-                      post: post,
-                    );
-                    if (updated == null || !mounted) {
-                      return;
-                    }
-                    ref
-                        .read(searchControllerProvider.notifier)
-                        .replaceResult(updated);
-                  },
-                ),
-              ),
-              if (state.results.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text(
+              SegmentedButton<SearchResultTab>(
+                segments: <ButtonSegment<SearchResultTab>>[
+                  ButtonSegment<SearchResultTab>(
+                    value: SearchResultTab.posts,
+                    label: Text(
                       uiText(
                         context,
-                        zh: '没有匹配帖子，换个关键词试试。',
-                        en: 'No matching posts. Try another keyword.',
+                        zh: '帖子 ${state.results.length}',
+                        en: 'Posts ${state.results.length}',
                       ),
                     ),
+                    icon: const Icon(Icons.article_outlined),
                   ),
-                ),
-            ] else ...<Widget>[
-              _buildUserSearchActions(state),
-              const SizedBox(height: 10),
-              if (state.searching)
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 10),
-                  child: LinearProgressIndicator(minHeight: 2),
-                ),
-              Text(
-                uiText(
-                  context,
-                  zh: '共找到 ${state.userResults.length} 位用户',
-                  en: '${state.userResults.length} users found',
-                ),
-              ),
-              const SizedBox(height: 6),
-              if (state.keyword.trim().isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Center(
-                    child: Text(
+                  ButtonSegment<SearchResultTab>(
+                    value: SearchResultTab.users,
+                    label: Text(
                       uiText(
                         context,
-                        zh: '输入昵称后即可搜索用户。',
-                        en: 'Enter a nickname to search for users.',
+                        zh: '用户 ${state.userResults.length}',
+                        en: 'Users ${state.userResults.length}',
                       ),
                     ),
+                    icon: const Icon(Icons.person_search_outlined),
                   ),
-                )
-              else ...<Widget>[
-                ...state.userResults.map(_buildUserCard),
-                if (state.userResults.isEmpty)
+                ],
+                selected: <SearchResultTab>{state.selectedTab},
+                onSelectionChanged: (Set<SearchResultTab> value) {
+                  ref
+                      .read(searchControllerProvider.notifier)
+                      .updateTab(value.first);
+                },
+              ),
+              const SizedBox(height: 10),
+              if (state.selectedTab == SearchResultTab.posts) ...<Widget>[
+                _buildPostFilters(state),
+                const SizedBox(height: 10),
+                if (state.searching)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: LinearProgressIndicator(minHeight: 2),
+                  ),
+                Text(
+                  uiText(
+                    context,
+                    zh: '共找到 ${state.results.length} 条帖子',
+                    en: '${state.results.length} posts found',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                ...state.results.map(
+                  (PostItem post) => PostCard(
+                    post: post,
+                    onTap: () async {
+                      final PostItem? updated = await openPostDetailPage(
+                        context,
+                        post: post,
+                      );
+                      if (updated == null || !mounted) {
+                        return;
+                      }
+                      ref
+                          .read(searchControllerProvider.notifier)
+                          .replaceResult(updated);
+                    },
+                  ),
+                ),
+                if (state.results.isEmpty)
                   Padding(
                     padding: const EdgeInsets.all(24),
                     child: Center(
                       child: Text(
                         uiText(
                           context,
-                          zh: '没有找到匹配昵称的用户。',
-                          en: 'No users match that nickname.',
+                          zh: '没有匹配帖子，换个关键词试试。',
+                          en: 'No matching posts. Try another keyword.',
                         ),
                       ),
                     ),
                   ),
+              ] else ...<Widget>[
+                _buildUserSearchActions(state),
+                const SizedBox(height: 10),
+                if (state.searching)
+                  const Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: LinearProgressIndicator(minHeight: 2),
+                  ),
+                Text(
+                  uiText(
+                    context,
+                    zh: '共找到 ${state.userResults.length} 位用户',
+                    en: '${state.userResults.length} users found',
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (state.keyword.trim().isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Center(
+                      child: Text(
+                        uiText(
+                          context,
+                          zh: '输入昵称后即可搜索用户。',
+                          en: 'Enter a nickname to search for users.',
+                        ),
+                      ),
+                    ),
+                  )
+                else ...<Widget>[
+                  ...state.userResults.map(_buildUserCard),
+                  if (state.userResults.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Center(
+                        child: Text(
+                          uiText(
+                            context,
+                            zh: '没有找到匹配昵称的用户。',
+                            en: 'No users match that nickname.',
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -313,7 +328,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final String fallback = profile.nickname.trim().isEmpty
         ? '?'
         : profile.nickname.trim().substring(0, 1);
-    return Card(
+    return FeatureSection(
+      padding: EdgeInsets.zero,
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: Theme.of(

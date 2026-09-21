@@ -140,110 +140,13 @@ class _AdminConsolePageState extends ConsumerState<AdminConsolePage> {
                                 : null,
                             onTap: () => context.push('/admin/reports'),
                           ),
-                          const Divider(height: 1, indent: 56),
-                          _AdminMenuItem(
-                            icon: Icons.person_off_outlined,
-                            title: '注销申请',
-                            subtitle: '审核账号注销请求',
-                            badge:
-                                overview != null &&
-                                    overview.pendingCancellationRequests > 0
-                                ? overview.pendingCancellationRequests
-                                      .toString()
-                                : null,
-                            onTap: () {
-                              _showComingSoon('注销审核功能即将上线');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    const _SectionTitle(title: '用户管理'),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          _AdminMenuItem(
-                            icon: Icons.people_outline,
-                            title: '用户列表',
-                            subtitle: '查看、禁言或封禁用户',
-                            badge: null,
-                            onTap: () {
-                              _showComingSoon('用户管理功能即将上线');
-                            },
-                          ),
-                          const Divider(height: 1, indent: 56),
-                          _AdminMenuItem(
-                            icon: Icons.workspace_premium_outlined,
-                            title: '等级申请',
-                            subtitle: '审核一级用户申请',
-                            badge: null,
-                            onTap: () {
-                              _showComingSoon('等级审核功能即将上线');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    const _SectionTitle(title: '系统管理'),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Column(
-                        children: [
-                          _AdminMenuItem(
-                            icon: Icons.campaign_outlined,
-                            title: '发布公告',
-                            subtitle: '编辑和发布系统公告',
-                            badge: null,
-                            onTap: () {
-                              _showComingSoon('公告管理功能即将上线');
-                            },
-                          ),
-                          const Divider(height: 1, indent: 56),
-                          _AdminMenuItem(
-                            icon: Icons.settings_outlined,
-                            title: '系统配置',
-                            subtitle: '风控、速率与存储配置',
-                            badge: null,
-                            onTap: () {
-                              _showComingSoon('系统配置逻辑正在迁移');
-                            },
-                          ),
-                          const Divider(height: 1, indent: 56),
-                          _AdminMenuItem(
-                            icon: Icons.download_outlined,
-                            title: '数据导出',
-                            subtitle: '导出用户/内容/日志数据',
-                            badge: null,
-                            onTap: () {
-                              _showComingSoon('数据导出功能请暂使用 Web 端');
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                         ],
+                       ),
+                     ),
+                   ],
+                 ),
               ),
       ),
-    );
-  }
-
-  void _showComingSoon(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
     );
   }
 

@@ -24,6 +24,14 @@ class AiPage extends ConsumerStatefulWidget {
 }
 
 class _AiPageState extends ConsumerState<AiPage> {
+  final TextEditingController _questionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    super.dispose();
+  }
+
   List<_ConversationPreview> _conversations = const <_ConversationPreview>[];
 
   @override
@@ -50,102 +58,136 @@ class _AiPageState extends ConsumerState<AiPage> {
   }
 
   Future<void> _openChat([String? conversationId]) async {
+    final String question = conversationId == null
+        ? _questionController.text.trim()
+        : '';
+    _questionController.clear();
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => AiChatPage(conversationId: conversationId),
+        builder: (_) => AiChatPage(
+          conversationId: conversationId,
+          initialQuestion: question,
+        ),
       ),
     );
     await _loadConversations();
   }
 
+  Future<void> _showHistory() async {
+    final String? id = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (BuildContext context) => ListView(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        children: <Widget>[
+          ListTile(
+            title: Text(uiText(context, zh: '历史对话', en: 'Chat history')),
+          ),
+          if (_conversations.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                uiText(context, zh: '还没有保存的对话', en: 'No saved conversations'),
+              ),
+            ),
+          for (final _ConversationPreview item in _conversations)
+            ListTile(
+              title: Text(
+                item.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                item.preview,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Text(item.updatedAt),
+              onTap: () => Navigator.of(context).pop(item.id),
+            ),
+        ],
+      ),
+    );
+    if (id != null && mounted) await _openChat(id);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 920),
-            child: CustomScrollView(
-              slivers: <Widget>[
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
-                  sliver: SliverToBoxAdapter(
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            uiText(context, zh: '对话', en: 'Conversations'),
-                            style: Theme.of(context).textTheme.headlineMedium,
+    final bool mobile = MediaQuery.sizeOf(context).width < 801;
+    final Widget composer = _AiComposer(
+      controller: _questionController,
+      onSend: () => _openChat(),
+      hint: uiText(context, zh: '随便问点什么', en: 'Ask anything'),
+    );
+    return SafeArea(
+      top: false,
+      child: Stack(
+        fit: StackFit.expand,
+        children: <Widget>[
+          if (mobile)
+            Align(
+              alignment: const Alignment(0, -0.08),
+              child: _AiStar(size: 77, faded: true),
+            )
+          else
+            Align(
+              alignment: const Alignment(0, -0.12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 820),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const _AiStar(size: 52),
+                          const SizedBox(width: 12),
+                          Text(
+                            'AI',
+                            style: Theme.of(context).textTheme.displaySmall,
                           ),
-                        ),
-                        FilledButton.icon(
-                          onPressed: () => _openChat(),
-                          icon: const Icon(Icons.add_rounded),
-                          label: Text(
-                            uiText(context, zh: '新对话', en: 'New chat'),
-                          ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                      const SizedBox(height: 28),
+                      composer,
+                    ],
                   ),
                 ),
-                if (_conversations.isEmpty)
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Center(
-                      child: FilledButton(
-                        onPressed: () => _openChat(),
-                        child: Text(
-                          uiText(
-                            context,
-                            zh: '开始一段对话',
-                            en: 'Start a conversation',
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 48),
-                    sliver: SliverList.builder(
-                      itemCount: _conversations.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        final _ConversationPreview item = _conversations[index];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 6,
-                          ),
-                          leading: const Icon(
-                            Icons.chat_bubble_outline_rounded,
-                          ),
-                          title: Text(
-                            item.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            item.preview,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          trailing: Text(item.updatedAt),
-                          onTap: () => _openChat(item.id),
-                        );
-                      },
-                    ),
-                  ),
+              ),
+            ),
+          Positioned(
+            top: 4,
+            right: mobile ? 8 : 24,
+            child: Row(
+              children: <Widget>[
+                IconButton(
+                  tooltip: uiText(context, zh: '历史对话', en: 'Chat history'),
+                  onPressed: _showHistory,
+                  icon: const Icon(Icons.history_rounded),
+                ),
+                IconButton(
+                  tooltip: uiText(context, zh: '新对话', en: 'New chat'),
+                  onPressed: () => _openChat(),
+                  icon: const Icon(Icons.edit_square),
+                ),
               ],
             ),
           ),
-        ),
+          if (mobile)
+            Positioned(left: 11, right: 11, bottom: 10, child: composer),
+        ],
       ),
     );
   }
 }
 
 class AiChatPage extends ConsumerStatefulWidget {
-  const AiChatPage({super.key, this.conversationId});
+  const AiChatPage({super.key, this.conversationId, this.initialQuestion = ''});
+
+  final String initialQuestion;
 
   final String? conversationId;
 
@@ -166,7 +208,12 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     _conversationId =
         widget.conversationId ??
         DateTime.now().microsecondsSinceEpoch.toString();
-    _loadMessages();
+    if (widget.initialQuestion.isNotEmpty) {
+      _inputController.text = widget.initialQuestion;
+      Future<void>.microtask(_send);
+    } else {
+      _loadMessages();
+    }
   }
 
   @override
@@ -282,16 +329,7 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                   maxWidth: AppLayout.readingMaxWidth,
                 ),
                 child: _messages.isEmpty && !_sending
-                    ? Center(
-                        child: Text(
-                          uiText(
-                            context,
-                            zh: '有什么可以帮你？',
-                            en: 'How can I help?',
-                          ),
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                      )
+                    ? const Center(child: _AiStar(size: 77, faded: true))
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -329,26 +367,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
               ),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextField(
-                        controller: _inputController,
-                        enabled: !_sending,
-                        minLines: 1,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          hintText: uiText(context, zh: '输入消息', en: 'Message'),
-                        ),
-                        onSubmitted: (_) => _send(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filled(
-                      onPressed: _sending ? null : _send,
-                      icon: const Icon(Icons.arrow_upward_rounded),
-                    ),
-                  ],
+                child: _AiComposer(
+                  controller: _inputController,
+                  enabled: !_sending,
+                  onSend: _send,
+                  hint: uiText(context, zh: '输入消息', en: 'Message'),
                 ),
               ),
             ),
@@ -449,34 +472,178 @@ class _AiMessageView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: user ? Alignment.centerRight : Alignment.centerLeft,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 14),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                content,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(height: 1.6),
-              ),
-              for (final AiReference reference in references)
-                TextButton(
-                  onPressed: onReferenceTap == null
-                      ? null
-                      : () => onReferenceTap!(reference),
-                  child: Text(reference.title, textAlign: TextAlign.left),
-                ),
-            ],
+    final Widget body = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        SelectableText(
+          content,
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(height: 1.45),
+        ),
+        for (final AiReference reference in references)
+          TextButton(
+            onPressed: onReferenceTap == null
+                ? null
+                : () => onReferenceTap!(reference),
+            child: Text(reference.title, textAlign: TextAlign.left),
           ),
+      ],
+    );
+    if (!user) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(0, 20, 0, 40),
+        child: SizedBox(width: double.infinity, child: body),
+      );
+    }
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) => Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.85),
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(28),
+          ),
+          child: body,
         ),
       ),
     );
   }
+}
+
+class _AiComposer extends StatelessWidget {
+  const _AiComposer({
+    required this.controller,
+    required this.onSend,
+    required this.hint,
+    this.enabled = true,
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onSend;
+  final String hint;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final bool mobile = MediaQuery.sizeOf(context).width < 801;
+    final Widget field = TextField(
+      controller: controller,
+      enabled: enabled,
+      minLines: 1,
+      maxLines: 4,
+      decoration: InputDecoration(
+        hintText: hint,
+        filled: false,
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        isDense: true,
+      ),
+      onSubmitted: (_) => onSend(),
+    );
+    final Widget send = IconButton(
+      tooltip: uiText(context, zh: '发送', en: 'Send'),
+      onPressed: enabled ? onSend : null,
+      icon: Icon(
+        enabled ? Icons.graphic_eq_rounded : Icons.stop_rounded,
+        size: 20,
+      ),
+      style: IconButton.styleFrom(
+        backgroundColor: theme.colorScheme.onSurface,
+        foregroundColor: theme.colorScheme.surface,
+        disabledBackgroundColor: theme.colorScheme.onSurface,
+        disabledForegroundColor: theme.colorScheme.surface,
+        shape: const CircleBorder(),
+        minimumSize: const Size.square(44),
+        maximumSize: const Size.square(44),
+        padding: EdgeInsets.zero,
+      ),
+    );
+    return Container(
+      constraints: BoxConstraints(minHeight: mobile ? 77 : 72),
+      padding: mobile
+          ? const EdgeInsets.fromLTRB(14, 4, 6, 4)
+          : const EdgeInsets.fromLTRB(24, 12, 12, 12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        border: Border.all(color: theme.dividerColor),
+        borderRadius: BorderRadius.circular(mobile ? 23 : 60),
+      ),
+      child: mobile
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                field,
+                Align(alignment: Alignment.centerRight, child: send),
+              ],
+            )
+          : Row(
+              children: <Widget>[
+                Expanded(child: field),
+                const SizedBox(width: 16),
+                send,
+              ],
+            ),
+    );
+  }
+}
+
+class _AiStar extends StatelessWidget {
+  const _AiStar({required this.size, this.faded = false});
+  final double size;
+  final bool faded;
+
+  @override
+  Widget build(BuildContext context) {
+    return ExcludeSemantics(
+      child: CustomPaint(
+        size: Size.square(size),
+        painter: _AiStarPainter(
+          faded
+              ? Theme.of(context).dividerColor
+              : Theme.of(context).colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
+}
+
+class _AiStarPainter extends CustomPainter {
+  const _AiStarPainter(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / 24, size.height / 24);
+    final Path path = Path()
+      ..moveTo(12, 2)
+      ..lineTo(15, 9)
+      ..lineTo(22, 12)
+      ..lineTo(15, 15)
+      ..lineTo(12, 22)
+      ..lineTo(9, 15)
+      ..lineTo(2, 12)
+      ..lineTo(9, 9)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.8
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_AiStarPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _ConversationPreview {

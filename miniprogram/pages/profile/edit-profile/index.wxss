@@ -163,7 +163,17 @@
   margin-top: 16rpx;
   border-radius: 20rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 30rpx;
   line-height: 96rpx;
 }
+
+/* Approved reference layout. */
+.page { padding:0 36rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.section { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.avatar-preview { border-radius:50%; }
+.info-row { min-height:120rpx; font-size:32rpx; gap:20rpx; }
+.row-input { flex:1; min-width:0; width:auto; font-size:32rpx; min-height:44px; }
+.avatar-button { min-height:44px; height:auto; line-height:44px; border:1px solid var(--app-divider); border-radius:26px; background:transparent; }
+.bio-input { font-size:32rpx; line-height:1.6; border-radius:24rpx; }
+.save-button { min-height:44px; border-radius:26px; }

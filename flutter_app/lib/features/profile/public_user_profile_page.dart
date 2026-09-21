@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
@@ -96,9 +97,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
             : uiTextGlobal(zh: '关注成功', en: 'Following'),
       );
     } catch (error) {
-      _feedback(
-        uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
-      );
+      _feedback(uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'));
     } finally {
       if (mounted) {
         setState(() {
@@ -163,11 +162,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
           child: _loading
               ? AppStatePanel(
                   icon: Icons.person_search_outlined,
-                  title: uiText(
-                    context,
-                    zh: '正在加载个人主页',
-                    en: 'Loading profile',
-                  ),
+                  title: uiText(context, zh: '正在加载个人主页', en: 'Loading profile'),
                   message: uiText(
                     context,
                     zh: '正在同步公开资料和互动状态。',
@@ -190,36 +185,36 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                           tone: AppMessageTone.error,
                           action: TextButton(
                             onPressed: _loadProfile,
-                            child: Text(
-                              uiText(context, zh: '重试', en: 'Retry'),
-                            ),
+                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
                           ),
                         ),
                       ),
                     if (profile != null) ...<Widget>[
-                      Card(
+                      FeatureSection(
+                        padding: EdgeInsets.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(18),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Container(
-                                height: 136,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: theme.colorScheme.primary.withValues(
-                                    alpha: 0.08,
-                                  ),
-                                  image: backgroundImageUrl.isEmpty
-                                      ? null
-                                      : DecorationImage(
-                                          image: NetworkImage(
-                                            backgroundImageUrl,
+                              if (backgroundImageUrl.isNotEmpty)
+                                Container(
+                                  height: 136,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: theme.colorScheme.primary.withValues(
+                                      alpha: 0.08,
+                                    ),
+                                    image: backgroundImageUrl.isEmpty
+                                        ? null
+                                        : DecorationImage(
+                                            image: NetworkImage(
+                                              backgroundImageUrl,
+                                            ),
+                                            fit: BoxFit.cover,
                                           ),
-                                          fit: BoxFit.cover,
-                                        ),
+                                  ),
                                 ),
-                              ),
                               const SizedBox(height: 16),
                               Row(
                                 children: <Widget>[
@@ -244,10 +239,8 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                         Text(
                                           uiText(
                                             context,
-                                            zh:
-                                                '等级：${profile.userLevelLabelFor(locale)}',
-                                            en:
-                                                'Level: ${profile.userLevelLabelFor(locale)}',
+                                            zh: '等级：${profile.userLevelLabelFor(locale)}',
+                                            en: 'Level: ${profile.userLevelLabelFor(locale)}',
                                           ),
                                           style: theme.textTheme.bodyMedium,
                                         ),
@@ -373,8 +366,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                                       uiText(
                                         context,
                                         zh: '对方当前未开放私信入口',
-                                        en:
-                                            'This user has not enabled direct messages.',
+                                        en: 'This user has not enabled direct messages.',
                                       ),
                                       style: theme.textTheme.bodySmall
                                           ?.copyWith(
@@ -400,8 +392,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                         message: uiText(
                           context,
                           zh: '该用户不存在，或主页当前不可访问。',
-                          en:
-                              'This user does not exist, or the profile is currently unavailable.',
+                          en: 'This user does not exist, or the profile is currently unavailable.',
                         ),
                       ),
                   ],

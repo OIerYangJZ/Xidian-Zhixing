@@ -1,0 +1,9 @@
+<view class="social-header {{fixed ? 'fixed' : ''}}" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
+  <button class="avatar-button {{profileError ? 'profile-error' : ''}}" bindtap="openDrawer" aria-label="{{profileError ? (english ? 'Profile unavailable. Open navigation to retry' : '资料加载失败，打开导航重试') : (english ? 'Open navigation' : '打开导航')}}" hover-class="pressed">
+    <image wx:if="{{(profile && profile.avatarUrl) || (user && user.avatarUrl)}}" class="avatar" src="{{(profile && profile.avatarUrl) || user.avatarUrl}}" mode="aspectFill" />
+    <view wx:else class="avatar">{{(profile && profile.avatarInitial) || initial}}<view wx:if="{{!((profile && profile.avatarInitial) || initial)}}" class="ui-icon icon-person"></view></view>
+  </button>
+  <view class="header-center"><view wx:if="{{brand}}" class="ui-icon icon-brand" aria-label="SeeRadio"></view><slot name="center"></slot></view>
+  <view class="header-actions"><slot name="actions"></slot></view>
+</view>
+<radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer" />

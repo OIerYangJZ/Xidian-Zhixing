@@ -3,6 +3,7 @@ import { searchUsers } from '../../../api/user';
 import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { togglePostFavoriteInList, togglePostLikeInList } from '../../../utils/post_actions';
 
 const SORT_OPTIONS = [
   { label: '最新', value: 'latest' },
@@ -155,12 +156,22 @@ Page({
   },
 
   goPostDetail(event) {
-    const id = event.currentTarget.dataset.id;
+    const id = event.detail.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
 
+  async togglePostLike(event) {
+    const posts = await togglePostLikeInList(this.data.posts, event.detail.index);
+    this.setData({ posts });
+  },
+
+  async togglePostFavorite(event) {
+    const posts = await togglePostFavoriteInList(this.data.posts, event.detail.index);
+    this.setData({ posts });
+  },
+
   goTagPosts(event) {
-    const tag = event.currentTarget.dataset.tag;
+    const tag = event.detail.tag;
     if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
   },
 

@@ -47,37 +47,45 @@
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#ffffff",
     "navigationBarTitleText": "西电知行",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#ffffff"
   },
   "usingComponents": {
-    "radio-drawer": "/components/radio-drawer/index"
+    "radio-drawer": "/components/radio-drawer/index",
+    "post-row": "/components/post-row/index",
+    "status-view": "/components/status-view/index",
+    "social-header": "/components/social-header/index"
   },
   "tabBar": {
-    "color": "#8E8E93",
-    "selectedColor": "#A8332C",
+    "custom": true,
+    "color": "#707070",
+    "selectedColor": "#101010",
     "backgroundColor": "#ffffff",
     "list": [
       {
         "pagePath": "pages/treehole/index",
-        "text": "树洞",
-        "iconPath": "assets/tabbar/home.png",
-        "selectedIconPath": "assets/tabbar/home_selected.png"
+        "text": "主页"
       },
       {
-        "pagePath": "pages/campus/index",
-        "text": "校园",
-        "iconPath": "assets/tabbar/campus.png",
-        "selectedIconPath": "assets/tabbar/campus_selected.png"
+        "pagePath": "pages/campus/search/index",
+        "text": "搜索"
       },
       {
         "pagePath": "pages/ai/index",
-        "text": "AI",
-        "iconPath": "assets/tabbar/ai.png",
-        "selectedIconPath": "assets/tabbar/ai_selected.png"
+        "text": "AI"
+      },
+      {
+        "pagePath": "pages/profile/notifications/index",
+        "text": "通知"
+      },
+      {
+        "pagePath": "pages/profile/conversations/index",
+        "text": "聊天"
       }
     ]
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",
-  "sitemapLocation": "sitemap.json"
+  "sitemapLocation": "sitemap.json",
+  "darkmode": true
 }

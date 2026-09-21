@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app_typography.dart';
@@ -10,6 +11,17 @@ class AppTheme {
   static ThemeData get lightTheme => lightThemeFor(const Locale('zh', 'CN'));
 
   static ThemeData get darkTheme => darkThemeFor(const Locale('zh', 'CN'));
+
+  /// Reference Web theme, also usable by native widget rendering tests.
+  static ThemeData referenceThemeFor(Locale locale, Brightness brightness) =>
+      _buildTheme(
+        brightness == Brightness.dark
+            ? SharedColors.threadDark
+            : SharedColors.threadLight,
+        brightness,
+        locale,
+        referenceTypography: true,
+      );
 
   static ThemeData lightThemeFor(
     Locale locale, {
@@ -26,6 +38,15 @@ class AppTheme {
     Brightness brightness, {
     Locale locale = const Locale('zh', 'CN'),
   }) {
+    if (kIsWeb) {
+      return _buildTheme(
+        brightness == Brightness.dark
+            ? SharedColors.threadDark
+            : SharedColors.threadLight,
+        brightness,
+        locale,
+      );
+    }
     final EditorialColors base = brightness == Brightness.dark
         ? SharedColors.dark
         : SharedColors.light;
@@ -49,8 +70,9 @@ class AppTheme {
   static ThemeData _buildTheme(
     EditorialColors palette,
     Brightness brightness,
-    Locale locale,
-  ) {
+    Locale locale, {
+    bool referenceTypography = kIsWeb,
+  }) {
     final ColorScheme scheme = ColorScheme(
       brightness: brightness,
       primary: palette.primary,
@@ -83,7 +105,16 @@ class AppTheme {
       onInverseSurface: palette.onDarkPanel,
       inversePrimary: palette.coral,
     );
-    final TextTheme textTheme = AppTypography.textTheme(locale, palette.ink);
+    final TextTheme baseTextTheme = AppTypography.textTheme(
+      locale,
+      palette.ink,
+    );
+    final TextTheme textTheme = referenceTypography
+        ? baseTextTheme.apply(
+            fontFamily: 'Times New Roman',
+            fontFamilyFallback: const <String>['STZhongsong', '华文中宋', 'serif'],
+          )
+        : baseTextTheme;
     final RoundedRectangleBorder controlShape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadii.medium),
     );
@@ -91,8 +122,12 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      fontFamily: AppTypography.bodyFamily(locale),
-      fontFamilyFallback: AppTypography.bodyFallback(locale),
+      fontFamily: referenceTypography
+          ? 'Times New Roman'
+          : AppTypography.bodyFamily(locale),
+      fontFamilyFallback: referenceTypography
+          ? const <String>['STZhongsong', '华文中宋', 'serif']
+          : AppTypography.bodyFallback(locale),
       colorScheme: scheme,
       textTheme: textTheme,
       scaffoldBackgroundColor: palette.page,

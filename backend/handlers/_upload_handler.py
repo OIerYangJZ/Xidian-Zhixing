@@ -8,8 +8,11 @@ Image upload and avatar endpoints:
 from __future__ import annotations
 
 import copy
+import base64
+import json
 import re
 from typing import Any
+from urllib import request as url_request
 
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
@@ -39,6 +42,36 @@ from services import (
 )
 
 
+def _call_image_service(url: str, image_bytes: bytes, content_type: str) -> dict[str, Any]:
+    """Call an optional local moderation worker without adding a model dependency."""
+    payload = json.dumps(
+        {
+            "imageBase64": base64.b64encode(image_bytes).decode("ascii"),
+            "contentType": content_type,
+            "input": {
+                "type": "base64",
+                "data": base64.b64encode(image_bytes).decode("ascii"),
+            },
+        }
+    ).encode("utf-8")
+    request = url_request.Request(
+        url,
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    with url_request.urlopen(request, timeout=_globals.IMAGE_MODERATION_TIMEOUT_SECONDS) as response:
+        result = json.loads(response.read().decode("utf-8"))
+    return result if isinstance(result, dict) else {}
+
+
+def _extract_service_text(result: dict[str, Any]) -> str:
+    values = result.get("text", result.get("texts", ""))
+    if isinstance(values, list):
+        return " ".join(str(value) for value in values)
+    return str(values or "")
+
+
 # Re-export moderate_image_upload and get_upload_by_id from server.py helpers
 # (these are currently defined in server.py; they will be moved in TODO-05)
 def moderate_image_upload(
@@ -47,6 +80,7 @@ def moderate_image_upload(
     content_type: str,
     size_bytes: int,
     db: dict[str, Any],
+    image_bytes: bytes | None = None,
 ) -> tuple[str, str]:
     if content_type not in _globals.ALLOWED_IMAGE_TYPES:
         return "rejected", f"不支持的图片格式：{content_type}"
@@ -61,6 +95,52 @@ def moderate_image_upload(
     ]
     if hit_words:
         return "risk", f"文件名命中敏感词：{','.join(hit_words[:3])}"
+
+    if image_bytes is not None and _globals.IMAGE_MODERATION_URL:
+        try:
+            result = _call_image_service(
+                _globals.IMAGE_MODERATION_URL,
+                image_bytes,
+                content_type,
+            )
+        except Exception:
+            return "risk", "图片内容审核服务不可用，需人工审核"
+        try:
+            prediction = result.get("result", result)
+            if not isinstance(prediction, dict):
+                prediction = result
+            probability = float(
+                prediction.get("nsfw_probability", prediction.get("nsfwProbability", 0.0))
+            )
+        except (TypeError, ValueError):
+            return "risk", "图片内容审核服务返回了无效结果，需人工审核"
+        if probability >= _globals.IMAGE_NSFW_BLOCK_THRESHOLD:
+            return "rejected", f"图片疑似不适宜内容（{probability:.2f}）"
+        if probability >= _globals.IMAGE_NSFW_REVIEW_THRESHOLD:
+            return "risk", f"图片疑似不适宜内容，需人工审核（{probability:.2f}）"
+
+    if image_bytes is not None and _globals.IMAGE_OCR_URL:
+        try:
+            ocr_result = _call_image_service(
+                _globals.IMAGE_OCR_URL,
+                image_bytes,
+                content_type,
+            )
+        except Exception:
+            return "risk", "图片文字审核服务不可用，需人工审核"
+        ocr_text = _extract_service_text(ocr_result)
+        if ocr_text:
+            from helpers._rate_limit import assess_text_risk
+
+            risk_marked, high_risk, reasons = assess_text_risk(
+                db,
+                ocr_text,
+                block_on_match=True,
+            )
+            if risk_marked:
+                prefix = "图片文字命中禁止规则" if high_risk else "图片文字需人工审核"
+                return ("rejected" if high_risk else "risk"), \
+                    f"{prefix}：{'；'.join(reasons[:3])}"
     return "approved", ""
 
 
@@ -175,7 +255,11 @@ def handle_upload_image(
         content_type=ct,
         size_bytes=len(image_bytes),
         db=db,
+        image_bytes=image_bytes,
     )
+    if post_id and moderation_status != "approved":
+        json_error(handler, HTTPStatus.BAD_REQUEST, "图片尚未通过审核，不能绑定到帖子")
+        return
 
     try:
         stored = _globals.OBJECT_STORAGE.put_bytes(
@@ -313,6 +397,17 @@ def handle_upload_avatar(
             action_text="头像上传",
             retry_after_seconds=retry_after,
         )
+        return
+
+    moderation_status, moderation_reason = moderate_image_upload(
+        file_name=file_name,
+        content_type=ct,
+        size_bytes=len(avatar_bytes),
+        db=db,
+        image_bytes=avatar_bytes,
+    )
+    if moderation_status != "approved":
+        json_error(handler, HTTPStatus.BAD_REQUEST, moderation_reason or "头像未通过审核")
         return
 
     try:

@@ -6,6 +6,9 @@ const toImages = (post = {}) => {
   return [];
 };
 
+// HTTP images need a temporary local file in the mini-program runtime.
+// HTTPS and relative storage URLs can be rendered directly and must not be
+// dropped while the HTTP cache is being prepared.
 const isHttpImage = (url) => /^http:\/\//i.test(String(url || ''));
 
 const downloadImage = (url) => {
@@ -51,11 +54,7 @@ export const hydrateDisplayImages = async (posts = []) => {
     const images = toImages(post);
     if (!images.some(isHttpImage)) continue;
 
-    const displayImages = [];
-    for (let imageIndex = 0; imageIndex < images.length; imageIndex += 1) {
-      const imageUrl = images[imageIndex];
-      displayImages.push(await downloadImage(imageUrl));
-    }
+    const displayImages = await Promise.all(images.map((imageUrl) => downloadImage(imageUrl)));
 
     hydratedByPostId[String(post.id || '')] = displayImages;
   }

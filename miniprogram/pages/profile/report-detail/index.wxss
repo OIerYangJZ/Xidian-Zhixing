@@ -48,7 +48,14 @@
   height: 82rpx;
   border-radius: 14rpx;
   background: var(--app-primary);
-  color: #ffffff;
+  color: var(--app-on-primary);
   font-size: 29rpx;
   line-height: 82rpx;
 }
+
+/* Approved reference layout. */
+.report-page { padding:0 36rpx calc(32rpx + env(safe-area-inset-bottom)); }
+.section { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.row { min-height:104rpx; gap:20rpx; font-size:30rpx; }
+.block-title { font-size:34rpx; }
+.block-text { font-size:32rpx; line-height:1.7; }

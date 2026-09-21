@@ -106,6 +106,16 @@ class SearchController extends StateNotifier<SearchState> {
     state = state.copyWith(keyword: keyword);
   }
 
+  void clearQuery() {
+    state = state.copyWith(
+      keyword: '',
+      results: const <PostItem>[],
+      userResults: const <PublicUserProfile>[],
+      searching: false,
+      clearError: true,
+    );
+  }
+
   Future<void> updateChannel(String value) async {
     state = state.copyWith(selectedChannel: value);
     await search();

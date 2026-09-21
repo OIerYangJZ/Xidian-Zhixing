@@ -7,6 +7,7 @@ import 'core/config/app_config.dart';
 import 'core/state/app_locale_store.dart';
 import 'core/state/app_theme_store.dart';
 import 'features/admin/admin_portal_page.dart';
+import 'features/admin/admin_login_page.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/banned_account_page.dart';
 import 'features/auth/login_page.dart';
@@ -37,7 +38,7 @@ class XduTreeholeApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightThemeFor(locale, themeKey: themeKey),
           darkTheme: AppTheme.darkThemeFor(locale, themeKey: themeKey),
-          themeMode: ThemeMode.system,
+          themeMode: AppThemeStore.instance.mode,
           locale: locale,
           localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
             AppLocalizations.delegate,
@@ -72,6 +73,9 @@ class XduTreeholeApp extends StatelessWidget {
         settings: settings,
       );
     }
+    if (routeName == '/admin' && AppConfig.adminConsoleEnabled) {
+      return MaterialPageRoute<void>(builder: (_) => const AdminPortalPage());
+    }
     if (routeName == '/privacy') {
       return MaterialPageRoute<void>(
         builder: (_) => const PrivacyPolicyPage(),
@@ -94,6 +98,11 @@ class XduTreeholeApp extends StatelessWidget {
   }
 
   static Widget _initialPage() {
+    if (AppConfig.adminConsoleEnabled) {
+      return AdminAuthStore.instance.isAuthenticated
+          ? const AdminPortalPage()
+          : const AdminLoginPage();
+    }
     if (AuthStore.instance.isAuthenticated) {
       // A banned session can reach only the appeal endpoints, so building the
       // shell would render a screen whose every request comes back 403.

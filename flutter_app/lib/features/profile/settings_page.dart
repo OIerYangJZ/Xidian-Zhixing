@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 
 import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_theme_store.dart';
+import '../../core/state/app_locale_store.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../core/widgets/theme_dropdown.dart';
+import '../../core/widgets/language_toggle.dart';
 import '../legal/community_guidelines_page.dart';
 import '../legal/privacy_policy_page.dart';
 import '../legal/report_guidelines_page.dart';
 import '../legal/terms_of_service_page.dart';
 import 'emoji_settings_page.dart';
+import '../campus/campus_auth_center_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -24,13 +28,44 @@ class SettingsPage extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
+            AppSectionHeader(title: text('账号与认证', 'Account and sign-in')),
+            _SettingsLink(
+              icon: Icons.key_outlined,
+              title: text('校园系统登录', 'Campus system sign-in'),
+              page: const CampusAuthCenterPage(),
+            ),
+            const Divider(height: 32),
             AppSectionHeader(
               title: text('界面与偏好', 'Appearance and preferences'),
             ),
             const SizedBox(height: AppSpacing.md),
-            Card(
+            FeatureSection(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.language_outlined),
+                    title: Text(text('语言', 'Language')),
+                    trailing: LanguageToggle(
+                      locale: Localizations.localeOf(context),
+                      compact: true,
+                      onChanged: AppLocaleStore.instance.setLocale,
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Theme.of(context).brightness == Brightness.dark
+                          ? Icons.dark_mode_outlined
+                          : Icons.light_mode_outlined,
+                    ),
+                    title: Text(text('显示模式', 'Display mode')),
+                    trailing: Switch(
+                      value: AppThemeStore.instance.mode == ThemeMode.dark,
+                      onChanged: (bool value) => AppThemeStore.instance.setMode(
+                        value ? ThemeMode.dark : ThemeMode.light,
+                      ),
+                    ),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     child: ListenableBuilder(
@@ -43,14 +78,6 @@ class SettingsPage extends StatelessWidget {
                               text('配色主题', 'Color theme'),
                               style: Theme.of(context).textTheme.titleSmall,
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              text(
-                                '使用下拉列表切换整套语义配色，选择会保存在当前设备。',
-                                'Choose a color theme. Your selection is saved on this device.',
-                              ),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
                             const SizedBox(height: AppSpacing.sm),
                             ThemeDropdown(
                               themeKey: AppThemeStore.instance.themeKey,
@@ -61,17 +88,6 @@ class SettingsPage extends StatelessWidget {
                           ],
                         );
                       },
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.brightness_auto_outlined),
-                    title: Text(text('明暗模式', 'Light and dark mode')),
-                    subtitle: Text(
-                      text(
-                        '自动跟随浏览器与系统的浅色或深色模式',
-                        'Automatically follows the browser and system appearance.',
-                      ),
                     ),
                   ),
                   ListTile(
@@ -98,7 +114,8 @@ class SettingsPage extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             AppSectionHeader(title: text('规则与隐私', 'Rules and privacy')),
             const SizedBox(height: AppSpacing.sm),
-            Card(
+            FeatureSection(
+              padding: EdgeInsets.zero,
               child: Column(
                 children: <Widget>[
                   _SettingsLink(

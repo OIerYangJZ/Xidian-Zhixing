@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_store.dart';
@@ -71,7 +74,9 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
       _error = '';
     });
     try {
-      await ref.read(appealRepositoryProvider).submitUnbanAppeal(
+      await ref
+          .read(appealRepositoryProvider)
+          .submitUnbanAppeal(
             email: AuthStore.instance.currentUser?.email ?? '',
             content: _content.text,
           );
@@ -109,17 +114,21 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
           ),
         ],
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: _loading
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 64),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : _buildBody(context, theme, text),
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: _loading
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 64),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : _buildBody(context, theme, text),
+            ),
           ),
         ),
       ),
@@ -135,7 +144,8 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Card(
+        FeatureSection(
+          padding: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -281,7 +291,8 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
     }
 
     return <Widget>[
-      Card(
+      FeatureSection(
+        padding: EdgeInsets.zero,
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -330,11 +341,7 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
 }
 
 class _Banner extends StatelessWidget {
-  const _Banner({
-    required this.icon,
-    required this.color,
-    required this.child,
-  });
+  const _Banner({required this.icon, required this.color, required this.child});
 
   final IconData icon;
   final Color color;

@@ -1,54 +1,27 @@
 <view class="page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
-  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ai-topbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; box-sizing: border-box; background: var(--app-background);">
-    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer" />
+  <social-header fixed profile="{{userInfo}}" brand="{{false}}">
+    <view slot="actions" class="social-icon-button" bindtap="goToHistory" role="button" aria-label="历史对话"><view class="ui-icon icon-history"></view></view>
+  </social-header>
+  <view class="ai-workspace" style="padding-top: {{navTop + navHeight + 8}}px;">
+    <view wx:if="{{userErrorMessage}}" class="ai-error" bindtap="retryLoadUserInfo">{{userErrorMessage}} · 重试</view>
+    <view wx:if="{{configError}}" class="ai-error" bindtap="retryLoadAiStatus">{{configError}} · 重试</view>
+    <view class="ai-welcome">
+      <view class="ui-icon icon-ai ai-emblem" aria-label="小电"></view>
+      <view class="ai-greeting">{{currentLanguage === 'en' ? 'What would you like to know?' : '今天想了解什么？'}}</view>
+      <view wx:if="{{!configured && !configError}}" class="ai-status">{{subtitleText}}</view>
     </view>
-    <view>
-      <view class="ai-title">{{t.ai}}</view>
-      <view class="ai-subtitle">{{t.ai_subtitle}}</view>
+    <view wx:if="{{history.length}}" class="ai-recent" data-id="{{history[0].id}}" data-question="{{history[0].question}}" bindtap="continueChat">
+      <view class="ui-icon icon-history"></view><view class="ai-recent-title">{{history[0].title}}</view><text class="ai-recent-date">{{history[0].date}}</text>
     </view>
-  </view>
-  
-  <view class="ai-action-bar" style="margin-top: {{navTop + navHeight + 8}}px;">
-    <view wx:if="{{userErrorMessage}}" class="empty-state-desc">
-      {{userErrorMessage}}
-      <button bindtap="retryLoadUserInfo">重新加载</button>
+    <view class="ai-shortcuts">
+      <button bindtap="startNewChat"><view class="ui-icon icon-plus"></view><text>{{currentLanguage === 'en' ? 'New chat' : '新对话'}}</text></button>
+      <button bindtap="goToHistory"><view class="ui-icon icon-history"></view><text>{{currentLanguage === 'en' ? 'History' : '历史对话'}}</text></button>
+      <button bindtap="goToSettings"><view class="ui-icon icon-settings"></view><text>{{currentLanguage === 'en' ? 'AI settings' : 'AI 设置'}}</text></button>
     </view>
-    <view wx:if="{{configError}}" class="empty-state-desc">
-      {{configError}}
-      <button bindtap="retryLoadAiStatus">重新加载</button>
-    </view>
-    <button class="new-chat-btn" bindtap="startNewChat">
-      <text class="icon">+</text>
-      <text>发起新对话</text>
-    </button>
-    <button class="settings-btn" bindtap="goToSettings">AI 设置</button>
-  </view>
-
-  <view class="history-section">
-    <view class="section-header">
-      <view class="section-title" style="margin-bottom: 0;">历史对话</view>
-      <view class="more-link" bindtap="goToHistory" wx:if="{{history.length}}">查看全部</view>
-    </view>
-    <view class="history-list">
-      <view class="history-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat">
-        <view class="item-icon"><view class="chat-glyph"></view></view>
-        <view class="item-content">
-          <view class="item-title">{{item.title}}</view>
-          <view class="item-date">{{item.date}}</view>
-        </view>
-        <view class="item-arrow">></view>
-      </view>
-      
-      <view wx:if="{{!history.length}}" class="empty-state-container" style="padding: 80rpx 40rpx;">
-        <!-- 标注：此处如果需要图片，可使用 empty_state_ai.png -->
-        <view class="empty-image-placeholder"></view>
-        <view class="empty-state-title">还没有对话</view>
-        <view class="empty-state-desc" style="margin-bottom: 24rpx;">可以从一个校园问题开始。</view>
-        <button class="primary-button empty-state-btn" bindtap="startNewChat" style="width: 240rpx; height: 72rpx; line-height: 72rpx;">问问 AI</button>
-      </view>
+    <view class="ai-composer">
+      <input value="{{draft}}" bindinput="onDraftInput" bindconfirm="submitQuestion" confirm-type="send" placeholder="{{currentLanguage === 'en' ? 'Ask anything' : '问问小电'}}" aria-label="输入问题" />
+      <button class="ai-send" bindtap="submitQuestion" disabled="{{!draft || !configured}}" aria-label="{{currentLanguage === 'en' ? 'Send question' : '发送问题'}}"><view class="ui-icon icon-arrow"></view></button>
     </view>
   </view>
 </view>

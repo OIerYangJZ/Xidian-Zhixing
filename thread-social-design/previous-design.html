@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Threadline — 社交产品设计稿</title>
+  <style>
+    :root {
+      --ink: #0b0b0b;
+      --ink-2: #1c1c1c;
+      --paper: #101010;
+      --paper-2: #101010;
+      --paper-3: #242424;
+      --muted: #777;
+      --muted-dark: #a3a3a3;
+      --line: rgba(255,255,255,.12);
+      --line-light: rgba(255,255,255,.12);
+      --acid: #f5f5f5;
+      --acid-dark: #f5f5f5;
+      --lavender: #313131;
+      --coral: #ff3045;
+      --radius: 18px;
+      --shadow: 0 24px 70px rgba(7, 9, 10, .22);
+      --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      --serif: Georgia, "Songti SC", "STSong", serif;
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--ink); }
+    body { margin: 0; min-width: 320px; background: var(--ink); color: var(--paper); font-family: var(--sans); }
+    button, input, textarea { font: inherit; }
+    button { border: 0; cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: 250px minmax(560px, 760px) 310px; gap: 22px; justify-content: center; padding: 0 28px; }
+    .rail { position: sticky; top: 0; height: 100vh; padding: 32px 0 24px; display: flex; flex-direction: column; }
+    .mark { display: flex; align-items: center; gap: 12px; margin: 0 0 48px 8px; }
+    .mark-symbol { width: 34px; height: 34px; border-radius: 50%; background: var(--acid); color: var(--ink); display: grid; place-items: center; font-weight: 900; font-size: 19px; transform: rotate(-14deg); }
+    .mark-name { font-size: 19px; letter-spacing: -.04em; font-weight: 800; }
+    .mark-name span { color: var(--acid); }
+    .nav { display: grid; gap: 8px; }
+    .nav-btn { width: 100%; min-height: 46px; padding: 0 14px; display: flex; align-items: center; gap: 14px; color: #8c928d; background: transparent; border-radius: 12px; text-align: left; transition: .18s ease; }
+    .nav-btn:hover, .nav-btn.active { color: var(--paper); background: var(--ink-2); }
+    .nav-btn.active { box-shadow: inset 3px 0 0 var(--acid); }
+    .nav-icon { width: 22px; color: currentColor; font-size: 18px; text-align: center; }
+    .nav-label { font-size: 14px; font-weight: 680; }
+    .nav-kbd { margin-left: auto; color: #575e59; font-size: 10px; border: 1px solid #363b38; border-radius: 5px; padding: 2px 5px; }
+    .post-cta { margin-top: 28px; padding: 15px 18px; border-radius: 999px; background: var(--acid); color: var(--ink); font-weight: 850; letter-spacing: -.02em; box-shadow: 0 10px 0 #8b9b41; transition: .16s ease; }
+    .post-cta:hover { transform: translateY(2px); box-shadow: 0 7px 0 #8b9b41; }
+    .user-mini { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 9px; border-top: 1px solid var(--line-light); }
+    .avatar { width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 12px; background: var(--lavender); color: var(--ink); font-weight: 900; }
+    .avatar.green { background: var(--acid); } .avatar.coral { background: var(--coral); } .avatar.small { width: 30px; height: 30px; border-radius: 9px; font-size: 12px; }
+    .user-mini strong { display: block; font-size: 13px; } .user-mini small { color: var(--muted); font-size: 11px; }
+    .dots { margin-left: auto; color: var(--muted); }
+    .main { min-width: 0; border-left: 1px solid var(--line-light); border-right: 1px solid var(--line-light); background: var(--paper); color: var(--ink); min-height: 100vh; }
+    .topbar { position: sticky; top: 0; z-index: 10; height: 68px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; background: rgba(16,16,16,.92); backdrop-filter: blur(18px); border-bottom: 1px solid var(--line); }
+    .topbar-title { font-family: var(--serif); font-size: 22px; letter-spacing: -.03em; }
+    .topbar-meta { color: var(--muted-dark); font-size: 12px; }
+    .view { display: none; } .view.active { display: block; }
+    .feed-tabs { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--line); }
+    .feed-tab { height: 48px; background: transparent; color: var(--muted-dark); font-size: 13px; font-weight: 750; position: relative; }
+    .feed-tab.active { color: var(--ink); } .feed-tab.active:after { content: ""; position: absolute; height: 3px; background: var(--ink); width: 44px; bottom: -1px; left: 50%; transform: translateX(-50%); border-radius: 3px; }
+    .composer { padding: 24px 28px; display: flex; gap: 14px; border-bottom: 1px solid var(--line); background: var(--paper-2); }
+    .composer textarea { resize: none; height: 74px; flex: 1; border: 0; outline: 0; background: transparent; padding: 4px 0; color: var(--ink); font-size: 16px; line-height: 1.6; }
+    .composer textarea::placeholder { color: #a3a49c; }
+    .composer-foot { grid-column: 2; display: flex; align-items: center; gap: 8px; }
+    .composer-tools { display: flex; gap: 8px; margin-left: 52px; margin-top: -4px; }
+    .tool { color: var(--muted-dark); background: transparent; padding: 7px; border-radius: 8px; font-size: 16px; } .tool:hover { background: var(--paper-3); color: var(--ink); }
+    .send { margin-left: auto; border-radius: 999px; padding: 9px 15px; background: var(--ink); color: var(--acid); font-weight: 800; font-size: 12px; }
+    .post { position: relative; display: flex; gap: 14px; padding: 24px 28px 22px; background: var(--paper-2); border-bottom: 1px solid var(--line); transition: background .18s ease; }
+    .post:hover { background: #fbf8f1; } .post-body { flex: 1; min-width: 0; }
+    .post-head { display: flex; align-items: center; gap: 7px; line-height: 1; } .post-head strong { font-size: 14px; } .post-head span, .post-time { color: var(--muted-dark); font-size: 12px; }
+    .verified { color: var(--ink); background: var(--acid); border-radius: 50%; width: 15px; height: 15px; display: inline-grid; place-items: center; font-size: 10px; font-weight: 900; }
+    .post-menu { margin-left: auto; color: var(--muted); background: transparent; font-size: 18px; padding: 0 4px; }
+    .post h3 { margin: 12px 0 7px; font-family: var(--serif); font-size: 21px; line-height: 1.22; letter-spacing: -.025em; } .post p { margin: 0; max-width: 590px; color: #393d39; font-size: 14px; line-height: 1.7; }
+    .post p b, .mention { color: #667c20; } .post-label { display: inline-flex; margin-top: 14px; padding: 4px 8px; border-radius: 4px; background: #edf3cc; color: #5e6f1c; font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+    .post-media { margin-top: 16px; min-height: 164px; border-radius: 14px; overflow: hidden; background: #24292b; color: var(--paper); display: grid; place-items: center; position: relative; }
+    .media-note { width: 80%; font-family: var(--serif); font-size: 24px; line-height: 1.18; text-align: center; transform: rotate(-4deg); } .media-note em { color: var(--acid); font-style: normal; }
+    .media-noise { position: absolute; inset: 0; opacity: .09; background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 7px 7px; }
+    .actions { display: flex; align-items: center; justify-content: space-between; margin-top: 17px; max-width: 480px; color: var(--muted-dark); } .action { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: inherit; font-size: 12px; } .action:hover { color: var(--ink); } .action.liked { color: var(--coral); }
+    .right { padding-top: 32px; } .searchbox { height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 15px; background: var(--ink-2); border: 1px solid #2c3230; border-radius: 12px; color: var(--muted); } .searchbox input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--paper); font-size: 13px; }
+    .side-card { margin-top: 20px; padding: 20px; background: var(--ink-2); border: 1px solid #2d3330; border-radius: var(--radius); } .side-card h3 { margin: 0 0 16px; font-family: var(--serif); font-size: 18px; font-weight: 500; } .side-card p { margin: 0; color: var(--muted); line-height: 1.5; font-size: 12px; }
+    .trend { display: flex; gap: 10px; padding: 12px 0; border-top: 1px solid var(--line-light); } .trend:first-of-type { border-top: 0; padding-top: 0; } .trend-no { color: var(--acid); font-family: var(--serif); font-size: 16px; } .trend strong { display:block; font-size: 13px; } .trend small { color: var(--muted); font-size: 10px; }
+    .follow-row { display:flex; align-items:center; gap:10px; padding: 11px 0; border-top:1px solid var(--line-light); } .follow-row:first-of-type { border-top:0; padding-top:0; } .follow-copy { flex:1; } .follow-copy strong { display:block; font-size:12px; } .follow-copy small { color:var(--muted); font-size:10px; } .follow-btn { padding: 7px 10px; border-radius: 999px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 800; }
+    .page-pad { padding: 28px; } .page-hero { padding: 6px 0 24px; border-bottom: 1px solid var(--line); } .page-hero h1 { margin: 0; font-family: var(--serif); font-weight: 500; font-size: 34px; letter-spacing: -.05em; } .page-hero p { margin: 8px 0 0; color: var(--muted-dark); font-size: 13px; }
+    .search-large { display:flex; gap:10px; margin: 22px 0; } .search-large input { flex: 1; height: 48px; border: 1px solid var(--line); border-radius: 10px; padding: 0 15px; outline: 0; background: var(--paper-2); } .search-large button { padding: 0 18px; border-radius: 10px; background: var(--ink); color: var(--acid); font-weight: 800; }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 18px; } .chip { padding: 7px 11px; border-radius: 999px; background: var(--paper-3); color: var(--muted-dark); font-size: 11px; font-weight: 750; } .chip.active { background: var(--ink); color: var(--acid); }
+    .result-row { display:flex; gap:12px; padding: 17px 0; border-top: 1px solid var(--line); } .result-row h3 { margin:0 0 4px; font-family:var(--serif); font-size:18px; font-weight:500; } .result-row p { margin:0; color:var(--muted-dark); font-size:12px; line-height:1.55; } .result-meta { margin-top:8px; color:var(--muted); font-size:10px; }
+    .detail-wrap { padding: 0 0 28px; } .back { height: 54px; display:flex; align-items:center; gap:8px; padding:0 28px; border-bottom:1px solid var(--line); color:var(--muted-dark); font-size:12px; font-weight:700; background:var(--paper-2); } .detail-post { padding: 28px; border-bottom: 1px solid var(--line); background:var(--paper-2); } .detail-post h1 { margin:18px 0 12px; font: 500 33px/1.13 var(--serif); letter-spacing:-.05em; } .detail-post p { margin:0; font-size:15px; line-height:1.75; color:#343834; } .detail-stats { display:flex; gap:22px; margin-top:22px; padding:18px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted-dark); font-size:12px; } .detail-stats b { color:var(--ink); font-size:16px; } .reply { padding:19px 28px; display:flex; gap:12px; border-bottom:1px solid var(--line); background:var(--paper-2); } .reply p { margin:4px 0 0; font-size:13px; color:#3c403c; line-height:1.55; }
+    .settings-layout { display:grid; grid-template-columns: 178px 1fr; min-height: 660px; } .settings-menu { border-right:1px solid var(--line); padding: 22px 12px; } .settings-menu button { width:100%; padding:11px 12px; border-radius:8px; background:transparent; text-align:left; color:var(--muted-dark); font-size:12px; } .settings-menu button.active { background:var(--ink); color:var(--acid); } .settings-content { padding:28px; } .settings-content h2 { margin:0; font:500 28px var(--serif); } .settings-content > p { color:var(--muted-dark); font-size:12px; margin:7px 0 24px; } .setting-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:17px 0; border-top:1px solid var(--line); } .setting-row strong { font-size:13px; } .setting-row p { margin:4px 0 0; color:var(--muted-dark); font-size:11px; line-height:1.45; } .toggle { width:40px; height:23px; padding:3px; border-radius:99px; background:#bbbeb8; } .toggle.on { background:var(--ink); } .toggle i { display:block; width:17px; height:17px; border-radius:50%; background:var(--paper-2); transition:.2s; } .toggle.on i { transform:translateX(17px); background:var(--acid); }
+    .inbox { display:grid; grid-template-columns: 235px 1fr; min-height: 690px; } .thread-list { border-right:1px solid var(--line); background:var(--paper-2); } .thread-list-head { padding:23px 18px 15px; font:500 24px var(--serif); } .thread-item { display:flex; gap:10px; padding:14px 18px; border-top:1px solid var(--line); } .thread-item.active { background:var(--paper-3); box-shadow:inset 3px 0 var(--acid-dark); } .thread-item strong { display:block; font-size:12px; } .thread-item small { color:var(--muted-dark); font-size:10px; line-height:1.45; } .thread-time { margin-left:auto; color:var(--muted); font-size:10px; } .chat { display:flex; flex-direction:column; background:#eeeae1; } .chat-head { padding:18px 22px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--line); background:var(--paper-2); } .chat-head strong { font-size:13px; } .chat-head small { display:block; color:var(--muted); font-size:10px; margin-top:2px; } .chat-body { flex:1; padding:24px; display:flex; flex-direction:column; gap:11px; } .bubble { max-width:72%; padding:11px 13px; border-radius:13px 13px 13px 3px; background:var(--paper-2); color:#3c403c; font-size:12px; line-height:1.55; } .bubble.mine { align-self:flex-end; border-radius:13px 13px 3px 13px; background:var(--ink); color:var(--paper); } .chat-input { display:flex; gap:8px; margin:0 18px 18px; padding:9px 10px 9px 14px; border:1px solid var(--line); border-radius:12px; background:var(--paper-2); } .chat-input input { flex:1; border:0; outline:0; background:transparent; font-size:12px; } .chat-input button { color:var(--ink); background:var(--acid); border-radius:8px; padding:6px 10px; font-size:11px; font-weight:800; }
+    .ai-page { background:var(--ink); color:var(--paper); min-height:calc(100vh - 68px); padding:38px 32px; } .ai-intro { max-width:580px; } .ai-intro .eyebrow { color:var(--acid); text-transform:uppercase; letter-spacing:.16em; font-size:10px; font-weight:800; } .ai-intro h1 { margin:15px 0 10px; font:500 45px/1 var(--serif); letter-spacing:-.06em; } .ai-intro p { color:#969e97; font-size:13px; line-height:1.6; } .ai-suggestions { display:flex; gap:9px; flex-wrap:wrap; margin:27px 0 38px; } .suggestion { padding:10px 12px; border:1px solid #343b37; border-radius:10px; color:#b8c0b8; background:transparent; font-size:11px; } .suggestion:hover { border-color:var(--acid); color:var(--acid); } .ai-compose { border-top:1px solid #343b37; padding-top:16px; display:flex; align-items:center; gap:12px; } .ai-compose input { flex:1; border:0; outline:0; background:transparent; color:var(--paper); font-size:16px; } .ai-compose input::placeholder { color:#6b746d; } .ai-send { width:37px; height:37px; border-radius:50%; background:var(--acid); color:var(--ink); font-weight:900; } .ai-history { margin-top:60px; display:grid; grid-template-columns:1fr 1fr; gap:14px; } .ai-history article { border:1px solid #303733; padding:15px; border-radius:12px; } .ai-history small { color:var(--acid); font-size:10px; } .ai-history p { color:#bec6bd; font-size:12px; line-height:1.5; }
+    .profile-cover { height:150px; background: var(--lavender); position:relative; overflow:hidden; } .profile-cover:after { content:"THREADS / 04"; position:absolute; right:22px; bottom:12px; color:rgba(18,20,22,.45); font: italic 36px var(--serif); transform:rotate(-8deg); } .profile-head { padding:0 28px 23px; background:var(--paper-2); border-bottom:1px solid var(--line); } .profile-head .avatar { width:74px; height:74px; margin-top:-28px; position:relative; border:5px solid var(--paper-2); border-radius:22px; font-size:24px; } .profile-actions { display:flex; justify-content:flex-end; margin-top:-29px; } .outline-btn { padding:8px 14px; border:1px solid var(--ink); background:transparent; border-radius:999px; font-size:12px; font-weight:800; } .profile-head h1 { margin:15px 0 2px; font:500 28px var(--serif); } .profile-handle { color:var(--muted-dark); font-size:12px; } .profile-bio { max-width:520px; margin:16px 0; color:#3e423e; font-size:13px; line-height:1.55; } .profile-meta { color:var(--muted-dark); font-size:11px; } .profile-tabs { display:grid; grid-template-columns:repeat(3,1fr); border-bottom:1px solid var(--line); background:var(--paper-2); } .profile-tabs button { height:48px; background:transparent; color:var(--muted-dark); font-size:12px; font-weight:800; } .profile-tabs button.active { color:var(--ink); box-shadow:inset 0 -3px var(--ink); }
+    .modal { position:fixed; inset:0; z-index:30; display:none; place-items:center; background:rgba(8,10,10,.68); padding:20px; } .modal.open { display:grid; } .modal-card { width:min(560px,100%); padding:22px; border-radius:18px; background:var(--paper-2); color:var(--ink); box-shadow:var(--shadow); } .modal-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; } .modal-head h2 { margin:0; font:500 23px var(--serif); } .close { background:transparent; color:var(--muted-dark); font-size:22px; } .modal textarea { width:100%; min-height:140px; resize:vertical; padding:5px 0; border:0; outline:0; background:transparent; font-size:16px; line-height:1.6; } .modal-foot { display:flex; align-items:center; gap:8px; padding-top:15px; border-top:1px solid var(--line); } .modal-foot .send { padding:10px 16px; }
+    @media (max-width: 1120px) { .app { grid-template-columns: 72px minmax(560px, 760px); } .mark-name, .nav-label, .nav-kbd, .post-cta, .user-mini .user-copy, .dots { display:none; } .mark { margin-left:18px; } .nav-btn { justify-content:center; padding:0; } .nav-btn.active { box-shadow:none; background:var(--ink-2); } .right { display:none; } }
+    @media (max-width: 700px) { .app { display:block; padding:0; } .rail { position:fixed; bottom:0; top:auto; z-index:20; width:100%; height:62px; padding:0 8px; background:var(--ink); border-top:1px solid #303632; } .mark, .user-mini, .post-cta { display:none; } .nav { height:100%; display:flex; align-items:center; justify-content:space-around; } .nav-btn { width:48px; height:48px; min-height:0; } .nav-btn:nth-child(n+7) { display:none; } .main { border:0; padding-bottom:62px; } .topbar { padding:0 18px; } .composer, .post, .page-pad, .detail-post, .back { padding-left:18px; padding-right:18px; } .post h3 { font-size:19px; } .settings-layout, .inbox { display:block; } .settings-menu { display:flex; overflow:auto; border-right:0; border-bottom:1px solid var(--line); padding:10px; gap:6px; } .settings-menu button { white-space:nowrap; width:auto; } .thread-list { display:none; } .chat { min-height:680px; } .ai-page { padding:28px 20px; } .ai-intro h1 { font-size:38px; } .ai-history { grid-template-columns:1fr; } .profile-head { padding-left:18px; padding-right:18px; } }
+    /* Thread-style monochrome mode switch: pure white canvas in light mode. */
+    body.light { --ink:#fff; --ink-2:#f4f4f4; --paper:#fff; --paper-2:#fff; --paper-3:#f3f3f3; --muted:#8a8a8a; --muted-dark:#686868; --line:rgba(0,0,0,.12); --line-light:rgba(0,0,0,.12); --acid:#101010; --acid-dark:#101010; --lavender:#efefef; background:#fff; color:#101010; }
+    body.light .rail, body.light .right { color:#101010; }
+    body.light .main { background:#fff; color:#101010; }
+    body.light .topbar { background:rgba(255,255,255,.92); }
+    body.light .nav-btn.active { color:#101010; background:#ececec; box-shadow:none; }
+    body.light .nav-btn:hover { color:#101010; background:#f4f4f4; }
+    body.light .mark-symbol { background:#101010; color:#fff; }
+    body.light .mark-name span { color:#101010; }
+    body.light .post-cta { background:#101010; color:#fff; box-shadow:0 9px 0 #d3d3d3; }
+    body.light .post-cta:hover { box-shadow:0 6px 0 #d3d3d3; }
+    body.light .send, body.light .search-large button { background:#101010; color:#fff; }
+    body.light .chip.active, body.light .settings-menu button.active { background:#101010; color:#fff; }
+    body.light .ai-page { background:#fff; color:#101010; }
+    body.light .ai-intro .eyebrow, body.light .ai-intro h1 em, body.light .suggestion:hover { color:#101010 !important; }
+    body.light .ai-compose input { color:#101010; }
+    body.light .ai-compose, body.light .ai-history article { border-color:rgba(0,0,0,.12); }
+    body.light .suggestion { border-color:rgba(0,0,0,.16); color:#555; }
+    body.light .ai-history p { color:#444; }
+    body.light .ai-send { background:#101010; color:#fff; }
+    body.light .right .searchbox, body.light .right .side-card { background:#f7f7f7; border-color:#e1e1e1; color:#101010; }
+    body.light .right .searchbox input { color:#101010; }
+    body.light .right .side-card p, body.light .right .trend small, body.light .right .follow-copy small { color:#777; }
+    body.light .follow-btn { background:#101010; color:#fff; }
+    body.light .post-label { background:#f2f2f2; color:#4c4c4c; }
+    body.light .media-note em { color:#fff; }
+    body.light .modal-card { background:#fff; }
+    .theme-toggle { min-width:38px; height:32px; padding:0 11px; border:1px solid var(--line); border-radius:999px; background:transparent; color:var(--paper); font-size:13px; }
+    .theme-toggle:hover { background:var(--paper-3); }
+    @media (prefers-reduced-motion: reduce) { * { transition:none !important; animation:none !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="rail">
+      <a class="mark" href="#" aria-label="Threadline home"><span class="mark-symbol">↗</span><span class="mark-name">thread<span>line</span></span></a>
+      <nav class="nav" aria-label="主导航">
+        <button class="nav-btn active" data-view="home"><span class="nav-icon">⌂</span><span class="nav-label">首页</span><span class="nav-kbd">G H</span></button>
+        <button class="nav-btn" data-view="search"><span class="nav-icon">⌕</span><span class="nav-label">搜索</span><span class="nav-kbd">/</span></button>
+        <button class="nav-btn" data-view="notifications"><span class="nav-icon">◌</span><span class="nav-label">通知</span><span class="nav-kbd">N</span></button>
+        <button class="nav-btn" data-view="messages"><span class="nav-icon">↗</span><span class="nav-label">会话</span><span class="nav-kbd">M</span></button>
+        <button class="nav-btn" data-view="ai"><span class="nav-icon">✦</span><span class="nav-label">AI 工作台</span></button>
+        <button class="nav-btn" data-view="bookmarks"><span class="nav-icon">▱</span><span class="nav-label">收藏</span></button>
+        <button class="nav-btn" data-view="profile"><span class="nav-icon">♙</span><span class="nav-label">个人主页</span></button>
+        <button class="nav-btn" data-view="settings"><span class="nav-icon">⊙</span><span class="nav-label">设置</span></button>
+      </nav>
+      <button class="post-cta" data-open-compose>发一条 thread</button>
+      <div class="user-mini"><div class="avatar green small">林</div><div class="user-copy"><strong>林默</strong><small>@linmo</small></div><span class="dots">•••</span></div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar"><div class="topbar-title" id="top-title">首页</div><div style="display:flex;align-items:center;gap:10px"><div class="topbar-meta">周四，19:42 · 北京</div><button class="theme-toggle" id="theme-toggle" title="切换浅色/深色模式">☼</button></div></header>
+
+      <section class="view active" id="view-home">
+        <div class="feed-tabs"><button class="feed-tab active">为你推荐</button><button class="feed-tab">正在关注</button></div>
+        <div class="composer"><div class="avatar green">林</div><div style="flex:1"><textarea placeholder="今天有什么想说的？"></textarea><div class="composer-tools"><button class="tool">＋</button><button class="tool">⌁</button><button class="tool">☷</button><button class="send">发布</button></div></div></div>
+        <article class="post"><div class="avatar coral">A</div><div class="post-body"><div class="post-head"><strong>Aria Chen</strong><span class="verified">✓</span><span>@aria_builds</span><span>·</span><span class="post-time">18 分钟</span><button class="post-menu">•••</button></div><h3>真正好的产品，会把复杂留给自己。</h3><p>用户只需要感到顺滑、被理解，以及下一步永远清楚。今天把这句话写在了白板最中间。<span class="mention"> #产品设计</span></p><div class="post-label">设计随笔 · 3 条 thread</div><div class="actions"><button class="action">◌ <span>18</span></button><button class="action">↗ <span>7</span></button><button class="action liked">♥ <span>128</span></button><button class="action">▱ <span>保存</span></button><button class="action">↥</button></div></div></article>
+        <article class="post"><div class="avatar">Q</div><div class="post-body"><div class="post-head"><strong>Qiao 的夜航船</strong><span>@qiao_notes</span><span>·</span><span class="post-time">1 小时</span><button class="post-menu">•••</button></div><h3>把一个问题讲清楚，比把一百个观点说得漂亮更难。</h3><p>这周在读《How to Take Smart Notes》，最有用的提醒是：不要收藏句子，要留下你和句子之间发生了什么。</p><div class="post-media"><div class="media-noise"></div><div class="media-note">“笔记不是仓库，<em>是思考的轨道。</em>”</div></div><div class="actions"><button class="action">◌ <span>32</span></button><button class="action">↗ <span>12</span></button><button class="action">♡ <span>204</span></button><button class="action">▱ <span>保存</span></button><button class="action">↥</button></div></div></article>
+        <article class="post"><div class="avatar green">M</div><div class="post-body"><div class="post-head"><strong>Mei / 研究室</strong><span>@meilab</span><span>·</span><span class="post-time">3 小时</span><button class="post-menu">•••</button></div><h3>一个安静的周末阅读清单</h3><p>城市观察、认知科学、还有一本不急着读完的小说。欢迎补充你最近真正读完的一本书。</p><div class="actions"><button class="action">◌ <span>11</span></button><button class="action">↗ <span>4</span></button><button class="action">♡ <span>76</span></button><button class="action">▱ <span>保存</span></button><button class="action">↥</button></div></div></article>
+      </section>
+
+      <section class="view" id="view-search"><div class="page-pad"><div class="page-hero"><h1>搜索</h1><p>在公共对话里，寻找值得继续读下去的线索。</p></div><div class="search-large"><input value="设计系统" aria-label="搜索内容"/><button>搜索</button></div><div class="chips"><button class="chip active">全部</button><button class="chip">帖子</button><button class="chip">用户</button><button class="chip">话题</button></div><div class="result-row"><div class="avatar small">Q</div><div><h3>设计系统的真正价值，不在于统一。</h3><p>当组件开始拥有语境，系统才不只是一个漂亮的库存。</p><div class="result-meta">Qiao 的夜航船 · 42 分钟前 · 28 次互动</div></div></div><div class="result-row"><div class="avatar coral small">A</div><div><h3>Aria Chen <span style="color:var(--muted);font:12px var(--sans)">@aria_builds</span></h3><p>产品设计、研究方法与一些还没想明白的事情。</p><div class="result-meta">用户 · 12.4K followers · 已认证</div></div></div><div class="result-row"><div class="avatar green small">#</div><div><h3>#设计系统</h3><p>2,438 条公开讨论 · 最近活跃</p></div></div></div></section>
+
+      <section class="view" id="view-notifications"><div class="page-pad"><div class="page-hero"><h1>通知</h1><p>只留下与你有关的动静。</p></div><div class="result-row"><div class="avatar coral small">A</div><div><p><b>Aria Chen</b> 喜欢了你的 thread《我如何开始写作》</p><div class="result-meta">8 分钟前</div></div></div><div class="result-row"><div class="avatar small">Q</div><div><p><b>Qiao 的夜航船</b> 回复了你的帖子</p><div class="result-meta">31 分钟前 · “这句我也记下了。”</div></div></div><div class="result-row"><div class="avatar green small">M</div><div><p><b>Mei / 研究室</b> 开始关注你</p><div class="result-meta">2 小时前</div></div></div></div></section>
+
+      <section class="view" id="view-messages"><div class="inbox"><div class="thread-list"><div class="thread-list-head">会话</div><div class="thread-item active"><div class="avatar coral small">A</div><div><strong>Aria Chen</strong><small>下次一起聊聊产品研究…</small></div><span class="thread-time">18:40</span></div><div class="thread-item"><div class="avatar small">Q</div><div><strong>Qiao 的夜航船</strong><small>已发送一篇 thread</small></div><span class="thread-time">周三</span></div><div class="thread-item"><div class="avatar green small">M</div><div><strong>Mei / 研究室</strong><small>你：周末见</small></div><span class="thread-time">周二</span></div></div><div class="chat"><div class="chat-head"><div class="avatar coral small">A</div><div><strong>Aria Chen</strong><small>最近在线</small></div></div><div class="chat-body"><div class="bubble">嗨，看到你今天发的那条 thread 了。关于“把复杂留给自己”，我很有共鸣。</div><div class="bubble mine">谢谢！我最近一直在重新想交互里的“解释成本”。</div><div class="bubble">这个角度很有意思。下周找个下午继续聊？</div></div><div class="chat-input"><input placeholder="写一条消息…"/><button>发送</button></div></div></div></section>
+
+      <section class="view" id="view-ai"><div class="ai-page"><div class="ai-intro"><div class="eyebrow">Threadline AI / private workspace</div><h1>把想法，<br><em style="color:var(--acid);font-style:normal">继续下去。</em></h1><p>AI 不替你发言。它帮你整理、追问、对照，让一个模糊的念头拥有下一步。</p></div><div class="ai-suggestions"><button class="suggestion">帮我整理这周收藏的内容</button><button class="suggestion">从这个 thread 继续追问</button><button class="suggestion">把想法改写得更清楚</button></div><div class="ai-compose"><span style="color:var(--acid);font-size:18px">✦</span><input placeholder="问点什么，或者粘贴一段话…"/><button class="ai-send">↗</button></div><div class="ai-history"><article><small>今天 18:22</small><p>“帮我从三条收藏里找到共同的观点。”</p></article><article><small>昨天 09:14</small><p>“把这段研究笔记变成一个可讨论的问题。”</p></article></div></div></section>
+
+      <section class="view" id="view-bookmarks"><div class="page-pad"><div class="page-hero"><h1>收藏</h1><p>你留给未来自己的线索。</p></div><article class="post" style="padding-left:0;padding-right:0"><div class="avatar small">Q</div><div class="post-body"><div class="post-head"><strong>Qiao 的夜航船</strong><span>· 3 天前</span></div><h3>不要把收藏夹当成第二个待办清单。</h3><p>如果一条内容没有改变你的问题，它可能只是被你保存了。</p><div class="post-label">已收藏 · 思考</div></div></article><article class="post" style="padding-left:0;padding-right:0"><div class="avatar coral small">A</div><div class="post-body"><div class="post-head"><strong>Aria Chen</strong><span>· 5 天前</span></div><h3>用户不是来体验你的流程图的。</h3><p>他们只是想完成一件事，然后回到自己的生活。</p><div class="post-label">已收藏 · 产品</div></div></article></div></section>
+
+      <section class="view" id="view-settings"><div class="settings-layout"><div class="settings-menu"><button class="active">账户</button><button>隐私</button><button>通知</button><button>显示</button><button>内容偏好</button><button>帮助</button></div><div class="settings-content"><h2>设置</h2><p>管理你的身份、可见性与使用偏好。</p><div class="setting-row"><div><strong>账户中心</strong><p>密码、安全、个人资料、关联体验和广告偏好</p></div><span style="font-size:20px">›</span></div><div class="setting-row"><div><strong>姓名</strong><p>林默</p></div><button class="outline-btn" data-open-profile-edit>编辑</button></div><div class="setting-row"><div><strong>用户名</strong><p>@linmo</p></div><button class="outline-btn" data-open-profile-edit>编辑</button></div><div class="setting-row"><div><strong>个人简介</strong><p>在夜里写下白天想明白的事。</p></div><button class="outline-btn" data-open-profile-edit>编辑</button></div><div class="setting-row"><div><strong>兴趣</strong><p>产品设计，阅读，AI 与写作</p></div><span style="font-size:20px">›</span></div><div class="setting-row"><div><strong>个人主页隐私</strong><p>切换为私密后，只有关注者可以查看你的帖子。</p></div><span style="color:var(--muted-dark);font-size:12px">公开　›</span></div><div class="setting-row"><div><strong>显示最近浏览</strong><p>当你达到 10K+ 浏览量后，在主页展示最近浏览。</p></div><button class="toggle on"><i></i></button></div><button class="send" style="width:100%;margin-top:24px;padding:13px">完成</button></div></div></section>
+
+      <section class="view" id="view-profile"><div class="profile-cover"></div><div class="profile-head"><div class="avatar green">林</div><div class="profile-actions"><button class="outline-btn">编辑资料</button></div><h1>林默</h1><div class="profile-handle">@linmo</div><div class="profile-bio">在夜里写下白天想明白的事。产品、阅读，以及一些尚未完成的想法。</div><div class="profile-meta">◷ 加入于 2024 年 3 月　·　<span style="color:#657c20">● 西安</span></div></div><div class="profile-tabs"><button class="active">帖子</button><button>回复</button><button>媒体</button></div><article class="post"><div class="avatar green small">林</div><div class="post-body"><div class="post-head"><strong>林默</strong><span>@linmo</span><span>· 2 小时</span></div><h3>有些问题，值得先放在桌上。</h3><p>不急着回答它，先允许它改变我们看待别的事物的方式。</p><div class="actions"><button class="action">◌ <span>6</span></button><button class="action">↗ <span>2</span></button><button class="action liked">♥ <span>43</span></button><button class="action">▱</button></div></div></article></section>
+    </main>
+
+    <aside class="right"><div class="searchbox"><span>⌕</span><input placeholder="搜索 Threadline"/></div><div class="side-card"><h3>正在发生</h3><div class="trend"><span class="trend-no">01</span><div><strong>设计系统</strong><small>2,438 条讨论</small></div></div><div class="trend"><span class="trend-no">02</span><div><strong>周末阅读</strong><small>1,294 条讨论</small></div></div><div class="trend"><span class="trend-no">03</span><div><strong>低电量生活</strong><small>876 条讨论</small></div></div><div class="trend"><span class="trend-no">04</span><div><strong>AI 与写作</strong><small>653 条讨论</small></div></div></div><div class="side-card"><h3>可以关注</h3><div class="follow-row"><div class="avatar coral small">A</div><div class="follow-copy"><strong>Aria Chen</strong><small>@aria_builds</small></div><button class="follow-btn">关注</button></div><div class="follow-row"><div class="avatar small">Q</div><div class="follow-copy"><strong>Qiao 的夜航船</strong><small>@qiao_notes</small></div><button class="follow-btn">关注</button></div><div class="follow-row"><div class="avatar green small">M</div><div class="follow-copy"><strong>Mei / 研究室</strong><small>@meilab</small></div><button class="follow-btn">关注</button></div></div><div style="padding:18px 5px;color:#626861;font-size:10px;line-height:1.7">关于　帮助　规则　隐私　条款<br/>© 2025 Threadline Studio</div></aside>
+  </div>
+
+  <div class="modal" id="compose-modal" role="dialog" aria-modal="true"><div class="modal-card"><div class="modal-head"><h2>发一条 thread</h2><button class="close" data-close-compose>×</button></div><div style="display:flex;gap:12px"><div class="avatar green">林</div><textarea placeholder="把你此刻正在想的写下来…"></textarea></div><div class="modal-foot"><button class="tool">＋</button><button class="tool">⌁</button><button class="tool">☷</button><button class="send">发布</button></div></div></div>
+  <div class="modal" id="profile-edit-modal" role="dialog" aria-modal="true"><div class="modal-card profile-edit-card"><div class="modal-head"><h2>编辑个人资料</h2><button class="close" data-close-profile-edit>×</button></div><div class="setting-row"><div><strong>姓名</strong><p>林默</p></div><div class="avatar green">林</div></div><div class="setting-row"><div><strong>用户名</strong><p>@linmo</p></div><span>›</span></div><div class="setting-row"><div><strong>个人简介</strong><p>在夜里写下白天想明白的事。</p></div><span>›</span></div><div class="setting-row"><div><strong>兴趣</strong><p>产品设计，阅读，AI 与写作</p></div><span>›</span></div><div class="setting-row"><div><strong>显示 Instagram 徽章</strong></div><button class="toggle"><i></i></button></div><button class="send" style="width:100%;margin-top:18px;padding:13px" data-close-profile-edit>完成</button></div></div>
+  <script>
+    const titles = { home:'首页', search:'搜索', notifications:'通知', messages:'会话', ai:'AI 工作台', bookmarks:'收藏', settings:'设置', profile:'个人主页' };
+    const nav = document.querySelectorAll('.nav-btn');
+    const views = document.querySelectorAll('.view');
+    function showView(name) {
+      views.forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+      nav.forEach(n => n.classList.toggle('active', n.dataset.view === name));
+      document.getElementById('top-title').textContent = titles[name] || name;
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    nav.forEach(n => n.addEventListener('click', () => showView(n.dataset.view)));
+    document.querySelectorAll('.action').forEach(btn => btn.addEventListener('click', () => {
+      if (btn.querySelector('span')) { btn.classList.toggle('liked'); const span = btn.querySelector('span'); if (btn.classList.contains('liked')) span.textContent = String(Number(span.textContent || 0) + 1); }
+    }));
+    document.querySelectorAll('.toggle').forEach(btn => btn.addEventListener('click', () => btn.classList.toggle('on')));
+    const modal = document.getElementById('compose-modal');
+    document.querySelectorAll('[data-open-compose]').forEach(b => b.addEventListener('click', () => modal.classList.add('open')));
+    document.querySelector('[data-close-compose]').addEventListener('click', () => modal.classList.remove('open'));
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+    const profileModal = document.getElementById('profile-edit-modal');
+    document.querySelectorAll('[data-open-profile-edit]').forEach(b => b.addEventListener('click', () => profileModal.classList.add('open')));
+    document.querySelectorAll('[data-close-profile-edit]').forEach(b => b.addEventListener('click', () => profileModal.classList.remove('open')));
+    profileModal.addEventListener('click', e => { if (e.target === profileModal) profileModal.classList.remove('open'); });
+    const themeToggle = document.getElementById('theme-toggle');
+    const savedTheme = localStorage.getItem('threadline-theme');
+    if (savedTheme === 'light') document.body.classList.add('light');
+    function syncThemeButton() { themeToggle.textContent = document.body.classList.contains('light') ? '☾' : '☼'; }
+    syncThemeButton();
+    themeToggle.addEventListener('click', () => { document.body.classList.toggle('light'); localStorage.setItem('threadline-theme', document.body.classList.contains('light') ? 'light' : 'dark'); syncThemeButton(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('open'); if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') { e.preventDefault(); showView('search'); document.querySelector('#view-search input').focus(); } });
+    document.querySelectorAll('.feed-tab').forEach(t => t.addEventListener('click', () => { document.querySelectorAll('.feed-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); }));
+  </script>
+</body>
+</html>

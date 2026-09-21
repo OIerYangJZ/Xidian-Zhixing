@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:xdu_treehole_web/models/user_profile.dart';
-import 'package:xdu_treehole_web/repositories/auth_repository.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/theme/mobile_theme.dart';
@@ -159,16 +156,6 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
                           : _promptLevelUpgradeRequest,
                     ),
                 ]),
-                const SizedBox(height: 24),
-                _buildTileCard([
-                  _buildListTile(
-                    icon: Icons.no_accounts_outlined,
-                    title: '注销账号',
-                    subtitle: '停用账号并进入可申诉恢复状态',
-                    titleColor: MobileTheme.error,
-                    onTap: _showCancelAccountHint,
-                  ),
-                ]),
               ],
             ),
     );
@@ -220,153 +207,4 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
     );
   }
 
-  void _showCancelAccountHint() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('注销账号'),
-        content: const Text(
-          '审核通过后账号将停用并退出所有会话；必要的账号与内容记录会按隐私政策保留，之后可提交申诉恢复。\n\n确认要申请注销吗？',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            onPressed: () {
-              Navigator.pop(ctx);
-              _showCancelAccountReauthentication();
-            },
-            child: const Text('继续注销'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCancelAccountReauthentication() {
-    bool submitting = false;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('验证身份'),
-          content: const Text('为确认由本人操作，将前往西电官方统一身份认证页面重新验证。西电知行不会接触你的统一认证密码。'),
-          actions: [
-            TextButton(
-              onPressed: submitting ? null : () => Navigator.pop(ctx),
-              child: const Text('取消'),
-            ),
-            TextButton(
-              style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-              onPressed: submitting
-                  ? null
-                  : () async {
-                      setDialogState(() => submitting = true);
-                      try {
-                        final repository = ref.read(authRepositoryProvider);
-                        final XidianAuthSessionResult created = await repository
-                            .createXidianAuthSession(platform: 'mobile');
-                        final bool launched = await launchUrl(
-                          Uri.parse(created.authorizeUrl!),
-                          mode: LaunchMode.externalApplication,
-                        );
-                        if (!launched) {
-                          throw StateError('无法打开西电官方统一身份认证页面');
-                        }
-                        XidianAuthSessionResult? authenticated;
-                        for (int poll = 0; poll < 300; poll += 1) {
-                          await Future<void>.delayed(
-                            const Duration(seconds: 2),
-                          );
-                          final XidianAuthSessionResult session =
-                              await repository.fetchXidianAuthSession(
-                                created.attemptId,
-                              );
-                          if (session.isFailed) {
-                            throw StateError(session.message ?? '统一认证登录失败');
-                          }
-                          if (session.isAuthenticated) {
-                            authenticated = session;
-                            break;
-                          }
-                        }
-                        if (authenticated == null) {
-                          throw StateError('统一认证登录已超时，请重新操作');
-                        }
-                        if (!ctx.mounted) return;
-                        Navigator.pop(ctx);
-                        _submitCancellationRequest();
-                      } catch (error) {
-                        setDialogState(() => submitting = false);
-                        if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                error.toString().replaceFirst(
-                                  RegExp(r'^(Exception|Bad state): '),
-                                  '',
-                                ),
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
-              child: submitting
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('确认注销'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _submitCancellationRequest() async {
-    try {
-      await ref
-          .read(userRepositoryProvider)
-          .submitAccountCancellationRequest(reason: '用户主动申请注销');
-      if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('申请已提交'),
-          content: const Text(
-            '注销申请已提交给管理员审核。审核通过后账号将停用并退出所有会话；必要记录按隐私政策保留，之后可提交申诉恢复。\n\n请在应用内查看审核结果。',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _logout();
-              },
-              child: const Text('知道了'),
-            ),
-          ],
-        ),
-      );
-    } catch (_) {
-      _showToast('申请提交失败，请稍后重试');
-    }
-  }
-
-  Future<void> _logout() async {
-    try {
-      await ref.read(authRepositoryProvider).logout();
-    } catch (error) {
-      _showToast('退出失败：$error');
-      return;
-    }
-    if (!mounted) return;
-    context.go('/auth/login');
-  }
 }

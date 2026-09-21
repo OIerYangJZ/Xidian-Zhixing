@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/widgets/app_surfaces.dart';
 
 import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
@@ -7,10 +8,7 @@ import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 
-enum FavoriteSortMode {
-  latest,
-  hot,
-}
+enum FavoriteSortMode { latest, hot }
 
 extension FavoriteSortModeLabel on FavoriteSortMode {
   String labelFor(Locale locale) {
@@ -63,44 +61,51 @@ class FavoritesPageState extends State<FavoritesPage> {
 
     final List<PostItem> filtered = _buildFilteredFavorites();
 
-    return RefreshIndicator(
-      onRefresh: _loadFavorites,
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.only(top: 8, bottom: 24),
-        children: <Widget>[
-          _buildHero(context, filtered.length),
-          const SizedBox(height: 10),
-          _buildToolbar(context),
-          const SizedBox(height: 10),
-          _buildChannelBar(),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
-            ),
-          const SizedBox(height: 4),
-          ...filtered.map(_buildFavoriteCard),
-          if (filtered.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Center(
-                child: Text(
-                  _favorites.isEmpty
-                      ? uiText(
-                          context,
-                          zh: '你还没有收藏帖子。',
-                          en: 'You have not favorited any posts yet.',
-                        )
-                      : uiText(
-                          context,
-                          zh: '暂无符合条件的收藏内容。',
-                          en: 'No favorites match the current filters.',
-                        ),
+    return AppPageFrame(
+      maxWidth: 720,
+      padding: EdgeInsets.zero,
+      child: RefreshIndicator(
+        onRefresh: _loadFavorites,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 8, bottom: 24),
+          children: <Widget>[
+            _buildHero(context, filtered.length),
+            const SizedBox(height: 10),
+            _buildToolbar(context),
+            const SizedBox(height: 10),
+            _buildChannelBar(),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Text(_error!, style: const TextStyle(color: Colors.red)),
+              ),
+            const SizedBox(height: 4),
+            ...filtered.map(_buildFavoriteCard),
+            if (filtered.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    _favorites.isEmpty
+                        ? uiText(
+                            context,
+                            zh: '你还没有收藏帖子。',
+                            en: 'You have not favorited any posts yet.',
+                          )
+                        : uiText(
+                            context,
+                            zh: '暂无符合条件的收藏内容。',
+                            en: 'No favorites match the current filters.',
+                          ),
+                  ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -111,8 +116,9 @@ class FavoritesPageState extends State<FavoritesPage> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Row(
         children: <Widget>[
@@ -121,18 +127,17 @@ class FavoritesPageState extends State<FavoritesPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  uiText(context, zh: '我的收藏夹', en: 'My favorites'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  uiText(context, zh: '收藏内容', en: 'Saved posts'),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   uiText(
                     context,
                     zh: '总收藏 ${_favorites.length} 条 · 当前显示 $filteredCount 条',
-                    en:
-                        '${_favorites.length} saved · $filteredCount shown',
+                    en: '${_favorites.length} saved · $filteredCount shown',
                   ),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
@@ -250,8 +255,10 @@ class FavoritesPageState extends State<FavoritesPage> {
         PostCard(
           post: post,
           onTap: () async {
-            final PostItem? updated =
-                await openPostDetailPage(context, post: post);
+            final PostItem? updated = await openPostDetailPage(
+              context,
+              post: post,
+            );
             if (!mounted || updated == null) {
               return;
             }
@@ -325,8 +332,8 @@ class FavoritesPageState extends State<FavoritesPage> {
     });
 
     try {
-      final FavoriteActionResult result =
-          await AppRepositories.posts.unfavoritePost(post.id);
+      final FavoriteActionResult result = await AppRepositories.posts
+          .unfavoritePost(post.id);
       if (!mounted) {
         return;
       }
@@ -395,8 +402,8 @@ class FavoritesPageState extends State<FavoritesPage> {
 
   Future<void> _restoreFavorite(PostItem post) async {
     try {
-      final FavoriteActionResult result =
-          await AppRepositories.posts.favoritePost(post.id);
+      final FavoriteActionResult result = await AppRepositories.posts
+          .favoritePost(post.id);
       if (!mounted) {
         return;
       }
@@ -429,8 +436,8 @@ class FavoritesPageState extends State<FavoritesPage> {
 
     try {
       final List<String> channels = await AppRepositories.posts.fetchChannels();
-      final List<PostItem> posts =
-          await AppRepositories.posts.fetchFavoritePosts();
+      final List<PostItem> posts = await AppRepositories.posts
+          .fetchFavoritePosts();
 
       if (!mounted) {
         return;

@@ -83,9 +83,28 @@ PROHIBITED_CONTENT_TERMS: dict[str, tuple[str, ...]] = {
     ),
 }
 
+# Rules that are useful for a campus community even when the text does not
+# contain a traditional prohibited word.  These deliberately stay local and
+# deterministic: moderators can review the exact reason and tune the list
+# without retraining a model.
+MARKETING_RULES: tuple[tuple[str, str, str], ...] = (
+    ("联系方式", r"(?:加我|联系我|私聊|扫码|加v|加vx|加微|微信|威信|微[信芯]|qq|扣扣)", "营销/联系方式"),
+    ("外部链接", r"(?:https?://|www\.|短链|链接[:：])", "营销/外部链接"),
+    ("手机号", r"(?<!\d)1[3-9]\d{9}(?!\d)", "营销/手机号"),
+    ("邮箱", r"[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}", "营销/邮箱"),
+    ("营销话术", r"(?:代理|加盟|兼职|刷单|返利|优惠券|折扣|促销|推广|引流|代购|赚钱|日赚|低价)", "营销/营销话术"),
+)
+
 
 def _normalize_moderation_text(value: Any) -> str:
-    return unicodedata.normalize("NFKC", str(value or "")).casefold()
+    normalized = unicodedata.normalize("NFKC", str(value or "")).casefold()
+    # Remove zero-width and format characters commonly used to split a
+    # prohibited or marketing phrase.  Ordinary punctuation is retained for
+    # the URL/phone/email rules and compacted only by term matching.
+    return "".join(
+        char for char in normalized
+        if unicodedata.category(char) not in {"Cf", "Cc"}
+    )
 
 
 def _moderation_term_matches(normalized_text: str, term: str) -> bool:
@@ -389,15 +408,11 @@ def assess_text_risk(
     reasons: list[str] = []
     spam_re = re.compile(r"(.)\1{8,}", re.DOTALL)
 
-    prohibited_categories = (
-        [
-            category
-            for category, terms in PROHIBITED_CONTENT_TERMS.items()
-            if any(_moderation_term_matches(normalized, term) for term in terms)
-        ]
-        if block_on_match
-        else []
-    )
+    prohibited_categories = [
+        category
+        for category, terms in PROHIBITED_CONTENT_TERMS.items()
+        if any(_moderation_term_matches(normalized, term) for term in terms)
+    ]
     reasons.extend(f"禁止内容类别: {category}" for category in prohibited_categories)
 
     hit_words = [
@@ -408,13 +423,26 @@ def assess_text_risk(
     if hit_words:
         reasons.append(f"命中敏感词: {','.join(hit_words[:3])}")
 
+    marketing_hits = [
+        label
+        for label, pattern, reason in MARKETING_RULES
+        if re.search(pattern, normalized, flags=re.IGNORECASE)
+    ]
+    reasons.extend(
+        f"{reason}: {label}"
+        for label, _, reason in MARKETING_RULES
+        if label in marketing_hits
+    )
+
     if spam_re.search(normalized):
         reasons.append("疑似重复刷屏文本")
     if len(normalized) > 5000:
         reasons.append("文本长度异常")
 
     risk_marked = bool(reasons)
-    high_risk = block_on_match and bool(prohibited_categories or hit_words)
+    high_risk = block_on_match and bool(
+        prohibited_categories or hit_words or marketing_hits
+    )
     return risk_marked, high_risk, reasons
 
 

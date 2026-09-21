@@ -1,31 +1,13 @@
 <view class="page campus-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
 
-  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
-    </view>
-    <view class="nav-title">
-      <view class="nav-name">{{t.campus}}</view>
-      <view class="nav-subtitle">{{t.campus_subtitle}}</view>
-    </view>
-  </view>
+  <social-header fixed profile="{{userInfo}}" />
 
   <scroll-view scroll-y class="campus-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
     <view wx:if="{{errorMessage}}" class="today-empty">
       <view>{{errorMessage}}</view>
       <button bindtap="retryLoad">重新加载</button>
     </view>
-    <view class="ids-card" bindtap="openIdsLogin">
-      <view class="ids-mark"></view>
-      <view class="ids-body">
-        <view class="ids-title">校园系统登录</view>
-        <view class="ids-desc">管理校园网自服务、宿舍水机的登录状态</view>
-      </view>
-      <view class="ids-arrow">›</view>
-    </view>
-
     <view class="today-section">
       <view class="section-head">
         <view>
@@ -50,7 +32,7 @@
       <view class="section-title group-title">{{item.name}}</view>
       <view class="service-grid">
         <view class="service-card" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
-          <view class="service-symbol service-symbol-{{service.kind}}"></view>
+          <view class="ui-icon icon-{{service.kind === 'schedule' ? 'history' : service.kind === 'map' ? 'campus' : service.kind === 'external' ? 'share' : 'list'}}" aria-hidden="true"></view>
           <view class="service-name">{{service.name}}</view>
         </view>
       </view>

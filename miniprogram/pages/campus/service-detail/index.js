@@ -452,7 +452,7 @@ Page({
       wx.navigateBack();
       return;
     }
-    wx.switchTab({ url: '/pages/campus/index' });
+    wx.redirectTo({ url: '/pages/campus/index' });
   },
 
   shiftWeek(event) {

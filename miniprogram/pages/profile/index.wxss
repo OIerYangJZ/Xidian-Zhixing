@@ -17,7 +17,7 @@ page {
   display: flex;
   align-items: center;
   padding-left: 32rpx;
-  padding-right: 260rpx;
+  padding-right: 32rpx;
   padding-bottom: 8px;
   background: var(--app-background);
   border-bottom: 1rpx solid var(--app-divider);
@@ -291,29 +291,6 @@ page {
   background: var(--app-background);
 }
 
-.profile-post-card {
-  /* Inherit standard feed-card style */
-}
-
-.anonymous-feed-avatar {
-  border: none;
-}
-
-.profile-card-images {
-  width: 100%;
-  height: 560rpx;
-  margin-top: 16rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  background: var(--app-divider);
-}
-
-.profile-card-image {
-  width: 100%;
-  height: 100%;
-  background: var(--app-divider);
-}
-
 .profile-loading,
 .profile-empty {
   min-height: 360rpx;
@@ -535,3 +512,21 @@ page {
   font-weight: 600;
   line-height: 40rpx;
 }
+
+/* Approved reference layout. */
+.profile-header { background:var(--app-background); }
+.profile-background { background:var(--app-background); }
+.profile-avatar { border-radius:50%; }
+.profile-avatar-row { padding:24rpx 36rpx 0; }
+.profile-info { padding-left:36rpx; padding-right:36rpx; }
+.profile-name { font-size:44rpx; }
+.profile-bio { font-size:34rpx; line-height:1.5; }
+.profile-pill-button { min-height:44px; display:flex; align-items:center; justify-content:center; border:1px solid var(--app-divider); border-radius:28px; background:transparent; color:var(--app-text-primary); }
+.profile-icon-button { width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:transparent; }
+.profile-tabs { border-bottom:1px solid var(--app-divider); }
+.profile-tab { min-height:52px; font-size:32rpx; }
+.profile-tab-indicator { background:var(--app-primary); height:2px; }
+.follow-avatar { border-radius:50%; }
+.activity-item { margin:0; padding:28rpx 36rpx; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+
+.profile-avatar-wrap { border-radius:50%; }

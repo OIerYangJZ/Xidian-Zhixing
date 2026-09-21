@@ -1,3 +1,8 @@
 .danger {
   color: var(--app-error);
 }
+
+/* Approved reference layout. */
+.page { padding:0 0 calc(24rpx + env(safe-area-inset-bottom)); }
+.post-tools { min-height:44px; padding:8rpx 36rpx; border-bottom:1px solid var(--app-divider); }
+.remove, .danger { min-height:44px; display:flex; align-items:center; }

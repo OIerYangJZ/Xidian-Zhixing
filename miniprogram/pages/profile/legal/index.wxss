@@ -26,3 +26,10 @@
   font-size: 28rpx;
   line-height: 1.65;
 }
+
+/* Approved reference layout. */
+.legal-page { padding:24rpx 36rpx calc(40rpx + env(safe-area-inset-bottom)); }
+.legal-title { font-size:40rpx; line-height:1.4; }
+.section { margin:0; padding:28rpx 0; border:0; border-bottom:1px solid var(--app-divider); border-radius:0; }
+.section-heading { font-size:34rpx; font-weight:700; }
+.section-body { font-size:32rpx; line-height:1.8; color:var(--app-text-primary); }

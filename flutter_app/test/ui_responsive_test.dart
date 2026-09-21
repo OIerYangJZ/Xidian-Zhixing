@@ -108,7 +108,7 @@ void main() {
         await tester.pump();
 
         expect(
-          find.text('Let authentic campus voices be heard'),
+          find.text("Continue to Xidian's official identity provider to sign in."),
           findsOneWidget,
         );
         expect(find.textContaining('Project beta'), findsNothing);
@@ -135,15 +135,10 @@ void main() {
         await tester.pumpWidget(_app(const LoginPage()));
         await tester.pump();
 
-        expect(find.text('西电知行'), findsOneWidget);
+        expect(find.text('欢迎回来'), findsOneWidget);
         expect(find.byKey(const Key('login-submit')), findsOneWidget);
         expect(tester.takeException(), isNull);
 
-        if (width >= 960) {
-          expect(find.text('阅读优先'), findsOneWidget);
-        } else {
-          expect(find.text('阅读优先'), findsNothing);
-        }
       });
     }
 
@@ -204,7 +199,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('desktop-primary-navigation')), findsNothing);
-      expect(find.text('树洞'), findsWidgets);
+      expect(find.text('主页'), findsNothing);
 
       _setViewport(tester, width: 1280, height: 900);
       await tester.pump();
@@ -214,7 +209,6 @@ void main() {
         findsOneWidget,
       );
       expect(find.byKey(const Key('mobile-primary-navigation')), findsNothing);
-      expect(find.byKey(const Key('create-post-fab')), findsOneWidget);
       expect(find.text('公告'), findsNothing);
       expect(tester.takeException(), isNull);
     });

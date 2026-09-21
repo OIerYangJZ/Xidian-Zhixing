@@ -1,88 +1,38 @@
-<view class="drawer-root {{open ? 'open' : ''}}" wx:if="{{open}}">
-  <view class="drawer-mask" bindtap="close"></view>
-  <view class="drawer-panel" catchtap="stop">
+<view class="drawer-root" wx:if="{{open}}">
+  <view class="drawer-mask" bindtap="close" aria-label="{{english ? 'Close navigation' : '关闭导航'}}"></view>
+  <scroll-view class="drawer-panel" scroll-y catchtap="stop">
     <view class="drawer-safe"></view>
-    <view class="drawer-profile" bindtap="goProfile" aria-label="进入个人主页">
+    <button class="drawer-close" bindtap="close" aria-label="{{english ? 'Close navigation' : '关闭导航'}}"><view class="ui-icon icon-close"></view></button>
+    <view class="drawer-profile" bindtap="goProfile" role="button" aria-label="{{english ? 'Profile' : '个人资料'}}">
       <image wx:if="{{profile && profile.avatarUrl}}" class="drawer-avatar" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
       <view wx:else class="drawer-avatar text-avatar">{{avatarInitial}}</view>
       <view class="drawer-user">
-        <view class="drawer-name">{{(profile && (profile.nickname || profile.alias)) || '电台用户'}}</view>
-        <view class="drawer-meta">{{(profile && (profile.college || profile.major || profile.email)) || '学院 / 专业待完善'}}</view>
+        <view class="drawer-name">{{profile.nickname || profile.alias || ''}}</view>
+        <view class="drawer-meta">{{profile.college || profile.major || profile.email || ''}}</view>
       </view>
-      <view class="drawer-chevron"></view>
     </view>
-
+    <view wx:if="{{errorMessage}}" class="drawer-empty-message"><view>{{errorMessage}}</view><button bindtap="retryLoad">{{english ? 'Retry' : '重新加载'}}</button></view>
     <view class="drawer-main">
-      <view wx:if="{{errorMessage}}" class="drawer-empty-message">
-        <view>{{errorMessage}}</view>
-        <button bindtap="retryLoad">重新加载</button>
-      </view>
-      <view class="message-section-head">
-        <view class="drawer-symbol message-symbol"></view>
-        <view class="drawer-row-body">
-          <view class="drawer-row-title">私信</view>
-        </view>
-      </view>
-
-      <view class="drawer-conversations" wx:if="{{conversations.length}}">
-        <view
-          class="drawer-conversation"
-          wx:for="{{conversations}}"
-          wx:key="id"
-          data-index="{{index}}"
-          bindtap="goConversation"
-        >
-          <image wx:if="{{item.avatarUrl}}" class="mini-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-          <view wx:else class="mini-avatar">{{item.avatarInitial}}</view>
-          <view class="mini-body">
-            <view class="mini-head">
-              <view class="mini-name">{{item.name}}</view>
-              <view class="mini-time">{{item.timeText}}</view>
-            </view>
-            <view class="mini-message">{{item.lastMessage}}</view>
-          </view>
-          <view wx:if="{{item.unreadCount}}" class="mini-badge">{{item.unreadCount}}</view>
-        </view>
-      </view>
-      <view wx:else class="drawer-empty-message">暂无私信</view>
+      <button class="drawer-row" bindtap="goCampus"><view class="ui-icon icon-campus"></view><text>{{english ? 'Campus' : '校园'}}</text></button>
+      <button class="drawer-row" bindtap="goProfile"><view class="ui-icon icon-person"></view><text>{{english ? 'Profile' : '个人资料'}}</text></button>
+      <button class="drawer-row" bindtap="goFavorites"><view class="ui-icon icon-bookmark"></view><text>{{english ? 'Saved' : '收藏'}}</text></button>
+      <button class="drawer-row" bindtap="goHistory"><view class="ui-icon icon-history"></view><text>{{english ? 'AI history' : 'AI 历史'}}</text></button>
+      <button class="drawer-row" bindtap="goClubs"><view class="ui-icon icon-group"></view><text>{{english ? 'Clubs' : '社团'}}</text></button>
+      <button class="drawer-row" bindtap="goReports"><view class="ui-icon icon-list"></view><text>{{english ? 'My reports' : '我的举报'}}</text></button>
     </view>
-
+    <view class="drawer-conversations" wx:if="{{conversations.length}}">
+      <button class="drawer-section-link" bindtap="goMessages">{{english ? 'Recent chats' : '最近私信'}}</button>
+      <view class="drawer-conversation" wx:for="{{conversations}}" wx:key="id" data-index="{{index}}" bindtap="goConversation">
+        <image wx:if="{{item.avatarUrl}}" class="mini-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+        <view wx:else class="mini-avatar">{{item.avatarInitial}}</view>
+        <view class="mini-body"><view class="mini-name">{{item.name}}</view><view class="mini-message">{{item.lastMessage}}</view></view>
+        <view wx:if="{{item.unreadCount}}" class="mini-badge">{{item.unreadCount}}</view>
+      </view>
+    </view>
     <view class="drawer-bottom">
-      <view class="drawer-row" bindtap="goClubs">
-        <view class="drawer-symbol clubs-symbol"></view>
-        <view class="drawer-row-body">
-          <view class="drawer-row-title">社团</view>
-          <view class="drawer-row-subtitle">浏览社团与申请入口</view>
-        </view>
-        <view class="drawer-chevron"></view>
-      </view>
-
-      <view class="drawer-row" bindtap="goMailbox">
-        <view class="drawer-symbol mail-symbol"></view>
-        <view class="drawer-row-body">
-          <view class="drawer-row-title">信箱</view>
-          <view class="drawer-row-subtitle">反馈校园服务与平台建议</view>
-        </view>
-        <view class="drawer-chevron"></view>
-      </view>
-
-      <view wx:if="{{profile && profile.isAdmin}}" class="drawer-row" bindtap="goAdmin">
-        <view class="drawer-symbol admin-symbol"></view>
-        <view class="drawer-row-body">
-          <view class="drawer-row-title">管理</view>
-          <view class="drawer-row-subtitle">审核、用户、系统配置</view>
-        </view>
-        <view class="drawer-chevron"></view>
-      </view>
-
-      <view class="drawer-row" bindtap="goSettings">
-        <view class="drawer-symbol settings-symbol"></view>
-        <view class="drawer-row-body">
-          <view class="drawer-row-title">设置</view>
-          <view class="drawer-row-subtitle">账号、隐私、AI 与显示</view>
-        </view>
-        <view class="drawer-chevron"></view>
-      </view>
+      <button class="drawer-row" bindtap="goSettings"><view class="ui-icon icon-settings"></view><text>{{english ? 'Settings and privacy' : '设置与隐私'}}</text></button>
+      <button class="drawer-row" bindtap="goMailbox"><view class="ui-icon icon-mail"></view><text>{{english ? 'Feedback' : '意见反馈'}}</text></button>
+      <button wx:if="{{profile && profile.isAdmin}}" class="drawer-row" bindtap="goAdmin"><view class="ui-icon icon-lock"></view><text>{{english ? 'Administration' : '管理'}}</text></button>
     </view>
-  </view>
+  </scroll-view>
 </view>

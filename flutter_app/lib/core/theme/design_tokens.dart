@@ -7,7 +7,7 @@ class AppBreakpoints {
   AppBreakpoints._();
 
   static const double compact = 600;
-  static const double medium = 960;
+  static const double medium = 801;
   static const double expanded = 1200;
   static const double wide = 1440;
 
@@ -42,15 +42,25 @@ class AppSpacing {
 class AppRadii {
   AppRadii._();
 
-  static const double small = 2;
-  static const double medium = 4;
-  static const double large = 6;
-  static const double hero = 0;
+  static const double small = 8;
+  static const double medium = 12;
+  static const double large = 24;
+  static const double hero = 24;
   static const double pill = 999;
 }
 
 class AppLayout {
   AppLayout._();
+
+  // reference-ai.css: 493 rail + 1357 main + 146 trailing space.
+  // reference-pages.css: 888 feed, left edge 493 + 61 = (1996-888)/2.
+  static const double referenceWidth = 1996;
+  static const double referenceRail = 493;
+  static const double referenceMain = 1357;
+  static const double referenceFeed = 888;
+
+  static double shellScale(double viewportWidth) =>
+      viewportWidth / referenceWidth;
 
   static const double pageMaxWidth = 1440;
   static const double contentMaxWidth = 1280;

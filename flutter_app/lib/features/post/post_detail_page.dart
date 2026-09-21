@@ -75,7 +75,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         alignment: Alignment.topCenter,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxWidth: AppLayout.contentMaxWidth,
+            maxWidth: AppLayout.readingMaxWidth,
           ),
           child: _loading
               ? AppStatePanel(

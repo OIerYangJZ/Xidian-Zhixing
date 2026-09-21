@@ -3,8 +3,9 @@
   <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadProfile">{{errorMessage}} · 点击重试</view>
   <view wx:else>
     <view class="mobile-tile-card">
+      <navigator class="mobile-tile" url="/pages/campus/auth-center/index"><view class="mobile-tile-icon ui-icon icon-campus"></view><view class="mobile-tile-body"><view class="mobile-tile-title">校园系统登录</view><view class="mobile-tile-subtitle">管理已关联的校园服务</view></view><text class="mobile-tile-arrow">›</text></navigator>
       <view wx:if="{{!profile.isLevelOneUser}}" class="mobile-tile" bindtap="requestLevelUpgrade">
-        <text class="mobile-tile-icon">◇</text>
+        <view class="mobile-tile-icon ui-icon icon-person" aria-hidden="true"></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">申请成为一级用户</view>
           <view class="mobile-tile-subtitle">{{levelUpgradeSubtitle}}</view>
@@ -13,15 +14,5 @@
       </view>
     </view>
 
-    <view class="mobile-tile-card danger-card">
-      <view class="mobile-tile" bindtap="requestCancellation">
-        <text class="mobile-tile-icon">⊘</text>
-        <view class="mobile-tile-body">
-          <view class="mobile-tile-title danger-title">注销账号</view>
-          <view class="mobile-tile-subtitle">{{cancellationSubtitle}}</view>
-        </view>
-        <text class="mobile-tile-arrow">›</text>
-      </view>
-    </view>
   </view>
 </view>

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_surfaces.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/l10n/ui_text.dart';
@@ -63,139 +65,142 @@ class _NotificationCenterPageState
           ),
         ],
       ),
-      body: AsyncPageState(
-        loading: state.loading,
-        error: state.error,
-        onRetry: () =>
-            ref.read(notificationsControllerProvider.notifier).loadInitial(),
-        child: state.items.isEmpty
-            ? ListView(
-                children: <Widget>[
-                  const SizedBox(height: 120),
-                  Center(
-                    child: Text(
-                      uiText(
-                        context,
-                        zh: '暂时没有新的通知。',
-                        en: 'No new notifications.',
+      body: AppPageFrame(
+        maxWidth: 720,
+        padding: EdgeInsets.zero,
+        child: AsyncPageState(
+          loading: state.loading,
+          error: state.error,
+          onRetry: () =>
+              ref.read(notificationsControllerProvider.notifier).loadInitial(),
+          child: state.items.isEmpty
+              ? ListView(
+                  children: <Widget>[
+                    const SizedBox(height: 120),
+                    Center(
+                      child: Text(
+                        uiText(
+                          context,
+                          zh: '暂时没有新的通知。',
+                          en: 'No new notifications.',
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              )
-            : RefreshIndicator(
-                onRefresh: () => ref
-                    .read(notificationsControllerProvider.notifier)
-                    .refresh(),
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(12),
-                  itemBuilder: (BuildContext context, int index) {
-                    final NotificationItem item = state.items[index];
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () => _openNotification(item),
-                      child: Ink(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: item.isRead
-                              ? Theme.of(context).colorScheme.surface
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
+                  ],
+                )
+              : RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(notificationsControllerProvider.notifier)
+                      .refresh(),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemBuilder: (BuildContext context, int index) {
+                      final NotificationItem item = state.items[index];
+                      return InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () => _openNotification(item),
+                        child: Ink(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
                             color: item.isRead
-                                ? Theme.of(context).dividerColor
+                                ? Theme.of(context).colorScheme.surface
                                 : Theme.of(
                                     context,
-                                  ).colorScheme.primary.withValues(alpha: 0.16),
-                          ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            CircleAvatar(
-                              backgroundColor: _badgeColor(item.type),
-                              foregroundColor: Colors.white,
-                              child: Icon(_iconForType(item.type), size: 18),
+                                  ).colorScheme.primary.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: item.isRead
+                                  ? Theme.of(context).dividerColor
+                                  : Theme.of(context).colorScheme.primary
+                                        .withValues(alpha: 0.16),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Row(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Text(
-                                          item.displayTitle,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              CircleAvatar(
+                                backgroundColor: _badgeColor(item.type),
+                                foregroundColor: Colors.white,
+                                child: Icon(_iconForType(item.type), size: 18),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: Text(
+                                            item.displayTitle,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      if (!item.isRead)
-                                        const Badge(
-                                          backgroundColor: Color(0xFFDC2626),
-                                          smallSize: 9,
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    item.content,
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withValues(alpha: 0.72),
+                                        if (!item.isRead)
+                                          const Badge(
+                                            backgroundColor: Color(0xFFDC2626),
+                                            smallSize: 9,
+                                          ),
+                                      ],
                                     ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: <Widget>[
-                                      Text(
-                                        _labelForType(context, item.type),
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: SharedColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      item.content,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface
+                                            .withValues(alpha: 0.72),
                                       ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        item.timeText,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface
-                                              .withValues(alpha: 0.58),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: <Widget>[
+                                        Text(
+                                          _labelForType(context, item.type),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: SharedColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          item.timeText,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.58),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              Icons.chevron_right_rounded,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.38),
-                            ),
-                          ],
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.chevron_right_rounded,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withValues(alpha: 0.38),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemCount: state.items.length,
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemCount: state.items.length,
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

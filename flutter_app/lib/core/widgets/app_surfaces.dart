@@ -74,25 +74,10 @@ class AppSealMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = Theme.of(context).colorScheme.primary;
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.025),
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-        border: Border.all(color: color, width: 1.5),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: size * 0.45,
-          fontWeight: FontWeight.w600,
-          height: 1,
-        ),
-      ),
+    return Icon(
+      Icons.bolt,
+      size: size,
+      color: Theme.of(context).colorScheme.onSurface,
     );
   }
 }
@@ -222,8 +207,8 @@ class AppInlineMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color color = switch (tone) {
       AppMessageTone.info => Theme.of(context).colorScheme.primary,
-      AppMessageTone.success => const Color(0xFF2D7255),
-      AppMessageTone.warning => const Color(0xFF986615),
+      AppMessageTone.success => Theme.of(context).colorScheme.onSurface,
+      AppMessageTone.warning => Theme.of(context).colorScheme.onSurfaceVariant,
       AppMessageTone.error => Theme.of(context).colorScheme.error,
     };
     final IconData icon = switch (tone) {

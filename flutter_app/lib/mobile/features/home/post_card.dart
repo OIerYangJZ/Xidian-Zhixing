@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,10 +15,10 @@ import '../widgets/seal_widgets.dart';
 
 /// Instagram 风格帖子卡片
 /// 无边距、无圆角、无阴影、全宽紧贴屏幕
-class PostCard extends ConsumerStatefulWidget {
+class PostCard extends StatefulWidget {
   final PostItem post;
   final VoidCallback onTap;
-  final VoidCallback? onLike;
+  final Future<void> Function()? onLike;
   final bool showTopDivider;
 
   const PostCard({
@@ -31,12 +30,10 @@ class PostCard extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<PostCard> createState() => _PostCardState();
+  State<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends ConsumerState<PostCard> {
-  bool _isLiked = false;
-  int _likeCount = 0;
+class _PostCardState extends State<PostCard> {
   bool _busy = false;
   int _currentImageIndex = 0;
   late PageController _pageController;
@@ -46,8 +43,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   @override
   void initState() {
     super.initState();
-    _isLiked = widget.post.isLiked;
-    _likeCount = widget.post.likeCount;
     _pageController = PageController();
   }
 
@@ -55,8 +50,6 @@ class _PostCardState extends ConsumerState<PostCard> {
   void didUpdateWidget(PostCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.post.id != widget.post.id) {
-      _isLiked = widget.post.isLiked;
-      _likeCount = widget.post.likeCount;
       _currentImageIndex = 0;
       _showDots = false;
       _dotsHideTimer?.cancel();
@@ -81,20 +74,9 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Future<void> _handleLike() async {
     if (_busy) return;
-    setState(() {
-      _busy = true;
-      _isLiked = !_isLiked;
-      _likeCount += _isLiked ? 1 : -1;
-    });
+    setState(() => _busy = true);
     try {
-      widget.onLike?.call();
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _isLiked = !_isLiked;
-          _likeCount += _isLiked ? 1 : -1;
-        });
-      }
+      await widget.onLike?.call();
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -395,8 +377,8 @@ class _PostCardState extends ConsumerState<PostCard> {
           _ActionButton(
             icon: Icons.favorite_border,
             activeIcon: Icons.favorite,
-            count: _likeCount,
-            isActive: _isLiked,
+            count: widget.post.likeCount,
+            isActive: widget.post.isLiked,
             activeColor: colors.primary,
             onTap: _busy ? null : _handleLike,
           ),

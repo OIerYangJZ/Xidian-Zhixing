@@ -157,6 +157,7 @@ Do not place Flutter-specific files such as `pubspec.yaml` at the repository roo
 - Anonymous posts in the mini program should be immediately recognizable: avatar shows “匿”, author name is paired with a small “匿名” badge, and avatar taps must not open a user profile
 - Mini program direct messages should follow the mobile App rule: no request/approval flow; users can directly create/open a conversation only when privacy settings permit and the source post is not anonymous
 - Normal user login and admin login are separate entry points with separate tokens
+- Web 产物目录已标准化：正式发布只使用根目录 `build/web/`，本地隔离验收只使用 `artifacts/ai/local/web/`；不要使用或创建 `flutter_app/build/web/`、`flutter_app/artifacts/`、根目录 `output/`。
 - Do not edit generated `build/web/*` output by hand
 - Do not treat runtime data as source code:
   - `backend/data/treehole.db`
@@ -179,7 +180,7 @@ Do not place Flutter-specific files such as `pubspec.yaml` at the repository roo
    - ICP filing
    - Backup / rollback
    - Logging and alerting
-5. **「电台产品需求梳理」中未实现的功能对接**：
+5. **产品路线中尚未实现的功能对接**：
    - **教师端与教师角色**：支持工号登录分流、教授/副教授身份认证、教师发布招募信息、教师私信及邮箱联系等（目前数据库与前后端均无工号与教师角色设计）。
    - **学院分区发帖限制**：后端及前端在发布到学院分区时应增加权限校验（只有本学院学生可在本学院发帖，非本学院学生只能浏览不能发帖）。
    - **社团管理与以社团名义发帖**：小程序与 App 端需实现社团负责人以社团名义发布招募、活动和日常信息的界面，以及社团分区的管理（如成员管理）。

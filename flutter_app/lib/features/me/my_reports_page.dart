@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../common/feature_section.dart';
 
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
@@ -69,11 +70,7 @@ class _MyReportsPageState extends State<MyReportsPage> {
               ? AppStatePanel(
                   key: const Key('reports-empty-state'),
                   icon: Icons.flag_outlined,
-                  title: uiText(
-                    context,
-                    zh: '暂无举报记录',
-                    en: 'No reports yet',
-                  ),
+                  title: uiText(context, zh: '暂无举报记录', en: 'No reports yet'),
                   message: uiText(
                     context,
                     zh: '你提交的举报与处理结果会出现在这里。',
@@ -85,7 +82,8 @@ class _MyReportsPageState extends State<MyReportsPage> {
                   padding: AppLayout.pagePadding(context),
                   itemBuilder: (BuildContext context, int index) {
                     final ReportItem row = _items[index];
-                    return Card(
+                    return FeatureSection(
+                      padding: EdgeInsets.zero,
                       child: ListTile(
                         title: Text('${row.target} · ${row.reason}'),
                         subtitle: Text(

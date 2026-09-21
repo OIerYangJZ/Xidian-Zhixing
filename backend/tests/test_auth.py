@@ -751,6 +751,41 @@ class TestTextValidation:
         assert risk_marked is True
         assert any("长度" in r for r in reasons)
 
+    @pytest.mark.parametrize(
+        "text",
+        [
+            "加微信领取优惠券",
+            "联系我 13800138000",
+            "https://short.example/abc",
+            "兼职返利，扫码咨询",
+        ],
+    )
+    def test_assess_text_risk_detects_marketing(self, text):
+        """营销联系方式、外链和手机号进入严格审核。"""
+        from server import assess_text_risk
+
+        risk_marked, high_risk, reasons = assess_text_risk(
+            {"sensitiveWords": []},
+            text,
+            block_on_match=True,
+        )
+
+        assert risk_marked is True
+        assert high_risk is True
+        assert any("营销/" in reason for reason in reasons)
+
+    def test_assess_text_risk_removes_zero_width_evasion(self):
+        from server import assess_text_risk
+
+        _, high_risk, reasons = assess_text_risk(
+            {"sensitiveWords": []},
+            "加\u200b微信",
+            block_on_match=True,
+        )
+
+        assert high_risk is True
+        assert any("联系方式" in reason for reason in reasons)
+
 
 class TestTimeUtilities:
     """测试时间工具函数。"""

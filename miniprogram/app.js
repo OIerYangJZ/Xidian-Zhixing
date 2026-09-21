@@ -1,3 +1,4 @@
+import { applyThemeAndLanguage } from './utils/theme_i18n';
 import { clearLegacyCampusAuthSecrets } from './utils/campus_auth';
 
 App({
@@ -13,6 +14,10 @@ App({
     this.globalData.hasToken = Boolean(token);
     clearLegacyCampusAuthSecrets();
     this.initSystemInfo();
+    wx.onThemeChange(() => {
+      const pages = getCurrentPages();
+      if (pages.length) applyThemeAndLanguage(pages[pages.length - 1]);
+    });
   },
 
   initSystemInfo() {

@@ -1,0 +1,40 @@
+<view class="post-row" bindtap="openPost">
+    <view class="post-avatar-wrap">
+    <view wx:if="{{item.isAnonymous}}" class="post-avatar">{{item.authorInitial || '匿'}}</view>
+    <block wx:else>
+      <image wx:if="{{item.authorAvatarUrl}}" class="post-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthor"></image>
+      <view wx:else class="post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthor">{{item.authorInitial}}</view>
+    </block>
+    <view wx:if="{{showFollowDot && item.canShowFollowDot}}" class="post-follow-dot">+</view>
+  </view>
+
+  <view class="post-body">
+    <view class="post-head">
+      <view class="post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
+      <view class="post-time">{{item.timeText}}</view>
+    </view>
+    <view class="post-text" wx:if="{{item.titleSegments && item.titleSegments.length}}">
+      <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+        <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="openTag">{{segment.text}}</text>
+        <text wx:else>{{segment.text}}</text>
+      </block>
+    </view>
+    <view class="post-text" wx:if="{{item.summarySegments && item.summarySegments.length}}">
+      <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+        <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="openTag">{{segment.text}}</text>
+        <text wx:else>{{segment.text}}</text>
+      </block>
+    </view>
+    <swiper class="post-media" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="{{resolvedDisplayMode === 'dark' ? '#f2f2f2' : '#101010'}}">
+      <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
+        <image wx:if="{{previewImages}}" src="{{img}}" mode="aspectFill" class="post-image" data-url="{{img}}" catchtap="openImage"></image>
+        <image wx:else src="{{img}}" mode="aspectFill" class="post-image"></image>
+      </swiper-item>
+    </swiper>
+    <view class="post-actions">
+      <view class="post-action {{item.liked || item.isLiked ? 'active' : ''}}" catchtap="toggleLike" role="button" aria-label="{{item.liked || item.isLiked ? '取消点赞' : '点赞'}}"><view class="ui-icon icon-heart"></view><text>{{item.likeCount || 0}}</text></view>
+      <view class="post-action" catchtap="openPost" role="button" aria-label="查看评论"><view class="ui-icon icon-chat"></view><text>{{item.commentCount || 0}}</text></view>
+      <view class="post-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" catchtap="toggleFavorite" role="button" aria-label="{{item.favorited || item.isFavorited ? '取消收藏' : '收藏'}}"><view class="ui-icon icon-bookmark"></view><text>{{item.favoriteCount || 0}}</text></view>
+    </view>
+  </view>
+</view>

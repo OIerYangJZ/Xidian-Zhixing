@@ -1,13 +1,13 @@
 <view class="page ai-chat-page {{themeClass}}">
-  <view class="config-bar" wx:if="{{configLoading}}">正在读取服务器 AI 状态</view>
+  <view class="config-bar" wx:if="{{configLoading}}">正在读取 AI 状态</view>
   <view class="config-bar" wx:elif="{{configError}}" bindtap="refreshConfigState">{{configError}} ></view>
-  <view class="config-bar" wx:elif="{{!configured}}" bindtap="goSettings">服务器 AI 尚未配置 ></view>
+  <view class="config-bar" wx:elif="{{!configured}}" bindtap="goSettings">AI 尚未启用 ></view>
   <view class="model-bar" wx:else>当前模型：{{currentModel}}</view>
   <scroll-view class="chat-scroll" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
     <view class="chat-list">
       <view wx:for="{{messages}}" wx:for-index="messageIndex" wx:key="id" class="message-item {{item.role === 'user' ? 'message-user' : 'message-assistant'}}">
         <view class="avatar {{item.role === 'user' ? 'avatar-user' : 'avatar-assistant'}}">
-          {{item.role === 'user' ? '我' : '印'}}
+          <text wx:if="{{item.role === 'user'}}">我</text><view wx:else class="ui-icon icon-ai" aria-label="小电"></view>
         </view>
         <view class="message-bubble">
           <text class="message-text">{{item.content}}</text>
@@ -27,7 +27,7 @@
       
       <!-- Loading indicator for assistant -->
       <view class="message-item message-assistant" wx:if="{{isSending}}">
-        <view class="avatar avatar-assistant">印</view>
+        <view class="avatar avatar-assistant"><view class="ui-icon icon-ai" aria-label="小电"></view></view>
         <view class="message-bubble">
           <view class="typing-indicator">
             <view class="dot"></view>

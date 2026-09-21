@@ -133,7 +133,7 @@ Page({
       return;
     }
     if (!this.data.configured) {
-      wx.showToast({ title: '服务器 AI 尚未配置', icon: 'none' });
+      wx.showToast({ title: 'AI 尚未启用', icon: 'none' });
       this.goSettings();
       return;
     }

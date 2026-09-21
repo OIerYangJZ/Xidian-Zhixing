@@ -1,0 +1,10 @@
+@import "../styles/tokens.wxss";
+@import "../styles/icons.wxss";
+.social-tabs { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-height); padding: 0 13px env(safe-area-inset-bottom); display: flex; align-items: center; justify-content: space-around; box-sizing: border-box; border-top: 1px solid var(--app-divider); background: var(--app-background); color: var(--app-text-secondary); z-index: 100; }
+.tab { margin: 0; padding: 0; width: 48px; height: 54px; background: transparent; color: inherit; display: flex; align-items: center; justify-content: center; border-radius: 0; }
+.tab::after { border: 0; }
+.tab.selected { color: var(--app-text-primary); }
+.tab-symbol { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+.tab .ui-icon { width: 27px; height: 27px; }
+.tab.selected .ai-symbol { background: var(--app-primary); color: var(--app-on-primary); border-radius: 7px; }
+.pressed { opacity: .6; }
