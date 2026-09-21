@@ -23,7 +23,9 @@ import '../me/my_posts_page.dart';
 import '../me/my_reports_page.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({super.key, this.onOpenSettings});
+
+  final VoidCallback? onOpenSettings;
 
   @override
   State<ProfilePage> createState() => ProfilePageState();
@@ -392,6 +394,10 @@ class ProfilePageState extends State<ProfilePage> {
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
+                      if (widget.onOpenSettings != null) {
+                        widget.onOpenSettings!();
+                        return;
+                      }
                       Navigator.of(context).push(
                         MaterialPageRoute<void>(
                           builder: (_) => const SettingsPage(),

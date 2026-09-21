@@ -85,47 +85,42 @@ class _DiscussionTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
-    final desktop = AppBreakpoints.isDesktop(context);
-    final scale = AppLayout.shellScale(MediaQuery.sizeOf(context).width);
-    final radius = desktop
+    final bool desktop = AppBreakpoints.isDesktop(context);
+    final double scale = desktop
+        ? AppLayout.shellScale(MediaQuery.sizeOf(context).width)
+        : 1;
+    final BorderRadius radius = desktop
         ? BorderRadius.vertical(top: Radius.circular(34 * scale))
         : BorderRadius.zero;
-    return Column(
-      children: <Widget>[
-        _DiscussionHeader(
-          channel: state.selectedChannel,
-          sort: state.sort,
-          onFilter: onFilter,
-          onSortChanged: onSortChanged,
-        ),
-        Expanded(
-          child: Container(
-            key: const Key('discussion-feed-panel'),
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: radius,
-              border: desktop ? Border.all(color: colors.line) : null,
-            ),
-            child: Column(
-              children: <Widget>[
-                if (desktop)
-                  _DesktopComposer(onRefresh: onRefresh, scale: scale),
-                Expanded(
-                  child: _DiscussionFeedBody(
-                    state: state,
-                    onRefresh: onRefresh,
-                    onLoadMore: onLoadMore,
-                    onRetry: onRetry,
-                    onPostOpen: onPostOpen,
-                    onLike: onLike,
-                    onFavorite: onFavorite,
-                  ),
-                ),
-              ],
+    final Widget panel = Container(
+      key: const Key('discussion-feed-panel'),
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border.all(color: colors.line),
+        borderRadius: radius,
+      ),
+      child: Column(
+        children: <Widget>[
+          if (desktop) _DesktopComposer(onRefresh: onRefresh, scale: scale),
+          Expanded(
+            child: _DiscussionFeedBody(
+              state: state,
+              onRefresh: onRefresh,
+              onLoadMore: onLoadMore,
+              onRetry: onRetry,
+              onPostOpen: onPostOpen,
+              onLike: onLike,
+              onFavorite: onFavorite,
             ),
           ),
-        ),
+        ],
+      ),
+    );
+    return Column(
+      children: <Widget>[
+        if (desktop) SizedBox(height: 100 * scale),
+        Expanded(child: panel),
       ],
     );
   }
@@ -300,98 +295,6 @@ class _DiscussionFeedBody extends StatelessWidget {
               onFavorite: () => onFavorite(post),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _DiscussionHeader extends StatelessWidget {
-  const _DiscussionHeader({
-    required this.channel,
-    required this.sort,
-    required this.onFilter,
-    required this.onSortChanged,
-  });
-
-  final String channel;
-  final PostSort sort;
-  final VoidCallback onFilter;
-  final ValueChanged<PostSort> onSortChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.only(left: AppSpacing.md, right: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(bottom: BorderSide(color: colors.line)),
-      ),
-      child: Row(
-        children: <Widget>[
-          _DiscussionTab(
-            label: uiText(context, zh: '推荐', en: 'Recommended'),
-            selected: sort == PostSort.hot,
-            onTap: () => onSortChanged(PostSort.hot),
-          ),
-          const SizedBox(width: AppSpacing.lg),
-          _DiscussionTab(
-            label: uiText(context, zh: '最新', en: 'Latest'),
-            selected: sort == PostSort.latest,
-            onTap: () => onSortChanged(PostSort.latest),
-          ),
-          const Spacer(),
-          if (channel.isNotEmpty && channel != '全部')
-            Text(
-              localizedChannel(Localizations.localeOf(context), channel),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          IconButton(
-            key: const Key('feed-filter-button'),
-            onPressed: onFilter,
-            tooltip: uiText(context, zh: '选择分区', en: 'Choose channel'),
-            icon: const Icon(Icons.tune_rounded, size: 19),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DiscussionTab extends StatelessWidget {
-  const _DiscussionTab({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 56,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: selected ? colors.primary : Colors.transparent,
-              width: 2,
-            ),
-          ),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-            color: selected ? colors.ink : colors.mutedInk,
-          ),
         ),
       ),
     );

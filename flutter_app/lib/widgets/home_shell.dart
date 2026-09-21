@@ -16,6 +16,7 @@ import '../features/notifications/notification_center_page.dart';
 import '../features/notifications/notifications_controller.dart';
 import '../features/post/create_post_page.dart';
 import '../features/profile/profile_page.dart';
+import '../features/favorites/favorites_page.dart';
 import '../features/profile/settings_page.dart';
 import '../features/search/search_page.dart';
 import 'discussion_home_scaffold.dart';
@@ -33,7 +34,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   final Map<int, Widget> _pageCache = <int, Widget>{};
   final List<GlobalKey<NavigatorState>> _sectionNavigators =
       List<GlobalKey<NavigatorState>>.generate(
-        8,
+        10,
         (_) => GlobalKey<NavigatorState>(),
       );
 
@@ -73,22 +74,27 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       notificationsControllerProvider,
     );
     _pageForIndex(_currentIndex);
-    final Widget content = IndexedStack(
-      index: _currentIndex,
-      sizing: StackFit.expand,
-      children: List<Widget>.generate(
-        8,
-        (index) => TickerMode(
-          enabled: index == _currentIndex,
-          child: NavigatorPopHandler<Object?>(
-            enabled: index == _currentIndex,
-            onPopWithResult: (result) =>
-                _sectionNavigators[index].currentState!.pop(result),
-            child: _pageCache[index] ?? const SizedBox.shrink(),
-          ),
-        ),
-      ),
-    );
+    final Widget content = _currentIndex == 9
+        ? const SettingsPage()
+        : IndexedStack(
+            index: _currentIndex,
+            sizing: StackFit.expand,
+            children: List<Widget>.generate(10, (index) {
+              final Widget page = _pageCache[index] ?? const SizedBox.shrink();
+              final Widget section = index == 9
+                  ? page
+                  : NavigatorPopHandler<Object?>(
+                      enabled: index == _currentIndex,
+                      onPopWithResult: (result) =>
+                          _sectionNavigators[index].currentState!.pop(result),
+                      child: page,
+                    );
+              return TickerMode(
+                enabled: index == _currentIndex,
+                child: section,
+              );
+            }),
+          );
 
     return DiscussionHomeScaffold(
       currentIndex: _currentIndex,
@@ -105,13 +111,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     );
   }
 
-  // Shared section indices: home 0, Campus 1, AI 2, search 3,
-  // notifications 4, chat 5, profile 6, settings 7.
+  // Shared section indices: home 0, Campus 1, AI 2, explore 3,
+  // notifications 4, following 5, chat 6, history 7, profile 8, settings 9.
   // Feature Navigator.push calls remain inside their section's navigator.
   Widget _pageForIndex(int index) {
-    return _pageCache.putIfAbsent(
-      index,
-      () => Navigator(
+    return _pageCache.putIfAbsent(index, () {
+      if (index == 9) return const SettingsPage();
+      return Navigator(
         key: _sectionNavigators[index],
         onGenerateRoute: (_) => MaterialPageRoute<void>(
           builder: (_) => switch (index) {
@@ -120,20 +126,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             2 => const AiPage(),
             3 => const SearchPage(autofocus: true),
             4 => const NotificationCenterPage(),
-            5 => const MessagesPage(),
-            6 => const Scaffold(body: ProfilePage()),
-            7 => const SettingsPage(),
+            5 => const FeedPage(),
+            6 => const MessagesPage(),
+            7 => const FavoritesPage(),
+            8 => Scaffold(body: ProfilePage(onOpenSettings: _openSettings)),
             _ => throw ArgumentError.value(index, 'index'),
           },
         ),
-      ),
-    );
+      );
+    });
   }
 
   void _selectTab(int index) {
     FocusManager.instance.primaryFocus?.unfocus();
     if (index == _currentIndex) {
-      _sectionNavigators[index].currentState!.popUntil(
+      _sectionNavigators[index].currentState?.popUntil(
         (route) => route.isFirst,
       );
       return;
@@ -161,11 +168,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 
   void _openFeedFilters() => FeedPage.openFilterSheet(_sectionContext, ref);
 
-  void _openMessages() => _selectTab(5);
+  void _openMessages() => _selectTab(6);
 
-  void _openSettings() => _selectTab(7);
+  void _openSettings() => _selectTab(9);
 
-  void _openProfile() => _selectTab(6);
+  void _openProfile() => _selectTab(8);
 
   Future<void> _restorePostFromUrlIfNeeded() async {
     if (_postUrlHandled) return;

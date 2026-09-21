@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/auth/auth_store.dart';
-import '../core/l10n/ui_text.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/theme/shared_colors.dart';
-import '../core/widgets/app_surfaces.dart';
-import '../l10n/generated/app_localizations.dart';
 
 class DiscussionHomeScaffold extends StatelessWidget {
   const DiscussionHomeScaffold({
@@ -37,43 +34,42 @@ class DiscussionHomeScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final desktop = AppBreakpoints.isDesktop(context);
-    final width = MediaQuery.sizeOf(context).width;
-    final scale = AppLayout.shellScale(width);
-    final narrowPage = <int>{0, 1, 3, 4, 6}.contains(currentIndex);
-    final colors = EditorialColors.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    final actions = <_ShellAction>[
+    final bool desktop = AppBreakpoints.isDesktop(context);
+    final double width = MediaQuery.sizeOf(context).width;
+    final double scale = AppLayout.shellScale(width);
+    final EditorialColors colors = EditorialColors.of(context);
+    final List<_ShellAction> actions = <_ShellAction>[
       _ShellAction(
-        uiText(context, zh: '主页', en: 'Home'),
+        '主页',
         Icons.home_outlined,
         () => onSelect(0),
         selected: currentIndex == 0,
       ),
+      _ShellAction('探索', Icons.search, onSearch, selected: currentIndex == 3),
       _ShellAction(
-        l10n.search,
-        Icons.search,
-        onSearch,
-        selected: currentIndex == 3,
-      ),
-      _ShellAction(
-        l10n.campus,
+        '校园',
         Icons.account_balance_outlined,
         () => onSelect(1),
         selected: currentIndex == 1,
       ),
       _ShellAction(
-        l10n.notifications,
+        '通知',
         Icons.notifications_none,
         onNotifications,
         badge: notificationUnreadCount,
         selected: currentIndex == 4,
       ),
       _ShellAction(
-        l10n.conversations,
+        '关注',
+        Icons.person_add_alt_1_outlined,
+        () => onSelect(5),
+        selected: currentIndex == 5,
+      ),
+      _ShellAction(
+        '聊天',
         Icons.chat_bubble_outline,
         onMessages,
-        selected: currentIndex == 5,
+        selected: currentIndex == 6,
       ),
       _ShellAction(
         'AI',
@@ -83,16 +79,16 @@ class DiscussionHomeScaffold extends StatelessWidget {
         star: true,
       ),
       _ShellAction(
-        l10n.personalCenter,
-        Icons.person_outline,
-        onProfile,
-        selected: currentIndex == 6,
+        '历史',
+        Icons.bookmark_border,
+        () => onSelect(7),
+        selected: currentIndex == 7,
       ),
       _ShellAction(
-        l10n.settings,
-        Icons.settings_outlined,
-        onSettings,
-        selected: currentIndex == 7,
+        '个人资料',
+        Icons.person_outline,
+        onProfile,
+        selected: currentIndex == 8,
       ),
     ];
 
@@ -102,7 +98,7 @@ class DiscussionHomeScaffold extends StatelessWidget {
       drawer: desktop
           ? null
           : Drawer(
-              width: width * .73,
+              width: width * .78,
               backgroundColor: colors.page,
               surfaceTintColor: Colors.transparent,
               elevation: 0,
@@ -112,6 +108,7 @@ class DiscussionHomeScaffold extends StatelessWidget {
                   actions: actions,
                   onCreate: onCreate,
                   onProfile: onProfile,
+                  onSettings: onSettings,
                   drawer: true,
                 ),
               ),
@@ -122,67 +119,91 @@ class DiscussionHomeScaffold extends StatelessWidget {
               toolbarHeight: 60,
               centerTitle: true,
               leading: Builder(
-                builder: (context) => IconButton(
-                  tooltip: uiText(context, zh: '打开导航', en: 'Open navigation'),
+                builder: (BuildContext context) => IconButton(
+                  tooltip: '打开导航',
                   onPressed: () => Scaffold.of(context).openDrawer(),
                   icon: const _AccountAvatar(size: 29),
                 ),
               ),
-              title: const AppSealMark(size: 30),
+              title: const Icon(Icons.bolt, size: 30),
               actions: <Widget>[
                 if (currentIndex == 0)
-                  IconButton(
-                    tooltip: l10n.filter,
-                    onPressed: onFilter,
-                    icon: const Icon(Icons.tune),
-                  ),
+                  IconButton(onPressed: onFilter, icon: const Icon(Icons.tune)),
               ],
             ),
       body: desktop
           ? Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                Container(
+                SizedBox(
                   key: const Key('desktop-primary-navigation'),
                   width: AppLayout.referenceRail * scale,
-                  padding: EdgeInsets.only(
-                    left: 123 * scale,
-                    right: 24 * scale,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(right: BorderSide(color: colors.line)),
-                  ),
-                  child: _NavigationPanel(
-                    actions: actions,
-                    onCreate: onCreate,
-                    onProfile: onProfile,
-                    scale: scale,
-                  ),
-                ),
-                SizedBox(
-                  width: AppLayout.referenceMain * scale,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
                       border: Border(right: BorderSide(color: colors.line)),
                     ),
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: narrowPage ? 61 * scale : 0,
-                        ),
-                        child: SizedBox(
-                          width:
-                              (narrowPage
-                                  ? AppLayout.referenceFeed
-                                  : AppLayout.referenceMain) *
-                              scale,
-                          child: content,
-                        ),
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 123 * scale),
+                      child: _NavigationPanel(
+                        actions: actions,
+                        onCreate: onCreate,
+                        onProfile: onProfile,
+                        onSettings: onSettings,
+                        scale: scale,
                       ),
                     ),
                   ),
                 ),
+                if (currentIndex == 9)
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 61 * scale),
+                      child: content,
+                    ),
+                  )
+                else
+                  SizedBox(
+                    width: AppLayout.referenceMain * scale,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border(right: BorderSide(color: colors.line)),
+                      ),
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            left:
+                                <int>{
+                                  0,
+                                  1,
+                                  3,
+                                  4,
+                                  5,
+                                  7,
+                                  8,
+                                }.contains(currentIndex)
+                                ? 61 * scale
+                                : 0,
+                          ),
+                          child: SizedBox(
+                            width:
+                                <int>{
+                                  0,
+                                  1,
+                                  3,
+                                  4,
+                                  5,
+                                  7,
+                                  8,
+                                }.contains(currentIndex)
+                                ? AppLayout.referenceFeed * scale
+                                : AppLayout.referenceMain * scale,
+                            child: content,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             )
           : content,
@@ -190,7 +211,6 @@ class DiscussionHomeScaffold extends StatelessWidget {
           ? FloatingActionButton(
               key: const Key('create-post-fab'),
               onPressed: onCreate,
-              tooltip: l10n.createPost,
               shape: const CircleBorder(),
               child: const Icon(Icons.add),
             )
@@ -209,19 +229,17 @@ class DiscussionHomeScaffold extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: <Widget>[
-                      for (final action in <_ShellAction>[
+                      for (final _ShellAction action in <_ShellAction>[
                         actions[0],
                         actions[1],
-                        actions[5],
+                        actions[6],
                         actions[3],
-                        actions[4],
+                        actions[5],
                       ])
                         IconButton(
-                          tooltip: action.label,
-                          isSelected: action.selected,
                           onPressed: action.onTap,
+                          tooltip: action.label,
                           icon: _ActionIcon(action: action, size: 27),
-                          selectedIcon: _ActionIcon(action: action, size: 27),
                         ),
                     ],
                   ),
@@ -237,6 +255,7 @@ class _NavigationPanel extends StatelessWidget {
     required this.actions,
     required this.onCreate,
     required this.onProfile,
+    required this.onSettings,
     this.drawer = false,
     this.scale = 1,
   });
@@ -244,6 +263,7 @@ class _NavigationPanel extends StatelessWidget {
   final List<_ShellAction> actions;
   final VoidCallback onCreate;
   final VoidCallback onProfile;
+  final VoidCallback onSettings;
   final bool drawer;
   final double scale;
 
@@ -254,172 +274,194 @@ class _NavigationPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final double navScale = drawer ? 1 : scale;
+    final Color ink = Theme.of(context).colorScheme.onSurface;
     return Padding(
       padding: drawer
           ? const EdgeInsets.fromLTRB(29, 21, 29, 30)
           : EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          if (drawer)
-            _DrawerAccount(onProfile: () => _activate(context, onProfile))
-          else
-            Align(
+          SizedBox(
+            height: 83 * navScale,
+            child: Align(
               alignment: Alignment.centerLeft,
               child: IconButton(
-                tooltip: actions.first.label,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 onPressed: () => _activate(context, actions.first.onTap),
-                icon: AppSealMark(
-                  size: drawer ? 34 : (40 * scale).clamp(28, 40),
-                ),
+                icon: Icon(Icons.bolt, size: 41 * navScale, color: ink),
               ),
             ),
+          ),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.zero,
+              padding: EdgeInsets.only(top: drawer ? 0 : 5 * navScale),
               children: <Widget>[
-                for (final action in actions) ...<Widget>[
-                  if (drawer && action.icon == Icons.settings_outlined)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 28, bottom: 20),
-                      child: Divider(),
-                    ),
-                  Semantics(
-                    selected: action.selected,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: drawer ? 0 : 12 * scale,
-                      ),
-                      minTileHeight: drawer
-                          ? 49
-                          : (77.4 * scale).clamp(48, 77.4),
-                      horizontalTitleGap: drawer ? 22 : 24 * scale,
-                      leading: _ActionIcon(
-                        action: action,
-                        size: drawer ? 25 : (36 * scale).clamp(23, 36),
-                      ),
-                      title: Text(
-                        action.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: drawer
-                              ? (action.icon == Icons.settings_outlined
-                                    ? 17
-                                    : 23)
-                              : (30 * scale).clamp(17, 30),
-                          fontWeight: drawer || action.selected
-                              ? FontWeight.w700
-                              : FontWeight.w400,
-                        ),
-                      ),
-                      onTap: () => _activate(context, action.onTap),
+                for (final _ShellAction action in actions)
+                  _ReferenceNavItem(
+                    action: action,
+                    scale: navScale,
+                    onTap: () => _activate(context, action.onTap),
+                  ),
+                SizedBox(height: 10 * navScale),
+                SizedBox(
+                  width: 322 * navScale,
+                  height: 80 * navScale,
+                  child: FilledButton(
+                    key: const Key('create-post-top-action'),
+                    onPressed: () => _activate(context, onCreate),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ink,
+                      foregroundColor: Theme.of(context).colorScheme.surface,
                       shape: const StadiumBorder(),
+                      padding: EdgeInsets.zero,
                     ),
+                    child: Text(
+                      '发布',
+                      style: TextStyle(
+                        fontSize: 27 * navScale,
+                        fontWeight: FontWeight.w700,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                ),
+                if (drawer) ...<Widget>[
+                  const SizedBox(height: 28),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.settings_outlined),
+                    title: const Text('设置'),
+                    onTap: () => _activate(context, onSettings),
                   ),
                 ],
-                const SizedBox(height: 8),
-                FilledButton(
-                  key: const Key('create-post-top-action'),
-                  onPressed: () => _activate(context, onCreate),
-                  style: FilledButton.styleFrom(
-                    shape: const StadiumBorder(),
-                    minimumSize: Size(
-                      48,
-                      drawer ? 48 : (80 * scale).clamp(48, 80),
-                    ),
-                  ),
-                  child: Text(l10n.createPost),
-                ),
               ],
             ),
           ),
           if (!drawer)
             ListenableBuilder(
               listenable: AuthStore.instance,
-              builder: (context, _) {
-                final nickname =
+              builder: (BuildContext context, Widget? child) {
+                final String nickname =
                     AuthStore.instance.currentUser?.nickname.trim() ?? '';
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const _AccountAvatar(size: 38),
-                  title: Text(
-                    nickname.isEmpty ? l10n.personalCenter : nickname,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                return Padding(
+                  padding: EdgeInsets.only(
+                    left: 18 * navScale,
+                    bottom: 33 * navScale,
                   ),
-                  onTap: () => _activate(context, onProfile),
+                  child: InkWell(
+                    onTap: onProfile,
+                    child: SizedBox(
+                      width: 321 * navScale,
+                      child: Row(
+                        children: <Widget>[
+                          const _AccountAvatar(size: 61),
+                          SizedBox(width: 17 * navScale),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  nickname.isEmpty ? '个人资料' : nickname,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 24 * navScale,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.3,
+                                  ),
+                                ),
+                                Text(
+                                  '@${nickname.isEmpty ? 'Xaverll' : nickname}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 24 * navScale,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: onSettings,
+                            child: Text(
+                              '···',
+                              style: TextStyle(
+                                fontSize: 26 * navScale,
+                                fontWeight: FontWeight.w700,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 );
               },
             ),
-          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-class _DrawerAccount extends StatelessWidget {
-  const _DrawerAccount({required this.onProfile});
-  final VoidCallback onProfile;
+class _ReferenceNavItem extends StatelessWidget {
+  const _ReferenceNavItem({
+    required this.action,
+    required this.scale,
+    required this.onTap,
+  });
+  final _ShellAction action;
+  final double scale;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: AuthStore.instance,
-    builder: (context, _) {
-      final user = AuthStore.instance.currentUser;
-      final nickname = user?.nickname.trim() ?? '';
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                InkWell(
-                  onTap: onProfile,
-                  child: const _AccountAvatar(size: 38),
-                ),
-                const Spacer(),
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-            const SizedBox(height: 9),
-            InkWell(
-              onTap: onProfile,
-              child: Text(
-                nickname.isEmpty
-                    ? AppLocalizations.of(context)!.personalCenter
-                    : nickname,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
+  Widget build(BuildContext context) {
+    final Color ink = Theme.of(context).colorScheme.onSurface;
+    return SizedBox(
+      height: 77.4 * scale,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(42 * scale),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 19 * scale),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              SizedBox(
+                width: 39 * scale,
+                height: 39 * scale,
+                child: Center(
+                  child: _ActionIcon(action: action, size: 36 * scale),
                 ),
               ),
-            ),
-            if (user != null) ...<Widget>[
-              const SizedBox(height: 13),
+              SizedBox(width: 32 * scale),
               Text(
-                uiText(
-                  context,
-                  zh: '${user.followingCount} 关注  ${user.followerCount} 关注者',
-                  en: '${user.followingCount} Following  ${user.followerCount} Followers',
+                action.label,
+                style: TextStyle(
+                  fontSize: 30 * scale,
+                  height: 1,
+                  fontWeight: action.selected
+                      ? FontWeight.w700
+                      : FontWeight.w400,
+                  color: ink,
                 ),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(fontSize: 16),
               ),
             ],
-          ],
+          ),
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
 }
 
 class _AccountAvatar extends StatelessWidget {
@@ -429,22 +471,20 @@ class _AccountAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: AuthStore.instance,
-    builder: (context, _) {
+    builder: (BuildContext context, Widget? child) {
       final user = AuthStore.instance.currentUser;
-      final nickname = user?.nickname.trim() ?? '';
-      final url = user?.avatarUrl.trim() ?? '';
+      final String nickname = user?.nickname.trim() ?? '';
+      final String url = user?.avatarUrl.trim() ?? '';
       return CircleAvatar(
         radius: size / 2,
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         backgroundImage: url.isEmpty ? null : NetworkImage(url),
         child: url.isNotEmpty
             ? null
             : Text(
-                nickname.isEmpty
-                    ? uiText(context, zh: '匿', en: 'A')
-                    : nickname.characters.first,
-                style: TextStyle(fontSize: size * .45),
+                nickname.isEmpty ? '匿' : nickname.characters.first,
+                style: TextStyle(fontSize: size * .42),
               ),
       );
     },
@@ -475,24 +515,48 @@ class _ActionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Badge(
-      isLabelVisible: action.badge > 0,
-      backgroundColor: colors.onSurface,
-      textColor: colors.surface,
-      label: Text(action.badge > 99 ? '99+' : '${action.badge}'),
-      child: action.star
-          ? CustomPaint(
-              size: Size.square(size),
-              painter: _StarPainter(colors.onSurface),
-            )
-          : Icon(
-              action.selected && action.icon == Icons.home_outlined
-                  ? Icons.home
-                  : action.icon,
-              size: size,
-              color: colors.onSurface,
+    final Color color = Theme.of(context).colorScheme.onSurface;
+    final Widget icon = action.star
+        ? CustomPaint(size: Size.square(size), painter: _StarPainter(color))
+        : Icon(
+            action.selected && action.icon == Icons.home_outlined
+                ? Icons.home
+                : action.icon,
+            size: size,
+            color: color,
+          );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: <Widget>[
+        icon,
+        if (action.badge > 0)
+          Positioned(
+            right: -6,
+            top: -9,
+            child: Container(
+              width: 26,
+              height: 26,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFF91880),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.surface,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                action.badge > 99 ? '99+' : '${action.badge}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontFamily: 'Arial',
+                  fontSize: 18,
+                  height: 1,
+                ),
+              ),
             ),
+          ),
+      ],
     );
   }
 }
@@ -500,10 +564,9 @@ class _ActionIcon extends StatelessWidget {
 class _StarPainter extends CustomPainter {
   const _StarPainter(this.color);
   final Color color;
-
   @override
   void paint(Canvas canvas, Size size) {
-    final path = Path()
+    final Path path = Path()
       ..moveTo(12, 2)
       ..lineTo(15, 9)
       ..lineTo(22, 12)
