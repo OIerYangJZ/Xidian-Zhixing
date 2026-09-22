@@ -319,7 +319,7 @@ class _NavigationPanel extends StatelessWidget {
                       padding: EdgeInsets.zero,
                     ),
                     child: Text(
-                      '发布',
+                      '发帖',
                       style: TextStyle(
                         fontSize: 27 * navScale,
                         fontWeight: FontWeight.w700,

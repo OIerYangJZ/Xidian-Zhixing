@@ -114,8 +114,7 @@ class _SettingsNavigation extends StatelessWidget {
               item: items[index],
               scale: scale,
               locale: locale,
-              // The reference settings index has no selected fill.
-              selected: false,
+              selected: selected == index,
               onTap: () => onSelected(index),
             ),
         ],

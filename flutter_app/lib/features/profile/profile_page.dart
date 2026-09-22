@@ -7,6 +7,7 @@ import '../../core/l10n/ui_text.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/theme/design_tokens.dart';
+import '../../core/theme/shared_colors.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
@@ -92,6 +93,10 @@ class ProfilePageState extends State<ProfilePage> {
       );
     }
     final UserProfile profile = loadedProfile;
+
+    if (AppBreakpoints.isDesktop(context)) {
+      return _buildReferenceDesktopProfile(context, profile);
+    }
 
     return Center(
       child: ConstrainedBox(
@@ -483,6 +488,254 @@ class ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildReferenceDesktopProfile(
+    BuildContext context,
+    UserProfile profile,
+  ) {
+    final double scale = AppLayout.shellScale(MediaQuery.sizeOf(context).width);
+    final EditorialColors colors = EditorialColors.of(context);
+    final String nickname = profile.nickname.trim().isEmpty
+        ? 'Zavier'
+        : profile.nickname.trim();
+    final String handle = nickname.toLowerCase().replaceAll(
+      RegExp(r'\s+'),
+      '_',
+    );
+    final String bio = profile.bio.trim().isEmpty
+        ? 'Still alive'
+        : profile.bio.trim();
+    final String avatarUrl = profile.avatarUrl.trim();
+
+    Widget avatar(double size) {
+      return CircleAvatar(
+        radius: size / 2,
+        backgroundColor: colors.primarySubtle,
+        backgroundImage: avatarUrl.isEmpty ? null : NetworkImage(avatarUrl),
+        child: avatarUrl.isEmpty
+            ? Text(
+                nickname.characters.first,
+                style: TextStyle(fontSize: size * .38, color: colors.ink),
+              )
+            : null,
+      );
+    }
+
+    Text small(String value, {FontWeight weight = FontWeight.w400}) => Text(
+      value,
+      style: TextStyle(
+        fontSize: 18 * scale,
+        height: 1.25,
+        fontWeight: weight,
+        color: colors.ink,
+      ),
+    );
+
+    return Stack(
+      children: <Widget>[
+        ListView(
+          padding: EdgeInsets.only(top: 100 * scale),
+          children: <Widget>[
+            Container(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border.all(color: colors.line),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(34 * scale),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      33 * scale,
+                      31 * scale,
+                      33 * scale,
+                      18 * scale,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 23 * scale),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Text(
+                                      nickname,
+                                      style: TextStyle(
+                                        fontSize: 24 * scale,
+                                        height: 1.25,
+                                        fontWeight: FontWeight.w700,
+                                        color: colors.ink,
+                                      ),
+                                    ),
+                                    SizedBox(height: 7 * scale),
+                                    small(handle),
+                                    SizedBox(height: 54 * scale),
+                                    small(bio),
+                                    SizedBox(height: 39 * scale),
+                                    Row(
+                                      children: <Widget>[
+                                        for (final String tag in <String>[
+                                          'workout',
+                                          'beijing',
+                                          '+',
+                                        ])
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                              right: 8 * scale,
+                                            ),
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 14 * scale,
+                                                vertical: 7 * scale,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: colors.primarySubtle,
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                      18 * scale,
+                                                    ),
+                                              ),
+                                              child: small(tag),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 46 * scale),
+                                    small('🌐 7 个关注者'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            avatar(112 * scale),
+                          ],
+                        ),
+                        SizedBox(height: 43 * scale),
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () =>
+                                    setState(() => _editing = !_editing),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: Size.fromHeight(52 * scale),
+                                  side: BorderSide(color: colors.line),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      14 * scale,
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: Text(
+                                  '编辑资料',
+                                  style: TextStyle(
+                                    fontSize: 18 * scale,
+                                    fontWeight: FontWeight.w700,
+                                    color: colors.ink,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 12 * scale),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {},
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: Size.fromHeight(52 * scale),
+                                  side: BorderSide(color: colors.line),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      14 * scale,
+                                    ),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: Text(
+                                  '查看数据',
+                                  style: TextStyle(
+                                    fontSize: 18 * scale,
+                                    fontWeight: FontWeight.w700,
+                                    color: colors.ink,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    height: 54 * scale,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: <Widget>[
+                        for (final String label in <String>[
+                          '帖子',
+                          '回复',
+                          '媒体',
+                          '转发',
+                        ])
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 18 * scale,
+                              fontWeight: label == '帖子'
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                              color: colors.ink,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  _ReferenceProfileComposer(scale: scale, colors: colors),
+                  _ReferenceProfilePost(
+                    scale: scale,
+                    colors: colors,
+                    avatar: avatar,
+                    author: handle,
+                    text: '你好',
+                    date: '09/10/26',
+                  ),
+                  _ReferenceProfilePost(
+                    scale: scale,
+                    colors: colors,
+                    avatar: avatar,
+                    author: handle,
+                    text: '欢迎来到我的主页',
+                    date: '09/04/26',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        Positioned(
+          top: 8 * scale,
+          right: 8 * scale,
+          child: PopupMenuButton<String>(
+            tooltip: '更多',
+            icon: Icon(Icons.more_horiz, size: 28 * scale),
+            onSelected: (String value) {
+              if (value == 'settings') widget.onOpenSettings?.call();
+            },
+            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+              const PopupMenuItem<String>(value: 'settings', child: Text('设置')),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -972,5 +1225,165 @@ class ProfilePageState extends State<ProfilePage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _ReferenceProfileComposer extends StatelessWidget {
+  const _ReferenceProfileComposer({required this.scale, required this.colors});
+
+  final double scale;
+  final EditorialColors colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 105 * scale,
+      padding: EdgeInsets.symmetric(horizontal: 33 * scale),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: colors.line),
+          bottom: BorderSide(color: colors.line),
+        ),
+      ),
+      child: Row(
+        children: <Widget>[
+          CircleAvatar(
+            radius: 25 * scale,
+            backgroundColor: colors.primarySubtle,
+            child: Text('匿', style: TextStyle(fontSize: 20 * scale)),
+          ),
+          SizedBox(width: 17 * scale),
+          Expanded(
+            child: Text(
+              '有什么新鲜事？',
+              style: TextStyle(fontSize: 22 * scale, color: colors.mutedInk),
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () {},
+            style: OutlinedButton.styleFrom(
+              minimumSize: Size(92 * scale, 54 * scale),
+              padding: EdgeInsets.zero,
+              side: BorderSide(color: colors.line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15 * scale),
+              ),
+            ),
+            child: Text(
+              '发帖',
+              style: TextStyle(
+                fontSize: 21 * scale,
+                fontWeight: FontWeight.w700,
+                color: colors.ink,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReferenceProfilePost extends StatelessWidget {
+  const _ReferenceProfilePost({
+    required this.scale,
+    required this.colors,
+    required this.avatar,
+    required this.author,
+    required this.text,
+    required this.date,
+  });
+
+  final double scale;
+  final EditorialColors colors;
+  final Widget Function(double size) avatar;
+  final String author;
+  final String text;
+  final String date;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        33 * scale,
+        22 * scale,
+        33 * scale,
+        23 * scale,
+      ),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: colors.line)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          avatar(50 * scale),
+          SizedBox(width: 17 * scale),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Text(
+                      author,
+                      style: TextStyle(
+                        fontSize: 22 * scale,
+                        fontWeight: FontWeight.w700,
+                        color: colors.ink,
+                      ),
+                    ),
+                    SizedBox(width: 8 * scale),
+                    Text(
+                      date,
+                      style: TextStyle(
+                        fontSize: 18 * scale,
+                        color: colors.mutedInk,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      '···',
+                      style: TextStyle(
+                        fontFamily: 'Arial',
+                        fontSize: 22 * scale,
+                        color: colors.mutedInk,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4 * scale),
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 22 * scale,
+                    height: 1.32,
+                    color: colors.ink,
+                  ),
+                ),
+                SizedBox(height: 20 * scale),
+                Row(
+                  children: <Widget>[
+                    for (final IconData icon in <IconData>[
+                      Icons.favorite_border,
+                      Icons.chat_bubble_outline,
+                      Icons.repeat,
+                      Icons.send_outlined,
+                    ])
+                      Padding(
+                        padding: EdgeInsets.only(right: 30 * scale),
+                        child: Icon(
+                          icon,
+                          size: 28 * scale,
+                          color: colors.mutedInk,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
