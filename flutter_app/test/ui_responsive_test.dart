@@ -108,7 +108,9 @@ void main() {
         await tester.pump();
 
         expect(
-          find.text("Continue to Xidian's official identity provider to sign in."),
+          find.text(
+            "Continue to Xidian's official identity provider to sign in.",
+          ),
           findsOneWidget,
         );
         expect(find.textContaining('Project beta'), findsNothing);
@@ -119,8 +121,9 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text('Appearance and preferences'), findsOneWidget);
-        expect(find.text('Rules and privacy'), findsOneWidget);
+        expect(find.text('Account and security'), findsOneWidget);
+        expect(find.text('Privacy'), findsOneWidget);
+        expect(find.text('Appearance'), findsOneWidget);
         expect(find.text('Access information'), findsNothing);
         expect(find.textContaining('内测'), findsNothing);
         expect(find.textContaining('非官方'), findsNothing);
@@ -138,7 +141,6 @@ void main() {
         expect(find.text('欢迎回来'), findsOneWidget);
         expect(find.byKey(const Key('login-submit')), findsOneWidget);
         expect(tester.takeException(), isNull);
-
       });
     }
 

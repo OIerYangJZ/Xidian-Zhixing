@@ -15,6 +15,7 @@ import '../post/post_detail_page.dart';
 
 const String _indexKey = 'xiaodian_conversation_index';
 const String _conversationKeyPrefix = 'xiaodian_conversation_';
+const List<String> _aiFontFallback = <String>['STZhongsong', '华文中宋', 'serif'];
 
 class AiPage extends ConsumerStatefulWidget {
   const AiPage({super.key});
@@ -196,7 +197,11 @@ class _AiPageState extends ConsumerState<AiPage> {
                     label: Text('历史'),
                     style: TextButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      textStyle: TextStyle(fontSize: mobile ? 14 : 22 * scale),
+                      textStyle: TextStyle(
+                        fontFamily: 'Arial',
+                        fontFamilyFallback: _aiFontFallback,
+                        fontSize: mobile ? 14 : 22 * scale,
+                      ),
                       padding: EdgeInsets.zero,
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -212,7 +217,11 @@ class _AiPageState extends ConsumerState<AiPage> {
                     label: Text('私密'),
                     style: TextButton.styleFrom(
                       foregroundColor: Theme.of(context).colorScheme.onSurface,
-                      textStyle: TextStyle(fontSize: mobile ? 14 : 22 * scale),
+                      textStyle: TextStyle(
+                        fontFamily: 'Arial',
+                        fontFamilyFallback: _aiFontFallback,
+                        fontSize: mobile ? 14 : 22 * scale,
+                      ),
                       padding: EdgeInsets.zero,
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -593,7 +602,8 @@ class _AiShortcuts extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 foregroundColor: ink,
                 textStyle: TextStyle(
-                  fontFamily: 'Times New Roman',
+                  fontFamily: 'Arial',
+                  fontFamilyFallback: _aiFontFallback,
                   fontSize: 21 * scale,
                   fontWeight: FontWeight.w700,
                 ),
@@ -650,6 +660,7 @@ class _AiComposer extends StatelessWidget {
       ),
       style: TextStyle(
         fontFamily: 'Arial',
+        fontFamilyFallback: _aiFontFallback,
         fontSize: mobile ? 16 : 23 * scale,
         color: theme.colorScheme.onSurface,
         height: 1.3,
@@ -723,6 +734,7 @@ class _AiComposer extends StatelessWidget {
                     '快速',
                     style: TextStyle(
                       fontFamily: 'Arial',
+                      fontFamilyFallback: _aiFontFallback,
                       fontSize: 22 * scale,
                       fontWeight: FontWeight.w700,
                     ),
