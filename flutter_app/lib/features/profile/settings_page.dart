@@ -19,16 +19,6 @@ class _SettingsPageState extends State<SettingsPage> {
     _SettingsItem('隐私', 'Privacy'),
     _SettingsItem('通知设置', 'Notification settings'),
     _SettingsItem('界面外观', 'Appearance'),
-    _SettingsItem('AI 设置', 'AI settings'),
-    _SettingsItem('关于与支持', 'About and support'),
-  ];
-
-  static const List<_SettingsItem> _contentItems = <_SettingsItem>[
-    _SettingsItem('账号与安全', 'Account and security'),
-    _SettingsItem('隐私', 'Privacy'),
-    _SettingsItem('通知设置', 'Notification settings'),
-    _SettingsItem('AI 设置', 'AI settings'),
-    _SettingsItem('界面外观', 'Appearance'),
     _SettingsItem('关于与支持', 'About and support'),
   ];
 
@@ -69,7 +59,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 Expanded(
-                  child: _SettingsContent(scale: scale, locale: locale),
+                  child: _SettingsContent(
+                    selected: _selected,
+                    scale: scale,
+                    locale: locale,
+                  ),
                 ),
               ],
             )
@@ -192,13 +186,19 @@ class _SettingsNavigationRow extends StatelessWidget {
 }
 
 class _SettingsContent extends StatelessWidget {
-  const _SettingsContent({required this.scale, required this.locale});
+  const _SettingsContent({
+    required this.selected,
+    required this.scale,
+    required this.locale,
+  });
 
+  final int selected;
   final double scale;
   final Locale locale;
 
   @override
   Widget build(BuildContext context) {
+    final List<_SettingsOption> options = _optionsFor(context);
     return SingleChildScrollView(
       padding: EdgeInsets.fromLTRB(
         33 * scale,
@@ -208,50 +208,77 @@ class _SettingsContent extends StatelessWidget {
       ),
       child: Column(
         children: <Widget>[
-          for (final _SettingsItem item in _SettingsPageState._contentItems)
-            _SettingsRow(
-              title: item.titleFor(locale),
-              scale: scale,
-              onTap: () => _openSettingsSection(context, item),
-            ),
-          _LanguageRow(scale: scale, locale: locale),
-          _CampusLoginRow(scale: scale, locale: locale),
+          for (final _SettingsOption option in options)
+            _SettingsOptionRow(option: option, scale: scale, locale: locale),
+          if (selected == 3) _LanguageRow(scale: scale, locale: locale),
         ],
       ),
     );
   }
 
-  void _openSettingsSection(BuildContext context, _SettingsItem item) {
-    final String title = item.titleFor(locale);
-    if (title == '账号与安全' || title == 'Account and security') {
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => const _SettingsDetailPage(
-            titleZh: '账号与安全',
-            titleEn: 'Account and security',
+  List<_SettingsOption> _optionsFor(BuildContext context) {
+    switch (selected) {
+      case 0:
+        return <_SettingsOption>[
+          _SettingsOption(
+            '校园系统登录',
+            'Campus system sign-in',
+            icon: Icons.key_outlined,
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const CampusAuthCenterPage(),
+              ),
+            ),
           ),
-        ),
-      );
+          _SettingsOption('账号认证', 'Account verification'),
+          _SettingsOption('注销账号', 'Delete account'),
+        ];
+      case 1:
+        return <_SettingsOption>[
+          _SettingsOption('允许接收私信', 'Allow direct messages'),
+          _SettingsOption('公开关注列表', 'Public following list'),
+          _SettingsOption('显示在线状态', 'Show online status'),
+          _SettingsOption('已屏蔽用户', 'Blocked profiles'),
+        ];
+      case 2:
+        return <_SettingsOption>[
+          _SettingsOption('回复与评论', 'Replies and comments'),
+          _SettingsOption('提及我的', 'Mentions'),
+          _SettingsOption('点赞', 'Likes'),
+          _SettingsOption('新增关注', 'New followers'),
+          _SettingsOption('私信', 'Direct messages'),
+        ];
+      case 3:
+        return <_SettingsOption>[_SettingsOption('深色模式', 'Dark mode')];
+      case 4:
+        return <_SettingsOption>[
+          _SettingsOption('用户协议', 'Terms of Service'),
+          _SettingsOption('隐私政策', 'Privacy Policy'),
+          _SettingsOption('社区规范', 'Community Guidelines'),
+          _SettingsOption('举报说明', 'Reporting Guidelines'),
+        ];
+      default:
+        return <_SettingsOption>[];
     }
   }
 }
 
-class _SettingsRow extends StatelessWidget {
-  const _SettingsRow({
-    required this.title,
+class _SettingsOptionRow extends StatelessWidget {
+  const _SettingsOptionRow({
+    required this.option,
     required this.scale,
-    required this.onTap,
+    required this.locale,
   });
 
-  final String title;
+  final _SettingsOption option;
   final double scale;
-  final VoidCallback onTap;
+  final Locale locale;
 
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
     return InkWell(
-      onTap: onTap,
+      onTap: option.onTap,
       child: Container(
         width: double.infinity,
         constraints: BoxConstraints(minHeight: 68 * scale),
@@ -261,9 +288,13 @@ class _SettingsRow extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
+            if (option.icon != null) ...<Widget>[
+              Icon(option.icon, size: 25 * scale, color: colors.ink),
+              SizedBox(width: 18 * scale),
+            ],
             Expanded(
               child: Text(
-                title,
+                option.titleFor(locale),
                 style: TextStyle(
                   fontSize: 22 * scale,
                   height: 1.32,
@@ -316,53 +347,6 @@ class _LanguageRow extends StatelessWidget {
           ),
           _LanguageSelect(locale: locale, scale: scale),
         ],
-      ),
-    );
-  }
-}
-
-class _CampusLoginRow extends StatelessWidget {
-  const _CampusLoginRow({required this.scale, required this.locale});
-
-  final double scale;
-  final Locale locale;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return InkWell(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => const CampusAuthCenterPage()),
-      ),
-      child: Container(
-        width: double.infinity,
-        constraints: BoxConstraints(minHeight: 68 * scale),
-        padding: EdgeInsets.symmetric(vertical: 16 * scale),
-        child: Row(
-          children: <Widget>[
-            Icon(Icons.key_outlined, size: 25 * scale, color: colors.ink),
-            SizedBox(width: 18 * scale),
-            Expanded(
-              child: Text(
-                uiText(context, zh: '校园系统登录', en: 'Campus system sign-in'),
-                style: TextStyle(
-                  fontSize: 22 * scale,
-                  height: 1.32,
-                  color: colors.ink,
-                ),
-              ),
-            ),
-            Text(
-              '›',
-              style: TextStyle(
-                fontFamily: 'Arial',
-                fontSize: 32 * scale,
-                height: 0.9,
-                color: colors.mutedInk,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -495,72 +479,15 @@ class _MobileSettingsRow extends StatelessWidget {
   }
 }
 
-class _SettingsDetailPage extends StatelessWidget {
-  const _SettingsDetailPage({required this.titleZh, required this.titleEn});
+class _SettingsOption {
+  const _SettingsOption(this.zh, this.en, {this.icon, this.onTap});
 
-  final String titleZh;
-  final String titleEn;
+  final String zh;
+  final String en;
+  final IconData? icon;
+  final VoidCallback? onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final bool desktop = AppBreakpoints.isDesktop(context);
-    final double scale = desktop
-        ? AppLayout.shellScale(MediaQuery.sizeOf(context).width)
-        : 1;
-    return Scaffold(
-      backgroundColor: colors.page,
-      body: Column(
-        children: <Widget>[
-          if (desktop) SizedBox(height: 100 * scale),
-          Expanded(
-            child: Container(
-              width: desktop ? 888 * scale : double.infinity,
-              constraints: const BoxConstraints(minHeight: 540),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                border: Border.all(color: colors.line),
-                borderRadius: desktop
-                    ? BorderRadius.vertical(top: Radius.circular(34 * scale))
-                    : BorderRadius.zero,
-              ),
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  SizedBox(
-                    height: 100 * scale,
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.arrow_back),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      33 * scale,
-                      26 * scale,
-                      33 * scale,
-                      26 * scale,
-                    ),
-                    child: Text(
-                      uiText(context, zh: titleZh, en: titleEn),
-                      style: TextStyle(
-                        fontSize: 22 * scale,
-                        height: 1.32,
-                        color: colors.ink,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  String titleFor(Locale locale) => locale.languageCode == 'en' ? en : zh;
 }
 
 class _SettingsItem {
