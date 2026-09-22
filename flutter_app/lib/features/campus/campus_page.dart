@@ -8,7 +8,6 @@ import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
-import '../../core/widgets/app_surfaces.dart';
 import '../../models/campus_models.dart';
 import 'campus_service_detail_page.dart';
 
@@ -22,6 +21,7 @@ class CampusPage extends ConsumerStatefulWidget {
 class _CampusPageState extends ConsumerState<CampusPage> {
   bool _loading = true;
   String _query = '';
+  int _groupIndex = 0;
   String? _error;
   List<CampusService> _services = const <CampusService>[];
   CampusTodaySchedules _today = const CampusTodaySchedules(
@@ -46,9 +46,7 @@ class _CampusPageState extends ConsumerState<CampusPage> {
         repository.fetchServices(),
         repository.fetchTodaySchedules(),
       ]);
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _services = (results[0] as List<CampusService>)
             .where((CampusService item) => item.hasBusinessAction)
@@ -57,9 +55,7 @@ class _CampusPageState extends ConsumerState<CampusPage> {
         _loading = false;
       });
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = uiTextGlobal(zh: '加载失败：$error', en: 'Could not load: $error');
         _loading = false;
@@ -69,87 +65,113 @@ class _CampusPageState extends ConsumerState<CampusPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    final Map<String, List<CampusService>> groups = _groupServices(
-      _services.where((CampusService service) {
-        final String searchable = <String>[
-          service.name,
-          service.description,
-          service.slug,
-          localizedCampusServiceName(
-            const Locale('en'),
-            slug: service.slug,
-            name: service.name,
-          ),
-          localizedCampusServiceName(
-            const Locale('zh', 'CN'),
-            slug: service.slug,
-            name: service.name,
-          ),
-        ].join(' ').toLowerCase();
-        return searchable.contains(_query.trim().toLowerCase());
-      }).toList(),
+    if (_loading) return const Center(child: CircularProgressIndicator());
+
+    final bool desktop = AppBreakpoints.isDesktop(context);
+    final double shellScale = AppLayout.shellScale(
+      MediaQuery.sizeOf(context).width,
     );
-    return AppPageFrame(
-      maxWidth: 720,
-      padding: EdgeInsets.zero,
-      child: RefreshIndicator(
-        onRefresh: _load,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 48),
-          children: <Widget>[
-            if (_error != null) _ErrorBanner(message: _error!, onRetry: _load),
-            _TodayCard(today: _today, onTap: _openScheduleSource),
-            const SizedBox(height: 24),
-            TextField(
-              decoration: InputDecoration(
-                hintText: uiText(
-                  context,
-                  zh: '搜索校园服务',
-                  en: 'Search campus services',
-                ),
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
+    final double scale = desktop ? shellScale : 1;
+    final double panelWidth = desktop ? 888 * shellScale : double.infinity;
+    final double panelRadius = desktop ? 34 * shellScale : 0;
+    final List<CampusService> visible = _visibleServices(context);
+
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: EdgeInsets.only(left: desktop ? 61 * shellScale : 0),
+        child: SizedBox(
+          width: panelWidth,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: EditorialColors.of(context).page,
+              border: Border.all(color: EditorialColors.of(context).line),
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(panelRadius),
               ),
-              onChanged: (String value) => setState(() => _query = value),
             ),
-            const SizedBox(height: 24),
-            _ServicesGrid(groups: groups, onOpen: _openService),
-            if (groups.isEmpty && _query.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Text(
-                  uiText(
-                    context,
-                    zh: '没有匹配的校园服务',
-                    en: 'No matching campus services',
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(panelRadius),
+              ),
+              child: RefreshIndicator(
+                onRefresh: _load,
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: <Widget>[
+                    if (_error != null)
+                      _ErrorBanner(
+                        message: _error!,
+                        onRetry: _load,
+                        scale: scale,
+                      ),
+                    _TodaySection(
+                      today: _today,
+                      scale: scale,
+                      onOpenSchedule: _openScheduleSource,
+                    ),
+                    _ServicesHeader(
+                      query: _query,
+                      scale: scale,
+                      onQueryChanged: (String value) => setState(() {
+                        _query = value;
+                      }),
+                    ),
+                    _GroupTabs(
+                      selected: _groupIndex,
+                      scale: scale,
+                      onChanged: (int value) => setState(() {
+                        _groupIndex = value;
+                      }),
+                    ),
+                    _ServicesList(
+                      services: visible,
+                      scale: scale,
+                      availableWidth: panelWidth == double.infinity
+                          ? MediaQuery.sizeOf(context).width
+                          : panelWidth,
+                      desktop: desktop,
+                      onOpen: _openService,
+                    ),
+                    _OfflineGame(scale: scale),
+                  ],
                 ),
               ),
-            const Divider(height: 32),
-            const _OfflineDinoCard(),
-          ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Map<String, List<CampusService>> _groupServices(
-    List<CampusService> services,
-  ) {
-    final Map<String, List<CampusService>> groups =
-        <String, List<CampusService>>{};
-    for (final CampusService service in services) {
-      final String name = service.groupName.trim().isEmpty
-          ? '校园服务'
-          : service.groupName;
-      groups.putIfAbsent(name, () => <CampusService>[]).add(service);
-    }
-    return groups;
+  List<CampusService> _visibleServices(BuildContext context) {
+    final String query = _query.trim().toLowerCase();
+    final String groupId = const <String>[
+      'study',
+      'life',
+      'affairs',
+      'tools',
+    ][_groupIndex];
+    return _services.where((CampusService service) {
+      final String searchable = <String>[
+        service.name,
+        service.description,
+        service.slug,
+        localizedCampusServiceName(
+          Localizations.localeOf(context),
+          slug: service.slug,
+          name: service.name,
+        ),
+        localizedCampusServiceDescription(
+          Localizations.localeOf(context),
+          slug: service.slug,
+          description: service.description,
+        ),
+      ].join(' ').toLowerCase();
+      final bool matchesQuery = query.isEmpty || searchable.contains(query);
+      final bool matchesGroup = query.isNotEmpty || service.groupId == groupId;
+      return matchesQuery && matchesGroup;
+    }).toList();
   }
 
   void _openScheduleSource(CampusScheduleItem item) {
@@ -159,12 +181,10 @@ class _CampusPageState extends ConsumerState<CampusPage> {
       _ => 'classtable',
     };
     final CampusService? service = _services
-        .where((CampusService item) => item.slug == slug)
+        .where((CampusService value) => value.slug == slug)
         .cast<CampusService?>()
         .firstOrNull;
-    if (service != null) {
-      _openService(service);
-    }
+    if (service != null) _openService(service);
   }
 
   Future<void> _openService(CampusService service) async {
@@ -174,14 +194,15 @@ class _CampusPageState extends ConsumerState<CampusPage> {
     if (service.slug == 'map' ||
         service.slug == 'campus-map' ||
         action?.type == 'map') {
-      await _openCampusMap();
+      await launchUrl(
+        Uri.parse('https://gis.xidian.edu.cn/#/home?campus=21047'),
+        mode: LaunchMode.externalApplication,
+      );
       return;
     }
     if ((service.groupId == 'quick' || service.kind == 'external') &&
         action?.type == 'external' &&
         (action?.url ?? '').trim().isNotEmpty) {
-      // Server-supplied url: only plain web schemes may reach the system
-      // launcher, and Uri.parse throws on malformed input.
       final String target = action!.url.trim();
       if (AppConfig.isWebUrl(target)) {
         await launchUrl(
@@ -191,134 +212,38 @@ class _CampusPageState extends ConsumerState<CampusPage> {
       }
       return;
     }
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => CampusServiceDetailPage(serviceId: service.id),
       ),
     );
   }
+}
 
-  Future<void> _openCampusMap() async {
-    await launchUrl(
-      Uri.parse('https://gis.xidian.edu.cn/#/home?campus=21047'),
-      mode: LaunchMode.externalApplication,
-    );
+class _TodaySection extends StatelessWidget {
+  const _TodaySection({
+    required this.today,
+    required this.scale,
+    required this.onOpenSchedule,
+  });
+
+  final CampusTodaySchedules today;
+  final double scale;
+  final ValueChanged<CampusScheduleItem> onOpenSchedule;
+
+  String _todayLabel(CampusTodaySchedules value) {
+    final DateTime now = DateTime.now();
+    if (value.date.trim().isNotEmpty) return value.date.trim();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
-}
-
-class _OfflineDinoCard extends StatefulWidget {
-  const _OfflineDinoCard();
-
-  @override
-  State<_OfflineDinoCard> createState() => _OfflineDinoCardState();
-}
-
-class _OfflineDinoCardState extends State<_OfflineDinoCard> {
-  int _score = 0;
-  bool _jumping = false;
 
   @override
   Widget build(BuildContext context) {
     final EditorialColors colors = EditorialColors.of(context);
-    return Semantics(
-      button: true,
-      label: '离线小游戏',
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.large),
-        onTap: () => setState(() {
-          _score += 1;
-          _jumping = !_jumping;
-        }),
-        child: AppSurfaceCard(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: SizedBox(
-            height: 86,
-            child: Stack(
-              children: <Widget>[
-                Text(
-                  '离线小游戏 · Dino',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                Align(
-                  alignment: Alignment(-0.55, _jumping ? -0.25 : 0.55),
-                  child: Icon(
-                    Icons.directions_run_rounded,
-                    size: 30,
-                    color: colors.primary,
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text(
-                    '点击跳跃  $_score',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ServicesGrid extends StatelessWidget {
-  const _ServicesGrid({required this.groups, required this.onOpen});
-
-  final Map<String, List<CampusService>> groups;
-  final ValueChanged<CampusService> onOpen;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        AppSectionHeader(
-          title: uiText(context, zh: '校园服务', en: 'Campus services'),
-          subtitle: uiText(
-            context,
-            zh: '课表、考试、实验与常用校园入口',
-            en: 'Schedules, exams, labs and the entrances you use most',
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        for (final MapEntry<String, List<CampusService>> entry
-            in groups.entries) ...<Widget>[
-          AppSectionTitle(
-            title: localizedCampusGroup(
-              Localizations.localeOf(context),
-              entry.key,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          for (final CampusService service in entry.value)
-            _ServiceTile(service: service, onTap: () => onOpen(service)),
-          const SizedBox(height: AppSpacing.xl),
-        ],
-      ],
-    );
-  }
-}
-
-class _TodayCard extends StatelessWidget {
-  const _TodayCard({required this.today, required this.onTap});
-
-  final CampusTodaySchedules today;
-  final ValueChanged<CampusScheduleItem> onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadii.large),
-        border: Border.all(color: EditorialColors.of(context).line),
-      ),
+    final bool empty = today.items.isEmpty;
+    return _CampusSection(
+      scale: scale,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -327,110 +252,168 @@ class _TodayCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   uiText(context, zh: '今日日程', en: 'Today'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                  style: TextStyle(
+                    fontSize: 22 * scale,
+                    height: 1.2,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
               Text(
-                today.date,
+                _todayLabel(today),
                 style: TextStyle(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.56),
+                  color: EditorialColors.of(context).mutedInk,
+                  fontSize: 18 * scale,
+                  height: 1.2,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          if (today.items.isEmpty)
+          SizedBox(height: 7 * scale),
+          if (empty)
             Text(
               uiText(
                 context,
                 zh: '今天没有课表、考试或实验安排',
-                en: 'No classes, exams or labs scheduled today',
+                en: 'No classes, exams or labs today',
               ),
               style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.58),
+                color: colors.mutedInk,
+                fontSize: 18 * scale,
+                height: 1.45,
               ),
             )
           else
-            ...today.items.map(
-              (CampusScheduleItem item) =>
-                  _TodayRow(item: item, onTap: () => onTap(item)),
-            ),
+            for (final CampusScheduleItem item in today.items.take(3))
+              _ScheduleRow(
+                item: item,
+                scale: scale,
+                onTap: () => onOpenSchedule(item),
+              ),
         ],
       ),
     );
   }
 }
 
-class _TodayRow extends StatelessWidget {
-  const _TodayRow({required this.item, required this.onTap});
+class _ServicesHeader extends StatelessWidget {
+  const _ServicesHeader({
+    required this.query,
+    required this.scale,
+    required this.onQueryChanged,
+  });
 
-  final CampusScheduleItem item;
-  final VoidCallback onTap;
+  final String query;
+  final double scale;
+  final ValueChanged<String> onQueryChanged;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        child: Row(
-          children: <Widget>[
-            SizedBox(
-              width: 96,
-              child: Text(
-                item.timeRange,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+    return _CampusSection(
+      scale: scale,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            height: 52 * scale,
+            padding: EdgeInsets.symmetric(horizontal: 18 * scale),
+            decoration: BoxDecoration(
+              color: EditorialColors.of(context).line.withValues(alpha: .38),
+              borderRadius: BorderRadius.circular(30 * scale),
             ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${localizedScheduleSource(Localizations.localeOf(context), item.sourceLabel)}'
-                    ' · ${item.location}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Theme.of(
+            child: Row(
+              children: <Widget>[
+                Icon(
+                  Icons.search,
+                  size: 25 * scale,
+                  color: EditorialColors.of(context).mutedInk,
+                ),
+                SizedBox(width: 12 * scale),
+                Expanded(
+                  child: TextField(
+                    controller: TextEditingController(text: query)
+                      ..selection = TextSelection.collapsed(
+                        offset: query.length,
+                      ),
+                    onChanged: onQueryChanged,
+                    style: TextStyle(fontSize: 21 * scale, height: 1.25),
+                    decoration: InputDecoration(
+                      hintText: uiText(
                         context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.56),
-                      fontSize: 12,
+                        zh: '搜索校园服务',
+                        en: 'Search campus services',
+                      ),
+                      hintStyle: TextStyle(
+                        color: EditorialColors.of(context).mutedInk,
+                        fontSize: 21 * scale,
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
                     ),
                   ),
-                ],
-              ),
-            ),
-            if (item.isActive)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadii.small),
                 ),
-                child: Text(
-                  uiText(context, zh: '进行中', en: 'Now'),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GroupTabs extends StatelessWidget {
+  const _GroupTabs({
+    required this.selected,
+    required this.scale,
+    required this.onChanged,
+  });
+
+  final int selected;
+  final double scale;
+  final ValueChanged<int> onChanged;
+
+  static const List<String> _zh = <String>['学习事务', '校园生活', '校务办理', '工具入口'];
+  static const List<String> _en = <String>[
+    'Academics',
+    'Campus life',
+    'Administration',
+    'Tools',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    return SizedBox(
+      height: 61 * scale,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.symmetric(horizontal: 22 * scale),
+        child: Row(
+          children: <Widget>[
+            for (int i = 0; i < _zh.length; i++)
+              InkWell(
+                onTap: () => onChanged(i),
+                child: Container(
+                  height: 61 * scale,
+                  padding: EdgeInsets.symmetric(horizontal: 12 * scale),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: i == selected ? colors.ink : Colors.transparent,
+                        width: 2 * scale,
+                      ),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    uiText(context, zh: _zh[i], en: _en[i]),
+                    style: TextStyle(
+                      color: i == selected ? colors.ink : colors.mutedInk,
+                      fontSize: 21 * scale,
+                      fontWeight: i == selected
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                    ),
                   ),
                 ),
               ),
@@ -441,102 +424,303 @@ class _TodayRow extends StatelessWidget {
   }
 }
 
-class _ServiceTile extends StatelessWidget {
-  const _ServiceTile({required this.service, required this.onTap});
+class _ServicesList extends StatelessWidget {
+  const _ServicesList({
+    required this.services,
+    required this.scale,
+    required this.availableWidth,
+    required this.desktop,
+    required this.onOpen,
+  });
+
+  final List<CampusService> services;
+  final double scale;
+  final double availableWidth;
+  final bool desktop;
+  final ValueChanged<CampusService> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    if (services.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          33 * scale,
+          26 * scale,
+          33 * scale,
+          26 * scale,
+        ),
+        child: Text(
+          uiText(context, zh: '没有找到相关服务', en: 'No matching services'),
+          style: TextStyle(
+            color: EditorialColors.of(context).mutedInk,
+            fontSize: 18 * scale,
+          ),
+        ),
+      );
+    }
+    final List<Widget> serviceButtons = services
+        .map(
+          (CampusService service) => _ServiceButton(
+            service: service,
+            scale: scale,
+            onTap: () => onOpen(service),
+          ),
+        )
+        .toList();
+    final Widget serviceGrid = desktop
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    for (int index = 0; index < serviceButtons.length; index += 2)
+                      serviceButtons[index],
+                  ],
+                ),
+              ),
+              SizedBox(width: 30 * scale),
+              Expanded(
+                child: Column(
+                  children: <Widget>[
+                    for (int index = 1; index < serviceButtons.length; index += 2)
+                      serviceButtons[index],
+                  ],
+                ),
+              ),
+            ],
+          )
+        : Column(children: serviceButtons);
+    return SizedBox(
+      width: availableWidth,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 33 * scale),
+        child: serviceGrid,
+      ),
+    );
+  }
+}
+
+class _ServiceButton extends StatelessWidget {
+  const _ServiceButton({
+    required this.service,
+    required this.scale,
+    required this.onTap,
+  });
 
   final CampusService service;
+  final double scale;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final Locale locale = Localizations.localeOf(context);
-    final String description = localizedCampusServiceDescription(
-      locale,
-      slug: service.slug,
-      description: service.description,
-    );
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Theme.of(context).dividerColor),
+    final EditorialColors colors = EditorialColors.of(context);
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        constraints: BoxConstraints(minHeight: 88 * scale),
+        padding: EdgeInsets.symmetric(vertical: 23 * scale),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: colors.line)),
         ),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        leading: Icon(_iconForService(service)),
-        title: Text(
-          localizedCampusServiceName(
-            locale,
-            slug: service.slug,
-            name: service.name,
-          ),
-        ),
-        subtitle: description.trim().isEmpty ? null : Text(description),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: <Widget>[
-            if (_statusLabel(context, service) case final String label)
-              AppStatusTag(label: label, outlined: true),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right_rounded),
+            Icon(_iconForService(service), size: 25 * scale, color: colors.ink),
+            SizedBox(width: 16 * scale),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text(
+                    localizedCampusServiceName(
+                      locale,
+                      slug: service.slug,
+                      name: service.name,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 22 * scale, height: 1.2),
+                  ),
+                  SizedBox(height: 5 * scale),
+                  Text(
+                    localizedCampusServiceDescription(
+                      locale,
+                      slug: service.slug,
+                      description: service.description,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colors.mutedInk,
+                      fontSize: 18 * scale,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 12 * scale),
+            Icon(Icons.chevron_right, size: 25 * scale, color: colors.mutedInk),
           ],
         ),
-        onTap: onTap,
       ),
     );
   }
 
-  IconData _iconForService(CampusService service) {
-    final String text = '${service.slug} ${service.iconKey} ${service.name}';
-    if (text.contains('map') || text.contains('地图')) return Icons.map_outlined;
-    if (text.contains('exam') || text.contains('考试'))
-      return Icons.assignment_outlined;
-    if (text.contains('class') || text.contains('课表'))
+  IconData _iconForService(CampusService item) {
+    final String text = '${item.slug} ${item.iconKey} ${item.name}';
+    if (text.contains('calendar') ||
+        text.contains('class') ||
+        text.contains('exam') ||
+        text.contains('课') ||
+        text.contains('考试')) {
       return Icons.calendar_month_outlined;
-    if (text.contains('library') || text.contains('图书'))
-      return Icons.local_library_outlined;
+    }
+    if (text.contains('library') ||
+        text.contains('book') ||
+        text.contains('图书'))
+      return Icons.menu_book_outlined;
+    if (text.contains('map') || text.contains('地图')) return Icons.map_outlined;
     if (text.contains('water') || text.contains('水'))
       return Icons.water_drop_outlined;
-    if (text.contains('实验')) return Icons.science_outlined;
-    return Icons.apps_rounded;
-  }
-
-  String? _statusLabel(BuildContext context, CampusService service) {
-    final String authType = service.authType.trim();
-    if (authType.isEmpty || service.authReady) {
-      return uiText(context, zh: '可使用', en: 'Ready');
-    }
-    if (authType == 'public') {
-      return uiText(context, zh: '公开入口', en: 'Open');
-    }
-    // Unified identity services inherit the current sign-in session. They do
-    // not expose a second credential flow or a repeated authentication warning.
-    if (authType == 'ids') {
-      return null;
-    }
-    return uiText(context, zh: '需单独登录', en: 'Separate sign-in');
+    if (text.contains('school') ||
+        text.contains('campus') ||
+        text.contains('校'))
+      return Icons.account_balance_outlined;
+    return Icons.grid_view_rounded;
   }
 }
 
-class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message, required this.onRetry});
+class _OfflineGame extends StatefulWidget {
+  const _OfflineGame({required this.scale});
+  final double scale;
 
-  final String message;
-  final VoidCallback onRetry;
+  @override
+  State<_OfflineGame> createState() => _OfflineGameState();
+}
+
+class _OfflineGameState extends State<_OfflineGame> {
+  int _score = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final EditorialColors colors = EditorialColors.of(context);
+    final double s = widget.scale;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 33 * s, vertical: 23 * s),
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              uiText(
+                context,
+                zh: '课间休息 · 离线小游戏',
+                en: 'Take a break · Offline mini game',
+              ),
+              style: TextStyle(fontSize: 18 * s, color: colors.mutedInk),
+            ),
+          ),
+          OutlinedButton(
+            onPressed: () => setState(() => _score++),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: colors.ink,
+              side: BorderSide(color: colors.line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(22 * s),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20 * s,
+                vertical: 9 * s,
+              ),
+              minimumSize: Size(0, 44 * s),
+            ),
+            child: Text(
+              '${uiText(context, zh: '跳跃', en: 'Jump')} $_score',
+              style: TextStyle(fontSize: 18 * s),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CampusSection extends StatelessWidget {
+  const _CampusSection({required this.child, required this.scale});
+  final Widget child;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+      padding: EdgeInsets.fromLTRB(
+        33 * scale,
+        28 * scale,
+        33 * scale,
+        28 * scale,
       ),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: EditorialColors.of(context).line),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _ScheduleRow extends StatelessWidget {
+  const _ScheduleRow({
+    required this.item,
+    required this.scale,
+    required this.onTap,
+  });
+  final CampusScheduleItem item;
+  final double scale;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.only(top: 12 * scale),
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(item.title, style: TextStyle(fontSize: 22 * scale)),
+            ),
+            Text(item.timeRange, style: TextStyle(fontSize: 18 * scale)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({
+    required this.message,
+    required this.onRetry,
+    required this.scale,
+  });
+  final String message;
+  final VoidCallback onRetry;
+  final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(16 * scale),
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Text(message, style: const TextStyle(color: Colors.red)),
+            child: Text(
+              message,
+              style: TextStyle(color: Colors.red, fontSize: 16 * scale),
+            ),
           ),
           TextButton(
             onPressed: onRetry,

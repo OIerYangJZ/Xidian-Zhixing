@@ -357,7 +357,7 @@ class _NavigationPanel extends StatelessWidget {
                       width: 321 * navScale,
                       child: Row(
                         children: <Widget>[
-                          const _AccountAvatar(size: 61),
+                          _AccountAvatar(size: 61 * navScale),
                           SizedBox(width: 17 * navScale),
                           Expanded(
                             child: Column(
@@ -427,36 +427,48 @@ class _ReferenceNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color ink = Theme.of(context).colorScheme.onSurface;
-    return SizedBox(
-      height: 77.4 * scale,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(42 * scale),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 19 * scale),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              SizedBox(
-                width: 39 * scale,
-                height: 39 * scale,
-                child: Center(
-                  child: _ActionIcon(action: action, size: 36 * scale),
-                ),
+    final EditorialColors colors = EditorialColors.of(context);
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: SizedBox(
+        height: 77.4 * scale,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(42 * scale),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: action.selected
+                  ? colors.primarySubtle
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(42 * scale),
+            ),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 19 * scale),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  SizedBox(
+                    width: 39 * scale,
+                    height: 39 * scale,
+                    child: Center(
+                      child: _ActionIcon(action: action, size: 36 * scale),
+                    ),
+                  ),
+                  SizedBox(width: 32 * scale),
+                  Text(
+                    action.label,
+                    style: TextStyle(
+                      fontSize: 30 * scale,
+                      height: 1,
+                      fontWeight: action.selected
+                          ? FontWeight.w700
+                          : FontWeight.w400,
+                      color: ink,
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: 32 * scale),
-              Text(
-                action.label,
-                style: TextStyle(
-                  fontSize: 30 * scale,
-                  height: 1,
-                  fontWeight: action.selected
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  color: ink,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

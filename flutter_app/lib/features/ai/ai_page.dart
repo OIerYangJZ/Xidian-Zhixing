@@ -114,11 +114,39 @@ class _AiPageState extends ConsumerState<AiPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool mobile = MediaQuery.sizeOf(context).width < 801;
+    final Size viewport = MediaQuery.sizeOf(context);
+    final bool mobile = viewport.width < 801;
+    final double scale = mobile ? 1 : AppLayout.shellScale(viewport.width);
     final Widget composer = _AiComposer(
       controller: _questionController,
       onSend: () => _openChat(),
       hint: uiText(context, zh: '随便问点什么', en: 'Ask anything'),
+    );
+    final Widget desktopCenter = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _AiStar(size: 55 * scale),
+            SizedBox(width: 13 * scale),
+            Text(
+              'AI',
+              style: TextStyle(
+                fontFamily: 'Arial',
+                fontSize: 44 * scale,
+                fontWeight: FontWeight.w700,
+                height: 1,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 31 * scale),
+        composer,
+        SizedBox(height: 24 * scale),
+        _AiShortcuts(scale: scale, controller: _questionController),
+      ],
     );
     return SafeArea(
       top: false,
@@ -131,49 +159,67 @@ class _AiPageState extends ConsumerState<AiPage> {
               child: _AiStar(size: 77, faded: true),
             )
           else
-            Align(
-              alignment: const Alignment(0, -0.12),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 820),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          const _AiStar(size: 52),
-                          const SizedBox(width: 12),
-                          Text(
-                            'AI',
-                            style: Theme.of(context).textTheme.displaySmall,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 28),
-                      composer,
-                    ],
-                  ),
-                ),
-              ),
+            Positioned(
+              left: 148 * scale,
+              right: 148 * scale,
+              top: viewport.height * .385,
+              child: desktopCenter,
             ),
           Positioned(
-            top: 4,
-            right: mobile ? 8 : 24,
-            child: Row(
-              children: <Widget>[
-                IconButton(
-                  tooltip: uiText(context, zh: '历史对话', en: 'Chat history'),
-                  onPressed: _showHistory,
-                  icon: const Icon(Icons.history_rounded),
+            top: 0,
+            left: mobile ? 8 : 38 * scale,
+            child: SizedBox(
+              height: mobile ? 56 : 105 * scale,
+              child: IconButton(
+                tooltip: '全屏',
+                onPressed: () {},
+                padding: EdgeInsets.zero,
+                constraints: BoxConstraints.tightFor(
+                  width: mobile ? 40 : 26 * scale,
+                  height: mobile ? 40 : 26 * scale,
                 ),
-                IconButton(
-                  tooltip: uiText(context, zh: '新对话', en: 'New chat'),
-                  onPressed: () => _openChat(),
-                  icon: const Icon(Icons.edit_square),
-                ),
-              ],
+                icon: Icon(Icons.fullscreen, size: mobile ? 24 : 26 * scale),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: mobile ? 8 : 51 * scale,
+            child: SizedBox(
+              height: mobile ? 56 : 105 * scale,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  TextButton.icon(
+                    onPressed: _showHistory,
+                    icon: Icon(Icons.history, size: mobile ? 22 : 26 * scale),
+                    label: Text('历史'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      textStyle: TextStyle(fontSize: mobile ? 14 : 22 * scale),
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                  SizedBox(width: mobile ? 10 : 48 * scale),
+                  TextButton.icon(
+                    onPressed: () {},
+                    icon: Icon(
+                      Icons.notifications_none,
+                      size: mobile ? 22 : 26 * scale,
+                    ),
+                    label: Text('私密'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      textStyle: TextStyle(fontSize: mobile ? 14 : 22 * scale),
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           if (mobile)
@@ -513,6 +559,61 @@ class _AiMessageView extends StatelessWidget {
   }
 }
 
+class _AiShortcuts extends StatelessWidget {
+  const _AiShortcuts({required this.scale, required this.controller});
+  final double scale;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color ink = Theme.of(context).colorScheme.onSurfaceVariant;
+    final List<(IconData, String)> items = <(IconData, String)>[
+      (Icons.videocam_outlined, '创建视频'),
+      (Icons.image_outlined, '创建图片'),
+      (Icons.brush_outlined, '编辑图片'),
+      (Icons.article_outlined, '最新新闻'),
+    ];
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        for (int index = 0; index < items.length; index++) ...<Widget>[
+          if (index > 0) SizedBox(width: 18 * scale),
+          SizedBox(
+            height: 59 * scale,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                controller
+                  ..text = '${items[index].$2}：'
+                  ..selection = TextSelection.collapsed(
+                    offset: controller.text.length,
+                  );
+              },
+              icon: Icon(items[index].$1, size: 23 * scale),
+              label: Text(items[index].$2),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ink,
+                textStyle: TextStyle(
+                  fontFamily: 'Times New Roman',
+                  fontSize: 21 * scale,
+                  fontWeight: FontWeight.w700,
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 20 * scale),
+                side: BorderSide(
+                  color: const Color(0xFFCFD9DE),
+                  width: 1.5 * scale,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(40 * scale),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class _AiComposer extends StatelessWidget {
   const _AiComposer({
     required this.controller,
@@ -529,7 +630,9 @@ class _AiComposer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final bool mobile = MediaQuery.sizeOf(context).width < 801;
+    final Size viewport = MediaQuery.sizeOf(context);
+    final bool mobile = viewport.width < 801;
+    final double scale = mobile ? 1 : AppLayout.shellScale(viewport.width);
     final Widget field = TextField(
       controller: controller,
       enabled: enabled,
@@ -542,8 +645,14 @@ class _AiComposer extends StatelessWidget {
         enabledBorder: InputBorder.none,
         focusedBorder: InputBorder.none,
         disabledBorder: InputBorder.none,
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        contentPadding: EdgeInsets.symmetric(vertical: 8 * scale),
         isDense: true,
+      ),
+      style: TextStyle(
+        fontFamily: 'Arial',
+        fontSize: mobile ? 16 : 23 * scale,
+        color: theme.colorScheme.onSurface,
+        height: 1.3,
       ),
       onSubmitted: (_) => onSend(),
     );
@@ -552,7 +661,7 @@ class _AiComposer extends StatelessWidget {
       onPressed: enabled ? onSend : null,
       icon: Icon(
         enabled ? Icons.graphic_eq_rounded : Icons.stop_rounded,
-        size: 20,
+        size: mobile ? 20 : 31 * scale,
       ),
       style: IconButton.styleFrom(
         backgroundColor: theme.colorScheme.onSurface,
@@ -560,37 +669,74 @@ class _AiComposer extends StatelessWidget {
         disabledBackgroundColor: theme.colorScheme.onSurface,
         disabledForegroundColor: theme.colorScheme.surface,
         shape: const CircleBorder(),
-        minimumSize: const Size.square(44),
-        maximumSize: const Size.square(44),
+        minimumSize: Size.square(mobile ? 44 : 49 * scale),
+        maximumSize: Size.square(mobile ? 44 : 49 * scale),
         padding: EdgeInsets.zero,
       ),
     );
+    if (mobile) {
+      return Container(
+        constraints: const BoxConstraints(minHeight: 77),
+        padding: const EdgeInsets.fromLTRB(14, 4, 6, 4),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest,
+          border: Border.all(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(23),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            field,
+            Align(alignment: Alignment.centerRight, child: send),
+          ],
+        ),
+      );
+    }
     return Container(
-      constraints: BoxConstraints(minHeight: mobile ? 77 : 72),
-      padding: mobile
-          ? const EdgeInsets.fromLTRB(14, 4, 6, 4)
-          : const EdgeInsets.fromLTRB(24, 12, 12, 12),
+      height: 95 * scale,
+      padding: EdgeInsets.only(left: 25 * scale, right: 20 * scale),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
-        border: Border.all(color: theme.dividerColor),
-        borderRadius: BorderRadius.circular(mobile ? 23 : 60),
+        borderRadius: BorderRadius.circular(60 * scale),
       ),
-      child: mobile
-          ? Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                field,
-                Align(alignment: Alignment.centerRight, child: send),
-              ],
-            )
-          : Row(
-              children: <Widget>[
-                Expanded(child: field),
-                const SizedBox(width: 16),
-                send,
-              ],
+      child: Row(
+        children: <Widget>[
+          Icon(
+            Icons.attach_file,
+            size: 27 * scale,
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          SizedBox(width: 22 * scale),
+          Expanded(child: field),
+          InkWell(
+            onTap: () {},
+            borderRadius: BorderRadius.circular(30 * scale),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4 * scale),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(Icons.bolt, size: 25 * scale),
+                  SizedBox(width: 10 * scale),
+                  Text(
+                    '快速',
+                    style: TextStyle(
+                      fontFamily: 'Arial',
+                      fontSize: 22 * scale,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(width: 8 * scale),
+                  Icon(Icons.keyboard_arrow_down, size: 25 * scale),
+                ],
+              ),
             ),
+          ),
+          SizedBox(width: 5 * scale),
+          send,
+        ],
+      ),
     );
   }
 }
