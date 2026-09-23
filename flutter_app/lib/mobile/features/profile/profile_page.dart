@@ -281,7 +281,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
                                   GestureDetector(
                                     onTap: () async {
                                       await context.push(
-                                        '/profile/settings/main',
+                                        '/profile/settings',
                                       );
                                       if (mounted) {
                                         await _loadProfile();
