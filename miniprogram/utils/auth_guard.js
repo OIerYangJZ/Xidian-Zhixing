@@ -22,6 +22,17 @@ const isLoginRoute = () => {
   return route === LOGIN_PAGE;
 };
 
+// Full URL of the current page, so the login page can come back to it.
+const currentPageUrl = () => {
+  const pages = getCurrentPages();
+  const current = pages[pages.length - 1];
+  if (!current) return '';
+  const query = Object.keys(current.options || {})
+    .map((key) => `${key}=${encodeURIComponent(current.options[key])}`)
+    .join('&');
+  return `/${current.route || ''}${query ? `?${query}` : ''}`;
+};
+
 const isCurrentPageTabbar = () => {
   const pages = getCurrentPages();
   const current = pages[pages.length - 1];
@@ -46,7 +57,13 @@ export const requireLoginPage = () => {
       if (isCurrentPageTabbar()) {
         wx.navigateTo({ url: LOGIN_PAGE });
       } else {
-        wx.redirectTo({ url: LOGIN_PAGE });
+        // redirectTo replaces this page, so navigateBack after login would
+        // skip it (or find nothing, when it was opened from a share card or
+        // a scanned link). Hand its URL to the login page instead.
+        const redirect = currentPageUrl();
+        wx.redirectTo({
+          url: redirect ? `${LOGIN_PAGE}?redirect=${encodeURIComponent(redirect)}` : LOGIN_PAGE
+        });
       }
     });
   }

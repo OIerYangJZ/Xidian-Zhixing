@@ -2,6 +2,8 @@
 
 import 'dart:html' as html;
 
+import 'post_link.dart';
+
 const String _postRestoreSessionKey = 'xdu_treehole_restore_post_id';
 
 String? takeQueryParameterFromUrl(String key) {
@@ -50,4 +52,15 @@ void setPostIdOnUrl(String? postId) {
   }
   final Uri next = uri.replace(queryParameters: qp.isEmpty ? null : qp);
   html.window.history.replaceState(null, '', next.toString());
+}
+
+String? currentPostLinkId() =>
+    postIdFromLinkPath(Uri.parse(html.window.location.href).path);
+
+void clearPostLinkFromUrl() {
+  final Uri uri = Uri.parse(html.window.location.href);
+  if (postIdFromLinkPath(uri.path) == null) {
+    return;
+  }
+  html.window.history.replaceState(null, '', uri.replace(path: '/').toString());
 }

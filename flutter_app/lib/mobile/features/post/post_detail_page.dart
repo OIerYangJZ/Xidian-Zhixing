@@ -1229,11 +1229,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             onPressed: () async {
-              await copyPostShareText(widget.postId);
+              await copyPostShareLink(widget.postId);
               if (!context.mounted) return;
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('已复制分享内容')));
+              ).showSnackBar(const SnackBar(content: Text('已复制帖子链接')));
             },
           ),
         ],

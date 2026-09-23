@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
+import '../../core/navigation/post_link.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/comment_item.dart';
@@ -301,6 +302,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     ),
                                   ),
                                 ),
+                              OutlinedButton.icon(
+                                onPressed: _copyPostLink,
+                                icon: const Icon(Icons.link_rounded),
+                                label: Text(
+                                  uiText(
+                                    context,
+                                    zh: '复制链接',
+                                    en: 'Copy link',
+                                  ),
+                                ),
+                              ),
                               if (_post.canMessageAuthor)
                                 OutlinedButton.icon(
                                   onPressed: _actionBusy ? null : _requestDm,
@@ -788,6 +800,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final String text = '[${_post.channel}] ${_post.title}\\n$body';
     await Clipboard.setData(ClipboardData(text: text));
     _feedback(uiTextGlobal(zh: '已复制帖子内容', en: 'Post content copied'));
+  }
+
+  Future<void> _copyPostLink() async {
+    await Clipboard.setData(ClipboardData(text: postShareLink(_post.id)));
+    _feedback(uiTextGlobal(zh: '已复制帖子链接', en: 'Post link copied'));
   }
 
   List<String> _supplementaryImageUrls(PostItem post) {

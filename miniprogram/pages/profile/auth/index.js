@@ -3,6 +3,7 @@ import {
   fetchXidianAuthSession
 } from '../../../api/auth';
 import { clearCampusAuthSession } from '../../../utils/campus_auth';
+import { isTabRoute } from '../../../utils/navigation';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -19,8 +20,31 @@ Page({
     submitting: false
   },
 
-  onLoad() {
+  onLoad(options = {}) {
     wx.setNavigationBarTitle({ title: '统一身份认证登录' });
+    let redirect = '';
+    try {
+      redirect = decodeURIComponent(options.redirect || '');
+    } catch (error) {
+      redirect = '';
+    }
+    // Only in-app pages; anything else falls back to navigateBack.
+    this._redirect = /^\/pages\//.test(redirect) ? redirect : '';
+  },
+
+  returnAfterLogin() {
+    if (this._redirect) {
+      if (isTabRoute(this._redirect)) {
+        wx.switchTab({ url: this._redirect.split('?')[0] });
+      } else {
+        wx.redirectTo({ url: this._redirect });
+      }
+      return;
+    }
+    wx.navigateBack({
+      delta: 1,
+      fail: () => wx.switchTab({ url: '/pages/treehole/index' })
+    });
   },
 
   async handleLogin() {
@@ -81,12 +105,7 @@ Page({
       wx.setStorageSync('token', data.token);
       this.setData({ attemptId: '', authorizeUrl: '' });
       wx.showToast({ title: '登录成功', icon: 'success' });
-      setTimeout(() => {
-        wx.navigateBack({
-          delta: 1,
-          fail: () => wx.switchTab({ url: '/pages/treehole/index' })
-        });
-      }, 800);
+      setTimeout(() => this.returnAfterLogin(), 800);
     } catch (err) {
       console.error(err);
       this.setData({ attemptId: '', authorizeUrl: '' });

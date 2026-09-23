@@ -9,6 +9,7 @@ import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
 import 'package:xdu_treehole_web/core/widgets/language_toggle.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/repositories/auth_repository.dart';
+import '../../core/navigation/login_return.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
@@ -90,7 +91,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.invalidate(feedControllerProvider);
     ref.invalidate(notificationsControllerProvider);
     ref.invalidate(messagesControllerProvider);
-    context.go('/');
+    context.go(loginReturnLocation(GoRouterState.of(context).uri));
   }
 
   void _cancelLogin() {

@@ -44,6 +44,21 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Shared post links https://zhixing.xidian.edu.cn/p/<id>. Flutter
+                 hands the path to go_router, which maps /p/:id to the post.
+                 autoVerify only takes effect once the site serves
+                 /.well-known/assetlinks.json with the release signing
+                 certificate; until then Android offers a chooser instead of
+                 opening the app directly. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="https"
+                    android:host="zhixing.xidian.edu.cn"
+                    android:pathPrefix="/p/"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

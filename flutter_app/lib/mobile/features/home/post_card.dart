@@ -428,10 +428,10 @@ class _PostCardState extends ConsumerState<PostCard> {
   }
 
   Future<void> _handleShare(BuildContext context) async {
-    await copyPostShareText(widget.post.id);
+    await copyPostShareLink(widget.post.id);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('已复制分享内容'), duration: Duration(seconds: 1)),
+      const SnackBar(content: Text('已复制帖子链接'), duration: Duration(seconds: 1)),
     );
   }
 

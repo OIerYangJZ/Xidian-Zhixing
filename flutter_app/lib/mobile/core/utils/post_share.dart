@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 
-/// There is no public URL for a single post yet, so sharing copies a line
-/// that names the post rather than a link.
-Future<void> copyPostShareText(String postId) {
-  return Clipboard.setData(ClipboardData(text: '查看西电知行帖子：$postId'));
+import 'package:xdu_treehole_web/core/navigation/post_link.dart';
+
+Future<void> copyPostShareLink(String postId) {
+  return Clipboard.setData(ClipboardData(text: postShareLink(postId)));
 }

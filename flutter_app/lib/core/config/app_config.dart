@@ -50,6 +50,17 @@ class AppConfig {
     return _localApiBaseUrl;
   }
 
+  /// Origin that shared links point at. Native builds take it from the
+  /// absolute API base (https://<site>/api); the web build calls a relative
+  /// /api, so its links point at the page's own origin.
+  static String get publicSiteOrigin {
+    final Uri api = Uri.parse(apiBaseUrl);
+    if ((api.scheme == 'https' || api.scheme == 'http') && api.host.isNotEmpty) {
+      return api.origin;
+    }
+    return Uri.base.origin;
+  }
+
   // 生产构建时由 scripts/build_web_production.sh 通过 --dart-define=APP_VERSION=... 注入
   static const String appVersion = String.fromEnvironment(
     'APP_VERSION',

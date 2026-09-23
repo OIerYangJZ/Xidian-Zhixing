@@ -15,6 +15,7 @@ import { createDirectConversation } from '../../../api/messages';
 import { askAiWithPostSelection } from '../../../api/ai';
 import { followUser, unfollowUser } from '../../../api/user';
 import { requireLoginPage } from '../../../utils/auth_guard';
+import { postIdFromScannedLink, postShareLink } from '../../../utils/post_link';
 import { markdownToNodes } from '../../../utils/markdown';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
@@ -95,7 +96,8 @@ Page({
   onLoad(options) {
     this.initCustomNav();
     applyThemeAndLanguage(this);
-    if (options.id) this.setData({ postId: options.id });
+    const postId = options.id || postIdFromScannedLink(options.q);
+    if (postId) this.setData({ postId });
     if (options.commentId) {
       this.setData({
         targetCommentId: options.commentId,
@@ -117,8 +119,13 @@ Page({
     this.loadDetail().finally(() => wx.stopPullDownRefresh());
   },
 
+  copyPostLink() {
+    if (!this.data.postId) return;
+    wx.setClipboardData({ data: postShareLink(this.data.postId) });
+  },
+
   onShareAppMessage() {
-    const title = this.data.post ? this.data.post.displayTitle : '电台';
+    const title = this.data.post ? this.data.post.displayTitle : '西电知行';
     return {
       title,
       path: `/pages/campus/post-detail/index?id=${this.data.postId}`
@@ -357,13 +364,14 @@ Page({
 
   showPostOptions() {
     if (!this.data.post) return;
-    const itemList = ['问 AI', '举报'];
+    const itemList = ['问 AI', '复制链接', '举报'];
     if (this.data.post.isOwnPost) itemList.push('删除');
     wx.showActionSheet({
       itemList,
       success: (res) => {
         const action = itemList[res.tapIndex];
         if (action === '问 AI') this.askAiAboutSelection();
+        if (action === '复制链接') this.copyPostLink();
         if (action === '举报') this.reportPost();
         if (action === '删除') this.deleteOwnPost();
       }

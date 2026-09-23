@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/core/auth/admin_auth_store.dart';
+import 'login_return.dart';
 import '../../features/shell/mobile_shell.dart';
 import '../../features/auth/login_page.dart';
 import '../../features/home/home_page.dart';
@@ -62,14 +63,21 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   // 如果是认证路由
   if (isAuthRoute) {
     if (isLoggedIn) {
-      return '/';
+      return loginReturnLocation(state.uri);
     }
     return null;
   }
 
-  // 其他路由需要登录（公开路由除外）
+  // 其他路由需要登录（公开路由除外）。记下原本要去的地址，
+  // 这样从帖子链接进来的用户登录后会回到那个帖子。
   if (!isLoggedIn && !isPublicRoute) {
-    return '/auth/login';
+    final String target = state.uri.toString();
+    return target == '/'
+        ? '/auth/login'
+        : Uri(
+            path: '/auth/login',
+            queryParameters: <String, String>{'from': target},
+          ).toString();
   }
 
   return null;
@@ -140,6 +148,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/post/create',
       builder: (context, state) => const CreatePostPage(),
+    ),
+    // Shared short link https://<site>/p/<id>, delivered by App Links.
+    GoRoute(
+      path: '/p/:id',
+      redirect: (context, state) =>
+          '/post/${Uri.encodeComponent(state.pathParameters['id']!)}',
     ),
     GoRoute(
       path: '/post/:id',
