@@ -361,12 +361,7 @@ class ProfilePageState extends State<ProfilePage> {
                   ListTile(
                     leading: const Icon(Icons.block_outlined),
                     title: Text(text('黑名单管理', 'Blocked accounts')),
-                    onTap: () => _toast(
-                      text(
-                        '黑名单管理暂时不可用',
-                        'Blocked accounts are temporarily unavailable.',
-                      ),
-                    ),
+                    onTap: _openBlockedAccounts,
                   ),
                   ListTile(
                     leading: const Icon(Icons.emoji_emotions_outlined),
@@ -997,6 +992,86 @@ class ProfilePageState extends State<ProfilePage> {
         });
       }
     }
+  }
+
+  Future<void> _openBlockedAccounts() async {
+    List<Map<String, dynamic>> blocks;
+    try {
+      blocks = await AppRepositories.users.fetchBlocks();
+    } catch (error) {
+      _toast(
+        uiTextGlobal(
+          zh: '黑名单加载失败：$error',
+          en: 'Could not load blocked accounts: $error',
+        ),
+      );
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) => SafeArea(
+        child: StatefulBuilder(
+          builder: (BuildContext sheetContext, StateSetter setSheetState) {
+            return ListView(
+              shrinkWrap: true,
+              children: <Widget>[
+                ListTile(
+                  title: Text(
+                    uiText(sheetContext, zh: '黑名单管理', en: 'Blocked accounts'),
+                  ),
+                ),
+                if (blocks.isEmpty)
+                  ListTile(
+                    title: Text(
+                      uiText(
+                        sheetContext,
+                        zh: '暂无屏蔽用户',
+                        en: 'No blocked accounts',
+                      ),
+                    ),
+                  ),
+                for (final Map<String, dynamic> item in blocks)
+                  ListTile(
+                    leading: const AppSealMark(size: 36),
+                    title: Text((item['nickname'] ?? '西电同学').toString()),
+                    trailing: TextButton(
+                      onPressed: () async {
+                        final String userId = (item['id'] ?? '').toString();
+                        try {
+                          await AppRepositories.users.unblockUser(userId);
+                        } catch (error) {
+                          _toast(
+                            uiTextGlobal(
+                              zh: '解除屏蔽失败：$error',
+                              en: 'Could not unblock: $error',
+                            ),
+                          );
+                          return;
+                        }
+                        setSheetState(() {
+                          blocks = blocks
+                              .where(
+                                (Map<String, dynamic> block) =>
+                                    (block['id'] ?? '').toString() != userId,
+                              )
+                              .toList();
+                        });
+                      },
+                      child: Text(
+                        uiText(sheetContext, zh: '解除屏蔽', en: 'Unblock'),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 
   void _toast(String message) {

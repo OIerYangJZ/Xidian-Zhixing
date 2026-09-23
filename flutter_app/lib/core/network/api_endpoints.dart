@@ -13,6 +13,8 @@ class ApiEndpoints {
       '/users/me/notification-preferences';
   static const String avatarUpload = '/users/avatar';
   static const String meCancellationRequest = '/users/me/cancellation-request';
+  static const String meBlocks = '/users/me/blocks';
+  static String meBlock(String userId) => '/users/me/blocks/$userId';
   static const String meLevelUpgradeRequest = '/users/me/level-upgrade-request';
 
   // 关注系统
