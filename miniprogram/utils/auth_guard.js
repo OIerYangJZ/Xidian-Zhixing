@@ -1,13 +1,7 @@
 import { clearCampusAuthSession } from './campus_auth';
+import { isTabRoute } from './navigation';
 
 const LOGIN_PAGE = '/pages/profile/auth/index';
-
-const TABBAR_PAGES = [
-  '/pages/campus/index',
-  '/pages/ai/index',
-  '/pages/profile/conversations/index',
-  '/pages/profile/index'
-];
 
 let isNavigating = false;
 
@@ -33,7 +27,7 @@ const isCurrentPageTabbar = () => {
   const current = pages[pages.length - 1];
   if (!current) return false;
   const route = `/${current.route || ''}`;
-  return TABBAR_PAGES.includes(route);
+  return isTabRoute(route);
 };
 
 export const hasLogin = () => {
