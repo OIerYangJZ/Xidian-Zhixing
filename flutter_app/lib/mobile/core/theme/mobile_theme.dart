@@ -172,6 +172,17 @@ class MobileTheme {
       warning: _warning,
       error: _error,
     ),
+    'mozhuxinye': ThemeConfig(
+      primary: Color(0xFFAB3E36),
+      primaryDark: Color(0xFF852E29),
+      accent: Color(0xFFD87569),
+      seal: Color(0xFFAB3E36),
+      background: Color(0xFFFFFFFF),
+      softBackground: Color(0xFFFAECE9),
+      success: _success,
+      warning: _warning,
+      error: _error,
+    ),
   };
 
   static Color primaryOf(BuildContext context) =>
