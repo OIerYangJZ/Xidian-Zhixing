@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
+import '../../core/widgets/app_surfaces.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/conversation_item.dart';
 import 'chat_page.dart';
@@ -16,6 +17,12 @@ class MessagesPage extends ConsumerStatefulWidget {
 }
 
 class _MessagesPageState extends ConsumerState<MessagesPage> {
+  /// Below this width the chat opens as its own route; at or above it the
+  /// list and the open conversation sit side by side.
+  static const double _splitMinWidth = 900;
+
+  String? _selectedId;
+
   @override
   void initState() {
     super.initState();
@@ -57,12 +64,97 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         error: state.error,
         onRetry: () =>
             ref.read(messagesControllerProvider.notifier).loadInitial(),
-        child: _buildConversations(state),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            if (constraints.maxWidth < _splitMinWidth) {
+              return _buildConversations(state, split: false);
+            }
+            final ConversationItem? selected = state.conversations
+                .where((ConversationItem item) => item.id == _selectedId)
+                .firstOrNull;
+            return Row(
+              children: <Widget>[
+                SizedBox(
+                  width: 340,
+                  child: _buildConversations(state, split: true),
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(
+                  child: selected == null
+                      ? AppStatePanel(
+                          icon: Icons.chat_bubble_outline,
+                          title: uiText(
+                            context,
+                            zh: '选择会话',
+                            en: 'Select a conversation',
+                          ),
+                          message: uiText(
+                            context,
+                            zh: '从左侧打开一段对话',
+                            en: 'Open a conversation from the list.',
+                          ),
+                        )
+                      : _chatFor(selected, embedded: true),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildConversations(MessagesState state) {
+  Future<void> _openConversation(
+    ConversationItem session, {
+    required bool split,
+  }) async {
+    if (split) {
+      setState(() => _selectedId = session.id);
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => _chatFor(session)));
+    if (!mounted) {
+      return;
+    }
+    await ref.read(messagesControllerProvider.notifier).refresh();
+  }
+
+  Widget _chatFor(ConversationItem session, {bool embedded = false}) {
+    final MessagesController controller = ref.read(
+      messagesControllerProvider.notifier,
+    );
+    return ChatPage(
+      // A new conversation in the same pane must not reuse the previous
+      // one's state.
+      key: ValueKey<String>(session.id),
+      conversation: session,
+      embedded: embedded,
+      onConversationRead: () => controller.markConversationRead(session.id),
+      onConversationRemoved: () {
+        controller.removeConversation(session.id);
+        if (mounted && _selectedId == session.id) {
+          setState(() => _selectedId = null);
+        }
+      },
+      onConversationFlagsChanged: ({bool? blockedByMe, bool? blockedByPeer}) {
+        controller.updateConversationFlags(
+          conversationId: session.id,
+          blockedByMe: blockedByMe,
+          blockedByPeer: blockedByPeer,
+        );
+      },
+      onMessageSent: (String content) {
+        controller.updateConversationPreview(
+          conversationId: session.id,
+          message: content,
+        );
+      },
+    );
+  }
+
+  Widget _buildConversations(MessagesState state, {required bool split}) {
     if (state.conversations.isEmpty) {
       return RefreshIndicator(
         onRefresh: () =>
@@ -123,6 +215,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
               ref
                   .read(messagesControllerProvider.notifier)
                   .deleteConversation(session.id);
+              if (_selectedId == session.id) {
+                setState(() => _selectedId = null);
+              }
             },
             background: Container(
               alignment: Alignment.centerRight,
@@ -133,49 +228,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
             child: Card(
               child: ListTile(
                 leading: GestureDetector(
-                  onTap: () async {
-                    await Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => ChatPage(
-                          conversation: session,
-                          onConversationRead: () {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .markConversationRead(session.id);
-                          },
-                          onConversationRemoved: () {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .removeConversation(session.id);
-                          },
-                          onConversationFlagsChanged:
-                              ({bool? blockedByMe, bool? blockedByPeer}) {
-                                ref
-                                    .read(messagesControllerProvider.notifier)
-                                    .updateConversationFlags(
-                                      conversationId: session.id,
-                                      blockedByMe: blockedByMe,
-                                      blockedByPeer: blockedByPeer,
-                                    );
-                              },
-                          onMessageSent: (String content) {
-                            ref
-                                .read(messagesControllerProvider.notifier)
-                                .updateConversationPreview(
-                                  conversationId: session.id,
-                                  message: content,
-                                );
-                          },
-                        ),
-                      ),
-                    );
-                    if (!mounted) {
-                      return;
-                    }
-                    await ref
-                        .read(messagesControllerProvider.notifier)
-                        .refresh();
-                  },
+                  onTap: () => _openConversation(session, split: split),
                   child: _buildAvatar(session.avatarUrl, session.name),
                 ),
                 title: Row(
@@ -217,47 +270,8 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     ],
                   ],
                 ),
-                onTap: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) => ChatPage(
-                        conversation: session,
-                        onConversationRead: () {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .markConversationRead(session.id);
-                        },
-                        onConversationRemoved: () {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .removeConversation(session.id);
-                        },
-                        onConversationFlagsChanged:
-                            ({bool? blockedByMe, bool? blockedByPeer}) {
-                              ref
-                                  .read(messagesControllerProvider.notifier)
-                                  .updateConversationFlags(
-                                    conversationId: session.id,
-                                    blockedByMe: blockedByMe,
-                                    blockedByPeer: blockedByPeer,
-                                  );
-                            },
-                        onMessageSent: (String content) {
-                          ref
-                              .read(messagesControllerProvider.notifier)
-                              .updateConversationPreview(
-                                conversationId: session.id,
-                                message: content,
-                              );
-                        },
-                      ),
-                    ),
-                  );
-                  if (!mounted) {
-                    return;
-                  }
-                  await ref.read(messagesControllerProvider.notifier).refresh();
-                },
+                selected: split && session.id == _selectedId,
+                onTap: () => _openConversation(session, split: split),
               ),
             ),
           );

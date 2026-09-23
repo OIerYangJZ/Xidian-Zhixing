@@ -24,6 +24,7 @@ class ChatPage extends StatefulWidget {
     this.onConversationRemoved,
     this.onConversationFlagsChanged,
     this.peerUserId,
+    this.embedded = false,
   });
 
   final ConversationItem conversation;
@@ -32,6 +33,10 @@ class ChatPage extends StatefulWidget {
   final VoidCallback? onConversationRemoved;
   final ConversationFlagsChanged? onConversationFlagsChanged;
   final String? peerUserId;
+
+  /// Shown as the right pane of the wide conversations layout rather than as
+  /// a pushed route, so there is no route of its own to pop.
+  final bool embedded;
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -76,6 +81,7 @@ class _ChatPageState extends State<ChatPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: !widget.embedded,
         title: GestureDetector(
           onTap: widget.peerUserId != null
               ? () => _navigateToProfile(context, widget.peerUserId!)
@@ -983,7 +989,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ),
       );
-      Navigator.of(context).pop();
+      if (!widget.embedded) Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
       setState(() {
