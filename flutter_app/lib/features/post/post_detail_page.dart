@@ -797,7 +797,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       return;
     }
     final String body = _post.isMarkdown ? _post.markdownSource : _post.content;
-    final String text = '[${_post.channel}] ${_post.title}\\n$body';
+    final String text = '[${_post.channel}] ${_post.title}\n$body';
     await Clipboard.setData(ClipboardData(text: text));
     _feedback(uiTextGlobal(zh: '已复制帖子内容', en: 'Post content copied'));
   }
