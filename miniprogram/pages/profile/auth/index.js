@@ -102,10 +102,10 @@ Page({
   },
 
   goTerms() {
-    wx.navigateTo({ url: '/pages/profile/legal/index?type=terms' });
+    wx.navigateTo({ url: '/pages/profile/legal/index?type=user-agreement' });
   },
 
   goPrivacy() {
-    wx.navigateTo({ url: '/pages/profile/legal/index?type=privacy' });
+    wx.navigateTo({ url: '/pages/profile/legal/index?type=privacy-policy' });
   }
 });
