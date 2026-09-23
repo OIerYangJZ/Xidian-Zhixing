@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
+import '../../core/utils/post_share.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -426,9 +427,11 @@ class _PostCardState extends ConsumerState<PostCard> {
     );
   }
 
-  void _handleShare(BuildContext context) {
+  Future<void> _handleShare(BuildContext context) async {
+    await copyPostShareText(widget.post.id);
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('链接已复制'), duration: Duration(seconds: 1)),
+      const SnackBar(content: Text('已复制分享内容'), duration: Duration(seconds: 1)),
     );
   }
 

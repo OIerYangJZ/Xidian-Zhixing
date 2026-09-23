@@ -12,6 +12,7 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
+import '../../core/utils/post_share.dart';
 import '../../core/utils/time_utils.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/models/comment_item.dart';
@@ -1227,13 +1228,12 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             iconSize: 22,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-            onPressed: () {
-              Clipboard.setData(
-                ClipboardData(text: '查看西电知行帖子：${widget.postId}'),
-              );
+            onPressed: () async {
+              await copyPostShareText(widget.postId);
+              if (!context.mounted) return;
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('链接已复制到剪贴板')));
+              ).showSnackBar(const SnackBar(content: Text('已复制分享内容')));
             },
           ),
         ],
