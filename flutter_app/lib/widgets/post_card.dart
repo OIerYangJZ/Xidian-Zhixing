@@ -104,7 +104,7 @@ class PostCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 6),
-                    _Markers(post: post),
+                    PostMarkers(post: post),
                     if (post.title.trim().isNotEmpty) ...<Widget>[
                       const SizedBox(height: 8),
                       Text(
@@ -301,10 +301,11 @@ String _relativeTime(BuildContext context, DateTime time) {
   return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')}';
 }
 
-/// The badge row. Order follows the handoff: 置顶, 匿名, channel, status, then
+/// A post's badge row, shared by cards and post detail. Order follows the
+/// handoff: 置顶, 匿名, channel, status, then
 /// visibility and review state.
-class _Markers extends StatelessWidget {
-  const _Markers({required this.post});
+class PostMarkers extends StatelessWidget {
+  const PostMarkers({super.key, required this.post});
 
   final PostItem post;
 
@@ -425,7 +426,7 @@ class _Actions extends StatelessWidget {
     final ZxTokens t = ZxTokens.of(context);
     return Row(
       children: <Widget>[
-        _Action(
+        PostActionPill(
           icon: post.isLiked
               ? Icons.favorite_rounded
               : Icons.favorite_border_rounded,
@@ -436,13 +437,13 @@ class _Actions extends StatelessWidget {
           label: uiText(context, zh: '点赞', en: 'Like'),
           onTap: onLike,
         ),
-        _Action(
+        PostActionPill(
           icon: Icons.chat_bubble_outline_rounded,
           count: post.commentCount,
           label: uiText(context, zh: '评论', en: 'Comments'),
           onTap: onComment,
         ),
-        _Action(
+        PostActionPill(
           icon: post.isFavorited
               ? Icons.star_rounded
               : Icons.star_border_rounded,
@@ -465,8 +466,10 @@ class _Actions extends StatelessWidget {
   }
 }
 
-class _Action extends StatelessWidget {
-  const _Action({
+/// Like / comment / save pill with a count; tinted while [active].
+class PostActionPill extends StatelessWidget {
+  const PostActionPill({
+    super.key,
     required this.icon,
     required this.count,
     required this.label,

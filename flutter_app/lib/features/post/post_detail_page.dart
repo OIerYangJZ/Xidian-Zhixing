@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
+import '../../design_system/design_system.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/share_links.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_surfaces.dart';
 import '../../models/comment_item.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
+import '../../widgets/post_card.dart';
 import 'report_dialog.dart';
 import '../../widgets/image_gallery.dart';
 import '../../widgets/post_content_body.dart';
@@ -60,430 +60,451 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
-    final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
+    final ZxTokens t = ZxTokens.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const SizedBox.shrink(),
+        leading: IconButton(
+          tooltip: uiText(context, zh: '返回', en: 'Back'),
+          onPressed: () => Navigator.of(context).maybePop(),
+          icon: const Icon(Icons.close_rounded),
+        ),
+        title: Text(uiText(context, zh: '帖子详情', en: 'Post')),
         actions: <Widget>[
-          IconButton(
-            tooltip: uiText(context, zh: '返回', en: 'Back'),
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(Icons.close_rounded),
+          Center(
+            child: ZxButton(
+              label: uiText(context, zh: '复制链接', en: 'Copy link'),
+              icon: Icons.link_rounded,
+              variant: ZxButtonVariant.outline,
+              small: true,
+              onPressed: _copyPostLink,
+            ),
           ),
+          IconButton(
+            key: const Key('post-detail-more'),
+            tooltip: uiText(context, zh: '更多', en: 'More'),
+            icon: const Icon(Icons.more_horiz_rounded),
+            onPressed: _loading ? null : _openMoreMenu,
+          ),
+          const SizedBox(width: 4),
         ],
       ),
-      body: Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: AppLayout.contentMaxWidth,
-          ),
-          child: _loading
-              ? AppStatePanel(
-                  icon: Icons.hourglass_top_rounded,
-                  title: uiText(context, zh: '正在加载帖子', en: 'Loading post'),
-                  message: uiText(
-                    context,
-                    zh: '正文和评论即将呈现。',
-                    en: 'The body and comments will appear shortly.',
-                  ),
-                )
-              : ListView(
-                  padding: AppLayout.pagePadding(context),
-                  children: <Widget>[
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: AppInlineMessage(
-                          title: uiText(
-                            context,
-                            zh: '部分内容加载失败',
-                            en: 'Some content failed to load',
-                          ),
-                          message: _error!,
-                          tone: AppMessageTone.error,
-                          action: TextButton(
-                            onPressed: () => _loadDetail(),
-                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
+      body: ZxPaper(
+        child: _loading
+            ? const _DetailSkeleton()
+            : Column(
+                children: <Widget>[
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                      children: <Widget>[
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 760),
+                            child: _buildPost(context, t),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  _buildComposer(context, t),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPost(BuildContext context, ZxTokens t) {
+    final Locale locale = Localizations.localeOf(context);
+    final List<String> supplementaryImageUrls = _supplementaryImageUrls(_post);
+    final bool canOpenAuthor =
+        _post.canViewAuthorProfile && _post.authorUserId.isNotEmpty;
+    final String author = _post.isAnonymous
+        ? uiText(context, zh: '匿名身份', en: 'Anonymous')
+        : _post.authorAliasFor(locale);
+    final int commentCount = _countComments(_comments);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (_error != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: ZxInlineMessage(
+              message: uiText(
+                context,
+                zh: '部分内容加载失败：$_error',
+                en: 'Some content failed to load: $_error',
+              ),
+              tone: ZxMessageTone.danger,
+              actionLabel: uiText(context, zh: '重试', en: 'Retry'),
+              onAction: () => _loadDetail(),
+            ),
+          ),
+        PostMarkers(post: _post),
+        const SizedBox(height: 12),
+        Text(
+          _post.title,
+          style: ZxType.titleLarge.copyWith(
+            fontSize: 24,
+            height: 1.35,
+            color: t.text,
+          ),
+        ),
+        const SizedBox(height: 14),
+        ZxCard(
+          elevation: ZxElevation.flat,
+          padding: const EdgeInsets.all(12),
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 24,
+            runSpacing: 10,
+            children: <Widget>[
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  _post.isAnonymous
+                      ? ZxAvatar.anonymous(name: _post.authorAliasFor(locale))
+                      : ZxAvatar(
+                          name: author,
+                          imageUrl: AppConfig.resolveUrl(
+                            _post.authorAvatarUrl.trim(),
+                          ),
+                          onTap: canOpenAuthor ? _openAuthorProfile : null,
+                        ),
+                  const SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(author, style: ZxType.label.copyWith(color: t.text)),
+                      Text(
+                        uiText(
+                          context,
+                          zh: '${_formatDateTime(_post.createdAt)} · ${_post.viewCount} 阅读',
+                          en: '${_formatDateTime(_post.createdAt)} · ${_post.viewCount} views',
+                        ),
+                        style: ZxType.caption.copyWith(color: t.text3),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
-                            children: <Widget>[
-                              AppStatusTag(label: _post.channelFor(locale)),
-                              const SizedBox(width: AppSpacing.xs),
-                              AppStatusTag(
-                                label: _post.status.labelFor(locale),
-                                outlined: true,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            _post.title,
-                            style: Theme.of(context).textTheme.headlineSmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.35,
-                                ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          Row(
-                            children: <Widget>[
-                              GestureDetector(
-                                onTap:
-                                    _post.canViewAuthorProfile &&
-                                        _post.authorUserId.isNotEmpty
-                                    ? _openAuthorProfile
-                                    : null,
-                                child: CircleAvatar(
-                                  radius: 18,
-                                  backgroundImage:
-                                      _post.isAnonymous ||
-                                          _post.authorAvatarUrl.trim().isEmpty
-                                      ? null
-                                      : NetworkImage(
-                                          AppConfig.resolveUrl(
-                                            _post.authorAvatarUrl.trim(),
-                                          ),
-                                        ),
-                                  child:
-                                      _post.isAnonymous ||
-                                          _post.authorAvatarUrl.trim().isEmpty
-                                      ? Text(
-                                          _post.isAnonymous
-                                              ? uiText(
-                                                  context,
-                                                  zh: '匿',
-                                                  en: 'A',
-                                                )
-                                              : _post
-                                                    .authorAliasFor(locale)
-                                                    .trim()
-                                                    .characters
-                                                    .first,
-                                        )
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              Expanded(
-                                child: Text(
-                                  '${_post.isAnonymous ? uiText(context, zh: '匿名身份', en: 'Anonymous') : _post.authorAliasFor(locale)} · ${_formatDateTime(_post.createdAt)}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ),
-                              Text(
-                                uiText(
-                                  context,
-                                  zh: '${_post.viewCount} 阅读',
-                                  en: '${_post.viewCount} views',
-                                ),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(
-                              vertical: AppSpacing.lg,
-                            ),
-                            child: Divider(height: 1),
-                          ),
-                          PostContentBody(
-                            content: _post.content,
-                            contentFormat: _post.contentFormat,
-                            markdownSource: _post.markdownSource,
-                            selectable: !_post.isMarkdown,
-                          ),
-                          if (supplementaryImageUrls.isNotEmpty)
-                            ImageGallery(images: supplementaryImageUrls),
-                          if (_post.hasImage && supplementaryImageUrls.isEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
+                    ],
+                  ),
+                ],
+              ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: <Widget>[
+                  if (canOpenAuthor)
+                    ZxButton(
+                      label: uiText(context, zh: '查看主页', en: 'Profile'),
+                      variant: ZxButtonVariant.outline,
+                      small: true,
+                      onPressed: _openAuthorProfile,
+                    ),
+                  if (_post.canMessageAuthor)
+                    ZxButton(
+                      label: uiText(context, zh: '私信作者', en: 'Message'),
+                      icon: Icons.forum_outlined,
+                      variant: ZxButtonVariant.outline,
+                      small: true,
+                      onPressed: _actionBusy ? null : _requestDm,
+                    ),
+                  if (_post.canFollowAuthor && _post.authorUserId.isNotEmpty)
+                    ZxButton(
+                      label: _post.isFollowingAuthor
+                          ? uiText(context, zh: '已关注', en: 'Following')
+                          : uiText(context, zh: '关注作者', en: 'Follow'),
+                      icon: _post.isFollowingAuthor ? null : Icons.add_rounded,
+                      variant: _post.isFollowingAuthor
+                          ? ZxButtonVariant.secondary
+                          : ZxButtonVariant.primary,
+                      small: true,
+                      onPressed: _actionBusy ? null : _toggleFollowAuthor,
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        DefaultTextStyle.merge(
+          style: ZxType.body.copyWith(
+            color: t.text,
+            fontSize: 16,
+            height: 1.75,
+          ),
+          child: PostContentBody(
+            content: _post.content,
+            contentFormat: _post.contentFormat,
+            markdownSource: _post.markdownSource,
+            selectable: !_post.isMarkdown,
+          ),
+        ),
+        if (_post.tags.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            children: <Widget>[
+              for (final String tag in _post.tags)
+                Text(
+                  '#$tag',
+                  style: ZxType.body.copyWith(
+                    color: t.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+            ],
+          ),
+        ],
+        if (supplementaryImageUrls.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 14),
+          ImageGallery(images: supplementaryImageUrls),
+        ],
+        if (_post.hasImage && supplementaryImageUrls.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              uiText(
+                context,
+                zh: '图片暂时不可用，请稍后重试',
+                en: 'Images are temporarily unavailable. Please try again later.',
+              ),
+              style: ZxType.caption.copyWith(color: t.text3),
+            ),
+          ),
+        const SizedBox(height: 16),
+        Row(
+          children: <Widget>[
+            PostActionPill(
+              icon: _post.isLiked
+                  ? Icons.favorite_rounded
+                  : Icons.favorite_border_rounded,
+              count: _post.likeCount,
+              active: _post.isLiked,
+              activeColor: t.primary,
+              activeFill: t.primarySoft,
+              label: uiText(context, zh: '点赞', en: 'Like'),
+              onTap: _actionBusy ? null : _like,
+            ),
+            PostActionPill(
+              icon: _post.isFavorited
+                  ? Icons.star_rounded
+                  : Icons.star_border_rounded,
+              count: _post.favoriteCount,
+              active: _post.isFavorited,
+              activeColor: t.accentInk,
+              activeFill: t.accentSoft,
+              label: uiText(context, zh: '收藏', en: 'Save'),
+              onTap: _actionBusy ? null : _toggleFavorite,
+            ),
+            const Spacer(),
+            if (!_post.isMarkdown)
+              ZxButton(
+                label: uiText(context, zh: '复制内容', en: 'Copy text'),
+                icon: Icons.copy_rounded,
+                variant: ZxButtonVariant.ghost,
+                small: true,
+                onPressed: _copyPostContent,
+              ),
+            ZxButton(
+              label: uiText(context, zh: '举报', en: 'Report'),
+              icon: Icons.flag_outlined,
+              variant: ZxButtonVariant.ghost,
+              small: true,
+              onPressed: _actionBusy ? null : _report,
+            ),
+          ],
+        ),
+        const SizedBox(height: 22),
+        Row(
+          children: <Widget>[
+            Text(
+              uiText(context, zh: '评论区', en: 'Comments'),
+              style: ZxType.title.copyWith(color: t.text),
+            ),
+            const SizedBox(width: 8),
+            Text('$commentCount', style: ZxType.label.copyWith(color: t.text3)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        if (_comments.isEmpty)
+          ZxCard(
+            key: const Key('comments-empty-state'),
+            elevation: ZxElevation.flat,
+            child: ZxStatePanel(
+              icon: Icons.chat_bubble_outline_rounded,
+              title: uiText(context, zh: '还没有评论', en: 'No comments yet'),
+              message: uiText(
+                context,
+                zh: '欢迎留下第一条友善、具体的回复。',
+                en: 'Be the first to leave a kind, specific reply.',
+              ),
+            ),
+          )
+        else
+          ZxCard(
+            elevation: ZxElevation.flat,
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: <Widget>[
+                for (int i = 0; i < _comments.length; i++) ...<Widget>[
+                  if (i > 0) Divider(height: 1, color: t.line),
+                  _CommentThreadTile(
+                    comment: _comments[i],
+                    floorLabel: uiText(
+                      context,
+                      zh: '${i + 1} 楼',
+                      en: '#${i + 1}',
+                    ),
+                    onReply: _actionBusy
+                        ? null
+                        : (CommentItem comment) =>
+                              _prepareReply(comment: comment),
+                    onReport: _actionBusy
+                        ? null
+                        : (String commentId) => _reportComment(commentId),
+                    onOpenAuthor: _openCommentAuthor,
+                  ),
+                ],
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildComposer(BuildContext context, ZxTokens t) {
+    return ZxGlass(
+      border: false,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border(top: BorderSide(color: t.line)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    if (_replyToCommentId != null && _replyToAlias != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: <Widget>[
+                            Container(width: 3, height: 16, color: t.primary),
+                            const SizedBox(width: 8),
+                            Expanded(
                               child: Text(
                                 uiText(
                                   context,
-                                  zh: '图片暂时不可用，请稍后重试',
-                                  en: 'Images are temporarily unavailable. Please try again later.',
+                                  zh: '正在回复 $_replyToAlias',
+                                  en: 'Replying to $_replyToAlias',
                                 ),
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface
-                                      .withValues(alpha: 0.58),
-                                  fontSize: 12,
-                                ),
+                                style: ZxType.caption.copyWith(color: t.text2),
                               ),
                             ),
-                          const SizedBox(height: 12),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: <Widget>[
-                              if (_post.canViewAuthorProfile &&
-                                  _post.authorUserId.isNotEmpty)
-                                OutlinedButton.icon(
-                                  onPressed: _openAuthorProfile,
-                                  icon: const Icon(Icons.person_outline),
-                                  label: Text(
-                                    uiText(
-                                      context,
-                                      zh: '查看主页',
-                                      en: 'View profile',
-                                    ),
-                                  ),
-                                ),
-                              if (_post.canFollowAuthor &&
-                                  _post.authorUserId.isNotEmpty)
-                                OutlinedButton.icon(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : _toggleFollowAuthor,
-                                  icon: Icon(
-                                    _post.isFollowingAuthor
-                                        ? Icons.person_remove_alt_1_outlined
-                                        : Icons.person_add_alt_1_outlined,
-                                  ),
-                                  label: Text(
-                                    _post.isFollowingAuthor
-                                        ? uiText(
-                                            context,
-                                            zh: '取消关注',
-                                            en: 'Unfollow',
-                                          )
-                                        : uiText(
-                                            context,
-                                            zh: '关注作者',
-                                            en: 'Follow author',
-                                          ),
-                                  ),
-                                ),
-                              OutlinedButton.icon(
-                                onPressed: _actionBusy ? null : _like,
-                                icon: const Icon(Icons.thumb_up_alt_outlined),
-                                label: Text(
-                                  uiText(
-                                    context,
-                                    zh: '点赞 ${_post.likeCount}',
-                                    en: 'Like ${_post.likeCount}',
-                                  ),
-                                ),
+                            IconButton(
+                              onPressed: _actionBusy
+                                  ? null
+                                  : () => setState(() {
+                                      _replyToCommentId = null;
+                                      _replyToAlias = null;
+                                    }),
+                              icon: const Icon(Icons.close_rounded, size: 16),
+                              visualDensity: VisualDensity.compact,
+                              tooltip: uiText(
+                                context,
+                                zh: '取消回复',
+                                en: 'Cancel reply',
                               ),
-                              OutlinedButton.icon(
-                                onPressed: _actionBusy ? null : _toggleFavorite,
-                                icon: Icon(
-                                  _post.isFavorited
-                                      ? Icons.bookmark
-                                      : Icons.bookmark_border,
-                                ),
-                                label: Text(
-                                  '${_post.isFavorited ? uiText(context, zh: '取消收藏', en: 'Saved') : uiText(context, zh: '收藏', en: 'Save')} ${_post.favoriteCount}',
-                                ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    TextField(
+                      controller: _commentController,
+                      focusNode: _commentFocusNode,
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: _replyToCommentId == null
+                            ? uiText(
+                                context,
+                                zh: '发表评论（支持楼中楼回复）',
+                                en: 'Write a comment (threaded replies supported)',
+                              )
+                            : uiText(
+                                context,
+                                zh: '输入回复内容',
+                                en: 'Write your reply',
                               ),
-                              OutlinedButton.icon(
-                                onPressed: _actionBusy ? null : _report,
-                                icon: const Icon(Icons.report_gmailerrorred),
-                                label: Text(
-                                  uiText(context, zh: '举报', en: 'Report'),
-                                ),
-                              ),
-                              if (!_post.isMarkdown)
-                                OutlinedButton.icon(
-                                  onPressed: _copyPostContent,
-                                  icon: const Icon(Icons.copy_all_rounded),
-                                  label: Text(
-                                    uiText(
-                                      context,
-                                      zh: '复制内容',
-                                      en: 'Copy text',
-                                    ),
-                                  ),
-                                ),
-                              OutlinedButton.icon(
-                                onPressed: _copyPostLink,
-                                icon: const Icon(Icons.link_rounded),
-                                label: Text(
-                                  uiText(
-                                    context,
-                                    zh: '复制链接',
-                                    en: 'Copy link',
-                                  ),
-                                ),
-                              ),
-                              if (_post.canMessageAuthor)
-                                OutlinedButton.icon(
-                                  onPressed: _actionBusy ? null : _requestDm,
-                                  icon: const Icon(Icons.forum_outlined),
-                                  label: Text(
-                                    uiText(
-                                      context,
-                                      zh: '私信作者',
-                                      en: 'Message author',
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ],
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            uiText(
-                              context,
-                              zh: '评论区（${_countComments(_comments)}）',
-                              en: 'Comments (${_countComments(_comments)})',
-                            ),
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w700),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: <Widget>[
+                        EmojiAssistantBar(
+                          controller: _commentController,
+                          compact: true,
+                        ),
+                        const Spacer(),
+                        ZxButton(
+                          label: uiText(
+                            context,
+                            zh: '发送评论',
+                            en: 'Post comment',
                           ),
-                          const SizedBox(height: 10),
-                          if (_comments.isEmpty)
-                            AppStatePanel(
-                              key: const Key('comments-empty-state'),
-                              icon: Icons.chat_bubble_outline_rounded,
-                              title: uiText(
-                                context,
-                                zh: '还没有评论',
-                                en: 'No comments yet',
-                              ),
-                              message: uiText(
-                                context,
-                                zh: '欢迎留下第一条友善、具体的回复。',
-                                en: 'Be the first to leave a kind, specific reply.',
-                              ),
-                              compact: true,
-                            )
-                          else
-                            ..._comments.asMap().entries.map(
-                              (MapEntry<int, CommentItem> entry) =>
-                                  _CommentThreadTile(
-                                    comment: entry.value,
-                                    floorLabel: uiText(
-                                      context,
-                                      zh: '${entry.key + 1} 楼',
-                                      en: '#${entry.key + 1}',
-                                    ),
-                                    onReply: _actionBusy
-                                        ? null
-                                        : (CommentItem comment) =>
-                                              _prepareReply(comment: comment),
-                                    onReport: _actionBusy
-                                        ? null
-                                        : (String commentId) =>
-                                              _reportComment(commentId),
-                                    onOpenAuthor: _openCommentAuthor,
-                                  ),
-                            ),
-                          const SizedBox(height: 8),
-                          if (_replyToCommentId != null &&
-                              _replyToAlias != null)
-                            Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: Text(
-                                      uiText(
-                                        context,
-                                        zh: '正在回复 $_replyToAlias',
-                                        en: 'Replying to $_replyToAlias',
-                                      ),
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    onPressed: _actionBusy
-                                        ? null
-                                        : () {
-                                            setState(() {
-                                              _replyToCommentId = null;
-                                              _replyToAlias = null;
-                                            });
-                                          },
-                                    icon: const Icon(Icons.close, size: 16),
-                                    visualDensity: VisualDensity.compact,
-                                    tooltip: uiText(
-                                      context,
-                                      zh: '取消回复',
-                                      en: 'Cancel reply',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          TextField(
-                            controller: _commentController,
-                            focusNode: _commentFocusNode,
-                            minLines: 2,
-                            maxLines: 4,
-                            decoration: InputDecoration(
-                              hintText: _replyToCommentId == null
-                                  ? uiText(
-                                      context,
-                                      zh: '发表评论（支持楼中楼回复）',
-                                      en: 'Write a comment (threaded replies supported)',
-                                    )
-                                  : uiText(
-                                      context,
-                                      zh: '输入回复内容',
-                                      en: 'Write your reply',
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: <Widget>[
-                              EmojiAssistantBar(
-                                controller: _commentController,
-                                compact: true,
-                              ),
-                              const Spacer(),
-                              FilledButton(
-                                onPressed: _actionBusy ? null : _submitComment,
-                                child: Text(
-                                  _actionBusy
-                                      ? uiText(
-                                          context,
-                                          zh: '提交中...',
-                                          en: 'Submitting...',
-                                        )
-                                      : uiText(
-                                          context,
-                                          zh: '发送评论',
-                                          en: 'Post comment',
-                                        ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                          icon: Icons.send_rounded,
+                          loading: _actionBusy,
+                          small: true,
+                          onPressed: _submitComment,
+                        ),
+                      ],
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
         ),
       ),
     );
+  }
+
+  Future<void> _openMoreMenu() async {
+    final String? action = await zxShowActionSheet<String>(
+      context,
+      cancelLabel: uiText(context, zh: '取消', en: 'Cancel'),
+      actions: <ZxSheetAction<String>>[
+        ZxSheetAction<String>(
+          value: 'link',
+          label: uiText(context, zh: '复制链接', en: 'Copy link'),
+          icon: Icons.link_rounded,
+        ),
+        if (!_post.isMarkdown)
+          ZxSheetAction<String>(
+            value: 'text',
+            label: uiText(context, zh: '复制内容', en: 'Copy text'),
+            icon: Icons.copy_rounded,
+          ),
+        ZxSheetAction<String>(
+          value: 'report',
+          label: uiText(context, zh: '举报', en: 'Report'),
+          icon: Icons.flag_outlined,
+        ),
+      ],
+    );
+    switch (action) {
+      case 'link':
+        await _copyPostLink();
+      case 'text':
+        await _copyPostContent();
+      case 'report':
+        await _report();
+    }
   }
 
   Future<void> _loadDetail({bool recordView = false}) async {
@@ -927,211 +948,209 @@ class _CommentThreadTileState extends State<_CommentThreadTile> {
 
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
     final CommentItem comment = widget.comment;
-    final String avatarUrl = AppConfig.resolveUrl(
-      (comment.authorAvatar ?? '').trim(),
-    );
     final Locale locale = Localizations.localeOf(context);
     final String authorAlias = comment.authorAliasFor(locale);
-    final String fallback = authorAlias.trim().isEmpty
-        ? uiTextFor(locale, zh: '匿', en: 'A')
-        : authorAlias.trim().characters.first;
-    final ThemeData theme = Theme.of(context);
-    final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.58);
-
+    final bool canOpen =
+        !comment.isAnonymous && comment.authorUserId.isNotEmpty;
+    final double avatarSize = widget.depth == 0 ? 36 : 28;
     return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Stack(
+      padding: EdgeInsets.fromLTRB(
+        widget.depth == 0 ? 16 : 0,
+        14,
+        12,
+        widget.depth == 0 ? 12 : 0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          if (widget.depth > 0)
-            Positioned(
-              left: 5,
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 1,
-                color: theme.colorScheme.primary.withValues(alpha: 0.35),
-              ),
-            ),
-          if (widget.depth > 0)
-            Positioned(
-              left: 5,
-              top: 28,
-              child: Container(
-                width: 12,
-                height: 1,
-                color: theme.colorScheme.primary.withValues(alpha: 0.35),
-              ),
-            ),
-          Column(
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: comment.authorUserId.isEmpty
-                        ? null
-                        : () => widget.onOpenAuthor(comment.authorUserId),
-                    child: CircleAvatar(
-                      radius: 18,
-                      backgroundImage: avatarUrl.isEmpty
-                          ? null
-                          : NetworkImage(avatarUrl),
-                      child: avatarUrl.isEmpty ? Text(fallback) : null,
+              comment.isAnonymous
+                  ? ZxAvatar.anonymous(name: authorAlias, size: avatarSize)
+                  : ZxAvatar(
+                      name: authorAlias,
+                      imageUrl: (comment.authorAvatar ?? '').trim(),
+                      size: avatarSize,
+                      onTap: canOpen
+                          ? () => widget.onOpenAuthor(comment.authorUserId)
+                          : null,
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: <Widget>[
-                        Row(
+                        GestureDetector(
+                          onTap: canOpen
+                              ? () => widget.onOpenAuthor(comment.authorUserId)
+                              : null,
+                          child: Text(
+                            authorAlias,
+                            style: ZxType.label.copyWith(color: t.text),
+                          ),
+                        ),
+                        if (comment.isPostAuthor)
+                          ZxBadge.author(uiText(context, zh: '洞主', en: 'OP')),
+                        if (comment.isAnonymous)
+                          ZxBadge.anonymous(
+                            uiText(context, zh: '匿名', en: 'Anonymous'),
+                          ),
+                        Text(
+                          <String>[
+                            if (widget.floorLabel != null) widget.floorLabel!,
+                            _formatDateTime(comment.createdAt),
+                          ].join(' · '),
+                          style: ZxType.caption.copyWith(
+                            color: t.text3,
+                            fontFeatures: const <FontFeature>[
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      comment.content,
+                      style: ZxType.body.copyWith(color: t.text, height: 1.6),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: <Widget>[
+                        _CommentAction(
+                          label: uiText(context, zh: '回复', en: 'Reply'),
+                          onTap: widget.onReply == null
+                              ? null
+                              : () => widget.onReply!(comment),
+                        ),
+                        _CommentAction(
+                          icon: _isLiked
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          label: '$_likeCount',
+                          color: _isLiked ? t.primary : null,
+                          onTap: _busy ? null : _toggleLike,
+                        ),
+                        _CommentAction(
+                          label: uiText(context, zh: '举报', en: 'Report'),
+                          onTap: widget.onReport == null
+                              ? null
+                              : () => widget.onReport!(comment.id),
+                        ),
+                      ],
+                    ),
+                    if (comment.replies.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 4),
+                        padding: const EdgeInsets.only(left: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            left: BorderSide(color: t.line, width: 2),
+                          ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
-                            Flexible(
-                              child: GestureDetector(
-                                onTap: comment.authorUserId.isEmpty
-                                    ? null
-                                    : () => widget.onOpenAuthor(
-                                        comment.authorUserId,
-                                      ),
-                                child: Text(
-                                  authorAlias,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    color: comment.authorUserId.isEmpty
-                                        ? theme.colorScheme.onSurface
-                                        : theme.colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            SizedBox(
-                              width: AppBreakpoints.isCompact(context)
-                                  ? 104
-                                  : 116,
-                              child: Text(
-                                _formatDateTime(comment.createdAt),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  color: muted,
-                                  fontSize: 12,
-                                  fontFeatures: const <FontFeature>[
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (widget.floorLabel != null)
-                              const SizedBox(width: 8),
-                            if (widget.floorLabel != null)
-                              SizedBox(
-                                width: AppBreakpoints.isCompact(context)
-                                    ? 36
-                                    : 40,
-                                child: Text(
-                                  widget.floorLabel!,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.clip,
-                                  textAlign: TextAlign.right,
-                                  style: TextStyle(color: muted, fontSize: 12),
-                                ),
+                            for (final CommentItem reply in comment.replies)
+                              _CommentThreadTile(
+                                comment: reply,
+                                depth: widget.depth + 1,
+                                onReply: widget.onReply,
+                                onReport: widget.onReport,
+                                onOpenAuthor: widget.onOpenAuthor,
                               ),
                           ],
                         ),
-                        const SizedBox(height: 2),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                comment.content,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.84),
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: <Widget>[
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: widget.onReply == null
-                        ? null
-                        : () => widget.onReply!(comment),
-                    icon: const Icon(Icons.reply_outlined, size: 16),
-                    label: Text(uiText(context, zh: '回复', en: 'Reply')),
-                  ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      visualDensity: VisualDensity.compact,
-                      foregroundColor: _isLiked
-                          ? Theme.of(context).colorScheme.primary
-                          : null,
-                    ),
-                    onPressed: _busy ? null : _toggleLike,
-                    icon: Icon(
-                      _isLiked
-                          ? Icons.thumb_up_alt
-                          : Icons.thumb_up_alt_outlined,
-                      size: 16,
-                    ),
-                    label: Text('$_likeCount'),
-                  ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    onPressed: widget.onReport == null
-                        ? null
-                        : () => widget.onReport!(comment.id),
-                    icon: const Icon(Icons.flag_outlined, size: 16),
-                    label: Text(uiText(context, zh: '举报', en: 'Report')),
-                  ),
-                  if (comment.effectiveReplyCount > 0)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 4, top: 8),
-                      child: Text(
-                        uiText(
-                          context,
-                          zh: '${comment.effectiveReplyCount} 条回复',
-                          en: comment.effectiveReplyCount == 1
-                              ? '1 reply'
-                              : '${comment.effectiveReplyCount} replies',
-                        ),
-                        style: TextStyle(color: muted, fontSize: 12),
                       ),
-                    ),
-                ],
-              ),
-              if (comment.replies.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 4),
-                ...comment.replies.map(
-                  (CommentItem reply) => _CommentThreadTile(
-                    comment: reply,
-                    depth: widget.depth + 1,
-                    onReply: widget.onReply,
-                    onReport: widget.onReport,
-                    onOpenAuthor: widget.onOpenAuthor,
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _CommentAction extends StatelessWidget {
+  const _CommentAction({
+    required this.label,
+    required this.onTap,
+    this.icon,
+    this.color,
+  });
+
+  final String label;
+  final VoidCallback? onTap;
+  final IconData? icon;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Color fg = color ?? t.text3;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: ZxRadius.smallButtonAll,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 6, 14, 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (icon != null) ...<Widget>[
+              Icon(icon, size: 15, color: fg),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: ZxType.caption.copyWith(
+                color: fg,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailSkeleton extends StatelessWidget {
+  const _DetailSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760),
+        child: const Padding(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              ZxSkeleton(width: 160),
+              SizedBox(height: 16),
+              ZxSkeleton(height: 26),
+              SizedBox(height: 18),
+              ZxSkeleton(height: 64, borderRadius: ZxRadius.cardAll),
+              SizedBox(height: 18),
+              ZxSkeleton(),
+              SizedBox(height: 10),
+              ZxSkeleton(),
+              SizedBox(height: 10),
+              ZxSkeleton(width: 280),
+            ],
+          ),
+        ),
       ),
     );
   }

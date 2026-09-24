@@ -1556,9 +1556,17 @@ def serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_i
     )
     is_anonymous = bool(comment.get("isAnonymous", False))
     public_author_id = "" if is_anonymous else author_id
+    # 洞主: whether whoever wrote the post wrote this comment. Only the flag
+    # is exposed, never the id, so anonymous posts stay anonymous.
+    post_id = str(comment.get("postId", "")).strip()
+    post = next((p for p in db.get("posts", []) if str(p.get("id", "")).strip() == post_id), None)
+    is_post_author = bool(
+        post is not None and author_id and str(post.get("authorId", "")).strip() == author_id
+    )
     return {
         "id": comment.get("id", ""),
         "postId": comment.get("postId", ""),
+        "isPostAuthor": is_post_author,
         "content": comment.get("content", ""),
         "authorAlias": comment.get("authorAlias", "匿名同学"),
         "authorId": public_author_id,

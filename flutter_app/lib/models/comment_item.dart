@@ -17,6 +17,8 @@ class CommentItem {
     this.replies = const [],
     this.authorUserId = '',
     this.replyCount = 0,
+    this.isAnonymous = false,
+    this.isPostAuthor = false,
   });
 
   final String id;
@@ -33,6 +35,12 @@ class CommentItem {
 
   /// 总回复数（含所有层级）
   final int replyCount;
+
+  /// Written under the seal; never links to a profile.
+  final bool isAnonymous;
+
+  /// 洞主: written by whoever wrote the post, even when that post is anonymous.
+  final bool isPostAuthor;
 
   /// 兼容旧字段：authorNickname = authorAlias
   String get authorNickname => authorAlias;
@@ -72,6 +80,8 @@ class CommentItem {
     List<CommentItem>? replies,
     String? authorUserId,
     int? replyCount,
+    bool? isAnonymous,
+    bool? isPostAuthor,
   }) {
     return CommentItem(
       id: id ?? this.id,
@@ -86,6 +96,8 @@ class CommentItem {
       replies: replies ?? this.replies,
       authorUserId: authorUserId ?? this.authorUserId,
       replyCount: replyCount ?? this.replyCount,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      isPostAuthor: isPostAuthor ?? this.isPostAuthor,
     );
   }
 
@@ -154,6 +166,8 @@ class CommentItem {
       replyCount:
           _toInt(json['replyCount'] ?? json['repliesCount']) ??
           parsedReplies.length,
+      isAnonymous: isAnonymous,
+      isPostAuthor: _toBool(json['isPostAuthor']) ?? false,
     );
   }
 

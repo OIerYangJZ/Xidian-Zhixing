@@ -100,6 +100,30 @@ void main() {
     expect(taps, 1);
   });
 
+  testWidgets('a button keeps its own height in a tall slot', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ZxTheme.build(
+          themeKey: zxDefaultThemeKey,
+          brightness: Brightness.light,
+        ),
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              height: 200,
+              child: Center(
+                child: ZxButton(label: '复制链接', small: true, onPressed: () {}),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(tester.getSize(find.byType(ZxButton)).height, lessThan(48));
+  });
+
   testWidgets('a loading button ignores taps', (WidgetTester tester) async {
     int taps = 0;
     await tester.pumpWidget(

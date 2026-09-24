@@ -137,7 +137,7 @@ class ZxButton extends StatelessWidget {
               ),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: small ? 12 : 18),
-                child: Center(widthFactor: 1, child: content),
+                child: Center(widthFactor: 1, heightFactor: 1, child: content),
               ),
             ),
           ),

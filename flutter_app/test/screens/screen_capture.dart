@@ -50,7 +50,14 @@ Future<void> loadScreenFonts() async {
   ]);
   await _loadFont('STZhongsong', <String>['assets/fonts/STZhongsong.ttf']);
   await _loadFont('STSong', <String>['assets/fonts/STSong.ttf']);
-  for (final String family in <String>['ZxSans', 'Roboto', 'FlutterTest']) {
+  // PingFang SC heads ZxFonts.bodyFallback, which is what text with no
+  // family of its own resolves through (app bar titles, segmented buttons).
+  for (final String family in <String>[
+    'ZxSans',
+    'Roboto',
+    'FlutterTest',
+    'PingFang SC',
+  ]) {
     await _loadFont(family, <String>[
       'assets/fonts/ZxSans-Regular.ttf',
       'assets/fonts/ZxSans-SemiBold.ttf',
@@ -60,20 +67,21 @@ Future<void> loadScreenFonts() async {
 
 /// Canned API answers for the screens. [routes] maps a path under /api to a
 /// JSON body; anything else answers with an empty object.
-ApiClient sampleApiClient(Map<String, Object> routes) {
-  return ApiClient(
-    httpClient: MockClient((http.Request request) async {
-      final String path = request.url.path.replaceFirst('/api', '');
-      return http.Response(
-        jsonEncode(routes[path] ?? <String, Object>{}),
-        200,
-        headers: const <String, String>{
-          'content-type': 'application/json; charset=utf-8',
-        },
-      );
-    }),
-  );
+http.Client sampleHttpClient(Map<String, Object> routes) {
+  return MockClient((http.Request request) async {
+    final String path = request.url.path.replaceFirst('/api', '');
+    return http.Response(
+      jsonEncode(routes[path] ?? <String, Object>{}),
+      200,
+      headers: const <String, String>{
+        'content-type': 'application/json; charset=utf-8',
+      },
+    );
+  });
 }
+
+ApiClient sampleApiClient(Map<String, Object> routes) =>
+    ApiClient(httpClient: sampleHttpClient(routes));
 
 /// Pumps [home] at [size] in [brightness] and writes `<name>.png`.
 Future<void> captureScreen(
