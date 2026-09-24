@@ -30,8 +30,18 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{
       _index: jsonEncode(<Map<String, String>>[
-        <String, String>{'id': 'c1', 'title': '图书馆几点关门', 'preview': '23:00', 'updatedAt': '9/24'},
-        <String, String>{'id': 'c2', 'title': '怎么申请缓考', 'preview': '…', 'updatedAt': '9/23'},
+        <String, String>{
+          'id': 'c1',
+          'title': '图书馆几点关门',
+          'preview': '23:00',
+          'updatedAt': '9/24',
+        },
+        <String, String>{
+          'id': 'c2',
+          'title': '怎么申请缓考',
+          'preview': '…',
+          'updatedAt': '9/23',
+        },
       ]),
       '${_prefix}c1': '[]',
       '${_prefix}c2': '[]',
@@ -48,13 +58,20 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('重命名'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField), '期末周图书馆');
+    await tester.enterText(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.byType(TextField),
+      ),
+      '期末周图书馆',
+    );
     await tester.tap(find.text('保存'));
     await tester.pumpAndSettle();
 
     expect(find.text('期末周图书馆'), findsOneWidget);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final List<dynamic> rows = jsonDecode(prefs.getString(_index)!) as List<dynamic>;
+    final List<dynamic> rows =
+        jsonDecode(prefs.getString(_index)!) as List<dynamic>;
     expect(rows.first['title'], '期末周图书馆');
     expect(rows.first['renamed'], isTrue);
   });
@@ -69,7 +86,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('删除').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(FilledButton, '删除'));
+    await tester.tap(find.text('删除').last);
     await tester.pumpAndSettle();
 
     expect(find.text('怎么申请缓考'), findsNothing);
