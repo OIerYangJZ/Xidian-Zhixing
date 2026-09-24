@@ -13,6 +13,7 @@ import '../../models/post_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 import '../../l10n/generated/app_localizations.dart';
+import '../post/create_post_page.dart';
 import 'feed_controller.dart';
 import 'discussion_feed_view.dart';
 
@@ -49,6 +50,15 @@ class _FeedPageState extends ConsumerState<FeedPage> {
     });
   }
 
+  Future<void> _openCreatePost() async {
+    final bool? created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute<bool>(builder: (_) => const CreatePostPage()),
+    );
+    if (created == true && mounted) {
+      await ref.read(feedControllerProvider.notifier).refreshPosts();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final FeedState state = ref.watch(feedControllerProvider);
@@ -66,6 +76,9 @@ class _FeedPageState extends ConsumerState<FeedPage> {
         onPostOpen: _openPost,
         onLike: _toggleLike,
         onFavorite: _toggleFavorite,
+        onChannelSelected: (String channel) =>
+            ref.read(feedControllerProvider.notifier).switchChannel(channel),
+        onCreate: _openCreatePost,
       );
     }
     return LayoutBuilder(
