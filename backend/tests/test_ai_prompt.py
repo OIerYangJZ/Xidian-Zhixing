@@ -13,7 +13,8 @@ def test_provider_receives_identity_core_knowledge_history_and_evidence(monkeypa
         captured.append(json.loads(request.data))
         return {"choices": [{"message": {"content": json.dumps({"answer":"材料：\n1. 申请表\n2. 成绩单", "sourceIds":["S1"]})}}]}
 
-    monkeypatch.setattr(_ai_handler, "_read_provider_json", provider)
+    monkeypatch.setattr(_ai_handler, "_read_provider_stream",
+        lambda request, timeout, cancel=None: provider(request, timeout))
     question = "那北校区呢"
     reply = _ai_handler._call_chat_completion(
         base_url="https://example.test/v1", api_key="test", model="test-model",
@@ -79,7 +80,8 @@ def test_generation_falls_back_to_json_mode_and_remembers(monkeypatch):
         return {"choices": [{"message": {"content": json.dumps(
             {"answer": "长安校区在西安市长安区", "sourceIds": []})}}]}
 
-    monkeypatch.setattr(_ai_handler, "_read_provider_json", provider)
+    monkeypatch.setattr(_ai_handler, "_read_provider_stream",
+        lambda request, timeout, cancel=None: provider(request, timeout))
     call = lambda: _ai_handler._call_chat_completion(
         base_url="https://example.test/v1", api_key="test", model="test-model",
         question="长安校区在哪", messages=[], context_items=[],
@@ -102,7 +104,8 @@ def test_invented_evidence_id_is_still_rejected_in_json_mode(monkeypatch):
         return {"choices": [{"message": {"content": json.dumps(
             {"answer": "见来源", "sourceIds": ["S9"]})}}]}
 
-    monkeypatch.setattr(_ai_handler, "_read_provider_json", provider)
+    monkeypatch.setattr(_ai_handler, "_read_provider_stream",
+        lambda request, timeout, cancel=None: provider(request, timeout))
     try:
         _ai_handler._call_chat_completion(
             base_url="https://example.test/v1", api_key="test", model="test-model",

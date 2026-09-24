@@ -956,6 +956,14 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             action(self, db)
             return
 
+        # Must stay reachable while a chat request from the same user is
+        # running, so like the chat itself it runs outside DB_LOCK.
+        if path == "/api/ai/chat/cancel":
+            with DB_LOCK:
+                db = load_db()
+            _ai_handler.handle_ai_chat_cancel(self, db)
+            return
+
         if path == "/api/ai/chat":
             with DB_LOCK:
                 db = load_db()

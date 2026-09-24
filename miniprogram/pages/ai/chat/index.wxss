@@ -204,3 +204,10 @@
   font-size: 28rpx;
   line-height: 76rpx;
 }
+
+/* Neutral, so 停止 does not read as the primary action. */
+.send-btn-stop {
+  background: var(--app-surface);
+  color: var(--app-text-primary);
+  border: 2rpx solid var(--border-default);
+}

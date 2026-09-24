@@ -41,6 +41,7 @@
 
   <view class="input-bar">
     <input class="input" placeholder="输入问题..." value="{{inputVal}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" cursor-spacing="20" />
-    <button class="send-btn" bindtap="sendMessage" disabled="{{isSending || !inputVal || !configured || configLoading}}">发送</button>
+    <button wx:if="{{isSending}}" class="send-btn send-btn-stop" bindtap="stopMessage">停止</button>
+    <button wx:else class="send-btn" bindtap="sendMessage" disabled="{{!inputVal || !configured || configLoading}}">发送</button>
   </view>
 </view>

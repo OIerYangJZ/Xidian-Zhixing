@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/widgets.dart';
 
 import '../core/network/api_client.dart';
@@ -11,15 +13,24 @@ class AiRepository {
   final ApiClient _apiClient;
 
   static const Duration _chatTimeout = Duration(seconds: 165);
+  static final Random _random = Random.secure();
+
+  /// Id that lets [cancelChat] reach a [sendMessage] still in flight.
+  static String newRequestId() => List<String>.generate(
+    16,
+    (_) => _random.nextInt(256).toRadixString(16).padLeft(2, '0'),
+  ).join();
 
   Future<AiChatResponse> sendMessage({
     required String content,
     required List<AiMessage> messages,
+    String? requestId,
   }) async {
     final dynamic response = await _apiClient.post(
       '/ai/chat',
       timeout: _chatTimeout,
       body: <String, dynamic>{
+        if (requestId != null) 'requestId': requestId,
         'content': content,
         'messages': messages
             .map(
@@ -32,6 +43,17 @@ class AiRepository {
       },
     );
     return AiChatResponse.fromJson(extractMap(response));
+  }
+
+  /// Stops a [sendMessage] on the server, which drops the model provider's
+  /// connection so the answer stops generating (and being billed). The
+  /// pending [sendMessage] then fails with a 409 the caller should ignore.
+  Future<void> cancelChat(String requestId) async {
+    await _apiClient.post(
+      '/ai/chat/cancel',
+      timeout: const Duration(seconds: 15),
+      body: <String, dynamic>{'requestId': requestId},
+    );
   }
 
   // Kept for non-UI compatibility with older integrations. The public app

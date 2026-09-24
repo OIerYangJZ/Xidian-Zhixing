@@ -160,6 +160,9 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
   late final String _conversationId;
   bool _sending = false;
 
+  /// Set while an answer is generating; [_stop] cancels it on the server.
+  String? _activeRequestId;
+
   @override
   void initState() {
     super.initState();
@@ -344,10 +347,18 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    IconButton.filled(
-                      onPressed: _sending ? null : _send,
-                      icon: const Icon(Icons.arrow_upward_rounded),
-                    ),
+                    if (_sending)
+                      IconButton.filledTonal(
+                        onPressed: _stop,
+                        tooltip: uiText(context, zh: '停止', en: 'Stop'),
+                        icon: const Icon(Icons.stop_rounded),
+                      )
+                    else
+                      IconButton.filled(
+                        onPressed: _send,
+                        tooltip: uiText(context, zh: '发送', en: 'Send'),
+                        icon: const Icon(Icons.arrow_upward_rounded),
+                      ),
                   ],
                 ),
               ),
@@ -362,9 +373,11 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
     final String text = _inputController.text.trim();
     if (text.isEmpty) return;
     _inputController.clear();
+    final String requestId = AiRepository.newRequestId();
     setState(() {
       _messages.add(AiMessage(role: 'user', content: text));
       _sending = true;
+      _activeRequestId = requestId;
     });
     _scrollToBottom();
     try {
@@ -373,7 +386,13 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       await _saveMessages();
       final AiChatResponse response = await ref
           .read(aiRepositoryProvider)
-          .sendMessage(content: text, messages: _messages);
+          .sendMessage(
+            content: text,
+            messages: _messages,
+            requestId: requestId,
+          );
+      // Stopped while waiting: the user has moved on, drop the late answer.
+      if (_activeRequestId != requestId) return;
       if (mounted)
         setState(
           () => _messages.add(
@@ -386,6 +405,8 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
         );
       await _saveMessages();
     } catch (_) {
+      // A stopped request fails with 409 by design; that is not an error.
+      if (_activeRequestId != requestId) return;
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -399,10 +420,40 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
           ),
         );
     } finally {
-      if (mounted) {
-        setState(() => _sending = false);
+      if (mounted && _activeRequestId == requestId) {
+        setState(() {
+          _sending = false;
+          _activeRequestId = null;
+        });
         _scrollToBottom();
       }
+    }
+  }
+
+  /// Stops the answer in progress. The server cancel is what stops the model
+  /// provider from generating; the UI is released immediately either way.
+  Future<void> _stop() async {
+    final String? requestId = _activeRequestId;
+    if (requestId == null) return;
+    setState(() {
+      _sending = false;
+      _activeRequestId = null;
+    });
+    try {
+      await ref.read(aiRepositoryProvider).cancelChat(requestId);
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              uiText(
+                context,
+                zh: '停止请求未送达，回答可能仍在生成',
+                en: 'Could not reach the server to stop the answer.',
+              ),
+            ),
+          ),
+        );
     }
   }
 

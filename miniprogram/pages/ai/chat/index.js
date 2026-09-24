@@ -1,4 +1,4 @@
-import { fetchAiModels, sendAiMessage } from '../../../api/ai';
+import { fetchAiModels, sendAiMessage, newAiRequestId, cancelAiMessage } from '../../../api/ai';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { openAppTarget } from '../../../utils/navigation';
@@ -145,6 +145,8 @@ Page({
       content: text
     };
 
+    const requestId = newAiRequestId();
+    this._activeRequestId = requestId;
     this.setData({
       messages: [...this.data.messages, newMsg],
       inputVal: '',
@@ -156,7 +158,9 @@ Page({
         .filter((item) => item.role === 'user' || item.role === 'assistant')
         .slice(-8)
         .map((item) => ({ role: item.role, content: item.content }));
-      const res = await sendAiMessage(text, { messages: historyMessages });
+      const res = await sendAiMessage(text, { messages: historyMessages, requestId });
+      // Stopped while waiting: the user has moved on, drop the late answer.
+      if (this._activeRequestId !== requestId) return;
       const reply = normalizeAiReply(res);
       const references = normalizeReferences(res);
       if (!reply) {
@@ -173,6 +177,8 @@ Page({
       }, this.scrollToBottom);
       saveAiHistory(text, reply, references);
     } catch (err) {
+      // A stopped request fails with 409 by design; that is not an error.
+      if (this._activeRequestId !== requestId) return;
       this.setData({
         messages: [
           ...this.data.messages,
@@ -185,7 +191,24 @@ Page({
       }, this.scrollToBottom);
       wx.showToast({ title: 'AI 请求失败，请检查设置', icon: 'none' });
     } finally {
-      this.setData({ isSending: false });
+      if (this._activeRequestId === requestId) {
+        this._activeRequestId = null;
+        this.setData({ isSending: false });
+      }
+    }
+  },
+
+  // Stops the answer in progress. The server cancel is what stops the model
+  // provider from generating; the input is released immediately either way.
+  async stopMessage() {
+    const requestId = this._activeRequestId;
+    if (!requestId) return;
+    this._activeRequestId = null;
+    this.setData({ isSending: false });
+    try {
+      await cancelAiMessage(requestId);
+    } catch (err) {
+      wx.showToast({ title: '停止请求未送达，回答可能仍在生成', icon: 'none' });
     }
   },
 

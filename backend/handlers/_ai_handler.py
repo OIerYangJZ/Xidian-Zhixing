@@ -25,6 +25,8 @@ from helpers import (
 )
 from rag_service import citations, visible_context
 from services import auth_user as auth_user_helper, load_db, save_db
+from services import _ai_cancel
+from services._ai_cancel import AiRequestCancelled, CancelToken
 from services._ai_prompt import PROMPT_SHA256, PROMPT_VERSION, build_system_prompt
 from services._ai_query import understand_query
 from services._ai_schema import (
@@ -40,6 +42,8 @@ logger = logging.getLogger("treehole.ai")
 
 MAX_CONTEXT_ITEMS = int(os.environ.get("BACKEND_AI_CONTEXT_ITEMS", "8"))
 MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
+# One server-sent event; a streamed delta is a few tokens, so this is ample.
+MAX_PROVIDER_STREAM_LINE_BYTES = 256 * 1024
 MAX_ORIGINAL_DOCUMENTS = 4
 MAX_ORIGINAL_DOCUMENT_CHARS = 24000
 MAX_ORIGINAL_CONTEXT_CHARS = 48000
@@ -172,9 +176,18 @@ def _auth_headers(api_key: str) -> dict[str, str]:
 
 
 def _read_provider_json(request: Request, timeout: int = 25) -> dict[str, Any]:
+    response = _open_provider(request, timeout)
     try:
-        with urlopen(request, timeout=timeout) as response:
+        with response:
             raw = _read_provider_body(response).decode("utf-8")
+    except TimeoutError as error:
+        raise RuntimeError("模型接口响应超时") from error
+    return _parse_provider_payload(raw)
+
+
+def _open_provider(request: Request, timeout: int) -> Any:
+    try:
+        return urlopen(request, timeout=timeout)
     except HTTPError as error:
         # The provider's error body is echoed straight to the caller, so it must
         # not travel any further than the log: it routinely names the upstream
@@ -211,6 +224,9 @@ def _read_provider_json(request: Request, timeout: int = 25) -> dict[str, Any]:
         raise RuntimeError("无法连接模型接口") from error
     except TimeoutError as error:
         raise RuntimeError("模型接口响应超时") from error
+
+
+def _parse_provider_payload(raw: str) -> dict[str, Any]:
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as error:
@@ -218,6 +234,79 @@ def _read_provider_json(request: Request, timeout: int = 25) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise RuntimeError("模型接口返回格式异常")
     return payload
+
+
+def _read_provider_stream(
+    request: Request,
+    timeout: int,
+    cancel: CancelToken | None = None,
+) -> dict[str, Any]:
+    """Read a chat completion that a cancel can cut off mid-generation.
+
+    The request asks for server-sent events. The response is registered with
+    [cancel], whose cancel() closes it from the cancelling thread; that drops
+    the provider connection, so the provider stops generating instead of
+    finishing (and billing) the whole answer. The streamed deltas are
+    reassembled into the same shape as a non-streaming completion. A provider
+    that ignores `stream` and answers with plain JSON is read as before.
+    """
+    if cancel is not None:
+        cancel.raise_if_cancelled()
+    response = _open_provider(request, timeout)
+    if cancel is not None:
+        cancel.attach(response)
+    try:
+        content_type = str(response.headers.get("Content-Type", "") or "")
+        if "text/event-stream" not in content_type:
+            return _parse_provider_payload(_read_provider_body(response).decode("utf-8"))
+        parts: list[str] = []
+        received = 0
+        try:
+            while True:
+                # Bounded like _read_provider_body: neither one event nor the
+                # whole stream may grow without limit.
+                raw_line = response.readline(MAX_PROVIDER_STREAM_LINE_BYTES)
+                if not raw_line:
+                    break
+                received += len(raw_line)
+                if received > MAX_PROVIDER_RESPONSE_BYTES:
+                    raise RuntimeError("模型接口响应过大")
+                if cancel is not None:
+                    cancel.raise_if_cancelled()
+                line = raw_line.decode("utf-8", "replace").strip()
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                chunk = _parse_provider_payload(data)
+                for choice in chunk.get("choices") or []:
+                    delta = choice.get("delta") if isinstance(choice, dict) else None
+                    piece = delta.get("content") if isinstance(delta, dict) else None
+                    if isinstance(piece, str):
+                        parts.append(piece)
+        except AiRequestCancelled:
+            raise
+        except Exception as error:
+            # cancel() closing the response surfaces here as a read on a closed
+            # stream; report the cancel, not a broken provider.
+            if cancel is not None and cancel.cancelled:
+                raise AiRequestCancelled("已停止生成") from error
+            if isinstance(error, RuntimeError):
+                raise
+            if isinstance(error, TimeoutError):
+                raise RuntimeError("模型接口响应超时") from error
+            raise RuntimeError("模型接口连接中断") from error
+        if cancel is not None:
+            cancel.raise_if_cancelled()
+        return {"choices": [{"message": {"content": "".join(parts)}}]}
+    finally:
+        if cancel is not None:
+            cancel.detach(response)
+        try:
+            response.close()
+        except Exception:
+            pass
 
 
 def _read_provider_body(response: Any) -> bytes:
@@ -284,6 +373,7 @@ def _call_chat_completion(
     messages: list[dict[str, str]],
     context_items: list[dict[str, Any]],
     trace: dict[str, Any] | None = None,
+    cancel: CancelToken | None = None,
 ) -> dict[str, Any]:
     context_text = _context_text(context_items)
     system_prompt = build_system_prompt() + (
@@ -326,13 +416,19 @@ def _call_chat_completion(
         trace["contextPayloadHash"] = hashlib.sha256(context_text.encode("utf-8")).hexdigest()
         trace["messageRoles"] = [m["role"] for m in payload_messages]
     def attempt(response_format):
+        # structured_call may retry; a stopped request must not start another
+        # generation.
+        if cancel is not None:
+            cancel.raise_if_cancelled()
         request = Request(
             f"{base_url}/chat/completions",
             data=json.dumps({
                 "model": model,
                 "messages": payload_messages,
                 "temperature": 0,
-                "stream": False,
+                # Streamed so a cancel can drop the connection mid-answer; see
+                # _read_provider_stream.
+                "stream": True,
                 # Reasoning models spend this budget before the answer starts,
                 # so a tight cap returns an empty content field rather than an
                 # error.
@@ -342,7 +438,11 @@ def _call_chat_completion(
             headers=_auth_headers(api_key),
             method="POST",
         )
-        data = _read_provider_json(request, timeout=int(os.environ.get("BACKEND_AI_GENERATION_TIMEOUT", "90")))
+        data = _read_provider_stream(
+            request,
+            timeout=int(os.environ.get("BACKEND_AI_GENERATION_TIMEOUT", "90")),
+            cancel=cancel,
+        )
         choices = data.get("choices")
         if not isinstance(choices, list) or not choices:
             raise RuntimeError("模型接口没有返回回答")
@@ -366,6 +466,25 @@ def _call_chat_completion(
         raise RuntimeError("模型接口返回了空回答") from error
     except (ValueError,KeyError,TypeError) as error:
         raise RuntimeError("模型回答或证据来源格式错误") from error
+
+
+def handle_ai_chat_cancel(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
+    """POST /api/ai/chat/cancel {requestId}: stop the caller's own request.
+
+    Idempotent. `cancelled` is false when nothing was running under that id,
+    which also covers a cancel that overtook its chat request: that request
+    then starts already cancelled.
+    """
+    user = _require_auth(handler, db)
+    if user is None:
+        return
+    body = read_json_body(handler) or {}
+    request_id = _ai_cancel.valid_request_id(body.get("requestId"))
+    if request_id is None:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "requestId 无效")
+        return
+    running = _ai_cancel.cancel(str(user.get("id", "")).strip(), request_id)
+    send_json(handler, HTTPStatus.OK, {"data": {"cancelled": running}})
 
 
 def handle_ai_models(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -418,6 +537,27 @@ def handle_ai_chat(
         json_error(handler, HTTPStatus.SERVICE_UNAVAILABLE, "服务器尚未配置 AI 服务")
         return
     model = configured_model
+    user_id = str(user.get("id", "")).strip()
+    request_id = _ai_cancel.valid_request_id(body.get("requestId"))
+    cancel = _ai_cancel.begin(user_id, request_id)
+    try:
+        _run_ai_chat(handler, body=body, question=question, model=model,
+            base_url=base_url, api_key=api_key, text_task=text_task, cancel=cancel)
+    finally:
+        _ai_cancel.end(user_id, request_id, cancel)
+
+
+def _run_ai_chat(
+    handler: BaseHTTPRequestHandler,
+    *,
+    body: dict[str, Any],
+    question: str,
+    model: str,
+    base_url: str,
+    api_key: str,
+    text_task: bool,
+    cancel: CancelToken,
+) -> None:
     raw_messages = body.get("messages", [])
     messages = raw_messages if isinstance(raw_messages, list) else []
     include_posts = body.get("includePosts") is not False
@@ -433,7 +573,10 @@ def handle_ai_chat(
                 "includeCommunity":False, "needsClarification":False}
         else:
             plan = understand_query(question, history, base_url=base_url, api_key=api_key,
-                model=model, read_json=_read_provider_json)
+                model=model,
+                read_json=lambda request, timeout=20: _read_provider_stream(
+                    request, timeout, cancel))
+        cancel.raise_if_cancelled()
         trace["queryPlan"] = plan
         trace["queryUnderstandingMs"] = round((time.perf_counter()-started)*1000)
         context_items = []
@@ -454,6 +597,7 @@ def handle_ai_chat(
             context_items = visible_context(visibility_db, retrieved["items"])
             trace.update(retrieved["trace"])
             trace["contextIds"] = [item["id"] for item in context_items]
+            cancel.raise_if_cancelled()
         result = _call_chat_completion(
             base_url=base_url,
             api_key=api_key,
@@ -466,7 +610,19 @@ def handle_ai_chat(
             messages=[] if retrieve_for_question else messages,
             context_items=context_items,
             trace=trace,
+            cancel=cancel,
         )
+    except AiRequestCancelled:
+        logger.info("AI request cancelled", extra={"structured": {
+            "event":"ai_chat_cancelled", "traceId":trace_id,
+            "elapsedMs":round((time.perf_counter()-started)*1000)}})
+        # The client has usually dropped this request already; the reply only
+        # matters to one still listening.
+        try:
+            json_error(handler, HTTPStatus.CONFLICT, "已停止生成", data={"cancelled": True})
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+        return
     except RuntimeError as error:
         logger.warning("AI request failed", extra={"structured": {
             "event":"ai_chat_failed", "traceId":trace_id, "error":str(error),
