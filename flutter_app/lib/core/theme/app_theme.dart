@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../design_system/design_system.dart';
+
 import 'app_typography.dart';
 import 'design_tokens.dart';
 import 'shared_colors.dart';
@@ -21,6 +23,45 @@ class AppTheme {
     Locale locale, {
     String themeKey = AppColorThemes.defaultKey,
   }) => _buildTheme(AppColorThemes.darkFor(themeKey), Brightness.dark, locale);
+
+  /// The design-system theme, plus [EditorialColors] derived from the same
+  /// tokens so pages not yet migrated keep working and already follow the
+  /// new palette. Drop the bridge once nothing reads EditorialColors.
+  static ThemeData designSystemFor({
+    required String themeKey,
+    required Brightness brightness,
+  }) {
+    final ThemeData base = ZxTheme.build(
+      themeKey: themeKey,
+      brightness: brightness,
+    );
+    final ZxTokens tokens = base.extension<ZxTokens>()!;
+    final ZxPalette p = tokens.palette;
+    return base.copyWith(
+      extensions: [
+        tokens,
+        EditorialColors(
+          page: p.bg,
+          surface: p.surface,
+          ink: p.text,
+          mutedInk: p.text2,
+          line: p.line,
+          primary: p.primary,
+          primaryActive: p.primaryPressed,
+          coral: p.coral,
+          apricot: p.accent,
+          primarySubtle: p.primarySoft,
+          infoSubtle: p.infoSoft,
+          darkPanel: p.text,
+          onDarkPanel: p.surface,
+          success: p.success,
+          warning: p.warning,
+          danger: p.danger,
+          info: p.info,
+        ),
+      ],
+    );
+  }
 
   static ThemeData adminTheme(
     Brightness brightness, {

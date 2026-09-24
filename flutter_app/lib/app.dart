@@ -35,8 +35,14 @@ class XduTreeholeApp extends StatelessWidget {
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightThemeFor(locale, themeKey: themeKey),
-          darkTheme: AppTheme.darkThemeFor(locale, themeKey: themeKey),
+          theme: AppTheme.designSystemFor(
+            themeKey: themeKey,
+            brightness: Brightness.light,
+          ),
+          darkTheme: AppTheme.designSystemFor(
+            themeKey: themeKey,
+            brightness: Brightness.dark,
+          ),
           themeMode: ThemeMode.system,
           locale: locale,
           localizationsDelegates: const <LocalizationsDelegate<dynamic>>[

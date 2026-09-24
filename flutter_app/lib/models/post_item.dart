@@ -97,6 +97,7 @@ class PostItem {
     this.isLiked = false,
     this.imageUrls = const <String>[],
     this.uploadedImageIds = const <String>[],
+    this.reviewStatus = 'approved',
   });
 
   final String id;
@@ -134,6 +135,10 @@ class PostItem {
   final bool isLiked;
   final List<String> imageUrls;
   final List<String> uploadedImageIds;
+
+  /// approved, pending or rejected. Only one's own posts are ever pending or
+  /// rejected (待审核 / 未通过审核).
+  final String reviewStatus;
 
   bool get isMarkdown =>
       contentFormat.trim().toLowerCase() == 'markdown' &&
@@ -208,6 +213,9 @@ class PostItem {
           .where((String value) => value.isNotEmpty)
           .toList(),
       uploadedImageIds: _toStringList(uploadedImageIdsValue),
+      reviewStatus: (_str(json, <String>['reviewStatus']) ?? 'approved')
+          .trim()
+          .toLowerCase(),
     );
   }
 
@@ -264,6 +272,7 @@ class PostItem {
     bool? isLiked,
     List<String>? imageUrls,
     List<String>? uploadedImageIds,
+    String? reviewStatus,
   }) {
     return PostItem(
       id: id ?? this.id,
@@ -301,6 +310,7 @@ class PostItem {
       isLiked: isLiked ?? this.isLiked,
       imageUrls: imageUrls ?? this.imageUrls,
       uploadedImageIds: uploadedImageIds ?? this.uploadedImageIds,
+      reviewStatus: reviewStatus ?? this.reviewStatus,
     );
   }
 

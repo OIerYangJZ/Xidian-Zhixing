@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/l10n/ui_text.dart';
-import '../core/state/app_theme_store.dart';
-import '../core/theme/design_tokens.dart';
-import '../core/theme/shared_colors.dart';
+import '../core/navigation/share_links.dart';
+import '../design_system/design_system.dart';
+import '../features/post/report_dialog.dart';
 import '../models/post_item.dart';
+import '../repositories/app_repositories.dart';
 
+/// A post in a list (handoff: Components · POST CARD, discussion layout).
+///
+/// Every marker the post carries is shown: 置顶, 匿名, channel, 进行中 /
+/// 已解决 / 已结束, 仅自己可见, and on one's own posts 待审核 / 未通过审核.
+/// The 「⋯」 menu offers 复制链接, 复制内容, 举报, and 删除 on one's own posts
+/// when [onDeleted] is given.
 class PostCard extends StatelessWidget {
   const PostCard({
     super.key,
@@ -13,6 +21,8 @@ class PostCard extends StatelessWidget {
     required this.onTap,
     this.onLike,
     this.onFavorite,
+    this.onAuthorTap,
+    this.onDeleted,
   });
 
   final PostItem post;
@@ -20,28 +30,39 @@ class PostCard extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onFavorite;
 
+  /// Opens the author's profile. Never called for anonymous posts.
+  final VoidCallback? onAuthorTap;
+
+  /// Removes the post from the caller's list after 删除. Without it the
+  /// menu does not offer 删除, since the post would stay on screen.
+  final VoidCallback? onDeleted;
+
   @override
   Widget build(BuildContext context) {
-    if (AppColorThemes.usesDiscussionLayout(AppThemeStore.instance.themeKey)) {
-      return _buildDiscussionCard(context);
-    }
-    final ThemeData theme = Theme.of(context);
-    final Color muted = theme.colorScheme.onSurface.withValues(alpha: 0.56);
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    final String author = post.authorAlias.isEmpty
+        ? uiText(context, zh: '匿名用户', en: 'Anonymous user')
+        : post.authorAliasFor(locale);
+    final String body = post.content.trim();
+
     return Material(
-      color: Colors.transparent,
+      type: MaterialType.transparency,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadii.small),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxs,
-            vertical: AppSpacing.lg,
-          ),
+          padding: const EdgeInsets.fromLTRB(18, 16, 12, 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              _Avatar(post: post),
-              const SizedBox(width: AppSpacing.sm),
+              post.isAnonymous
+                  ? ZxAvatar.anonymous(name: author)
+                  : ZxAvatar(
+                      name: author,
+                      imageUrl: post.authorAvatarUrl,
+                      onTap: onAuthorTap,
+                    ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,89 +70,82 @@ class PostCard extends StatelessWidget {
                     Row(
                       children: <Widget>[
                         Expanded(
-                          child: Text(
-                            post.authorAlias.isEmpty
-                                ? uiText(
-                                    context,
-                                    zh: '匿名用户',
-                                    en: 'Anonymous user',
-                                  )
-                                : post.authorAliasFor(
-                                    Localizations.localeOf(context),
-                                  ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                            ),
+                          child: Row(
+                            children: <Widget>[
+                              Flexible(
+                                child: Text(
+                                  author,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: ZxType.label.copyWith(color: t.text),
+                                ),
+                              ),
+                              Text(
+                                ' · ${_relativeTime(context, post.createdAt)}',
+                                style: ZxType.caption.copyWith(color: t.text3),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          _relativeTime(context, post.createdAt),
-                          style: TextStyle(color: muted, fontSize: 12),
+                        SizedBox.square(
+                          dimension: 32,
+                          child: IconButton(
+                            key: Key('post-card-more-${post.id}'),
+                            padding: EdgeInsets.zero,
+                            iconSize: 20,
+                            tooltip: uiText(context, zh: '更多', en: 'More'),
+                            icon: Icon(
+                              Icons.more_horiz_rounded,
+                              color: t.text3,
+                            ),
+                            onPressed: () => _openMenu(context),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    _PostMeta(post: post),
+                    const SizedBox(height: 6),
+                    _Markers(post: post),
                     if (post.title.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: 8),
                       Text(
                         post.title.trim(),
-                        maxLines: 3,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          height: 1.55,
-                          fontSize: 18,
-                        ),
+                        style: ZxType.title.copyWith(color: t.text),
                       ),
                     ],
-                    if (post.content.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        post.content.trim(),
+                    if (body.isNotEmpty || post.tags.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 4),
+                      Text.rich(
+                        TextSpan(
+                          children: <InlineSpan>[
+                            TextSpan(text: body),
+                            for (final String tag in post.tags)
+                              TextSpan(
+                                text: '${body.isEmpty ? '' : ' '}#$tag',
+                                style: TextStyle(
+                                  color: t.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                          ],
+                        ),
                         maxLines: post.imageUrls.isEmpty ? 4 : 3,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.88,
-                          ),
-                          height: 1.75,
-                        ),
+                        style: ZxType.body.copyWith(color: t.text2),
                       ),
                     ],
                     if (post.imageUrls.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
-                      _ImageStrip(urls: post.imageUrls),
+                      const SizedBox(height: 10),
+                      _Images(urls: post.imageUrls),
                     ],
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: <Widget>[
-                        _Action(
-                          icon: post.isLiked
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          value: post.likeCount,
-                          active: post.isLiked,
-                          onTap: onLike,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _Action(
-                          icon: Icons.mode_comment_outlined,
-                          value: post.commentCount,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _Action(
-                          icon: post.isFavorited
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          value: post.favoriteCount,
-                          active: post.isFavorited,
-                          onTap: onFavorite,
-                        ),
-                      ],
+                    const SizedBox(height: 8),
+                    _Actions(
+                      post: post,
+                      onLike: onLike,
+                      onComment: onTap,
+                      onFavorite: onFavorite,
+                      onShare: () => _copyLink(context),
                     ),
                   ],
                 ),
@@ -143,440 +157,246 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDiscussionCard(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final EditorialColors colors = EditorialColors.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        hoverColor: colors.primarySubtle.withValues(alpha: 0.34),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.lg,
-            AppSpacing.md,
-            AppSpacing.md,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              _DiscussionAvatar(post: post),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Text(
-                            post.authorAlias.isEmpty
-                                ? uiText(context, zh: '匿名同学', en: 'Anonymous')
-                                : post.authorAliasFor(
-                                    Localizations.localeOf(context),
-                                  ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: colors.ink,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          _relativeTime(context, post.createdAt),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.mutedInk,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Icon(
-                          Icons.more_horiz_rounded,
-                          size: 18,
-                          color: colors.mutedInk,
-                        ),
-                      ],
-                    ),
-                    if (post.title.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        post.title.trim(),
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          height: 1.42,
-                          color: colors.ink,
-                        ),
-                      ),
-                    ],
-                    if (post.content.trim().isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        post.content.trim(),
-                        maxLines: post.imageUrls.isEmpty ? 4 : 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colors.ink,
-                          height: 1.65,
-                        ),
-                      ),
-                    ],
-                    if (post.imageUrls.isNotEmpty) ...<Widget>[
-                      const SizedBox(height: AppSpacing.sm),
-                      _ImageStrip(urls: post.imageUrls),
-                    ],
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: <Widget>[
-                        _DiscussionAction(
-                          icon: post.isLiked
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          value: post.likeCount,
-                          active: post.isLiked,
-                          onTap: onLike,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _DiscussionAction(
-                          icon: Icons.mode_comment_outlined,
-                          value: post.commentCount,
-                          onTap: onTap,
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        _DiscussionAction(
-                          icon: post.isFavorited
-                              ? Icons.bookmark_rounded
-                              : Icons.bookmark_border_rounded,
-                          value: post.favoriteCount,
-                          active: post.isFavorited,
-                          onTap: onFavorite,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _relativeTime(BuildContext context, DateTime time) {
-    final Duration diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 1) {
-      return uiText(context, zh: '刚刚', en: 'Just now');
-    }
-    if (diff.inMinutes < 60) {
-      return uiText(
+  Future<void> _copyLink(BuildContext context) async {
+    await Clipboard.setData(ClipboardData(text: ShareLink.post(post.id).url));
+    if (context.mounted) {
+      zxShowToast(
         context,
-        zh: '${diff.inMinutes} 分钟前',
-        en: '${diff.inMinutes}m ago',
+        uiText(context, zh: '已复制帖子链接', en: 'Post link copied'),
       );
     }
-    if (diff.inHours < 24) {
-      return uiText(
-        context,
-        zh: '${diff.inHours} 小时前',
-        en: '${diff.inHours}h ago',
-      );
-    }
-    if (diff.inDays < 30) {
-      return uiText(
-        context,
-        zh: '${diff.inDays} 天前',
-        en: '${diff.inDays}d ago',
-      );
-    }
-    return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')}';
   }
-}
 
-class _DiscussionAvatar extends StatelessWidget {
-  const _DiscussionAvatar({required this.post});
-
-  final PostItem post;
-
-  @override
-  Widget build(BuildContext context) {
-    final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
-    final String label = post.authorAlias.trim().isEmpty
-        ? anonymousInitial
-        : post
-              .authorAliasFor(Localizations.localeOf(context))
-              .trim()
-              .characters
-              .first;
-    if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
-      return ClipOval(
-        child: Image.network(
-          post.authorAvatarUrl,
-          width: 42,
-          height: 42,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _DiscussionFallbackAvatar(label: label),
+  Future<void> _openMenu(BuildContext context) async {
+    final bool canCopyText = !post.isMarkdown;
+    final bool canDelete = post.isOwnPost && onDeleted != null;
+    final String? action = await zxShowActionSheet<String>(
+      context,
+      cancelLabel: uiText(context, zh: '取消', en: 'Cancel'),
+      actions: <ZxSheetAction<String>>[
+        ZxSheetAction<String>(
+          value: 'link',
+          label: uiText(context, zh: '复制链接', en: 'Copy link'),
+          icon: Icons.link_rounded,
         ),
-      );
-    }
-    return _DiscussionFallbackAvatar(
-      label: post.isAnonymous ? anonymousInitial : label,
-    );
-  }
-}
-
-class _DiscussionFallbackAvatar extends StatelessWidget {
-  const _DiscussionFallbackAvatar({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Container(
-      width: 42,
-      height: 42,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: colors.primarySubtle,
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelLarge?.copyWith(color: colors.primary),
-      ),
-    );
-  }
-}
-
-class _DiscussionAction extends StatelessWidget {
-  const _DiscussionAction({
-    required this.icon,
-    required this.value,
-    this.active = false,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final int value;
-  final bool active;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    final Color color = active ? colors.primary : colors.mutedInk;
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xxs,
-          vertical: AppSpacing.xxs,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: AppSpacing.xxs),
-            Text(
-              '$value',
-              style: Theme.of(
-                context,
-              ).textTheme.labelMedium?.copyWith(color: color),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _PostMeta extends StatelessWidget {
-  const _PostMeta({required this.post});
-
-  final PostItem post;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    return Wrap(
-      spacing: AppSpacing.xs,
-      runSpacing: AppSpacing.xs,
-      children: <Widget>[
-        _MetaPill(
-          label: post.channel.trim().isEmpty
-              ? uiText(context, zh: '未分类', en: 'Uncategorized')
-              : localizedChannel(
-                  Localizations.localeOf(context),
-                  post.channel.trim(),
-                ),
-          color: theme.colorScheme.primary,
-        ),
-        if (post.isPinned)
-          _MetaPill(
-            label: uiText(context, zh: '置顶', en: 'Pinned'),
-            color: theme.colorScheme.secondary,
+        if (canCopyText)
+          ZxSheetAction<String>(
+            value: 'text',
+            label: uiText(context, zh: '复制内容', en: 'Copy text'),
+            icon: Icons.copy_rounded,
           ),
-        if (post.status != PostStatus.ongoing)
-          _MetaPill(
-            label: post.status.labelFor(Localizations.localeOf(context)),
-            color: theme.colorScheme.onSurfaceVariant,
+        if (!post.isOwnPost)
+          ZxSheetAction<String>(
+            value: 'report',
+            label: uiText(context, zh: '举报', en: 'Report'),
+            icon: Icons.flag_outlined,
+          ),
+        if (canDelete)
+          ZxSheetAction<String>(
+            value: 'delete',
+            label: uiText(context, zh: '删除', en: 'Delete'),
+            icon: Icons.delete_outline_rounded,
+            danger: true,
           ),
       ],
     );
+    if (action == null || !context.mounted) return;
+    switch (action) {
+      case 'link':
+        await _copyLink(context);
+      case 'text':
+        await Clipboard.setData(
+          ClipboardData(
+            text: '[${post.channel}] ${post.title}\n${post.content}',
+          ),
+        );
+        if (context.mounted) {
+          zxShowToast(
+            context,
+            uiText(context, zh: '已复制帖子内容', en: 'Post content copied'),
+          );
+        }
+      case 'report':
+        await _report(context);
+      case 'delete':
+        await _delete(context);
+    }
+  }
+
+  Future<void> _report(BuildContext context) async {
+    final ReportChoice? choice = await showReportDialog(context);
+    if (choice == null || !context.mounted) return;
+    try {
+      await AppRepositories.posts.report(
+        targetType: 'post',
+        targetId: post.id,
+        reason: choice.reason,
+        description: choice.description,
+      );
+      if (context.mounted) {
+        zxShowToast(
+          context,
+          uiText(context, zh: '已提交举报', en: 'Report submitted'),
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        zxShowToast(
+          context,
+          uiText(context, zh: '举报失败：$error', en: 'Report failed: $error'),
+        );
+      }
+    }
+  }
+
+  Future<void> _delete(BuildContext context) async {
+    final bool confirmed = await zxConfirm(
+      context,
+      title: uiText(context, zh: '删除这条帖子？', en: 'Delete this post?'),
+      message: uiText(context, zh: '删除后无法恢复。', en: 'This cannot be undone.'),
+      confirmLabel: uiText(context, zh: '删除', en: 'Delete'),
+      cancelLabel: uiText(context, zh: '取消', en: 'Cancel'),
+      danger: true,
+    );
+    if (!confirmed || !context.mounted) return;
+    try {
+      await AppRepositories.posts.deleteMyPost(post.id);
+      onDeleted?.call();
+      if (context.mounted) {
+        zxShowToast(context, uiText(context, zh: '帖子已删除', en: 'Post deleted'));
+      }
+    } catch (error) {
+      if (context.mounted) {
+        zxShowToast(
+          context,
+          uiText(context, zh: '删除失败：$error', en: 'Delete failed: $error'),
+        );
+      }
+    }
   }
 }
 
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 180),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(AppRadii.small),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+String _relativeTime(BuildContext context, DateTime time) {
+  final Duration diff = DateTime.now().difference(time);
+  if (diff.inMinutes < 1) {
+    return uiText(context, zh: '刚刚', en: 'Just now');
+  }
+  if (diff.inMinutes < 60) {
+    return uiText(
+      context,
+      zh: '${diff.inMinutes} 分钟前',
+      en: '${diff.inMinutes}m ago',
     );
   }
+  if (diff.inHours < 24) {
+    return uiText(
+      context,
+      zh: '${diff.inHours} 小时前',
+      en: '${diff.inHours}h ago',
+    );
+  }
+  if (diff.inDays < 30) {
+    return uiText(context, zh: '${diff.inDays} 天前', en: '${diff.inDays}d ago');
+  }
+  return '${time.month.toString().padLeft(2, '0')}-${time.day.toString().padLeft(2, '0')}';
 }
 
-class _Avatar extends StatelessWidget {
-  const _Avatar({required this.post});
+/// The badge row. Order follows the handoff: 置顶, 匿名, channel, status, then
+/// visibility and review state.
+class _Markers extends StatelessWidget {
+  const _Markers({required this.post});
 
   final PostItem post;
 
   @override
   Widget build(BuildContext context) {
-    final String anonymousInitial = uiText(context, zh: '匿', en: 'A');
-    final String label = post.authorAlias.trim().isEmpty
-        ? anonymousInitial
-        : post
-              .authorAliasFor(Localizations.localeOf(context))
-              .trim()
-              .characters
-              .first;
-    if (!post.isAnonymous && post.authorAvatarUrl.trim().isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-        child: Image.network(
-          post.authorAvatarUrl,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => _FallbackAvatar(label: label),
-        ),
-      );
-    }
-    return _FallbackAvatar(label: post.isAnonymous ? anonymousInitial : label);
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    final String channel = post.channel.trim();
+    final List<Widget> badges = <Widget>[
+      if (post.isPinned)
+        ZxBadge.pinned(uiText(context, zh: '置顶', en: 'Pinned')),
+      if (post.isAnonymous)
+        ZxBadge.anonymous(uiText(context, zh: '匿名', en: 'Anonymous')),
+      ZxBadge.channel(
+        channel.isEmpty
+            ? uiText(context, zh: '未分类', en: 'Uncategorized')
+            : localizedChannel(locale, channel),
+        color: t.channelFor(channel),
+      ),
+      switch (post.status) {
+        PostStatus.ongoing => ZxBadge.inProgress(post.status.labelFor(locale)),
+        PostStatus.resolved => ZxBadge.resolved(post.status.labelFor(locale)),
+        PostStatus.closed => ZxBadge.closed(post.status.labelFor(locale)),
+      },
+      if (post.isPrivate)
+        ZxBadge.private(uiText(context, zh: '仅自己可见', en: 'Only me')),
+      if (post.reviewStatus == 'pending')
+        ZxBadge.pendingReview(uiText(context, zh: '待审核', en: 'In review')),
+      if (post.reviewStatus == 'rejected')
+        ZxBadge.rejected(uiText(context, zh: '未通过审核', en: 'Rejected')),
+    ];
+    return Wrap(spacing: 6, runSpacing: 6, children: badges);
   }
 }
 
-class _FallbackAvatar extends StatelessWidget {
-  const _FallbackAvatar({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppRadii.medium),
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: TextStyle(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ImageStrip extends StatelessWidget {
-  const _ImageStrip({required this.urls});
+/// Up to three thumbnails; more show as +N on the last.
+class _Images extends StatelessWidget {
+  const _Images({required this.urls});
 
   final List<String> urls;
 
   @override
   Widget build(BuildContext context) {
-    final int count = urls.length.clamp(1, 3);
+    final ZxTokens t = ZxTokens.of(context);
+    final int shown = urls.length.clamp(1, 3);
+    final int more = urls.length - shown;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final double gap = count > 1 ? 6 : 0;
-        final double itemWidth = count == 1
-            ? constraints.maxWidth.clamp(180, 360)
-            : (constraints.maxWidth - gap * (count - 1)) / count;
+        const double gap = 6;
+        final double width = shown == 1
+            ? constraints.maxWidth.clamp(180, 420)
+            : (constraints.maxWidth - gap * (shown - 1)) / shown;
+        final double height = shown == 1 ? width * 0.6 : width;
+        Widget placeholder() => Container(
+          width: width,
+          height: height,
+          color: t.bgSunk,
+          alignment: Alignment.center,
+          child: Icon(Icons.broken_image_outlined, color: t.text3),
+        );
         return Row(
           children: <Widget>[
-            for (int index = 0; index < count; index++) ...<Widget>[
+            for (int i = 0; i < shown; i++) ...<Widget>[
+              if (i > 0) const SizedBox(width: gap),
               ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  urls[index],
-                  width: itemWidth,
-                  height: count == 1 ? 210 : itemWidth,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: itemWidth,
-                    height: count == 1 ? 210 : itemWidth,
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primary.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(10),
+                borderRadius: ZxRadius.buttonAll,
+                child: Stack(
+                  children: <Widget>[
+                    Image.network(
+                      urls[i],
+                      width: width,
+                      height: height,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => placeholder(),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.broken_image_outlined,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '图片加载失败',
-                            en: 'Image failed to load',
-                          ),
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                    if (more > 0 && i == shown - 1)
+                      Positioned.fill(
+                        child: ColoredBox(
+                          color: t.scrim,
+                          child: Center(
+                            child: Text(
+                              '+$more',
+                              style: ZxType.titleLarge.copyWith(
+                                color: t.onScrim,
+                              ),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
               ),
-              if (index != count - 1) SizedBox(width: gap),
             ],
           ],
         );
@@ -585,43 +405,118 @@ class _ImageStrip extends StatelessWidget {
   }
 }
 
-class _Action extends StatelessWidget {
-  const _Action({
-    required this.icon,
-    required this.value,
-    this.active = false,
-    this.onTap,
+class _Actions extends StatelessWidget {
+  const _Actions({
+    required this.post,
+    required this.onLike,
+    required this.onComment,
+    required this.onFavorite,
+    required this.onShare,
   });
 
-  final IconData icon;
-  final int value;
-  final bool active;
-  final VoidCallback? onTap;
+  final PostItem post;
+  final VoidCallback? onLike;
+  final VoidCallback onComment;
+  final VoidCallback? onFavorite;
+  final VoidCallback onShare;
 
   @override
   Widget build(BuildContext context) {
-    final Color color = active
-        ? Theme.of(context).colorScheme.primary
-        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.48);
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 5),
-            Text(
-              '$value',
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+    final ZxTokens t = ZxTokens.of(context);
+    return Row(
+      children: <Widget>[
+        _Action(
+          icon: post.isLiked
+              ? Icons.favorite_rounded
+              : Icons.favorite_border_rounded,
+          count: post.likeCount,
+          active: post.isLiked,
+          activeColor: t.primary,
+          activeFill: t.primarySoft,
+          label: uiText(context, zh: '点赞', en: 'Like'),
+          onTap: onLike,
+        ),
+        _Action(
+          icon: Icons.chat_bubble_outline_rounded,
+          count: post.commentCount,
+          label: uiText(context, zh: '评论', en: 'Comments'),
+          onTap: onComment,
+        ),
+        _Action(
+          icon: post.isFavorited
+              ? Icons.star_rounded
+              : Icons.star_border_rounded,
+          count: post.favoriteCount,
+          active: post.isFavorited,
+          activeColor: t.accentInk,
+          activeFill: t.accentSoft,
+          label: uiText(context, zh: '收藏', en: 'Save'),
+          onTap: onFavorite,
+        ),
+        const Spacer(),
+        IconButton(
+          tooltip: uiText(context, zh: '复制链接', en: 'Copy link'),
+          iconSize: 18,
+          icon: Icon(Icons.ios_share_rounded, color: t.text3),
+          onPressed: onShare,
+        ),
+      ],
+    );
+  }
+}
+
+class _Action extends StatelessWidget {
+  const _Action({
+    required this.icon,
+    required this.count,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+    this.activeColor,
+    this.activeFill,
+  });
+
+  final IconData icon;
+  final int count;
+  final String label;
+  final VoidCallback? onTap;
+  final bool active;
+  final Color? activeColor;
+  final Color? activeFill;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Color color = active ? activeColor! : t.text3;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Semantics(
+        button: true,
+        label: '$label $count',
+        child: Material(
+          color: active ? activeFill : Colors.transparent,
+          borderRadius: ZxRadius.pillAll,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: ZxRadius.pillAll,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(icon, size: 18, color: color),
+                  const SizedBox(width: 5),
+                  Text(
+                    '$count',
+                    style: ZxType.caption.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

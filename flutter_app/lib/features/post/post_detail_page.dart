@@ -11,6 +11,7 @@ import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
+import 'report_dialog.dart';
 import '../../widgets/image_gallery.dart';
 import '../../widgets/post_content_body.dart';
 import '../messages/chat_page.dart';
@@ -652,138 +653,33 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _report() async {
-    final Map<String, dynamic>? result = await _showReportDialog();
-    if (result == null) return;
+    final ReportChoice? choice = await showReportDialog(context);
+    if (choice == null) return;
 
     await _runAction(
       action: () => AppRepositories.posts.report(
         targetType: 'post',
         targetId: _post.id,
-        reason: result['reason'] as String,
-        description: result['description'] as String?,
+        reason: choice.reason,
+        description: choice.description,
       ),
       success: uiTextGlobal(zh: '已提交举报', en: 'Report submitted'),
     );
   }
 
   Future<void> _reportComment(String commentId) async {
-    final Map<String, dynamic>? result = await _showReportDialog();
-    if (result == null) return;
+    final ReportChoice? choice = await showReportDialog(context);
+    if (choice == null) return;
 
     await _runAction(
       action: () => AppRepositories.posts.report(
         targetType: 'comment',
         targetId: commentId,
-        reason: result['reason'] as String,
-        description: result['description'] as String?,
+        reason: choice.reason,
+        description: choice.description,
       ),
       success: uiTextGlobal(zh: '已举报评论', en: 'Comment reported'),
     );
-  }
-
-  Future<Map<String, dynamic>?> _showReportDialog() async {
-    String? selectedReason;
-    final TextEditingController descController = TextEditingController();
-
-    // The value sent to the API stays Chinese; only the label is localized.
-    const List<(String, String)> reasons = <(String, String)>[
-      ('垃圾广告', 'Spam or advertising'),
-      ('违法违规', 'Illegal content'),
-      ('色情低俗', 'Sexual or vulgar content'),
-      ('人身攻击', 'Personal attack'),
-      ('虚假信息', 'Misinformation'),
-      ('侵犯隐私', 'Privacy violation'),
-      ('其他', 'Other'),
-    ];
-
-    try {
-      final bool? confirmed = await showDialog<bool>(
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              return AlertDialog(
-                title: Text(uiText(context, zh: '举报', en: 'Report')),
-                content: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        uiText(context, zh: '请选择举报原因：', en: 'Choose a reason:'),
-                      ),
-                      const SizedBox(height: 8),
-                      ...reasons.map(
-                        ((String, String) reason) => RadioListTile<String>(
-                          title: Text(
-                            uiText(context, zh: reason.$1, en: reason.$2),
-                          ),
-                          value: reason.$1,
-                          // ignore: deprecated_member_use
-                          groupValue: selectedReason,
-                          // ignore: deprecated_member_use
-                          onChanged: (String? value) {
-                            setState(() {
-                              selectedReason = value;
-                            });
-                          },
-                          dense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: descController,
-                        maxLength: 200,
-                        minLines: 2,
-                        maxLines: 4,
-                        decoration: InputDecoration(
-                          labelText: uiText(
-                            context,
-                            zh: '补充说明（可选）',
-                            en: 'Additional details (optional)',
-                          ),
-                          hintText: uiText(
-                            context,
-                            zh: '请详细描述举报原因',
-                            en: 'Describe the issue in more detail',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-                  ),
-                  FilledButton(
-                    onPressed: selectedReason == null
-                        ? null
-                        : () => Navigator.of(context).pop(true),
-                    child: Text(
-                      uiText(context, zh: '确认举报', en: 'Submit report'),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        },
-      );
-
-      if (confirmed != true || selectedReason == null) {
-        return null;
-      }
-
-      return <String, dynamic>{
-        'reason': selectedReason,
-        'description': descController.text.trim(),
-      };
-    } finally {
-      descController.dispose();
-    }
   }
 
   Future<void> _copyPostContent() async {

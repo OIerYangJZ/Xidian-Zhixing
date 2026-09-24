@@ -1518,6 +1518,9 @@ def serialize_post(
         "liked": liked,
         "favorited": favorited,
         "status": post.get("status", "ongoing"),
+        # pending / rejected are only ever seen on one's own posts, where the
+        # card shows 待审核 / 未通过审核.
+        "reviewStatus": str(post.get("reviewStatus", "approved") or "approved").strip().lower(),
         "allowComment": bool(post.get("allowComment", True)),
         "allowDm": effective_post_allow_dm(db, post),
         "visibility": str(post.get("visibility", "public")),
