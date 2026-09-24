@@ -680,3 +680,13 @@
     transform: rotate(360deg);
   }
 }
+
+.anonymous-random {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  padding: 4rpx 18rpx;
+  border-radius: 24rpx;
+  border: 2rpx solid var(--border-default);
+  color: var(--app-primary);
+  font-size: 24rpx;
+}

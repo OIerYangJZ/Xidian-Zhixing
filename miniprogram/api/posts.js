@@ -25,6 +25,14 @@ const requireOk = (data, label) => {
   }
 };
 
+// A random anonymous nickname for 随机, from the server's word list.
+export const getRandomAnonymousAlias = async () => {
+  const response = await request.get('/api/posts/anonymous-alias');
+  const alias = String((getData(response, {}) || {}).alias || '').trim();
+  if (!alias) throw new Error('没有取到随机昵称');
+  return alias;
+};
+
 export const getPosts = async (params = {}) => {
   const response = await request.get('/api/posts', params);
   const payload = getData(response);

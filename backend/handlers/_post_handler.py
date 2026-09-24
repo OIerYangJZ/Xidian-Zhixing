@@ -100,6 +100,46 @@ _MARKDOWN_IMAGE_RE = re.compile(
 )
 
 
+# Anonymous nicknames offered by 随机: "<where/when>的<creature/thing>", in the
+# campus register of the ones users pick themselves (北门的风, 晨跑的鹿).
+_ALIAS_PREFIXES = (
+    "北门的", "南门的", "图书馆的", "操场边的", "食堂里的", "海棠路的", "银杏道的",
+    "实验楼的", "晨跑的", "早八的", "熬夜的", "午后的", "雨后的", "路过的",
+    "安静的", "考研的", "自习室的", "宿舍楼下的", "湖边的", "晚自习的",
+)
+_ALIAS_NOUNS = (
+    "鹿", "风", "猫", "云", "树", "星", "灯", "鲸", "松鼠", "白鸽", "银杏",
+    "蒲公英", "月亮", "纸飞机", "橘子", "萤火虫", "小熊", "海盐", "薄荷", "向日葵",
+)
+
+
+def random_anonymous_alias(db: dict[str, Any]) -> str:
+    """A random alias that avoids the admin's sensitive words."""
+    import secrets
+
+    blocked = [
+        str(word).strip().lower()
+        for word in db.get("sensitiveWords", [])
+        if str(word).strip()
+    ]
+    alias = ""
+    for _ in range(20):
+        alias = secrets.choice(_ALIAS_PREFIXES) + secrets.choice(_ALIAS_NOUNS)
+        if not any(word in alias.lower() for word in blocked):
+            return sanitize_alias(alias)
+    return "匿名同学"
+
+
+def handle_get_random_anonymous_alias(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+) -> None:
+    """GET /api/posts/anonymous-alias -> {"alias": "..."}"""
+    if _require_auth(handler, db) is None:
+        return
+    send_json(handler, HTTPStatus.OK, {"data": {"alias": random_anonymous_alias(db)}})
+
+
 def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]):
     user, _ = auth_user_helper(handler, db)
     if user is None:

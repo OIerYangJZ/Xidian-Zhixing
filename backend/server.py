@@ -623,6 +623,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/posts/mine":
                 _post_handler.handle_get_posts_mine(self, db)
                 return
+            # Before the /api/posts/<id> match below, which would take it as an id.
+            if path == "/api/posts/anonymous-alias":
+                _post_handler.handle_get_random_anonymous_alias(self, db)
+                return
             if path == "/api/posts/favorites":
                 _post_handler.handle_get_posts_favorites(self, db)
                 return

@@ -29,6 +29,7 @@ class ApiEndpoints {
 
   static const String channels = '/channels';
   static const String posts = '/posts';
+  static const String anonymousAlias = '/posts/anonymous-alias';
   static const String myPosts = '/posts/mine';
   static const String favoritePosts = '/posts/favorites';
   static const String uploadImages = '/uploads/images';

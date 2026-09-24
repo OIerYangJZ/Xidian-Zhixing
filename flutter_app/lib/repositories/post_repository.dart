@@ -515,6 +515,18 @@ class PostRepository {
     return posts;
   }
 
+  /// A random anonymous nickname for 随机, from the server's word list.
+  Future<String> fetchRandomAnonymousAlias() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.anonymousAlias);
+    final String alias = (extractMap(response)['alias'] ?? '').toString().trim();
+    if (alias.isEmpty) {
+      throw FormatException(
+        uiTextGlobal(zh: '没有取到随机昵称', en: 'No random nickname was returned'),
+      );
+    }
+    return alias;
+  }
+
   Future<List<PostItem>> fetchMyPosts() async {
     final dynamic response = await _apiClient.get(ApiEndpoints.myPosts);
     final List<dynamic> list = extractList(response);

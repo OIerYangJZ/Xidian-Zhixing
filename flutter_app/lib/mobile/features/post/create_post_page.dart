@@ -35,7 +35,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   final _anonymousAliasController = TextEditingController();
   bool _isAnonymous = false;
-  String _anonymousAlias = '';
 
   int? _selectedPinDurationMinutes;
   bool _showPinSelector = false;
@@ -200,15 +199,22 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
   }
 
-  String _generateAnonymousAlias() {
-    final adjectives = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
-    final nouns = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
-    final adj =
-        adjectives[(DateTime.now().millisecondsSinceEpoch ~/ 13) %
-            adjectives.length];
-    final noun =
-        nouns[(DateTime.now().millisecondsSinceEpoch ~/ 17) % nouns.length];
-    return '$adj$noun';
+  /// Fills the alias from the server's word list (随机). Errors only matter
+  /// when the user asked explicitly; on the automatic fill the field just
+  /// stays empty and the server falls back to 匿名同学.
+  Future<void> _fillRandomAlias({bool explicit = false}) async {
+    try {
+      final String alias = await ref
+          .read(postRepositoryProvider)
+          .fetchRandomAnonymousAlias();
+      if (!mounted || !_isAnonymous) return;
+      setState(() => _anonymousAliasController.text = alias);
+    } catch (error) {
+      if (!mounted || !explicit) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('随机昵称获取失败：$error')));
+    }
   }
 
   void _removeImage(int index) {
@@ -514,7 +520,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           Expanded(
                             child: TextField(
                               controller: _anonymousAliasController,
-                              maxLength: 20,
+                              // Same limit as the server's sanitize_alias.
+                              maxLength: 24,
                               style: TextStyle(
                                 fontSize: 14,
                                 color: colors.textPrimary,
@@ -530,6 +537,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                 contentPadding: EdgeInsets.zero,
                                 counterText: '',
                               ),
+                            ),
+                          ),
+                          TextButton.icon(
+                            onPressed: () => _fillRandomAlias(explicit: true),
+                            icon: const Icon(Icons.casino_outlined, size: 16),
+                            label: const Text('随机'),
+                            style: TextButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
                             ),
                           ),
                         ],
@@ -636,15 +651,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                           onTap: () {
                             setState(() {
                               _isAnonymous = !_isAnonymous;
-                              if (_isAnonymous) {
-                                _anonymousAlias = _generateAnonymousAlias();
-                                _anonymousAliasController.text =
-                                    _anonymousAlias;
-                              } else {
-                                _anonymousAlias = '';
+                              if (!_isAnonymous) {
                                 _anonymousAliasController.clear();
                               }
                             });
+                            if (_isAnonymous &&
+                                _anonymousAliasController.text.isEmpty) {
+                              _fillRandomAlias();
+                            }
                           },
                         ),
                         // 置顶按钮

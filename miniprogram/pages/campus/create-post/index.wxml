@@ -90,10 +90,11 @@
         class="anonymous-input"
         placeholder="自定义匿名昵称（选填）"
         placeholder-class="anonymous-placeholder"
-        maxlength="20"
+        maxlength="24"
         value="{{anonymousAlias}}"
         bindinput="onAnonymousAliasInput"
       />
+      <view class="anonymous-random" bindtap="fillRandomAlias">随机</view>
     </view>
 
     <view class="status-badge-row" wx:if="{{selectedStatus}}">

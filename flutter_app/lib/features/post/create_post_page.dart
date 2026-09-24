@@ -65,6 +65,29 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     );
   }
 
+  Future<void> _fillRandomAlias() async {
+    try {
+      final String alias = await ref
+          .read(postRepositoryProvider)
+          .fetchRandomAnonymousAlias();
+      if (!mounted) return;
+      _anonymousAliasController.text = alias;
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            uiText(
+              context,
+              zh: '随机昵称获取失败：$error',
+              en: 'Could not get a random nickname: $error',
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _detachMarkdownPasteListener?.call();
@@ -471,6 +494,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                                   context,
                                   zh: '例如：热心同学',
                                   en: 'e.g. Helpful classmate',
+                                ),
+                                suffixIcon: TextButton.icon(
+                                  key: const Key('anonymous-alias-random'),
+                                  onPressed: _fillRandomAlias,
+                                  icon: const Icon(Icons.casino_outlined, size: 18),
+                                  label: Text(
+                                    uiText(context, zh: '随机', en: 'Random'),
+                                  ),
                                 ),
                               ),
                               validator: (String? value) {

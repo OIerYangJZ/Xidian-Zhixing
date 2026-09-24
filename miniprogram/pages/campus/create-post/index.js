@@ -1,7 +1,7 @@
 import { getUserInfo } from '../../../api/auth';
 import { getSectionsTree } from '../../../api/campus';
 import { getClubs } from '../../../api/clubs';
-import { createPost } from '../../../api/posts';
+import { createPost, getRandomAnonymousAlias } from '../../../api/posts';
 import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
@@ -54,8 +54,6 @@ const VISIBILITY_OPTIONS = [
   { label: '所有人可见', value: 'public', icon: 'public' },
   { label: '仅自己可见', value: 'private', icon: 'lock' }
 ];
-const ALIAS_WORDS = ['神秘', '路过的', '隔壁的', '匿名的', '安静的', '好奇的', '悠闲的', '低调的'];
-const ALIAS_NOUNS = ['同学', '路人', '学长', '学弟', '学妹', '小伙伴', '小伙伴', '小伙伴'];
 
 function extractInlineTags(...values) {
   const tags = [];
@@ -89,12 +87,6 @@ function buildInlineSegments(value) {
   return segments;
 }
 
-function generateAnonymousAlias() {
-  const now = Date.now();
-  const adj = ALIAS_WORDS[Math.floor(now / 13) % ALIAS_WORDS.length];
-  const noun = ALIAS_NOUNS[Math.floor(now / 17) % ALIAS_NOUNS.length];
-  return `${adj}${noun}`;
-}
 
 Page({
   data: {
@@ -419,14 +411,25 @@ Page({
 
   toggleAnonymous() {
     const useAnonymousAlias = !this.data.useAnonymousAlias;
-    this.setData({
-      useAnonymousAlias,
-      anonymousAlias: useAnonymousAlias ? generateAnonymousAlias() : ''
-    });
+    this.setData({ useAnonymousAlias, anonymousAlias: '' });
+    if (useAnonymousAlias) this.fillRandomAlias();
+  },
+
+  // 随机. Errors only matter when the user asked explicitly; on the automatic
+  // fill the field stays empty and the server falls back to 匿名同学.
+  async fillRandomAlias(event) {
+    const explicit = Boolean(event && event.currentTarget);
+    try {
+      const alias = await getRandomAnonymousAlias();
+      if (this.data.useAnonymousAlias) this.setData({ anonymousAlias: alias });
+    } catch (error) {
+      if (explicit) wx.showToast({ title: '随机昵称获取失败', icon: 'none' });
+    }
   },
 
   onAnonymousAliasInput(event) {
-    this.setData({ anonymousAlias: event.detail.value.slice(0, 20) });
+    // Same limit as the server's sanitize_alias.
+    this.setData({ anonymousAlias: event.detail.value.slice(0, 24) });
   },
 
   toggleVisibilitySelector() {
