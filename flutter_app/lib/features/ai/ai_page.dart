@@ -34,19 +34,68 @@ class _AiPageState extends ConsumerState<AiPage> {
 
   Future<void> _loadConversations() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    final dynamic decoded = _decodeJsonList(prefs.getString(_indexKey));
-    if (!mounted || decoded is! List) return;
-    setState(() {
-      _conversations = decoded
-          .whereType<Map>()
+    final List<_ConversationPreview> rows = _readIndex(prefs);
+    if (!mounted) return;
+    setState(() => _conversations = rows);
+  }
+
+  Future<void> _rename(_ConversationPreview item) async {
+    final String? title = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameChatDialog(initial: item.title),
+    );
+    final String trimmed = (title ?? '').trim();
+    if (trimmed.isEmpty || trimmed == item.title) return;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await _writeIndex(
+      prefs,
+      _readIndex(prefs)
           .map(
-            (dynamic value) => _ConversationPreview.fromJson(
-              Map<String, dynamic>.from(value as Map),
-            ),
+            (_ConversationPreview row) =>
+                row.id == item.id ? row.withTitle(trimmed) : row,
           )
-          .where((item) => item.id.isNotEmpty)
-          .toList();
-    });
+          .toList(),
+    );
+    await _loadConversations();
+  }
+
+  Future<void> _delete(_ConversationPreview item) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text(uiText(dialogContext, zh: '删除对话？', en: 'Delete chat?')),
+        content: Text(
+          uiText(
+            dialogContext,
+            zh: '「${item.title}」的聊天记录会从本机删除。',
+            en: 'The messages in "${item.title}" are removed from this device.',
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(uiText(dialogContext, zh: '取消', en: 'Cancel')),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(uiText(dialogContext, zh: '删除', en: 'Delete')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('$_conversationKeyPrefix${item.id}');
+    await _writeIndex(
+      prefs,
+      _readIndex(prefs)
+          .where((_ConversationPreview row) => row.id != item.id)
+          .toList(),
+    );
+    await _loadConversations();
   }
 
   Future<void> _openChat([String? conversationId]) async {
@@ -129,7 +178,39 @@ class _AiPageState extends ConsumerState<AiPage> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          trailing: Text(item.updatedAt),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Text(item.updatedAt),
+                              PopupMenuButton<String>(
+                                key: Key('ai-conversation-menu-${item.id}'),
+                                tooltip: uiText(
+                                  context,
+                                  zh: '更多',
+                                  en: 'More',
+                                ),
+                                onSelected: (String action) => action ==
+                                        'rename'
+                                    ? _rename(item)
+                                    : _delete(item),
+                                itemBuilder: (BuildContext context) =>
+                                    <PopupMenuEntry<String>>[
+                                  PopupMenuItem<String>(
+                                    value: 'rename',
+                                    child: Text(
+                                      uiText(context, zh: '重命名', en: 'Rename'),
+                                    ),
+                                  ),
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text(
+                                      uiText(context, zh: '删除', en: 'Delete'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                           onTap: () => _openChat(item.id),
                         );
                       },
@@ -236,33 +317,28 @@ class _AiChatPageState extends ConsumerState<AiChatPage> {
       (item) => item.role == 'user',
       orElse: () => const AiMessage(role: 'user', content: '新对话'),
     );
-    final dynamic decoded = _decodeJsonList(prefs.getString(_indexKey));
-    final List<_ConversationPreview> rows = decoded is List
-        ? decoded
-              .whereType<Map>()
-              .map(
-                (dynamic value) => _ConversationPreview.fromJson(
-                  Map<String, dynamic>.from(value as Map),
-                ),
-              )
-              .toList()
-        : <_ConversationPreview>[];
+    final List<_ConversationPreview> rows = _readIndex(prefs);
+    final _ConversationPreview? existing = rows
+        .where((item) => item.id == _conversationId)
+        .firstOrNull;
     rows.removeWhere((item) => item.id == _conversationId);
+    final bool renamed = existing?.renamed ?? false;
     rows.insert(
       0,
       _ConversationPreview(
         id: _conversationId,
-        title: first.content.length > 24
+        // A renamed chat keeps the user's title.
+        title: renamed
+            ? existing!.title
+            : first.content.length > 24
             ? '${first.content.substring(0, 24)}…'
             : first.content,
         preview: _messages.isEmpty ? '' : _messages.last.content,
         updatedAt: '${DateTime.now().month}/${DateTime.now().day}',
+        renamed: renamed,
       ),
     );
-    await prefs.setString(
-      _indexKey,
-      jsonEncode(rows.map((item) => item.toJson()).toList()),
-    );
+    await _writeIndex(prefs, rows);
   }
 
   @override
@@ -530,12 +606,58 @@ class _AiMessageView extends StatelessWidget {
   }
 }
 
+/// Owns its controller, so it lives until the dialog's exit animation ends.
+class _RenameChatDialog extends StatefulWidget {
+  const _RenameChatDialog({required this.initial});
+
+  final String initial;
+
+  @override
+  State<_RenameChatDialog> createState() => _RenameChatDialogState();
+}
+
+class _RenameChatDialogState extends State<_RenameChatDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(uiText(context, zh: '重命名对话', en: 'Rename chat')),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: 40,
+        onSubmitted: (String value) => Navigator.of(context).pop(value),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(uiText(context, zh: '取消', en: 'Cancel')),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: Text(uiText(context, zh: '保存', en: 'Save')),
+        ),
+      ],
+    );
+  }
+}
+
 class _ConversationPreview {
   const _ConversationPreview({
     required this.id,
     required this.title,
     required this.preview,
     required this.updatedAt,
+    this.renamed = false,
   });
 
   final String id;
@@ -543,11 +665,24 @@ class _ConversationPreview {
   final String preview;
   final String updatedAt;
 
-  Map<String, String> toJson() => <String, String>{
+  /// Set once the user renames it; the title then stops following the
+  /// first message.
+  final bool renamed;
+
+  _ConversationPreview withTitle(String value) => _ConversationPreview(
+    id: id,
+    title: value,
+    preview: preview,
+    updatedAt: updatedAt,
+    renamed: true,
+  );
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
     'id': id,
     'title': title,
     'preview': preview,
     'updatedAt': updatedAt,
+    if (renamed) 'renamed': true,
   };
 
   factory _ConversationPreview.fromJson(Map<String, dynamic> json) =>
@@ -556,8 +691,33 @@ class _ConversationPreview {
         title: json['title']?.toString() ?? '',
         preview: json['preview']?.toString() ?? '',
         updatedAt: json['updatedAt']?.toString() ?? '',
+        renamed: json['renamed'] == true,
       );
 }
+
+List<_ConversationPreview> _readIndex(SharedPreferences prefs) {
+  final dynamic decoded = _decodeJsonList(prefs.getString(_indexKey));
+  if (decoded is! List) {
+    return <_ConversationPreview>[];
+  }
+  return decoded
+      .whereType<Map>()
+      .map(
+        (dynamic value) => _ConversationPreview.fromJson(
+          Map<String, dynamic>.from(value as Map),
+        ),
+      )
+      .where((_ConversationPreview item) => item.id.isNotEmpty)
+      .toList();
+}
+
+Future<void> _writeIndex(
+  SharedPreferences prefs,
+  List<_ConversationPreview> rows,
+) => prefs.setString(
+  _indexKey,
+  jsonEncode(rows.map((_ConversationPreview item) => item.toJson()).toList()),
+);
 
 dynamic _decodeJsonList(String? value) {
   if (value == null || value.trim().isEmpty) {
