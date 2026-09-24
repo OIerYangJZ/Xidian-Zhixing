@@ -1,0 +1,18 @@
+{
+  "zhushachi": {
+    "color": "#5D5D5A",
+    "selectedColor": "#A43B32"
+  },
+  "zhuqing": {
+    "color": "#636A63",
+    "selectedColor": "#426F52"
+  },
+  "xingrenhuang": {
+    "color": "#6E685F",
+    "selectedColor": "#94631F"
+  },
+  "mozhuxinye": {
+    "color": "#5E5E5D",
+    "selectedColor": "#AB3E36"
+  }
+}

@@ -69,7 +69,7 @@
       <span style="font:600 13px/1 var(--mono);color:var(--primary)">02</span>
       <h2 style="margin:0;font:600 30px/1.3 var(--serif)">颜色 token</h2>
       <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">每套主题只需提供 7 个源色（纸、面、墨、主色、主色按下、珊瑚、杏黄），其余 token 按固定规则派生。组件只引用 token 名。</p>
-      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">表中色值随 Tweaks 所选主题实时变化。text 系列对 surface / bg 均 ≥ 4.5:1。</p>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">表中色值随 Tweaks 所选主题实时变化。第三版调整：--text-3 改为墨 70% → 面（深色 60%），--text-2 相应加深到 80% 以保持层级；8 种组合在 bg / bg-sunk / surface 上全部 ≥ 4.5:1，见下方对比度表。</p>
     </div>
     <div style="background:var(--surface);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
       <div style="display:grid;grid-template-columns:110px 150px minmax(0,1fr) 150px 150px 170px;padding:14px 22px;font-size:12px;font-weight:650;color:var(--text-3);border-bottom:1px solid var(--line);background:var(--bg-sunk)"><span>角色组</span><span>Token</span><span>用途</span><span>浅色</span><span>深色</span><span>派生规则</span></div>
@@ -88,9 +88,29 @@
 
   <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
     <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">02b</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">--text-3 对比度</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">4 套主题 × 浅深，按 WCAG 2.1 相对亮度实时计算。最低一项为杏黄·纸韵浅色放在 --bg-sunk 上。</p>
+    </div>
+    <div style="background:var(--surface);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+      <div style="display:grid;grid-template-columns:170px 80px 150px repeat(4,minmax(0,1fr));padding:14px 22px;font-size:12px;font-weight:650;color:var(--text-3);border-bottom:1px solid var(--line);background:var(--bg-sunk)"><span>主题</span><span>模式</span><span>--text-3</span><span>on --bg</span><span>on --bg-sunk</span><span>on --surface</span><span>on --raised</span></div>
+      <sc-for list="{{ contrast }}" as="c" hint-placeholder-count="8">
+        <div style="display:grid;grid-template-columns:170px 80px 150px repeat(4,minmax(0,1fr));align-items:center;padding:9px 22px;border-bottom:1px solid var(--line);font-size:13px">
+          <span style="font-weight:600">{{ c.n }}</span>
+          <span style="color:var(--text-2)">{{ c.m }}</span>
+          <span style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--text-2)"><span style="width:22px;height:22px;border-radius:6px;background:{{ c.hex }}"></span>{{ c.hex }}</span>
+          <sc-for list="{{ c.r }}" as="r"><span style="display:flex;align-items:center;gap:8px"><span style="height:28px;padding:0 10px;border-radius:8px;display:flex;align-items:center;font:600 12px/1 var(--mono);background:{{ r.bg }};color:{{ r.fg }}">Aa {{ r.v }}</span><span style="display:flex;font-size:14px;color:var(--success)">{{ I.check }}</span></span></sc-for>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
       <span style="font:600 13px/1 var(--mono);color:var(--primary)">03</span>
       <h2 style="margin:0;font:600 30px/1.3 var(--serif)">质感与特效</h2>
       <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">全部可用 Flutter 原生能力实现（BackdropFilter、Gradient、BoxShadow、Transform、AnimationController），小程序用 CSS 同等实现。</p>
+      <p style="margin:0;font-size:13px;line-height:21px;color:var(--text-3)">实现约定：纸纹为一张平铺噪点图；分区色预先换算为十六进制；毛玻璃不生效的 Android 微信版本退回 80% 不透明纯色底。</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
       <sc-for list="{{ effects }}" as="e">
@@ -111,7 +131,8 @@
     <div style="display:flex;flex-direction:column;gap:10px">
       <span style="font:600 13px/1 var(--mono);color:var(--primary)">04</span>
       <h2 style="margin:0;font:600 30px/1.3 var(--serif)">图标</h2>
-      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">双色线性：1.6 描边 + 同色 20% 填充层。选中态把填充提到 30% 并换主色；点赞 / 收藏的激活态为实心。图中为示意，正式版需重绘成 SVG / 图标字体随包分发（小程序 tabBar 另出 PNG）。</p>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">正式版 · 共 {{ iconCount }} 个。24 网格、2px 安全边距、1.6 圆头描边 + 同色填充层（默认 20%，选中 35%，实心 100%）。关键线：圆 r8、方 16 × 16 圆角 2.5。</p>
+      <p style="margin:0;font-size:13px;line-height:21px;color:var(--text-2)">SVG 在 <span style="font-family:var(--mono)">icons/svg/</span>（每个图标一份双色版，有填充层的另有 -fill 实心版，颜色为 currentColor）。小程序 tabBar PNG 在 <span style="font-family:var(--mono)">icons/tabbar/</span>，见 <a href="App 与小程序 v3.dc.html">App 与小程序 v3 · B3</a>。</p>
     </div>
     <div style="background:var(--surface);border-radius:24px;padding:22px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(12,1fr);gap:8px">
       <sc-for list="{{ iconList }}" as="ic"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;border-radius:14px;background:{{ ic.bg }};color:{{ ic.fg }}"><span style="display:flex;font-size:24px;--duo:{{ ic.duo }}">{{ ic.el }}</span><span style="font:500 10px/1 var(--mono);color:var(--text-3)">{{ ic.k }}</span></div></sc-for>
@@ -190,7 +211,12 @@ class Component extends DCLogic {
     const tk = (g, k, u, m) => ({ g, k, u, m, l: L[k] || '', d: D[k] || '' });
     const gallery = [];
     if (Z) Z.keys.forEach(k => ['light', 'dark'].forEach(mode => gallery.push({ key: k, mode, name: Z.THEMES[k].zh, en: Z.THEMES[k].en, label: mode === 'light' ? 'LIGHT' : 'DARK' })));
-    const iconKeys = ['home', 'campus', 'ai', 'search', 'bell', 'chat', 'user', 'users', 'edit', 'heart', 'star', 'comment', 'share', 'pin', 'link', 'flag', 'trash', 'lock', 'globe', 'moon', 'swatch', 'shield', 'fire', 'mail'];
+    const X = window.ZXI2;
+    const iconKeys = X && X.keys ? X.keys : [];
+    const lum = h => { h = String(h).replace('#', ''); const c = [0, 2, 4].map(i => parseInt(h.substr(i, 2), 16) / 255).map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+    const cr = (a, b) => { const x = lum(a), y = lum(b); return ((Math.max(x, y) + .05) / (Math.min(x, y) + .05)).toFixed(2); };
+    const contrast = [];
+    if (Z) Z.keys.forEach(k => ['light', 'dark'].forEach(m => { const v = Z.build(k, m); contrast.push({ n: Z.THEMES[k].zh, m: m === 'light' ? '浅色' : '深色', hex: v['--text-3'], r: ['--bg', '--bg-sunk', '--surface', '--raised'].map(b => ({ v: cr(v['--text-3'], v[b]), bg: v[b], fg: v['--text-3'] })) }); }));
     return {
       I, rootRef: this.rootRef,
       principles: [
@@ -209,8 +235,8 @@ class Component extends DCLogic {
         tk('分割', '--line', '分隔线、卡片描边', '墨 10% → 面'),
         tk('分割', '--line-strong', '未选中控件、输入描边', '墨 21% → 面'),
         tk('文字', '--text', '标题、正文', '源色 墨'),
-        tk('文字', '--text-2', '摘要、说明', '墨 72% → 面'),
-        tk('文字', '--text-3', '时间、辅助', '墨 62% → 面'),
+        tk('文字', '--text-2', '摘要、说明', '墨 80% → 面（深 75%）'),
+        tk('文字', '--text-3', '时间、辅助', '墨 70% → 面（深 60%）'),
         tk('主色', '--primary', '主按钮、选中、话题、点赞', '源色 主色'),
         tk('主色', '--primary-pressed', '按下', '源色 主色按下'),
         tk('主色', '--on-primary', '主色上的文字', '浅：白 / 深：黑 80%'),
