@@ -1107,10 +1107,33 @@ def handle_create_comment(
     db["comments"].append(comment)
 
     post_author_id = str(post.get("authorId", "")).strip()
+    parent_author_id = (
+        str(parent_comment.get("userId", "")).strip() if parent_id else ""
+    )
+    if (
+        not risk_marked
+        and parent_author_id
+        and parent_author_id != user["id"]
+    ):
+        create_notification(
+            db,
+            user_id=parent_author_id,
+            notification_type="reply",
+            title="收到新回复",
+            content=comment_content[:100],
+            related_type="comment",
+            related_id=comment["id"],
+            post_id=post_id,
+            actor_id=user["id"],
+            actor_alias=author_alias,
+        )
+    # A post author replied to in their own thread already has the reply
+    # notification, which is the more specific of the two.
     if (
         not risk_marked
         and post_author_id
         and post_author_id != user["id"]
+        and post_author_id != parent_author_id
     ):
         create_notification(
             db,

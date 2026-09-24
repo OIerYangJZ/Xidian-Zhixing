@@ -14,7 +14,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler
 
 import _globals
-from helpers import json_error, send_json
+from helpers import json_error, read_json_body, send_json
 from services import (
     auth_user as auth_user_helper,
     find_user_by_id,
@@ -34,6 +34,15 @@ def _serialize_notification_with_actor_avatar(
     actor = find_user_by_id(db, actor_id, include_deleted=True) if actor_id else None
     payload["actorAvatarUrl"] = user_avatar_url(actor)
     return payload
+
+
+# Categories the clients filter by. Every stored type maps onto one of them.
+NOTIFICATION_CATEGORIES = ("comment", "reply", "like", "favorite", "report_result", "system")
+
+
+def notification_category(notification_type: Any) -> str:
+    normalized = str(notification_type or "").strip().lower()
+    return normalized if normalized in NOTIFICATION_CATEGORIES else "system"
 
 
 def handle_get_notifications(
@@ -57,10 +66,18 @@ def handle_get_notifications(
         reverse=True,
     )
     unread_count = sum(1 for item in rows if not item.get("isRead"))
+    unread_by_type = {category: 0 for category in NOTIFICATION_CATEGORIES}
+    for item in rows:
+        if not item.get("isRead"):
+            unread_by_type[notification_category(item.get("type"))] += 1
     send_json(
         handler,
         HTTPStatus.OK,
-        {"data": {"items": rows, "unreadCount": unread_count}},
+        {"data": {
+            "items": rows,
+            "unreadCount": unread_count,
+            "unreadByType": unread_by_type,
+        }},
     )
 
 
@@ -68,26 +85,40 @@ def handle_mark_all_notifications_read(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
 ) -> None:
-    """POST /api/notifications/read-all"""
+    """POST /api/notifications/read-all {type?}
+
+    Without a type, marks everything read. With one of
+    NOTIFICATION_CATEGORIES, marks only that category, so 全部已读 on a
+    filtered list leaves the other categories unread.
+    """
     user, _ = auth_user_helper(handler, db)
     if user is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
 
+    body = read_json_body(handler) or {}
+    requested = str(body.get("type") or "").strip().lower()
+    if requested and requested not in NOTIFICATION_CATEGORIES:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "未知的通知类型")
+        return
+
     user_id = str(user.get("id", "")).strip()
     now = _globals.now_iso()
-    changed = False
+    marked = 0
     for notif in db.get("notifications", []):
-        if str(notif.get("userId", "")).strip() == user_id and not notif.get("deleted"):
-            if not notif.get("isRead"):
-                notif["isRead"] = True
-                notif["readAt"] = now
-                changed = True
+        if str(notif.get("userId", "")).strip() != user_id or notif.get("deleted"):
+            continue
+        if requested and notification_category(notif.get("type")) != requested:
+            continue
+        if not notif.get("isRead"):
+            notif["isRead"] = True
+            notif["readAt"] = now
+            marked += 1
 
-    if changed:
+    if marked:
         save_db(db)
 
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "marked": marked}})
 
 
 def handle_mark_notification_read(
