@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
+import '../../core/navigation/share_links.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
@@ -142,6 +144,20 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     }
   }
 
+  Future<void> _copyProfileLink() async {
+    await Clipboard.setData(
+      ClipboardData(text: ShareLink.user(widget.userId).url),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          uiText(context, zh: '已复制主页链接', en: 'Profile link copied'),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
@@ -154,6 +170,13 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(uiText(context, zh: '个人主页', en: 'Profile')),
+        actions: <Widget>[
+          IconButton(
+            tooltip: uiText(context, zh: '复制主页链接', en: 'Copy profile link'),
+            icon: const Icon(Icons.link_rounded),
+            onPressed: _copyProfileLink,
+          ),
+        ],
       ),
       body: Center(
         child: ConstrainedBox(

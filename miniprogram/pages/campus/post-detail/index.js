@@ -15,7 +15,7 @@ import { createDirectConversation } from '../../../api/messages';
 import { askAiWithPostSelection } from '../../../api/ai';
 import { followUser, unfollowUser } from '../../../api/user';
 import { requireLoginPage } from '../../../utils/auth_guard';
-import { postIdFromScannedLink, postShareLink } from '../../../utils/post_link';
+import { postIdFromScannedLink, postShareLink } from '../../../utils/share_links';
 import { markdownToNodes } from '../../../utils/markdown';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';

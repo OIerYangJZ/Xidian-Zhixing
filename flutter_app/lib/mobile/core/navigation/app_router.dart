@@ -149,11 +149,17 @@ final appRouter = GoRouter(
       path: '/post/create',
       builder: (context, state) => const CreatePostPage(),
     ),
-    // Shared short link https://<site>/p/<id>, delivered by App Links.
+    // Shared short links https://<site>/p/<id> and /u/<id>, delivered by
+    // App Links.
     GoRoute(
       path: '/p/:id',
       redirect: (context, state) =>
           '/post/${Uri.encodeComponent(state.pathParameters['id']!)}',
+    ),
+    GoRoute(
+      path: '/u/:id',
+      redirect: (context, state) =>
+          '/user/${Uri.encodeComponent(state.pathParameters['id']!)}',
     ),
     GoRoute(
       path: '/post/:id',

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -6,6 +7,7 @@ import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
+import 'package:xdu_treehole_web/core/navigation/share_links.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/models/public_user_profile.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
@@ -204,6 +206,21 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                 icon: Icon(Icons.arrow_back, color: colors.textPrimary),
                 onPressed: () => context.pop(),
               ),
+              actions: [
+                IconButton(
+                  tooltip: '复制主页链接',
+                  icon: Icon(Icons.link_rounded, color: colors.textPrimary),
+                  onPressed: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: ShareLink.user(widget.userId).url),
+                    );
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('已复制主页链接')),
+                    );
+                  },
+                ),
+              ],
             ),
             SliverToBoxAdapter(
               child: Container(

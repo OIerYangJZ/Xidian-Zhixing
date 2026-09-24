@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_store.dart';
 import '../core/navigation/post_detail_nav.dart';
 import '../core/network/api_exception.dart';
+import '../core/navigation/share_links.dart';
+import '../features/profile/public_user_profile_page.dart';
 import '../core/navigation/url_query_state.dart';
 import '../core/state/app_locale_store.dart';
 import '../core/state/app_theme_store.dart';
@@ -401,10 +403,21 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return;
     }
     _postUrlHandled = true;
-    final String? linkedPostId = currentPostLinkId();
-    if (linkedPostId != null) {
-      clearPostLinkFromUrl();
-      await _openLinkedPost(linkedPostId);
+    final ShareLink? link = currentShareLink();
+    if (link != null) {
+      clearShareLinkFromUrl();
+      switch (link.kind) {
+        case ShareLinkKind.post:
+          await _openLinkedPost(link.id);
+        case ShareLinkKind.user:
+          // The profile page loads the user itself and shows its error
+          // panel when that fails.
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => PublicUserProfilePage(userId: link.id),
+            ),
+          );
+      }
       return;
     }
     final String? postId = currentPostIdFromUrl();

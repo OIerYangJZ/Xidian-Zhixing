@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
-import '../../core/navigation/post_link.dart';
+import '../../core/navigation/share_links.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/app_surfaces.dart';
 import '../../models/comment_item.dart';
@@ -803,7 +803,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _copyPostLink() async {
-    await Clipboard.setData(ClipboardData(text: postShareLink(_post.id)));
+    await Clipboard.setData(ClipboardData(text: ShareLink.post(_post.id).url));
     _feedback(uiTextGlobal(zh: '已复制帖子链接', en: 'Post link copied'));
   }
 

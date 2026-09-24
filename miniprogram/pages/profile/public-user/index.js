@@ -1,3 +1,4 @@
+import { userIdFromScannedLink, userShareLink } from '../../../utils/share_links';
 import { followUser, getPublicUser, unfollowUser } from '../../../api/user';
 import { getPosts } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
@@ -18,7 +19,7 @@ Page({
 
   onLoad(options) {
     if (!requireLoginPage()) return;
-    const userId = options.id || '';
+    const userId = options.id || userIdFromScannedLink(options.q);
     this.setData({ userId });
     if (userId) this.loadProfile();
   },
@@ -44,6 +45,11 @@ Page({
 
   retryLoad() {
     this.loadProfile();
+  },
+
+  copyProfileLink() {
+    if (!this.data.userId) return;
+    wx.setClipboardData({ data: userShareLink(this.data.userId) });
   },
 
   async toggleFollow() {

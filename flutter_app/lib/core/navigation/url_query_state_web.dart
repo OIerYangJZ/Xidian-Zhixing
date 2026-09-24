@@ -2,7 +2,7 @@
 
 import 'dart:html' as html;
 
-import 'post_link.dart';
+import 'share_links.dart';
 
 const String _postRestoreSessionKey = 'xdu_treehole_restore_post_id';
 
@@ -54,12 +54,12 @@ void setPostIdOnUrl(String? postId) {
   html.window.history.replaceState(null, '', next.toString());
 }
 
-String? currentPostLinkId() =>
-    postIdFromLinkPath(Uri.parse(html.window.location.href).path);
+ShareLink? currentShareLink() =>
+    ShareLink.parsePath(Uri.parse(html.window.location.href).path);
 
-void clearPostLinkFromUrl() {
+void clearShareLinkFromUrl() {
   final Uri uri = Uri.parse(html.window.location.href);
-  if (postIdFromLinkPath(uri.path) == null) {
+  if (ShareLink.parsePath(uri.path) == null) {
     return;
   }
   html.window.history.replaceState(null, '', uri.replace(path: '/').toString());

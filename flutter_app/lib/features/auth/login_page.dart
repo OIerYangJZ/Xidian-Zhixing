@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/navigation/post_link.dart';
+import '../../core/navigation/share_links.dart';
 import '../../core/navigation/url_query_state.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_locale_store.dart';
@@ -161,13 +161,13 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      // Opened from a shared post link: unified auth returns to that link,
-      // and the shell opens the post once signed in.
-      final String? linkedPostId = currentPostLinkId();
+      // Opened from a shared link: unified auth returns to that link, and the
+      // shell opens it once signed in.
+      final ShareLink? link = currentShareLink();
       final XidianAuthSessionResult session = await AppRepositories.auth
           .createXidianAuthSession(
             platform: 'web',
-            nextPath: linkedPostId == null ? '/' : postLinkPath(linkedPostId),
+            nextPath: link?.path ?? '/',
           );
       final String authorizeUrl = session.authorizeUrl!;
       final bool launched = await launchUrl(
