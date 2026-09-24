@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><script src="icons2.js"></script><script src="zx-theme.js"></script><style>body{margin:0;background:#E6E2DB;font-family:-apple-system,"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}a{color:#A43B32}a:hover{color:#7E2924}</style></helmet>
+<div ref="{{ rootRef }}" data-zx="light" style="--bg:#F7F6F2;--bg-sunk:#EDECE8;--surface:#FFFEFA;--raised:#FFFEFA;--glass:rgba(255,254,250,0.8);--line:#E8E7E3;--line-strong:#CECECA;--text:#181816;--text-2:#595856;--text-3:#706F6D;--primary:#A43B32;--primary-pressed:#7E2924;--on-primary:#FFFFFF;--primary-soft:#F6EBE6;--primary-glow:rgba(164,59,50,0.3);--seal:#A43B32;--seal-soft:#F9F0EC;--accent:#E8B65D;--accent-soft:#F9EDD4;--accent-ink:#745B2F;--coral:#D9775F;--hero:linear-gradient(125deg,#F3E5E0 0%,#FAF0DB 52%,#FFFEFA 100%);--on-danger:#FFFFFF;--on-scrim:#FFFFFF;--scrim:rgba(30,22,16,.42);--shadow-1:0 1px 2px rgba(70,45,25,.06),0 2px 10px rgba(70,45,25,.05);--shadow-2:0 18px 48px rgba(70,45,25,.15),0 3px 10px rgba(70,45,25,.06);--success:#44684F;--success-soft:#E9ECE5;--warning:#8A5A1E;--warning-soft:#F1EAE0;--danger:#97382F;--danger-soft:#F3E6E2;--info:#45687A;--info-soft:#E9ECEB;--ch-1:oklch(0.55 0.11 35);--ch-2:oklch(0.55 0.11 160);--ch-3:oklch(0.55 0.11 250);--ch-4:oklch(0.55 0.11 80);--ch-5:oklch(0.55 0.11 310);--ch-6:oklch(0.55 0.11 125);--serif:'Songti SC','STSong','Noto Serif CJK SC','Source Han Serif SC',serif;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;padding:72px;display:flex;flex-direction:column;gap:72px;color:var(--text);width:max-content">
+
+  <header style="display:flex;flex-direction:column;gap:14px">
+    <a href="设计系统 v2.dc.html" style="font-size:13px;color:var(--text-2);text-decoration:none;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ I.back }}</span>设计系统 v2</a>
+    <div style="display:flex;align-items:center;gap:18px">
+      <div style="width:60px;height:60px;border-radius:12px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 30px/1 var(--serif);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.55),0 10px 24px var(--primary-glow)">知</div>
+      <h1 style="margin:0;font:600 46px/1.1 var(--serif)">Android App 与微信小程序 · 第二版</h1>
+    </div>
+    <p style="margin:0;max-width:940px;font-size:15px;line-height:25px;color:var(--text-2)">两端统一为同一套导航：底部四栏「树洞 · 校园 AI · 消息 · 我的」，样式按小程序原生 tabBar 的能力来画（图标 + 文字 + 选中色），Android 照此实现，两端看起来一致。原抽屉里的入口全部移进「我的」，私信移进「消息」。帖子、昵称、数字均为<b style="color:var(--text)">示例内容</b>。</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:1100px">
+      <sc-for list="{{ changes }}" as="c"><span style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:15px;background:var(--surface);box-shadow:var(--shadow-1);font-size:12px;color:var(--text-2)"><span style="display:flex;color:var(--success);font-size:14px">{{ I.check }}</span>{{ c }}</span></sc-for>
+    </div>
+  </header>
+
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font:600 13px/1 var(--mono);color:var(--primary)">ANDROID</span><h2 style="margin:0;font:600 28px/1.3 var(--serif)">Android App</h2><span style="font-size:13px;color:var(--text-3)">手机底部四栏；平板导航轨四项 + 双栏</span></div>
+    <div style="display:flex;gap:56px;align-items:flex-start">
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">A1</span><b>树洞</b><span style="color:var(--text-3)">手机 · 390 × 844 · 浅色</span></div>
+        <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 7px #1C1B19,0 0 0 8px #3A3834;display:flex;flex-direction:column;position:relative">
+          <div style="flex:none;background:var(--hero);padding-bottom:12px">
+            <div style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="display:flex;gap:5px;align-items:center"><span style="width:16px;height:10px;border-radius:2px;background:var(--text)"></span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box;padding:1.5px"><span style="display:block;width:70%;height:100%;background:var(--text);border-radius:1.5px"></span></span></span></div>
+            <div style="height:54px;display:flex;align-items:center;gap:4px;padding:0 8px 0 18px">
+              <span style="font:600 25px/1 var(--serif)">树洞</span>
+              <span style="margin-left:10px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px 0 10px;border-radius:16px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600"><span style="width:18px;height:18px;border-radius:4px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 10px/1 var(--serif)">印</span>全部<span style="display:flex;color:var(--text-3)">{{ I.down }}</span></span>
+              <span style="flex:1"></span>
+              <span style="width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:21px">{{ I.clock }}</span>
+              <span style="width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:21px">{{ I.search }}</span>
+            </div>
+            <div style="padding:0 18px;font:500 13px/1 var(--serif);color:var(--text-2)">把今天藏进一枚印章里</div>
+          </div>
+          <div style="flex:1;overflow:hidden;background:var(--surface);border-radius:24px 24px 0 0;box-shadow:0 -1px 0 var(--line)">
+            <sc-for list="{{ appFeed }}" as="p" hint-placeholder-count="3"><div style="border-bottom:1px solid var(--line)"><dc-import name="PostCard2" p="{{ p }}" share="{{ true }}" hint-size="100%,220px"></dc-import></div></sc-for>
+          </div>
+          <div style="position:absolute;right:18px;bottom:96px;width:58px;height:58px;border-radius:20px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 24px/1 var(--serif);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.5),0 14px 30px var(--primary-glow)">写</div>
+          <nav style="height:78px;flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:18px;box-sizing:border-box">
+            <sc-for list="{{ tabs0 }}" as="tb"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+        <div style="width:404px;font-size:12px;line-height:19px;color:var(--text-2)">通知铃铛从顶栏移到「消息」页。FAB「写」放正。底栏与小程序原生 tabBar 同款。</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">A2</span><b>帖子详情</b><span style="color:var(--text-3)">手机 · 390 × 844 · 深色</span></div>
+        <div data-zx="dark" style="--bg:#171714;--bg-sunk:#10100E;--surface:#20201C;--raised:#2F2F2A;--glass:rgba(32,32,28,0.74);--line:#3C3B37;--line-strong:#55544F;--text:#F4F1E8;--text-2:#BFBDB5;--text-3:#9B9992;--primary:#E08075;--primary-pressed:#F09A8E;--on-primary:#2D1A17;--primary-soft:#46332E;--primary-glow:rgba(224,128,117,0.28);--seal:#E08075;--seal-soft:#3B2D28;--accent:#EBC474;--accent-soft:#453E2C;--accent-ink:#EBC474;--hero:linear-gradient(125deg,#4E3731 0%,#3C3728 52%,#20201C 100%);--on-danger:#1A0F0D;--scrim:rgba(0,0,0,.62);--shadow-1:0 1px 2px rgba(0,0,0,.5);--shadow-2:0 18px 48px rgba(0,0,0,.62),0 2px 8px rgba(0,0,0,.4);--success:#8CC4A2;--success-soft:#323C33;--warning:#E6BE74;--warning-soft:#423B2B;--danger:#F29084;--danger-soft:#44332E;--info:#93BCCC;--info-soft:#343B3A;--ch-1:oklch(0.76 0.1 35);--ch-2:oklch(0.76 0.1 160);--ch-3:oklch(0.76 0.1 250);--ch-4:oklch(0.76 0.1 80);--ch-5:oklch(0.76 0.1 310);--ch-6:oklch(0.76 0.1 125);width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);color:var(--text);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.3),0 0 0 7px #0B0B0A,0 0 0 8px #34322E;display:flex;flex-direction:column">
+          <div style="height:34px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+          <div style="height:52px;flex:none;display:flex;align-items:center;gap:6px;padding:0 10px"><span style="width:40px;height:40px;border-radius:13px;background:var(--bg-sunk);display:grid;place-items:center;font-size:21px">{{ I.back }}</span><span style="flex:1;font-size:16px;font-weight:650;padding-left:4px">帖子详情</span><span style="width:40px;height:40px;border-radius:13px;background:var(--bg-sunk);display:grid;place-items:center;font-size:19px">{{ I.link }}</span><span style="width:40px;height:40px;border-radius:13px;background:var(--bg-sunk);display:grid;place-items:center;font-size:19px">{{ I.more }}</span></div>
+          <div style="flex:1;overflow:hidden;padding:12px 18px;display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:46px;height:46px;border-radius:7px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 22px/1 var(--serif);box-shadow:inset 0 0 0 2.5px var(--seal),inset 0 0 0 3.5px rgba(255,255,255,.4),0 6px 16px var(--primary-glow)">安</div>
+              <span style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="display:flex;gap:6px;align-items:center"><span style="font-size:15px;font-weight:650">安静的同学</span><span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:600;color:var(--seal);background:var(--seal-soft)">匿名</span></span><span style="font-size:12px;color:var(--text-3)">09-23 09:12 · 96 阅读</span></span>
+              <span style="display:inline-flex;align-items:center;gap:3px;height:24px;padding:0 9px;border-radius:7px;font-size:12px;font-weight:600;background:var(--success-soft);color:var(--success)"><span style="display:flex">{{ I.check }}</span>已解决</span>
+            </div>
+            <div style="display:flex;gap:6px"><span style="display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:7px;font-size:11px;font-weight:600;background:var(--bg-sunk);color:var(--text-2)"><span style="width:6px;height:6px;border-radius:50%;background:var(--ch-3)"></span>求助问答</span></div>
+            <h1 style="margin:0;font-size:21px;line-height:29px;font-weight:650">示例：图书馆四楼靠窗那排插座修好了吗？</h1>
+            <p style="margin:0;font-size:16px;line-height:26px">想问问有没有同学知道维修进度，期末周实在找不到位置。<span style="color:var(--primary);font-weight:600">#求助</span> <span style="color:var(--primary);font-weight:600">#图书馆</span></p>
+            <div style="height:150px;border-radius:16px;background:repeating-linear-gradient(135deg,var(--bg-sunk) 0 8px,color-mix(in oklab,var(--bg-sunk) 45%,var(--surface)) 8px 16px);display:grid;place-items:center"><span style="font:500 10px/1 var(--mono);color:var(--text-3);padding:5px 8px;border-radius:6px;background:var(--glass)">图片 1 · 长按保存到相册</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--line)"><span style="font-size:15px;font-weight:650">评论 <span style="color:var(--text-3);font-weight:500">4</span></span><span style="font-size:12px;color:var(--text-2);display:flex;gap:4px;align-items:center;height:28px;padding:0 10px;border-radius:9px;background:var(--bg-sunk)">热度<span style="display:flex">{{ I.down }}</span></span></div>
+            <div style="display:flex;gap:10px">
+              <div style="width:32px;height:32px;border-radius:5px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 15px/1 var(--serif);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.4);flex:none">安</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:5px"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:650;font-size:13px">安静的同学</span><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:650;background:var(--seal);color:var(--on-primary)">洞主</span><span style="font-size:12px;color:var(--text-3)">10:12</span></div><div style="font-size:14px;line-height:21px">已经修好了，感谢楼下提醒！</div><div style="display:flex;gap:16px;font-size:12px;color:var(--text-2)"><span>回复</span><span style="display:flex;gap:4px;align-items:center"><span style="display:flex;font-size:15px">{{ I.heart }}</span>6</span></div></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:10px 12px 24px;display:flex;align-items:center;gap:4px;background:var(--glass);backdrop-filter:blur(16px);border-top:1px solid var(--line)">
+            <div style="flex:1;height:42px;border-radius:21px;background:var(--bg-sunk);display:flex;align-items:center;gap:8px;padding:0 14px;font-size:14px;color:var(--text-3)"><span style="display:flex;font-size:19px">{{ I.emoji }}</span>温柔地回应一下</div>
+            <span style="display:flex;align-items:center;gap:3px;height:42px;padding:0 10px;border-radius:21px;background:var(--primary-soft);color:var(--primary);font-size:12px;font-weight:650"><span style="display:flex;font-size:19px">{{ I.heartF }}</span>12</span>
+            <span style="display:flex;align-items:center;gap:3px;height:42px;padding:0 6px;font-size:12px;color:var(--text-2)"><span style="display:flex;font-size:20px">{{ I.star }}</span>3</span>
+            <span style="display:flex;align-items:center;height:42px;padding:0 6px;color:var(--text-2)"><span style="display:flex;font-size:20px">{{ I.share }}</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">A3</span><b>消息</b><span style="color:var(--text-3)">手机 · 390 × 844 · 浅色 · 两端同款</span></div>
+        <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 7px #1C1B19,0 0 0 8px #3A3834;display:flex;flex-direction:column">
+          <div style="flex:none;background:var(--hero)">
+            <div style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+            <div style="height:54px;display:flex;align-items:center;padding:0 12px 0 18px"><span style="font:600 25px/1 var(--serif);flex:1">消息</span><span style="width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:20px">{{ I.refresh }}</span></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 16px 18px">
+              <sc-for list="{{ msgKinds }}" as="k"><div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0 10px;border-radius:18px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line)"><span style="width:40px;height:40px;border-radius:13px;background:{{ k.tb }};color:{{ k.tc }};display:grid;place-items:center;font-size:20px;--duo:.3">{{ k.i }}</span><span style="font-size:12px;font-weight:600">{{ k.t }}</span><sc-if value="{{ k.b }}"><span style="position:absolute;top:8px;right:18px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ k.b }}</span></sc-if></div></sc-for>
+            </div>
+          </div>
+          <div style="flex:1;overflow:hidden;background:var(--surface);border-radius:24px 24px 0 0;margin-top:-6px;box-shadow:0 -1px 0 var(--line);padding:10px 8px 0">
+            <div style="margin:0 6px 8px;padding:12px;border-radius:16px;background:var(--accent-soft);display:flex;gap:10px;align-items:center">
+              <div style="width:36px;height:36px;border-radius:50%;background:color-mix(in oklab,var(--ch-5) 18%,var(--surface));color:color-mix(in oklab,var(--ch-5) 72%,var(--text));display:grid;place-items:center;font-size:13px;font-weight:650;flex:none">周</div>
+              <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:650">私信请求 · 周同学</span><span style="font-size:12px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">示例：看到你在找建模队友…</span></span>
+              <button style="height:30px;padding:0 12px;border:0;border-radius:10px;background:var(--primary);color:var(--on-primary);font:inherit;font-size:12px;font-weight:650">同意</button>
+              <button style="height:30px;padding:0 10px;border:0;border-radius:10px;background:var(--surface);color:var(--text);font:inherit;font-size:12px">拒绝</button>
+            </div>
+            <sc-for list="{{ convs }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;gap:12px;padding:11px 12px;border-radius:16px">
+                <div style="width:48px;height:48px;border-radius:50%;background:{{ c.ab }};color:{{ c.af }};display:grid;place-items:center;font-weight:650;flex:none">{{ c.i }}</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:center">
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:15px;font-weight:{{ c.w }}">{{ c.n }}</span><sc-if value="{{ c.tag }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:600;background:var(--danger-soft);color:var(--danger)">{{ c.tag }}</span></sc-if><span style="margin-left:auto;font-size:12px;color:var(--text-3)">{{ c.t }}</span></div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.m }}</span><sc-if value="{{ c.u }}"><span style="min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:11px;font-weight:650;line-height:18px;text-align:center">{{ c.u }}</span></sc-if></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <nav style="height:78px;flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:18px;box-sizing:border-box">
+            <sc-for list="{{ tabs2 }}" as="tb"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+        <div style="width:404px;font-size:12px;line-height:19px;color:var(--text-2)">顶部三格：通知中心（评论 / 回复 / 点赞 / 收藏 / 举报结果 / 系统）、私信请求、互动。下方为会话列表，左滑删除。</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">A4</span><b>我的</b><span style="color:var(--text-3)">手机 · 390 × 844 · 浅色 · 两端同款</span></div>
+        <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 7px #1C1B19,0 0 0 8px #3A3834;display:flex;flex-direction:column">
+          <div style="position:relative;flex:none;background:var(--hero);padding-bottom:18px">
+            <span style="position:absolute;right:-20px;top:10px;font:600 170px/1 var(--serif);color:var(--primary);opacity:.06;transform:rotate(-8deg)">知</span>
+            <div style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+            <div style="height:46px;display:flex;align-items:center;justify-content:flex-end;padding:0 12px"><span style="width:40px;height:40px;border-radius:13px;background:var(--glass);display:grid;place-items:center;font-size:20px">{{ I.sliders }}</span></div>
+            <div style="position:relative;padding:0 18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:14px"><div style="width:68px;height:68px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));display:grid;place-items:center;font-size:26px;font-weight:650;box-shadow:0 0 0 3px var(--surface),var(--shadow-1)">林</div><span style="flex:1;display:flex;flex-direction:column;gap:5px"><span style="font:600 22px/1.2 var(--serif)">示例昵称</span><span style="font-size:13px;color:var(--text-2)">示例学院 · 示例专业</span></span></div>
+              <div style="display:flex;align-items:center;gap:18px;font-size:13px;color:var(--text-2)"><span><b style="font-size:17px;color:var(--text)">20</b> 粉丝</span><span><b style="font-size:17px;color:var(--text)">36</b> 关注</span><span style="display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:650;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono)">Lv.2</span><button style="margin-left:auto;height:34px;padding:0 14px;border-radius:12px;border:0;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--text);font:inherit;font-size:13px;font-weight:600">编辑资料</button></div>
+            </div>
+          </div>
+          <div style="padding:14px 16px 0;display:flex;flex-direction:column;gap:12px">
+            <div style="background:var(--surface);border-radius:20px;display:grid;grid-template-columns:repeat(4,1fr);padding:14px 2px 12px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ mineGrid }}" as="m"><div style="display:flex;flex-direction:column;align-items:center;gap:7px"><span style="width:40px;height:40px;border-radius:13px;background:{{ m.tb }};color:{{ m.tc }};display:grid;place-items:center;font-size:20px;--duo:.28">{{ m.i }}</span><span style="font-size:11px;font-weight:600">{{ m.t }}</span></div></sc-for>
+            </div>
+            <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ mineMore }}" as="r"><div style="display:flex;align-items:center;gap:12px;height:48px;padding:0 14px;border-top:1px solid var(--line);margin-top:-1px"><span style="display:flex;font-size:19px;color:{{ r.c }}">{{ r.i }}</span><span style="flex:1;font-size:14px">{{ r.t }}</span><sc-if value="{{ r.s }}"><span style="font-size:11px;color:var(--text-3);padding:2px 7px;border-radius:6px;background:var(--bg-sunk)">{{ r.s }}</span></sc-if><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span></div></sc-for>
+            </div>
+          </div>
+          <div style="flex:1"></div>
+          <nav style="height:78px;flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line);padding-bottom:18px;box-sizing:border-box">
+            <sc-for list="{{ tabs3 }}" as="tb"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+        <div style="width:404px;font-size:12px;line-height:19px;color:var(--text-2)">原小程序抽屉的全部入口移到这里：我的发布 / 评论 / 收藏 / 举报、热榜、学院专区、社团、信箱、管理（仅管理员）、设置。粉丝 / 关注数字点开为关系列表。Android 没有的功能（社团、信箱等）在 Android 上不显示该行。</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">A5</span><b>平板 · 列表 + 详情</b><span style="color:var(--text-3)">平板横屏 · 1180 × 820 · 浅色</span></div>
+        <div style="width:1180px;height:820px;background-color:var(--bg);background-image:var(--grain);border-radius:32px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 9px #1C1B19,0 0 0 10px #3A3834;display:flex">
+          <aside style="width:88px;flex:none;display:flex;flex-direction:column;align-items:center;padding:30px 0 20px;gap:18px;background:var(--surface);border-right:1px solid var(--line)">
+            <div style="width:56px;height:56px;border-radius:18px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 23px/1 var(--serif);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.5),0 10px 24px var(--primary-glow);margin-bottom:8px">写</div>
+            <sc-for list="{{ tabs0 }}" as="tb"><div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </aside>
+          <section style="width:430px;flex:none;display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--surface)">
+            <div style="flex:none;background:var(--hero);padding:18px 12px 14px 22px;display:flex;align-items:center;gap:4px"><span style="font:600 25px/1 var(--serif)">树洞</span><span style="margin-left:10px;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 8px 0 12px;border-radius:16px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600">全部<span style="display:flex;color:var(--text-3)">{{ I.down }}</span></span><span style="flex:1"></span><span style="width:40px;height:40px;display:grid;place-items:center;font-size:21px">{{ I.clock }}</span><span style="width:40px;height:40px;display:grid;place-items:center;font-size:21px">{{ I.search }}</span></div>
+            <div style="flex:1;overflow:hidden">
+              <sc-for list="{{ tabletList }}" as="p" hint-placeholder-count="3"><div style="border-bottom:1px solid var(--line);background:{{ p.sel }};box-shadow:{{ p.selSh }}"><dc-import name="PostCard2" p="{{ p }}" hint-size="100%,200px"></dc-import></div></sc-for>
+            </div>
+          </section>
+          <section style="flex:1;min-width:0;display:flex;flex-direction:column">
+            <div style="height:68px;flex:none;display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 16px;border-bottom:1px solid var(--line);background:var(--glass)"><span style="height:38px;padding:0 14px;border-radius:12px;background:var(--bg-sunk);display:flex;align-items:center;gap:6px;font-size:13px"><span style="display:flex">{{ I.link }}</span>复制链接</span><span style="width:40px;height:38px;border-radius:12px;background:var(--bg-sunk);display:grid;place-items:center;font-size:19px">{{ I.more }}</span></div>
+            <div style="flex:1;padding:28px 44px;display:flex;flex-direction:column;gap:16px;overflow:hidden">
+              <div style="display:flex;gap:6px"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:600;background:var(--bg-sunk);color:var(--text-2)"><span style="width:7px;height:7px;border-radius:50%;background:var(--ch-2)"></span>学习交流</span><span style="display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:600;background:var(--info-soft);color:var(--info)"><span style="display:flex">{{ I.clock }}</span>进行中</span></div>
+              <h1 style="margin:0;font-size:26px;line-height:34px;font-weight:650">示例：数学建模校赛组队，缺一位会写论文的同学</h1>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)"><div style="width:44px;height:44px;border-radius:50%;background:color-mix(in oklab,var(--ch-3) 18%,var(--surface));color:color-mix(in oklab,var(--ch-3) 72%,var(--text));display:grid;place-items:center;font-weight:650">舟</div><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:650">林小舟</span><span style="font-size:12px;color:var(--text-3)">09-23 09:41</span></span><button style="height:36px;padding:0 14px;border-radius:11px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px">私信</button><button style="height:36px;padding:0 16px;border-radius:11px;border:0;background:var(--primary);color:var(--on-primary);font:inherit;font-size:13px;font-weight:650;box-shadow:0 6px 16px var(--primary-glow)">关注</button></div>
+              <p style="margin:0;font-size:16px;line-height:28px">我们队目前两个人，一个负责建模、一个负责编程，还缺一位擅长写作和排版的同学。比赛时间是十月中旬。<span style="color:var(--primary);font-weight:600">#组队</span></p>
+              <div style="display:flex;gap:8px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)"><span style="height:38px;padding:0 16px;border-radius:19px;background:var(--bg-sunk);display:flex;align-items:center;gap:6px;font-size:14px"><span style="display:flex;font-size:18px">{{ I.heart }}</span>24</span><span style="height:38px;padding:0 16px;border-radius:19px;background:var(--accent-soft);color:var(--accent-ink);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><span style="display:flex;font-size:18px">{{ I.starF }}</span>9</span><span style="height:38px;padding:0 16px;border-radius:19px;background:var(--bg-sunk);display:flex;align-items:center;gap:6px;font-size:14px"><span style="display:flex;font-size:18px">{{ I.comment }}</span>6</span></div>
+              <div style="display:flex;gap:10px"><div style="width:34px;height:34px;border-radius:6px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 16px/1 var(--serif);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.5);flex:none">鹿</div><div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="display:flex;gap:6px;align-items:center"><span style="font-weight:650;font-size:13px">晨跑的鹿</span><span style="font-size:12px;color:var(--text-3)">10:02</span></div><div style="font-size:14px;line-height:21px">示例：大二，写过两次课程论文，可以聊聊。</div></div></div>
+            </div>
+            <div style="flex:none;padding:12px 20px 18px;display:flex;gap:8px;align-items:center"><div style="flex:1;height:44px;border-radius:22px;background:var(--surface);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;align-items:center;gap:10px;padding:0 16px;font-size:14px;color:var(--text-3)"><span style="display:flex;font-size:20px;color:var(--text-2)">{{ I.emoji }}</span>温柔地回应一下</div><button style="height:44px;padding:0 20px;border:0;border-radius:22px;background:var(--primary);color:var(--on-primary);font:inherit;font-weight:650;box-shadow:0 6px 16px var(--primary-glow)">发送</button></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;align-items:baseline;gap:14px"><span style="font:600 13px/1 var(--mono);color:var(--primary)">WECHAT</span><h2 style="margin:0;font:600 28px/1.3 var(--serif)">微信小程序</h2><span style="font-size:13px;color:var(--text-3)">单位 rpx（= 图中 px × 2）；原生 tabBar 四项；「消息」「我的」页与 Android A3 / A4 同款</span></div>
+    <div style="display:flex;gap:56px;align-items:flex-start">
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">M1</span><b>树洞 · Threads 极简</b><span style="color:var(--text-3)">375 × 812 · 浅色</span></div>
+        <div style="width:375px;height:812px;background-color:var(--bg);background-image:var(--grain);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 7px #1C1B19,0 0 0 8px #3A3834;display:flex;flex-direction:column;position:relative">
+          <div style="flex:none;background:var(--hero)">
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+            <div style="height:44px;display:flex;align-items:center;gap:2px;padding:0 8px 0 18px;position:relative">
+              <span style="font:600 22px/1 var(--serif);margin-right:6px">树洞</span>
+              <span style="width:40px;height:40px;display:grid;place-items:center;font-size:20px">{{ I.filter }}</span>
+              <span style="width:40px;height:40px;display:grid;place-items:center;font-size:20px">{{ I.search }}</span>
+              <span style="position:absolute;right:7px;top:6px;width:87px;height:32px;box-sizing:border-box;border-radius:16px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:space-around"><span style="display:flex;gap:3px;align-items:center"><span style="width:4px;height:4px;border-radius:50%;background:#1a1a1a"></span><span style="width:6px;height:6px;border-radius:50%;background:#1a1a1a"></span><span style="width:4px;height:4px;border-radius:50%;background:#1a1a1a"></span></span><span style="width:1px;height:18px;background:rgba(0,0,0,.15)"></span><span style="width:15px;height:15px;border-radius:50%;border:2px solid #1a1a1a;box-sizing:border-box"></span></span>
+            </div>
+            <div style="position:relative;overflow:hidden;padding:12px 18px 18px;display:flex;flex-direction:column;gap:6px"><span style="position:absolute;right:10px;top:-14px;font:600 96px/1 var(--serif);color:var(--primary);opacity:.08;transform:rotate(-8deg)">知</span><span style="font:600 18px/1.2 var(--serif)">西电知行</span><span style="font-size:13px;color:var(--text-2)">让校园里的真实声音被听见</span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;background:var(--surface);border-radius:24px 24px 0 0;margin-top:-6px;box-shadow:0 -1px 0 var(--line)">
+            <sc-for list="{{ miniFeed }}" as="p" hint-placeholder-count="3"><div style="border-bottom:1px solid var(--line)"><dc-import name="PostCard2" p="{{ p }}" variant="threads" hint-size="100%,200px"></dc-import></div></sc-for>
+          </div>
+          <div style="position:absolute;right:16px;bottom:92px;width:54px;height:54px;border-radius:50%;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);display:grid;place-items:center;font-size:24px;box-shadow:0 12px 26px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.25)">{{ I.plus }}</div>
+          <nav style="height:76px;flex:none;display:flex;border-top:1px solid var(--line);padding-bottom:18px;box-sizing:border-box;background:var(--surface)">
+            <sc-for list="{{ tabs0 }}" as="tb"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+        <div style="width:389px;font-size:12px;line-height:19px;color:var(--text-2)">左上角头像与侧边抽屉取消（入口已进「我的」）。「+」发帖放正。tabBar 角标用原生 setTabBarBadge / showTabBarRedDot。</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">M2</span><b>校园 AI · 服务器未配置</b><span style="color:var(--text-3)">375 × 1000（长图）· 浅色</span></div>
+        <div style="width:375px;height:1000px;background-color:var(--bg);background-image:var(--grain);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 7px #1C1B19,0 0 0 8px #3A3834;display:flex;flex-direction:column">
+          <div style="flex:none;background:var(--hero)">
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+            <div style="height:44px;display:flex;align-items:center;gap:10px;padding:0 18px;position:relative"><span style="display:flex;flex-direction:column"><span style="font:600 20px/24px var(--serif)">校园 AI</span></span><span style="position:absolute;right:7px;top:6px;width:87px;height:32px;box-sizing:border-box;border-radius:16px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)"></span></div>
+            <div style="padding:6px 18px 22px;font-size:13px;color:var(--text-2)">服务、日程、地图与校园问答</div>
+          </div>
+          <div style="flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--bg);border-radius:24px 24px 0 0;margin-top:-10px">
+            <div style="background:var(--surface);border-radius:20px;padding:14px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:14px;font-weight:650;display:flex;align-items:center;gap:6px"><span style="display:flex;color:var(--primary);--duo:.3">{{ I.calendar }}</span>今日日程</span><span style="font-size:12px;color:var(--text-3)">09-23 周三</span></div>
+              <sc-for list="{{ today }}" as="d"><div style="display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:{{ d.bg }}"><span style="font:600 12px/16px var(--mono);color:var(--text-2);width:44px">{{ d.time }}</span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">{{ d.t }}</span><span style="font-size:12px;color:var(--text-3)">{{ d.s }}</span></span><sc-if value="{{ d.now }}"><span style="display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:650;background:var(--primary);color:var(--on-primary)">进行中</span></sc-if></div></sc-for>
+            </div>
+            <div style="background:var(--surface);border-radius:20px;display:grid;grid-template-columns:repeat(4,1fr);padding:14px 2px 12px;row-gap:14px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ services }}" as="s"><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><span style="width:40px;height:40px;border-radius:13px;background:{{ s.tb }};color:{{ s.tc }};display:grid;place-items:center;font-size:20px;--duo:.28">{{ s.i }}</span><span style="font-size:11px;font-weight:600;text-align:center">{{ s.t }}</span></div></sc-for>
+            </div>
+            <div style="padding:16px;border-radius:20px;background:var(--surface);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:12px"><div style="position:relative;width:48px;height:48px;border-radius:15px;background:var(--bg-sunk);display:grid;place-items:center"><span style="display:flex;font-size:26px;color:var(--text-3)">{{ I.ai }}</span><span style="position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;background:var(--warning);color:var(--surface);display:grid;place-items:center;font-size:12px;box-shadow:0 0 0 2px var(--surface)">{{ I.alert }}</span></div><span style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font:600 16px/1.3 var(--serif)">小电暂时无法回答</span><span style="font-size:12px;color:var(--warning);font-weight:600">服务器 AI 尚未配置</span></span></div>
+              <span style="font-size:13px;line-height:20px;color:var(--text-2)">管理员完成配置后即可提问。历史对话仍可查看。</span>
+              <div style="display:flex;gap:8px"><button style="flex:1;height:40px;border-radius:12px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><span style="display:flex">{{ I.sliders }}</span>AI 设置</button><button style="flex:1;height:40px;border-radius:12px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px"><span style="display:flex">{{ I.refresh }}</span>重新检查</button></div>
+            </div>
+            <button disabled="disabled" style="height:48px;border:0;border-radius:16px;background:var(--bg-sunk);color:var(--text-3);font:inherit;font-size:15px;font-weight:650;display:flex;align-items:center;justify-content:center;gap:8px"><span style="display:flex">{{ I.plus }}</span>发起新对话</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:0 6px"><span style="font-size:14px;font-weight:650">历史对话</span><span style="font-size:13px;color:var(--primary);font-weight:600">查看全部</span></div>
+            <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ aiHist }}" as="h"><div style="display:flex;align-items:center;gap:12px;min-height:54px;padding:8px 14px;box-sizing:border-box;border-top:1px solid var(--line);margin-top:-1px"><span style="width:32px;height:32px;border-radius:10px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-size:16px;--duo:.3">{{ I.chat }}</span><span style="flex:1;min-width:0;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ h.q }}</span><span style="font-size:12px;color:var(--text-3)">{{ h.t }}</span></div></sc-for>
+            </div>
+          </div>
+          <nav style="height:76px;flex:none;display:flex;border-top:1px solid var(--line);padding-bottom:18px;box-sizing:border-box;background:var(--surface)">
+            <sc-for list="{{ tabs1 }}" as="tb"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+        <div style="width:389px;font-size:12px;line-height:19px;color:var(--text-2)">「校园 AI」栏合并原「校园」与「AI」：上半部分是今日日程和校园服务（课表、考试、地图、登录管理…），下半部分是 AI 问答。Android 同一布局；Android 目前没有校园与 AI 功能，需开发接入，由产品决定。</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">M3</span><b>显示设置（4 组全部保留）</b><span style="color:var(--text-3)">375 × 980 · 深色</span></div>
+        <div data-zx="dark" style="--bg:#171714;--bg-sunk:#10100E;--surface:#20201C;--raised:#2F2F2A;--glass:rgba(32,32,28,0.74);--line:#3C3B37;--line-strong:#55544F;--text:#F4F1E8;--text-2:#BFBDB5;--text-3:#9B9992;--primary:#E08075;--on-primary:#2D1A17;--primary-soft:#46332E;--primary-glow:rgba(224,128,117,0.28);--seal:#E08075;--seal-soft:#3B2D28;--accent-soft:#453E2C;--accent-ink:#EBC474;--hero:linear-gradient(125deg,#4E3731 0%,#3C3728 52%,#20201C 100%);--shadow-1:0 1px 2px rgba(0,0,0,.5);--ch-1:oklch(0.76 0.1 35);--ch-2:oklch(0.76 0.1 160);--ch-3:oklch(0.76 0.1 250);--ch-4:oklch(0.76 0.1 80);--ch-5:oklch(0.76 0.1 310);width:375px;height:980px;background-color:var(--bg);background-image:var(--grain);color:var(--text);border-radius:40px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.3),0 0 0 7px #0B0B0A,0 0 0 8px #34322E;display:flex;flex-direction:column">
+          <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:650;background:var(--surface)"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+          <div style="height:44px;flex:none;display:flex;align-items:center;justify-content:center;position:relative;background:var(--surface);border-bottom:1px solid var(--line);font-size:16px;font-weight:650"><span style="position:absolute;left:10px;display:flex;font-size:22px">{{ I.back }}</span>显示设置<span style="position:absolute;right:7px;top:6px;width:87px;height:32px;box-sizing:border-box;border-radius:16px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)"></span></div>
+          <div style="padding:14px;display:flex;flex-direction:column;gap:18px">
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">深浅模式</span>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <sc-for list="{{ modes }}" as="md"><div style="padding:10px;border-radius:16px;background:var(--surface);box-shadow:{{ md.bd }};display:flex;flex-direction:column;gap:9px;align-items:center"><div style="width:100%;height:52px;border-radius:10px;overflow:hidden;display:flex;box-shadow:inset 0 0 0 1px var(--line-strong)"><span style="flex:1;background:{{ md.a }};display:flex;flex-direction:column;gap:4px;padding:8px 6px;box-sizing:border-box"><span style="height:4px;width:70%;border-radius:2px;background:{{ md.ai }}"></span><span style="height:4px;width:50%;border-radius:2px;background:{{ md.ai }};opacity:.5"></span></span><span style="flex:1;background:{{ md.b }};display:flex;flex-direction:column;gap:4px;padding:8px 6px;box-sizing:border-box"><span style="height:4px;width:70%;border-radius:2px;background:{{ md.bi }}"></span><span style="height:4px;width:50%;border-radius:2px;background:{{ md.bi }};opacity:.5"></span></span></div><span style="font-size:13px;font-weight:{{ md.w }};color:{{ md.c }}">{{ md.t }}</span></div></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">主题配色</span>
+              <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)">
+                <sc-for list="{{ miniThemes }}" as="th"><div style="display:flex;align-items:center;gap:12px;height:56px;padding:0 14px;border-top:1px solid var(--line);margin-top:-1px"><span style="display:flex;gap:3px"><span style="width:16px;height:16px;border-radius:5px;background:{{ th.page }};box-shadow:inset 0 0 0 1px rgba(128,128,128,.3)"></span><span style="width:16px;height:16px;border-radius:4px;background:{{ th.pri }}"></span><span style="width:16px;height:16px;border-radius:50%;background:{{ th.apr }}"></span></span><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:14px;font-weight:600">{{ th.n }}</span><span style="font-size:11px;color:var(--text-3)">{{ th.d }}</span></span><sc-if value="{{ th.on }}"><span style="width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:14px">{{ I.check }}</span></sc-if></div></sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">帖子布局 · 只影响树洞首页</span>
+              <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+                <div style="padding:12px;border-radius:16px;background:var(--surface);box-shadow:0 0 0 2px var(--primary);display:flex;flex-direction:column;gap:10px"><div style="display:flex;gap:7px"><span style="width:18px;height:18px;border-radius:4px;background:var(--seal)"></span><span style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="height:5px;width:60%;border-radius:3px;background:var(--line-strong)"></span><span style="height:5px;width:90%;border-radius:3px;background:var(--line)"></span><span style="height:5px;width:80%;border-radius:3px;background:var(--line)"></span></span></div><span style="font-size:13px;font-weight:650;color:var(--primary)">Threads 极简</span></div>
+                <div style="padding:12px;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:10px"><div style="padding:6px;border-radius:8px;box-shadow:inset 0 0 0 1px var(--line-strong);display:flex;flex-direction:column;gap:4px"><span style="height:5px;width:50%;border-radius:3px;background:var(--line-strong)"></span><span style="height:14px;border-radius:4px;background:var(--line)"></span></div><span style="font-size:13px;color:var(--text-2)">原卡片</span></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">语言</span>
+              <div style="display:flex;padding:4px;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)"><span style="flex:1;height:40px;border-radius:11px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-size:14px;font-weight:650">简体中文</span><span style="flex:1;height:40px;display:grid;place-items:center;font-size:14px;color:var(--text-2)">English</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">M4</span><b>平板 · 原卡片双列</b><span style="color:var(--text-3)">iPad 竖屏 · 820 × 1180 · 浅色</span></div>
+        <div style="width:820px;height:1180px;background-color:var(--bg);background-image:var(--grain);border-radius:36px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.22),0 0 0 9px #1C1B19,0 0 0 10px #3A3834;display:flex;flex-direction:column">
+          <div style="flex:none;background:var(--hero)">
+            <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;font-size:13px;font-weight:650"><span>9:41</span><span style="width:24px;height:12px;border-radius:4px;border:1.5px solid var(--text);box-sizing:border-box"></span></div>
+            <div style="height:52px;display:flex;align-items:center;gap:4px;padding:0 22px;position:relative"><span style="font:600 22px/1 var(--serif);margin-right:6px">树洞</span><span style="width:42px;height:42px;display:grid;place-items:center;font-size:21px">{{ I.filter }}</span><span style="width:42px;height:42px;display:grid;place-items:center;font-size:21px">{{ I.search }}</span><span style="position:absolute;right:12px;top:10px;width:87px;height:32px;box-sizing:border-box;border-radius:16px;background:rgba(255,255,255,.7);box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)"></span></div>
+            <div style="padding:10px 30px 22px;display:flex;align-items:center;gap:12px"><span style="font:600 26px/1.2 var(--serif)">#学习交流</span><span style="font-size:13px;color:var(--text-2)">当前筛选</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:16px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;color:var(--primary);font-weight:600"><span style="display:flex">{{ I.close }}</span>清除筛选</span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:18px 24px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start">
+            <sc-for list="{{ padFeed }}" as="p" hint-placeholder-count="4"><dc-import name="PostCard2" p="{{ p }}" boxed="{{ true }}" hint-size="100%,260px"></dc-import></sc-for>
+          </div>
+          <nav style="height:80px;flex:none;display:flex;border-top:1px solid var(--line);padding-bottom:22px;box-sizing:border-box;background:var(--surface)">
+            <sc-for list="{{ tabs0 }}" as="tb"><div style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;font-weight:{{ tb.w }};color:{{ tb.c }}"><span style="position:relative;display:flex;font-size:25px;--duo:{{ tb.duo }}">{{ tb.i }}<sc-if value="{{ tb.b }}"><span style="position:absolute;top:-4px;left:15px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ tb.b }}</span></sc-if><sc-if value="{{ tb.dot }}"><span style="position:absolute;top:-1px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--surface)"></span></sc-if></span>{{ tb.t }}</div></sc-for>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;zhushachi&quot;,&quot;zhuqing&quot;,&quot;xingrenhuang&quot;,&quot;mozhuxinye&quot;],&quot;default&quot;:&quot;zhushachi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;配色&quot;},&quot;grain&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;质感&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  componentDidMount() {
+    const ready = () => window.ZXI2 && window.ZXTheme;
+    if (ready()) { this.forceUpdate(); this.applyTheme(); }
+    else this._t = setInterval(() => { if (ready()) { clearInterval(this._t); this.forceUpdate(); this.applyTheme(); } }, 40);
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { clearInterval(this._t); }
+  applyTheme() {
+    const el = this.rootRef.current, key = (this.props.theme || 'zhushachi') + '|' + (this.props.grain !== false);
+    if (!window.ZXTheme || !el || this._applied === key) return;
+    this._applied = key;
+    window.ZXTheme.apply(el, this.props.theme || 'zhushachi', this.props.grain !== false);
+  }
+  renderVals() {
+    const I = window.ZXI2 ? window.ZXI2.make(React) : {};
+    const Z = window.ZXTheme;
+    const cur = this.props.theme || 'zhushachi';
+    const tile = n => ({ tb: 'color-mix(in oklab,var(--ch-' + n + ') 16%,var(--surface))', tc: 'var(--ch-' + n + ')' });
+    const av = n => ({ ab: 'color-mix(in oklab,var(--ch-' + n + ') 18%,var(--surface))', af: 'color-mix(in oklab,var(--ch-' + n + ') 72%,var(--text))' });
+    const tabs = active => [
+      { i: I.home, t: '树洞' }, { i: I.ai, t: '校园 AI' }, { i: I.chat, t: '消息', b: 5 }, { i: I.user, t: '我的' }
+    ].map((x, k) => Object.assign(x, { c: k === active ? 'var(--primary)' : 'var(--text-3)', w: k === active ? 650 : 500, duo: k === active ? '.35' : '.2' }));
+    const P = {
+      pin: { anon: false, initial: '教', name: '示例：教务通知转载', time: '2 小时前', ch: '综合', chN: 4, pinned: true, title: '示例：本周四起图书馆延长开放至 23:00', body: '期末周图书馆开放时间调整，具体以学校通知为准。#图书馆', likes: 86, comments: 12, favs: 40 },
+      plug: { anon: true, initial: '安', name: '安静的同学', time: '12 分钟前', ch: '求助问答', chN: 3, status: 'resolved', title: '示例：图书馆四楼靠窗那排插座修好了吗？', body: '想问问有没有同学知道维修进度。#求助 #图书馆', imgs: 1, likes: 12, liked: true, comments: 4, favs: 3 },
+      team: { anon: false, initial: '舟', name: '林小舟', time: '1 小时前', ch: '学习交流', chN: 2, status: 'open', title: '示例：数学建模校赛组队，缺一位会写论文的同学', body: '我们队目前两个人，一个负责建模、一个负责编程。#组队 #竞赛', likes: 24, comments: 6, favs: 9, faved: true },
+      notes: { anon: false, initial: '周', name: '周同学', time: '5 小时前', ch: '学习交流', chN: 2, title: '示例：高数期末复习笔记整理', body: '整理了前八章的重点和例题，需要的同学评论区留言。#学习', imgs: 2, likes: 40, comments: 18, favs: 33 }
+    };
+    const T = Z ? Z.THEMES : {};
+    return {
+      I, rootRef: this.rootRef,
+      changes: ['底部四栏：树洞 · 校园 AI · 消息 · 我的', '两端导航同款', '抽屉入口并入「我的」', '通知并入「消息」', '头像放正、圆角减小', '「写」「+」放正'],
+      tabs0: tabs(0), tabs1: tabs(1), tabs2: tabs(2), tabs3: tabs(3),
+      appFeed: [P.pin, P.plug, P.team],
+      msgKinds: [
+        { i: I.bell, t: '通知', b: 3, tb: 'var(--primary-soft)', tc: 'var(--primary)' },
+        Object.assign({ i: I.mail, t: '私信请求', b: 1 }, tile(4)),
+        Object.assign({ i: I.heart, t: '赞与收藏' }, tile(1))
+      ],
+      convs: [
+        Object.assign({ i: '舟', n: '林小舟', t: '09:55', m: '可以，周三晚上我都有空。', u: 2, w: 650 }, av(3)),
+        Object.assign({ i: '陈', n: '陈同学', t: '昨天', m: '示例：好的，到时候见。', u: 1, w: 650 }, av(4)),
+        Object.assign({ i: '周', n: '周同学', t: '09-20', m: '示例：谢谢你的笔记！', u: '', w: 500 }, av(5)),
+        { i: '王', n: '王同学', t: '09-18', m: '对方已屏蔽你，只能查看历史消息', tag: '对方已屏蔽', u: '', w: 500, ab: 'var(--bg-sunk)', af: 'var(--text-3)' },
+        { i: '赵', n: '赵同学', t: '09-12', m: '示例：收到。', tag: '已屏蔽', u: '', w: 500, ab: 'var(--bg-sunk)', af: 'var(--text-3)' }
+      ],
+      mineGrid: [
+        Object.assign({ i: I.edit, t: '我的发布' }, tile(1)),
+        Object.assign({ i: I.comment, t: '我的评论' }, tile(3)),
+        Object.assign({ i: I.star, t: '我的收藏' }, tile(4)),
+        Object.assign({ i: I.flag, t: '我的举报' }, tile(5))
+      ],
+      mineMore: [
+        { i: I.fire, t: '热榜', s: '', c: 'var(--primary)' },
+        { i: I.campus, t: '学院专区', s: '', c: 'var(--ch-3)' },
+        { i: I.users, t: '社团', s: '', c: 'var(--ch-2)' },
+        { i: I.mail, t: '信箱', s: '', c: 'var(--ch-4)' },
+        { i: I.shield, t: '管理', s: '仅管理员', c: 'var(--text-2)' },
+        { i: I.sliders, t: '设置', s: '账号 · 隐私 · 通知 · 外观', c: 'var(--text-2)' }
+      ],
+      tabletList: [
+        Object.assign({ sel: 'transparent', selSh: 'none' }, P.pin),
+        Object.assign({ sel: 'var(--primary-soft)', selSh: 'inset 3px 0 0 var(--primary)' }, P.team),
+        Object.assign({ sel: 'transparent', selSh: 'none' }, P.plug)
+      ],
+      miniFeed: [Object.assign({}, P.team, { following: false }), P.plug, Object.assign({}, P.notes, { following: true })],
+      today: [
+        { time: '08:30', t: '示例：高等数学', s: '课表 · 教学楼 A-201', now: true, bg: 'var(--primary-soft)' },
+        { time: '14:00', t: '示例：大学物理实验', s: '实验 · 物理实验中心', now: false, bg: 'var(--bg-sunk)' }
+      ],
+      services: [
+        Object.assign({ i: I.calendar, t: '课表' }, tile(3)),
+        Object.assign({ i: I.edit, t: '考试' }, tile(1)),
+        Object.assign({ i: I.map, t: '校园地图' }, tile(2)),
+        Object.assign({ i: I.shield, t: '登录管理' }, tile(4)),
+        Object.assign({ i: I.book, t: '图书馆' }, tile(5)),
+        Object.assign({ i: I.globe, t: '校园网' }, tile(6)),
+        Object.assign({ i: I.fire, t: '实验' }, tile(1)),
+        { i: I.more, t: '全部服务', tb: 'var(--bg-sunk)', tc: 'var(--text-2)' }
+      ],
+      modes: [
+        { t: '跟随系统', a: '#F7F6F2', ai: '#181816', b: '#171714', bi: '#F4F1E8', bd: '0 0 0 2px var(--primary)', w: 650, c: 'var(--primary)' },
+        { t: '浅色', a: '#F7F6F2', ai: '#181816', b: '#FFFEFA', bi: '#181816', bd: 'inset 0 0 0 1px var(--line)', w: 400, c: 'var(--text-2)' },
+        { t: '深色', a: '#171714', ai: '#F4F1E8', b: '#20201C', bi: '#F4F1E8', bd: 'inset 0 0 0 1px var(--line)', w: 400, c: 'var(--text-2)' }
+      ],
+      miniThemes: Z ? Z.keys.map(k => ({ n: T[k].zh, d: T[k].d, page: T[k].light[0], pri: T[k].light[3], apr: T[k].light[6], on: k === cur })) : [],
+      aiHist: [{ q: '示例：图书馆期末开放时间？', t: '09-22' }, { q: '示例：南校区哪里可以打印？', t: '09-20' }],
+      padFeed: [P.team, P.notes, Object.assign({}, P.team, { initial: '陈', name: '陈同学', title: '示例：英语六级听力资料分享', faved: false, status: null }), Object.assign({}, P.notes, { anon: true, initial: '雨', name: '雨后的操场', title: '示例：考研自习室还有空位吗', imgs: 0 })]
+    };
+  }
+}
+</script>
+</body>
+</html>

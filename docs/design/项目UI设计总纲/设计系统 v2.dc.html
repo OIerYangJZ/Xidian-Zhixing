@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><script src="icons2.js"></script><script src="zx-theme.js"></script><style>body{margin:0;background:#E6E2DB;font-family:-apple-system,"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}a{color:#A43B32}a:hover{color:#7E2924}</style></helmet>
+<div ref="{{ rootRef }}" data-zx="light" style="--bg:#F7F6F2;--bg-sunk:#EDECE8;--surface:#FFFEFA;--raised:#FFFEFA;--glass:rgba(255,254,250,0.8);--line:#E8E7E3;--line-strong:#CECECA;--text:#181816;--text-2:#595856;--text-3:#706F6D;--primary:#A43B32;--primary-pressed:#7E2924;--on-primary:#FFFFFF;--primary-soft:#F6EBE6;--primary-glow:rgba(164,59,50,0.3);--seal:#A43B32;--seal-soft:#F9F0EC;--accent:#E8B65D;--accent-soft:#F9EDD4;--accent-ink:#745B2F;--coral:#D9775F;--hero:linear-gradient(125deg,#F3E5E0 0%,#FAF0DB 52%,#FFFEFA 100%);--on-danger:#FFFFFF;--on-scrim:#FFFFFF;--scrim:rgba(30,22,16,.42);--shadow-1:0 1px 2px rgba(70,45,25,.06),0 2px 10px rgba(70,45,25,.05);--shadow-2:0 18px 48px rgba(70,45,25,.15),0 3px 10px rgba(70,45,25,.06);--success:#44684F;--success-soft:#E9ECE5;--warning:#8A5A1E;--warning-soft:#F1EAE0;--danger:#97382F;--danger-soft:#F3E6E2;--info:#45687A;--info-soft:#E9ECEB;--ch-1:oklch(0.55 0.11 35);--ch-2:oklch(0.55 0.11 160);--ch-3:oklch(0.55 0.11 250);--ch-4:oklch(0.55 0.11 80);--ch-5:oklch(0.55 0.11 310);--ch-6:oklch(0.55 0.11 125);--serif:'Songti SC','STSong','Noto Serif CJK SC','Source Han Serif SC',serif;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;width:1560px;padding:72px;box-sizing:border-box;color:var(--text);background-color:var(--bg);background-image:var(--grain);display:flex;flex-direction:column;gap:64px">
+
+  <header style="position:relative;overflow:hidden;border-radius:32px;background:var(--hero);padding:56px 60px;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:56px;align-items:center;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--primary) 12%,transparent)">
+    <span style="position:absolute;right:-40px;top:-90px;font:600 420px/1 var(--serif);color:var(--primary);opacity:.06;transform:rotate(-10deg);pointer-events:none">知</span>
+    <div style="position:relative;display:flex;flex-direction:column;gap:22px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="width:64px;height:64px;border-radius:16px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 32px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.55),0 12px 28px var(--primary-glow)">知</div>
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font:600 28px/1.1 var(--serif)">西电知行</span><span style="font-size:12px;letter-spacing:.16em;color:var(--text-2)">XIDIAN ZHIXING · 简称 ZHIXING</span></div>
+      </div>
+      <h1 style="margin:0;font:600 54px/1.12 var(--serif);letter-spacing:-.015em">UI 设计系统 · 第二版</h1>
+      <p style="margin:0;max-width:640px;font-size:16px;line-height:27px;color:var(--text-2);text-wrap:pretty">视觉隐喻是「纸与朱印」：暖白纸纹底、墨色正文、朱砂印章作为品牌与匿名身份，杏黄作点缀。本版把 Web 现有 4 套主题接入同一套 token，每套自动生成浅色和深色；右侧 Tweaks 可切换整页主题。</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="Web 端 v2.dc.html" style="display:flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:14px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);text-decoration:none;font-size:14px;font-weight:650;box-shadow:0 8px 20px var(--primary-glow)">Web 端 v2<span style="display:flex">{{ I.chevron }}</span></a>
+        <a href="App 与小程序 v2.dc.html" style="display:flex;align-items:center;gap:8px;height:46px;padding:0 20px;border-radius:14px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line-strong);color:var(--text);text-decoration:none;font-size:14px;font-weight:650">App 与小程序 v2<span style="display:flex">{{ I.chevron }}</span></a>
+        <a href="设计系统.dc.html" style="display:flex;align-items:center;height:46px;padding:0 12px;color:var(--text-2);text-decoration:none;font-size:13px">第一版</a>
+      </div>
+    </div>
+    <div style="position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+      <sc-for list="{{ principles }}" as="pr" hint-placeholder-count="4">
+        <div style="background:var(--glass);backdrop-filter:blur(12px);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:8px;box-shadow:inset 0 0 0 1px var(--line)">
+          <span style="width:36px;height:36px;border-radius:11px;background:{{ pr.tb }};color:{{ pr.tc }};display:grid;place-items:center;font-size:19px;--duo:.3">{{ pr.i }}</span>
+          <span style="font-size:15px;font-weight:650">{{ pr.t }}</span>
+          <span style="font-size:13px;line-height:20px;color:var(--text-2)">{{ pr.d }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:22px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font:600 13px/1 var(--mono);color:var(--primary)">01</span><h2 style="margin:0;font:600 30px/1.3 var(--serif)">4 套配色主题 × 浅 / 深</h2><span style="font-size:13px;color:var(--text-3)">同一张卡片，只替换 token。色值来自 Web 现有主题（第三部分 B.1）。</span></div>
+    <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px">
+      <sc-for list="{{ gallery }}" as="g" hint-placeholder-count="8">
+        <div data-zx="{{ g.mode }}" data-theme="{{ g.key }}" style="border-radius:24px;overflow:hidden;background-color:var(--bg);background-image:var(--grain);color:var(--text);box-shadow:0 12px 32px rgba(60,40,20,.12),0 0 0 1px rgba(0,0,0,.05);display:flex;flex-direction:column">
+          <div style="padding:16px 18px 12px;display:flex;align-items:center;gap:10px;background:var(--hero)">
+            <div style="width:30px;height:30px;border-radius:8px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 15px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.5)">知</div>
+            <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:650">{{ g.name }}</span><span style="font-size:11px;color:var(--text-2)">{{ g.en }}</span></span>
+            <span style="font:600 10px/1 var(--mono);padding:4px 7px;border-radius:6px;background:var(--glass);color:var(--text-2)">{{ g.label }}</span>
+          </div>
+          <div style="padding:12px;display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--surface);border-radius:16px;padding:12px;display:flex;gap:10px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <div style="width:32px;height:32px;border-radius:5px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 15px/1 var(--serif);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.5);flex:none">安</div>
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+                <div style="display:flex;gap:4px;flex-wrap:wrap"><span style="display:inline-flex;align-items:center;gap:3px;height:18px;padding:0 6px;border-radius:5px;font-size:10px;font-weight:600;background:var(--accent-soft);color:var(--accent-ink)">置顶</span><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:10px;font-weight:600;background:var(--seal-soft);color:var(--seal)">匿名</span><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:10px;font-weight:600;background:var(--success-soft);color:var(--success)">已解决</span></div>
+                <span style="font-size:13px;font-weight:650;line-height:18px">示例：图书馆插座修好了吗？</span>
+                <span style="font-size:12px;line-height:17px;color:var(--text-2)">期末周找位置 <span style="color:var(--primary);font-weight:600">#求助</span></span>
+                <div style="display:flex;gap:6px;font-size:11px"><span style="display:flex;align-items:center;gap:3px;height:22px;padding:0 8px;border-radius:11px;background:var(--primary-soft);color:var(--primary);font-weight:600"><span style="display:flex;font-size:13px">{{ I.heartF }}</span>12</span><span style="display:flex;align-items:center;gap:3px;height:22px;padding:0 6px;color:var(--text-2)"><span style="display:flex;font-size:13px">{{ I.comment }}</span>4</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px"><span style="flex:1;height:34px;border-radius:11px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:12px;font-weight:650;box-shadow:0 6px 14px var(--primary-glow)">发布帖子</span><span style="flex:1;height:34px;border-radius:11px;background:var(--bg-sunk);display:grid;place-items:center;font-size:12px">取消</span></div>
+            <div style="display:flex;gap:4px"><sc-for list="{{ swatchKeys }}" as="k"><span style="flex:1;height:14px;border-radius:4px;background:{{ k }};box-shadow:inset 0 0 0 1px rgba(128,128,128,.25)"></span></sc-for></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">02</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">颜色 token</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">每套主题只需提供 7 个源色（纸、面、墨、主色、主色按下、珊瑚、杏黄），其余 token 按固定规则派生。组件只引用 token 名。</p>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">表中色值随 Tweaks 所选主题实时变化。text 系列对 surface / bg 均 ≥ 4.5:1。</p>
+    </div>
+    <div style="background:var(--surface);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+      <div style="display:grid;grid-template-columns:110px 150px minmax(0,1fr) 150px 150px 170px;padding:14px 22px;font-size:12px;font-weight:650;color:var(--text-3);border-bottom:1px solid var(--line);background:var(--bg-sunk)"><span>角色组</span><span>Token</span><span>用途</span><span>浅色</span><span>深色</span><span>派生规则</span></div>
+      <sc-for list="{{ tokens }}" as="tk" hint-placeholder-count="14">
+        <div style="display:grid;grid-template-columns:110px 150px minmax(0,1fr) 150px 150px 170px;align-items:center;padding:9px 22px;border-bottom:1px solid var(--line);font-size:13px">
+          <span style="color:var(--text-3)">{{ tk.g }}</span>
+          <span style="font-family:var(--mono);font-size:12px;font-weight:650">{{ tk.k }}</span>
+          <span style="color:var(--text-2);padding-right:12px">{{ tk.u }}</span>
+          <span style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--text-2)"><span style="width:28px;height:28px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);background:{{ tk.l }}"></span>{{ tk.l }}</span>
+          <span style="display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--text-2)"><span style="width:28px;height:28px;border-radius:8px;box-shadow:0 0 0 1px rgba(0,0,0,.25);background:{{ tk.d }}"></span>{{ tk.d }}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-3)">{{ tk.m }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">03</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">质感与特效</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">全部可用 Flutter 原生能力实现（BackdropFilter、Gradient、BoxShadow、Transform、AnimationController），小程序用 CSS 同等实现。</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
+      <sc-for list="{{ effects }}" as="e">
+        <div style="background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;flex-direction:column">
+          <div style="height:120px;position:relative;overflow:hidden;background:{{ e.bg }};display:grid;place-items:center">
+            <sc-if value="{{ e.seal }}"><div style="width:62px;height:62px;border-radius:9px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 30px/1 var(--serif);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.55),0 10px 24px var(--primary-glow)">匿</div></sc-if>
+            <sc-if value="{{ e.glass }}"><div style="position:absolute;left:24px;top:22px;width:70px;height:70px;border-radius:50%;background:var(--primary)"></div><div style="position:absolute;right:30px;bottom:14px;width:56px;height:56px;border-radius:16px;background:var(--accent)"></div><div style="position:relative;width:170px;height:54px;border-radius:16px;background:var(--glass);backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;font-size:13px;font-weight:600">毛玻璃顶栏</div></sc-if>
+            <sc-if value="{{ e.glow }}"><div style="height:46px;padding:0 22px;border-radius:14px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);display:flex;align-items:center;font-size:14px;font-weight:650;box-shadow:0 10px 24px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.25)">发布心声</div></sc-if>
+            <sc-if value="{{ e.like }}"><div style="display:flex;gap:10px;align-items:center"><span style="display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;color:var(--text-2);font-size:13px;background:var(--surface)"><span style="display:flex;font-size:19px">{{ I.heart }}</span>11</span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span><span style="position:relative;display:flex;align-items:center;gap:6px;height:36px;padding:0 14px;border-radius:18px;background:var(--primary-soft);color:var(--primary);font-size:13px;font-weight:650;box-shadow:0 0 0 6px color-mix(in oklab,var(--primary) 10%,transparent)"><span style="display:flex;font-size:19px;transform:scale(1.15)">{{ I.heartF }}</span>12</span></div></sc-if>
+          </div>
+          <div style="padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;font-weight:650">{{ e.t }}</span><span style="font-size:12px;line-height:18px;color:var(--text-2)">{{ e.d }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">04</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">图标</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">双色线性：1.6 描边 + 同色 20% 填充层。选中态把填充提到 30% 并换主色；点赞 / 收藏的激活态为实心。图中为示意，正式版需重绘成 SVG / 图标字体随包分发（小程序 tabBar 另出 PNG）。</p>
+    </div>
+    <div style="background:var(--surface);border-radius:24px;padding:22px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:grid;grid-template-columns:repeat(12,1fr);gap:8px">
+      <sc-for list="{{ iconList }}" as="ic"><div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;border-radius:14px;background:{{ ic.bg }};color:{{ ic.fg }}"><span style="display:flex;font-size:24px;--duo:{{ ic.duo }}">{{ ic.el }}</span><span style="font:500 10px/1 var(--mono);color:var(--text-3)">{{ ic.k }}</span></div></sc-for>
+    </div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">05</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">字体 · 圆角 · 层级</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">正文用系统无衬线（包体积 0）；宋体子集只用于品牌、页面大标题、空状态与引言，营造纸面感。圆角整体放大一档，卡片 18–24，更柔和。</p>
+    </div>
+    <div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px">
+      <div style="background:var(--surface);border-radius:24px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+        <sc-for list="{{ types }}" as="ty"><div style="display:grid;grid-template-columns:110px minmax(0,1fr) 130px;align-items:center;gap:16px;padding:13px 20px;border-bottom:1px solid var(--line)"><span style="font-family:var(--mono);font-size:12px;font-weight:650;color:var(--text-2)">{{ ty.k }}</span><span style="font-size:{{ ty.px }};line-height:1.35;font-weight:{{ ty.w }};font-family:{{ ty.f }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ty.sample }}</span><span style="font-family:var(--mono);font-size:11px;color:var(--text-3);text-align:right">{{ ty.spec }}</span></div></sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div style="background:var(--surface);border-radius:24px;padding:20px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;flex-direction:column;gap:14px">
+          <span style="font-size:12px;font-weight:650;color:var(--text-3)">圆角 radius</span>
+          <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap"><sc-for list="{{ radii }}" as="r"><div style="display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:46px;height:46px;background:var(--primary-soft);box-shadow:inset 0 0 0 1.5px color-mix(in oklab,var(--primary) 40%,transparent);border-radius:{{ r.v }}"></div><span style="font-family:var(--mono);font-size:10px;color:var(--text-2)">{{ r.k }}</span><span style="font-size:10px;color:var(--text-3)">{{ r.u }}</span></div></sc-for></div>
+        </div>
+        <div style="background:var(--bg-sunk);border-radius:24px;padding:20px;display:flex;gap:12px">
+          <div style="flex:1;height:78px;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:grid;place-items:center;font-size:11px;color:var(--text-2);text-align:center">0 · 细线<br/>列表</div>
+          <div style="flex:1;height:78px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:grid;place-items:center;font-size:11px;color:var(--text-2);text-align:center">1 · 卡片<br/>分组</div>
+          <div style="flex:1;height:78px;border-radius:16px;background:var(--raised);box-shadow:var(--shadow-2);display:grid;place-items:center;font-size:11px;color:var(--text-2);text-align:center">2 · 浮层<br/>弹窗</div>
+          <div style="flex:1;height:78px;border-radius:16px;background:var(--primary);color:var(--on-primary);box-shadow:0 10px 24px var(--primary-glow);display:grid;place-items:center;font-size:11px;text-align:center">主色光晕<br/>主按钮</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font:600 13px/1 var(--mono);color:var(--primary)">06</span><h2 style="margin:0;font:600 30px/1.3 var(--serif)">组件 · 浅色</h2><span style="font-size:13px;color:var(--text-3)">组件内文字为示例内容</span></div>
+    <div style="border-radius:28px;overflow:hidden;box-shadow:0 0 0 1px var(--line)"><dc-import name="Components2" hint-size="100%,1600px"></dc-import></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:20px">
+    <div style="display:flex;align-items:baseline;gap:16px"><span style="font:600 13px/1 var(--mono);color:var(--primary)">07</span><h2 style="margin:0;font:600 30px/1.3 var(--serif)">组件 · 深色</h2><span style="font-size:13px;color:var(--text-3)">同一份组件，只换 token</span></div>
+    <div data-zx="dark" style="--bg:#171714;--bg-sunk:#10100E;--surface:#20201C;--raised:#2F2F2A;--glass:rgba(32,32,28,0.74);--line:#3C3B37;--line-strong:#55544F;--text:#F4F1E8;--text-2:#BFBDB5;--text-3:#9B9992;--primary:#E08075;--primary-pressed:#F09A8E;--on-primary:#2D1A17;--primary-soft:#46332E;--primary-glow:rgba(224,128,117,0.28);--seal:#E08075;--seal-soft:#3B2D28;--accent:#EBC474;--accent-soft:#453E2C;--accent-ink:#EBC474;--coral:#E89478;--hero:linear-gradient(125deg,#4E3731 0%,#3C3728 52%,#20201C 100%);--on-danger:#1A0F0D;--on-scrim:#FFFFFF;--scrim:rgba(0,0,0,.62);--shadow-1:0 1px 2px rgba(0,0,0,.5);--shadow-2:0 18px 48px rgba(0,0,0,.62),0 2px 8px rgba(0,0,0,.4);--success:#8CC4A2;--success-soft:#323C33;--warning:#E6BE74;--warning-soft:#423B2B;--danger:#F29084;--danger-soft:#44332E;--info:#93BCCC;--info-soft:#343B3A;--ch-1:oklch(0.76 0.1 35);--ch-2:oklch(0.76 0.1 160);--ch-3:oklch(0.76 0.1 250);--ch-4:oklch(0.76 0.1 80);--ch-5:oklch(0.76 0.1 310);--ch-6:oklch(0.76 0.1 125);border-radius:28px;overflow:hidden;box-shadow:0 0 0 1px #3C3B37"><dc-import name="Components2" hint-size="100%,1600px"></dc-import></div>
+  </section>
+
+  <section style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:40px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span style="font:600 13px/1 var(--mono);color:var(--primary)">08</span>
+      <h2 style="margin:0;font:600 30px/1.3 var(--serif)">新功能建议</h2>
+      <p style="margin:0;font-size:14px;line-height:22px;color:var(--text-2)">清单外的想法，没有画成按钮，由产品决定。</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+      <sc-for list="{{ proposals }}" as="pp"><div style="background:var(--surface);border:1.5px dashed var(--line-strong);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:650">{{ pp.t }}</span><span style="font-size:13px;line-height:20px;color:var(--text-2)">{{ pp.d }}</span></div></sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;zhushachi&quot;,&quot;zhuqing&quot;,&quot;xingrenhuang&quot;,&quot;mozhuxinye&quot;],&quot;default&quot;:&quot;zhushachi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;配色&quot;},&quot;grain&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;质感&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  componentDidMount() {
+    const ready = () => window.ZXI2 && window.ZXTheme;
+    if (ready()) { this.forceUpdate(); }
+    else this._t = setInterval(() => { if (ready()) { clearInterval(this._t); this.forceUpdate(); } }, 40);
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { clearInterval(this._t); }
+  applyTheme() {
+    const el = this.rootRef.current, key = (this.props.theme || 'zhushachi') + '|' + (this.props.grain !== false);
+    if (!window.ZXTheme || !el || this._applied === key) return;
+    this._applied = key;
+    window.ZXTheme.apply(el, this.props.theme || 'zhushachi', this.props.grain !== false);
+  }
+  renderVals() {
+    const I = window.ZXI2 ? window.ZXI2.make(React) : {};
+    const Z = window.ZXTheme;
+    const cur = this.props.theme || 'zhushachi';
+    const L = Z ? Z.build(cur, 'light') : {}, D = Z ? Z.build(cur, 'dark') : {};
+    const tile = n => ({ tb: 'color-mix(in oklab,var(--ch-' + n + ') 16%,var(--surface))', tc: 'var(--ch-' + n + ')' });
+    const tk = (g, k, u, m) => ({ g, k, u, m, l: L[k] || '', d: D[k] || '' });
+    const gallery = [];
+    if (Z) Z.keys.forEach(k => ['light', 'dark'].forEach(mode => gallery.push({ key: k, mode, name: Z.THEMES[k].zh, en: Z.THEMES[k].en, label: mode === 'light' ? 'LIGHT' : 'DARK' })));
+    const iconKeys = ['home', 'campus', 'ai', 'search', 'bell', 'chat', 'user', 'users', 'edit', 'heart', 'star', 'comment', 'share', 'pin', 'link', 'flag', 'trash', 'lock', 'globe', 'moon', 'swatch', 'shield', 'fire', 'mail'];
+    return {
+      I, rootRef: this.rootRef,
+      principles: [
+        Object.assign({ i: I.book, t: '阅读优先', d: '纸纹暖白底、细线分隔，层级靠字号字重与留白拉开。' }, tile(4)),
+        { i: I.edit, t: '朱印即身份', d: '朱印头像 = 匿名，圆形 = 实名；品牌「知」同源。', tb: 'var(--seal-soft)', tc: 'var(--seal)' },
+        Object.assign({ i: I.swatch, t: '颜色只走 token', d: '7 个源色派生全部 token，4 套主题 × 浅深一键替换。' }, tile(3)),
+        Object.assign({ i: I.users, t: '入口不因宽度消失', d: '手机、平板、电脑导航形态不同，功能全部可达。' }, tile(2))
+      ],
+      gallery,
+      swatchKeys: ['var(--bg)', 'var(--surface)', 'var(--text)', 'var(--primary)', 'var(--primary-soft)', 'var(--accent)', 'var(--success)', 'var(--danger)'],
+      tokens: [
+        tk('背景', '--bg', '页面底色（叠纸纹）', '源色 纸'),
+        tk('背景', '--bg-sunk', '凹陷区、次要按钮、骨架屏', '墨 4.5% → 纸'),
+        tk('表面', '--surface', '卡片、列表、输入框', '源色 面'),
+        tk('表面', '--raised', '菜单、底部表单、弹窗', '深色：墨 7% → 面'),
+        tk('分割', '--line', '分隔线、卡片描边', '墨 10% → 面'),
+        tk('分割', '--line-strong', '未选中控件、输入描边', '墨 21% → 面'),
+        tk('文字', '--text', '标题、正文', '源色 墨'),
+        tk('文字', '--text-2', '摘要、说明', '墨 72% → 面'),
+        tk('文字', '--text-3', '时间、辅助', '墨 62% → 面'),
+        tk('主色', '--primary', '主按钮、选中、话题、点赞', '源色 主色'),
+        tk('主色', '--primary-pressed', '按下', '源色 主色按下'),
+        tk('主色', '--on-primary', '主色上的文字', '浅：白 / 深：黑 80%'),
+        tk('主色', '--primary-soft', '选中底、次要强调', '主色 10% → 面'),
+        tk('品牌', '--seal', '朱印头像、洞主、品牌标', '= 主色'),
+        tk('品牌', '--seal-soft', '匿名徽标底', '主色 7% → 面'),
+        tk('点缀', '--accent', '置顶、收藏、Toast 操作', '源色 杏黄'),
+        tk('点缀', '--accent-soft', '置顶徽标底、引言卡', '杏黄 24% → 面'),
+        tk('点缀', '--accent-ink', '杏黄底上的文字', '杏黄 × 50% 黑'),
+        tk('状态', '--success', '已解决、成功', '固定'),
+        tk('状态', '--warning', '待审核、提醒', '固定'),
+        tk('状态', '--danger', '删除、错误、未读数', '固定'),
+        tk('状态', '--on-danger', '危险色上的文字', '按对比度'),
+        tk('状态', '--info', '进行中', '固定'),
+        tk('分区', '--ch-1', '分区圆点、实名头像底（1…6）', 'oklch 同明度异色相')
+      ],
+      effects: [
+        { t: '纸纹底', d: '页面底色叠 7% 分形噪点，模拟宣纸纤维。可在 Tweaks 关闭。', bg: 'var(--bg)' },
+        { t: '朱印', d: '匿名头像与品牌标：主色实底、内圈白线、方正小圆角（约为边长 15%）、主色投影。', bg: 'var(--hero)', seal: true },
+        { t: '毛玻璃', d: '顶栏、底栏、浮层用 blur 16–24 + 80% 表面色，滚动时内容透出。', bg: 'var(--bg-sunk)', glass: true },
+        { t: '主色光晕', d: '主按钮带上亮下深的渐变与主色投影，只用在每屏唯一的主操作。', bg: 'var(--bg)', glow: true },
+        { t: '点赞动效', d: '心形 1 → 1.2 → 1 弹性缩放 280ms，外圈主色涟漪淡出，数字上滚。', bg: 'var(--bg-sunk)', like: true },
+        { t: '暖色弥散背景', d: '页面头部与空状态用主色 → 杏黄 → 面的 125° 渐变，保持低饱和。', bg: 'var(--hero)' }
+      ],
+      iconList: iconKeys.map((k, i) => ({ k, el: i < 3 ? I[k] : (k === 'heart' ? I.heartF : (k === 'star' ? I.starF : I[k])), bg: i < 3 ? 'var(--primary-soft)' : 'var(--bg)', fg: i < 3 ? 'var(--primary)' : (k === 'heart' ? 'var(--primary)' : (k === 'star' ? 'var(--accent-ink)' : 'var(--text)')), duo: i < 3 ? '.3' : '.2' })),
+      types: [
+        { k: 'display', px: '34px', w: 600, f: 'var(--serif)', sample: '让校园里的真实声音被听见', spec: '34/42 · 宋体子集' },
+        { k: 'headline', px: '26px', w: 600, f: 'var(--serif)', sample: '个人资料与设置', spec: '26/34 · 宋体子集' },
+        { k: 'title-lg', px: '22px', w: 650, f: 'inherit', sample: '数学建模校赛组队', spec: '22/30 · 650' },
+        { k: 'title', px: '17px', w: 650, f: 'inherit', sample: '期末复习资料互助 · Study', spec: '17/25 · 650' },
+        { k: 'body', px: '15px', w: 400, f: 'inherit', sample: '欢迎留下第一条友善、具体的回复', spec: '15/23 · 400' },
+        { k: 'label', px: '14px', w: 600, f: 'inherit', sample: '发布帖子　私信作者　Send', spec: '14/20 · 600' },
+        { k: 'caption', px: '12px', w: 400, f: 'inherit', sample: '12 分钟前 · 1 楼 · 128 阅读', spec: '12/16 · 400' },
+        { k: 'micro', px: '11px', w: 600, f: 'inherit', sample: '置顶　匿名　已解决　Pinned', spec: '11/14 · 600' }
+      ],
+      radii: [{ k: '6', v: '6px', u: '徽标' }, { k: '11', v: '11px', u: '小按钮' }, { k: '14', v: '14px', u: '按钮' }, { k: '18', v: '18px', u: '卡片' }, { k: '24', v: '24px', u: '浮层' }, { k: 'pill', v: '23px', u: '胶囊' }],
+      proposals: [
+        { t: 'AI 对话删除与重命名', d: '对话列表目前只能新增不能删除，本地记录会一直累积。' },
+        { t: '通知未读数轮询', d: '未进入通知中心前角标一直为 0，建议登录后与回到前台时拉取一次。' },
+        { t: '公开主页显示 TA 的帖子（Web）', d: '接口 fetchUserPosts 已有，小程序和 Android 已展示，Web 未接。' },
+        { t: '我的帖子：状态选择器', d: '「更新状态」现为循环切换，建议改为三选一，避免误点。' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

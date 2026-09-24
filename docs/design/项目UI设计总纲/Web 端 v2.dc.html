@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><script src="icons2.js"></script><script src="zx-theme.js"></script><style>body{margin:0;background:#E6E2DB;font-family:-apple-system,"PingFang SC","HarmonyOS Sans SC","MiSans","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased}a{color:#A43B32}a:hover{color:#7E2924}</style></helmet>
+<div ref="{{ rootRef }}" data-zx="light" style="--bg:#F7F6F2;--bg-sunk:#EDECE8;--surface:#FFFEFA;--raised:#FFFEFA;--glass:rgba(255,254,250,0.8);--line:#E8E7E3;--line-strong:#CECECA;--text:#181816;--text-2:#595856;--text-3:#706F6D;--primary:#A43B32;--primary-pressed:#7E2924;--on-primary:#FFFFFF;--primary-soft:#F6EBE6;--primary-glow:rgba(164,59,50,0.3);--seal:#A43B32;--seal-soft:#F9F0EC;--accent:#E8B65D;--accent-soft:#F9EDD4;--accent-ink:#745B2F;--coral:#D9775F;--hero:linear-gradient(125deg,#F3E5E0 0%,#FAF0DB 52%,#FFFEFA 100%);--on-danger:#FFFFFF;--on-scrim:#FFFFFF;--scrim:rgba(30,22,16,.42);--shadow-1:0 1px 2px rgba(70,45,25,.06),0 2px 10px rgba(70,45,25,.05);--shadow-2:0 18px 48px rgba(70,45,25,.15),0 3px 10px rgba(70,45,25,.06);--success:#44684F;--success-soft:#E9ECE5;--warning:#8A5A1E;--warning-soft:#F1EAE0;--danger:#97382F;--danger-soft:#F3E6E2;--info:#45687A;--info-soft:#E9ECEB;--ch-1:oklch(0.55 0.11 35);--ch-2:oklch(0.55 0.11 160);--ch-3:oklch(0.55 0.11 250);--ch-4:oklch(0.55 0.11 80);--ch-5:oklch(0.55 0.11 310);--ch-6:oklch(0.55 0.11 125);--serif:'Songti SC','STSong','Noto Serif CJK SC','Source Han Serif SC',serif;--mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;padding:72px;display:flex;flex-direction:column;gap:72px;color:var(--text);width:max-content">
+
+  <header style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px;width:2900px">
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <a href="设计系统 v2.dc.html" style="font-size:13px;color:var(--text-2);text-decoration:none;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ I.back }}</span>设计系统 v2</a>
+      <div style="display:flex;align-items:center;gap:18px">
+        <div style="width:60px;height:60px;border-radius:15px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 30px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 3px var(--seal),inset 0 0 0 4.5px rgba(255,255,255,.55),0 10px 24px var(--primary-glow)">知</div>
+        <h1 style="margin:0;font:600 46px/1.1 var(--serif);letter-spacing:-.01em">Web 端 · 第二版</h1>
+      </div>
+      <p style="margin:0;max-width:820px;font-size:15px;line-height:25px;color:var(--text-2)">在第一版的结构上换成「人本·初创」配色（Web 默认主题，右侧 Tweaks 可切换 4 套主题），图标改为双色线性，加入纸纹底、毛玻璃顶栏、朱印头像与柔和阴影。帖子、昵称、数字均为<b style="color:var(--text)">示例内容</b>。</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;max-width:600px;justify-content:flex-end">
+      <sc-for list="{{ fixes }}" as="f"><span style="display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:15px;background:var(--surface);box-shadow:var(--shadow-1);font-size:12px;color:var(--text-2)"><span style="display:flex;color:var(--success);font-size:14px">{{ I.check }}</span>{{ f }}</span></sc-for>
+    </div>
+  </header>
+
+  <div style="display:flex;gap:56px;align-items:flex-start">
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W1</span><b>树洞首页</b><span style="color:var(--text-3)">电脑 ≥ 1200 · 1440 × 960 · 浅色</span></div>
+      <div style="width:1440px;height:960px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex">
+        <aside style="width:248px;flex:none;border-right:1px solid var(--line);background:var(--glass);backdrop-filter:blur(20px);display:flex;flex-direction:column;padding:22px 16px;gap:4px;box-sizing:border-box">
+          <div style="display:flex;align-items:center;gap:12px;padding:0 8px 24px">
+            <div style="width:38px;height:38px;border-radius:10px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 19px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.55),0 4px 12px var(--primary-glow)">知</div>
+            <span style="display:flex;flex-direction:column;gap:3px"><span style="font:600 19px/1 var(--serif)">西电知行</span><span style="font-size:9.5px;letter-spacing:.14em;color:var(--text-3)">XIDIAN ZHIXING</span></span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:14px;background:var(--primary-soft);color:var(--primary);font-weight:650;font-size:15px;--duo:.3"><span style="display:flex;font-size:21px">{{ I.home }}</span>树洞</div>
+          <div style="display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:14px;font-size:15px;color:var(--text-2)" style-hover="background:var(--bg-sunk)"><span style="display:flex;font-size:21px">{{ I.campus }}</span>校园</div>
+          <div style="display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:14px;font-size:15px;color:var(--text-2)" style-hover="background:var(--bg-sunk)"><span style="display:flex;font-size:21px">{{ I.ai }}</span>校园 AI</div>
+          <button style="margin:16px 0 14px;height:48px;border:0;border-radius:14px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);font:inherit;font-size:15px;font-weight:650;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 20px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.25);cursor:pointer"><span style="display:flex;font-size:19px;--duo:.35">{{ I.edit }}</span>发布心声</button>
+          <sc-for list="{{ tools }}" as="t"><div style="display:flex;align-items:center;gap:12px;height:42px;padding:0 14px;border-radius:12px;font-size:14px;color:var(--text-2)"><span style="display:flex;font-size:20px">{{ t.i }}</span><span style="flex:1">{{ t.t }}</span><sc-if value="{{ t.b }}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:var(--danger);color:var(--on-danger);font-size:11px;font-weight:650;line-height:20px;text-align:center">{{ t.b }}</span></sc-if></div></sc-for>
+          <div style="margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow-1)">
+            <div style="width:36px;height:36px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));display:grid;place-items:center;font-weight:650">林</div>
+            <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:14px;font-weight:650">示例昵称</span><span style="font-size:12px;color:var(--text-3)">个人资料与设置</span></span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span>
+          </div>
+        </aside>
+        <main style="flex:1;min-width:0;display:flex;justify-content:center;gap:28px;padding:24px 32px 0;overflow:hidden">
+          <div style="width:680px;flex:none;display:flex;flex-direction:column;gap:14px">
+            <div style="flex:none;position:relative;overflow:hidden;border-radius:24px;background:var(--hero);padding:26px 28px 22px;display:flex;flex-direction:column;gap:6px;box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--primary) 10%,transparent)">
+              <span style="position:absolute;right:-18px;top:-38px;font:600 190px/1 var(--serif);color:var(--primary);opacity:.07;transform:rotate(-8deg);pointer-events:none">知</span>
+              <span style="font:600 34px/1.2 var(--serif)">树洞</span>
+              <span style="font-size:14px;color:var(--text-2)">让校园里的真实声音被听见</span>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+                <div style="display:flex;padding:4px;border-radius:14px;background:var(--glass);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px var(--line)"><span style="height:32px;padding:0 16px;border-radius:10px;background:var(--surface);box-shadow:var(--shadow-1);display:flex;align-items:center;gap:6px;font-size:14px;font-weight:650;color:var(--primary)"><span style="display:flex;--duo:.35">{{ I.fire }}</span>推荐</span><span style="height:32px;padding:0 16px;display:flex;align-items:center;gap:6px;font-size:14px;color:var(--text-2)"><span style="display:flex">{{ I.clock }}</span>最新</span></div>
+                <button style="margin-left:auto;display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:14px;border:0;background:var(--glass);backdrop-filter:blur(8px);box-shadow:inset 0 0 0 1px var(--line);font:inherit;font-size:13px;color:var(--text)"><span style="display:flex">{{ I.filter }}</span>选择分区<span style="display:flex;color:var(--text-3)">{{ I.down }}</span></button>
+              </div>
+            </div>
+            <div style="flex:none;display:flex;gap:8px;overflow:hidden">
+              <sc-for list="{{ chips }}" as="c"><span style="flex:none;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 14px;border-radius:17px;font-size:13px;font-weight:{{ c.w }};background:{{ c.bg }};color:{{ c.fg }};box-shadow:{{ c.sh }}"><sc-if value="{{ c.dot }}"><span style="width:7px;height:7px;border-radius:50%;background:{{ c.dot }}"></span></sc-if>{{ c.t }}</span></sc-for>
+            </div>
+            <div style="flex:1;min-height:0;background:var(--surface);border-radius:22px 22px 0 0;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);display:flex;flex-direction:column">
+              <sc-for list="{{ feed }}" as="p" hint-placeholder-count="4"><div style="border-bottom:1px solid var(--line)"><dc-import name="PostCard2" p="{{ p }}" share="{{ true }}" hint-size="100%,220px"></dc-import></div></sc-for>
+            </div>
+          </div>
+          <div style="width:304px;flex:none;display:flex;flex-direction:column;gap:16px">
+            <div style="background:var(--surface);border-radius:22px;padding:20px 20px 10px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:650;margin-bottom:8px"><span style="display:flex;color:var(--primary);font-size:19px;--duo:.3">{{ I.fire }}</span>正在讨论</div>
+              <sc-for list="{{ hot }}" as="h"><div style="display:flex;gap:14px;padding:11px 0;border-top:1px solid var(--line);align-items:flex-start"><span style="font:600 22px/22px var(--serif);width:18px;color:{{ h.c }}">{{ h.n }}</span><span style="flex:1;display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;line-height:20px;font-weight:550">{{ h.t }}</span><span style="font-size:12px;color:var(--text-3)">{{ h.r }}</span></span></div></sc-for>
+            </div>
+            <div style="position:relative;overflow:hidden;padding:20px;border-radius:22px;background:var(--accent-soft);display:flex;flex-direction:column;gap:10px">
+              <span style="display:flex;font-size:26px;color:var(--accent-ink);--duo:.3">{{ I.quote }}</span>
+              <span style="font:600 17px/28px var(--serif);color:var(--text)">尊重每一次认真表达。<br/>匿名不等于无边界。</span>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px"><span style="font-size:13px;color:var(--accent-ink);font-weight:600;display:flex;align-items:center;gap:2px">社区规范<span style="display:flex">{{ I.chevron }}</span></span><span style="width:38px;height:38px;box-sizing:border-box;border:2px solid var(--seal);border-radius:8px;color:var(--seal);display:grid;place-items:center;font:600 13px/1.05 var(--serif);text-align:center;transform:rotate(8deg);opacity:.75">社区<br/>共识</span></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)">
+              <span style="width:38px;height:38px;border-radius:11px;background:color-mix(in oklab,var(--ch-2) 16%,var(--surface));color:var(--ch-2);display:grid;place-items:center;font-size:20px;--duo:.3">{{ I.download }}</span>
+              <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:14px;font-weight:600">Android 客户端</span><span style="font-size:12px;color:var(--text-3)">下载安装包</span></span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W2</span><b>帖子详情 + 个人菜单展开</b><span style="color:var(--text-3)">电脑 960–1199 · 1120 × 960 · 深色</span></div>
+      <div data-zx="dark" style="--bg:#171714;--bg-sunk:#10100E;--surface:#20201C;--raised:#2F2F2A;--glass:rgba(32,32,28,0.74);--line:#3C3B37;--line-strong:#55544F;--text:#F4F1E8;--text-2:#BFBDB5;--text-3:#9B9992;--primary:#E08075;--primary-pressed:#F09A8E;--on-primary:#2D1A17;--primary-soft:#46332E;--primary-glow:rgba(224,128,117,0.28);--seal:#E08075;--seal-soft:#3B2D28;--accent:#EBC474;--accent-soft:#453E2C;--accent-ink:#EBC474;--coral:#E89478;--hero:linear-gradient(125deg,#4E3731 0%,#3C3728 52%,#20201C 100%);--on-danger:#1A0F0D;--on-scrim:#FFFFFF;--scrim:rgba(0,0,0,.62);--shadow-1:0 1px 2px rgba(0,0,0,.5);--shadow-2:0 18px 48px rgba(0,0,0,.62),0 2px 8px rgba(0,0,0,.4);--success:#8CC4A2;--success-soft:#323C33;--warning:#E6BE74;--warning-soft:#423B2B;--danger:#F29084;--danger-soft:#44332E;--info:#93BCCC;--info-soft:#343B3A;--ch-1:oklch(0.76 0.1 35);--ch-2:oklch(0.76 0.1 160);--ch-3:oklch(0.76 0.1 250);--ch-4:oklch(0.76 0.1 80);--ch-5:oklch(0.76 0.1 310);--ch-6:oklch(0.76 0.1 125);width:1120px;height:960px;background-color:var(--bg);background-image:var(--grain);color:var(--text);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.3);display:flex;position:relative">
+        <aside style="width:80px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:22px 0;gap:6px;background:var(--glass)">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 19px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.4);margin-bottom:20px">知</div>
+          <div style="width:52px;height:48px;border-radius:14px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-size:22px;--duo:.3">{{ I.home }}</div>
+          <div style="width:52px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:var(--text-2)">{{ I.campus }}</div>
+          <div style="width:52px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:var(--text-2)">{{ I.ai }}</div>
+          <div style="width:52px;height:52px;border-radius:16px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:21px;margin:12px 0;box-shadow:0 8px 20px var(--primary-glow)">{{ I.edit }}</div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.search }}</div>
+          <div style="position:relative;width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.bell }}<span style="position:absolute;top:7px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--bg)"></span></div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.chat }}</div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.sliders }}</div>
+          <div style="margin-top:auto;width:40px;height:40px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 20%,var(--surface));color:var(--ch-2);display:grid;place-items:center;font-weight:650;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--primary)">林</div>
+        </aside>
+        <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="height:64px;flex:none;display:flex;align-items:center;gap:8px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px)">
+            <button style="width:40px;height:40px;border-radius:12px;border:0;background:var(--bg-sunk);color:var(--text);display:grid;place-items:center;font-size:20px">{{ I.close }}</button>
+            <span style="font-size:15px;font-weight:650;margin-left:4px">帖子详情</span>
+            <span style="margin-left:auto;display:flex;gap:6px">
+              <button style="height:38px;padding:0 14px;border-radius:12px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:17px">{{ I.link }}</span>复制链接</button>
+              <button style="width:40px;height:38px;border:0;border-radius:12px;background:var(--bg-sunk);color:var(--text);display:grid;place-items:center;font-size:20px">{{ I.more }}</button>
+            </span>
+          </div>
+          <div style="flex:1;overflow:hidden;display:flex;justify-content:center;padding:30px 32px 0">
+            <article style="width:720px;display:flex;flex-direction:column;gap:18px">
+              <div style="display:flex;gap:6px"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:600;background:var(--bg-sunk);color:var(--text-2)"><span style="width:7px;height:7px;border-radius:50%;background:var(--ch-2)"></span>学习交流</span><span style="display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 10px;border-radius:7px;font-size:12px;font-weight:600;background:var(--info-soft);color:var(--info)"><span style="display:flex">{{ I.clock }}</span>进行中</span></div>
+              <h1 style="margin:0;font-size:28px;line-height:37px;font-weight:650;letter-spacing:-.01em;text-wrap:pretty">示例：数学建模校赛组队，缺一位会写论文的同学</h1>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)">
+                <div style="width:44px;height:44px;border-radius:50%;background:color-mix(in oklab,var(--ch-3) 20%,var(--surface));color:var(--ch-3);display:grid;place-items:center;font-weight:650">舟</div>
+                <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:650">林小舟</span><span style="font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px">2026-09-23 09:41<span style="display:flex;align-items:center;gap:3px"><span style="display:flex">{{ I.eye }}</span>128 阅读</span></span></span>
+                <button style="height:36px;padding:0 12px;border-radius:11px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px">查看主页</button>
+                <button style="height:36px;padding:0 12px;border-radius:11px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;display:flex;align-items:center;gap:5px"><span style="display:flex">{{ I.chat }}</span>私信作者</button>
+                <button style="height:36px;padding:0 14px;border-radius:11px;border:0;background:var(--primary);color:var(--on-primary);font:inherit;font-size:13px;font-weight:650;display:flex;align-items:center;gap:5px;box-shadow:0 6px 16px var(--primary-glow)"><span style="display:flex">{{ I.plus }}</span>关注作者</button>
+              </div>
+              <p style="margin:0;font-size:16px;line-height:28px;color:var(--text);text-wrap:pretty">示例正文：我们队目前两个人，一个负责建模、一个负责编程，还缺一位擅长写作和排版的同学。比赛时间是十月中旬，每周线下讨论一次，地点在图书馆研讨间。<span style="color:var(--primary);font-weight:550">#组队</span> <span style="color:var(--primary);font-weight:550">#竞赛</span></p>
+              <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--text-3)">图片（3）</span><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:480px"><sc-for list="{{ three }}" as="x"><div style="aspect-ratio:1;border-radius:12px;background:repeating-linear-gradient(135deg,var(--bg-sunk) 0 8px,color-mix(in oklab,var(--bg-sunk) 45%,var(--surface)) 8px 16px);display:grid;place-items:center"><span style="font:500 10px/1 var(--mono);color:var(--text-3);padding:4px 7px;border-radius:5px;background:var(--glass)">{{ x }}</span></div></sc-for></div></div>
+              <div style="display:flex;gap:8px;padding:14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+                <button style="height:40px;padding:0 16px;border-radius:20px;border:0;background:var(--primary-soft);color:var(--primary);font:inherit;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:18px">{{ I.heartF }}</span>已赞 24</button>
+                <button style="height:40px;padding:0 16px;border-radius:20px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:14px;display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:18px">{{ I.star }}</span>收藏 9</button>
+                <button style="height:40px;padding:0 16px;border-radius:20px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:14px;display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:18px">{{ I.copy }}</span>复制内容</button>
+                <button style="height:40px;padding:0 16px;border-radius:20px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:14px;display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:18px">{{ I.flag }}</span>举报</button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:17px;font-weight:650">评论区 <span style="color:var(--text-3);font-weight:500">6</span></span><span style="font-size:13px;color:var(--text-2);display:flex;gap:4px;align-items:center;height:32px;padding:0 12px;border-radius:10px;background:var(--bg-sunk)">按热度<span style="display:flex">{{ I.down }}</span></span></div>
+              <div style="display:flex;gap:12px">
+                <div style="width:34px;height:34px;border-radius:6px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 16px/1 var(--serif);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.4);flex:none">鹿</div>
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-weight:650;font-size:13px">晨跑的鹿</span><span style="display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:600;color:var(--seal);background:var(--seal-soft)">匿名</span><span style="font-size:12px;color:var(--text-3)">1 楼 · 09-23 10:02</span></div>
+                  <div style="font-size:14px;line-height:22px">示例：大二，写过两次课程论文，LaTeX 会一点，可以聊聊。</div>
+                  <div style="display:flex;gap:16px;font-size:12px;color:var(--text-2);align-items:center"><span>回复</span><span style="display:flex;gap:4px;align-items:center"><span style="display:flex;font-size:15px">{{ I.heart }}</span>5</span><span>举报</span></div>
+                  <div style="display:flex;gap:10px;margin-top:6px;padding:12px;border-radius:14px;background:var(--bg-sunk)">
+                    <div style="width:26px;height:26px;border-radius:50%;background:color-mix(in oklab,var(--ch-3) 20%,var(--surface));color:var(--ch-3);display:grid;place-items:center;font-size:11px;font-weight:650;flex:none">舟</div>
+                    <div style="flex:1;display:flex;flex-direction:column;gap:4px"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:650;font-size:13px">林小舟</span><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:650;background:var(--seal);color:var(--on-primary)">洞主</span><span style="font-size:12px;color:var(--text-3)">09-23 10:20</span></div><div style="font-size:14px;line-height:22px">欢迎！已私信你。</div></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div style="flex:none;border-top:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px);padding:10px 24px 16px;display:flex;justify-content:center">
+            <div style="width:720px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2)"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 6px 0 10px;border-radius:12px;background:var(--primary-soft);color:var(--primary)">正在回复 晨跑的鹿<span style="display:flex;font-size:14px">{{ I.close }}</span></span></div>
+              <div style="display:flex;align-items:flex-end;gap:8px;padding:6px;border-radius:18px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line-strong)">
+                <button style="width:40px;height:40px;border:0;background:transparent;color:var(--text-2);display:grid;place-items:center;font-size:22px">{{ I.emoji }}</button>
+                <div style="flex:1;min-height:40px;box-sizing:border-box;padding:10px 4px;color:var(--text-3);font-size:14px">输入回复内容</div>
+                <button style="height:40px;padding:0 18px;border:0;border-radius:13px;background:var(--primary);color:var(--on-primary);font:inherit;font-weight:650;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ I.send }}</span>发送评论</button>
+              </div>
+            </div>
+          </div>
+        </main>
+        <div style="position:absolute;left:88px;bottom:20px;width:272px;background:var(--glass);backdrop-filter:blur(24px) saturate(1.2);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow-2);padding:8px;display:flex;flex-direction:column">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:var(--hero)"><div style="width:40px;height:40px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 20%,var(--surface));color:var(--ch-2);display:grid;place-items:center;font-weight:650">林</div><span style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:650;font-size:14px">示例昵称</span><span style="font-size:12px;color:var(--text-2)">已认证 · Lv.2</span></span></div>
+          <div style="height:6px"></div>
+          <sc-for list="{{ meMenu }}" as="m"><div style="display:flex;align-items:center;gap:12px;height:42px;padding:0 10px;border-radius:11px;font-size:14px" style-hover="background:var(--bg-sunk)"><span style="display:flex;font-size:19px;color:var(--text-2)">{{ m.i }}</span><span style="flex:1">{{ m.t }}</span></div></sc-for>
+          <div style="height:1px;background:var(--line);margin:4px 8px"></div>
+          <div style="display:flex;align-items:center;gap:12px;height:44px;padding:0 10px;font-size:14px"><span style="display:flex;font-size:19px;color:var(--text-2)">{{ I.globe }}</span><span style="flex:1">语言</span><span style="display:flex;padding:3px;border-radius:9px;background:var(--bg-sunk);font-size:12px"><span style="padding:4px 10px;border-radius:7px;background:var(--raised);font-weight:650;box-shadow:var(--shadow-1)">中</span><span style="padding:4px 10px;color:var(--text-2)">EN</span></span></div>
+          <div style="display:flex;align-items:center;gap:12px;height:42px;padding:0 10px;font-size:14px;color:var(--danger)"><span style="display:flex;font-size:19px">{{ I.logout }}</span>退出登录</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W3</span><b>会话 + 私信请求 + 聊天</b><span style="color:var(--text-3)">≥ 900 分栏 · 1280 × 960 · 浅色</span></div>
+      <div style="width:1280px;height:960px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex">
+        <aside style="width:80px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding:22px 0;gap:6px;background:var(--glass)">
+          <div style="width:38px;height:38px;border-radius:10px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 19px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.55);margin-bottom:20px">知</div>
+          <div style="width:52px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:var(--text-2)">{{ I.home }}</div>
+          <div style="width:52px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:var(--text-2)">{{ I.campus }}</div>
+          <div style="width:52px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:22px;color:var(--text-2)">{{ I.ai }}</div>
+          <div style="width:52px;height:52px;border-radius:16px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:21px;margin:12px 0;box-shadow:0 8px 20px var(--primary-glow)">{{ I.edit }}</div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.search }}</div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.bell }}</div>
+          <div style="width:52px;height:44px;border-radius:14px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-size:21px;--duo:.3">{{ I.chat }}</div>
+          <div style="width:52px;height:44px;display:grid;place-items:center;font-size:21px;color:var(--text-2)">{{ I.sliders }}</div>
+          <div style="margin-top:auto;width:40px;height:40px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));display:grid;place-items:center;font-weight:650">林</div>
+        </aside>
+        <section style="width:368px;flex:none;border-right:1px solid var(--line);display:flex;flex-direction:column;background:var(--surface)">
+          <div style="height:68px;display:flex;align-items:center;gap:10px;padding:0 20px"><span style="font:600 22px/1 var(--serif)">会话</span><span style="min-width:22px;height:22px;padding:0 7px;box-sizing:border-box;border-radius:11px;background:var(--danger);color:var(--on-danger);font-size:11px;font-weight:650;line-height:22px;text-align:center">5</span><span style="margin-left:auto;width:36px;height:36px;border-radius:11px;background:var(--bg-sunk);display:grid;place-items:center;font-size:18px;color:var(--text-2)">{{ I.refresh }}</span></div>
+          <div style="margin:0 14px 12px;padding:14px;border-radius:18px;background:var(--hero);box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--primary) 12%,transparent);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:8px"><span style="display:flex;color:var(--primary);font-size:18px;--duo:.3">{{ I.mail }}</span><span style="flex:1;font-size:13px;font-weight:650">私信请求 · 2 条待处理</span><span style="font-size:12px;color:var(--primary);font-weight:600">全部</span></div>
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--surface);box-shadow:var(--shadow-1)">
+              <div style="width:36px;height:36px;border-radius:50%;background:color-mix(in oklab,var(--ch-5) 18%,var(--surface));color:color-mix(in oklab,var(--ch-5) 72%,var(--text));display:grid;place-items:center;font-size:13px;font-weight:650;flex:none">周</div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px"><span style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:650">周同学 <span style="font-weight:400;font-size:12px;color:var(--text-3)">· 10 分钟前</span></span><span style="font-size:13px;line-height:19px;color:var(--text-2)">理由：示例——看到你在找建模队友，想了解一下。</span></span>
+                <div style="display:flex;gap:8px"><button style="height:32px;padding:0 16px;border:0;border-radius:10px;background:var(--primary);color:var(--on-primary);font:inherit;font-size:13px;font-weight:650">同意</button><button style="height:32px;padding:0 16px;border:0;border-radius:10px;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px">拒绝</button></div></div>
+            </div>
+          </div>
+          <div style="padding:0 8px;display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ convs }}" as="c" hint-placeholder-count="5">
+              <div style="display:flex;gap:12px;padding:11px 12px;border-radius:16px;background:{{ c.bg }};box-shadow:{{ c.sh }}">
+                <div style="position:relative;width:46px;height:46px;border-radius:50%;background:{{ c.ab }};color:{{ c.af }};display:grid;place-items:center;font-weight:650;flex:none">{{ c.i }}</div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:center">
+                  <div style="display:flex;align-items:center;gap:6px"><span style="font-size:14px;font-weight:650">{{ c.n }}</span><sc-if value="{{ c.tag }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font-size:11px;font-weight:600;background:var(--danger-soft);color:var(--danger)">{{ c.tag }}</span></sc-if><span style="margin-left:auto;font-size:12px;color:var(--text-3)">{{ c.t }}</span></div>
+                  <div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:13px;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.m }}</span><sc-if value="{{ c.u }}"><span style="min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:11px;font-weight:650;line-height:18px;text-align:center">{{ c.u }}</span></sc-if></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:auto;padding:12px 20px;font-size:12px;color:var(--text-3);border-top:1px solid var(--line)">向左滑或右键菜单可删除会话</div>
+        </section>
+        <section style="flex:1;min-width:0;display:flex;flex-direction:column">
+          <div style="height:68px;flex:none;display:flex;align-items:center;gap:12px;padding:0 20px;border-bottom:1px solid var(--line);background:var(--glass);backdrop-filter:blur(16px)">
+            <div style="width:40px;height:40px;border-radius:50%;background:color-mix(in oklab,var(--ch-3) 18%,var(--surface));color:color-mix(in oklab,var(--ch-3) 72%,var(--text));display:grid;place-items:center;font-weight:650">舟</div>
+            <span style="flex:1;display:flex;flex-direction:column;gap:1px"><span style="font-size:15px;font-weight:650">林小舟</span><span style="font-size:12px;color:var(--primary);font-weight:550">查看主页</span></span>
+            <span style="width:38px;height:38px;border-radius:12px;background:var(--bg-sunk);display:grid;place-items:center;font-size:18px;color:var(--text-2)">{{ I.refresh }}</span>
+            <span style="width:38px;height:38px;border-radius:12px;background:var(--bg-sunk);display:grid;place-items:center;font-size:18px;color:var(--text-2)">{{ I.more }}</span>
+          </div>
+          <div style="flex:1;padding:24px 36px;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+            <div style="align-self:center;font-size:11px;color:var(--text-3);padding:4px 10px;border-radius:10px;background:var(--bg-sunk)">今天 09:52</div>
+            <div style="display:flex;gap:10px;align-items:flex-end;max-width:72%"><div style="width:30px;height:30px;border-radius:50%;background:color-mix(in oklab,var(--ch-3) 18%,var(--surface));color:color-mix(in oklab,var(--ch-3) 72%,var(--text));display:grid;place-items:center;font-size:12px;font-weight:650;flex:none">舟</div><div style="padding:11px 15px;border-radius:20px 20px 20px 6px;background:var(--surface);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line);font-size:14px;line-height:21px">示例：你好，看到你在评论区留言，方便聊聊比赛安排吗？<div style="font-size:11px;color:var(--text-3);margin-top:4px">09:52</div></div></div>
+            <div style="align-self:flex-end;max-width:72%;padding:11px 15px;border-radius:20px 20px 6px 20px;background:linear-gradient(160deg,color-mix(in oklab,var(--primary) 86%,#fff),var(--primary));color:var(--on-primary);font-size:14px;line-height:21px;box-shadow:0 6px 16px var(--primary-glow)"><div style="padding:6px 10px;margin-bottom:7px;border-radius:10px;background:rgba(255,255,255,.16);font-size:12px;line-height:17px">回复 林小舟：方便聊聊比赛安排吗？</div>可以，周三晚上我都有空。<div style="font-size:11px;opacity:.78;margin-top:4px;text-align:right">09:55 · 已读</div></div>
+            <div style="align-self:center;font-size:12px;color:var(--text-3)">你撤回了一条消息</div>
+            <div style="display:flex;align-items:center;gap:8px;align-self:flex-end"><span style="font-size:12px;color:var(--danger);display:flex;align-items:center;gap:4px;font-weight:550"><span style="display:flex;font-size:15px">{{ I.alert }}</span>发送失败 · 重发</span><div style="padding:11px 15px;border-radius:20px 20px 6px 20px;background:var(--primary);color:var(--on-primary);font-size:14px;opacity:.55">地点定在图书馆研讨间？</div></div>
+            <div style="align-self:flex-end;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-2);padding:6px;width:190px;display:flex;flex-direction:column;font-size:14px">
+              <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px"><span style="display:flex;color:var(--text-2)">{{ I.copy }}</span>复制</div>
+              <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px;background:var(--bg-sunk)"><span style="display:flex;color:var(--text-2)">{{ I.comment }}</span>回复</div>
+              <div style="display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px"><span style="display:flex;color:var(--text-2)">{{ I.refresh }}</span>撤回<span style="margin-left:auto;font-size:11px;color:var(--text-3)">2 分钟内</span></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:12px 24px 18px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--primary-soft);font-size:12px;color:var(--text-2)"><span style="width:3px;align-self:stretch;border-radius:2px;background:var(--primary)"></span><span style="flex:1">回复 林小舟 · 你好，看到你在评论区留言…</span><span style="display:flex;color:var(--text-2)">{{ I.close }}</span></div>
+            <div style="display:flex;align-items:center;gap:8px;padding:6px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)"><button style="width:40px;height:40px;border:0;background:transparent;color:var(--text-2);display:grid;place-items:center;font-size:22px">{{ I.emoji }}</button><div style="flex:1;font-size:14px;color:var(--text-3)">输入消息，回车发送</div><button style="width:42px;height:42px;border:0;border-radius:14px;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:19px;box-shadow:0 6px 14px var(--primary-glow);--duo:.35">{{ I.send }}</button></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:56px;align-items:flex-start">
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W4</span><b>树洞首页</b><span style="color:var(--text-3)">平板 600–959 · 768 × 1024 · 浅色</span></div>
+      <div style="width:768px;height:1024px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column;position:relative">
+        <div style="height:64px;flex:none;display:flex;align-items:center;gap:4px;padding:0 12px 0 20px;background:var(--glass);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)">
+          <div style="width:36px;height:36px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));display:grid;place-items:center;font-size:14px;font-weight:650;margin-right:12px;box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--line-strong)">林</div>
+          <span style="font:600 21px/1 var(--serif);flex:1">树洞</span>
+          <sc-for list="{{ topIcons }}" as="t"><span style="position:relative;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:21px">{{ t.i }}<sc-if value="{{ t.b }}"><span style="position:absolute;top:5px;right:3px;min-width:17px;height:17px;padding:0 4px;box-sizing:border-box;border-radius:9px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:17px;text-align:center;box-shadow:0 0 0 2px var(--surface)">{{ t.b }}</span></sc-if></span></sc-for>
+        </div>
+        <div style="flex:1;overflow:hidden;display:flex;justify-content:center;padding:18px 24px 0">
+          <div style="width:680px;display:flex;flex-direction:column;gap:14px">
+            <div style="flex:none;display:flex;align-items:center;gap:10px">
+              <div style="display:flex;padding:4px;border-radius:14px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)"><span style="height:32px;padding:0 16px;border-radius:10px;background:var(--primary);color:var(--on-primary);display:flex;align-items:center;font-size:14px;font-weight:650">推荐</span><span style="height:32px;padding:0 16px;display:flex;align-items:center;font-size:14px;color:var(--text-2)">最新</span></div>
+              <span style="margin-left:auto;display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 8px 0 14px;border-radius:17px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:var(--ch-2)"></span>学习交流<span style="width:22px;height:22px;border-radius:50%;background:var(--bg-sunk);display:grid;place-items:center;font-size:13px;color:var(--text-2)">{{ I.close }}</span></span>
+            </div>
+            <div style="flex:1;min-height:0;background:var(--surface);border-radius:22px 22px 0 0;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ feedTablet }}" as="p" hint-placeholder-count="3"><div style="border-bottom:1px solid var(--line)"><dc-import name="PostCard2" p="{{ p }}" hint-size="100%,220px"></dc-import></div></sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="position:absolute;right:28px;bottom:96px;height:56px;padding:0 22px 0 18px;border-radius:20px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);display:flex;align-items:center;gap:8px;font-size:15px;font-weight:650;box-shadow:0 12px 28px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.25)"><span style="display:flex;font-size:21px;--duo:.35">{{ I.edit }}</span>发布</div>
+        <nav style="height:72px;flex:none;display:flex;background:var(--glass);backdrop-filter:blur(16px);border-top:1px solid var(--line)">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;font-weight:650;color:var(--primary)"><span style="display:grid;place-items:center;width:60px;height:32px;border-radius:16px;background:var(--primary-soft);font-size:22px;--duo:.3">{{ I.home }}</span>树洞</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--text-2)"><span style="display:grid;place-items:center;width:60px;height:32px;font-size:22px">{{ I.campus }}</span>校园</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--text-2)"><span style="display:grid;place-items:center;width:60px;height:32px;font-size:22px">{{ I.ai }}</span>校园 AI</div>
+        </nav>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W5</span><b>Treehole (English)</b><span style="color:var(--text-3)">手机 &lt; 600 · 390 × 844</span></div>
+      <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column;position:relative">
+        <div style="flex:none;background:var(--hero);padding:0 0 12px">
+          <div style="height:56px;display:flex;align-items:center;padding:0 4px 0 14px">
+            <div style="width:34px;height:34px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));display:grid;place-items:center;font-size:13px;font-weight:650;margin-right:10px;box-shadow:0 0 0 2px var(--surface)">L</div>
+            <span style="font:600 19px/1 var(--serif);flex:1">Treehole</span>
+            <sc-for list="{{ topIcons }}" as="t"><span style="position:relative;width:42px;height:44px;display:grid;place-items:center;font-size:20px">{{ t.i }}<sc-if value="{{ t.b }}"><span style="position:absolute;top:6px;right:3px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:var(--danger);color:var(--on-danger);font-size:10px;font-weight:650;line-height:16px;text-align:center">{{ t.b }}</span></sc-if></span></sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:0 14px"><div style="display:flex;padding:3px;border-radius:12px;background:var(--glass);box-shadow:inset 0 0 0 1px var(--line)"><span style="height:30px;padding:0 14px;border-radius:9px;background:var(--surface);box-shadow:var(--shadow-1);display:flex;align-items:center;font-size:13px;font-weight:650;color:var(--primary)">For you</span><span style="height:30px;padding:0 14px;display:flex;align-items:center;font-size:13px;color:var(--text-2)">Latest</span></div><span style="margin-left:auto;font-size:12px;color:var(--text-2);display:flex;align-items:center;gap:4px">Channel: All<span style="display:flex">{{ I.down }}</span></span></div>
+        </div>
+        <div style="flex:1;overflow:hidden;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -1px 0 var(--line)">
+          <sc-for list="{{ feedEn }}" as="p" hint-placeholder-count="3"><div style="border-bottom:1px solid var(--line)"><dc-import name="PostCard2" p="{{ p }}" lang="en" hint-size="100%,220px"></dc-import></div></sc-for>
+        </div>
+        <div style="position:absolute;right:16px;bottom:86px;width:56px;height:56px;border-radius:19px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);display:grid;place-items:center;font-size:23px;box-shadow:0 12px 26px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.25);--duo:.35">{{ I.edit }}</div>
+        <nav style="height:66px;flex:none;display:flex;background:var(--glass);backdrop-filter:blur(16px);border-top:1px solid var(--line)">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:650;color:var(--primary)"><span style="display:grid;place-items:center;width:56px;height:30px;border-radius:15px;background:var(--primary-soft);font-size:21px;--duo:.3">{{ I.home }}</span>Treehole</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--text-2)"><span style="display:grid;place-items:center;width:56px;height:30px;font-size:21px">{{ I.campus }}</span>Campus</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--text-2)"><span style="display:grid;place-items:center;width:56px;height:30px;font-size:21px">{{ I.ai }}</span>Campus AI</div>
+        </nav>
+      </div>
+      <div style="width:390px;font-size:12px;line-height:19px;color:var(--text-2)">顶栏左侧头像 = 窄屏个人页入口。筛选、搜索、通知、会话依次排列；设置在个人页内。英文下用户内容不翻译。</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W6</span><b>个人资料与设置</b><span style="color:var(--text-3)">手机 · 390 × 1500（长图）· 浅色</span></div>
+      <div style="width:390px;height:1500px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column">
+        <div style="position:relative;height:150px;flex:none;background:var(--hero)">
+          <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 10px,color-mix(in oklab,var(--primary) 5%,transparent) 10px 20px)"></div>
+          <div style="position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:4px;padding:0 8px"><span style="width:40px;height:40px;border-radius:13px;background:var(--glass);backdrop-filter:blur(10px);display:grid;place-items:center;font-size:21px">{{ I.back }}</span><span style="flex:1;font-size:16px;font-weight:650;padding-left:6px">个人资料与设置</span></div>
+          <span style="position:absolute;right:14px;bottom:12px;font:500 10px/1 var(--mono);color:var(--text-3);padding:4px 7px;border-radius:5px;background:var(--glass)">主页背景图</span>
+        </div>
+        <div style="padding:0 16px 18px;display:flex;flex-direction:column;gap:10px;background:var(--surface);border-bottom:1px solid var(--line)">
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:-36px"><div style="width:78px;height:78px;border-radius:50%;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:color-mix(in oklab,var(--ch-2) 72%,var(--text));border:4px solid var(--surface);display:grid;place-items:center;font-size:28px;font-weight:650;box-shadow:var(--shadow-1)">林</div><button style="height:36px;padding:0 16px;border-radius:12px;border:0;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ I.edit }}</span>编辑资料</button></div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font:600 22px/1.2 var(--serif)">示例昵称</span><span style="display:inline-flex;align-items:center;gap:3px;height:20px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:600;background:var(--success-soft);color:var(--success)"><span style="display:flex">{{ I.check }}</span>已认证</span><span style="display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;font-size:11px;font-weight:650;background:var(--accent-soft);color:var(--accent-ink);font-family:var(--mono)">Lv.2</span></div>
+          <div style="font-size:14px;line-height:21px;color:var(--text-2)">示例签名：在图书馆四楼靠窗的位置。</div>
+          <div style="font-size:12px;color:var(--text-3);display:flex;gap:12px;flex-wrap:wrap"><span>学号 21****0137</span><span>♂ 男</span><span>示例邮箱@stu.xidian.edu.cn</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);margin-top:6px;border-radius:16px;background:var(--bg-sunk);padding:12px 0"><sc-for list="{{ stats }}" as="s"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><b style="font-size:18px">{{ s.n }}</b><span style="font-size:12px;color:var(--text-2)">{{ s.t }}</span></div></sc-for></div>
+        </div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+            <sc-for list="{{ mine }}" as="m"><div style="background:var(--surface);border-radius:18px;padding:14px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:7px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)"><span style="width:40px;height:40px;border-radius:13px;background:{{ m.tb }};color:{{ m.tc }};display:grid;place-items:center;font-size:21px;--duo:.28">{{ m.i }}</span><span style="font-size:12px;font-weight:600">{{ m.t }}</span></div></sc-for>
+          </div>
+          <sc-for list="{{ profileGroups }}" as="g" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">{{ g.h }}</span>
+              <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+                <sc-for list="{{ g.rows }}" as="r">
+                  <div style="display:flex;align-items:center;gap:12px;min-height:58px;padding:9px 14px;box-sizing:border-box;border-top:1px solid var(--line);margin-top:-1px">
+                    <span style="width:34px;height:34px;border-radius:11px;background:{{ r.tb }};color:{{ r.tc }};display:grid;place-items:center;font-size:18px;flex:none;--duo:.28">{{ r.i }}</span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600;color:{{ r.c2 }}">{{ r.t }}</span><sc-if value="{{ r.s }}"><span style="font-size:12px;line-height:17px;color:var(--text-3)">{{ r.s }}</span></sc-if></span>
+                    <sc-if value="{{ r.sw }}"><span style="width:44px;height:27px;border-radius:14px;background:{{ r.swBg }};position:relative;flex:none;transition:background .2s"><span style="position:absolute;top:3px;left:{{ r.swX }};width:21px;height:21px;border-radius:50%;background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.2)"></span></span></sc-if>
+                    <sc-if value="{{ r.chev }}"><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span></sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <button style="height:50px;border-radius:16px;border:0;background:var(--danger-soft);color:var(--danger);font:inherit;font-size:15px;font-weight:650;display:flex;align-items:center;justify-content:center;gap:8px"><span style="display:flex;font-size:19px">{{ I.logout }}</span>退出登录</button>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:12px;color:var(--text-2)"><span>用户协议</span><span>隐私政策</span><span>社区规范</span><span>举报说明</span></div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--text-3)"><span style="width:18px;height:18px;border-radius:5px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 10px/1 var(--serif)">知</span>西电知行 v0.1.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W7</span><b>设置</b><span style="color:var(--text-3)">手机 · 390 × 1080 · 深色</span></div>
+      <div data-zx="dark" style="--bg:#171714;--bg-sunk:#10100E;--surface:#20201C;--raised:#2F2F2A;--glass:rgba(32,32,28,0.74);--line:#3C3B37;--line-strong:#55544F;--text:#F4F1E8;--text-2:#BFBDB5;--text-3:#9B9992;--primary:#E08075;--primary-pressed:#F09A8E;--on-primary:#2D1A17;--primary-soft:#46332E;--primary-glow:rgba(224,128,117,0.28);--seal:#E08075;--seal-soft:#3B2D28;--accent:#EBC474;--accent-soft:#453E2C;--accent-ink:#EBC474;--hero:linear-gradient(125deg,#4E3731 0%,#3C3728 52%,#20201C 100%);--on-danger:#1A0F0D;--scrim:rgba(0,0,0,.62);--shadow-1:0 1px 2px rgba(0,0,0,.5);--shadow-2:0 18px 48px rgba(0,0,0,.62),0 2px 8px rgba(0,0,0,.4);--success:#8CC4A2;--success-soft:#323C33;--warning:#E6BE74;--warning-soft:#423B2B;--danger:#F29084;--danger-soft:#44332E;--info:#93BCCC;--info-soft:#343B3A;--ch-1:oklch(0.76 0.1 35);--ch-2:oklch(0.76 0.1 160);--ch-3:oklch(0.76 0.1 250);--ch-4:oklch(0.76 0.1 80);--ch-5:oklch(0.76 0.1 310);--ch-6:oklch(0.76 0.1 125);width:390px;height:1080px;background-color:var(--bg);background-image:var(--grain);color:var(--text);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.3);display:flex;flex-direction:column">
+        <div style="height:56px;flex:none;display:flex;align-items:center;gap:4px;padding:0 8px;background:var(--glass);border-bottom:1px solid var(--line)"><span style="width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:21px">{{ I.back }}</span><span style="flex:1;font-size:16px;font-weight:650">设置</span></div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">界面与偏好</span>
+            <div style="background:var(--surface);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:14px;box-shadow:inset 0 0 0 1px var(--line)">
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:34px;height:34px;border-radius:11px;background:color-mix(in oklab,var(--ch-3) 18%,var(--surface));color:var(--ch-3);display:grid;place-items:center;font-size:18px;--duo:.28">{{ I.globe }}</span><span style="flex:1;font-size:14px;font-weight:600">语言 · Language</span><span style="display:flex;padding:3px;border-radius:10px;background:var(--bg-sunk);font-size:12px"><span style="padding:5px 11px;border-radius:8px;background:var(--raised);font-weight:650;box-shadow:var(--shadow-1)">中文</span><span style="padding:5px 11px;color:var(--text-2)">English</span></span></div>
+              <div style="height:1px;background:var(--line)"></div>
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:34px;height:34px;border-radius:11px;background:color-mix(in oklab,var(--ch-1) 18%,var(--surface));color:var(--ch-1);display:grid;place-items:center;font-size:18px;--duo:.28">{{ I.swatch }}</span><span style="flex:1;font-size:14px;font-weight:600">配色主题</span><span style="font-size:12px;color:var(--text-3)">保存在本机</span></div>
+              <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px">
+                <sc-for list="{{ themes }}" as="th"><div style="position:relative;border-radius:16px;overflow:hidden;box-shadow:{{ th.ring }}">
+                  <div style="height:64px;background:{{ th.page }};position:relative;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;gap:5px">
+                    <span style="height:7px;width:60%;border-radius:4px;background:{{ th.ink }};opacity:.8"></span>
+                    <span style="height:5px;width:85%;border-radius:3px;background:{{ th.ink }};opacity:.25"></span>
+                    <span style="position:absolute;right:10px;bottom:10px;width:22px;height:22px;border-radius:6px;background:{{ th.pri }};transform:rotate(-6deg)"></span>
+                    <span style="position:absolute;right:36px;bottom:12px;width:14px;height:14px;border-radius:50%;background:{{ th.apr }}"></span>
+                  </div>
+                  <div style="padding:9px 10px 10px;background:var(--raised);display:flex;flex-direction:column;gap:2px"><span style="font-size:13px;font-weight:650">{{ th.n }}</span><span style="font-size:11px;line-height:15px;color:var(--text-3)">{{ th.d }}</span></div>
+                  <sc-if value="{{ th.on }}"><span style="position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:50%;background:var(--primary);color:var(--on-primary);display:grid;place-items:center;font-size:14px;box-shadow:0 2px 6px rgba(0,0,0,.3)">{{ I.check }}</span></sc-if>
+                </div></sc-for>
+              </div>
+              <div style="height:1px;background:var(--line)"></div>
+              <div style="display:flex;align-items:flex-start;gap:12px"><span style="width:34px;height:34px;border-radius:11px;background:color-mix(in oklab,var(--ch-5) 18%,var(--surface));color:var(--ch-5);display:grid;place-items:center;font-size:18px;--duo:.28;flex:none">{{ I.moon }}</span><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:600">明暗模式</span><span style="font-size:12px;line-height:18px;color:var(--text-3)">自动跟随浏览器与系统的浅色或深色模式</span></span><span style="font-size:12px;color:var(--text-2);padding:4px 9px;border-radius:8px;background:var(--bg-sunk)">跟随系统</span></div>
+              <div style="height:1px;background:var(--line)"></div>
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:34px;height:34px;border-radius:11px;background:color-mix(in oklab,var(--ch-4) 18%,var(--surface));color:var(--ch-4);display:grid;place-items:center;font-size:18px;--duo:.28">{{ I.emoji }}</span><span style="flex:1;font-size:14px;font-weight:600">表情与输入</span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">账号</span>
+            <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)"><div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px"><span style="width:34px;height:34px;border-radius:11px;background:color-mix(in oklab,var(--ch-2) 18%,var(--surface));color:var(--ch-2);display:grid;place-items:center;font-size:18px;--duo:.28">{{ I.user }}</span><span style="flex:1;font-size:14px;font-weight:600">个人资料与隐私</span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:12px;font-weight:650;color:var(--text-3);padding:0 6px;letter-spacing:.04em">规则与隐私</span>
+            <div style="background:var(--surface);border-radius:20px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)">
+              <sc-for list="{{ legal }}" as="l"><div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-top:1px solid var(--line);margin-top:-1px"><span style="display:flex;font-size:19px;color:var(--text-2)">{{ I.book }}</span><span style="flex:1;font-size:14px">{{ l }}</span><span style="display:flex;color:var(--text-3)">{{ I.chevron }}</span></div></sc-for>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;border-radius:20px;background:var(--hero)"><span style="width:34px;height:34px;border-radius:11px;background:var(--surface);color:var(--primary);display:grid;place-items:center;font-size:18px;--duo:.28">{{ I.download }}</span><span style="flex:1;font-size:14px;font-weight:600">下载 Android 客户端</span><span style="display:flex;color:var(--text-2)">{{ I.chevron }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W8</span><b>分享链接 · 帖子不可访问</b><span style="color:var(--text-3)">手机 · 390 × 844</span></div>
+      <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column">
+        <div style="height:56px;flex:none;display:flex;align-items:center;gap:10px;padding:0 16px"><div style="width:30px;height:30px;border-radius:8px;background:var(--seal);color:var(--on-primary);display:grid;place-items:center;font:600 15px/1 var(--serif);transform:rotate(-5deg);box-shadow:inset 0 0 0 2px var(--seal),inset 0 0 0 3px rgba(255,255,255,.55)">知</div><span style="font:600 16px/1 var(--serif)">西电知行</span></div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:14px;position:relative">
+          <div style="position:absolute;top:120px;left:50%;width:280px;height:280px;margin-left:-140px;border-radius:50%;background:radial-gradient(circle,var(--primary-soft) 0%,transparent 70%)"></div>
+          <div style="position:relative;width:108px;height:108px">
+            <div style="position:absolute;inset:0;border-radius:24px;border:2.5px dashed color-mix(in oklab,var(--seal) 55%,transparent);transform:rotate(-8deg)"></div>
+            <div style="position:absolute;inset:10px;border-radius:18px;background:var(--seal-soft);display:grid;place-items:center;font:600 46px/1 var(--serif);color:color-mix(in oklab,var(--seal) 60%,transparent);transform:rotate(-8deg)">知</div>
+            <span style="position:absolute;right:-6px;bottom:-4px;width:34px;height:34px;border-radius:50%;background:var(--surface);color:var(--text-2);display:grid;place-items:center;font-size:18px;box-shadow:var(--shadow-1)">{{ I.lock }}</span>
+          </div>
+          <div style="position:relative;font:600 22px/32px var(--serif);margin-top:10px;text-wrap:pretty">帖子不存在，<br/>或你没有权限查看</div>
+          <div style="position:relative;font-size:14px;line-height:22px;color:var(--text-2);text-wrap:pretty">帖子可能已被删除、仅作者可见，或链接有误。</div>
+          <div style="position:relative;font:500 12px/1 var(--mono);color:var(--text-3);padding:9px 12px;border-radius:10px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);display:flex;align-items:center;gap:6px"><span style="display:flex;font-size:14px">{{ I.link }}</span>zhixing.xidian.edu.cn/p/48213</div>
+          <button style="position:relative;margin-top:12px;height:50px;padding:0 30px;border:0;border-radius:16px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);font:inherit;font-size:15px;font-weight:650;box-shadow:0 10px 24px var(--primary-glow)">返回树洞</button>
+        </div>
+      </div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:19px;color:var(--text-2)">
+        <b style="color:var(--text)">打开分享链接的流程</b>
+        <span>已登录 → 直接进帖子详情。未登录 → 登录页（顶部提示「登录后将打开分享的帖子」）→ 认证成功自动回到帖子。帖子不存在 / 已删除 / 无权限 → 本页。</span>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:10px;font-size:13px"><span style="font:600 11px/1 var(--mono);padding:5px 8px;border-radius:6px;background:var(--primary);color:var(--on-primary)">W9</span><b>账号已被封禁 · 申诉</b><span style="color:var(--text-3)">手机 · 390 × 844 · 三端共用</span></div>
+      <div style="width:390px;height:844px;background-color:var(--bg);background-image:var(--grain);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(60,40,20,.18),0 0 0 1px rgba(0,0,0,.04);display:flex;flex-direction:column">
+        <div style="height:56px;flex:none;display:flex;align-items:center;padding:0 8px 0 16px;border-bottom:1px solid var(--line);background:var(--glass)"><span style="flex:1;font-size:16px;font-weight:650">账号已被封禁</span><button style="height:36px;padding:0 12px;border:0;border-radius:11px;background:var(--bg-sunk);color:var(--text);font:inherit;font-size:13px;display:flex;align-items:center;gap:6px"><span style="display:flex">{{ I.logout }}</span>退出登录</button></div>
+        <div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+          <div style="padding:18px;border-radius:20px;background:linear-gradient(135deg,var(--danger-soft),var(--surface));box-shadow:inset 0 0 0 1px color-mix(in oklab,var(--danger) 18%,transparent);display:flex;gap:14px"><span style="width:42px;height:42px;border-radius:13px;background:var(--danger);color:var(--on-danger);display:grid;place-items:center;font-size:22px;flex:none">{{ I.block }}</span><span style="flex:1;font-size:14px;line-height:22px">封禁期间不能发帖、评论、私信或使用校园 AI。如认为处理有误，可以提交解封申诉。</span></div>
+          <div style="background:var(--surface);border-radius:20px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow-1),inset 0 0 0 1px var(--line)">
+            <span style="font:600 18px/1.3 var(--serif)">提交解封申诉</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text-2)">申诉说明</span>
+            <div style="min-height:150px;padding:12px 14px;border-radius:14px;background:var(--bg-sunk);font-size:14px;line-height:22px;color:var(--text-3)">请说明你认为处理有误的原因，以及相关的帖子或时间。</div>
+            <span style="align-self:flex-end;font-size:12px;color:var(--text-3);font-family:var(--mono)">0 / 4000</span>
+            <button style="height:48px;border:0;border-radius:14px;background:linear-gradient(180deg,color-mix(in oklab,var(--primary) 88%,#fff),var(--primary));color:var(--on-primary);font:inherit;font-size:15px;font-weight:650;box-shadow:0 8px 20px var(--primary-glow)">提交申诉</button>
+          </div>
+          <button style="height:40px;border:0;background:transparent;color:var(--text-2);font:inherit;font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px"><span style="display:flex">{{ I.refresh }}</span>刷新状态</button>
+        </div>
+      </div>
+      <div style="width:390px;display:flex;flex-direction:column;gap:10px">
+        <div style="padding:14px 16px;border-radius:16px;background:var(--warning-soft);font-size:13px;line-height:20px;display:flex;gap:10px"><span style="display:flex;font-size:18px;color:var(--warning);margin-top:1px">{{ I.clock }}</span><span><b>申诉正在审核中</b><br/><span style="color:var(--text-2)">同一时间只能有一份待处理申诉。下方回显你提交的说明。</span></span></div>
+        <div style="padding:14px 16px;border-radius:16px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line);font-size:13px;line-height:20px"><b>申诉未通过</b><br/><span style="color:var(--text-2)">管理员说明 · 站内申诉次数已用完，请用本人校园邮箱发送至支持邮箱。</span><div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;padding:8px 10px;border-radius:10px;background:var(--bg-sunk)"><span style="flex:1">support@示例.edu.cn</span><span style="font-family:inherit;display:flex;color:var(--text-2)">{{ I.copy }}</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;zhushachi&quot;,&quot;zhuqing&quot;,&quot;xingrenhuang&quot;,&quot;mozhuxinye&quot;],&quot;default&quot;:&quot;zhushachi&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;配色&quot;},&quot;grain&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;质感&quot;}}">
+class Component extends DCLogic {
+  rootRef = React.createRef();
+  componentDidMount() {
+    const ready = () => window.ZXI2 && window.ZXTheme;
+    if (ready()) { this.forceUpdate(); this.applyTheme(); }
+    else this._t = setInterval(() => { if (ready()) { clearInterval(this._t); this.forceUpdate(); this.applyTheme(); } }, 40);
+  }
+  componentDidUpdate() { this.applyTheme(); }
+  componentWillUnmount() { clearInterval(this._t); }
+  applyTheme() {
+    const el = this.rootRef.current, key = (this.props.theme || 'zhushachi') + '|' + (this.props.grain !== false);
+    if (!window.ZXTheme || !el || this._applied === key) return;
+    this._applied = key;
+    window.ZXTheme.apply(el, this.props.theme || 'zhushachi', this.props.grain !== false);
+  }
+  renderVals() {
+    const I = window.ZXI2 ? window.ZXI2.make(React) : {};
+    const Z = window.ZXTheme;
+    const cur = this.props.theme || 'zhushachi';
+    const tile = (n) => ({ tb: 'color-mix(in oklab,var(--ch-' + n + ') 16%,var(--surface))', tc: 'var(--ch-' + n + ')' });
+    const posts = [
+      { anon: false, initial: '教', name: '示例：教务通知转载', time: '2 小时前', ch: '综合', chN: 4, pinned: true, title: '示例：本周四起图书馆延长开放至 23:00', body: '期末周图书馆开放时间调整，具体以学校通知为准。#图书馆', likes: 86, comments: 12, favs: 40 },
+      { anon: true, initial: '安', name: '安静的同学', time: '12 分钟前', ch: '求助问答', chN: 3, status: 'resolved', title: '示例：图书馆四楼靠窗那排插座修好了吗？', body: '想问问有没有同学知道维修进度，期末周实在找不到位置。#求助 #图书馆', imgs: 1, likes: 12, liked: true, comments: 4, favs: 3 },
+      { anon: false, initial: '舟', name: '林小舟', time: '1 小时前', ch: '学习交流', chN: 2, status: 'open', title: '示例：数学建模校赛组队，缺一位会写论文的同学', body: '我们队目前两个人，一个负责建模、一个负责编程。#组队 #竞赛', likes: 24, comments: 6, favs: 9, faved: true },
+      { anon: true, initial: '风', name: '北门的风', time: '3 小时前', ch: '二手交易', chN: 1, status: 'closed', title: '', body: '示例：出一辆自行车，九成新，南校区自提，已出勿扰。#二手', imgs: 5, likes: 3, comments: 1, favs: 2 }
+    ];
+    const on = 'var(--primary)', off = 'var(--line-strong)';
+    const themes = Z ? Z.keys.map(k => { const t = Z.THEMES[k], c = t.light; return { n: t.zh, d: t.d, page: c[0], ink: c[2], pri: c[3], apr: c[6], on: k === cur, ring: k === cur ? '0 0 0 2px var(--primary)' : 'inset 0 0 0 1px var(--line)' }; }) : [];
+    return {
+      I, rootRef: this.rootRef,
+      fixes: ['窄屏个人页入口', '登录后切换语言', '卡片「⋯」菜单', '私信请求', '通知偏好', '一级用户申请', '关注 / 粉丝列表', '主页屏蔽 / 举报', 'Android 下载入口', '复制链接'],
+      tools: [{ i: I.search, t: '搜索' }, { i: I.bell, t: '通知', b: 3 }, { i: I.chat, t: '会话', b: 2 }, { i: I.sliders, t: '设置' }],
+      chips: [
+        { t: '全部', w: 650, bg: 'var(--text)', fg: 'var(--bg)', sh: 'none' },
+        { t: '学习交流', dot: 'var(--ch-2)', w: 500, bg: 'var(--surface)', fg: 'var(--text)', sh: 'inset 0 0 0 1px var(--line)' },
+        { t: '求助问答', dot: 'var(--ch-3)', w: 500, bg: 'var(--surface)', fg: 'var(--text)', sh: 'inset 0 0 0 1px var(--line)' },
+        { t: '二手交易', dot: 'var(--ch-1)', w: 500, bg: 'var(--surface)', fg: 'var(--text)', sh: 'inset 0 0 0 1px var(--line)' },
+        { t: '吐槽日常', dot: 'var(--ch-5)', w: 500, bg: 'var(--surface)', fg: 'var(--text)', sh: 'inset 0 0 0 1px var(--line)' },
+        { t: '综合', dot: 'var(--ch-4)', w: 500, bg: 'var(--surface)', fg: 'var(--text)', sh: 'inset 0 0 0 1px var(--line)' }
+      ],
+      feed: posts,
+      feedTablet: [posts[1], posts[2], posts[3]],
+      feedEn: [
+        { anon: true, initial: '安', name: 'Anonymous', time: '12 分钟前', timeEn: '12 min ago', ch: '求助问答', chN: 3, pinned: true, status: 'resolved', title: '示例：图书馆四楼靠窗那排插座修好了吗？', body: '用户内容不翻译，只翻译界面文字与标记。#求助', likes: 12, liked: true, comments: 4, favs: 3 },
+        { anon: false, initial: 'L', name: 'Lin Xiaozhou', time: '1 小时前', timeEn: '1 hr ago', ch: 'Study', chN: 2, status: 'open', priv: true, title: 'Example: anyone up for the modelling contest?', body: 'Looking for a teammate who enjoys writing. #team', likes: 8, comments: 2, favs: 5, faved: true },
+        { anon: true, initial: 'A', name: 'Anonymous', time: '3 小时前', timeEn: '3 hr ago', ch: 'Market', chN: 1, review: 'pending', body: 'Example post that is still under review and only visible to its author.', imgs: 2, likes: 0, comments: 0, favs: 0 }
+      ],
+      hot: [
+        { n: 1, t: '示例：图书馆延长开放时间', r: '12 条回复', c: 'var(--primary)' },
+        { n: 2, t: '示例：数学建模校赛组队', r: '6 条回复', c: 'var(--primary)' },
+        { n: 3, t: '示例：四楼插座修好了吗', r: '4 条回复', c: 'var(--primary)' },
+        { n: 4, t: '示例：南门快递点搬迁', r: '3 条回复', c: 'var(--text-3)' },
+        { n: 5, t: '示例：出自行车', r: '1 条回复', c: 'var(--text-3)' }
+      ],
+      three: ['图片 1', '图片 2', '图片 3'],
+      meMenu: [{ i: I.user, t: '个人资料与设置' }, { i: I.edit, t: '我的帖子' }, { i: I.star, t: '我的收藏' }, { i: I.chat, t: '会话' }, { i: I.sliders, t: '设置' }],
+      convs: [
+        { i: '舟', n: '林小舟', t: '09:55', m: '可以，周三晚上我都有空。', u: '', bg: 'var(--primary-soft)', sh: 'none', ab: 'color-mix(in oklab,var(--ch-3) 18%,var(--surface))', af: 'color-mix(in oklab,var(--ch-3) 72%,var(--text))' },
+        { i: '周', n: '周同学', t: '昨天', m: '示例：谢谢你的笔记！', u: 2, bg: 'transparent', sh: 'none', ab: 'color-mix(in oklab,var(--ch-5) 18%,var(--surface))', af: 'color-mix(in oklab,var(--ch-5) 72%,var(--text))' },
+        { i: '陈', n: '陈同学', t: '09-20', m: '示例：好的，到时候见。', u: 1, bg: 'transparent', sh: 'none', ab: 'color-mix(in oklab,var(--ch-4) 18%,var(--surface))', af: 'color-mix(in oklab,var(--ch-4) 72%,var(--text))' },
+        { i: '王', n: '王同学', t: '09-18', m: '对方已屏蔽你，只能查看历史消息', tag: '对方已屏蔽', u: '', bg: 'transparent', sh: 'none', ab: 'var(--bg-sunk)', af: 'var(--text-3)' },
+        { i: '赵', n: '赵同学', t: '09-12', m: '示例：收到。', tag: '已屏蔽', u: '', bg: 'transparent', sh: 'none', ab: 'var(--bg-sunk)', af: 'var(--text-3)' }
+      ],
+      topIcons: [{ i: I.filter }, { i: I.search }, { i: I.bell, b: 3 }, { i: I.chat, b: 2 }],
+      stats: [{ n: 12, t: '帖子' }, { n: 36, t: '关注' }, { n: 20, t: '粉丝' }],
+      mine: [
+        Object.assign({ i: I.edit, t: '我的帖子' }, tile(1)),
+        Object.assign({ i: I.comment, t: '我的评论' }, tile(3)),
+        Object.assign({ i: I.star, t: '我的收藏' }, tile(4)),
+        Object.assign({ i: I.flag, t: '我的举报' }, tile(5))
+      ],
+      profileGroups: [
+        { h: '账号', rows: [
+          Object.assign({ i: I.users, t: '关注与粉丝', s: '查看关注、粉丝、好友列表', chev: true, c2: 'var(--text)' }, tile(2)),
+          Object.assign({ i: I.shield, t: '申请成为一级用户', s: '当前为二级用户，可申请升级', chev: true, c2: 'var(--text)' }, tile(6)),
+          { i: I.alert, t: '注销账号申请', s: '提交后进入管理员审核，通过后账号才会注销', chev: true, c2: 'var(--danger)', tb: 'var(--danger-soft)', tc: 'var(--danger)' }
+        ] },
+        { h: '隐私与通知', rows: [
+          Object.assign({ i: I.chat, t: '允许陌生人私信', s: '关闭后，别人不能从你的主页或帖子发起私信', sw: true, swBg: on, swX: '20px', c2: 'var(--text)' }, tile(3)),
+          Object.assign({ i: I.eye, t: '显示「可联系」状态', s: '', sw: true, swBg: off, swX: '3px', c2: 'var(--text)' }, tile(2)),
+          Object.assign({ i: I.bell, t: '通知偏好', s: '评论、回复、点赞、收藏、举报结果、系统', chev: true, c2: 'var(--text)' }, tile(4)),
+          { i: I.block, t: '黑名单管理', s: '', chev: true, c2: 'var(--text)', tb: 'var(--bg-sunk)', tc: 'var(--text-2)' }
+        ] },
+        { h: '更多', rows: [Object.assign({ i: I.sliders, t: '设置', s: '语言、配色主题、明暗模式、表情', chev: true, c2: 'var(--text)' }, tile(1))] }
+      ],
+      themes,
+      legal: ['用户协议', '隐私政策', '社区规范', '举报说明']
+    };
+  }
+}
+</script>
+</body>
+</html>
