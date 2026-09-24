@@ -163,6 +163,56 @@ class SearchController extends StateNotifier<SearchState> {
     }
   }
 
+  Future<void> toggleLike(PostItem post) async {
+    final bool liked = !post.isLiked;
+    if (liked) {
+      await _ref.read(postRepositoryProvider).likePost(post.id);
+    } else {
+      await _ref.read(postRepositoryProvider).unlikePost(post.id);
+    }
+    replaceResult(
+      post.copyWith(
+        isLiked: liked,
+        likeCount: (post.likeCount + (liked ? 1 : -1)).clamp(0, 1 << 31),
+      ),
+    );
+  }
+
+  Future<void> toggleFavorite(PostItem post) async {
+    final FavoriteActionResult result = post.isFavorited
+        ? await _ref.read(postRepositoryProvider).unfavoritePost(post.id)
+        : await _ref.read(postRepositoryProvider).favoritePost(post.id);
+    replaceResult(
+      post.copyWith(
+        isFavorited: result.favorited,
+        favoriteCount:
+            result.favoriteCount ??
+            (post.favoriteCount + (result.favorited ? 1 : -1)).clamp(0, 1 << 31),
+      ),
+    );
+  }
+
+  Future<void> toggleFollow(PublicUserProfile user) async {
+    final bool following = !user.isFollowing;
+    if (following) {
+      await _ref.read(userRepositoryProvider).followUser(user.id);
+    } else {
+      await _ref.read(userRepositoryProvider).unfollowUser(user.id);
+    }
+    state = state.copyWith(
+      userResults: <PublicUserProfile>[
+        for (final PublicUserProfile item in state.userResults)
+          item.id == user.id
+              ? item.copyWith(
+                  isFollowing: following,
+                  followerCount: (item.followerCount + (following ? 1 : -1))
+                      .clamp(0, 1 << 31),
+                )
+              : item,
+      ],
+    );
+  }
+
   void replaceResult(PostItem updated) {
     final int index = state.results.indexWhere(
       (PostItem item) => item.id == updated.id,

@@ -12,6 +12,7 @@ class PublicUserProfile {
     required this.followingCount,
     required this.followerCount,
     required this.isFollowing,
+    this.isFollower = false,
     required this.canFollow,
     required this.canDirectMessage,
     this.bio = '',
@@ -27,6 +28,9 @@ class PublicUserProfile {
   final int followingCount;
   final int followerCount;
   final bool isFollowing;
+
+  /// Follows the viewer back; with [isFollowing], shown as 互相关注.
+  final bool isFollower;
   final bool canFollow;
   final bool canDirectMessage;
   final String bio;
@@ -74,6 +78,7 @@ class PublicUserProfile {
       followingCount: _toInt(json['followingCount']) ?? 0,
       followerCount: _toInt(json['followerCount']) ?? 0,
       isFollowing: _toBool(json['isFollowing']) ?? false,
+      isFollower: _toBool(json['isFollower']) ?? false,
       canFollow: _toBool(json['canFollow']) ?? false,
       canDirectMessage: _toBool(json['canDirectMessage']) ?? false,
       bio: (json['bio'] ?? json['signature'] ?? '').toString(),
@@ -93,6 +98,7 @@ class PublicUserProfile {
     int? followingCount,
     int? followerCount,
     bool? isFollowing,
+    bool? isFollower,
     bool? canFollow,
     bool? canDirectMessage,
     String? bio,
@@ -108,6 +114,7 @@ class PublicUserProfile {
       followingCount: followingCount ?? this.followingCount,
       followerCount: followerCount ?? this.followerCount,
       isFollowing: isFollowing ?? this.isFollowing,
+      isFollower: isFollower ?? this.isFollower,
       canFollow: canFollow ?? this.canFollow,
       canDirectMessage: canDirectMessage ?? this.canDirectMessage,
       bio: bio ?? this.bio,

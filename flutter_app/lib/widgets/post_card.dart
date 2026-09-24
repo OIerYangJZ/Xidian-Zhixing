@@ -23,6 +23,7 @@ class PostCard extends StatelessWidget {
     this.onFavorite,
     this.onAuthorTap,
     this.onDeleted,
+    this.highlight,
   });
 
   final PostItem post;
@@ -36,6 +37,9 @@ class PostCard extends StatelessWidget {
   /// Removes the post from the caller's list after 删除. Without it the
   /// menu does not offer 删除, since the post would stay on screen.
   final VoidCallback? onDeleted;
+
+  /// Search keyword to mark in the title and body.
+  final String? highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -107,8 +111,14 @@ class PostCard extends StatelessWidget {
                     PostMarkers(post: post),
                     if (post.title.trim().isNotEmpty) ...<Widget>[
                       const SizedBox(height: 8),
-                      Text(
-                        post.title.trim(),
+                      Text.rich(
+                        TextSpan(
+                          children: highlightSpans(
+                            post.title.trim(),
+                            highlight,
+                            TextStyle(color: t.primary),
+                          ),
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: ZxType.title.copyWith(color: t.text),
@@ -119,7 +129,14 @@ class PostCard extends StatelessWidget {
                       Text.rich(
                         TextSpan(
                           children: <InlineSpan>[
-                            TextSpan(text: body),
+                            ...highlightSpans(
+                              body,
+                              highlight,
+                              TextStyle(
+                                color: t.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             for (final String tag in post.tags)
                               TextSpan(
                                 text: '${body.isEmpty ? '' : ' '}#$tag',
@@ -273,6 +290,31 @@ class PostCard extends StatelessWidget {
         );
       }
     }
+  }
+}
+
+/// [text] as spans with each case-insensitive occurrence of [query] styled
+/// with [match]. A leading # on the query is ignored, so #组队 marks 组队.
+List<TextSpan> highlightSpans(String text, String? query, TextStyle match) {
+  final String needle = (query ?? '').trim().replaceFirst(RegExp(r'^#'), '');
+  if (needle.isEmpty || text.isEmpty) {
+    return <TextSpan>[TextSpan(text: text)];
+  }
+  final String haystack = text.toLowerCase();
+  final String lowered = needle.toLowerCase();
+  final List<TextSpan> spans = <TextSpan>[];
+  int start = 0;
+  while (true) {
+    final int at = haystack.indexOf(lowered, start);
+    if (at < 0) {
+      spans.add(TextSpan(text: text.substring(start)));
+      return spans;
+    }
+    if (at > start) {
+      spans.add(TextSpan(text: text.substring(start, at)));
+    }
+    spans.add(TextSpan(text: text.substring(at, at + needle.length), style: match));
+    start = at + needle.length;
   }
 }
 
