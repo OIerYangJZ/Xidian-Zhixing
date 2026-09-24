@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/l10n/ui_text.dart';
 import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
 import 'package:xdu_treehole_web/core/widgets/language_toggle.dart';
@@ -25,6 +26,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   String? _errorMessage;
   int _loginGeneration = 0;
 
+  /// Consent to the terms and privacy policy, required before signing in.
+  bool _agreed = false;
+  bool _agreementHint = false;
+
   @override
   void dispose() {
     _loginGeneration += 1;
@@ -32,6 +37,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _login() async {
+    if (!_agreed) {
+      setState(() => _agreementHint = true);
+      return;
+    }
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     final int generation = ++_loginGeneration;
     setState(() {
@@ -203,6 +212,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     style: TextStyle(color: colors.error),
                   ),
                 ),
+              _buildAgreement(colors),
+              const SizedBox(height: 8),
               FilledButton(
                 onPressed: _isLoading ? null : _login,
                 child: Row(
@@ -230,6 +241,69 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 我已阅读并同意《用户协议》和《隐私政策》. The links open the documents
+  /// without toggling the checkbox.
+  Widget _buildAgreement(MobileColors colors) {
+    Widget link(String zh, String en, String route) => InkWell(
+      onTap: () => context.push(route),
+      child: Text(
+        uiText(context, zh: zh, en: en),
+        style: TextStyle(color: colors.primary, fontWeight: FontWeight.w600),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (_agreementHint)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              uiText(
+                context,
+                zh: '请先阅读并同意用户协议和隐私政策',
+                en: 'Please read and accept the Terms and Privacy Policy first',
+              ),
+              style: TextStyle(color: colors.error, fontSize: 13),
+            ),
+          ),
+        Row(
+          children: <Widget>[
+            Checkbox(
+              value: _agreed,
+              onChanged: (bool? value) => setState(() {
+                _agreed = value ?? false;
+                _agreementHint = false;
+              }),
+              side: BorderSide(
+                color: _agreementHint ? colors.error : colors.divider,
+                width: 1.5,
+              ),
+            ),
+            Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      _agreed = !_agreed;
+                      _agreementHint = false;
+                    }),
+                    child: Text(
+                      uiText(context, zh: '我已阅读并同意', en: 'I have read and accept the '),
+                    ),
+                  ),
+                  link('《用户协议》', 'Terms', '/legal/terms'),
+                  Text(uiText(context, zh: '和', en: ' and ')),
+                  link('《隐私政策》', 'Privacy Policy', '/legal/privacy'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

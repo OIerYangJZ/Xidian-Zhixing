@@ -17,7 +17,14 @@ Page({
   data: {
     attemptId: '',
     authorizeUrl: '',
-    submitting: false
+    submitting: false,
+    // Consent has to be given explicitly before signing in.
+    agreed: false,
+    agreementHint: false
+  },
+
+  toggleAgreement() {
+    this.setData({ agreed: !this.data.agreed, agreementHint: false });
   },
 
   onLoad(options = {}) {
@@ -50,6 +57,13 @@ Page({
   async handleLogin() {
     const { submitting } = this.data;
     if (submitting) return;
+    if (!this.data.agreed) {
+      // Drop and re-add the hint so the shake replays on every tap.
+      this.setData({ agreementHint: false }, () => {
+        setTimeout(() => this.setData({ agreementHint: true }), 16);
+      });
+      return;
+    }
 
     this.setData({ submitting: true });
     wx.showLoading({ title: '正在跳转' });

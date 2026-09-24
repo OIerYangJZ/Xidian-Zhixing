@@ -33,6 +33,10 @@ class _LoginPageState extends State<LoginPage> {
   bool _isBusy = false;
   String? _errorText;
 
+  /// Consent to the terms and privacy policy, required before signing in.
+  bool _agreed = false;
+  bool _agreementHint = false;
+
   @override
   void initState() {
     super.initState();
@@ -77,6 +81,9 @@ class _LoginPageState extends State<LoginPage> {
                               onLogin: _login,
                               onAdminLogin: _openAdminLogin,
                               onTerms: _openTerms,
+                              agreed: _agreed,
+                              agreementHint: _agreementHint,
+                              onAgreedChanged: _setAgreed,
                             ),
                           ),
                         ),
@@ -103,6 +110,9 @@ class _LoginPageState extends State<LoginPage> {
                             onLogin: _login,
                             onAdminLogin: _openAdminLogin,
                             onTerms: _openTerms,
+                            agreed: _agreed,
+                            agreementHint: _agreementHint,
+                            onAgreedChanged: _setAgreed,
                           ),
                         ],
                       ),
@@ -132,7 +142,18 @@ class _LoginPageState extends State<LoginPage> {
     ).push(MaterialPageRoute<void>(builder: (_) => const _LoginTermsRoute()));
   }
 
+  void _setAgreed(bool value) {
+    setState(() {
+      _agreed = value;
+      _agreementHint = false;
+    });
+  }
+
   Future<void> _login() async {
+    if (!_agreed) {
+      setState(() => _agreementHint = true);
+      return;
+    }
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     setState(() {
       _isBusy = true;
@@ -335,6 +356,9 @@ class _LoginForm extends StatelessWidget {
     required this.onLogin,
     required this.onAdminLogin,
     required this.onTerms,
+    required this.agreed,
+    required this.agreementHint,
+    required this.onAgreedChanged,
   });
 
   final bool showLanguage;
@@ -343,6 +367,11 @@ class _LoginForm extends StatelessWidget {
   final VoidCallback onLogin;
   final VoidCallback onAdminLogin;
   final VoidCallback onTerms;
+  final bool agreed;
+
+  /// Shown after a sign-in attempt without consent.
+  final bool agreementHint;
+  final ValueChanged<bool> onAgreedChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -398,6 +427,12 @@ class _LoginForm extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
+              _AgreementRow(
+                agreed: agreed,
+                showHint: agreementHint,
+                onChanged: onAgreedChanged,
+              ),
+              const SizedBox(height: AppSpacing.sm),
               FilledButton(
                 key: const Key('login-submit'),
                 onPressed: isBusy ? null : onLogin,
@@ -433,6 +468,87 @@ class _LoginForm extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 我已阅读并同意《用户协议》和《隐私政策》. The links open the documents
+/// without toggling the checkbox.
+class _AgreementRow extends StatelessWidget {
+  const _AgreementRow({
+    required this.agreed,
+    required this.showHint,
+    required this.onChanged,
+  });
+
+  final bool agreed;
+  final bool showHint;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final Color danger = theme.colorScheme.error;
+    void open(Widget page) => Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => page));
+    Widget link(String zh, String en, Widget page) => InkWell(
+      onTap: () => open(page),
+      child: Text(
+        uiText(context, zh: zh, en: en),
+        style: TextStyle(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (showHint)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+            child: Text(
+              uiText(
+                context,
+                zh: '请先阅读并同意用户协议和隐私政策',
+                en: 'Please read and accept the Terms and Privacy Policy first',
+              ),
+              key: const Key('login-agreement-hint'),
+              style: TextStyle(color: danger, fontSize: 13),
+            ),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Checkbox(
+              key: const Key('login-agreement'),
+              value: agreed,
+              onChanged: (bool? value) => onChanged(value ?? false),
+              side: BorderSide(
+                color: showHint ? danger : theme.colorScheme.outline,
+                width: 1.5,
+              ),
+            ),
+            Expanded(
+              child: Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: <Widget>[
+                  GestureDetector(
+                    onTap: () => onChanged(!agreed),
+                    child: Text(
+                      uiText(context, zh: '我已阅读并同意', en: 'I have read and accept the '),
+                    ),
+                  ),
+                  link('《用户协议》', 'Terms', const TermsOfServicePage()),
+                  Text(uiText(context, zh: '和', en: ' and ')),
+                  link('《隐私政策》', 'Privacy Policy', const PrivacyPolicyPage()),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

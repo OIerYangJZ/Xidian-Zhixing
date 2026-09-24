@@ -14,10 +14,12 @@
 
   </view>
 
-  <view class="agreement">
-    <text>登录即代表您同意</text>
-    <text class="agreement-link" bindtap="goTerms">用户协议</text>
-    <text>与</text>
-    <text class="agreement-link" bindtap="goPrivacy">隐私政策</text>
+  <view class="agreement-hint" wx:if="{{agreementHint}}">请先阅读并同意用户协议和隐私政策</view>
+  <view class="agreement {{agreementHint ? 'agreement-shake' : ''}}" bindtap="toggleAgreement">
+    <view class="agreement-box {{agreed ? 'agreement-box-on' : ''}} {{agreementHint ? 'agreement-box-error' : ''}}">{{agreed ? '✓' : ''}}</view>
+    <text>我已阅读并同意</text>
+    <text class="agreement-link" catchtap="goTerms">《用户协议》</text>
+    <text>和</text>
+    <text class="agreement-link" catchtap="goPrivacy">《隐私政策》</text>
   </view>
 </view>

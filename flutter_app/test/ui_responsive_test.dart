@@ -291,6 +291,27 @@ void main() {
   });
 
   group('forms and authentication state', () {
+    testWidgets('signing in requires accepting the terms first', (
+      WidgetTester tester,
+    ) async {
+      _setViewport(tester, width: 390, height: 820);
+      await tester.pumpWidget(_app(const LoginPage()));
+
+      await tester.tap(find.byKey(const Key('login-submit')));
+      await tester.pump();
+      expect(find.byKey(const Key('login-agreement-hint')), findsOneWidget);
+      // Nothing was started: the button is not in its busy state.
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+
+      await tester.tap(find.byKey(const Key('login-agreement')));
+      await tester.pump();
+      expect(find.byKey(const Key('login-agreement-hint')), findsNothing);
+      expect(
+        tester.widget<Checkbox>(find.byKey(const Key('login-agreement'))).value,
+        isTrue,
+      );
+    });
+
     testWidgets('login page only offers the official authentication redirect', (
       WidgetTester tester,
     ) async {
