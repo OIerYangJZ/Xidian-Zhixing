@@ -140,10 +140,11 @@ void main() {
         expect(find.byKey(const Key('login-submit')), findsOneWidget);
         expect(tester.takeException(), isNull);
 
-        if (width >= 960) {
-          expect(find.text('阅读优先'), findsOneWidget);
+        // Wide: tagline beside the sign-in card; narrow: brand over a panel.
+        if (width >= 900) {
+          expect(find.text('登录西电知行'), findsOneWidget);
         } else {
-          expect(find.text('阅读优先'), findsNothing);
+          expect(find.text('登录西电知行'), findsNothing);
         }
       });
     }

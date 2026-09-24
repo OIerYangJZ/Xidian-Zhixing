@@ -1,17 +1,15 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/config/app_config.dart';
+import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/share_links.dart';
 import '../../core/navigation/url_query_state.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_locale_store.dart';
-import '../../core/theme/app_typography.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/theme/shared_colors.dart';
-import '../../core/widgets/app_surfaces.dart';
-import '../../core/widgets/language_toggle.dart';
+import '../../design_system/design_system.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -20,22 +18,37 @@ import '../../repositories/app_repositories.dart';
 import '../../repositories/auth_repository.dart';
 import '../../widgets/home_shell.dart';
 import '../admin/admin_login_page.dart';
-import '../../core/l10n/ui_text.dart';
 
+/// 登录 (handoff L1–L3): Xidian unified sign-in behind the terms consent.
+/// Wide screens pair the tagline with the sign-in card; narrow ones stack
+/// the brand over a bottom panel. From a shared link, a card says what
+/// opens after signing in.
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.debugShareLink});
+
+  /// Stands in for the link in the address bar, for tests and captures.
+  @visibleForTesting
+  final ShareLink? debugShareLink;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const double _splitMinWidth = 900;
+
   bool _isBusy = false;
   String? _errorText;
 
   /// Consent to the terms and privacy policy, required before signing in.
   bool _agreed = false;
   bool _agreementHint = false;
+
+  /// Bumped on each sign-in attempt without consent, to shake the checkbox.
+  int _nudges = 0;
+
+  late final ShareLink? _shareLink =
+      widget.debugShareLink ?? currentShareLink();
 
   @override
   void initState() {
@@ -50,78 +63,23 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
-    return Theme(
-      data: AppTheme.lightThemeFor(locale, themeKey: 'mozhuxinye'),
-      child: Builder(
-        builder: (BuildContext context) {
-          final EditorialColors colors = EditorialColors.of(context);
-          return Scaffold(
-            body: SafeArea(
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  final bool desktop =
-                      constraints.maxWidth >= AppBreakpoints.medium;
-                  if (desktop) {
-                    return Row(
-                      children: <Widget>[
-                        Expanded(
-                          flex: 11,
-                          child: _LoginManifesto(
-                            locale: Localizations.localeOf(context),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 9,
-                          child: ColoredBox(
-                            color: colors.page,
-                            child: _LoginForm(
-                              isBusy: _isBusy,
-                              errorText: _errorText,
-                              onLogin: _login,
-                              onAdminLogin: _openAdminLogin,
-                              onTerms: _openTerms,
-                              agreed: _agreed,
-                              agreementHint: _agreementHint,
-                              onAgreedChanged: _setAgreed,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return ColoredBox(
-                    color: colors.page,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                        AppSpacing.md,
-                        AppSpacing.xxl,
-                      ),
-                      child: Column(
-                        children: <Widget>[
-                          const _CompactBrandHeader(),
-                          const SizedBox(height: AppSpacing.lg),
-                          _LoginForm(
-                            showLanguage: false,
-                            isBusy: _isBusy,
-                            errorText: _errorText,
-                            onLogin: _login,
-                            onAdminLogin: _openAdminLogin,
-                            onTerms: _openTerms,
-                            agreed: _agreed,
-                            agreementHint: _agreementHint,
-                            onAgreedChanged: _setAgreed,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
+    final Widget panel = _SignInPanel(
+      isBusy: _isBusy,
+      errorText: _errorText,
+      onLogin: _login,
+      onAdminLogin: _openAdminLogin,
+      agreed: _agreed,
+      agreementHint: _agreementHint,
+      nudges: _nudges,
+      onAgreedChanged: _setAgreed,
+    );
+    return Scaffold(
+      body: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          if (constraints.maxWidth >= _splitMinWidth) {
+            return _WideLayout(shareLink: _shareLink, panel: panel);
+          }
+          return _NarrowLayout(shareLink: _shareLink, panel: panel);
         },
       ),
     );
@@ -136,12 +94,6 @@ class _LoginPageState extends State<LoginPage> {
     ).push(MaterialPageRoute<void>(builder: (_) => const AdminLoginPage()));
   }
 
-  void _openTerms() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute<void>(builder: (_) => const _LoginTermsRoute()));
-  }
-
   void _setAgreed(bool value) {
     setState(() {
       _agreed = value;
@@ -151,7 +103,10 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (!_agreed) {
-      setState(() => _agreementHint = true);
+      setState(() {
+        _agreementHint = true;
+        _nudges++;
+      });
       return;
     }
     final AppLocalizations l10n = AppLocalizations.of(context)!;
@@ -163,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       // Opened from a shared link: unified auth returns to that link, and the
       // shell opens it once signed in.
-      final ShareLink? link = currentShareLink();
+      final ShareLink? link = _shareLink;
       final XidianAuthSessionResult session = await AppRepositories.auth
           .createXidianAuthSession(
             platform: 'web',
@@ -242,64 +197,374 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-class _LoginManifesto extends StatelessWidget {
-  const _LoginManifesto({required this.locale});
+/// 知 in the display face, large and faint behind the brand.
+class _Watermark extends StatelessWidget {
+  const _Watermark({required this.size});
 
-  final Locale locale;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: Text(
+          '知',
+          style: TextStyle(
+            fontFamily: ZxFonts.display,
+            fontFamilyFallback: ZxFonts.displayFallback,
+            fontSize: size,
+            height: 1,
+            color: t.primary.withValues(alpha: 0.06),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Wordmark extends StatelessWidget {
+  const _Wordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        const ZxAvatar.anonymous(name: '知', size: 40),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              uiText(context, zh: '西电知行', en: 'Xidian Zhixing'),
+              style: ZxType.headline.copyWith(
+                fontSize: 19,
+                height: 1.2,
+                color: t.text,
+              ),
+            ),
+            Text(
+              'XIDIAN ZHIXING',
+              style: ZxType.micro.copyWith(
+                color: t.text3,
+                letterSpacing: 1.4,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// 中文 / English.
+class _LanguageSwitch extends StatelessWidget {
+  const _LanguageSwitch();
+
+  @override
+  Widget build(BuildContext context) {
+    final bool english = Localizations.localeOf(context).languageCode == 'en';
+    return SegmentedButton<bool>(
+      key: const Key('login-language'),
+      showSelectedIcon: false,
+      style: const ButtonStyle(visualDensity: VisualDensity.compact),
+      segments: const <ButtonSegment<bool>>[
+        ButtonSegment<bool>(value: false, label: Text('中文')),
+        ButtonSegment<bool>(value: true, label: Text('English')),
+      ],
+      selected: <bool>{english},
+      onSelectionChanged: (Set<bool> value) =>
+          AppLocaleStore.instance.setLocale(
+            value.first ? const Locale('en') : const Locale('zh', 'CN'),
+          ),
+    );
+  }
+}
+
+/// 登录后将打开分享的帖子 / 主页. The title is not fetched: signed-out
+/// requests cannot read the post.
+class _ShareCard extends StatelessWidget {
+  const _ShareCard({required this.link});
+
+  final ShareLink link;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Container(
+      key: const Key('login-share-card'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: t.surface,
+        borderRadius: ZxRadius.cardAll,
+        border: Border.all(color: t.primary.withValues(alpha: 0.28)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: t.primarySoft,
+              borderRadius: ZxRadius.smallButtonAll,
+            ),
+            child: Icon(Icons.link_rounded, size: 18, color: t.primary),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              link.kind == ShareLinkKind.post
+                  ? uiText(
+                      context,
+                      zh: '登录后将打开分享的帖子',
+                      en: 'The shared post opens after you sign in',
+                    )
+                  : uiText(
+                      context,
+                      zh: '登录后将打开分享的主页',
+                      en: 'The shared profile opens after you sign in',
+                    ),
+              style: ZxType.label.copyWith(color: t.text),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WideLayout extends StatelessWidget {
+  const _WideLayout({required this.shareLink, required this.panel});
+
+  final ShareLink? shareLink;
+  final Widget panel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors colors = EditorialColors.of(context);
-    return ColoredBox(
-      color: colors.darkPanel,
+    return Row(
+      children: <Widget>[
+        Expanded(
+          flex: 11,
+          child: ZxHeroWash(
+            child: ClipRect(
+              child: Stack(
+                children: <Widget>[
+                  const Positioned(
+                    right: -40,
+                    bottom: -90,
+                    child: _Watermark(size: 460),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(64, 48, 48, 48),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const _Wordmark(),
+                        const Spacer(),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 520),
+                          child: Text(
+                            // Break after 的, as set in the handoff.
+                            Localizations.localeOf(context).languageCode == 'zh'
+                                ? l10n.tagline.replaceFirst('的', '的\n')
+                                : l10n.tagline,
+                            style: ZxType.display.copyWith(
+                              fontSize: 54,
+                              height: 1.3,
+                              color: t.text,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          uiText(
+                            context,
+                            zh: '西安电子科技大学校园社区',
+                            en: 'The Xidian University campus community',
+                          ),
+                          style: ZxType.body.copyWith(color: t.text2),
+                        ),
+                        const Spacer(flex: 2),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 9,
+          child: ColoredBox(
+            color: t.bg,
+            child: SafeArea(
+              child: Column(
+                children: <Widget>[
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: _LanguageSwitch(),
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(32),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 420),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              if (shareLink != null) ...<Widget>[
+                                _ShareCard(link: shareLink!),
+                                const SizedBox(height: 16),
+                              ],
+                              ZxCard(
+                                padding: const EdgeInsets.all(28),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: <Widget>[
+                                    Text(
+                                      uiText(
+                                        context,
+                                        zh: '登录西电知行',
+                                        en: 'Sign in to Xidian Zhixing',
+                                      ),
+                                      style: ZxType.headline.copyWith(
+                                        color: t.text,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      uiText(
+                                        context,
+                                        zh: '使用西电统一身份认证账号登录',
+                                        en: 'Sign in with your Xidian unified account',
+                                      ),
+                                      style: ZxType.body.copyWith(
+                                        color: t.text2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    panel,
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const _FooterLinks(),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NarrowLayout extends StatelessWidget {
+  const _NarrowLayout({required this.shareLink, required this.panel});
+
+  final ShareLink? shareLink;
+  final Widget panel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final AppLocalizations l10n = AppLocalizations.of(context)!;
+    return ZxHeroWash(
       child: Stack(
         children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(56, 40, 56, 48),
+          const Positioned(right: -70, top: 120, child: _Watermark(size: 340)),
+          SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const _Wordmark(onDark: true),
-                const Spacer(),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 660),
-                  child: Text(
-                    l10n.tagline,
-                    style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: colors.onDarkPanel,
-                      fontSize: locale.languageCode == 'en' ? 66 : 74,
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      const Align(
+                        alignment: Alignment.centerRight,
+                        child: _LanguageSwitch(),
+                      ),
+                      if (shareLink != null) ...<Widget>[
+                        const SizedBox(height: 12),
+                        _ShareCard(link: shareLink!),
+                      ],
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const ZxAvatar.anonymous(name: '知', size: 76),
+                          const SizedBox(height: 16),
+                          Text(
+                            uiText(context, zh: '西电知行', en: 'Xidian Zhixing'),
+                            style: ZxType.display.copyWith(color: t.text),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'XIDIAN ZHIXING',
+                            style: ZxType.micro.copyWith(
+                              color: t.text3,
+                              letterSpacing: 2,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            l10n.tagline,
+                            textAlign: TextAlign.center,
+                            style: ZxType.body.copyWith(color: t.text2),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.lg),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Text(
-                    l10n.taglineSupporting,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: colors.onDarkPanel.withValues(alpha: 0.76),
-                      height: 1.7,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
+                  decoration: BoxDecoration(
+                    color: t.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(ZxRadius.sheet),
+                    ),
+                    border: Border(top: BorderSide(color: t.line)),
+                    boxShadow: t.shadow2,
+                  ),
+                  child: SafeArea(
+                    top: false,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 440),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[panel],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: _ManifestoNote(
-                        title: l10n.readFirst,
-                        description: l10n.readFirstDescription,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: _ManifestoNote(
-                        title: l10n.crossScreen,
-                        description: l10n.crossScreenDescription,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -310,185 +575,111 @@ class _LoginManifesto extends StatelessWidget {
   }
 }
 
-class _ManifestoNote extends StatelessWidget {
-  const _ManifestoNote({required this.title, required this.description});
-
-  final String title;
-  final String description;
-
-  @override
-  Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Container(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: colors.onDarkPanel.withValues(alpha: 0.32)),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleSmall?.copyWith(color: colors.onDarkPanel),
-          ),
-          const SizedBox(height: AppSpacing.xxs),
-          Text(
-            description,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: colors.onDarkPanel.withValues(alpha: 0.66),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LoginForm extends StatelessWidget {
-  const _LoginForm({
-    this.showLanguage = true,
+/// The sign-in button, its note, errors, the consent row and, where the
+/// bundle carries it, the admin entry.
+class _SignInPanel extends StatelessWidget {
+  const _SignInPanel({
     required this.isBusy,
     required this.errorText,
     required this.onLogin,
     required this.onAdminLogin,
-    required this.onTerms,
     required this.agreed,
     required this.agreementHint,
+    required this.nudges,
     required this.onAgreedChanged,
   });
 
-  final bool showLanguage;
   final bool isBusy;
   final String? errorText;
   final VoidCallback onLogin;
   final VoidCallback onAdminLogin;
-  final VoidCallback onTerms;
   final bool agreed;
 
   /// Shown after a sign-in attempt without consent.
   final bool agreementHint;
+  final int nudges;
   final ValueChanged<bool> onAgreedChanged;
 
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
     final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors colors = EditorialColors.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xxl,
-        vertical: 38,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              if (showLanguage) ...<Widget>[
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      LanguageToggle(
-                        locale: locale,
-                        onChanged: AppLocaleStore.instance.setLocale,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 72),
-              ] else
-                const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.welcomeBack,
-                style: Theme.of(context).textTheme.displaySmall,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                l10n.loginDescription,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyLarge?.copyWith(color: colors.mutedInk),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              const SizedBox(key: Key('official-auth-notice'), height: 0),
-              if (errorText != null) ...<Widget>[
-                const SizedBox(height: AppSpacing.sm),
-                AppInlineMessage(
-                  key: const Key('login-error'),
-                  message: errorText!,
-                  tone: AppMessageTone.error,
-                ),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              _AgreementRow(
-                agreed: agreed,
-                showHint: agreementHint,
-                onChanged: onAgreedChanged,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              FilledButton(
-                key: const Key('login-submit'),
-                onPressed: isBusy ? null : onLogin,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    if (isBusy) ...<Widget>[
-                      const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Text(isBusy ? l10n.loggingIn : l10n.loginButton),
-                    if (!isBusy) ...<Widget>[
-                      const SizedBox(width: AppSpacing.xs),
-                      const Icon(Icons.open_in_new, size: 18),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              // Only the separate admin bundle carries the backoffice; see
-              // AppConfig.adminConsoleEnabled.
-              if (AppConfig.adminConsoleEnabled)
-                TextButton(
-                  onPressed: isBusy ? null : onAdminLogin,
-                  child: Text(l10n.adminLogin),
-                ),
-              TextButton(onPressed: onTerms, child: Text(l10n.agreements)),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        const SizedBox(key: Key('official-auth-notice'), height: 0),
+        if (errorText != null) ...<Widget>[
+          ZxInlineMessage(
+            key: const Key('login-error'),
+            message: errorText!,
+            tone: ZxMessageTone.danger,
           ),
+          const SizedBox(height: 12),
+        ],
+        ZxButton(
+          key: const Key('login-submit'),
+          label: isBusy
+              ? l10n.loggingIn
+              : uiText(context, zh: '西电统一身份认证登录', en: 'Sign in with Xidian'),
+          icon: Icons.badge_outlined,
+          loading: isBusy,
+          expand: true,
+          onPressed: isBusy ? null : onLogin,
         ),
-      ),
+        const SizedBox(height: 10),
+        Text(
+          uiText(
+            context,
+            zh: '将跳转到学校统一身份认证页面，用学号和密码登录',
+            en: 'You will continue to Xidian’s sign-in page and use your student ID and password.',
+          ),
+          textAlign: TextAlign.center,
+          style: ZxType.caption.copyWith(color: t.text3),
+        ),
+        const SizedBox(height: 14),
+        Divider(height: 1, color: t.line),
+        const SizedBox(height: 12),
+        _AgreementRow(
+          agreed: agreed,
+          showHint: agreementHint,
+          nudges: nudges,
+          onChanged: onAgreedChanged,
+        ),
+        // Only the separate admin bundle carries the backoffice; see
+        // AppConfig.adminConsoleEnabled.
+        if (AppConfig.adminConsoleEnabled) ...<Widget>[
+          const SizedBox(height: 8),
+          Center(
+            child: TextButton(
+              onPressed: isBusy ? null : onAdminLogin,
+              child: Text(l10n.adminLogin),
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
 
 /// 我已阅读并同意《用户协议》和《隐私政策》. The links open the documents
-/// without toggling the checkbox.
+/// without toggling the checkbox. Signing in without consent raises a
+/// bubble above it, outlines it in danger and shakes it once.
 class _AgreementRow extends StatelessWidget {
   const _AgreementRow({
     required this.agreed,
     required this.showHint,
+    required this.nudges,
     required this.onChanged,
   });
 
   final bool agreed;
   final bool showHint;
+  final int nudges;
   final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final Color danger = theme.colorScheme.error;
+    final ZxTokens t = ZxTokens.of(context);
     void open(Widget page) => Navigator.of(
       context,
     ).push(MaterialPageRoute<void>(builder: (_) => page));
@@ -496,95 +687,93 @@ class _AgreementRow extends StatelessWidget {
       onTap: () => open(page),
       child: Text(
         uiText(context, zh: zh, en: en),
-        style: TextStyle(
-          color: theme.colorScheme.primary,
+        style: ZxType.caption.copyWith(
+          fontSize: 13,
+          color: t.primary,
           fontWeight: FontWeight.w600,
         ),
       ),
+    );
+    final TextStyle plain = ZxType.caption.copyWith(
+      fontSize: 13,
+      color: t.text2,
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         if (showHint)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+          Container(
+            key: const Key('login-agreement-hint'),
+            margin: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: t.raised,
+              borderRadius: ZxRadius.badgeAll,
+              border: Border.all(color: t.line),
+              boxShadow: t.shadow1,
+            ),
             child: Text(
               uiText(
                 context,
                 zh: '请先阅读并同意用户协议和隐私政策',
                 en: 'Please read and accept the Terms and Privacy Policy first',
               ),
-              key: const Key('login-agreement-hint'),
-              style: TextStyle(color: danger, fontSize: 13),
-            ),
-          ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Checkbox(
-              key: const Key('login-agreement'),
-              value: agreed,
-              onChanged: (bool? value) => onChanged(value ?? false),
-              side: BorderSide(
-                color: showHint ? danger : theme.colorScheme.outline,
-                width: 1.5,
+              style: ZxType.caption.copyWith(
+                color: t.text,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            Expanded(
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: () => onChanged(!agreed),
-                    child: Text(
-                      uiText(context, zh: '我已阅读并同意', en: 'I have read and accept the '),
-                    ),
+          ),
+        TweenAnimationBuilder<double>(
+          key: ValueKey<int>(nudges),
+          tween: Tween<double>(begin: nudges == 0 ? 1 : 0, end: 1),
+          duration: const Duration(milliseconds: 420),
+          builder: (BuildContext context, double v, Widget? child) =>
+              Transform.translate(
+                offset: Offset(math.sin(v * math.pi * 4) * 5 * (1 - v), 0),
+                child: child,
+              ),
+          child: Row(
+            children: <Widget>[
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: Checkbox(
+                  key: const Key('login-agreement'),
+                  value: agreed,
+                  onChanged: (bool? value) => onChanged(value ?? false),
+                  side: BorderSide(
+                    color: showHint ? t.danger : t.lineStrong,
+                    width: 1.5,
                   ),
-                  link('《用户协议》', 'Terms', const TermsOfServicePage()),
-                  Text(uiText(context, zh: '和', en: ' and ')),
-                  link('《隐私政策》', 'Privacy Policy', const PrivacyPolicyPage()),
-                ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _CompactBrandHeader extends StatelessWidget {
-  const _CompactBrandHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    final EditorialColors colors = EditorialColors.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            const _Wordmark(),
-            const Spacer(),
-            LanguageToggle(
-              locale: locale,
-              onChanged: AppLocaleStore.instance.setLocale,
-              compact: true,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          color: colors.darkPanel,
-          child: Text(
-            l10n.tagline,
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-              color: colors.onDarkPanel,
-              fontSize: locale.languageCode == 'en' ? 38 : 42,
-            ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: () => onChanged(!agreed),
+                      child: Text(
+                        uiText(
+                          context,
+                          zh: '我已阅读并同意',
+                          en: 'I have read and accept the ',
+                        ),
+                        style: plain,
+                      ),
+                    ),
+                    link('《用户协议》', 'Terms', const TermsOfServicePage()),
+                    Text(
+                      uiText(context, zh: '和', en: ' and '),
+                      style: plain,
+                    ),
+                    link('《隐私政策》', 'Privacy Policy', const PrivacyPolicyPage()),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -592,94 +781,32 @@ class _CompactBrandHeader extends StatelessWidget {
   }
 }
 
-class _Wordmark extends StatelessWidget {
-  const _Wordmark({this.onDark = false});
-
-  final bool onDark;
+class _FooterLinks extends StatelessWidget {
+  const _FooterLinks();
 
   @override
   Widget build(BuildContext context) {
-    final EditorialColors colors = EditorialColors.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: <Widget>[
-        Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
-          color: colors.primary,
-          child: Text(
-            '知',
-            style: AppTypography.accentStyle(
-              const Locale('zh', 'CN'),
-              fontSize: 17,
-              color: colors.page,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Text(
-          AppLocalizations.of(context)!.appTitle,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: onDark ? colors.onDarkPanel : colors.ink,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _LoginTermsRoute extends StatelessWidget {
-  const _LoginTermsRoute();
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.agreements)),
-      body: ListView(
-        children: <Widget>[
-          ListTile(
-            leading: const Icon(Icons.description_outlined),
-            title: Text(uiText(context, zh: '用户协议', en: 'Terms of Service')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const TermsOfServicePage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined),
-            title: Text(uiText(context, zh: '隐私政策', en: 'Privacy Policy')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const PrivacyPolicyPage(),
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.gavel_outlined),
-            title: Text(
-              uiText(context, zh: '社区规范', en: 'Community Guidelines'),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const CommunityGuidelinesPage(),
-                ),
-              );
-            },
-          ),
-        ],
+    final ZxTokens t = ZxTokens.of(context);
+    Widget link(String zh, String en, Widget page) => TextButton(
+      onPressed: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => page)),
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        foregroundColor: t.text2,
       ),
+      child: Text(
+        uiText(context, zh: zh, en: en),
+        style: ZxType.caption,
+      ),
+    );
+    return Wrap(
+      alignment: WrapAlignment.center,
+      children: <Widget>[
+        link('用户协议', 'Terms', const TermsOfServicePage()),
+        link('隐私政策', 'Privacy', const PrivacyPolicyPage()),
+        link('社区规范', 'Guidelines', const CommunityGuidelinesPage()),
+      ],
     );
   }
 }
