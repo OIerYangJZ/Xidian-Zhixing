@@ -41,6 +41,14 @@ flutter:
   assets:
     - assets/design/paper_grain.png
   fonts:
+    # Web body text: a Noto Sans SC subset built by scripts/build_web_font.py
+    # (SIL OFL, see assets/fonts/ZxSans-OFL.txt).
+    - family: ZxSans
+      fonts:
+        - asset: assets/fonts/ZxSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ZxSans-SemiBold.ttf
+          weight: 600
     - family: STZhongsong
       fonts:
         - asset: assets/fonts/STZhongsong.ttf

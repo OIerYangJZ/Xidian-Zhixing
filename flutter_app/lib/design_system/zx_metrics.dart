@@ -35,8 +35,8 @@ abstract final class ZxSize {
 
 /// Font families. Body text uses the platform sans-serif on Android and the
 /// mini program. Flutter Web draws with CanvasKit and cannot reach system
-/// fonts, and production cannot fetch fallbacks from Google Fonts, so the web
-/// body family has to be bundled; until one is, web keeps the bundled serif.
+/// fonts, and production cannot fetch fallbacks from Google Fonts, so web
+/// bundles its own: ZxSans, a Noto Sans SC subset (scripts/build_web_font.py).
 abstract final class ZxFonts {
   /// Brand, page titles, empty states and quotes (a Songti subset).
   static const String display = 'STZhongsong';
@@ -46,12 +46,10 @@ abstract final class ZxFonts {
     'Noto Serif CJK SC',
   ];
 
-  /// Bundled web body family; null means "platform default".
-  static const String? _webBody = 'STSong';
+  /// Null means the platform default (Android, and anything not web).
+  static String? get body => kIsWeb ? 'ZxSans' : null;
 
-  static String? get body => kIsWeb ? _webBody : null;
-
-  static const List<String> bodyFallback = <String>[
+  static const List<String> _platformSans = <String>[
     'PingFang SC',
     'HarmonyOS Sans SC',
     'MiSans',
@@ -59,6 +57,11 @@ abstract final class ZxFonts {
     'Source Han Sans SC',
     'Microsoft YaHei',
   ];
+
+  /// On web, characters outside the ZxSans subset (rare hanzi in names and
+  /// user content) fall back to the full bundled STSong, never to a download.
+  static List<String> get bodyFallback =>
+      kIsWeb ? const <String>['STSong'] : _platformSans;
 }
 
 /// Type scale (§05): size / line height / weight. The design's 650 weight
