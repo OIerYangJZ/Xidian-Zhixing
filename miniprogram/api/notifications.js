@@ -20,8 +20,9 @@ export const getNotifications = async () => {
   };
 };
 
-export const markAllNotificationsRead = async () => {
-  const response = await request.post('/api/notifications/read-all', {});
+// Marks everything read, or only one category (see NOTIFICATION_CATEGORIES).
+export const markAllNotificationsRead = async (category) => {
+  const response = await request.post('/api/notifications/read-all', category ? { type: category } : {});
   const data = getData(response, {});
   if (data.ok !== true) {
     throw responseContractError('全部已读响应未确认成功');
@@ -32,4 +33,20 @@ export const markAllNotificationsRead = async () => {
 export const markNotificationRead = async (notificationId) => {
   const response = await request.get(`/api/notifications/${notificationId}/read`);
   return normalizeNotification(getData(response, {}));
+};
+
+// Filter categories, the same mapping as the server's notification_category:
+// unknown types and announcements count as system.
+export const NOTIFICATION_CATEGORIES = [
+  { key: 'comment', label: '评论' },
+  { key: 'reply', label: '回复' },
+  { key: 'like', label: '点赞' },
+  { key: 'favorite', label: '收藏' },
+  { key: 'report_result', label: '举报结果' },
+  { key: 'system', label: '系统' }
+];
+
+export const notificationCategory = (type) => {
+  const normalized = String(type || '').trim().toLowerCase();
+  return NOTIFICATION_CATEGORIES.some((c) => c.key === normalized) ? normalized : 'system';
 };

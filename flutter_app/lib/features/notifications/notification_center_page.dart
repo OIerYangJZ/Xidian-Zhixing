@@ -39,12 +39,14 @@ class _NotificationCenterPageState
   @override
   Widget build(BuildContext context) {
     final NotificationsState state = ref.watch(notificationsControllerProvider);
+    final List<NotificationItem> items = state.visibleItems;
     return Scaffold(
       appBar: AppBar(
         title: Text(uiText(context, zh: '通知中心', en: 'Notifications')),
         actions: <Widget>[
           IconButton(
-            onPressed: state.actionBusy || state.unreadCount == 0
+            // Scoped to the selected category, like the list.
+            onPressed: state.actionBusy || state.unreadIn(state.category) == 0
                 ? null
                 : () => ref
                       .read(notificationsControllerProvider.notifier)
@@ -68,17 +70,34 @@ class _NotificationCenterPageState
         error: state.error,
         onRetry: () =>
             ref.read(notificationsControllerProvider.notifier).loadInitial(),
-        child: state.items.isEmpty
+        child: Column(
+          children: <Widget>[
+            _CategoryBar(state: state, labelFor: _categoryLabel),
+            Expanded(child: _buildList(state, items)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList(NotificationsState state, List<NotificationItem> items) {
+    return items.isEmpty
             ? ListView(
                 children: <Widget>[
                   const SizedBox(height: 120),
                   Center(
                     child: Text(
-                      uiText(
-                        context,
-                        zh: '暂时没有新的通知。',
-                        en: 'No new notifications.',
-                      ),
+                      state.category == null
+                          ? uiText(
+                              context,
+                              zh: '暂时没有新的通知。',
+                              en: 'No new notifications.',
+                            )
+                          : uiText(
+                              context,
+                              zh: '这一类还没有通知。',
+                              en: 'Nothing in this category yet.',
+                            ),
                     ),
                   ),
                 ],
@@ -90,7 +109,7 @@ class _NotificationCenterPageState
                 child: ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemBuilder: (BuildContext context, int index) {
-                    final NotificationItem item = state.items[index];
+                    final NotificationItem item = items[index];
                     return InkWell(
                       borderRadius: BorderRadius.circular(16),
                       onTap: () => _openNotification(item),
@@ -193,11 +212,9 @@ class _NotificationCenterPageState
                     );
                   },
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemCount: state.items.length,
+                  itemCount: items.length,
                 ),
-              ),
-      ),
-    );
+              );
   }
 
   Future<void> _openNotification(NotificationItem item) async {
@@ -205,7 +222,7 @@ class _NotificationCenterPageState
     if (!mounted) {
       return;
     }
-    if (item.relatedType == 'post' && item.postId.trim().isNotEmpty) {
+    if (item.opensPost) {
       await _openPost(item.postId);
       return;
     }
@@ -322,6 +339,25 @@ class _NotificationCenterPageState
     }
   }
 
+  String _categoryLabel(BuildContext context, String? category) {
+    switch (category) {
+      case null:
+        return uiText(context, zh: '全部', en: 'All');
+      case 'comment':
+        return uiText(context, zh: '评论', en: 'Comments');
+      case 'reply':
+        return uiText(context, zh: '回复', en: 'Replies');
+      case 'like':
+        return uiText(context, zh: '点赞', en: 'Likes');
+      case 'favorite':
+        return uiText(context, zh: '收藏', en: 'Saves');
+      case 'report_result':
+        return uiText(context, zh: '举报结果', en: 'Reports');
+      default:
+        return uiText(context, zh: '系统', en: 'System');
+    }
+  }
+
   String _labelForType(BuildContext context, String type) {
     switch (type) {
       case 'comment':
@@ -338,5 +374,54 @@ class _NotificationCenterPageState
       default:
         return uiText(context, zh: '系统公告', en: 'System announcement');
     }
+  }
+}
+
+/// Category chips with each category's unread count.
+class _CategoryBar extends ConsumerWidget {
+  const _CategoryBar({required this.state, required this.labelFor});
+
+  final NotificationsState state;
+  final String Function(BuildContext, String?) labelFor;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      child: Row(
+        children: <Widget>[
+          for (final String? category in <String?>[
+            null,
+            ...notificationCategories,
+          ])
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                selected: state.category == category,
+                onSelected: (_) => ref
+                    .read(notificationsControllerProvider.notifier)
+                    .selectCategory(category),
+                label: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(labelFor(context, category)),
+                    if (state.unreadIn(category) > 0) ...<Widget>[
+                      const SizedBox(width: 6),
+                      Badge(
+                        label: Text(
+                          state.unreadIn(category) > 99
+                              ? '99+'
+                              : '${state.unreadIn(category)}',
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

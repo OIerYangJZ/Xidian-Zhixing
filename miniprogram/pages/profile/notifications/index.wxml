@@ -1,4 +1,9 @@
 <view class="page notification-page {{themeClass}}">
+  <scroll-view class="tabs" scroll-x wx:if="{{items.length}}">
+    <view class="tab {{category === item.key ? 'tab-active' : ''}}" wx:for="{{tabs}}" wx:key="key" data-key="{{item.key}}" bindtap="selectCategory">
+      {{item.label}}<text class="tab-count" wx:if="{{item.unread}}">{{item.unread > 99 ? '99+' : item.unread}}</text>
+    </view>
+  </scroll-view>
   <view class="head" wx:if="{{items.length}}">
     <view class="count">{{unreadCount}} 条未读</view>
     <view class="read-all" bindtap="markAllRead">全部已读</view>
@@ -10,8 +15,9 @@
     <button bindtap="retryLoad">重新加载</button>
   </view>
   <view wx:elif="{{!items.length}}" class="empty">暂无通知</view>
+  <view wx:elif="{{!visibleItems.length}}" class="empty">这一类还没有通知</view>
   <view wx:else>
-    <view class="notice {{item.isRead ? 'read' : ''}}" wx:for="{{items}}" wx:key="id" data-index="{{index}}" bindtap="openItem">
+    <view class="notice {{item.isRead ? 'read' : ''}}" wx:for="{{visibleItems}}" wx:key="id" data-index="{{item.sourceIndex}}" bindtap="openItem">
       <view class="dot" wx:if="{{!item.isRead}}"></view>
       <view class="notice-body">
         <view class="notice-title">{{item.title}}</view>

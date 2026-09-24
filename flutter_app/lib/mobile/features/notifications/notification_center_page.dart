@@ -57,7 +57,8 @@ class _NotificationCenterPageState
         backgroundColor: colors.surface,
         title: const Text('通知中心'),
         actions: [
-          if (state.unreadCount > 0)
+          // Scoped to the selected category, like the list.
+          if (state.unreadIn(state.category) > 0)
             TextButton(
               onPressed: state.actionBusy ? null : _markAllRead,
               child: state.actionBusy
@@ -76,7 +77,53 @@ class _NotificationCenterPageState
           ? _buildErrorState(state.error!)
           : state.items.isEmpty
           ? _buildEmptyState()
-          : _buildNotificationList(state.items),
+          : Column(
+              children: [
+                _buildCategoryBar(state),
+                Expanded(
+                  child: state.visibleItems.isEmpty
+                      ? _buildEmptyState(filtered: true)
+                      : _buildNotificationList(state.visibleItems),
+                ),
+              ],
+            ),
+    );
+  }
+
+  static const Map<String, String> _categoryLabels = <String, String>{
+    'comment': '评论',
+    'reply': '回复',
+    'like': '点赞',
+    'favorite': '收藏',
+    'report_result': '举报结果',
+    'system': '系统',
+  };
+
+  Widget _buildCategoryBar(NotificationsState state) {
+    final controller = ref.read(notificationsControllerProvider.notifier);
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      child: Row(
+        children: [
+          for (final String? category in <String?>[
+            null,
+            ...notificationCategories,
+          ])
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                selected: state.category == category,
+                onSelected: (_) => controller.selectCategory(category),
+                label: Text(
+                  state.unreadIn(category) > 0
+                      ? '${category == null ? '全部' : _categoryLabels[category]} ${state.unreadIn(category) > 99 ? '99+' : state.unreadIn(category)}'
+                      : (category == null ? '全部' : _categoryLabels[category]!),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
@@ -100,7 +147,7 @@ class _NotificationCenterPageState
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState({bool filtered = false}) {
     final colors = MobileColors.of(context);
     return Center(
       child: Column(
@@ -109,7 +156,7 @@ class _NotificationCenterPageState
           Icon(Icons.notifications_none, size: 64, color: colors.textTertiary),
           const SizedBox(height: 16),
           Text(
-            '暂无通知',
+            filtered ? '这一类还没有通知' : '暂无通知',
             style: TextStyle(fontSize: 16, color: colors.textSecondary),
           ),
         ],
@@ -206,8 +253,19 @@ class _NotificationCenterPageState
     ref
         .read(notificationsControllerProvider.notifier)
         .markRead(notification.id);
-    if (notification.postId.isNotEmpty) {
-      context.push('/post/${notification.postId}');
+    if (notification.opensPost) {
+      // A reply or comment points at the comment; open the post at it.
+      final bool atComment =
+          notification.relatedType.trim().toLowerCase() == 'comment' &&
+          notification.relatedId.trim().isNotEmpty;
+      context.push(
+        Uri(
+          path: '/post/${notification.postId}',
+          queryParameters: atComment
+              ? <String, String>{'commentId': notification.relatedId}
+              : null,
+        ).toString(),
+      );
     }
   }
 }

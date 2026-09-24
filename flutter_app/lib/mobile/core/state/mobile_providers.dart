@@ -15,7 +15,7 @@ export 'package:xdu_treehole_web/features/search/search_controller.dart';
 export 'package:xdu_treehole_web/features/messages/messages_controller.dart'
     show messagesControllerProvider;
 export 'package:xdu_treehole_web/features/notifications/notifications_controller.dart'
-    show notificationsControllerProvider;
+    show NotificationsState, notificationsControllerProvider;
 
 /// Mobile-only Providers
 

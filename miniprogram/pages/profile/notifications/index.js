@@ -1,4 +1,10 @@
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../../../api/notifications';
+import {
+  NOTIFICATION_CATEGORIES,
+  getNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  notificationCategory
+} from '../../../api/notifications';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
@@ -6,8 +12,33 @@ Page({
   data: {
     loading: true,
     items: [],
+    // items filtered to the selected category ('' is all)
+    visibleItems: [],
+    category: '',
+    tabs: [],
     unreadCount: 0,
     errorMessage: ''
+  },
+
+  // Rebuilds the tab counts and the filtered list from items.
+  applyFilter(items = this.data.items, category = this.data.category) {
+    const unread = (key) => items.filter((item) => !item.isRead
+      && (!key || notificationCategory(item.type) === key)).length;
+    const tabs = [{ key: '', label: '全部' }, ...NOTIFICATION_CATEGORIES]
+      .map((tab) => ({ ...tab, unread: unread(tab.key) }));
+    this.setData({
+      items,
+      category,
+      tabs,
+      unreadCount: unread(category),
+      visibleItems: items
+        .map((item, index) => ({ ...item, sourceIndex: index }))
+        .filter((item) => !category || notificationCategory(item.type) === category)
+    });
+  },
+
+  selectCategory(event) {
+    this.applyFilter(this.data.items, event.currentTarget.dataset.key || '');
   },
 
   onShow() {
@@ -25,7 +56,8 @@ Page({
     this.setData({ loading: true, errorMessage: '' });
     try {
       const data = await getNotifications();
-      this.setData({ items: data.items, unreadCount: data.unreadCount, loading: false });
+      this.setData({ loading: false });
+      this.applyFilter(data.items);
     } catch (error) {
       this.setData({
         loading: false,
@@ -40,15 +72,22 @@ Page({
     this.loadData();
   },
 
+  // Scoped to the selected category, like the list.
   async markAllRead() {
+    const { category } = this.data;
     try {
-      await markAllNotificationsRead();
-      const items = this.data.items.map((item) => ({ ...item, isRead: true }));
-      this.setData({ items, unreadCount: 0 });
+      await markAllNotificationsRead(category || undefined);
+      const items = this.data.items.map((item) => (
+        !category || notificationCategory(item.type) === category
+          ? { ...item, isRead: true }
+          : item
+      ));
+      this.applyFilter(items);
     } catch (error) {}
   },
 
   async openItem(event) {
+    // data-index is the position in items, not in the filtered list.
     const index = Number(event.currentTarget.dataset.index);
     const item = this.data.items[index];
     if (!item) return;
@@ -60,7 +99,7 @@ Page({
       }
       const items = this.data.items.slice();
       items[index] = { ...item, isRead: true };
-      this.setData({ items, unreadCount: Math.max(0, this.data.unreadCount - 1) });
+      this.applyFilter(items);
     }
     const postId = item.postId || (item.relatedType === 'post' ? item.relatedId : '');
     const commentId = item.commentId || (item.relatedType === 'comment' ? item.relatedId : '');

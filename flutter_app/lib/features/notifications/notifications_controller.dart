@@ -10,6 +10,7 @@ class NotificationsState {
     this.loading = true,
     this.actionBusy = false,
     this.error,
+    this.category,
   });
 
   final List<NotificationItem> items;
@@ -17,8 +18,20 @@ class NotificationsState {
   final bool actionBusy;
   final String? error;
 
+  /// Selected filter; null shows every category.
+  final String? category;
+
   int get unreadCount =>
       items.where((NotificationItem item) => !item.isRead).length;
+
+  List<NotificationItem> get visibleItems => category == null
+      ? items
+      : items.where((NotificationItem item) => item.category == category).toList();
+
+  int unreadIn(String? category) => items
+      .where((NotificationItem item) =>
+          !item.isRead && (category == null || item.category == category))
+      .length;
 
   NotificationsState copyWith({
     List<NotificationItem>? items,
@@ -26,8 +39,11 @@ class NotificationsState {
     bool? actionBusy,
     String? error,
     bool clearError = false,
+    String? category,
+    bool clearCategory = false,
   }) {
     return NotificationsState(
+      category: clearCategory ? null : (category ?? this.category),
       items: items ?? this.items,
       loading: loading ?? this.loading,
       actionBusy: actionBusy ?? this.actionBusy,
@@ -79,20 +95,32 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     }
   }
 
+  void selectCategory(String? category) {
+    state = category == null
+        ? state.copyWith(clearCategory: true)
+        : state.copyWith(category: category);
+  }
+
+  /// Marks the selected category read, or everything when none is selected.
   Future<void> markAllRead() async {
-    if (state.actionBusy || state.unreadCount == 0) {
+    final String? category = state.category;
+    if (state.actionBusy || state.unreadIn(category) == 0) {
       return;
     }
     state = state.copyWith(actionBusy: true, clearError: true);
     final String now = DateTime.now().toIso8601String();
     final List<NotificationItem> optimistic = state.items
         .map((NotificationItem item) =>
-            item.isRead ? item : item.copyWith(isRead: true, readAt: now))
+            item.isRead || (category != null && item.category != category)
+                ? item
+                : item.copyWith(isRead: true, readAt: now))
         .toList();
     state =
         state.copyWith(items: optimistic, actionBusy: true, clearError: true);
     try {
-      await _ref.read(notificationRepositoryProvider).markAllRead();
+      await _ref
+          .read(notificationRepositoryProvider)
+          .markAllRead(category: category);
       state = state.copyWith(actionBusy: false, clearError: true);
     } catch (error) {
       state = state.copyWith(

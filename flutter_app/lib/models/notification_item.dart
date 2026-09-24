@@ -2,6 +2,16 @@ import 'package:flutter/widgets.dart';
 
 import '../core/l10n/ui_text.dart';
 
+/// Categories the notification center filters by, in display order.
+const List<String> notificationCategories = <String>[
+  'comment',
+  'reply',
+  'like',
+  'favorite',
+  'report_result',
+  'system',
+];
+
 class NotificationItem {
   NotificationItem({
     required this.id,
@@ -34,6 +44,20 @@ class NotificationItem {
   final String timeText;
   final bool isRead;
   final String readAt;
+
+  /// Filter category, the same mapping as the server's
+  /// notification_category: unknown types and announcements count as system.
+  String get category {
+    final String normalized = type.trim().toLowerCase();
+    return notificationCategories.contains(normalized) ? normalized : 'system';
+  }
+
+  /// Whether tapping should open [postId]: posts, and comments or replies on
+  /// one (a reply points at the new comment, not at the post).
+  bool get opensPost =>
+      postId.trim().isNotEmpty &&
+      const <String>{'post', 'comment'}
+          .contains(relatedType.trim().toLowerCase());
 
   String get displayTitle {
     final String normalizedType = type.trim().toLowerCase();

@@ -27,10 +27,11 @@ class NotificationRepository {
     return NotificationItem.fromJson(data);
   }
 
-  Future<void> markAllRead() {
+  /// Marks every notification read, or only those of [category].
+  Future<void> markAllRead({String? category}) {
     return _apiClient.post(
       ApiEndpoints.notificationsReadAll,
-      body: const <String, dynamic>{},
+      body: <String, dynamic>{if (category != null) 'type': category},
     );
   }
 }

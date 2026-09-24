@@ -62,3 +62,39 @@
   color: var(--app-text-secondary);
   font-size: 23rpx;
 }
+
+.tabs {
+  white-space: nowrap;
+  padding: 16rpx 24rpx 0;
+  box-sizing: border-box;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  height: 56rpx;
+  padding: 0 24rpx;
+  margin-right: 12rpx;
+  border-radius: 28rpx;
+  border: 2rpx solid var(--border-default);
+  color: var(--app-text-secondary);
+  font-size: 26rpx;
+}
+
+.tab-active {
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+  font-weight: 600;
+}
+
+.tab-count {
+  margin-left: 8rpx;
+  min-width: 32rpx;
+  padding: 0 8rpx;
+  border-radius: 16rpx;
+  background: var(--state-danger);
+  color: #ffffff;
+  font-size: 20rpx;
+  line-height: 32rpx;
+  text-align: center;
+}
