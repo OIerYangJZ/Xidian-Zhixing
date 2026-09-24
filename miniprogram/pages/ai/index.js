@@ -52,7 +52,7 @@ Page({
   async loadHistory() {
     const rows = (wx.getStorageSync('aiHistory') || []).slice(0, 5).map((item) => ({
       id: item.createdAt || item.question,
-      title: truncate(item.question, 28),
+      title: truncate(item.title || item.question, 28),
       date: formatTime(item.createdAt),
       question: item.question
     }));

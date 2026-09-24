@@ -1,11 +1,11 @@
 <view class="page history-page {{themeClass}}">
   <view class="head" wx:if="{{rows.length}}">
-    <view class="count">{{rows.length}} 条记录</view>
+    <view class="count">{{rows.length}} 条记录 · 长按可重命名或删除</view>
     <view class="clear" bindtap="clearHistory">清空</view>
   </view>
   <view wx:if="{{!rows.length}}" class="empty">暂无历史</view>
   <view wx:else>
-    <view class="history-card" wx:for="{{rows}}" wx:key="createdAt" data-question="{{item.question}}" bindtap="openChat">
+    <view class="history-card" wx:for="{{rows}}" wx:key="createdAt" data-question="{{item.question}}" data-created-at="{{item.createdAt}}" bindtap="openChat" bindlongpress="openActions">
       <view class="question">{{item.questionText}}</view>
       <view class="answer">{{item.answerText}}</view>
       <view class="time">{{item.timeText}}</view>
