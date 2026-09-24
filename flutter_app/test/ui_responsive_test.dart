@@ -15,6 +15,7 @@ import 'package:xdu_treehole_web/core/state/app_theme_store.dart';
 import 'package:xdu_treehole_web/core/theme/app_theme.dart';
 import 'package:xdu_treehole_web/core/theme/shared_colors.dart';
 import 'package:xdu_treehole_web/core/widgets/async_page_state.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:xdu_treehole_web/core/widgets/theme_dropdown.dart';
 import 'package:xdu_treehole_web/features/auth/login_page.dart';
 import 'package:xdu_treehole_web/features/common/access_state_page.dart';
@@ -342,17 +343,17 @@ void main() {
       );
       await tester.pump();
 
-      final Finder submit = find.byKey(const Key('create-post-submit'));
-      await tester.drag(
-        find.byKey(const Key('create-post-form-scroll')),
-        const Offset(0, -700),
-      );
+      // 发布 sits in the app bar, reachable without scrolling.
+      await tester.tap(find.byKey(const Key('create-post-submit')));
       await tester.pumpAndSettle();
-      await tester.tap(submit);
-      await tester.pump();
 
-      expect(find.text('请输入标题'), findsOneWidget);
+      // Every missing field is reported at once, with a summary on top.
+      expect(find.byKey(const Key('create-post-error-summary')), findsOneWidget);
+      expect(find.text('还有 3 项需要填写'), findsOneWidget);
+      expect(find.text('请填写标题'), findsOneWidget);
       expect(find.text('请输入正文'), findsOneWidget);
+      // No channel is picked for the user.
+      expect(find.text('请选择分区'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -371,10 +372,11 @@ void main() {
       );
       await tester.pump();
 
-      final FilledButton submit = tester.widget<FilledButton>(
+      final ZxButton submit = tester.widget<ZxButton>(
         find.byKey(const Key('create-post-submit')),
       );
       expect(submit.onPressed, isNull);
+      expect(submit.loading, isTrue);
       expect(find.text('发布中...'), findsWidgets);
     });
 

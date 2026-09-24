@@ -7,13 +7,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/l10n/ui_text.dart';
+import '../../design_system/design_system.dart';
 import '../../core/media/image_picker_adapter.dart';
 import '../../core/media/markdown_clipboard_image.dart';
 import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/widgets/async_page_state.dart';
-import '../../core/widgets/app_surfaces.dart';
 import '../../models/post_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
@@ -50,6 +49,32 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   bool _pastingMarkdownImages = false;
   MarkdownClipboardImageDetach? _detachMarkdownPasteListener;
   final List<PickedImageData> _pickedImages = <PickedImageData>[];
+  final List<String> _tags = <String>[];
+  final GlobalKey _titleFieldKey = GlobalKey();
+  final GlobalKey _contentFieldKey = GlobalKey();
+  final GlobalKey _channelFieldKey = GlobalKey();
+  Timer? _draftTimer;
+  DateTime? _draftSavedAt;
+
+  /// Set after a publish attempt, so errors show only once the user tried.
+  bool _showErrors = false;
+
+  /// Narrow Markdown layout: 编辑 or 预览.
+  bool _showPreview = false;
+
+  static const int _maxTags = 10;
+
+  /// Must match the server's PIN_DURATION_OPTIONS; it rejects anything else.
+  static const List<(int?, String, String)> _pinOptions =
+      <(int?, String, String)>[
+        (null, '不置顶', 'None'),
+        (30, '30 分钟', '30 min'),
+        (60, '1 小时', '1 h'),
+        (120, '2 小时', '2 h'),
+        (180, '3 小时', '3 h'),
+        (1440, '1 天', '1 day'),
+        (4320, '3 天', '3 days'),
+      ];
   final Map<String, String> _markdownImageUploadIdsByUrl = <String, String>{};
 
   @override
@@ -60,6 +85,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       onImagesPasted: _handleMarkdownImagesPasted,
     );
     unawaited(_loadDraft());
+    // Drafts save after each pause in typing, not only on leaving the page.
+    for (final TextEditingController controller in <TextEditingController>[
+      _titleController,
+      _contentController,
+      _anonymousAliasController,
+    ]) {
+      controller.addListener(_scheduleDraftSave);
+    }
     Future<void>.microtask(
       () => ref.read(createPostControllerProvider.notifier).loadChannels(),
     );
@@ -91,6 +124,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   @override
   void dispose() {
     _detachMarkdownPasteListener?.call();
+    _draftTimer?.cancel();
     _titleController.dispose();
     _contentController.dispose();
     _anonymousAliasController.dispose();
@@ -100,15 +134,23 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   @override
   Widget build(BuildContext context) {
-    final Locale locale = Localizations.localeOf(context);
+    final ZxTokens t = ZxTokens.of(context);
     final CreatePostState state = ref.watch(createPostControllerProvider);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
     final List<String> channels = state.channels;
-    final bool hasChannels = channels.isNotEmpty;
-    final String? selectedChannel = hasChannels
-        ? _deriveSelectedChannel(channels)
-        : null;
+    final String? selectedChannel = _validSelectedChannel(channels);
+    final bool wide = MediaQuery.sizeOf(context).width >= 1200;
+
+    final Widget editor = _buildEditor(context, t, isBusy, wide);
+    final Widget settings = _buildSettings(
+      context,
+      t,
+      state,
+      isBusy,
+      channels,
+      selectedChannel,
+    );
 
     return PopScope<Object?>(
       canPop: true,
@@ -119,557 +161,80 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(uiText(context, zh: '发布帖子', en: 'New post')),
-        ),
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: AppLayout.readingMaxWidth,
-            ),
-            child: AsyncPageState(
-              loading: state.loadingChannels,
-              loadingLabel: uiText(
-                context,
-                zh: '正在准备发布表单',
-                en: 'Preparing the compose form',
+          leading: IconButton(
+            tooltip: uiText(context, zh: '关闭', en: 'Close'),
+            icon: const Icon(Icons.close_rounded),
+            onPressed: state.submitting
+                ? null
+                : () => Navigator.of(context).maybePop(),
+          ),
+          title: Text(uiText(context, zh: '发布心声', en: 'New post')),
+          actions: <Widget>[
+            Center(
+              child: ZxButton(
+                label: uiText(context, zh: '清空草稿', en: 'Clear draft'),
+                variant: ZxButtonVariant.ghost,
+                small: true,
+                onPressed: isBusy ? null : _confirmClearDraft,
               ),
-              error: state.error,
-              onRetry: () => ref
-                  .read(createPostControllerProvider.notifier)
-                  .loadChannels(),
+            ),
+            const SizedBox(width: 6),
+            Center(
+              child: ZxButton(
+                key: const Key('create-post-submit'),
+                label: state.submitting
+                    ? uiText(context, zh: '发布中', en: 'Publishing')
+                    : uiText(context, zh: '发布', en: 'Publish'),
+                icon: Icons.send_rounded,
+                small: true,
+                loading: state.submitting,
+                onPressed: isBusy || state.loadingChannels
+                    ? null
+                    : () => _trySubmit(channels),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+        ),
+        body: ZxPaper(
+          child: AsyncPageState(
+            loading: state.loadingChannels,
+            loadingLabel: uiText(
+              context,
+              zh: '正在准备发布表单',
+              en: 'Preparing the compose form',
+            ),
+            error: state.error,
+            onRetry: () =>
+                ref.read(createPostControllerProvider.notifier).loadChannels(),
+            child: Form(
+              key: _formKey,
               child: ListView(
                 key: const Key('create-post-form-scroll'),
-                padding: AppLayout.pagePadding(context),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
                 children: <Widget>[
-                  if (isBusy)
-                    _ProgressCard(
-                      text: _pastingMarkdownImages
-                          ? uiText(
-                              context,
-                              zh: '上传粘贴图片中...',
-                              en: 'Uploading pasted images...',
-                            )
-                          : _pickingImages
-                          ? uiText(
-                              context,
-                              zh: '读取图片中...',
-                              en: 'Reading images...',
-                            )
-                          : (state.progressText ??
-                                uiText(
-                                  context,
-                                  zh: '提交中...',
-                                  en: 'Submitting...',
-                                )),
-                    ),
-                  if (isBusy) const SizedBox(height: AppSpacing.sm),
-                  AppSurfaceCard(
-                    padding: EdgeInsets.all(
-                      AppBreakpoints.isCompact(context)
-                          ? AppSpacing.md
-                          : AppSpacing.lg,
-                    ),
-                    child: Form(
-                      key: _formKey,
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: wide ? 1180 : 760),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
-                          AppSectionHeader(
-                            title: uiText(context, zh: '发布', en: 'New post'),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Shortcuts(
-                            shortcuts: const <ShortcutActivator, Intent>{
-                              SingleActivator(LogicalKeyboardKey.tab):
-                                  DoNothingAndStopPropagationIntent(),
-                              SingleActivator(
-                                LogicalKeyboardKey.tab,
-                                shift: true,
-                              ): DoNothingAndStopPropagationIntent(),
-                            },
-                            child: TextFormField(
-                              key: const Key('create-post-title'),
-                              controller: _titleController,
-                              maxLength: 60,
-                              decoration: InputDecoration(
-                                labelText: uiText(
-                                  context,
-                                  zh: '标题',
-                                  en: 'Title',
-                                ),
-                                hintText: uiText(
-                                  context,
-                                  zh: '一句话概括你的问题或诉求',
-                                  en: 'Sum up your question or request in one line',
-                                ),
-                              ),
-                              validator: (String? value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return uiTextFor(
-                                    locale,
-                                    zh: '请输入标题',
-                                    en: 'Please enter a title',
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          SwitchListTile(
-                            value: _useMarkdown,
-                            onChanged: isBusy ? null : _handleMarkdownToggle,
-                            title: Text(
-                              uiText(
-                                context,
-                                zh: '使用 Markdown 编辑',
-                                en: 'Compose in Markdown',
-                              ),
-                            ),
-                            subtitle: Text(
-                              uiText(
-                                context,
-                                zh: '开启后可编写 Markdown 源码，发出后按渲染效果展示',
-                                en: 'Write Markdown source; the post renders it once published',
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          const SizedBox(height: 6),
-                          TextFormField(
-                            key: ValueKey<String>(
-                              _useMarkdown
-                                  ? 'create-post-markdown-editor'
-                                  : 'create-post-plain-editor',
-                            ),
-                            controller: _contentController,
-                            focusNode: _contentFocusNode,
-                            keyboardType: TextInputType.multiline,
-                            textInputAction: TextInputAction.newline,
-                            minLines: 6,
-                            maxLines: 10,
-                            maxLength: _useMarkdown
-                                ? null
-                                : _plainTextMaxLength,
-                            maxLengthEnforcement: _useMarkdown
-                                ? null
-                                : MaxLengthEnforcement.enforced,
-                            autocorrect: !_useMarkdown,
-                            enableSuggestions: !_useMarkdown,
-                            enableIMEPersonalizedLearning: !_useMarkdown,
-                            smartDashesType: _useMarkdown
-                                ? SmartDashesType.disabled
-                                : SmartDashesType.enabled,
-                            smartQuotesType: _useMarkdown
-                                ? SmartQuotesType.disabled
-                                : SmartQuotesType.enabled,
-                            spellCheckConfiguration: _useMarkdown
-                                ? const SpellCheckConfiguration.disabled()
-                                : null,
-                            decoration: InputDecoration(
-                              alignLabelWithHint: true,
-                              labelText: _useMarkdown
-                                  ? uiText(
-                                      context,
-                                      zh: 'Markdown 源码',
-                                      en: 'Markdown source',
-                                    )
-                                  : uiText(context, zh: '正文', en: 'Body'),
-                              hintText: _useMarkdown
-                                  ? uiText(
-                                      context,
-                                      zh: '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```',
-                                      en: '# Heading\n- List item\n> Quote\n```dart\nprint("Hello");\n```',
-                                    )
-                                  : uiText(
-                                      context,
-                                      zh: '描述越完整，越容易获得帮助',
-                                      en: 'The more detail you give, the easier it is to help',
-                                    ),
-                              helperText: _useMarkdown
-                                  ? uiText(
-                                      context,
-                                      zh: '支持直接粘贴图片并自动插入链接。',
-                                      en: 'Paste images directly and insert their links automatically.',
-                                    )
-                                  : uiText(
-                                      context,
-                                      zh: '纯文本正文最多 3000 字。',
-                                      en: 'Plain text is limited to 3000 characters.',
-                                    ),
-                              helperMaxLines: 2,
-                            ),
-                            validator: (String? value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return uiTextFor(
-                                  locale,
-                                  zh: '请输入正文',
-                                  en: 'Please enter the body',
-                                );
-                              }
-                              if (!_useMarkdown &&
-                                  value.length > _plainTextMaxLength) {
-                                return uiTextFor(
-                                  locale,
-                                  zh: '纯文本正文最多 $_plainTextMaxLength 字',
-                                  en: 'Plain text is limited to $_plainTextMaxLength characters',
-                                );
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 4),
-                          EmojiAssistantBar(
-                            controller: _contentController,
-                            compact: true,
-                          ),
-                          if (_useMarkdown) ...<Widget>[
-                            const SizedBox(height: 10),
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.surface,
-                                borderRadius: BorderRadius.circular(14),
-                                border: Border.all(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .outlineVariant
-                                      .withValues(alpha: 0.6),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Text(
-                                    uiText(
-                                      context,
-                                      zh: '实时预览',
-                                      en: 'Live preview',
-                                    ),
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ValueListenableBuilder<TextEditingValue>(
-                                    valueListenable: _contentController,
-                                    builder:
-                                        (
-                                          BuildContext context,
-                                          TextEditingValue value,
-                                          Widget? child,
-                                        ) {
-                                          final String source = value.text
-                                              .trim();
-                                          if (source.isEmpty) {
-                                            return Text(
-                                              uiText(
-                                                context,
-                                                zh: '输入 Markdown 源码后，这里会显示渲染效果。',
-                                                en: 'Type Markdown source and the rendered result appears here.',
-                                              ),
-                                              style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.58),
-                                              ),
-                                            );
-                                          }
-                                          return PostContentBody(
-                                            content: '',
-                                            contentFormat: 'markdown',
-                                            markdownSource: source,
-                                            selectable: false,
-                                          );
-                                        },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 10),
-                          if (hasChannels)
-                            DropdownButtonFormField<String>(
-                              initialValue: selectedChannel,
-                              decoration: InputDecoration(
-                                labelText: uiText(
-                                  context,
-                                  zh: '频道',
-                                  en: 'Channel',
-                                ),
-                              ),
-                              items: channels
-                                  .map(
-                                    (String channel) =>
-                                        DropdownMenuItem<String>(
-                                          value: channel,
-                                          child: Text(
-                                            localizedChannel(locale, channel),
-                                          ),
-                                        ),
-                                  )
-                                  .toList(),
-                              onChanged: isBusy
-                                  ? null
-                                  : (String? value) {
-                                      if (value == null) {
-                                        return;
-                                      }
-                                      setState(() {
-                                        _selectedChannel = value;
-                                      });
-                                    },
+                          _buildStatusLine(context, t, state, isBusy),
+                          const SizedBox(height: 12),
+                          if (wide)
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Expanded(child: editor),
+                                const SizedBox(width: 20),
+                                SizedBox(width: 340, child: settings),
+                              ],
                             )
-                          else
-                            const _EmptyChannelCard(),
-                          const SizedBox(height: 10),
-                          DropdownButtonFormField<PostStatus>(
-                            initialValue: _status,
-                            decoration: InputDecoration(
-                              labelText: uiText(
-                                context,
-                                zh: '状态',
-                                en: 'Status',
-                              ),
-                            ),
-                            items: PostStatus.values
-                                .map(
-                                  (PostStatus status) =>
-                                      DropdownMenuItem<PostStatus>(
-                                        value: status,
-                                        child: Text(status.labelFor(locale)),
-                                      ),
-                                )
-                                .toList(),
-                            onChanged: isBusy
-                                ? null
-                                : (PostStatus? value) {
-                                    if (value == null) {
-                                      return;
-                                    }
-                                    setState(() {
-                                      _status = value;
-                                    });
-                                  },
-                          ),
-                          const SizedBox(height: 10),
-                          SwitchListTile(
-                            value: _useAnonymousAlias,
-                            onChanged: isBusy
-                                ? null
-                                : (bool value) {
-                                    setState(() {
-                                      _useAnonymousAlias = value;
-                                    });
-                                  },
-                            title: Text(
-                              uiText(
-                                context,
-                                zh: '本帖使用匿名身份',
-                                en: 'Post anonymously',
-                              ),
-                            ),
-                            subtitle: Text(
-                              uiText(
-                                context,
-                                zh: '仅影响当前帖子，不影响你的账号昵称',
-                                en: 'Affects this post only, not your account nickname',
-                              ),
-                            ),
-                            contentPadding: EdgeInsets.zero,
-                          ),
-                          if (_useAnonymousAlias) ...<Widget>[
-                            TextFormField(
-                              controller: _anonymousAliasController,
-                              decoration: InputDecoration(
-                                labelText: uiText(
-                                  context,
-                                  zh: '匿名昵称（可选）',
-                                  en: 'Anonymous nickname (optional)',
-                                ),
-                                hintText: uiText(
-                                  context,
-                                  zh: '例如：热心同学',
-                                  en: 'e.g. Helpful classmate',
-                                ),
-                                suffixIcon: TextButton.icon(
-                                  key: const Key('anonymous-alias-random'),
-                                  onPressed: _fillRandomAlias,
-                                  icon: const Icon(Icons.casino_outlined, size: 18),
-                                  label: Text(
-                                    uiText(context, zh: '随机', en: 'Random'),
-                                  ),
-                                ),
-                              ),
-                              validator: (String? value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return null;
-                                }
-                                if (value.trim().length > 24) {
-                                  return uiTextFor(
-                                    locale,
-                                    zh: '匿名昵称最长 24 个字符',
-                                    en: 'The anonymous nickname is limited to 24 characters',
-                                  );
-                                }
-                                return null;
-                              },
-                            ),
+                          else ...<Widget>[
+                            editor,
+                            const SizedBox(height: 16),
+                            settings,
                           ],
-                          const SizedBox(height: 8),
-                          DropdownButtonFormField<String>(
-                            initialValue: _privateOnly ? 'private' : 'public',
-                            decoration: InputDecoration(
-                              labelText: uiText(
-                                context,
-                                zh: '可见范围',
-                                en: 'Visibility',
-                              ),
-                            ),
-                            items: <DropdownMenuItem<String>>[
-                              DropdownMenuItem<String>(
-                                value: 'public',
-                                child: Text(
-                                  uiText(
-                                    context,
-                                    zh: '所有人可见',
-                                    en: 'Visible to everyone',
-                                  ),
-                                ),
-                              ),
-                              DropdownMenuItem<String>(
-                                value: 'private',
-                                child: Text(
-                                  uiText(
-                                    context,
-                                    zh: '仅自己可见',
-                                    en: 'Visible only to me',
-                                  ),
-                                ),
-                              ),
-                            ],
-                            onChanged: isBusy
-                                ? null
-                                : (String? value) {
-                                    setState(() {
-                                      _privateOnly = value == 'private';
-                                    });
-                                  },
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _privateOnly
-                                ? uiText(
-                                    context,
-                                    zh: '仅你自己能在“我的帖子”里看到这条内容。',
-                                    en: 'Only you can see this post, under “My posts”.',
-                                  )
-                                : uiText(
-                                    context,
-                                    zh: '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
-                                    en: 'On a public, non-anonymous post, others can message you directly if you allow messages from strangers.',
-                                  ),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: 0.58),
-                            ),
-                          ),
-                          const Divider(height: 28),
-                          Row(
-                            children: <Widget>[
-                              Text(
-                                uiText(
-                                  context,
-                                  zh: '图片（${_pickedImages.length}/9）',
-                                  en: 'Images (${_pickedImages.length}/9)',
-                                ),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const Spacer(),
-                              OutlinedButton.icon(
-                                onPressed: isBusy ? null : _pickImages,
-                                icon: const Icon(
-                                  Icons.add_photo_alternate_outlined,
-                                ),
-                                label: Text(
-                                  uiText(
-                                    context,
-                                    zh: '选择图片',
-                                    en: 'Choose images',
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          if (_pickedImages.isEmpty)
-                            Text(
-                              uiText(
-                                context,
-                                zh: '未选择图片。支持 jpg/png/webp/gif。',
-                                en: 'No images selected. jpg / png / webp / gif are supported.',
-                              ),
-                              style: TextStyle(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurface.withValues(alpha: 0.58),
-                              ),
-                            )
-                          else
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _pickedImages
-                                  .asMap()
-                                  .entries
-                                  .map(
-                                    (MapEntry<int, PickedImageData> entry) =>
-                                        _PickedImageCard(
-                                          image: entry.value,
-                                          onRemove: isBusy
-                                              ? null
-                                              : () {
-                                                  setState(() {
-                                                    _pickedImages.removeAt(
-                                                      entry.key,
-                                                    );
-                                                  });
-                                                },
-                                        ),
-                                  )
-                                  .toList(),
-                            ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              key: const Key('create-post-submit'),
-                              onPressed: isBusy || selectedChannel == null
-                                  ? null
-                                  : () => _submit(selectedChannel),
-                              icon: const Icon(Icons.send_rounded),
-                              label: Text(
-                                state.submitting
-                                    ? uiText(
-                                        context,
-                                        zh: '发布中...',
-                                        en: 'Publishing...',
-                                      )
-                                    : uiText(
-                                        context,
-                                        zh: '发布帖子',
-                                        en: 'Publish post',
-                                      ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -682,6 +247,687 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       ),
     );
   }
+
+  /// Draft state, the validation summary, or progress while submitting.
+  Widget _buildStatusLine(
+    BuildContext context,
+    ZxTokens t,
+    CreatePostState state,
+    bool isBusy,
+  ) {
+    if (isBusy) {
+      return ZxInlineMessage(
+        message: _pastingMarkdownImages
+            ? uiText(context, zh: '上传粘贴图片中…', en: 'Uploading pasted images…')
+            : _pickingImages
+            ? uiText(context, zh: '读取图片中…', en: 'Reading images…')
+            : (state.progressText ??
+                  uiText(context, zh: '发布中…', en: 'Publishing…')),
+      );
+    }
+    final List<GlobalKey> missing = _missingFields();
+    if (_showErrors && missing.isNotEmpty) {
+      return ZxInlineMessage(
+        key: const Key('create-post-error-summary'),
+        tone: ZxMessageTone.danger,
+        message: uiText(
+          context,
+          zh: '还有 ${missing.length} 项需要填写',
+          en: '${missing.length} field${missing.length == 1 ? '' : 's'} still need attention',
+        ),
+        actionLabel: uiText(context, zh: '点击定位', en: 'Show'),
+        onAction: () => _scrollTo(missing.first),
+      );
+    }
+    final DateTime? saved = _draftSavedAt;
+    return Row(
+      children: <Widget>[
+        Icon(Icons.cloud_done_outlined, size: 16, color: t.text3),
+        const SizedBox(width: 6),
+        Text(
+          saved == null
+              ? uiText(
+                  context,
+                  zh: '草稿会在输入停顿后自动保存',
+                  en: 'Drafts save when you pause typing',
+                )
+              : uiText(
+                  context,
+                  zh: '草稿已自动保存 · ${_clock(saved)}',
+                  en: 'Draft saved · ${_clock(saved)}',
+                ),
+          style: ZxType.caption.copyWith(color: t.text3),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEditor(
+    BuildContext context,
+    ZxTokens t,
+    bool isBusy,
+    bool wide,
+  ) {
+    final Locale locale = Localizations.localeOf(context);
+    final Widget source = TextFormField(
+      key: ValueKey<String>(
+        _useMarkdown
+            ? 'create-post-markdown-editor'
+            : 'create-post-plain-editor',
+      ),
+      controller: _contentController,
+      focusNode: _contentFocusNode,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      minLines: 10,
+      maxLines: 22,
+      maxLength: _useMarkdown ? null : _plainTextMaxLength,
+      maxLengthEnforcement: _useMarkdown ? null : MaxLengthEnforcement.enforced,
+      autocorrect: !_useMarkdown,
+      enableSuggestions: !_useMarkdown,
+      enableIMEPersonalizedLearning: !_useMarkdown,
+      smartDashesType: _useMarkdown
+          ? SmartDashesType.disabled
+          : SmartDashesType.enabled,
+      smartQuotesType: _useMarkdown
+          ? SmartQuotesType.disabled
+          : SmartQuotesType.enabled,
+      spellCheckConfiguration: _useMarkdown
+          ? const SpellCheckConfiguration.disabled()
+          : null,
+      // No monospace here: web cannot reach system fonts and bundles none,
+      // so a monospace family would fall back to the serif.
+      style: ZxType.body.copyWith(color: t.text),
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        fillColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        hintText: _useMarkdown
+            ? uiText(
+                context,
+                zh: '# 标题\n- 列表项\n> 引用\n```dart\nprint("Hello");\n```',
+                en: '# Heading\n- List item\n> Quote\n```dart\nprint("Hello");\n```',
+              )
+            : uiText(
+                context,
+                zh: '描述越完整，越容易获得帮助',
+                en: 'The more detail you give, the easier it is to help',
+              ),
+        helperText: _useMarkdown
+            ? uiText(
+                context,
+                zh: '支持直接粘贴图片并自动插入链接。',
+                en: 'Paste images directly and insert their links automatically.',
+              )
+            : null,
+      ),
+      validator: (String? value) {
+        if (value == null || value.trim().isEmpty) {
+          return uiTextFor(locale, zh: '请输入正文', en: 'Please enter the body');
+        }
+        if (!_useMarkdown && value.length > _plainTextMaxLength) {
+          return uiTextFor(
+            locale,
+            zh: '纯文本正文最多 $_plainTextMaxLength 字',
+            en: 'Plain text is limited to $_plainTextMaxLength characters',
+          );
+        }
+        return null;
+      },
+    );
+    final Widget preview = ValueListenableBuilder<TextEditingValue>(
+      valueListenable: _contentController,
+      builder: (BuildContext context, TextEditingValue value, Widget? child) {
+        final String markdown = value.text.trim();
+        if (markdown.isEmpty) {
+          return Text(
+            uiText(
+              context,
+              zh: '输入 Markdown 源码后，这里会显示渲染效果。',
+              en: 'Type Markdown and the rendered result appears here.',
+            ),
+            style: ZxType.body.copyWith(color: t.text3),
+          );
+        }
+        return PostContentBody(
+          content: '',
+          contentFormat: 'markdown',
+          markdownSource: markdown,
+          selectable: false,
+        );
+      },
+    );
+
+    Widget body;
+    if (!_useMarkdown) {
+      body = source;
+    } else if (wide) {
+      body = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Expanded(child: source),
+          Container(
+            width: 1,
+            height: 360,
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            color: t.line,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  uiText(context, zh: '实时预览', en: 'Live preview'),
+                  style: ZxType.micro.copyWith(color: t.text3),
+                ),
+                const SizedBox(height: 8),
+                preview,
+              ],
+            ),
+          ),
+        ],
+      );
+    } else {
+      body = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: <ButtonSegment<bool>>[
+                ButtonSegment<bool>(
+                  value: false,
+                  label: Text(uiText(context, zh: '编辑', en: 'Edit')),
+                ),
+                ButtonSegment<bool>(
+                  value: true,
+                  label: Text(uiText(context, zh: '预览', en: 'Preview')),
+                ),
+              ],
+              selected: <bool>{_showPreview},
+              onSelectionChanged: (Set<bool> value) =>
+                  setState(() => _showPreview = value.first),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Keep the source field mounted so validation still sees it.
+          Offstage(offstage: _showPreview, child: source),
+          if (_showPreview) preview,
+        ],
+      );
+    }
+
+    return ZxCard(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Shortcuts(
+            shortcuts: const <ShortcutActivator, Intent>{
+              SingleActivator(LogicalKeyboardKey.tab):
+                  DoNothingAndStopPropagationIntent(),
+              SingleActivator(LogicalKeyboardKey.tab, shift: true):
+                  DoNothingAndStopPropagationIntent(),
+            },
+            child: TextFormField(
+              key: _titleFieldKey,
+              controller: _titleController,
+              maxLength: 60,
+              style: ZxType.titleLarge.copyWith(color: t.text),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
+                fillColor: Colors.transparent,
+                contentPadding: EdgeInsets.zero,
+                hintText: uiText(context, zh: '标题（必填）', en: 'Title (required)'),
+                hintStyle: ZxType.titleLarge.copyWith(color: t.text3),
+              ),
+              validator: (String? value) =>
+                  value == null || value.trim().isEmpty
+                  ? uiTextFor(locale, zh: '请填写标题', en: 'Please enter a title')
+                  : null,
+            ),
+          ),
+          Divider(height: 20, color: t.line),
+          Row(
+            children: <Widget>[
+              EmojiAssistantBar(controller: _contentController, compact: true),
+              const Spacer(),
+              Text('Markdown', style: ZxType.caption.copyWith(color: t.text2)),
+              const SizedBox(width: 6),
+              Switch(
+                value: _useMarkdown,
+                onChanged: isBusy ? null : _handleMarkdownToggle,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          KeyedSubtree(key: _contentFieldKey, child: body),
+          const SizedBox(height: 16),
+          _buildImages(context, t, isBusy),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImages(BuildContext context, ZxTokens t, bool isBusy) {
+    const double tile = 96;
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: <Widget>[
+        for (int i = 0; i < _pickedImages.length; i++)
+          _PickedImageCard(
+            image: _pickedImages[i],
+            onRemove: isBusy
+                ? null
+                : () => setState(() => _pickedImages.removeAt(i)),
+          ),
+        if (_pickedImages.length < 9)
+          Material(
+            color: t.bgSunk,
+            borderRadius: ZxRadius.buttonAll,
+            child: InkWell(
+              key: const Key('create-post-add-image'),
+              borderRadius: ZxRadius.buttonAll,
+              onTap: isBusy ? null : _pickImages,
+              child: SizedBox(
+                width: tile,
+                height: tile,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(Icons.add_photo_alternate_outlined, color: t.text3),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_pickedImages.length}/9',
+                      style: ZxType.caption.copyWith(color: t.text3),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        Text(
+          uiText(
+            context,
+            zh: '支持 jpg / png / webp / gif，最多 9 张',
+            en: 'jpg / png / webp / gif, up to 9',
+          ),
+          style: ZxType.caption.copyWith(color: t.text3),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSettings(
+    BuildContext context,
+    ZxTokens t,
+    CreatePostState state,
+    bool isBusy,
+    List<String> channels,
+    String? selectedChannel,
+  ) {
+    final Locale locale = Localizations.localeOf(context);
+    Widget label(
+      String zh,
+      String en, {
+      bool required = false,
+      String? noteZh,
+      String? noteEn,
+    }) => Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: <Widget>[
+          Text(
+            uiText(context, zh: zh, en: en),
+            style: ZxType.label.copyWith(color: t.text),
+          ),
+          if (required)
+            Text(' *', style: ZxType.label.copyWith(color: t.danger)),
+          if (noteZh != null) ...<Widget>[
+            const SizedBox(width: 8),
+            ZxBadge.level(uiText(context, zh: noteZh, en: noteEn!)),
+          ],
+        ],
+      ),
+    );
+    final bool channelMissing = _showErrors && selectedChannel == null;
+
+    return ZxCard(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          KeyedSubtree(
+            key: _channelFieldKey,
+            child: label('分区', 'Channel', required: true),
+          ),
+          if (channels.isEmpty)
+            const _EmptyChannelCard()
+          else
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final String channel in channels)
+                  ChoiceChip(
+                    label: Text(localizedChannel(locale, channel)),
+                    avatar: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: t.channelFor(channel),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    showCheckmark: false,
+                    selected: selectedChannel == channel,
+                    onSelected: isBusy
+                        ? null
+                        : (_) {
+                            setState(() => _selectedChannel = channel);
+                            _scheduleDraftSave();
+                          },
+                  ),
+              ],
+            ),
+          if (channelMissing)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                uiText(context, zh: '请选择分区', en: 'Please choose a channel'),
+                style: ZxType.caption.copyWith(color: t.danger),
+              ),
+            ),
+          const SizedBox(height: 18),
+          label('标签', 'Tags'),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              for (final String tag in _tags)
+                InputChip(
+                  label: Text('#$tag'),
+                  onDeleted: isBusy
+                      ? null
+                      : () {
+                          setState(() => _tags.remove(tag));
+                          _scheduleDraftSave();
+                        },
+                ),
+              if (_tags.length < _maxTags)
+                ActionChip(
+                  avatar: const Icon(Icons.add_rounded, size: 16),
+                  label: Text(uiText(context, zh: '添加', en: 'Add')),
+                  onPressed: isBusy ? null : _addTag,
+                ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          label('状态', 'Status'),
+          SegmentedButton<PostStatus>(
+            showSelectedIcon: false,
+            segments: <ButtonSegment<PostStatus>>[
+              for (final PostStatus status in PostStatus.values)
+                ButtonSegment<PostStatus>(
+                  value: status,
+                  label: Text(status.labelFor(locale)),
+                ),
+            ],
+            selected: <PostStatus>{_status},
+            onSelectionChanged: isBusy
+                ? null
+                : (Set<PostStatus> value) {
+                    setState(() => _status = value.first);
+                    _scheduleDraftSave();
+                  },
+          ),
+          const SizedBox(height: 18),
+          label('可见范围', 'Visibility'),
+          SegmentedButton<bool>(
+            showSelectedIcon: false,
+            segments: <ButtonSegment<bool>>[
+              ButtonSegment<bool>(
+                value: false,
+                label: Text(uiText(context, zh: '所有人', en: 'Everyone')),
+              ),
+              ButtonSegment<bool>(
+                value: true,
+                label: Text(uiText(context, zh: '仅自己', en: 'Only me')),
+              ),
+            ],
+            selected: <bool>{_privateOnly},
+            onSelectionChanged: isBusy
+                ? null
+                : (Set<bool> value) {
+                    setState(() => _privateOnly = value.first);
+                    _scheduleDraftSave();
+                  },
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _privateOnly
+                ? uiText(
+                    context,
+                    zh: '仅你自己能在“我的帖子”里看到这条内容。',
+                    en: 'Only you can see this post, under “My posts”.',
+                  )
+                : uiText(
+                    context,
+                    zh: '公开帖子中，不匿名且你开启“允许陌生人私信”时，其他人可直接私信你。',
+                    en: 'On a public, non-anonymous post, others can message you directly if you allow messages from strangers.',
+                  ),
+            style: ZxType.caption.copyWith(color: t.text3),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      uiText(context, zh: '匿名发布', en: 'Post anonymously'),
+                      style: ZxType.label.copyWith(color: t.text),
+                    ),
+                    Text(
+                      uiText(
+                        context,
+                        zh: '以朱印头像和匿名昵称显示',
+                        en: 'Shown with the seal and an alias',
+                      ),
+                      style: ZxType.caption.copyWith(color: t.text3),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _useAnonymousAlias,
+                onChanged: isBusy
+                    ? null
+                    : (bool value) {
+                        setState(() => _useAnonymousAlias = value);
+                        _scheduleDraftSave();
+                      },
+              ),
+            ],
+          ),
+          if (_useAnonymousAlias) ...<Widget>[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: ValueListenableBuilder<TextEditingValue>(
+                    valueListenable: _anonymousAliasController,
+                    builder:
+                        (
+                          BuildContext context,
+                          TextEditingValue value,
+                          Widget? child,
+                        ) => ZxAvatar.anonymous(
+                          name: value.text.trim().isEmpty
+                              ? '匿'
+                              : value.text.trim(),
+                          size: 36,
+                        ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TextFormField(
+                    controller: _anonymousAliasController,
+                    maxLength: 24,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: uiText(
+                        context,
+                        zh: '匿名昵称（选填）',
+                        en: 'Alias (optional)',
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: ZxButton(
+                    key: const Key('anonymous-alias-random'),
+                    label: uiText(context, zh: '随机', en: 'Random'),
+                    icon: Icons.casino_outlined,
+                    variant: ZxButtonVariant.secondary,
+                    small: true,
+                    onPressed: isBusy ? null : _fillRandomAlias,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (state.isLevelOneUser) ...<Widget>[
+            const SizedBox(height: 18),
+            label('置顶时长', 'Pin for', noteZh: '仅一级用户可见', noteEn: 'Level 1 only'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final (int?, String, String) option in _pinOptions)
+                  ChoiceChip(
+                    label: Text(uiText(context, zh: option.$2, en: option.$3)),
+                    selected: _selectedPinDurationMinutes == option.$1,
+                    onSelected: isBusy
+                        ? null
+                        : (_) => setState(
+                            () => _selectedPinDurationMinutes = option.$1,
+                          ),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Fields that block publishing, in page order.
+  List<GlobalKey> _missingFields() {
+    final CreatePostState state = ref.read(createPostControllerProvider);
+    return <GlobalKey>[
+      if (_titleController.text.trim().isEmpty) _titleFieldKey,
+      if (_contentController.text.trim().isEmpty ||
+          (!_useMarkdown &&
+              _contentController.text.length > _plainTextMaxLength))
+        _contentFieldKey,
+      if (_validSelectedChannel(state.channels) == null) _channelFieldKey,
+    ];
+  }
+
+  void _scrollTo(GlobalKey key) {
+    final BuildContext? target = key.currentContext;
+    if (target != null) {
+      Scrollable.ensureVisible(
+        target,
+        duration: ZxMotion.standard,
+        alignment: 0.1,
+      );
+    }
+  }
+
+  /// Validates everything at once (P2); submits only when nothing is missing.
+  Future<void> _trySubmit(List<String> channels) async {
+    final bool formValid = _formKey.currentState!.validate();
+    final String? channel = _validSelectedChannel(channels);
+    if (!formValid || channel == null) {
+      setState(() => _showErrors = true);
+      final List<GlobalKey> missing = _missingFields();
+      if (missing.isNotEmpty) _scrollTo(missing.first);
+      return;
+    }
+    await _submit(channel);
+  }
+
+  Future<void> _addTag() async {
+    final String? tag = await showDialog<String>(
+      context: context,
+      builder: (_) => const _AddTagDialog(),
+    );
+    if (tag == null || tag.isEmpty || _tags.contains(tag)) return;
+    setState(() => _tags.add(tag));
+    _scheduleDraftSave();
+  }
+
+  Future<void> _confirmClearDraft() async {
+    final bool confirmed = await zxConfirm(
+      context,
+      title: uiText(context, zh: '清空草稿？', en: 'Clear the draft?'),
+      message: uiText(
+        context,
+        zh: '标题、正文和已选设置都会清空。',
+        en: 'Title, body and settings are all cleared.',
+      ),
+      confirmLabel: uiText(context, zh: '清空', en: 'Clear'),
+      cancelLabel: uiText(context, zh: '取消', en: 'Cancel'),
+      danger: true,
+    );
+    if (!confirmed || !mounted) return;
+    _draftTimer?.cancel();
+    await _clearDraft();
+    setState(() {
+      _titleController.clear();
+      _contentController.clear();
+      _anonymousAliasController.clear();
+      _plainDraft = '';
+      _markdownDraft = '';
+      _tags.clear();
+      _pickedImages.clear();
+      _selectedChannel = null;
+      _selectedPinDurationMinutes = null;
+      _status = PostStatus.ongoing;
+      _privateOnly = false;
+      _useAnonymousAlias = false;
+      _showErrors = false;
+      _draftSavedAt = null;
+    });
+  }
+
+  void _scheduleDraftSave() {
+    _draftTimer?.cancel();
+    _draftTimer = Timer(
+      const Duration(milliseconds: 800),
+      () => unawaited(_saveDraft()),
+    );
+  }
+
+  static String _clock(DateTime time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
 
   Future<void> _loadDraft() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -711,6 +957,17 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       _useAnonymousAlias = draft['anonymous'] == true;
       _anonymousAliasController.text =
           draft['anonymousAlias']?.toString() ?? '';
+      _tags
+        ..clear()
+        ..addAll(
+          (draft['tags'] is List
+                  ? draft['tags'] as List<dynamic>
+                  : const <dynamic>[])
+              .map((dynamic tag) => tag.toString())
+              .where((String tag) => tag.isNotEmpty),
+        );
+      final dynamic pin = draft['pinDurationMinutes'];
+      _selectedPinDurationMinutes = pin is int ? pin : null;
       final String status = draft['status']?.toString() ?? '';
       _status = PostStatus.values.firstWhere(
         (PostStatus item) => item.name == status,
@@ -738,8 +995,13 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         'privateOnly': _privateOnly,
         'anonymous': _useAnonymousAlias,
         'anonymousAlias': _anonymousAliasController.text,
+        'tags': _tags,
+        'pinDurationMinutes': _selectedPinDurationMinutes,
       }),
     );
+    if (mounted) {
+      setState(() => _draftSavedAt = DateTime.now());
+    }
   }
 
   Future<void> _clearDraft() async {
@@ -747,14 +1009,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     await prefs.remove(_draftKey);
   }
 
-  String _deriveSelectedChannel(List<String> channels) {
-    if (_selectedChannel != null && channels.contains(_selectedChannel)) {
-      return _selectedChannel!;
-    }
-    final String fallback = channels.first;
-    _selectedChannel = fallback;
-    return fallback;
-  }
+  /// The chosen channel if it still exists. There is no default: posting to
+  /// a channel nobody picked is how posts end up in the wrong place.
+  String? _validSelectedChannel(List<String> channels) =>
+      _selectedChannel != null && channels.contains(_selectedChannel)
+      ? _selectedChannel
+      : null;
 
   Future<void> _pickImages() async {
     if (_pickingImages) {
@@ -879,7 +1139,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           content: submittedContent,
           useMarkdown: _useMarkdown,
           channel: selectedChannel,
-          tags: const <String>[],
+          tags: List<String>.of(_tags),
           privateOnly: _privateOnly,
           status: _status,
           useAnonymousAlias: _useAnonymousAlias,
@@ -1090,33 +1350,6 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 }
 
-class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: <Widget>[
-            const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2.2),
-            ),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _EmptyChannelCard extends StatelessWidget {
   const _EmptyChannelCard();
 
@@ -1273,5 +1506,65 @@ class _PickedImageCard extends StatelessWidget {
     } else {
       return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
     }
+  }
+}
+
+/// Asks for one tag: letters, digits, CJK or -, up to 30, as the server's
+/// inline #tag rule accepts.
+class _AddTagDialog extends StatefulWidget {
+  const _AddTagDialog();
+
+  @override
+  State<_AddTagDialog> createState() => _AddTagDialogState();
+}
+
+class _AddTagDialogState extends State<_AddTagDialog> {
+  static final RegExp _allowed = RegExp(r'^[\w\u4e00-\u9fff-]{1,30}$');
+  final TextEditingController _controller = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final String tag = _controller.text.trim().replaceFirst(RegExp(r'^#'), '');
+    if (!_allowed.hasMatch(tag)) {
+      setState(
+        () => _error = uiText(
+          context,
+          zh: '标签为 1–30 个字，只能用文字、数字、下划线或 -',
+          en: '1–30 letters, digits, _ or -',
+        ),
+      );
+      return;
+    }
+    Navigator.of(context).pop(tag);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(uiText(context, zh: '添加标签', en: 'Add a tag')),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        maxLength: 30,
+        decoration: InputDecoration(prefixText: '#', errorText: _error),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(uiText(context, zh: '取消', en: 'Cancel')),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(uiText(context, zh: '添加', en: 'Add')),
+        ),
+      ],
+    );
   }
 }

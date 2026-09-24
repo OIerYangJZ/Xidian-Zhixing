@@ -18,6 +18,7 @@ import 'package:http/testing.dart';
 
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/core/theme/app_theme.dart';
+import 'package:xdu_treehole_web/design_system/zx_metrics.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 
 final String? screensOut = Platform.environment['ZX_SCREENS_OUT'];
@@ -44,6 +45,8 @@ Future<void> _loadFont(String family, List<String> paths) async {
 /// Real fonts instead of the test harness's placeholder boxes. The bundled
 /// web sans stands in for the default family, as on web.
 Future<void> loadScreenFonts() async {
+  // Render with the web font stack (ZxSans, then STSong), as web does.
+  ZxFonts.debugWebFonts = true;
   final String sdk = '${Platform.environment['HOME']}/flutter';
   await _loadFont('MaterialIcons', <String>[
     '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
@@ -92,6 +95,9 @@ Future<void> captureScreen(
   Brightness brightness = Brightness.light,
   List<Override> overrides = const <Override>[],
   String themeKey = 'zhushachi',
+
+  /// Interactions to run before the capture, e.g. tapping submit.
+  Future<void> Function()? beforeCapture,
 }) async {
   tester.view.devicePixelRatio = 2;
   tester.view.physicalSize = size * 2;
@@ -123,6 +129,9 @@ Future<void> captureScreen(
   );
   for (int i = 0; i < 5; i++) {
     await tester.pump(const Duration(milliseconds: 100));
+  }
+  if (beforeCapture != null) {
+    await beforeCapture();
   }
   await tester.runAsync(() async {
     final RenderRepaintBoundary render =

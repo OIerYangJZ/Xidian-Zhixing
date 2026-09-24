@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/widgets.dart';
 
 /// Corner radii from the design system (§05). Everything is one step rounder
@@ -47,7 +47,12 @@ abstract final class ZxFonts {
   ];
 
   /// Null means the platform default (Android, and anything not web).
-  static String? get body => kIsWeb ? 'ZxSans' : null;
+  static String? get body => debugWebFonts || kIsWeb ? 'ZxSans' : null;
+
+  /// Screen captures in tests set this to render with the web font stack.
+  /// Must be set before [ZxType] is first read, which caches its styles.
+  @visibleForTesting
+  static bool debugWebFonts = false;
 
   static const List<String> _platformSans = <String>[
     'PingFang SC',
@@ -61,7 +66,7 @@ abstract final class ZxFonts {
   /// On web, characters outside the ZxSans subset (rare hanzi in names and
   /// user content) fall back to the full bundled STSong, never to a download.
   static List<String> get bodyFallback =>
-      kIsWeb ? const <String>['STSong'] : _platformSans;
+      debugWebFonts || kIsWeb ? const <String>['STSong'] : _platformSans;
 }
 
 /// Type scale (§05): size / line height / weight. The design's 650 weight
