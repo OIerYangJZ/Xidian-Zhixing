@@ -1,12 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/l10n/ui_text.dart';
+import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
+import '../../design_system/design_system.dart';
 import '../../repositories/appeal_repository.dart';
 
-/// Where a banned session lands. The account is signed in, but the server
+String _messageOf(Object error) => switch (error) {
+  ApiException(:final String message) => message,
+  FormatException(:final String message) => message,
+  _ => '$error',
+};
+
+/// Where a banned session lands (handoff W9). The account is signed in, but the server
 /// refuses everything except this screen's two endpoints, so there is no shell
 /// to show and no point offering navigation.
 class BannedAccountPage extends ConsumerStatefulWidget {
@@ -57,7 +66,7 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = _messageOf(error);
         _loading = false;
       });
     }
@@ -71,7 +80,9 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
       _error = '';
     });
     try {
-      await ref.read(appealRepositoryProvider).submitUnbanAppeal(
+      await ref
+          .read(appealRepositoryProvider)
+          .submitUnbanAppeal(
             email: AuthStore.instance.currentUser?.email ?? '',
             content: _content.text,
           );
@@ -80,7 +91,7 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
     } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = _messageOf(error);
         _submitting = false;
       });
       return;
@@ -97,264 +108,268 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
   @override
   Widget build(BuildContext context) {
     String text(String zh, String en) => uiText(context, zh: zh, en: en);
-    final ThemeData theme = Theme.of(context);
+    final ZxTokens t = ZxTokens.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(text('账号已被封禁', 'Account suspended')),
         actions: <Widget>[
-          TextButton(
+          ZxButton(
+            key: const Key('banned-sign-out'),
+            label: text('退出登录', 'Sign out'),
+            icon: Icons.logout_rounded,
+            variant: ZxButtonVariant.secondary,
+            small: true,
             onPressed: _signOut,
-            child: Text(text('退出登录', 'Sign out')),
           ),
+          const SizedBox(width: 12),
         ],
       ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 560),
-            child: _loading
-                ? const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 64),
-                    child: Center(child: CircularProgressIndicator()),
-                  )
-                : _buildBody(context, theme, text),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBody(
-    BuildContext context,
-    ThemeData theme,
-    String Function(String, String) text,
-  ) {
-    final AppealState? state = _state;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Icon(Icons.block, color: theme.colorScheme.error),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        text('该账号目前被封禁', 'This account is currently suspended'),
-                        style: theme.textTheme.titleMedium,
-                      ),
+      body: ZxPaper(
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: _loading && _state == null
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 64),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        _notice(t, text),
+                        if (_error.isNotEmpty) ...<Widget>[
+                          const SizedBox(height: 14),
+                          ZxInlineMessage(
+                            key: const Key('banned-error'),
+                            message: _error,
+                            tone: ZxMessageTone.danger,
+                          ),
+                        ],
+                        if (_state != null) ...<Widget>[
+                          const SizedBox(height: 14),
+                          _appealSection(t, text, _state!),
+                        ],
+                        const SizedBox(height: 14),
+                        Center(
+                          child: TextButton.icon(
+                            key: const Key('banned-refresh'),
+                            onPressed: _loading ? null : _load,
+                            style: TextButton.styleFrom(
+                              foregroundColor: t.text2,
+                            ),
+                            icon: const Icon(Icons.refresh_rounded, size: 18),
+                            label: Text(text('刷新状态', 'Refresh status')),
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  text(
-                    '封禁期间无法发帖、评论、私信或使用助手。如果你认为这是误判，可在下方提交解封申诉，'
-                        '管理员会逐条审核。',
-                    'While suspended you cannot post, comment, message or use the '
-                        'assistant. If you believe this is a mistake, submit an '
-                        'appeal below and an administrator will review it.',
-                  ),
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
             ),
           ),
         ),
-        if (_error.isNotEmpty) ...<Widget>[
-          const SizedBox(height: 16),
-          _Banner(
-            icon: Icons.error_outline,
-            color: theme.colorScheme.error,
-            child: Text(_error),
-          ),
-        ],
-        if (state != null) ...<Widget>[
-          const SizedBox(height: 16),
-          ..._buildAppealSection(context, theme, text, state),
-        ],
-        const SizedBox(height: 16),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TextButton.icon(
-            onPressed: _loading ? null : _load,
-            icon: const Icon(Icons.refresh),
-            label: Text(text('刷新状态', 'Refresh status')),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  List<Widget> _buildAppealSection(
-    BuildContext context,
-    ThemeData theme,
+  Widget _notice(ZxTokens t, String Function(String, String) text) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: t.dangerSoft,
+        borderRadius: ZxRadius.cardAll,
+        border: Border.all(color: t.danger.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: t.danger,
+              borderRadius: ZxRadius.buttonAll,
+            ),
+            child: Icon(Icons.block_rounded, color: t.onDanger, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              text(
+                '封禁期间不能发帖、评论、私信或使用校园 AI。如认为处理有误，可以提交解封申诉。',
+                'While suspended you cannot post, comment, message or use '
+                    'Campus AI. If you think this is a mistake, submit an appeal.',
+              ),
+              style: ZxType.body.copyWith(color: t.text),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _appealSection(
+    ZxTokens t,
     String Function(String, String) text,
     AppealState state,
   ) {
     if (state.mustUseEmail) {
-      return <Widget>[
-        _Banner(
-          icon: Icons.mark_email_unread_outlined,
-          color: theme.colorScheme.error,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                text('申诉未通过', 'Appeal was not approved'),
-                style: theme.textTheme.titleSmall,
-              ),
-              if (state.adminNote.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 6),
-                Text(text('管理员说明：', 'Administrator note: ') + state.adminNote),
-              ],
-              const SizedBox(height: 10),
-              Text(
+      return ZxCard(
+        key: const Key('banned-email-only'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              text('申诉未通过', 'Appeal was not approved'),
+              style: ZxType.title.copyWith(color: t.text),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              <String>[
+                if (state.adminNote.isNotEmpty)
+                  text('管理员说明：', 'Administrator note: ') + state.adminNote,
                 text(
-                  '站内申诉渠道已用尽。如仍有异议，请使用校园邮箱发送邮件说明情况：',
-                  'The in-app route is exhausted. If you still disagree, write '
-                      'from your campus mailbox to:',
+                  '站内申诉次数已用完，请用本人校园邮箱发送至支持邮箱。',
+                  'In-app appeals are used up. Write from your own campus '
+                      'mailbox to the support address.',
                 ),
-              ),
-              const SizedBox(height: 6),
-              SelectableText(
-                state.supportEmail,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+              ].join(' · '),
+              style: ZxType.body.copyWith(color: t.text2),
+            ),
+            if (state.supportEmail.isNotEmpty) ...<Widget>[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+                decoration: BoxDecoration(
+                  color: t.bgSunk,
+                  borderRadius: ZxRadius.buttonAll,
                 ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                text(
-                  '请从本人校园邮箱发送，便于核对身份。',
-                  'Send it from your own campus mailbox so your identity can be '
-                      'verified.',
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: SelectableText(
+                        state.supportEmail,
+                        style: ZxType.label.copyWith(color: t.text),
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('banned-copy-email'),
+                      tooltip: text('复制', 'Copy'),
+                      icon: Icon(Icons.copy_rounded, size: 16, color: t.text3),
+                      onPressed: () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: state.supportEmail),
+                        );
+                        if (mounted) {
+                          zxShowToast(context, text('已复制', 'Copied'));
+                        }
+                      },
+                    ),
+                  ],
                 ),
-                style: theme.textTheme.bodySmall,
               ),
             ],
-          ),
+          ],
         ),
-      ];
+      );
     }
 
     if (state.hasPending) {
-      return <Widget>[
-        _Banner(
-          icon: Icons.hourglass_top,
-          color: theme.colorScheme.primary,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                text('申诉正在审核中', 'Appeal under review'),
-                style: theme.textTheme.titleSmall,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                text(
-                  '每个账号同时只能有一份待处理申诉。审核完成后再次登录即可看到结果。',
-                  'One appeal can be pending at a time. Sign in again after the '
-                      'review to see the outcome.',
-                ),
-              ),
-              if (state.content.isNotEmpty) ...<Widget>[
-                const SizedBox(height: 10),
-                Text(
-                  text('你提交的说明：', 'What you submitted: '),
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 4),
-                Text(state.content),
-              ],
-            ],
-          ),
+      return Container(
+        key: const Key('banned-pending'),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: t.accentSoft,
+          borderRadius: ZxRadius.cardAll,
         ),
-      ];
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Icon(Icons.schedule_rounded, size: 20, color: t.accentInk),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    text('申诉正在审核中', 'Appeal under review'),
+                    style: ZxType.label.copyWith(color: t.text),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    text(
+                      '同一时间只能有一份待处理申诉。下方回显你提交的说明。',
+                      'Only one appeal can be pending at a time. What you '
+                          'submitted is below.',
+                    ),
+                    style: ZxType.body.copyWith(color: t.text2),
+                  ),
+                  if (state.content.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: t.surface,
+                        borderRadius: ZxRadius.buttonAll,
+                      ),
+                      child: SelectableText(
+                        state.content,
+                        style: ZxType.body.copyWith(color: t.text),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    return <Widget>[
-      Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Text(
-                text('提交解封申诉', 'Submit an unban appeal'),
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _content,
-                maxLines: 8,
-                minLines: 5,
-                maxLength: 4000,
-                enabled: !_submitting,
-                decoration: InputDecoration(
-                  border: const OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                  labelText: text('申诉说明', 'Your explanation'),
-                  hintText: text(
-                    '说明你认为封禁属于误判的理由，可附上具体帖子或时间。',
-                    'Explain why you believe the suspension is a mistake. Cite '
-                        'specific posts or times if you can.',
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: _submitting ? null : _submit,
-                icon: _submitting
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send),
-                label: Text(text('提交申诉', 'Submit appeal')),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ];
-  }
-}
-
-class _Banner extends StatelessWidget {
-  const _Banner({
-    required this.icon,
-    required this.color,
-    required this.child,
-  });
-
-  final IconData icon;
-  final Color color;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ZxCard(
+      key: const Key('banned-appeal-form'),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 10),
-          Expanded(child: child),
+          Text(
+            text('提交解封申诉', 'Submit an unban appeal'),
+            style: ZxType.headline.copyWith(fontSize: 20, color: t.text),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            text('申诉说明', 'Your explanation'),
+            style: ZxType.caption.copyWith(
+              color: t.text2,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            key: const Key('banned-appeal-input'),
+            controller: _content,
+            maxLines: 8,
+            minLines: 6,
+            maxLength: 4000,
+            enabled: !_submitting,
+            decoration: InputDecoration(
+              hintText: text(
+                '请说明你认为处理有误的原因，以及相关的帖子或时间。',
+                'Explain why you think this is a mistake, and cite the posts '
+                    'or times involved.',
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ZxButton(
+            key: const Key('banned-appeal-submit'),
+            label: text('提交申诉', 'Submit appeal'),
+            loading: _submitting,
+            expand: true,
+            onPressed: _submitting ? null : _submit,
+          ),
         ],
       ),
     );

@@ -11,6 +11,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../models/post_item.dart';
 import '../repositories/app_repositories.dart';
 import '../features/ai/ai_page.dart';
+import '../features/post/post_unavailable_page.dart';
 import '../features/campus/campus_page.dart';
 import '../features/feed/feed_page.dart';
 import '../features/messages/messages_controller.dart';
@@ -204,16 +205,22 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     try {
       post = await AppRepositories.posts.fetchPostDetail(postId);
     } on ApiException catch (error) {
+      // Gone, private and never-existed all answer 404: one page for all.
+      if (error.statusCode == 404 || error.statusCode == 403) {
+        if (mounted) {
+          await Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => PostUnavailablePage(link: ShareLink.post(postId)),
+            ),
+          );
+        }
+        return;
+      }
       _showLinkError(
-        error.statusCode == 404
-            ? uiTextGlobal(
-                zh: '帖子不存在，或你没有权限查看',
-                en: 'This post does not exist or is not visible to you',
-              )
-            : uiTextGlobal(
-                zh: '帖子打开失败：${error.message}',
-                en: 'Could not open the post: ${error.message}',
-              ),
+        uiTextGlobal(
+          zh: '帖子打开失败：${error.message}',
+          en: 'Could not open the post: ${error.message}',
+        ),
       );
       return;
     } catch (error) {
