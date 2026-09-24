@@ -7,9 +7,9 @@
 //
 // Each theme supplies seven source colors per mode (paper, surface, ink,
 // primary, primary pressed, coral, apricot); every other token is derived by
-// the rules below, ported from the Claude Design handoff (zx-theme.js). Two
-// ratios differ from the handoff: light --text-2 and --text-3 mix more ink so
-// that --text-3 holds 4.5:1 on --bg, --surface and --bg-sunk in all themes.
+// the rules below, ported from the Claude Design handoff (zx-theme.js), which
+// since v3 includes the text-2 / text-3 ratios that keep --text-3 at 4.5:1 on
+// --bg, --surface and --bg-sunk in every theme.
 //
 // Outputs:
 //   flutter_app/lib/design_system/zx_palette.g.dart
@@ -98,7 +98,7 @@ function derive(key, mode) {
     lineStrong: mix(ink, surf, dark ? 0.25 : 0.21),
     text: ink,
     text2: mix(ink, surf, dark ? 0.75 : 0.8),
-    text3: mix(ink, surf, dark ? 0.58 : 0.7),
+    text3: mix(ink, surf, dark ? 0.6 : 0.7),
     primary: pri,
     primaryPressed: act,
     onPrimary: dark ? mix('#000000', pri, 0.8) : '#FFFFFF',

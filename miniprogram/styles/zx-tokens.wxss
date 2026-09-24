@@ -98,7 +98,7 @@ page {
   --zx-line-strong: #55544F;
   --zx-text: #F4F1E8;
   --zx-text-2: #BFBDB5;
-  --zx-text-3: #9B9992;
+  --zx-text-3: #9F9D96;
   --zx-primary: #E08075;
   --zx-primary-pressed: #F09A8E;
   --zx-on-primary: #2D1A17;
@@ -186,7 +186,7 @@ page {
   --zx-line-strong: #525853;
   --zx-text: #F0F4EE;
   --zx-text-2: #BBC0BA;
-  --zx-text-3: #979D97;
+  --zx-text-3: #9CA19B;
   --zx-primary: #91C29C;
   --zx-primary-pressed: #B2D8B9;
   --zx-on-primary: #1D271F;
@@ -274,7 +274,7 @@ page {
   --zx-line-strong: #59554B;
   --zx-text: #F6F0E3;
   --zx-text-2: #C2BCB0;
-  --zx-text-3: #9E998E;
+  --zx-text-3: #A29D92;
   --zx-primary: #E1B665;
   --zx-primary-pressed: #F0CE89;
   --zx-on-primary: #2D2414;
@@ -362,7 +362,7 @@ page {
   --zx-line-strong: #535350;
   --zx-text: #F5F5F0;
   --zx-text-2: #BFBFBB;
-  --zx-text-3: #9A9A97;
+  --zx-text-3: #9F9F9B;
   --zx-primary: #E37D73;
   --zx-primary-pressed: #F0A096;
   --zx-on-primary: #2D1917;
