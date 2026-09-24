@@ -260,8 +260,8 @@ class AppColorThemes {
       key: 'mozhuxinye',
       labelZh: '墨朱·新页',
       labelEn: 'Ink Vermilion · New',
-      descriptionZh: '远端新版的连续讨论流与墨朱金界面',
-      descriptionEn: 'The new continuous discussion UI from remote main',
+      descriptionZh: '连续讨论流与墨朱金',
+      descriptionEn: 'Continuous threads in ink, vermilion and gold',
       previewColors: <Color>[
         Color(0xFFAB3E36),
         Color(0xFFFFFFFF),

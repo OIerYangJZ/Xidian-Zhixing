@@ -85,7 +85,9 @@ class _ProfileMenu extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 ZxAvatar(
-                  name: nickname.isEmpty ? uiText(context, zh: '我', en: 'Me') : nickname,
+                  name: nickname.isEmpty
+                      ? uiText(context, zh: '我', en: 'Me')
+                      : nickname,
                   imageUrl: user?.avatarUrl,
                 ),
                 const SizedBox(width: 10),
@@ -98,7 +100,10 @@ class _ProfileMenu extends StatelessWidget {
                         style: ZxType.label.copyWith(color: t.text),
                       ),
                       if (status.isNotEmpty)
-                        Text(status, style: ZxType.caption.copyWith(color: t.text3)),
+                        Text(
+                          status,
+                          style: ZxType.caption.copyWith(color: t.text3),
+                        ),
                     ],
                   ),
                 ),
@@ -110,12 +115,7 @@ class _ProfileMenu extends StatelessWidget {
           ZxListItem(
             icon: Icons.person_outline_rounded,
             title: l10n.profileAndSettings,
-            onTap: () => open(
-              Scaffold(
-                appBar: AppBar(title: Text(l10n.profileAndSettings)),
-                body: const ProfilePage(),
-              ),
-            ),
+            onTap: () => open(const ProfilePage()),
           ),
           ZxListItem(
             icon: Icons.edit_note_rounded,
@@ -195,9 +195,10 @@ class _LanguageSwitch extends StatelessWidget {
         ButtonSegment<bool>(value: true, label: Text('EN')),
       ],
       selected: <bool>{english},
-      onSelectionChanged: (Set<bool> value) => AppLocaleStore.instance.setLocale(
-        value.first ? const Locale('en') : const Locale('zh', 'CN'),
-      ),
+      onSelectionChanged: (Set<bool> value) =>
+          AppLocaleStore.instance.setLocale(
+            value.first ? const Locale('en') : const Locale('zh', 'CN'),
+          ),
     );
   }
 }

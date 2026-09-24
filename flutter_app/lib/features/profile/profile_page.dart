@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
-import '../../core/media/image_picker_adapter.dart';
-import '../../core/media/picked_image_data.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_surfaces.dart';
+import '../../design_system/design_system.dart';
 import '../../models/user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../../features/legal/terms_of_service_page.dart';
@@ -14,13 +11,19 @@ import '../../features/legal/privacy_policy_page.dart';
 import '../../features/legal/community_guidelines_page.dart';
 import '../../features/legal/report_guidelines_page.dart';
 import '../auth/login_page.dart';
-import 'emoji_settings_page.dart';
+import 'blocked_accounts_page.dart';
+import 'edit_profile_page.dart';
+import 'follow_list_page.dart';
+import 'notification_preferences_page.dart';
+import 'reason_dialog.dart';
 import 'settings_page.dart';
 import '../me/my_comments_page.dart';
 import '../me/my_favorites_page.dart';
 import '../me/my_posts_page.dart';
 import '../me/my_reports_page.dart';
 
+/// 个人资料与设置 (handoff W6): the profile card with counts, the four
+/// content entries, then 账号 / 隐私与通知 / 更多 and 退出登录.
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -29,17 +32,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
-  final TextEditingController _nicknameController = TextEditingController();
-  final TextEditingController _avatarUrlController = TextEditingController();
-  final TextEditingController _bioController = TextEditingController();
-  final TextEditingController _backgroundUrlController =
-      TextEditingController();
-
   UserProfile? _profile;
   bool _loading = true;
   bool _saving = false;
   String? _error;
-  String _gender = '';
 
   @override
   void initState() {
@@ -50,551 +46,282 @@ class ProfilePageState extends State<ProfilePage> {
   Future<void> refreshProfile() => _loadProfile();
 
   @override
-  void dispose() {
-    _nicknameController.dispose();
-    _avatarUrlController.dispose();
-    _bioController.dispose();
-    _backgroundUrlController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     String text(String zh, String en) => uiText(context, zh: zh, en: en);
-    if (_loading) {
-      return AppStatePanel(
-        icon: Icons.person_outline_rounded,
-        title: text('正在加载个人资料', 'Loading profile'),
-        message: text(
-          '正在同步账号、内容和隐私设置。',
-          'Syncing account, content, and privacy settings.',
-        ),
-      );
-    }
+    return Scaffold(
+      appBar: AppBar(title: Text(text('个人资料与设置', 'Profile and settings'))),
+      body: ZxPaper(child: _buildBody()),
+    );
+  }
 
+  Widget _buildBody() {
+    String text(String zh, String en) => uiText(context, zh: zh, en: en);
+    if (_loading && _profile == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
     final UserProfile? loadedProfile = _profile;
     if (loadedProfile == null) {
-      return AppStatePanel(
-        icon: Icons.error_outline,
+      return ZxStatePanel(
+        icon: Icons.error_outline_rounded,
+        error: true,
         title: text('个人资料加载失败', 'Could not load profile'),
         message:
             _error ??
             text('个人资料暂时无法显示', 'Your profile is temporarily unavailable.'),
-        action: FilledButton.tonalIcon(
-          onPressed: _loadProfile,
-          icon: const Icon(Icons.refresh),
-          label: Text(text('重试', 'Retry')),
-        ),
+        actionLabel: text('重试', 'Retry'),
+        onAction: _loadProfile,
       );
     }
     final UserProfile profile = loadedProfile;
+    final ZxTokens t = ZxTokens.of(context);
 
-    final AccountCancellationRequestSummary? cancellationRequest =
-        profile.accountCancellationRequest;
-
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 880),
-        child: ListView(
-          padding: AppLayout.pagePadding(context),
-          children: <Widget>[
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: AppInlineMessage(
-                  title: text('资料未完全同步', 'Profile not fully synced'),
-                  message: _error!,
-                  tone: AppMessageTone.error,
-                  action: TextButton(
-                    onPressed: _saving ? null : _loadProfile,
-                    child: Text(text('重试', 'Retry')),
+    return RefreshIndicator(
+      onRefresh: _loadProfile,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+        children: <Widget>[
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 680),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ZxInlineMessage(
+                        message: _error!,
+                        tone: ZxMessageTone.danger,
+                        actionLabel: text('重试', 'Retry'),
+                        onAction: _saving ? null : _loadProfile,
+                      ),
+                    ),
+                  _ProfileHero(
+                    profile: profile,
+                    busy: _saving,
+                    onEdit: _openEditor,
+                    onOpenFollows: (FollowListTab tab) =>
+                        _open(FollowListPage(initialTab: tab), reload: true),
+                    onOpenPosts: () => _open(const MyPostsPage()),
                   ),
-                ),
-              ),
-            _buildProfileHero(profile),
-            const SizedBox(height: 10),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      text('个人信息', 'Personal information'),
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                  const SizedBox(height: 14),
+                  Row(
+                    children: <Widget>[
+                      _QuickEntry(
+                        icon: Icons.edit_outlined,
+                        hue: t.primary,
+                        label: text('我的帖子', 'My posts'),
+                        onTap: () => _open(const MyPostsPage()),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _nicknameController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('用户昵称', 'Nickname'),
-                        prefixIcon: const Icon(Icons.badge_outlined),
+                      const SizedBox(width: 10),
+                      _QuickEntry(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        hue: t.info,
+                        label: text('我的评论', 'My comments'),
+                        onTap: () => _open(const MyCommentsPage()),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _avatarUrlController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('头像 URL', 'Avatar URL'),
-                        hintText: 'https://...',
-                        prefixIcon: const Icon(Icons.image_outlined),
+                      const SizedBox(width: 10),
+                      _QuickEntry(
+                        icon: Icons.star_outline_rounded,
+                        hue: t.accentInk,
+                        label: text('我的收藏', 'Saved'),
+                        count: profile.favoriteCount,
+                        onTap: () =>
+                            _open(const MyFavoritesPage(), reload: true),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _saving ? null : _pickAndUploadAvatar,
-                        icon: const Icon(Icons.file_upload_outlined),
-                        label: Text(
-                          text('选择图片并上传头像', 'Choose and upload avatar'),
+                      const SizedBox(width: 10),
+                      _QuickEntry(
+                        icon: Icons.flag_outlined,
+                        hue: t.seal,
+                        label: text('我的举报', 'My reports'),
+                        onTap: () => _open(const MyReportsPage()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  ZxListSection(
+                    title: text('账号', 'Account'),
+                    children: <Widget>[
+                      ZxListItem(
+                        icon: Icons.people_outline_rounded,
+                        iconColor: t.success,
+                        title: text('关注与粉丝', 'Following and followers'),
+                        subtitle: text(
+                          '查看关注、粉丝、好友列表',
+                          'Following, followers and friends',
                         ),
+                        onTap: () =>
+                            _open(const FollowListPage(), reload: true),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _bioController,
-                      enabled: !_saving,
-                      maxLines: 2,
-                      maxLength: 100,
-                      decoration: InputDecoration(
-                        labelText: text('个性签名', 'Bio'),
-                        hintText: text(
-                          '介绍一下自己吧',
-                          'Tell others a little about yourself',
+                      if (!profile.isLevelOneUser)
+                        ZxListItem(
+                          key: const Key('profile-level-upgrade'),
+                          icon: Icons.verified_user_outlined,
+                          iconColor: t.success,
+                          title: text('申请成为一级用户', 'Apply for level 1'),
+                          subtitle: _levelSubtitle(profile),
+                          onTap: _saving || _levelRequestPending(profile)
+                              ? null
+                              : _promptLevelUpgradeRequest,
+                          showChevron: !_levelRequestPending(profile),
                         ),
-                        prefixIcon: const Icon(Icons.edit_note_outlined),
-                        alignLabelWithHint: true,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    DropdownButtonFormField<String>(
-                      initialValue: _gender,
-                      decoration: InputDecoration(
-                        labelText: text('性别', 'Gender'),
-                        prefixIcon: const Icon(Icons.wc_outlined),
-                      ),
-                      items: <DropdownMenuItem<String>>[
-                        DropdownMenuItem<String>(
-                          value: '',
-                          child: Text(text('不显示', 'Prefer not to say')),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '男',
-                          child: Text(text('男', 'Male')),
-                        ),
-                        DropdownMenuItem<String>(
-                          value: '女',
-                          child: Text(text('女', 'Female')),
-                        ),
-                      ],
-                      onChanged: _saving
-                          ? null
-                          : (String? value) {
-                              setState(() {
-                                _gender = value ?? '';
-                              });
-                            },
-                    ),
-                    const SizedBox(height: 10),
-                    TextField(
-                      controller: _backgroundUrlController,
-                      enabled: !_saving,
-                      decoration: InputDecoration(
-                        labelText: text('主页背景图 URL', 'Profile background URL'),
-                        hintText: 'https://...',
-                        prefixIcon: const Icon(Icons.wallpaper_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: _saving
+                      ZxListItem(
+                        icon: Icons.error_outline_rounded,
+                        danger: true,
+                        title: text('注销账号申请', 'Account deletion request'),
+                        subtitle: profile.accountCancellationRequest == null
+                            ? text(
+                                '提交后进入管理员审核，通过后账号才会注销',
+                                'Your account is deleted only after an administrator approves the request.',
+                              )
+                            : _accountCancellationSubtitle(
+                                profile.accountCancellationRequest!,
+                              ),
+                        onTap:
+                            _saving ||
+                                profile.accountCancellationRequest?.status ==
+                                    'pending'
                             ? null
-                            : _pickAndUploadBackgroundImage,
-                        icon: const Icon(Icons.landscape_outlined),
-                        label: Text(
-                          text('选择图片并上传背景图', 'Choose and upload background'),
+                            : _promptAccountCancellationRequest,
+                        showChevron: true,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  ZxListSection(
+                    title: text('隐私与通知', 'Privacy and notifications'),
+                    children: <Widget>[
+                      ZxListItem(
+                        icon: Icons.chat_outlined,
+                        iconColor: t.info,
+                        title: text('允许陌生人私信', 'Allow messages from strangers'),
+                        subtitle: text(
+                          '关闭后，别人不能从你的主页或帖子发起私信',
+                          'When off, people cannot message you from your profile or posts.',
+                        ),
+                        trailing: Switch(
+                          key: const Key('profile-allow-dm'),
+                          value: profile.allowStrangerDm,
+                          onChanged: _saving
+                              ? null
+                              : (bool value) => _updatePrivacy(
+                                  allowStrangerDm: value,
+                                  showContactable: profile.showContactable,
+                                ),
+                        ),
+                      ),
+                      ZxListItem(
+                        icon: Icons.visibility_outlined,
+                        iconColor: t.success,
+                        title: text(
+                          '显示「可联系」状态',
+                          'Show available-to-contact status',
+                        ),
+                        trailing: Switch(
+                          value: profile.showContactable,
+                          onChanged: _saving
+                              ? null
+                              : (bool value) => _updatePrivacy(
+                                  allowStrangerDm: profile.allowStrangerDm,
+                                  showContactable: value,
+                                ),
+                        ),
+                      ),
+                      ZxListItem(
+                        icon: Icons.notifications_none_rounded,
+                        iconColor: t.accentInk,
+                        title: text('通知偏好', 'Notification preferences'),
+                        subtitle: text(
+                          '评论、回复、点赞、收藏、举报结果、系统',
+                          'Comments, replies, likes, saves, reports, system',
+                        ),
+                        onTap: () => _open(
+                          const NotificationPreferencesPage(),
+                          reload: true,
+                        ),
+                      ),
+                      ZxListItem(
+                        icon: Icons.block_rounded,
+                        iconColor: t.text2,
+                        title: text('黑名单管理', 'Blocked accounts'),
+                        onTap: () => _open(const BlockedAccountsPage()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  ZxListSection(
+                    title: text('更多', 'More'),
+                    children: <Widget>[
+                      ZxListItem(
+                        icon: Icons.tune_rounded,
+                        title: text('设置', 'Settings'),
+                        subtitle: text(
+                          '语言、配色主题、明暗模式、表情',
+                          'Language, color theme, appearance, emoji',
+                        ),
+                        onTap: () => _open(const SettingsPage()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  Material(
+                    color: t.dangerSoft,
+                    borderRadius: ZxRadius.buttonAll,
+                    child: InkWell(
+                      key: const Key('profile-logout'),
+                      borderRadius: ZxRadius.buttonAll,
+                      onTap: _saving ? null : _logout,
+                      child: SizedBox(
+                        height: 48,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              Icons.logout_rounded,
+                              size: 18,
+                              color: t.danger,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              text('退出登录', 'Log out'),
+                              style: ZxType.label.copyWith(color: t.danger),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton.icon(
-                        onPressed: _saving ? null : _saveProfile,
-                        icon: const Icon(Icons.save_outlined),
-                        label: Text(
-                          _saving
-                              ? text('保存中...', 'Saving...')
-                              : text('保存资料', 'Save profile'),
-                        ),
+                  ),
+                  const SizedBox(height: 18),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 4,
+                    children: <Widget>[
+                      _FooterLink(
+                        label: text('用户协议', 'Terms'),
+                        onTap: () => _open(const TermsOfServicePage()),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Card(
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.article_outlined),
-                    title: Text(text('我的帖子', 'My posts')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MyPostsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.comment_bank_outlined),
-                    title: Text(text('我的评论', 'My comments')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MyCommentsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.flag_outlined),
-                    title: Text(text('我的举报', 'My reports')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MyReportsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.bookmark_outline),
-                    title: Text(text('我的收藏', 'My favorites')),
-                    subtitle: Text(
-                      text(
-                        '当前收藏帖子：${profile.favoriteCount}',
-                        '${profile.favoriteCount} saved posts',
+                      _FooterLink(
+                        label: text('隐私政策', 'Privacy'),
+                        onTap: () => _open(const PrivacyPolicyPage()),
                       ),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () async {
-                      await Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const MyFavoritesPage(),
-                        ),
-                      );
-                      if (!mounted) {
-                        return;
-                      }
-                      await _loadProfile();
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline),
-                    title: Text(text('注销账号申请', 'Account deletion request')),
-                    subtitle: Text(
-                      cancellationRequest == null
-                          ? text(
-                              '提交后将进入管理员后台审核，通过后账号才会注销',
-                              'Your account is deleted only after an administrator approves the request.',
-                            )
-                          : _accountCancellationSubtitle(cancellationRequest),
-                    ),
-                    onTap: _saving || cancellationRequest?.status == 'pending'
-                        ? null
-                        : _promptAccountCancellationRequest,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Card(
-              child: Column(
-                children: <Widget>[
-                  SwitchListTile(
-                    title: Text(
-                      text('允许陌生人私信', 'Allow messages from strangers'),
-                    ),
-                    subtitle: Text(
-                      text(
-                        '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
-                        'When disabled, people cannot message you from your profile or posts.',
+                      _FooterLink(
+                        label: text('社区规范', 'Guidelines'),
+                        onTap: () => _open(const CommunityGuidelinesPage()),
                       ),
-                    ),
-                    value: profile.allowStrangerDm,
-                    onChanged: _saving
-                        ? null
-                        : (bool value) {
-                            _updatePrivacy(
-                              allowStrangerDm: value,
-                              showContactable: profile.showContactable,
-                            );
-                          },
-                  ),
-                  SwitchListTile(
-                    title: Text(
-                      text('显示“可联系”状态', 'Show available-to-contact status'),
-                    ),
-                    value: profile.showContactable,
-                    onChanged: _saving
-                        ? null
-                        : (bool value) {
-                            _updatePrivacy(
-                              allowStrangerDm: profile.allowStrangerDm,
-                              showContactable: value,
-                            );
-                          },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.block_outlined),
-                    title: Text(text('黑名单管理', 'Blocked accounts')),
-                    onTap: _openBlockedAccounts,
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.emoji_emotions_outlined),
-                    title: Text(text('表情设置', 'Emoji settings')),
-                    subtitle: Text(
-                      text(
-                        '配置常用表情和输入面板开关',
-                        'Configure favorite emoji and the input panel',
+                      _FooterLink(
+                        label: text('举报说明', 'Reporting'),
+                        onTap: () => _open(const ReportGuidelinesPage()),
                       ),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const EmojiSettingsPage(),
-                        ),
-                      );
-                    },
+                    ],
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.settings_outlined),
-                    title: Text(text('网页端设置', 'Web settings')),
-                    subtitle: Text(
-                      text(
-                        '界面偏好与社区规则',
-                        'Appearance preferences and community rules',
-                      ),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const SettingsPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: Text(text('退出登录', 'Log out')),
-                    onTap: _saving ? null : _logout,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 6),
-            Card(
-              child: Column(
-                children: <Widget>[
-                  ListTile(
-                    leading: const Icon(Icons.description_outlined),
-                    title: Text(text('用户协议', 'Terms of Service')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const TermsOfServicePage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.shield_outlined),
-                    title: Text(text('隐私政策', 'Privacy Policy')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const PrivacyPolicyPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.groups_outlined),
-                    title: Text(text('社区规范', 'Community Guidelines')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const CommunityGuidelinesPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.flag_outlined),
-                    title: Text(text('举报说明', 'Reporting Guidelines')),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute<void>(
-                          builder: (_) => const ReportGuidelinesPage(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Column(
-                children: <Widget>[
+                  const SizedBox(height: 8),
                   Text(
                     '${text('西电知行', 'Xidian Zhixing')} v${AppConfig.appVersion}',
-                    style: Theme.of(context).textTheme.bodySmall,
+                    textAlign: TextAlign.center,
+                    style: ZxType.caption.copyWith(color: t.text3),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProfileHero(UserProfile profile) {
-    final Locale locale = Localizations.localeOf(context);
-    final String backgroundImageUrl = AppConfig.resolveUrl(
-      profile.backgroundImageUrl.trim(),
-    );
-    final ThemeData theme = Theme.of(context);
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            height: 144,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-              color: theme.colorScheme.primary.withValues(alpha: 0.08),
-              image: backgroundImageUrl.isEmpty
-                  ? null
-                  : DecorationImage(
-                      image: NetworkImage(backgroundImageUrl),
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Transform.translate(
-                  offset: const Offset(0, -24),
-                  child: _buildAvatar(profile.avatarUrl, profile.nickname),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          profile.nicknameFor(locale),
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        if (profile.bio.trim().isNotEmpty)
-                          Text(
-                            profile.bio.trim(),
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.82,
-                              ),
-                              height: 1.5,
-                            ),
-                          ),
-                        if (profile.gender.trim().isNotEmpty) ...<Widget>[
-                          const SizedBox(height: 6),
-                          Row(
-                            children: <Widget>[
-                              Icon(
-                                profile.gender == '男'
-                                    ? Icons.male
-                                    : Icons.female,
-                                size: 16,
-                                color: theme.colorScheme.onSurface.withValues(
-                                  alpha: 0.58,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                profile.genderFor(locale).trim(),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: theme.colorScheme.onSurface.withValues(
-                                    alpha: 0.58,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        const SizedBox(height: 6),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '学号：${profile.studentId.isEmpty ? '未设置' : profile.studentId}',
-                            en: 'Student ID: ${profile.studentId.isEmpty ? 'Not set' : profile.studentId}',
-                          ),
-                        ),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '邮箱：${profile.email.isEmpty ? '-' : profile.email}',
-                            en: 'Email: ${profile.email.isEmpty ? '-' : profile.email}',
-                          ),
-                        ),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '认证状态：${profile.verified ? '已通过' : '未认证'}（${profile.verifiedAt}）',
-                            en: 'Verification: ${profile.verified ? 'Verified' : 'Not verified'} (${profile.verifiedAt})',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -602,33 +329,47 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildAvatar(String url, String nickname) {
-    final String resolved = AppConfig.resolveUrl(url);
-    final String trimmed = localizedAlias(
-      Localizations.localeOf(context),
-      nickname,
-    ).trim();
-    final String label = trimmed.isEmpty
-        ? uiText(context, zh: '匿', en: 'A')
-        : trimmed.substring(0, 1);
-    if (resolved.isNotEmpty) {
-      return CircleAvatar(
-        radius: 30,
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.primary.withValues(alpha: 0.1),
-        child: ClipOval(
-          child: Image.network(
-            resolved,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Text(label),
-          ),
-        ),
+  Future<void> _open(Widget page, {bool reload = false}) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => page));
+    if (reload && mounted) await _loadProfile();
+  }
+
+  Future<void> _openEditor() async {
+    final UserProfile? current = _profile;
+    if (current == null) return;
+    final UserProfile? updated = await Navigator.of(context).push<UserProfile>(
+      MaterialPageRoute<UserProfile>(
+        builder: (_) => EditProfilePage(profile: current),
+      ),
+    );
+    if (updated != null && mounted) {
+      setState(() => _profile = updated);
+    }
+  }
+
+  bool _levelRequestPending(UserProfile profile) =>
+      profile.levelUpgradeRequest?.status.trim().toLowerCase() == 'pending';
+
+  String _levelSubtitle(UserProfile profile) {
+    final Locale locale = Localizations.localeOf(context);
+    final UserLevelRequestSummary? request = profile.levelUpgradeRequest;
+    if (request != null && _levelRequestPending(profile)) {
+      return uiText(
+        context,
+        zh: '已提交申请，等待管理员审核',
+        en: 'Request submitted, awaiting review',
       );
     }
-    return CircleAvatar(radius: 30, child: Text(label));
+    final String current = uiText(
+      context,
+      zh: '当前为${profile.userLevelLabelFor(locale)}，可申请升级',
+      en: 'You are ${profile.userLevelLabelFor(locale)}; you can apply to upgrade',
+    );
+    if (request == null) return current;
+    final String note = request.adminNote.trim();
+    return '${request.statusLabelFor(locale)}${note.isEmpty ? '' : ' · $note'} · $current';
   }
 
   Future<void> _loadProfile() async {
@@ -645,11 +386,6 @@ class ProfilePageState extends State<ProfilePage> {
       AuthStore.instance.setCurrentUser(profile);
       setState(() {
         _profile = profile;
-        _nicknameController.text = profile.nickname;
-        _avatarUrlController.text = profile.avatarUrl;
-        _bioController.text = profile.bio;
-        _backgroundUrlController.text = profile.backgroundImageUrl;
-        _gender = profile.gender;
       });
     } catch (error) {
       if (!mounted) {
@@ -670,185 +406,12 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _pickAndUploadBackgroundImage() async {
-    final UserProfile? current = _profile;
-    if (current == null) {
-      _toast(
-        uiTextGlobal(
-          zh: '个人资料尚未加载，无法上传背景图',
-          en: 'Profile not loaded yet, cannot upload a background image',
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _saving = true;
-    });
-
-    try {
-      final List<PickedImageData> selected = await pickImageFiles(
-        multiple: false,
-      );
-      if (!mounted || selected.isEmpty) {
-        return;
-      }
-      final PickedImageData image = selected.first;
-      final String backgroundUrl = await AppRepositories.users
-          .uploadBackgroundImage(
-            fileName: image.fileName,
-            contentType: image.contentType,
-            dataBase64: image.dataBase64,
-          );
-      if (!mounted) {
-        return;
-      }
-      if (backgroundUrl.trim().isNotEmpty) {
-        _backgroundUrlController.text = backgroundUrl.trim();
-      }
-      setState(() {
-        _profile = current.copyWith(
-          backgroundImageUrl: _backgroundUrlController.text.trim(),
-        );
-      });
-      _toast(uiTextGlobal(zh: '背景图上传成功', en: 'Background image uploaded'));
-    } catch (error) {
-      _toast(
-        uiTextGlobal(
-          zh: '背景图上传失败：$error',
-          en: 'Background upload failed: $error',
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _pickAndUploadAvatar() async {
-    final UserProfile? current = _profile;
-    if (current == null) {
-      _toast(
-        uiTextGlobal(
-          zh: '个人资料尚未加载，无法上传头像',
-          en: 'Profile not loaded yet, cannot upload an avatar',
-        ),
-      );
-      return;
-    }
-    setState(() {
-      _saving = true;
-    });
-
-    try {
-      final List<PickedImageData> selected = await pickImageFiles(
-        multiple: false,
-      );
-      if (!mounted || selected.isEmpty) {
-        return;
-      }
-      final PickedImageData image = selected.first;
-      final String avatarUrl = await AppRepositories.users.uploadAvatar(
-        fileName: image.fileName,
-        contentType: image.contentType,
-        dataBase64: image.dataBase64,
-      );
-      if (!mounted) {
-        return;
-      }
-      if (avatarUrl.trim().isNotEmpty) {
-        _avatarUrlController.text = avatarUrl.trim();
-      }
-      setState(() {
-        _profile = current.copyWith(
-          avatarUrl: _avatarUrlController.text.trim(),
-        );
-      });
-      _toast(uiTextGlobal(zh: '头像上传成功', en: 'Avatar uploaded'));
-    } catch (error) {
-      _toast(
-        uiTextGlobal(zh: '头像上传失败：$error', en: 'Avatar upload failed: $error'),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    final UserProfile? current = _profile;
-    if (current == null) {
-      _toast(
-        uiTextGlobal(
-          zh: '个人资料尚未加载，无法保存',
-          en: 'Profile not loaded yet, nothing to save',
-        ),
-      );
-      return;
-    }
-    final String nickname = _nicknameController.text.trim();
-    final String avatarUrl = _avatarUrlController.text.trim();
-    final String bio = _bioController.text.trim();
-    final String backgroundImageUrl = _backgroundUrlController.text.trim();
-    final String nextNickname = nickname.isEmpty
-        ? (_profile?.nickname ?? '')
-        : nickname;
-
-    setState(() {
-      _saving = true;
-    });
-
-    try {
-      await AppRepositories.users.updateProfile(
-        nickname: nextNickname,
-        avatarUrl: avatarUrl,
-        bio: bio,
-        backgroundImageUrl: backgroundImageUrl,
-        gender: _gender,
-      );
-      final UserProfile nextProfile = current.copyWith(
-        nickname: nextNickname,
-        avatarUrl: avatarUrl,
-        bio: bio,
-        backgroundImageUrl: backgroundImageUrl,
-        gender: _gender,
-      );
-      AuthStore.instance.setCurrentUser(nextProfile);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _profile = nextProfile;
-      });
-      _toast(uiTextGlobal(zh: '资料已更新', en: 'Profile updated'));
-    } catch (error) {
-      _toast(uiTextGlobal(zh: '保存失败：$error', en: 'Save failed: $error'));
-    } finally {
-      if (mounted) {
-        setState(() {
-          _saving = false;
-        });
-      }
-    }
-  }
-
   Future<void> _updatePrivacy({
     required bool allowStrangerDm,
     required bool showContactable,
   }) async {
     final UserProfile? current = _profile;
     if (current == null) {
-      _toast(
-        uiTextGlobal(
-          zh: '个人资料尚未加载，无法保存隐私设置',
-          en: 'Profile not loaded yet, cannot save privacy settings',
-        ),
-      );
       return;
     }
     setState(() {
@@ -881,47 +444,57 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _promptAccountCancellationRequest() async {
-    final TextEditingController controller = TextEditingController();
-    final String? reason = await showDialog<String>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            uiText(context, zh: '提交注销申请', en: 'Submit a deletion request'),
-          ),
-          content: TextField(
-            controller: controller,
-            minLines: 3,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: uiText(
-                context,
-                zh: '申请说明（可选）',
-                en: 'Reason (optional)',
-              ),
-              hintText: uiText(
-                context,
-                zh: '例如：不再使用或信息变更等',
-                en: 'For example: no longer used or information changed',
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: Text(uiText(context, zh: '确认提交', en: 'Submit')),
-            ),
-          ],
-        );
-      },
+  Future<void> _promptLevelUpgradeRequest() async {
+    final String? reason = await showReasonDialog(
+      context,
+      title: uiText(context, zh: '申请成为一级用户', en: 'Apply for level 1'),
+      message: uiText(
+        context,
+        zh: '一级用户可以申请置顶帖子。提交后由管理员审核。',
+        en: 'Level 1 users can request pinned posts. An administrator reviews the request.',
+      ),
+      hint: uiText(
+        context,
+        zh: '例如：社团负责人，需要发布活动通知',
+        en: 'For example: I run a club and post event notices',
+      ),
+      confirmLabel: uiText(context, zh: '提交申请', en: 'Submit'),
     );
-    controller.dispose();
+    if (reason == null || !mounted) return;
+    setState(() => _saving = true);
+    try {
+      await AppRepositories.users.submitLevelUpgradeRequest(reason: reason);
+      await _loadProfile();
+      _toast(
+        uiTextGlobal(
+          zh: '申请已提交，等待管理员审核',
+          en: 'Request submitted, awaiting review',
+        ),
+      );
+    } catch (error) {
+      _toast(uiTextGlobal(zh: '提交失败：$error', en: 'Submit failed: $error'));
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _promptAccountCancellationRequest() async {
+    final String? reason = await showReasonDialog(
+      context,
+      title: uiText(context, zh: '提交注销申请', en: 'Submit a deletion request'),
+      message: uiText(
+        context,
+        zh: '管理员审核通过后，账号才会注销。',
+        en: 'Your account is deleted only after an administrator approves.',
+      ),
+      hint: uiText(
+        context,
+        zh: '例如：不再使用或信息变更等',
+        en: 'For example: no longer used or information changed',
+      ),
+      confirmLabel: uiText(context, zh: '确认提交', en: 'Submit'),
+      danger: true,
+    );
     if (reason == null) {
       return;
     }
@@ -994,92 +567,276 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _openBlockedAccounts() async {
-    List<Map<String, dynamic>> blocks;
-    try {
-      blocks = await AppRepositories.users.fetchBlocks();
-    } catch (error) {
-      _toast(
-        uiTextGlobal(
-          zh: '黑名单加载失败：$error',
-          en: 'Could not load blocked accounts: $error',
-        ),
-      );
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (BuildContext sheetContext) => SafeArea(
-        child: StatefulBuilder(
-          builder: (BuildContext sheetContext, StateSetter setSheetState) {
-            return ListView(
-              shrinkWrap: true,
-              children: <Widget>[
-                ListTile(
-                  title: Text(
-                    uiText(sheetContext, zh: '黑名单管理', en: 'Blocked accounts'),
-                  ),
-                ),
-                if (blocks.isEmpty)
-                  ListTile(
-                    title: Text(
-                      uiText(
-                        sheetContext,
-                        zh: '暂无屏蔽用户',
-                        en: 'No blocked accounts',
-                      ),
-                    ),
-                  ),
-                for (final Map<String, dynamic> item in blocks)
-                  ListTile(
-                    leading: const AppSealMark(size: 36),
-                    title: Text((item['nickname'] ?? '西电同学').toString()),
-                    trailing: TextButton(
-                      onPressed: () async {
-                        final String userId = (item['id'] ?? '').toString();
-                        try {
-                          await AppRepositories.users.unblockUser(userId);
-                        } catch (error) {
-                          _toast(
-                            uiTextGlobal(
-                              zh: '解除屏蔽失败：$error',
-                              en: 'Could not unblock: $error',
-                            ),
-                          );
-                          return;
-                        }
-                        setSheetState(() {
-                          blocks = blocks
-                              .where(
-                                (Map<String, dynamic> block) =>
-                                    (block['id'] ?? '').toString() != userId,
-                              )
-                              .toList();
-                        });
-                      },
-                      child: Text(
-                        uiText(sheetContext, zh: '解除屏蔽', en: 'Unblock'),
-                      ),
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
   void _toast(String message) {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    zxShowToast(context, message);
+  }
+}
+
+/// 学号 21****0137: the middle hidden on screen.
+String maskStudentId(String id) {
+  final String value = id.trim();
+  if (value.length <= 6) return value;
+  return '${value.substring(0, 2)}****${value.substring(value.length - 4)}';
+}
+
+class _ProfileHero extends StatelessWidget {
+  const _ProfileHero({
+    required this.profile,
+    required this.busy,
+    required this.onEdit,
+    required this.onOpenFollows,
+    required this.onOpenPosts,
+  });
+
+  final UserProfile profile;
+  final bool busy;
+  final VoidCallback onEdit;
+  final ValueChanged<FollowListTab> onOpenFollows;
+  final VoidCallback onOpenPosts;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    final String background = AppConfig.resolveUrl(
+      profile.backgroundImageUrl.trim(),
+    );
+    final String nickname = profile.nicknameFor(locale);
+    final String studentId = maskStudentId(profile.studentId);
+    final List<String> meta = <String>[
+      if (studentId.isNotEmpty)
+        uiText(context, zh: '学号 $studentId', en: 'ID $studentId'),
+      if (profile.gender.trim().isNotEmpty) profile.genderFor(locale).trim(),
+      if (profile.email.trim().isNotEmpty) profile.email.trim(),
+    ];
+
+    return ZxCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(ZxRadius.card),
+            ),
+            child: SizedBox(
+              height: 132,
+              child: background.isEmpty
+                  ? ZxHeroWash(child: const SizedBox.expand())
+                  : Image.network(
+                      background,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) =>
+                          ZxHeroWash(child: const SizedBox.expand()),
+                    ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    Transform.translate(
+                      offset: const Offset(0, -30),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: t.surface, width: 4),
+                        ),
+                        child: ZxAvatar(
+                          name: nickname,
+                          imageUrl: profile.avatarUrl,
+                          size: 76,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: ZxButton(
+                        key: const Key('profile-edit'),
+                        label: uiText(context, zh: '编辑资料', en: 'Edit profile'),
+                        icon: Icons.edit_outlined,
+                        variant: ZxButtonVariant.secondary,
+                        small: true,
+                        onPressed: busy ? null : onEdit,
+                      ),
+                    ),
+                  ],
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            nickname,
+                            style: ZxType.headline.copyWith(color: t.text),
+                          ),
+                          if (profile.verified)
+                            ZxBadge.verified(
+                              uiText(context, zh: '已认证', en: 'Verified'),
+                            ),
+                          ZxBadge.level(
+                            'Lv.${profile.isLevelOneUser ? 1 : profile.userLevel}',
+                          ),
+                        ],
+                      ),
+                      if (profile.bio.trim().isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 6),
+                        Text(
+                          profile.bio.trim(),
+                          style: ZxType.body.copyWith(color: t.text2),
+                        ),
+                      ],
+                      if (meta.isNotEmpty) ...<Widget>[
+                        const SizedBox(height: 6),
+                        Text(
+                          meta.join('  ·  '),
+                          style: ZxType.caption.copyWith(color: t.text3),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: t.bgSunk,
+                    borderRadius: ZxRadius.buttonAll,
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      _Stat(
+                        count: profile.postCount,
+                        label: uiText(context, zh: '帖子', en: 'Posts'),
+                        onTap: onOpenPosts,
+                      ),
+                      _Stat(
+                        count: profile.followingCount,
+                        label: uiText(context, zh: '关注', en: 'Following'),
+                        onTap: () => onOpenFollows(FollowListTab.following),
+                      ),
+                      _Stat(
+                        count: profile.followerCount,
+                        label: uiText(context, zh: '粉丝', en: 'Followers'),
+                        onTap: () => onOpenFollows(FollowListTab.followers),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({required this.count, required this.label, required this.onTap});
+
+  final int count;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Expanded(
+      child: InkWell(
+        borderRadius: ZxRadius.buttonAll,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            children: <Widget>[
+              Text('$count', style: ZxType.title.copyWith(color: t.text)),
+              Text(label, style: ZxType.caption.copyWith(color: t.text3)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickEntry extends StatelessWidget {
+  const _QuickEntry({
+    required this.icon,
+    required this.hue,
+    required this.label,
+    required this.onTap,
+    this.count = 0,
+  });
+
+  final IconData icon;
+  final Color hue;
+  final String label;
+  final VoidCallback onTap;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Expanded(
+      child: ZxCard(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        onTap: onTap,
+        child: Column(
+          children: <Widget>[
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Color.lerp(hue, t.surface, 0.86),
+                borderRadius: ZxRadius.buttonAll,
+              ),
+              child: Icon(icon, size: 20, color: hue),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              count > 0 ? '$label $count' : label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: ZxType.caption.copyWith(
+                color: t.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  const _FooterLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        foregroundColor: ZxTokens.of(context).text2,
+      ),
+      child: Text(label, style: ZxType.caption),
+    );
   }
 }

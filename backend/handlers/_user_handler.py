@@ -32,6 +32,8 @@ from helpers import (
 from services import (
     add_audit_log,
     auth_user as auth_user_helper,
+    count_followers,
+    count_following,
     current_user_level,
     find_user_by_id,
     is_user_following,
@@ -80,6 +82,12 @@ def handle_get_me(
         for post in list_posts(db, viewer_user_id=uid)
         if str(post.get("id", "")) in favorite_post_ids
     )
+    # Same rows as GET /api/posts/mine, so the count matches 我的帖子.
+    post_count = sum(
+        1
+        for post in list_posts(db, include_rejected=True, viewer_user_id=uid)
+        if post.get("authorId") == uid
+    )
 
     send_json(
         handler,
@@ -111,6 +119,9 @@ def handle_get_me(
                 "notifyReportResult": bool(user.get("notifyReportResult", True)),
                 "notifySystem": bool(user.get("notifySystem", True)),
                 "favoriteCount": favorite_count,
+                "postCount": post_count,
+                "followingCount": count_following(db, uid),
+                "followerCount": count_followers(db, uid),
                 "isAdmin": bool(user.get("isAdmin", False)),
                 "userLevel": current_user_level(user),
                 "userLevelLabel": user_level_label(current_user_level(user)),
