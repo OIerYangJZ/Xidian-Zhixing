@@ -486,7 +486,7 @@ class _PostSkeleton extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ZxSkeleton(width: 40, height: 40, borderRadius: ZxRadius.pillAll),
+          ZxSkeleton(width: 40, height: 40, borderRadius: ZxRadius.smallButtonAll),
           SizedBox(width: 12),
           Expanded(
             child: Column(

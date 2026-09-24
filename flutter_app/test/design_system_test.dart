@@ -49,7 +49,7 @@ void main() {
           'danger list item': (p.danger, p.surface),
         };
         for (final Color hue in p.channels) {
-          // Real-name avatar initial on its tint (see ZxAvatar._circle).
+          // Real-name avatar initial on its tint (see ZxAvatar._realName).
           pairs['avatar ${hue.toARGB32().toRadixString(16)}'] = (
             Color.lerp(hue, p.text, 0.3)!,
             Color.lerp(hue, p.surface, 0.82)!,

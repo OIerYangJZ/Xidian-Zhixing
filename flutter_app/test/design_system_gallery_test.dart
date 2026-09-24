@@ -294,7 +294,7 @@ class _Gallery extends StatelessWidget {
                           ZxSkeleton(
                             width: 36,
                             height: 36,
-                            borderRadius: ZxRadius.pillAll,
+                            borderRadius: ZxRadius.smallButtonAll,
                           ),
                           SizedBox(width: 10),
                           ZxSkeleton(width: 120),

@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import '../zx_metrics.dart';
 import '../zx_tokens.dart';
 
-/// Avatar (§06 头像). A circle is a real-name account: its photo, or its
-/// first character on a stable channel hue. A seal (square, ~15% corner,
-/// inner white line like ink paste) is an anonymous identity; it never links
-/// to a profile, so [onTap] is ignored for it.
+/// Avatar (§06 头像). Always a rounded square: the product uses no circles.
+/// A real-name account shows its photo, or its first character on a light
+/// tint of a stable channel hue, with a ~24% corner. An anonymous identity is
+/// the seal: solid seal color, inner white line like ink paste, ~15% corner.
+/// The fill tells them apart. The seal never links to a profile, so [onTap]
+/// is ignored for it.
 class ZxAvatar extends StatelessWidget {
   const ZxAvatar({
     super.key,
@@ -35,7 +37,7 @@ class ZxAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
-    final Widget avatar = anonymous ? _seal(t) : _circle(t);
+    final Widget avatar = anonymous ? _seal(t) : _realName(t);
     return Semantics(
       label: name,
       image: true,
@@ -86,17 +88,18 @@ class ZxAvatar extends StatelessWidget {
     );
   }
 
-  Widget _circle(ZxTokens t) {
+  Widget _realName(ZxTokens t) {
     final Color hue = t.channelFor(name);
     // Some channel hues are too light for text on their own tint; pull the
     // letter toward ink so every hue holds 4.5:1.
     final Color letter = Color.lerp(hue, t.text, 0.3)!;
+    final BorderRadius radius = BorderRadius.circular(size * 0.24);
     final Widget initial = Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: radius,
         color: Color.lerp(hue, t.surface, 0.82),
         border: Border.all(color: t.line),
       ),
@@ -114,7 +117,8 @@ class ZxAvatar extends StatelessWidget {
     if (url.isEmpty) {
       return initial;
     }
-    return ClipOval(
+    return ClipRRect(
+      borderRadius: radius,
       child: Image.network(
         url,
         width: size,
