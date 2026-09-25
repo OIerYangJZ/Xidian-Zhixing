@@ -247,6 +247,8 @@ void main() {
     ('display', '/profile/settings/display'),
     ('user', '/user/u1'),
     ('create', '/post/create'),
+    // Signed out; the capture taps 登录 unticked, as in handoff L2.
+    ('login', '/auth/login?from=/post/p2'),
   ]) {
     for (final Brightness b in Brightness.values) {
       testWidgets('android $name ${b.name}', (WidgetTester tester) async {
@@ -283,9 +285,16 @@ void main() {
               ),
             ),
           );
+          final bool signedOut = name == 'login';
+          // Storage calls need the real clock.
+          if (signedOut) await tester.runAsync(AuthStore.instance.clear);
           appRouter.go(location);
           for (int i = 0; i < 12; i++) {
             await tester.pump(const Duration(milliseconds: 150));
+          }
+          if (signedOut) {
+            await tester.tap(find.byKey(const Key('mobile-login-submit')));
+            await tester.pump(const Duration(milliseconds: 600));
           }
           // Asset images (tab icons) decode off the fake clock.
           await tester.runAsync(
@@ -293,6 +302,11 @@ void main() {
           );
           await tester.pump();
           await saveBoundary(tester, boundary, 'android_${name}_${b.name}');
+          if (signedOut) {
+            await tester.runAsync(
+              () => AuthStore.instance.saveToken('demo-token'),
+            );
+          }
         }, () => _client);
       }, skip: !capturing);
     }
