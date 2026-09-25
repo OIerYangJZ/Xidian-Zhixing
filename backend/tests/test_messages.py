@@ -406,3 +406,127 @@ class TestUserBlockHandlers:
         assert handler5.status_code == 200
         res5 = json.loads(handler5.wfile.getvalue().decode("utf-8"))
         assert len(res5["data"]) == 0
+
+
+class TestFirstMessageRule:
+    """No message requests: one first message, then wait for a reply."""
+
+    @staticmethod
+    def _setup(monkeypatch: pytest.MonkeyPatch):
+        import io
+
+        from handlers import _message_handler
+        from server import default_db
+
+        db = default_db()
+        alice = {"id": "fm_alice", "email": "a@stu.xidian.edu.cn", "nickname": "Alice"}
+        bob = {"id": "fm_bob", "email": "b@stu.xidian.edu.cn", "nickname": "Bob"}
+        db["users"].extend([alice, bob])
+        for owner, peer, conv_id in ((alice, bob, "fm_ab"), (bob, alice, "fm_ba")):
+            db["conversations"].append({
+                "id": conv_id,
+                "userId": owner["id"],
+                "peerUserId": peer["id"],
+                "name": peer["nickname"],
+                "lastMessage": "",
+                "updatedAt": "2026-01-01T00:00:00Z",
+                "unreadCount": 0,
+                "deleted": False,
+            })
+
+        class FakeHandler:
+            def __init__(self):
+                self.wfile = io.BytesIO()
+                self.status_code = 0
+                self.headers = {}
+
+            def send_response(self, code):
+                self.status_code = code
+
+            def send_header(self, key, val):
+                pass
+
+            def end_headers(self):
+                pass
+
+        # Rate limits are not what these tests are about.
+        monkeypatch.setattr(_message_handler, "consume_rate_limit", lambda *a, **k: (True, 0))
+        monkeypatch.setattr(_message_handler, "check_ip_rate_limit", lambda *a, **k: (True, 0))
+        monkeypatch.setattr(_message_handler, "save_db", lambda db: None)
+
+        def send(user, conv_id, content="hi"):
+            monkeypatch.setattr(_message_handler, "auth_user_helper", lambda h, d: (user, "token"))
+            monkeypatch.setattr(_message_handler, "read_json_body", lambda h: {"content": content})
+            handler = FakeHandler()
+            _message_handler.handle_send_message(handler, db, conv_id)
+            return handler
+
+        return db, alice, bob, send
+
+    def test_second_message_waits_for_a_reply(self, monkeypatch: pytest.MonkeyPatch):
+        import json
+
+        db, alice, bob, send = self._setup(monkeypatch)
+        assert send(alice, "fm_ab", "first").status_code == 200
+        blocked = send(alice, "fm_ab", "second")
+        assert blocked.status_code == 403
+        payload = json.loads(blocked.wfile.getvalue().decode("utf-8"))
+        assert "对方回复前只能发送一条消息" in payload["message"]
+
+        # Bob replies; now both can keep writing.
+        assert send(bob, "fm_ba", "reply").status_code == 200
+        assert send(alice, "fm_ab", "second").status_code == 200
+        assert send(alice, "fm_ab", "third").status_code == 200
+
+    def test_recalling_the_first_message_frees_the_slot(self, monkeypatch: pytest.MonkeyPatch):
+        db, alice, bob, send = self._setup(monkeypatch)
+        assert send(alice, "fm_ab", "first").status_code == 200
+        for msg in db["directMessages"]:
+            if msg.get("senderUserId") == alice["id"]:
+                msg["deleted"] = True
+        assert send(alice, "fm_ab", "again").status_code == 200
+        assert send(alice, "fm_ab", "too many").status_code == 403
+
+    def test_a_recalled_reply_keeps_the_conversation_open(self, monkeypatch: pytest.MonkeyPatch):
+        db, alice, bob, send = self._setup(monkeypatch)
+        assert send(alice, "fm_ab", "first").status_code == 200
+        assert send(bob, "fm_ba", "reply").status_code == 200
+        for msg in db["directMessages"]:
+            if msg.get("senderUserId") == bob["id"]:
+                msg["deleted"] = True
+        assert send(alice, "fm_ab", "second").status_code == 200
+
+    def test_conversation_list_reports_awaiting_reply(self, monkeypatch: pytest.MonkeyPatch):
+        import io
+        import json
+
+        from handlers import _message_handler
+
+        db, alice, bob, send = self._setup(monkeypatch)
+        assert send(alice, "fm_ab", "first").status_code == 200
+
+        def listed(user):
+            monkeypatch.setattr(_message_handler, "auth_user_helper", lambda h, d: (user, "token"))
+
+            class H:
+                wfile = io.BytesIO()
+                headers = {}
+
+                def send_response(self, code):
+                    pass
+
+                def send_header(self, *a):
+                    pass
+
+                def end_headers(self):
+                    pass
+
+            h = H()
+            h.wfile = io.BytesIO()
+            _message_handler.handle_get_conversations(h, db)
+            rows = json.loads(h.wfile.getvalue().decode("utf-8"))["data"]
+            return {row["id"]: row for row in rows}
+
+        assert listed(alice)["fm_ab"]["awaitingReply"] is True
+        # The receiver is never held back.
+        assert listed(bob)["fm_ba"]["awaitingReply"] is False

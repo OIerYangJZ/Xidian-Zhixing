@@ -118,6 +118,37 @@ def _conversations_for_user(
     return rows
 
 
+AWAITING_REPLY_MESSAGE = "对方回复前只能发送一条消息"
+
+
+def awaiting_peer_reply(
+    db: dict[str, Any],
+    *,
+    viewer_user_id: str,
+    peer_user_id: str,
+) -> bool:
+    """True while the viewer has one message out and the peer never wrote.
+
+    There is no message-request step: the first message goes straight
+    through, and only a reply opens the conversation both ways. A recalled
+    first message frees the slot again; a reply counts even if recalled
+    later, so an opened conversation stays open.
+    """
+    conv_key = _globals.conversation_key_for_users(viewer_user_id, peer_user_id)
+    peer_wrote = False
+    viewer_pending = False
+    for msg in db.get("directMessages", []):
+        if msg.get("conversationKey") != conv_key:
+            continue
+        sender = str(msg.get("senderUserId", "")).strip()
+        if sender == peer_user_id:
+            peer_wrote = True
+            break
+        if sender == viewer_user_id and not msg.get("deleted"):
+            viewer_pending = True
+    return viewer_pending and not peer_wrote
+
+
 def handle_get_requests(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -445,6 +476,11 @@ def handle_get_conversations(
             "hasUnread": unread_count > 0,
             "blockedByMe": blocked_by_me,
             "blockedByPeer": blocked_by_peer,
+            "awaitingReply": awaiting_peer_reply(
+                db,
+                viewer_user_id=str(user.get("id", "")),
+                peer_user_id=peer_user_id,
+            ),
         })
 
     send_json(handler, HTTPStatus.OK, {"data": result})
@@ -530,6 +566,11 @@ def handle_direct_conversation(
                     "hasUnread": int(existing.get("unreadCount", 0) or 0) > 0,
                     "blockedByMe": blocked_by_me,
                     "blockedByPeer": blocked_by_peer,
+                    "awaitingReply": awaiting_peer_reply(
+                        db,
+                        viewer_user_id=str(user.get("id", "")),
+                        peer_user_id=target_user_id,
+                    ),
                 }
             },
         )
@@ -593,6 +634,7 @@ def handle_direct_conversation(
                 "hasUnread": False,
                 "blockedByMe": False,
                 "blockedByPeer": False,
+                "awaitingReply": False,
             }
         },
     )
@@ -677,6 +719,18 @@ def handle_send_message(
         return
     if not bool(peer_user.get("allowStrangerDm", True)):
         json_error(handler, HTTPStatus.FORBIDDEN, "对方已关闭私信，消息未发送")
+        return
+    if awaiting_peer_reply(
+        db,
+        viewer_user_id=str(user.get("id", "")),
+        peer_user_id=peer_user_id,
+    ):
+        json_error(
+            handler,
+            HTTPStatus.FORBIDDEN,
+            AWAITING_REPLY_MESSAGE,
+            data={"awaitingReply": True},
+        )
         return
     conversation_key = _globals.conversation_key_for_users(
         str(user.get("id", "")),
