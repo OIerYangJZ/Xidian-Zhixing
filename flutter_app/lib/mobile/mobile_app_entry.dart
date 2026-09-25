@@ -43,7 +43,12 @@ class XduTreeholeMobileApp extends ConsumerWidget {
         settings.themeKey,
         settings.locale ?? const Locale('zh', 'CN'),
       ),
-      themeMode: ThemeMode.light,
+      darkTheme: MobileTheme.getThemeData(
+        settings.themeKey,
+        settings.locale ?? const Locale('zh', 'CN'),
+        brightness: Brightness.dark,
+      ),
+      themeMode: settings.themeMode,
       locale: settings.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

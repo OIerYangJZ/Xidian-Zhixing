@@ -16,7 +16,13 @@ void main() {
       );
       final MobileColors colors = MobileColors.fromThemeKey(option.key);
       expect(theme.colorScheme.primary, colors.primary);
-      expect(MobileTheme.themes[option.key]!.primary, colors.primary);
+      final ThemeData dark = MobileTheme.getThemeData(
+        option.key,
+        const Locale('zh', 'CN'),
+        brightness: Brightness.dark,
+      );
+      expect(dark.brightness, Brightness.dark);
+      expect(dark.extension<MobileColors>()!.primary, dark.colorScheme.primary);
     });
   }
 }

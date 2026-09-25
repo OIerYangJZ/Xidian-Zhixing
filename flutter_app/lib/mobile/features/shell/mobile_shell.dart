@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../home/home_page.dart';
 import '../messages/messages_page.dart';
@@ -467,11 +467,9 @@ class _BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final navBackground = isDark ? Colors.black : Colors.white;
-    final selectedIconColor = MobileTheme.primaryOf(context);
+    final ZxTokens t = ZxTokens.of(context);
 
+    // Handoff B2: 树洞 · 消息 · 我的 on the glass surface.
     return AnimatedBuilder(
       animation: slideAnim,
       builder: (context, child) {
@@ -481,45 +479,38 @@ class _BottomNavBar extends StatelessWidget {
         );
       },
       child: Container(
-        height: 60,
+        height: 60 + MediaQuery.paddingOf(context).bottom,
         decoration: BoxDecoration(
-          color: navBackground,
-          border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
+          color: t.surface,
+          border: Border(top: BorderSide(color: t.line)),
         ),
         child: SafeArea(
           top: false,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _NavItem(
-                icon: Icons.home_outlined,
-                selectedIcon: Icons.home_rounded,
-                label: '首页',
+                key: const Key('mobile-tab-treehole'),
+                icon: 'treehole',
+                label: '树洞',
                 isSelected: currentIndex == 0,
-                iconSize: 28,
                 onTap: () => onTap(0),
-                selectedColor: selectedIconColor,
               ),
               _NavItem(
-                icon: Icons.chat_bubble_outline,
-                selectedIcon: Icons.chat_bubble_rounded,
+                key: const Key('mobile-tab-messages'),
+                icon: 'message',
                 label: '消息',
                 isSelected: currentIndex == 1,
-                iconSize: 28,
                 badgeCount: messageUnreadCount,
                 onTap: () => onTap(1),
-                selectedColor: selectedIconColor,
               ),
               _NavItem(
-                icon: Icons.person_outline,
-                selectedIcon: Icons.person_rounded,
+                key: const Key('mobile-tab-mine'),
+                icon: 'mine',
                 label: '我的',
                 isSelected: currentIndex == 2,
-                iconSize: 28,
-                badgeCount: notificationUnreadCount,
-                badgeIsNotification: true,
+                // Unread notifications show as a dot on 我的.
+                showDot: notificationUnreadCount > 0,
                 onTap: () => onTap(2),
-                selectedColor: selectedIconColor,
               ),
             ],
           ),
@@ -529,72 +520,86 @@ class _BottomNavBar extends StatelessWidget {
   }
 }
 
-/// 鍗曚釜瀵艰埅椤癸紙鍥炬爣 + 鏍囩锛?8px 澶у浘鏍囷紝瀛楅噸鍔犵矖锛?
+/// One tab: the handoff's icon (a mask tinted primary or text-3; the
+/// selected one is the filled variant) over its label.
 class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData selectedIcon;
+  final String icon;
   final String label;
   final bool isSelected;
-  final double iconSize;
   final int badgeCount;
-  final bool badgeIsNotification;
+  final bool showDot;
   final VoidCallback onTap;
-  final Color selectedColor;
 
   const _NavItem({
+    super.key,
     required this.icon,
-    required this.selectedIcon,
     required this.label,
     required this.isSelected,
-    required this.iconSize,
     this.badgeCount = 0,
-    this.badgeIsNotification = false,
+    this.showDot = false,
     required this.onTap,
-    required this.selectedColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final color = isSelected ? selectedColor : colors.textSecondary;
+    final ZxTokens t = ZxTokens.of(context);
+    final Color color = isSelected ? t.primary : t.text3;
 
-    Widget iconWidget = Icon(
-      isSelected ? selectedIcon : icon,
-      size: iconSize,
-      color: color,
-    );
-
-    if (badgeCount > 0) {
-      iconWidget = Badge(
-        isLabelVisible: true,
-        smallSize: 8,
-        label: Text(
-          badgeCount > 99 ? '99+' : badgeCount.toString(),
-          style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700),
-        ),
-        child: iconWidget,
-      );
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            iconWidget,
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: color,
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: label,
+        child: InkResponse(
+          onTap: onTap,
+          radius: 32,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  ImageIcon(
+                    AssetImage(
+                      'assets/tabbar/$icon${isSelected ? '-active' : ''}.png',
+                    ),
+                    size: 25,
+                    color: color,
+                  ),
+                  if (badgeCount > 0)
+                    Positioned(
+                      right: -12,
+                      top: -6,
+                      child: ZxCountBadge(badgeCount),
+                    )
+                  else if (showDot)
+                    Positioned(
+                      right: -2,
+                      top: -1,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: t.danger,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: t.surface, width: 1.5),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.2,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

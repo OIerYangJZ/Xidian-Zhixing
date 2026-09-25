@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../shell/mobile_shell.dart';
-import 'package:xdu_treehole_web/core/config/app_config.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
+import 'package:xdu_treehole_web/features/messages/messages_controller.dart';
 import 'package:xdu_treehole_web/models/conversation_item.dart';
+import 'package:xdu_treehole_web/models/dm_request_item.dart';
+import 'package:xdu_treehole_web/models/notification_item.dart';
 
+/// 消息 (handoff A3): 通知 / 私信请求 / 赞与收藏 with their counts, the
+/// pending DM requests with 同意 / 拒绝, then the conversations.
 class MessagesPage extends ConsumerStatefulWidget {
   const MessagesPage({super.key});
 
@@ -26,6 +28,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(messagesControllerProvider.notifier).loadInitial();
+      ref.read(notificationsControllerProvider.notifier).loadInitial();
     });
     _scrollController.addListener(_onScroll);
   }
@@ -47,234 +50,402 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     _lastScrollOffset = _scrollController.position.pixels;
   }
 
+  Future<void> _refresh() async {
+    await Future.wait(<Future<void>>[
+      ref.read(messagesControllerProvider.notifier).refresh(),
+      ref.read(notificationsControllerProvider.notifier).refresh(),
+    ]);
+  }
+
+  void _openNotifications(String? category) {
+    ref.read(notificationsControllerProvider.notifier).selectCategory(category);
+    context.push('/notifications');
+  }
+
+  Future<void> _answer(DmRequestItem request, bool accept) async {
+    final bool ok = await ref
+        .read(messagesControllerProvider.notifier)
+        .handleRequest(requestId: request.id, accept: accept);
+    if (!mounted) return;
+    zxShowToast(context, ok ? (accept ? '已同意，会话已建立' : '已拒绝') : '操作失败，请重试');
+  }
+
+  Future<bool> _confirmDelete(ConversationItem c) => zxConfirm(
+    context,
+    title: '删除会话',
+    message: '确定删除与「${c.name}」的会话吗？只从你的列表中移除。',
+    confirmLabel: '删除',
+    cancelLabel: '取消',
+    danger: true,
+  );
+
   @override
   Widget build(BuildContext context) {
-    final messagesState = ref.watch(messagesControllerProvider);
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
+    final MessagesState state = ref.watch(messagesControllerProvider);
+    final notifications = ref.watch(notificationsControllerProvider);
+    final List<DmRequestItem> pending = state.requests
+        .where((DmRequestItem r) => r.status.trim().toLowerCase() == 'pending')
+        .toList();
+    final int likeUnread = notifications.items
+        .where(
+          (NotificationItem n) =>
+              !n.isRead && (n.category == 'like' || n.category == 'favorite'),
+        )
+        .length;
 
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.surface,
-        title: const Text(
-          '消息',
-          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
-        ),
-        centerTitle: true,
-        scrolledUnderElevation: 0.5,
-      ),
-      body: _ConversationsTab(
-        conversations: messagesState.conversations,
-        loading: messagesState.loading,
-        scrollController: _scrollController,
+      backgroundColor: t.surface,
+      body: Stack(
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 320,
+            child: ZxHeroWash(child: const SizedBox.expand()),
+          ),
+          SafeArea(
+            bottom: false,
+            child: RefreshIndicator(
+              onRefresh: _refresh,
+              color: t.primary,
+              child: ListView(
+                controller: _scrollController,
+                padding: const EdgeInsets.only(bottom: 100),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 8, 14),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '消息',
+                            style: ZxType.headline.copyWith(color: t.text),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: '刷新',
+                          icon: Icon(Icons.refresh_rounded, color: t.text2),
+                          onPressed: _refresh,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Row(
+                      children: [
+                        _Entry(
+                          key: const Key('mobile-messages-notifications'),
+                          icon: Icons.notifications_none_rounded,
+                          hue: t.primary,
+                          label: '通知',
+                          count: notifications.unreadCount,
+                          onTap: () => _openNotifications(null),
+                        ),
+                        const SizedBox(width: 10),
+                        _Entry(
+                          icon: Icons.mail_outline_rounded,
+                          hue: t.accentInk,
+                          label: '私信请求',
+                          count: pending.length,
+                          onTap: () {
+                            if (pending.isEmpty) {
+                              zxShowToast(context, '暂无私信请求');
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _Entry(
+                          key: const Key('mobile-messages-likes'),
+                          icon: Icons.favorite_border_rounded,
+                          hue: t.danger,
+                          label: '赞与收藏',
+                          count: likeUnread,
+                          onTap: () => _openNotifications('like'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    constraints: BoxConstraints(
+                      minHeight: MediaQuery.sizeOf(context).height * 0.6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: t.surface,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(ZxRadius.sheet),
+                      ),
+                      border: Border(top: BorderSide(color: t.line)),
+                    ),
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final DmRequestItem r in pending)
+                          _RequestRow(
+                            request: r,
+                            busy: state.actionBusy,
+                            onAnswer: (bool accept) => _answer(r, accept),
+                          ),
+                        if (state.loading && state.conversations.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(40),
+                            child: Center(child: CircularProgressIndicator()),
+                          )
+                        else if (state.conversations.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.only(top: 40),
+                            child: ZxStatePanel(
+                              icon: Icons.forum_outlined,
+                              title: '还没有会话',
+                              message: '在帖子或个人主页里向同学发起私信',
+                            ),
+                          ),
+                        for (final ConversationItem c in state.conversations)
+                          Dismissible(
+                            key: Key(c.id),
+                            direction: DismissDirection.endToStart,
+                            confirmDismiss: (_) => _confirmDelete(c),
+                            onDismissed: (_) => ref
+                                .read(messagesControllerProvider.notifier)
+                                .deleteConversation(c.id),
+                            background: Container(
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 20),
+                              decoration: BoxDecoration(
+                                color: t.danger,
+                                borderRadius: ZxRadius.buttonAll,
+                              ),
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: t.onDanger,
+                              ),
+                            ),
+                            child: _ConversationRow(conversation: c),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _ConversationsTab extends ConsumerWidget {
-  final List<ConversationItem> conversations;
-  final bool loading;
-  final ScrollController scrollController;
-
-  const _ConversationsTab({
-    required this.conversations,
-    required this.loading,
-    required this.scrollController,
+class _Entry extends StatelessWidget {
+  const _Entry({
+    super.key,
+    required this.icon,
+    required this.hue,
+    required this.label,
+    required this.count,
+    required this.onTap,
   });
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = MobileColors.of(context);
-    if (loading) {
-      return Center(
-        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
-      );
-    }
-    if (conversations.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.chat_bubble_outline,
-              size: 64,
-              color: colors.textTertiary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              '暂无会话',
-              style: TextStyle(color: colors.textSecondary, fontSize: 15),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '点击他人帖子或评论中的头像，即可发起私信',
-              style: TextStyle(color: colors.textTertiary, fontSize: 13),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: () => ref.read(messagesControllerProvider.notifier).refresh(),
-      child: ListView.separated(
-        controller: scrollController,
-        itemCount: conversations.length,
-        separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-        itemBuilder: (context, index) {
-          final conversation = conversations[index];
-          return Dismissible(
-            key: Key(conversation.id),
-            direction: DismissDirection.endToStart,
-            confirmDismiss: (_) async {
-              return await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('删除会话'),
-                  content: Text('确定删除与 "${conversation.name}" 的会话吗？'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('取消'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text(
-                        '删除',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-            onDismissed: (_) {
-              ref
-                  .read(messagesControllerProvider.notifier)
-                  .deleteConversation(conversation.id);
-            },
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.only(right: 20),
-              color: Colors.red,
-              child: const Icon(Icons.delete, color: Colors.white),
-            ),
-            child: _ConversationTile(conversation: conversation),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _ConversationTile extends StatelessWidget {
-  final ConversationItem conversation;
-
-  const _ConversationTile({required this.conversation});
+  final IconData icon;
+  final Color hue;
+  final String label;
+  final int count;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      leading: GestureDetector(
-        onTap: () => context.push('/user/${conversation.peerUserId}'),
-        child: CircleAvatar(
-          radius: 22,
-          backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
-          backgroundImage: conversation.avatarUrl.isNotEmpty
-              ? CachedNetworkImageProvider(
-                  conversation.avatarUrl.startsWith('http')
-                      ? conversation.avatarUrl
-                      : AppConfig.resolveUrl(conversation.avatarUrl),
-                )
-              : null,
-          child: conversation.avatarUrl.isEmpty
-              ? Icon(
-                  Icons.person,
-                  color: MobileTheme.primaryOf(context),
-                  size: 22,
-                )
-              : null,
-        ),
-      ),
-      title: Row(
-        children: [
-          Expanded(
-            child: Text(
-              conversation.name,
-              style: TextStyle(
-                fontWeight: conversation.hasUnread
-                    ? FontWeight.w700
-                    : FontWeight.w600,
-                fontSize: 15,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          if (conversation.isBlocked) ...[
-            const SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-              decoration: BoxDecoration(
-                color: colors.textTertiary.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(3),
-              ),
-              child: Text(
-                '已屏蔽',
-                style: TextStyle(fontSize: 10, color: colors.textTertiary),
-              ),
-            ),
-          ],
-        ],
-      ),
-      subtitle: Text(
-        conversation.lastMessage,
-        style: TextStyle(
-          color: conversation.hasUnread
-              ? colors.textPrimary
-              : colors.textSecondary,
-          fontSize: 13,
-        ),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            conversation.timeText,
-            style: TextStyle(color: colors.textTertiary, fontSize: 12),
-          ),
-          if (conversation.hasUnread) ...[
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                color: colors.accent,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                conversation.unreadCount > 99
-                    ? '99+'
-                    : conversation.unreadCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+    final ZxTokens t = ZxTokens.of(context);
+    return Expanded(
+      child: ZxCard(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        onTap: onTap,
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Color.lerp(hue, t.surface, 0.86),
+                    borderRadius: ZxRadius.buttonAll,
+                  ),
+                  child: Icon(icon, size: 20, color: hue),
                 ),
+                if (count > 0)
+                  Positioned(right: -10, top: -6, child: ZxCountBadge(count)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(label, style: ZxType.label.copyWith(color: t.text)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RequestRow extends StatelessWidget {
+  const _RequestRow({
+    required this.request,
+    required this.busy,
+    required this.onAnswer,
+  });
+
+  final DmRequestItem request;
+  final bool busy;
+  final ValueChanged<bool> onAnswer;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    return Container(
+      key: const Key('mobile-dm-request'),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
+      decoration: BoxDecoration(
+        color: t.accentSoft,
+        borderRadius: ZxRadius.cardAll,
+      ),
+      child: Row(
+        children: [
+          ZxAvatar(
+            name: request.fromAliasFor(locale),
+            imageUrl: request.fromAvatarUrl,
+            size: 34,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '私信请求 · ${request.fromAliasFor(locale)}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: ZxType.label.copyWith(color: t.text),
+                ),
+                Text(
+                  request.reasonFor(locale),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: ZxType.caption.copyWith(color: t.text2),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          ZxButton(
+            label: '同意',
+            small: true,
+            onPressed: busy ? null : () => onAnswer(true),
+          ),
+          const SizedBox(width: 6),
+          ZxButton(
+            label: '拒绝',
+            small: true,
+            variant: ZxButtonVariant.secondary,
+            onPressed: busy ? null : () => onAnswer(false),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConversationRow extends StatelessWidget {
+  const _ConversationRow({required this.conversation});
+
+  final ConversationItem conversation;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    final ConversationItem c = conversation;
+    final bool unread = c.unreadCount > 0;
+    return InkWell(
+      borderRadius: ZxRadius.buttonAll,
+      onTap: () => context.push(
+        '/chat/${c.id}?name=${Uri.encodeComponent(c.name)}&avatar=${Uri.encodeComponent(c.avatarUrl)}&userId=${Uri.encodeComponent(c.peerUserId)}',
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+        child: Row(
+          children: [
+            ZxAvatar(
+              name: c.nameFor(locale),
+              imageUrl: c.avatarUrl,
+              size: 48,
+              onTap: c.peerUserId.isEmpty
+                  ? null
+                  : () => context.push('/user/${c.peerUserId}'),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                c.nameFor(locale),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: ZxType.label.copyWith(color: t.text),
+                              ),
+                            ),
+                            if (c.blockedByMe) ...[
+                              const SizedBox(width: 6),
+                              const ZxBadge.blocked('已屏蔽'),
+                            ] else if (c.blockedByPeer) ...[
+                              const SizedBox(width: 6),
+                              const ZxBadge.blocked('对方已屏蔽'),
+                            ],
+                          ],
+                        ),
+                      ),
+                      Text(
+                        c.timeText,
+                        style: ZxType.caption.copyWith(color: t.text3),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          c.lastMessage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: ZxType.caption.copyWith(
+                            fontSize: 13,
+                            color: unread ? t.text : t.text2,
+                            fontWeight: unread
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ZxCountBadge(c.unreadCount),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
-        ],
+        ),
       ),
-      onTap: () {
-        context.push(
-          '/chat/${conversation.id}?name=${Uri.encodeComponent(conversation.name)}&avatar=${Uri.encodeComponent(conversation.avatarUrl)}&userId=${Uri.encodeComponent(conversation.peerUserId)}',
-        );
-      },
     );
   }
 }

@@ -40,6 +40,9 @@ flutter:
   generate: true
   assets:
     - assets/design/paper_grain.png
+    # Tab icons from the handoff, as masks tinted by the theme
+    # (scripts/build_tabbar_icons.py makes the mini program set).
+    - assets/tabbar/
   fonts:
     # Web body text: a Noto Sans SC subset built by scripts/build_web_font.py
     # (SIL OFL, see assets/fonts/ZxSans-OFL.txt).

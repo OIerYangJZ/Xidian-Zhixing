@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
+
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../shell/mobile_shell.dart';
-import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
-import 'package:xdu_treehole_web/models/post_item.dart';
-import 'package:xdu_treehole_web/models/my_comment_item.dart';
 import 'package:xdu_treehole_web/models/follow_user_item.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
-import '../home/post_card.dart';
 
 /// 个人主页 — Twitter/Instagram 混合风格
 /// 无卡片、无圆角、紧凑信息流布局
@@ -25,9 +22,7 @@ class ProfilePage extends ConsumerStatefulWidget {
   ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends ConsumerState<ProfilePage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _scrollController = ScrollController();
   double _lastScrollOffset = 0;
   UserProfile? _profile;
@@ -41,7 +36,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
     _loadProfile();
     _loadFollowData();
@@ -50,7 +44,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
   @override
   void dispose() {
     _scrollController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -127,436 +120,319 @@ class _ProfilePageState extends ConsumerState<ProfilePage>
     );
   }
 
+  Future<void> _open(String location) async {
+    await context.push(location);
+    if (mounted) {
+      _loadProfile();
+      _loadFollowData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    if (_profileLoading) {
-      return Scaffold(
-        backgroundColor: colors.background,
-        body: Center(
-          child: CircularProgressIndicator(
-            color: MobileTheme.primaryOf(context),
-          ),
-        ),
-      );
-    }
-    if (_profile == null) {
-      return Scaffold(
-        backgroundColor: colors.background,
-        body: _LoadErrorHint(
-          message: _profileError ?? '个人资料加载失败',
-          onRetry: _loadProfile,
-        ),
-      );
-    }
-    final user = _profile!;
-    final backgroundImageUrl = AppConfig.resolveUrl(user.backgroundImageUrl);
-    final bool hasBackgroundImage = backgroundImageUrl.isNotEmpty;
-    final bool isLightMode = Theme.of(context).brightness == Brightness.light;
-    final Color profilePrimaryTextColor = isLightMode
-        ? Colors.black
-        : colors.textPrimary;
-    final Color profileSecondaryTextColor = isLightMode
-        ? Colors.black
-        : colors.textSecondary;
-    final double profileTopSpacing = hasBackgroundImage ? 120 : 60;
+    final ZxTokens t = ZxTokens.of(context);
+    final UserProfile? p = _profile;
+    final bool admin = p?.isAdmin ?? false;
+    final String school = <String>[
+      p?.college ?? '',
+      p?.major ?? '',
+    ].where((String s) => s.trim().isNotEmpty).join(' · ');
 
+    // Handoff A4. 热榜 / 学院专区 / 社团 join the menu when Android has them.
     return Scaffold(
-      backgroundColor: colors.background,
-      body: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverToBoxAdapter(
-              child: Stack(
-                children: [
-                  Positioned.fill(child: ColoredBox(color: colors.surface)),
-                  if (hasBackgroundImage)
-                    Positioned.fill(
-                      child: RepaintBoundary(
-                        child: CachedNetworkImage(
-                          imageUrl: backgroundImageUrl,
-                          fit: BoxFit.cover,
-                          fadeInDuration: const Duration(milliseconds: 120),
-                          imageBuilder: (context, imageProvider) => Image(
-                            image: imageProvider,
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.low,
+      backgroundColor: t.bg,
+      body: RefreshIndicator(
+        color: t.primary,
+        onRefresh: () async {
+          await Future.wait([_loadProfile(), _loadFollowData()]);
+        },
+        child: ListView(
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 100),
+          children: [
+            ZxHeroWash(
+              child: SafeArea(
+                bottom: false,
+                child: Stack(
+                  children: [
+                    Positioned(
+                      right: -30,
+                      top: 10,
+                      child: IgnorePointer(
+                        child: Text(
+                          '知',
+                          style: TextStyle(
+                            fontFamily: ZxFonts.display,
+                            fontFamilyFallback: ZxFonts.displayFallback,
+                            fontSize: 150,
+                            height: 1,
+                            color: t.primary.withValues(alpha: 0.07),
                           ),
-                          placeholder: (context, url) => DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: MobileTheme.primaryWithAlpha(
-                                context,
-                                0.08,
-                              ),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) =>
-                              const SizedBox.shrink(),
                         ),
                       ),
                     ),
-                  if (hasBackgroundImage)
-                    Positioned.fill(
-                      child: ColoredBox(
-                        color: colors.surface.withValues(alpha: 0.08),
-                      ),
-                    ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: profileTopSpacing,
-                        color: hasBackgroundImage
-                            ? Colors.transparent
-                            : MobileTheme.primaryWithAlpha(context, 0.08),
-                      ),
-
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Transform.translate(
-                              offset: const Offset(0, -24),
-                              child: GestureDetector(
-                                onTap: () async {
-                                  await context.push('/profile/edit');
-                                  if (mounted) {
-                                    await _loadProfile();
-                                  }
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: colors.surface,
-                                      width: 4,
-                                    ),
-                                  ),
-                                  child: AvatarWidget(
-                                    avatarUrl: user.avatarUrl,
-                                    nickname: user.nickname,
-                                    radius: 36,
-                                  ),
-                                ),
-                              ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: IconButton(
+                              key: const Key('mobile-profile-settings'),
+                              tooltip: '设置',
+                              icon: Icon(Icons.tune_rounded, color: t.text2),
+                              onPressed: () => _open('/profile/settings'),
                             ),
-                            const Spacer(),
-                            Transform.translate(
-                              offset: const Offset(0, -16),
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () async {
-                                      await context.push('/profile/edit');
-                                      if (mounted) {
-                                        await _loadProfile();
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colors.surface,
-                                        border: Border.all(
-                                          color: colors.divider,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Text(
-                                        '编辑资料',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: colors.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  GestureDetector(
-                                    onTap: () async {
-                                      await context.push(
-                                        '/profile/settings',
-                                      );
-                                      if (mounted) {
-                                        await _loadProfile();
-                                      }
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: colors.surface,
-                                        border: Border.all(
-                                          color: colors.divider,
-                                          width: 1,
-                                        ),
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      child: Icon(
-                                        Icons.settings_outlined,
-                                        size: 16,
-                                        color: colors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      Container(
-                        color: hasBackgroundImage
-                            ? colors.surface.withValues(alpha: 0.72)
-                            : Colors.transparent,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          ),
+                          if (_profileError != null)
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                              child: Text(
-                                user.nickname,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: profilePrimaryTextColor,
-                                ),
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ZxInlineMessage(
+                                message: _profileError!,
+                                tone: ZxMessageTone.danger,
+                                actionLabel: '重试',
+                                onAction: _loadProfile,
                               ),
                             ),
-                            if (user.bio.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  0,
-                                  16,
-                                  8,
-                                ),
-                                child: Text(
-                                  user.bio,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: profileSecondaryTextColor,
+                          Row(
+                            children: [
+                              DecoratedBox(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: t.surface,
+                                    width: 3,
                                   ),
                                 ),
-                              ),
-                            if (user.gender.isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  0,
-                                  16,
-                                  8,
+                                child: ZxAvatar(
+                                  name: p?.nickname ?? '我',
+                                  imageUrl: p?.avatarUrl,
+                                  size: 72,
+                                  onTap: () => _open('/profile/edit'),
                                 ),
-                                child: Row(
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Icon(
-                                      user.gender == '男'
-                                          ? Icons.male
-                                          : Icons.female,
-                                      size: 16,
-                                      color: profileSecondaryTextColor,
+                                    Wrap(
+                                      spacing: 8,
+                                      crossAxisAlignment:
+                                          WrapCrossAlignment.center,
+                                      children: [
+                                        Text(
+                                          _profileLoading && p == null
+                                              ? ''
+                                              : (p?.nickname ?? '匿名同学'),
+                                          style: ZxType.headline.copyWith(
+                                            color: t.text,
+                                          ),
+                                        ),
+                                        if (p?.verified ?? false)
+                                          const ZxBadge.verified('已认证'),
+                                      ],
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      user.gender,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: profileSecondaryTextColor,
+                                    if (school.isNotEmpty)
+                                      Text(
+                                        school,
+                                        style: ZxType.caption.copyWith(
+                                          fontSize: 13,
+                                          color: t.text2,
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ),
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                              child: Row(
-                                children: [
-                                  _StatChip(
-                                    label: '粉丝',
-                                    value:
-                                        _followLoading || _followError != null
-                                        ? '--'
-                                        : '${_followers.length}',
-                                    onTap:
-                                        _followLoading || _followError != null
-                                        ? null
-                                        : () => _showFollowSheet(
-                                            '粉丝',
-                                            _followers,
-                                          ),
-                                    primaryColor: profilePrimaryTextColor,
-                                    secondaryColor: profileSecondaryTextColor,
-                                  ),
-                                  const SizedBox(width: 20),
-                                  _StatChip(
-                                    label: '关注',
-                                    value:
-                                        _followLoading || _followError != null
-                                        ? '--'
-                                        : '${_following.length}',
-                                    onTap:
-                                        _followLoading || _followError != null
-                                        ? null
-                                        : () => _showFollowSheet(
-                                            '关注',
-                                            _following,
-                                          ),
-                                    primaryColor: profilePrimaryTextColor,
-                                    secondaryColor: profileSecondaryTextColor,
-                                  ),
-                                  const SizedBox(width: 20),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: colors.accent.withValues(
-                                        alpha: hasBackgroundImage ? 0.18 : 0.1,
-                                      ),
-                                      borderRadius: BorderRadius.circular(4),
-                                      border: hasBackgroundImage
-                                          ? Border.all(
-                                              color: colors.accent.withValues(
-                                                alpha: 0.3,
-                                              ),
-                                              width: 0.6,
-                                            )
-                                          : null,
-                                    ),
-                                    child: Text(
-                                      user.userLevelLabel,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: colors.accent,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (_followError != null)
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  0,
-                                  16,
-                                  10,
-                                ),
-                                child: TextButton.icon(
-                                  onPressed: _loadFollowData,
-                                  icon: const Icon(Icons.refresh, size: 16),
-                                  label: const Text('关注数据加载失败，重试'),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                      Container(
-                        color: colors.surface,
-                        child: Divider(height: 0.5, color: colors.divider),
-                      ),
-                      Material(
-                        color: colors.surface,
-                        child: TabBar(
-                          controller: _tabController,
-                          labelColor: colors.textPrimary,
-                          unselectedLabelColor: colors.textSecondary,
-                          indicatorColor: MobileTheme.primaryOf(context),
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          dividerColor: Colors.transparent,
-                          labelStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
+                            ],
                           ),
-                          unselectedLabelStyle: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              _Count(
+                                value: _followLoading || _followError != null
+                                    ? '–'
+                                    : '${_followers.length}',
+                                label: '粉丝',
+                                onTap: () => _showFollowSheet('粉丝', _followers),
+                              ),
+                              const SizedBox(width: 18),
+                              _Count(
+                                value: _followLoading || _followError != null
+                                    ? '–'
+                                    : '${_following.length}',
+                                label: '关注',
+                                onTap: () => _showFollowSheet('关注', _following),
+                              ),
+                              const SizedBox(width: 14),
+                              ZxBadge.level(
+                                'Lv.${(p?.isLevelOneUser ?? false) ? 1 : (p?.userLevel ?? 2)}',
+                              ),
+                              const Spacer(),
+                              ZxButton(
+                                key: const Key('mobile-profile-edit'),
+                                label: '编辑资料',
+                                variant: ZxButtonVariant.secondary,
+                                small: true,
+                                onPressed: () => _open('/profile/edit'),
+                              ),
+                            ],
                           ),
-                          isScrollable: false,
-                          tabs: const [
-                            Tab(text: '帖子'),
-                            Tab(text: '收藏'),
-                            Tab(text: '动态'),
-                          ],
-                        ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: ZxCard(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  children: [
+                    _Quick(
+                      icon: Icons.edit_outlined,
+                      hue: t.primary,
+                      label: '我的发布',
+                      onTap: () => _open('/profile/posts'),
+                    ),
+                    _Quick(
+                      icon: Icons.chat_bubble_outline_rounded,
+                      hue: t.info,
+                      label: '我的评论',
+                      onTap: () => _open('/profile/comments'),
+                    ),
+                    _Quick(
+                      icon: Icons.star_outline_rounded,
+                      hue: t.accentInk,
+                      label: '我的收藏',
+                      onTap: () => _open('/favorites'),
+                    ),
+                    _Quick(
+                      icon: Icons.flag_outlined,
+                      hue: t.seal,
+                      label: '我的举报',
+                      onTap: () => _open('/profile/reports'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: ZxListSection(
+                children: [
+                  ZxListItem(
+                    icon: Icons.mail_outline_rounded,
+                    iconColor: t.accentInk,
+                    title: '信箱',
+                    subtitle: '帮助与反馈',
+                    onTap: () => _open('/profile/help-feedback'),
+                  ),
+                  if (admin)
+                    ZxListItem(
+                      icon: Icons.shield_outlined,
+                      iconColor: t.text2,
+                      title: '管理',
+                      trailing: const ZxBadge.level('仅管理员'),
+                      showChevron: true,
+                      onTap: () => _open('/admin'),
+                    ),
+                  ZxListItem(
+                    icon: Icons.tune_rounded,
+                    iconColor: t.text2,
+                    title: '设置',
+                    subtitle: '账号 · 隐私 · 通知 · 外观',
+                    onTap: () => _open('/profile/settings'),
                   ),
                 ],
               ),
             ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [_MyPostsTab(), _MyFavoritesTab(), _MyActivitiesTab()],
+          ],
         ),
       ),
     );
   }
 }
 
-class _StatChip extends StatelessWidget {
-  final String label;
-  final String value;
-  final VoidCallback? onTap;
-  final Color? primaryColor;
-  final Color? secondaryColor;
+class _Count extends StatelessWidget {
+  const _Count({required this.value, required this.label, required this.onTap});
 
-  const _StatChip({
-    required this.label,
-    required this.value,
-    this.onTap,
-    this.primaryColor,
-    this.secondaryColor,
-  });
+  final String value;
+  final String label;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final row = Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            height: 1.0,
-            color: primaryColor ?? colors.textPrimary,
-          ),
+    final ZxTokens t = ZxTokens.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$value ',
+              style: ZxType.title.copyWith(color: t.text),
+            ),
+            TextSpan(
+              text: label,
+              style: ZxType.caption.copyWith(color: t.text3),
+            ),
+          ],
         ),
-        const SizedBox(width: 3),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            height: 1.0,
-            color: secondaryColor ?? colors.textSecondary,
-          ),
-        ),
-      ],
+      ),
     );
-    if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: row);
-    }
-    return row;
   }
 }
 
-/// 关注/粉丝列表底部弹出面板
+class _Quick extends StatelessWidget {
+  const _Quick({
+    required this.icon,
+    required this.hue,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color hue;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Expanded(
+      child: InkWell(
+        borderRadius: ZxRadius.buttonAll,
+        onTap: onTap,
+        child: Column(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Color.lerp(hue, t.surface, 0.86),
+                borderRadius: ZxRadius.buttonAll,
+              ),
+              child: Icon(icon, size: 20, color: hue),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: ZxType.caption.copyWith(
+                color: t.text,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _FollowListSheet extends StatelessWidget {
   final String title;
   final List<FollowUserItem> users;
@@ -705,333 +581,3 @@ class _FollowUserTile extends StatelessWidget {
 }
 
 /// 我的帖子 Tab — 真实数据
-class _MyPostsTab extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_MyPostsTab> createState() => _MyPostsTabState();
-}
-
-class _MyPostsTabState extends ConsumerState<_MyPostsTab> {
-  List<PostItem> _posts = [];
-  bool _loading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (mounted) {
-      setState(() {
-        _loading = true;
-        _errorMessage = null;
-      });
-    }
-    try {
-      final posts = await ref.read(postRepositoryProvider).fetchMyPosts();
-      if (!mounted) return;
-      setState(() {
-        _posts = posts;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _errorMessage = error.toString().replaceAll('Exception: ', '');
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return Center(
-        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
-      );
-    }
-    if (_errorMessage != null) {
-      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
-    }
-    if (_posts.isEmpty) {
-      return const _EmptyHint(icon: Icons.article_outlined, text: '还没有发过帖子');
-    }
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      itemCount: _posts.length,
-      itemBuilder: (context, i) {
-        final post = _posts[i];
-        return PostCard(
-          post: post,
-          onTap: () => context.push('/post/${post.id}'),
-          onLike: () async {
-            try {
-              final repo = ref.read(postRepositoryProvider);
-              if (post.isLiked) {
-                await repo.unlikePost(post.id);
-              } else {
-                await repo.likePost(post.id);
-              }
-              _load();
-            } catch (_) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('点赞操作失败，请重试')));
-            }
-          },
-        );
-      },
-    );
-  }
-}
-
-/// 我的收藏 Tab — 真实数据
-class _MyFavoritesTab extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_MyFavoritesTab> createState() => _MyFavoritesTabState();
-}
-
-class _MyFavoritesTabState extends ConsumerState<_MyFavoritesTab> {
-  List<PostItem> _posts = [];
-  bool _loading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (mounted) {
-      setState(() {
-        _loading = true;
-        _errorMessage = null;
-      });
-    }
-    try {
-      final posts = await ref.read(postRepositoryProvider).fetchFavoritePosts();
-      if (!mounted) return;
-      setState(() {
-        _posts = posts;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _errorMessage = error.toString().replaceAll('Exception: ', '');
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return Center(
-        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
-      );
-    }
-    if (_errorMessage != null) {
-      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
-    }
-    if (_posts.isEmpty) {
-      return const _EmptyHint(icon: Icons.star_outline, text: '还没有收藏');
-    }
-    return ListView.builder(
-      padding: EdgeInsets.zero,
-      itemCount: _posts.length,
-      itemBuilder: (context, i) {
-        final post = _posts[i];
-        return PostCard(
-          post: post,
-          onTap: () => context.push('/post/${post.id}'),
-          onLike: () async {
-            try {
-              final repo = ref.read(postRepositoryProvider);
-              if (post.isLiked) {
-                await repo.unlikePost(post.id);
-              } else {
-                await repo.likePost(post.id);
-              }
-              _load();
-            } catch (_) {
-              if (!mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('点赞操作失败，请重试')));
-            }
-          },
-        );
-      },
-    );
-  }
-}
-
-/// 动态 Tab — 我的评论真实数据
-class _MyActivitiesTab extends ConsumerStatefulWidget {
-  @override
-  ConsumerState<_MyActivitiesTab> createState() => _MyActivitiesTabState();
-}
-
-class _MyActivitiesTabState extends ConsumerState<_MyActivitiesTab> {
-  List<MyCommentItem> _comments = [];
-  bool _loading = true;
-  String? _errorMessage;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (mounted) {
-      setState(() {
-        _loading = true;
-        _errorMessage = null;
-      });
-    }
-    try {
-      final comments = await ref.read(userRepositoryProvider).fetchMyComments();
-      if (!mounted) return;
-      setState(() {
-        _comments = comments;
-        _loading = false;
-      });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _errorMessage = error.toString().replaceAll('Exception: ', '');
-      });
-    }
-  }
-
-  Future<void> _openCommentDetail(MyCommentItem comment) async {
-    final String postId = comment.postId.trim();
-    if (postId.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('评论数据缺少原帖标识，无法打开')));
-      return;
-    }
-    context.push(
-      '/post/${Uri.encodeComponent(postId)}?commentId=${Uri.encodeComponent(comment.id)}',
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    if (_loading) {
-      return Center(
-        child: CircularProgressIndicator(color: MobileTheme.primaryOf(context)),
-      );
-    }
-    if (_errorMessage != null) {
-      return _LoadErrorHint(message: _errorMessage!, onRetry: _load);
-    }
-    if (_comments.isEmpty) {
-      return _EmptyHint(icon: Icons.comment_outlined, text: '还没有评论过');
-    }
-    return ListView.separated(
-      padding: EdgeInsets.zero,
-      itemCount: _comments.length,
-      separatorBuilder: (_, __) => Divider(height: 0.5, color: colors.divider),
-      itemBuilder: (context, i) {
-        final c = _comments[i];
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => _openCommentDetail(c),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  c.postTitle,
-                  style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  c.content,
-                  style: TextStyle(fontSize: 14, color: colors.textPrimary),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  c.timeText,
-                  style: TextStyle(fontSize: 12, color: colors.textTertiary),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _EmptyHint extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _EmptyHint({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.zero,
-        child: Column(
-          children: [
-            Icon(icon, size: 48, color: colors.divider),
-            const SizedBox(height: 12),
-            Text(
-              text,
-              style: TextStyle(fontSize: 14, color: colors.textTertiary),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadErrorHint extends StatelessWidget {
-  const _LoadErrorHint({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline, size: 44, color: colors.textSecondary),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: colors.textSecondary),
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: onRetry, child: const Text('重试')),
-          ],
-        ),
-      ),
-    );
-  }
-}

@@ -68,6 +68,8 @@ class UserProfile {
     this.bio = '',
     this.backgroundImageUrl = '',
     this.gender = '',
+    this.college = '',
+    this.major = '',
   });
 
   final String nickname;
@@ -76,6 +78,7 @@ class UserProfile {
   final String email;
   final bool verified;
   final String verifiedAt;
+
   /// Server-side account state. A banned profile is still readable by its
   /// owner so the app can show the appeal screen after a reload.
   final bool banned;
@@ -106,6 +109,8 @@ class UserProfile {
   final String bio;
   final String backgroundImageUrl;
   final String gender;
+  final String college;
+  final String major;
 
   bool get isMutual => isFollowing && isFollower;
 
@@ -178,6 +183,8 @@ class UserProfile {
           (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '')
               .toString(),
       gender: (json['gender'] ?? '').toString(),
+      college: (json['college'] ?? '').toString(),
+      major: (json['major'] ?? '').toString(),
     );
   }
 
@@ -213,6 +220,8 @@ class UserProfile {
     String? bio,
     String? backgroundImageUrl,
     String? gender,
+    String? college,
+    String? major,
   }) {
     return UserProfile(
       nickname: nickname ?? this.nickname,
@@ -250,6 +259,8 @@ class UserProfile {
       bio: bio ?? this.bio,
       backgroundImageUrl: backgroundImageUrl ?? this.backgroundImageUrl,
       gender: gender ?? this.gender,
+      college: college ?? this.college,
+      major: major ?? this.major,
     );
   }
 

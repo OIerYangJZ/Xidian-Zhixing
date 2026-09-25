@@ -133,6 +133,15 @@ Future<void> captureScreen(
   if (beforeCapture != null) {
     await beforeCapture();
   }
+  await saveBoundary(tester, boundary, name);
+}
+
+/// Writes the pixels under [boundary] to `<name>.png`.
+Future<void> saveBoundary(
+  WidgetTester tester,
+  GlobalKey boundary,
+  String name,
+) async {
   await tester.runAsync(() async {
     final RenderRepaintBoundary render =
         boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;

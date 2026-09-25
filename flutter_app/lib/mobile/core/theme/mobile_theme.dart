@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
+import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../design_system/zx_tokens.dart';
 import '../../../core/theme/shared_colors.dart';
 import 'mobile_colors.dart';
 
@@ -198,8 +199,14 @@ class MobileTheme {
   static ThemeData get lightTheme =>
       getThemeData('zhushachi', const Locale('zh', 'CN'));
 
-  /// 根据主题 key 动态构建 ThemeData
-  static ThemeData getThemeData(String themeKey, Locale locale) {
+  /// The design-system theme (the same as web) for [themeKey] in
+  /// [brightness], plus [MobileColors] from the same tokens so the pages
+  /// not yet rebuilt follow the theme and dark mode too.
+  static ThemeData getThemeData(
+    String themeKey,
+    Locale locale, {
+    Brightness brightness = Brightness.light,
+  }) {
     if (!AppColorThemes.isSupported(themeKey)) {
       throw ArgumentError.value(
         themeKey,
@@ -207,280 +214,17 @@ class MobileTheme {
         'Unsupported color theme',
       );
     }
-    final config = themes[themeKey]!;
-    final colors = MobileColors.fromThemeKey(themeKey);
-    final EditorialColors editorial = SharedColors.light.copyWith(
-      page: colors.background,
-      surface: colors.surface,
-      ink: colors.textPrimary,
-      mutedInk: colors.textSecondary,
-      line: colors.divider,
-      primary: config.primary,
-      primaryActive: config.primaryDark,
-      coral: config.accent,
-      primarySubtle: config.softBackground,
-      success: config.success,
-      warning: config.warning,
-      danger: config.error,
+    final ThemeData base = AppTheme.designSystemFor(
+      themeKey: themeKey,
+      brightness: brightness,
     );
-    final String bodyFontFamily = AppTypography.bodyFamily(locale);
-    final List<String> bodyFontFallback = AppTypography.bodyFallback(locale);
-    final String displayFontFamily = AppTypography.displayFamily(locale);
-    final List<String> displayFontFallback = AppTypography.displayFallback(
-      locale,
-    );
-
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      fontFamily: bodyFontFamily,
-      fontFamilyFallback: bodyFontFallback,
-      primaryColor: config.primary,
-      scaffoldBackgroundColor: config.background,
-      colorScheme: ColorScheme.light(
-        primary: config.primary,
-        secondary: config.accent,
-        surface: colors.surface,
-        error: config.error,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: colors.textPrimary,
-        onError: Colors.white,
-      ),
-
-      // AppBar - iOS 大标题风格
-      appBarTheme: AppBarTheme(
-        elevation: 0,
-        scrolledUnderElevation: 0.5,
-        backgroundColor: config.background,
-        foregroundColor: config.primaryDark,
-        surfaceTintColor: Colors.transparent,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: TextStyle(
-          color: config.primaryDark,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          fontFamily: bodyFontFamily,
-          fontFamilyFallback: bodyFontFallback,
-        ),
-        iconTheme: IconThemeData(color: config.primary),
-      ),
-
-      // 底部导航栏 - CupertinoTabBar 风格
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: colors.surface,
-        selectedItemColor: config.primary,
-        unselectedItemColor: colors.textSecondary,
-        type: BottomNavigationBarType.fixed,
-        elevation: 0,
-        showUnselectedLabels: true,
-        selectedLabelStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-
-      // 卡片样式 - 低圆角、细边框、无浮层阴影
-      cardTheme: CardThemeData(
-        color: colors.cardBackground,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: colors.divider),
-        ),
-      ),
-
-      // 输入框样式
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: colors.surface,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.divider),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.divider),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: config.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: config.error),
-        ),
-        hintStyle: TextStyle(color: colors.textTertiary, fontSize: 15),
-      ),
-
-      // 按钮样式
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: config.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          minimumSize: const Size.fromHeight(48),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: config.primary,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-        ),
-      ),
-
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: config.primary,
-          side: BorderSide(color: config.primary),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-
-      // TabBar 样式
-      tabBarTheme: TabBarThemeData(
-        labelColor: config.primary,
-        unselectedLabelColor: colors.textSecondary,
-        indicatorColor: config.primary,
-        labelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-
-      // Chip 样式 - 无圆角、无边框
-      chipTheme: ChipThemeData(
-        backgroundColor: config.background,
-        selectedColor: config.primary.withValues(alpha: 0.15),
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-        side: BorderSide.none,
-      ),
-
-      // Divider
-      dividerTheme: DividerThemeData(
-        color: colors.divider,
-        thickness: 0.5,
-        space: 1,
-      ),
-
-      // Snackbar
-      snackBarTheme: SnackBarThemeData(
-        backgroundColor: const Color(0xFF3C3C43).withValues(alpha: 0.9),
-        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        behavior: SnackBarBehavior.floating,
-      ),
-
-      // Dialog
-      dialogTheme: DialogThemeData(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        titleTextStyle: TextStyle(
-          color: colors.textPrimary,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
-        contentTextStyle: TextStyle(color: colors.textSecondary, fontSize: 14),
-      ),
-
-      // BottomSheet
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-        ),
-      ),
-
-      // Text Theme
-      textTheme: TextTheme(
-        displayLarge: TextStyle(
-          fontSize: 34,
-          fontWeight: FontWeight.bold,
-          color: colors.textPrimary,
-          fontFamily: displayFontFamily,
-          fontFamilyFallback: displayFontFallback,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: colors.textPrimary,
-          fontFamily: displayFontFamily,
-          fontFamilyFallback: displayFontFallback,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: colors.textPrimary,
-          fontFamily: displayFontFamily,
-          fontFamilyFallback: displayFontFallback,
-        ),
-        titleSmall: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: colors.textPrimary,
-          fontFamily: displayFontFamily,
-          fontFamilyFallback: displayFontFallback,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.normal,
-          color: colors.textPrimary,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.normal,
-          color: colors.textPrimary,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.normal,
-          color: colors.textSecondary,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: colors.textPrimary,
-        ),
-        labelMedium: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: colors.textSecondary,
-        ),
-        labelSmall: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: colors.textTertiary,
-        ),
-      ),
-
-      // MobileColors 扩展 - 用于 MobileColors.of(context)
-      extensions: <ThemeExtension<dynamic>>[colors, editorial],
+    final ZxTokens tokens = base.extension<ZxTokens>()!;
+    return base.copyWith(
+      extensions: <ThemeExtension<dynamic>>[
+        tokens,
+        base.extension<EditorialColors>()!,
+        MobileColors.fromPalette(tokens.palette),
+      ],
     );
   }
 }

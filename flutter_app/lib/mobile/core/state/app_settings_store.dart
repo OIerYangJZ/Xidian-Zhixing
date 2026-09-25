@@ -17,19 +17,21 @@ class AppSettingsStore extends ChangeNotifier {
   static const String _legacyLocaleKey = 'treehole_locale';
   static const String _themeKeyStorageKey = 'treehole_theme_key';
 
-  // ignore: unused_field
-  ThemeMode _themeMode = ThemeMode.light;
+  /// Follows the system unless the user picks light or dark.
+  ThemeMode _themeMode = ThemeMode.system;
   Locale? _locale;
   String _themeKey = AppColorThemes.defaultKey;
 
-  ThemeMode get themeMode => ThemeMode.light;
+  ThemeMode get themeMode => _themeMode;
   Locale? get locale => _locale;
   String get themeKey => _themeKey;
 
   /// 应用启动时调用，从 SharedPreferences 恢复持久化状态。
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
-    _themeMode = ThemeMode.values[_prefs!.getInt(_brightnessKey) ?? 1];
+    // Nothing ever wrote this key before, so an unset value means system.
+    final int storedMode = _prefs!.getInt(_brightnessKey) ?? 0;
+    _themeMode = ThemeMode.values[storedMode.clamp(0, 2)];
     final String? storedThemeKey = _prefs!.getString(_themeKeyStorageKey);
     _themeKey = AppColorThemes.resolveStoredKey(storedThemeKey);
     if (storedThemeKey != null && storedThemeKey != _themeKey) {
@@ -43,7 +45,7 @@ class AppSettingsStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 设置主题亮度并持久化（保留接口，始终为 light）。
+  /// 设置深浅模式（跟随系统 / 浅色 / 深色）并持久化。
   Future<void> setBrightness(ThemeMode mode) async {
     _themeMode = mode;
     await _prefs?.setInt(_brightnessKey, mode.index);

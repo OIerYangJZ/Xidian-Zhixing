@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../design_system/zx_tokens.dart';
+
 /// 移动端主题颜色扩展（ThemeExtension）
 /// 支持跨端主题目录中的自定义配色，通过 MobileColors.of(context) 在 build() 中获取当前主题颜色。
 ///
@@ -253,8 +255,28 @@ class MobileColors extends ThemeExtension<MobileColors> {
     error: _error,
   );
 
-  /// 根据主题 key 返回对应的 MobileColors 配色
-  static MobileColors fromThemeKey(String key) {
+  /// The design tokens for [key] and [brightness], in the legacy shape the
+  /// Android pages read. Every theme and dark mode go through here.
+  static MobileColors fromPalette(ZxPalette p) => MobileColors(
+    background: p.bg,
+    surface: p.surface,
+    cardBackground: p.surface,
+    textPrimary: p.text,
+    textSecondary: p.text2,
+    textTertiary: p.text3,
+    divider: p.line,
+    primary: p.primary,
+    primaryDark: p.primaryPressed,
+    accent: p.coral,
+    seal: p.seal,
+    softBackground: p.primarySoft,
+    success: p.success,
+    warning: p.warning,
+    error: p.danger,
+  );
+
+  /// Pre-token palettes, kept for the retired theme keys only.
+  static MobileColors legacyFromThemeKey(String key) {
     return switch (key) {
       'zhushachi' => _zhushachi,
       'yanzhihong' => _yanzhihong,
@@ -270,6 +292,10 @@ class MobileColors extends ThemeExtension<MobileColors> {
       _ => _zhushachi,
     };
   }
+
+  /// The light palette of [key], from the tokens.
+  static MobileColors fromThemeKey(String key) =>
+      fromPalette(zxPaletteFor(key, Brightness.light));
 
   /// 从当前 BuildContext 读取主题颜色
   static MobileColors of(BuildContext context) =>
