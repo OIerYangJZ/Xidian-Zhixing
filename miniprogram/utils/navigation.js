@@ -3,7 +3,9 @@
 export const TAB_ROUTES = [
   '/pages/treehole/index',
   '/pages/campus/index',
-  '/pages/ai/index'
+  '/pages/ai/index',
+  '/pages/messages/index',
+  '/pages/profile/index'
 ];
 
 export const isTabRoute = (route) => TAB_ROUTES.includes(String(route || '').split('?')[0]);

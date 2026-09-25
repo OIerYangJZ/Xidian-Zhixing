@@ -1,0 +1,60 @@
+.messages-page { background: var(--zx-hero); padding-bottom: 48rpx; }
+.messages-head { padding: 24rpx 40rpx 8rpx; }
+.messages-title { font-size: 52rpx; line-height: 68rpx; }
+
+.entry-row { display: flex; gap: 20rpx; padding: 24rpx 32rpx 32rpx; }
+.entry { flex: 1; padding: 28rpx 0 24rpx; display: flex; flex-direction: column; align-items: center; }
+.entry-icon {
+  position: relative;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.entry-icon--bell { background: var(--zx-primary-soft); color: var(--zx-primary); }
+.entry-icon--mail { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.entry-icon--heart { background: var(--zx-danger-soft); color: var(--zx-danger); }
+.head-action { width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center; color: var(--zx-text-2); }
+.entry-count { position: absolute; top: -12rpx; right: -18rpx; }
+.entry-label { margin-top: 16rpx; font-size: 26rpx; font-weight: 600; color: var(--zx-text); }
+
+.sheet {
+  min-height: 60vh;
+  background: var(--zx-surface);
+  border-radius: 40rpx 40rpx 0 0;
+  border-top: 2rpx solid var(--zx-line);
+  padding: 24rpx 24rpx 0;
+}
+
+.request {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+  padding: 20rpx 20rpx 20rpx 24rpx;
+  border-radius: 28rpx;
+  background: var(--zx-accent-soft);
+}
+.request-avatar { background: var(--zx-surface); }
+.request-main { flex: 1; min-width: 0; }
+.request-reason { margin-top: 4rpx; }
+.request-reject { background: var(--zx-surface); }
+
+.conversation {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  padding: 24rpx 16rpx;
+  border-radius: 24rpx;
+}
+.conversation--pressed { background: var(--zx-bg-sunk); }
+.conversation-avatar { width: 96rpx; height: 96rpx; border-radius: 24rpx; }
+.conversation-main { flex: 1; min-width: 0; }
+.conversation-name { flex: none; max-width: 60%; }
+.conversation-flag { margin-left: 12rpx; }
+.conversation-second { margin-top: 6rpx; gap: 16rpx; }
+.conversation-preview { flex: 1; font-size: 26rpx; color: var(--zx-text-2); }
+.conversation-preview--unread { color: var(--zx-text); font-weight: 600; }
+.empty-action { margin-top: 24rpx; }

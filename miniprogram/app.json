@@ -3,6 +3,7 @@
     "pages/treehole/index",
     "pages/campus/index",
     "pages/ai/index",
+    "pages/messages/index",
     "pages/campus/auth-center/index",
     "pages/campus/service-detail/index",
     "pages/campus/webview/index",
@@ -53,27 +54,40 @@
     "radio-drawer": "/components/radio-drawer/index"
   },
   "tabBar": {
-    "color": "#8E8E93",
-    "selectedColor": "#A8332C",
-    "backgroundColor": "#ffffff",
+    "color": "#5D5D5A",
+    "selectedColor": "#A43B32",
+    "backgroundColor": "#FFFEFA",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/treehole/index",
         "text": "树洞",
-        "iconPath": "assets/tabbar/home.png",
-        "selectedIconPath": "assets/tabbar/home_selected.png"
+        "iconPath": "assets/tabbar/zhushachi/treehole.png",
+        "selectedIconPath": "assets/tabbar/zhushachi/treehole-active.png"
       },
       {
         "pagePath": "pages/campus/index",
         "text": "校园",
-        "iconPath": "assets/tabbar/campus.png",
-        "selectedIconPath": "assets/tabbar/campus_selected.png"
+        "iconPath": "assets/tabbar/zhushachi/campus.png",
+        "selectedIconPath": "assets/tabbar/zhushachi/campus-active.png"
       },
       {
         "pagePath": "pages/ai/index",
-        "text": "AI",
-        "iconPath": "assets/tabbar/ai.png",
-        "selectedIconPath": "assets/tabbar/ai_selected.png"
+        "text": "校园 AI",
+        "iconPath": "assets/tabbar/zhushachi/ai.png",
+        "selectedIconPath": "assets/tabbar/zhushachi/ai-active.png"
+      },
+      {
+        "pagePath": "pages/messages/index",
+        "text": "消息",
+        "iconPath": "assets/tabbar/zhushachi/message.png",
+        "selectedIconPath": "assets/tabbar/zhushachi/message-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "assets/tabbar/zhushachi/mine.png",
+        "selectedIconPath": "assets/tabbar/zhushachi/mine-active.png"
       }
     ]
   },

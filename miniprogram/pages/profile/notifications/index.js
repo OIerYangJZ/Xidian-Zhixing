@@ -41,6 +41,14 @@ Page({
     this.applyFilter(this.data.items, event.currentTarget.dataset.key || '');
   },
 
+  // ?category=like opens on one category, e.g. from 消息 → 赞与收藏.
+  onLoad(options = {}) {
+    const category = String(options.category || '');
+    if (NOTIFICATION_CATEGORIES.some((tab) => tab.key === category)) {
+      this.setData({ category });
+    }
+  },
+
   onShow() {
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;

@@ -58,7 +58,7 @@ Component({
 
     goProfile() {
       this.close();
-      wx.navigateTo({ url: '/pages/profile/index' });
+      wx.switchTab({ url: '/pages/profile/index' });
     },
 
     goConversation(event) {

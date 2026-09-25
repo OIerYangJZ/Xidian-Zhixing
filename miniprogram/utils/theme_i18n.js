@@ -1,34 +1,36 @@
 import { getTranslation, getLanguage } from './i18n';
 
+// Nav and tab bar colours per theme, light and dark, from the design
+// tokens (styles/zx-tokens.wxss): bg, surface, text-3 and primary.
 const THEME_MAP = {
   zhushachi: {
-    navBg: '#F7F6F2',
-    navFront: '#000000',
-    tabBg: '#FFFEFA',
-    tabSelectedColor: '#A43B32',
-    tabSelectedColorDark: '#E08075'
+    light: { bg: '#F7F6F2', surface: '#FFFEFA', idle: '#5D5D5A', selected: '#A43B32' },
+    dark: { bg: '#171714', surface: '#20201C', idle: '#9F9D96', selected: '#E08075' }
   },
   zhuqing: {
-    navBg: '#F3F7F2',
-    navFront: '#000000',
-    tabBg: '#FFFEF9',
-    tabSelectedColor: '#426F52',
-    tabSelectedColorDark: '#91C29C'
+    light: { bg: '#F3F7F2', surface: '#FFFEF9', idle: '#636A63', selected: '#426F52' },
+    dark: { bg: '#151A16', surface: '#1D241F', idle: '#9CA19B', selected: '#91C29C' }
   },
   xingrenhuang: {
-    navBg: '#FBF6EA',
-    navFront: '#000000',
-    tabBg: '#FFFEF8',
-    tabSelectedColor: '#94631F',
-    tabSelectedColorDark: '#E1B665'
+    light: { bg: '#FBF6EA', surface: '#FFFEF8', idle: '#6E685F', selected: '#94631F' },
+    dark: { bg: '#1B1812', surface: '#252118', idle: '#A29D92', selected: '#E1B665' }
+  },
+  mozhuxinye: {
+    light: { bg: '#FFFFFF', surface: '#FFFFFF', idle: '#5E5E5D', selected: '#AB3E36' },
+    dark: { bg: '#151513', surface: '#1D1D1B', idle: '#9F9F9B', selected: '#E37D73' }
   }
 };
 
-const TAB_BAR_ITEMS = [
-  { index: 0, key: 'home' },
-  { index: 1, key: 'campus' },
-  { index: 2, key: 'ai' }
+// The five tabs, in app.json order; icon files are assets/tabbar/<theme>[_dark]/<icon>[-active].png.
+export const TAB_BAR_ITEMS = [
+  { index: 0, key: 'home', icon: 'treehole' },
+  { index: 1, key: 'campus', icon: 'campus' },
+  { index: 2, key: 'ai', icon: 'ai' },
+  { index: 3, key: 'tab_messages', icon: 'message' },
+  { index: 4, key: 'tab_mine', icon: 'mine' }
 ];
+
+export const MESSAGES_TAB_INDEX = 3;
 
 export const getDisplayTheme = () => {
   const stored = wx.getStorageSync('colorTheme');
@@ -41,6 +43,7 @@ export const getDisplayTheme = () => {
       case 'zhushachi':
       case 'zhuqing':
       case 'xingrenhuang':
+      case 'mozhuxinye':
         return stored;
       case 'haiyanqing':
         return 'zhuqing';
@@ -82,12 +85,8 @@ export const applyThemeAndLanguage = (page) => {
   const t = getTranslation(lang);
   const languageClass = lang === 'en' ? 'lang-en' : 'lang-zh';
   const themeClass = `theme-${theme} color-mode-${resolvedDisplayMode} ${languageClass}`;
-  const colors = THEME_MAP[theme];
   const isDark = resolvedDisplayMode === 'dark';
-  const navBg = isDark ? '#000000' : colors.navBg;
-  const navFront = isDark ? '#ffffff' : colors.navFront;
-  const tabBg = isDark ? '#000000' : colors.tabBg;
-  const tabColor = isDark ? '#ffffff' : '#8E8E93';
+  const colors = THEME_MAP[theme][isDark ? 'dark' : 'light'];
   page.setData({
     themeClass,
     currentTheme: theme,
@@ -97,21 +96,38 @@ export const applyThemeAndLanguage = (page) => {
     t
   });
   wx.setNavigationBarColor({
-    frontColor: navFront,
-    backgroundColor: navBg,
+    frontColor: isDark ? '#ffffff' : '#000000',
+    backgroundColor: colors.bg,
     animation: { duration: 100 }
   });
+  // Only tab pages have a tab bar; elsewhere these calls fail quietly.
+  const quiet = { fail() {} };
   wx.setTabBarStyle({
-    color: tabColor,
-    selectedColor: isDark ? colors.tabSelectedColorDark : colors.tabSelectedColor,
-    backgroundColor: tabBg,
-    borderStyle: isDark ? 'black' : 'white'
+    color: colors.idle,
+    selectedColor: colors.selected,
+    backgroundColor: colors.surface,
+    borderStyle: isDark ? 'black' : 'white',
+    ...quiet
   });
+  const iconDir = `assets/tabbar/${theme}${isDark ? '_dark' : ''}`;
   TAB_BAR_ITEMS.forEach((item) => {
     wx.setTabBarItem({
       index: item.index,
       text: t[item.key],
-      selectedIconPath: `assets/tabbar/theme-${theme}${isDark ? '_dark' : ''}/${item.key}_selected.png`
+      iconPath: `${iconDir}/${item.icon}.png`,
+      selectedIconPath: `${iconDir}/${item.icon}-active.png`,
+      ...quiet
     });
   });
+};
+
+/** Unread count on the 消息 tab; zero clears it. */
+export const setMessagesTabBadge = (count) => {
+  const quiet = { fail() {} };
+  const n = Number(count) || 0;
+  if (n > 0) {
+    wx.setTabBarBadge({ index: MESSAGES_TAB_INDEX, text: n > 99 ? '99+' : String(n), ...quiet });
+  } else {
+    wx.removeTabBarBadge({ index: MESSAGES_TAB_INDEX, ...quiet });
+  }
 };

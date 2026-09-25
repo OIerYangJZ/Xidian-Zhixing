@@ -1,4 +1,6 @@
 @import "styles/zx-tokens.wxss";
+@import "styles/zx.wxss";
+@import "styles/zx-icons.wxss";
 
 page {
   --brand-primary: #A43B32;
@@ -826,388 +828,58 @@ button::after {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
- * 多主题配色
+ * 主题配色：四套主题 × 浅/深，全部来自设计令牌（styles/zx-tokens.wxss）。
+ * 旧变量（--app-* / --brand-* 等）映射到令牌，尚未改版的页面也随主题与深浅色走。
  * ───────────────────────────────────────────────────────────────────────────── */
 
-.theme-zhushachi {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2D2522;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A2948E;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(178, 58, 46, .06);
-}
-
-.theme-yanzhihong {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2E2427;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #B2A2A7;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(184, 50, 74, .06);
-}
-
-.theme-chitaonuan {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2F2823;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #B4A69E;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(184, 91, 62, .06);
-}
-
-.theme-zaonihong {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2B2422;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A89C97;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(143, 47, 44, .06);
-}
-
-.theme-xuanzhizhu {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2F2520;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #B8A9A0;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(196, 58, 47, .06);
-}
-
-.theme-zhuqing {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #242F26;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #9AA89D;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(79, 138, 95, .06);
-}
-
-.theme-ouhezi {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2D2632;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A69BAE;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(139, 111, 158, .06);
-}
-
-.theme-xingrenhuang {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #31281E;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #B6A897;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(194, 138, 58, .06);
-}
-
-.theme-haiyanqing {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #223032;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #9AAFB2;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(91, 158, 166, .06);
-}
-
-.theme-mohui {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #242523;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A2A5A0;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(79, 85, 82, .06);
-}
-
-.theme-minimal {
-  --brand-primary: #A8332C;
-  --brand-deep: #741F1B;
-  --brand-bright: #C53B32;
-  --brand-seal: #A8332C;
-  --background-paper: #ffffff;
-  --background-softRed: #F8ECEA;
-  --text-primary: #2D2522;
-  --text-secondary: #847A76;
-  --border-default: #EEE4E1;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-primary);
-  --app-background: #ffffff;
-  --app-surface: #ffffff;
-  --app-card: #ffffff;
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A89F9B;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(168, 51, 44, .06);
-}
-
 .theme-zhushachi,
-.theme-yanzhihong,
-.theme-chitaonuan,
-.theme-zaonihong,
-.theme-xuanzhizhu,
 .theme-zhuqing,
-.theme-ouhezi,
 .theme-xingrenhuang,
-.theme-haiyanqing,
-.theme-mohui {
-  --background-paper: #F6F2EA;
-  --background-softRed: #F0E5DF;
-  --brand-primary: #A33A32;
-  --brand-deep: #7D2924;
-  --brand-bright: #C46A50;
-  --brand-seal: #A33A32;
-  --text-primary: #292522;
-  --text-secondary: #716A64;
-  --border-default: #DED6CB;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-surface: #FFFCF7;
-  --app-card: #FFFCF7;
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A89F9B;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: var(--background-softRed);
-  --app-control: rgba(168, 51, 44, .06);
-}
+.theme-mozhuxinye {
+  --brand-primary: var(--zx-primary);
+  --brand-deep: var(--zx-primary-pressed);
+  --brand-bright: var(--zx-coral);
+  --brand-seal: var(--zx-seal);
+  --background-paper: var(--zx-bg);
+  --background-softRed: var(--zx-primary-soft);
+  --text-primary: var(--zx-text);
+  --text-secondary: var(--zx-text-2);
+  --border-default: var(--zx-line);
+  --state-success: var(--zx-success);
+  --state-warning: var(--zx-warning);
+  --state-danger: var(--zx-danger);
 
-.theme-zhuqing {
-  --background-paper: #F3F7F2;
-  --background-softRed: #E0EBDF;
-  --brand-primary: #426F52;
-  --brand-deep: #2D5139;
-  --brand-bright: #71967B;
-  --brand-seal: #426F52;
-  --text-primary: #202A23;
-  --text-secondary: #657168;
-  --border-default: #D3DED2;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-surface: #FFFEF9;
-  --app-card: #FFFEF9;
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #929E94;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: #E3ECE9;
-  --app-control: rgba(66, 111, 82, .07);
-}
-
-.theme-xingrenhuang {
-  --background-paper: #FBF6EA;
-  --background-softRed: #F2E2BF;
-  --brand-primary: #94631F;
-  --brand-deep: #694513;
-  --brand-bright: #C38D3B;
-  --brand-seal: #94631F;
-  --text-primary: #30281E;
-  --text-secondary: #766A5B;
-  --border-default: #E4D5B9;
-  --app-primary: var(--brand-primary);
-  --app-primary-dark: var(--brand-deep);
-  --app-accent: var(--brand-bright);
-  --app-background: var(--background-paper);
-  --app-surface: #FFFEF8;
-  --app-card: #FFFEF8;
-  --app-text-primary: var(--text-primary);
-  --app-text-secondary: var(--text-secondary);
-  --app-text-tertiary: #A99C89;
-  --app-divider: var(--border-default);
-  --app-primary-soft: var(--background-softRed);
-  --app-accent-soft: #F5E8CD;
-  --app-control: rgba(148, 99, 31, .07);
-}
-
-.color-mode-dark {
-  --brand-deep: #ffffff;
-  --brand-primary: var(--brand-bright);
-  --brand-seal: var(--brand-bright);
-  --app-primary: var(--brand-bright);
-  --background-paper: #121212;
-  --background-softRed: rgba(255, 255, 255, 0.08);
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --border-default: rgba(255, 255, 255, 0.15);
-  --app-background: #121212;
-  --app-surface: #1c1c1e;
-  --app-surface-translucent: rgba(28, 28, 30, 0.72);
-  --app-card: #1c1c1e;
-  --app-text-primary: #ffffff;
-  --app-text-secondary: rgba(255, 255, 255, 0.7);
-  --app-text-tertiary: rgba(255, 255, 255, 0.45);
-  --app-divider: rgba(255, 255, 255, 0.12);
-  --app-primary-soft: rgba(255, 255, 255, 0.08);
-  --app-accent-soft: rgba(255, 255, 255, 0.08);
-  --app-control: rgba(255, 255, 255, 0.06);
-  --app-dark-panel: #F1EDE4;
-  --app-on-dark-panel: #1A1A17;
-  --app-on-primary: #171714;
-  --app-like: #E08075;
-  --app-favorite: #EBC474;
-  --app-scrim: rgba(0, 0, 0, .42);
-  --app-translucent-surface: rgba(28, 28, 30, .92);
+  --app-primary: var(--zx-primary);
+  --app-primary-dark: var(--zx-primary-pressed);
+  --app-accent: var(--zx-coral);
+  --app-coral: var(--zx-coral);
+  --app-apricot: var(--zx-accent);
+  --app-dark-panel: var(--zx-text);
+  --app-on-dark-panel: var(--zx-bg);
+  --app-on-primary: var(--zx-on-primary);
+  --app-like: var(--zx-primary);
+  --app-favorite: var(--zx-accent-ink);
+  --app-scrim: var(--zx-scrim);
+  --app-translucent-surface: var(--zx-glass);
+  --app-background: var(--zx-bg);
+  --app-surface: var(--zx-surface);
+  --app-surface-translucent: var(--zx-glass);
+  --app-card: var(--zx-surface);
+  --app-text-primary: var(--zx-text);
+  --app-text-secondary: var(--zx-text-2);
+  --app-text-tertiary: var(--zx-text-3);
+  --app-divider: var(--zx-line);
+  --app-success: var(--zx-success);
+  --app-warning: var(--zx-warning);
+  --app-error: var(--zx-danger);
+  --app-primary-soft: var(--zx-primary-soft);
+  --app-accent-soft: var(--zx-accent-soft);
+  --app-control: var(--zx-bg-sunk);
+  background-color: var(--zx-bg);
+  color: var(--zx-text);
 }
 
 .color-mode-dark .anonymous-badge,
 .color-mode-dark .seal-badge-hollow {
   background: transparent !important;
-}
-
-.theme-minimal.color-mode-dark {
-  --brand-deep: #ffffff;
-  --brand-primary: #ffffff;
-  --brand-bright: #ffffff;
-  --brand-seal: #ffffff;
-  --app-primary-dark: #ffffff;
-  --app-primary: #ffffff;
 }

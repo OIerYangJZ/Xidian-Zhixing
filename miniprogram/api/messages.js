@@ -53,3 +53,24 @@ export const unblockConversationPeer = async (conversationId) => {
   const response = await request.post(`/api/messages/conversations/${conversationId}/unblock`, {});
   return getData(response, {});
 };
+
+// DM requests someone sent me; the pending ones wait for 同意 / 拒绝.
+export const getDmRequests = async () => {
+  const response = await request.get('/api/messages/requests');
+  return toArray(getData(response, [])).map((item) => {
+    const name = String(item.fromAlias || item.fromName || '匿名同学');
+    return {
+      ...item,
+      id: String(item.id || item.requestId || ''),
+      fromAlias: name,
+      avatarInitial: avatarInitial(name),
+      status: String(item.status || 'pending').toLowerCase()
+    };
+  });
+};
+
+export const handleDmRequest = async (requestId, accept) => {
+  const action = accept ? 'accept' : 'reject';
+  const response = await request.post(`/api/messages/requests/${requestId}/${action}`, {});
+  return getData(response, {});
+};

@@ -1,0 +1,165 @@
+/* Design-system components for the mini program, mirroring
+ * flutter_app/lib/design_system/components. Colours come only from the
+ * --zx-* tokens (styles/zx-tokens.wxss), so every theme and dark mode apply.
+ * Sizes are rpx at 2 × the handoff's px (750 rpx = 375 px). */
+
+.zx-page {
+  min-height: 100vh;
+  background: var(--zx-bg);
+  color: var(--zx-text);
+  box-sizing: border-box;
+}
+
+.zx-display {
+  font-family: "STZhongsong", "Songti SC", "STSong", serif;
+  font-weight: 600;
+  color: var(--zx-text);
+}
+
+.zx-title { font-size: 34rpx; line-height: 50rpx; font-weight: 600; color: var(--zx-text); }
+.zx-label { font-size: 28rpx; line-height: 40rpx; font-weight: 600; color: var(--zx-text); }
+.zx-body { font-size: 30rpx; line-height: 46rpx; color: var(--zx-text); }
+.zx-caption { font-size: 24rpx; line-height: 32rpx; color: var(--zx-text-3); }
+.zx-text-2 { color: var(--zx-text-2); }
+.zx-text-3 { color: var(--zx-text-3); }
+.zx-ellipsis { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Card */
+.zx-card {
+  background: var(--zx-surface);
+  border: 2rpx solid var(--zx-line);
+  border-radius: 36rpx;
+  box-shadow: var(--zx-shadow-1);
+  overflow: hidden;
+}
+.zx-card--pad { padding: 32rpx; }
+.zx-hero { background: var(--zx-hero); }
+
+/* Buttons */
+.zx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  height: 88rpx;
+  padding: 0 36rpx;
+  border-radius: 28rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  line-height: 1;
+  box-sizing: border-box;
+}
+.zx-btn--primary {
+  background: linear-gradient(180deg, var(--zx-primary), var(--zx-primary-pressed));
+  color: var(--zx-on-primary);
+  box-shadow: 0 8rpx 24rpx var(--zx-primary-glow);
+}
+.zx-btn--secondary { background: var(--zx-bg-sunk); color: var(--zx-text); }
+.zx-btn--ghost { background: transparent; color: var(--zx-primary); }
+.zx-btn--danger { background: var(--zx-danger); color: var(--zx-on-danger); }
+.zx-btn--small { height: 64rpx; padding: 0 24rpx; border-radius: 22rpx; font-size: 26rpx; }
+.zx-btn--block { display: flex; width: 100%; }
+.zx-btn--disabled { opacity: 0.5; }
+.zx-btn-hover { opacity: 0.85; }
+
+/* Badges */
+.zx-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 4rpx 14rpx;
+  border-radius: 12rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.zx-badge--accent { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.zx-badge--success { background: var(--zx-success-soft); color: var(--zx-success); }
+.zx-badge--danger { background: var(--zx-danger-soft); color: var(--zx-danger); }
+.zx-badge--info { background: var(--zx-info-soft); color: var(--zx-info); }
+.zx-badge--seal { background: var(--zx-seal-soft); color: var(--zx-seal); }
+.zx-badge--neutral { background: var(--zx-bg-sunk); color: var(--zx-text-2); }
+
+.zx-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36rpx;
+  height: 36rpx;
+  padding: 0 10rpx;
+  border-radius: 18rpx;
+  background: var(--zx-danger);
+  color: var(--zx-on-danger);
+  font-size: 22rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+
+/* Avatars: always rounded squares; the anonymous seal is solid. */
+.zx-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  background: var(--zx-bg-sunk);
+  color: var(--zx-text);
+  font-family: "STZhongsong", "Songti SC", "STSong", serif;
+  font-size: 34rpx;
+  font-weight: 600;
+  overflow: hidden;
+}
+.zx-avatar image { width: 100%; height: 100%; }
+.zx-avatar--seal {
+  background: var(--zx-seal);
+  color: var(--zx-on-primary);
+  border-radius: 12rpx;
+  box-shadow: inset 0 0 0 4rpx var(--zx-seal), inset 0 0 0 6rpx rgba(255, 255, 255, 0.55);
+}
+.zx-avatar--lg { width: 152rpx; height: 152rpx; border-radius: 40rpx; font-size: 64rpx; }
+.zx-avatar--sm { width: 56rpx; height: 56rpx; border-radius: 14rpx; font-size: 26rpx; }
+
+/* Settings-style list */
+.zx-list { background: var(--zx-surface); border: 2rpx solid var(--zx-line); border-radius: 36rpx; overflow: hidden; }
+.zx-list-item {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  min-height: 104rpx;
+  padding: 20rpx 28rpx;
+  box-sizing: border-box;
+}
+.zx-list-item + .zx-list-item { border-top: 2rpx solid var(--zx-line); }
+.zx-list-item__main { flex: 1; min-width: 0; }
+.zx-list-item__title { font-size: 30rpx; line-height: 42rpx; color: var(--zx-text); }
+.zx-list-item__subtitle { font-size: 24rpx; line-height: 32rpx; color: var(--zx-text-3); margin-top: 4rpx; }
+.zx-list-item__chevron { width: 16rpx; height: 16rpx; border-top: 3rpx solid var(--zx-text-3); border-right: 3rpx solid var(--zx-text-3); transform: rotate(45deg); flex: none; margin-right: 6rpx; }
+.zx-icon-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 22rpx;
+  background: var(--zx-primary-soft);
+  color: var(--zx-primary);
+  font-size: 30rpx;
+}
+.zx-section-title { padding: 0 8rpx 16rpx; font-size: 24rpx; font-weight: 600; color: var(--zx-text-3); }
+
+/* States */
+.zx-empty { padding: 96rpx 48rpx; text-align: center; }
+.zx-empty__title { font-size: 32rpx; font-weight: 600; color: var(--zx-text); }
+.zx-empty__message { margin-top: 12rpx; font-size: 26rpx; line-height: 40rpx; color: var(--zx-text-3); }
+.zx-inline-message { padding: 20rpx 24rpx; border-radius: 24rpx; font-size: 26rpx; line-height: 38rpx; }
+.zx-inline-message--danger { background: var(--zx-danger-soft); color: var(--zx-danger); }
+.zx-inline-message--warning { background: var(--zx-warning-soft); color: var(--zx-warning); }
+.zx-inline-message--info { background: var(--zx-info-soft); color: var(--zx-info); }
+
+.zx-divider { height: 2rpx; background: var(--zx-line); }
+.zx-row { display: flex; align-items: center; }
+.zx-spacer { flex: 1; }

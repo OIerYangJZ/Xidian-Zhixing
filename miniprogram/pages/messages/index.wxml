@@ -1,0 +1,74 @@
+<view class="zx-page messages-page {{themeClass}}">
+  <view class="messages-head zx-row">
+    <view class="zx-display messages-title">消息</view>
+    <view class="zx-spacer"></view>
+    <view class="head-action" bindtap="retryLoad" hover-class="zx-btn-hover"><view class="zx-i zx-i-refresh"></view></view>
+  </view>
+
+  <view class="entry-row">
+    <view class="entry zx-card" bindtap="openNotifications" hover-class="zx-btn-hover">
+      <view class="entry-icon entry-icon--bell">
+        <view class="zx-i zx-i-bell"></view>
+        <view wx:if="{{notificationUnread > 0}}" class="zx-count entry-count">{{notificationUnread > 99 ? '99+' : notificationUnread}}</view>
+      </view>
+      <view class="entry-label">通知</view>
+    </view>
+    <view class="entry zx-card" bindtap="scrollToRequests" hover-class="zx-btn-hover">
+      <view class="entry-icon entry-icon--mail">
+        <view class="zx-i zx-i-mail"></view>
+        <view wx:if="{{pendingRequests.length > 0}}" class="zx-count entry-count">{{pendingRequests.length}}</view>
+      </view>
+      <view class="entry-label">私信请求</view>
+    </view>
+    <view class="entry zx-card" bindtap="openLikes" hover-class="zx-btn-hover">
+      <view class="entry-icon entry-icon--heart">
+        <view class="zx-i zx-i-heart"></view>
+        <view wx:if="{{likeUnread > 0}}" class="zx-count entry-count">{{likeUnread > 99 ? '99+' : likeUnread}}</view>
+      </view>
+      <view class="entry-label">赞与收藏</view>
+    </view>
+  </view>
+
+  <view class="sheet">
+    <view wx:for="{{pendingRequests}}" wx:key="id" class="request">
+      <view class="zx-avatar zx-avatar--sm request-avatar">{{item.avatarInitial}}</view>
+      <view class="request-main">
+        <view class="zx-label zx-ellipsis">私信请求 · {{item.fromAlias}}</view>
+        <view class="zx-caption zx-ellipsis request-reason">{{item.reason || '请求联系'}}</view>
+      </view>
+      <view class="zx-btn zx-btn--primary zx-btn--small" data-id="{{item.id}}" data-accept="1" bindtap="answerRequest">同意</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--small request-reject" data-id="{{item.id}}" data-accept="0" bindtap="answerRequest">拒绝</view>
+    </view>
+
+    <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+    <view wx:elif="{{errorMessage}}" class="zx-empty">
+      <view class="zx-empty__title">消息加载失败</view>
+      <view class="zx-empty__message">{{errorMessage}}</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+    </view>
+    <view wx:elif="{{conversations.length === 0}}" class="zx-empty">
+      <view class="zx-empty__title">还没有会话</view>
+      <view class="zx-empty__message">在帖子或个人主页里向同学发起私信</view>
+    </view>
+
+    <view wx:for="{{conversations}}" wx:key="id" class="conversation" data-index="{{index}}" bindtap="openChat" hover-class="conversation--pressed">
+      <view class="zx-avatar conversation-avatar">
+        <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" />
+        <text wx:else>{{item.avatarInitial}}</text>
+      </view>
+      <view class="conversation-main">
+        <view class="zx-row">
+          <view class="zx-label zx-ellipsis conversation-name">{{item.name}}</view>
+          <view wx:if="{{item.blockedByMe}}" class="zx-badge zx-badge--danger conversation-flag">已屏蔽</view>
+          <view wx:elif="{{item.blockedByPeer}}" class="zx-badge zx-badge--danger conversation-flag">对方已屏蔽</view>
+          <view class="zx-spacer"></view>
+          <view class="zx-caption">{{item.timeText}}</view>
+        </view>
+        <view class="zx-row conversation-second">
+          <view class="zx-ellipsis conversation-preview {{item.unread > 0 ? 'conversation-preview--unread' : ''}}">{{item.lastMessage}}</view>
+          <view wx:if="{{item.unread > 0}}" class="zx-count">{{item.unreadText}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

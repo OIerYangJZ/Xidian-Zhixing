@@ -274,7 +274,7 @@ Page({
   openAuthorProfile() {
     const userId = this.data.post && this.data.post.authorUserId;
     if (this.data.post && this.data.post.isOwnPost) {
-      wx.navigateTo({ url: '/pages/profile/index' });
+      wx.switchTab({ url: '/pages/profile/index' });
       return;
     }
     if (!userId || this.data.post.isAnonymous) return;
