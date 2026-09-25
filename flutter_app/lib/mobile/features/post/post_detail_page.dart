@@ -10,8 +10,6 @@ import '../../../design_system/design_system.dart';
 import '../widgets/avatar_widget.dart';
 import '../widgets/square_icon_button.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/utils/post_share.dart';
 import '../../core/utils/time_utils.dart';
@@ -19,11 +17,12 @@ import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/models/comment_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/post_content_body.dart';
+import 'package:xdu_treehole_web/features/post/report_dialog.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
 
-/// 甯栧瓙璇︽儏椤?
-/// 鍖呭惈甯栧瓙姝ｆ枃銆佸浘鐗囩敾寤娿€佽瘎璁哄垪琛ㄣ€佺偣璧?鏀惰棌/涓炬姤浜や簰
+/// 帖子详情页
+/// 包含帖子正文、图片画廊、评论列表、点赞/收藏/举报交互
 class PostDetailPage extends ConsumerStatefulWidget {
   final String postId;
   final String? initialCommentId;
@@ -55,16 +54,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   bool _showEmoji = false;
   bool _pendingShowEmojiPanel = false;
 
-  // 鍥炲鐘舵€?
+  // 回复状态
   CommentItem? _replyingTo;
 
-  // 鐢ㄤ簬閿洏寮硅捣鏃惰嚜鍔ㄦ粴鍔ㄥ埌搴曢儴
+  // 用于键盘弹起时自动滚动到底部
   final ScrollController _scrollController = ScrollController();
 
-  // 鐢ㄤ簬婊氬姩鍒拌瘎璁哄尯
+  // 用于滚动到评论区
   final GlobalKey _commentsSectionKey = GlobalKey();
 
-  // 鐢ㄤ簬鎿嶄綔璇勮杈撳叆妗?
+  // 用于操作评论输入框
   final GlobalKey<dynamic> _commentInputKey = GlobalKey();
   final Map<String, GlobalKey> _commentItemKeys = <String, GlobalKey>{};
   String _initialCommentId = '';
@@ -172,7 +171,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     }
   }
 
-  /// 灏嗘墎骞崇殑璇勮鍒楄〃杞崲涓哄祵濂楁爲缁撴瀯
+  /// 将扁平的评论列表转换为嵌套树结构
   List<CommentItem> _buildCommentTree(List<CommentItem> flat) {
     final Map<String, CommentItem> map = {};
     for (final c in flat) {
@@ -289,7 +288,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   Future<void> _handleFavorite() async {
     if (_isFavoriting || _post == null) return;
 
-    // 涔愯鏇存柊
+    // 乐观更新
     final previousPost = _post!;
     final wasFavorited = _post!.isFavorited;
     setState(() {
@@ -310,7 +309,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         await postRepo.favoritePost(widget.postId);
       }
     } catch (e) {
-      // 鍥炴粴
+      // 回滚
       if (mounted) {
         setState(() {
           _post = previousPost;
@@ -328,26 +327,27 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     }
   }
 
-  Future<void> _handleReport() async {
-    final colors = MobileColors.of(context);
-    final result = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => _ReportSheet(
-        postId: widget.postId,
-        postRepo: ref.read(postRepositoryProvider),
-      ),
-    );
-
-    if (result != null && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('举报成功，我们会尽快处理')));
+  /// 举报 the post or one of its comments through the shared dialog.
+  Future<void> _report({required String targetType, required String id}) async {
+    final ReportChoice? choice = await showReportDialog(context);
+    if (choice == null || !mounted) return;
+    try {
+      await ref
+          .read(postRepositoryProvider)
+          .report(
+            targetType: targetType,
+            targetId: id,
+            reason: choice.reason,
+            description: choice.description,
+          );
+      if (mounted) zxShowToast(context, '已提交举报，我们会尽快处理');
+    } catch (e) {
+      if (mounted) zxShowToast(context, '举报失败：$e');
     }
   }
+
+  Future<void> _handleReport() =>
+      _report(targetType: 'post', id: widget.postId);
 
   Future<void> _handleSubmitComment(String content) async {
     if (_isPostingComment) return;
@@ -364,18 +364,18 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         parentId: _replyingTo?.id,
       );
 
-      // 閲嶆柊鍔犺浇璇勮
+      // 重新加载评论
       final comments = await postRepo.fetchComments(
         widget.postId,
         sort: _commentSort,
       );
 
-      // 涔愯鏇存柊甯栧瓙璇勮鏁?
+      // 乐观更新帖子评论数
       if (mounted && _post != null) {
         setState(() {
           _post = _post!.copyWith(commentCount: _post!.commentCount + 1);
           _comments = _buildCommentTree(comments);
-          _replyingTo = null; // 娓呯┖鍥炲鐘舵€?
+          _replyingTo = null; // 清空回复状态
         });
         ScaffoldMessenger.of(
           context,
@@ -460,28 +460,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     if (_isDeletingComment) {
       return;
     }
-    final bool confirmed =
-        await showDialog<bool>(
-          context: context,
-          builder: (BuildContext dialogContext) => AlertDialog(
-            title: const Text('删除评论'),
-            content: const Text('确认删除这条评论吗？删除后不可恢复。'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(false),
-                child: const Text('取消'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(true),
-                child: const Text(
-                  '删除',
-                  style: TextStyle(color: MobileTheme.error),
-                ),
-              ),
-            ],
-          ),
-        ) ??
-        false;
+    final bool confirmed = await zxConfirm(
+      context,
+      title: '删除评论',
+      message: '确认删除这条评论吗？删除后不可恢复。',
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      danger: true,
+    );
     if (!confirmed) {
       return;
     }
@@ -597,7 +583,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     // 閫氳繃 GlobalKey 鎵惧埌 CommentInputBar 鍐呴儴鐘舵€侊紝璋冪敤 insertEmoji
     final inputState = _commentInputKey.currentState;
     if (inputState != null) {
-      // dynamic call 鈥?insertEmoji 鏄?_CommentInputBarState 鐨勫叕寮€鏂规硶
+      // dynamic call — insertEmoji 是 _CommentInputBarState 的公开方法
       // ignore: avoid_dynamic_calls
       inputState.insertEmoji(emoji);
     }
@@ -722,65 +708,43 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   }
 
   Widget _buildReplyBanner() {
+    final ZxTokens t = ZxTokens.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: MobileTheme.primaryWithAlpha(context, 0.08),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      color: t.primarySoft,
       child: Row(
         children: [
-          Icon(Icons.reply, size: 16, color: MobileTheme.primaryOf(context)),
+          Icon(Icons.reply_rounded, size: 16, color: t.primary),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               '回复 @${_replyingTo!.authorAlias}',
-              style: TextStyle(
-                fontSize: 13,
-                color: MobileTheme.primaryOf(context),
-              ),
+              style: ZxType.caption.copyWith(color: t.primary),
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          GestureDetector(
-            onTap: () => setState(() => _replyingTo = null),
-            child: Icon(
-              Icons.close,
-              size: 16,
-              color: MobileTheme.primaryOf(context),
-            ),
+          IconButton(
+            tooltip: '取消回复',
+            visualDensity: VisualDensity.compact,
+            icon: Icon(Icons.close_rounded, size: 16, color: t.primary),
+            onPressed: () => setState(() => _replyingTo = null),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorView() {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: TextStyle(color: colors.textSecondary, fontSize: 15),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(onPressed: _loadData, child: const Text('重试')),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildErrorView() => ZxStatePanel(
+    error: true,
+    icon: Icons.error_outline_rounded,
+    title: '帖子加载失败',
+    message: _error,
+    actionLabel: '重试',
+    onAction: _loadData,
+  );
 
-  Widget _buildEmptyView() {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Text('帖子不存在或已被删除', style: TextStyle(color: colors.textSecondary)),
-    );
-  }
+  Widget _buildEmptyView() =>
+      const ZxStatePanel(icon: Icons.article_outlined, title: '帖子不存在或已被删除');
 
   Widget _buildContent() {
     final ZxTokens t = ZxTokens.of(context);
@@ -1016,7 +980,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         _showEmoji = false;
       });
     }
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     final size = MediaQuery.sizeOf(context);
     final double left = (details.globalPosition.dx - 44).clamp(
       12,
@@ -1032,9 +996,9 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     final CommentSort? selected = await showMenu<CommentSort>(
       context: context,
       position: position,
-      color: colors.surface,
+      color: t.raised,
       elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: ZxRadius.buttonAll),
       items: <PopupMenuEntry<CommentSort>>[
         PopupMenuItem<CommentSort>(
           value: CommentSort.hot,
@@ -1066,7 +1030,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
               ? Icon(
                   Icons.check_rounded,
                   size: 16,
-                  color: MobileTheme.primaryOf(context),
+                  color: ZxTokens.of(context).primary,
                 )
               : null,
         ),
@@ -1184,85 +1148,61 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     ];
   }
 
-  void _showOptionsSheet() {
-    final colors = MobileColors.of(context);
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(
-                Icons.flag_outlined,
-                color: MobileTheme.error,
-              ),
-              title: const Text('举报'),
-              onTap: () {
-                Navigator.pop(context);
-                _handleReport();
-              },
-            ),
-            if (_post!.isOwnPost)
-              ListTile(
-                leading: const Icon(
-                  Icons.delete_outline,
-                  color: MobileTheme.error,
-                ),
-                title: const Text('删除'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _confirmDelete();
-                },
-              ),
-            const SizedBox(height: 8),
-          ],
+  Future<void> _showOptionsSheet() async {
+    final String? action = await zxShowActionSheet<String>(
+      context,
+      cancelLabel: '取消',
+      actions: [
+        const ZxSheetAction<String>(
+          value: 'link',
+          label: '复制链接',
+          icon: Icons.link_rounded,
         ),
-      ),
+        if (!_post!.isOwnPost)
+          const ZxSheetAction<String>(
+            value: 'report',
+            label: '举报',
+            icon: Icons.flag_outlined,
+            danger: true,
+          ),
+        if (_post!.isOwnPost)
+          const ZxSheetAction<String>(
+            value: 'delete',
+            label: '删除',
+            icon: Icons.delete_outline_rounded,
+            danger: true,
+          ),
+      ],
     );
+    if (!mounted) return;
+    switch (action) {
+      case 'link':
+        await _copyLink();
+      case 'report':
+        await _handleReport();
+      case 'delete':
+        await _confirmDelete();
+    }
   }
 
-  void _confirmDelete() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确认删除这篇帖子吗？此操作不可恢复。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              try {
-                final postRepo = ref.read(postRepositoryProvider);
-                await postRepo.deleteMyPost(widget.postId);
-                if (mounted) {
-                  context.pop();
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(const SnackBar(content: Text('删除成功')));
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('删除失败: $e')));
-                }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            child: const Text('删除'),
-          ),
-        ],
-      ),
+  Future<void> _confirmDelete() async {
+    final bool confirmed = await zxConfirm(
+      context,
+      title: '删除帖子？',
+      message: '删除后不可恢复。',
+      confirmLabel: '删除',
+      cancelLabel: '取消',
+      danger: true,
     );
+    if (!confirmed || !mounted) return;
+    try {
+      await ref.read(postRepositoryProvider).deleteMyPost(widget.postId);
+      if (!mounted) return;
+      context.pop();
+      zxShowToast(context, '已删除');
+    } catch (e) {
+      if (mounted) zxShowToast(context, '删除失败：$e');
+    }
   }
 
   /// 递归渲染嵌套评论列表
@@ -1286,6 +1226,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             commentKeyBuilder: _commentKeyFor,
             currentUserId: _currentUserId,
             onDelete: _handleDeleteComment,
+            onReport: (CommentItem c) =>
+                _report(targetType: 'comment', id: c.id),
             postAuthorId: _post?.authorUserId ?? '',
           ),
         );
@@ -1306,6 +1248,7 @@ class _CommentTile extends StatefulWidget {
   final GlobalKey Function(String commentId)? commentKeyBuilder;
   final String currentUserId;
   final Future<void> Function(CommentItem comment)? onDelete;
+  final Future<void> Function(CommentItem comment)? onReport;
   final String postAuthorId;
 
   const _CommentTile({
@@ -1315,6 +1258,7 @@ class _CommentTile extends StatefulWidget {
     this.commentKeyBuilder,
     this.currentUserId = '',
     this.onDelete,
+    this.onReport,
     this.postAuthorId = '',
   });
 
@@ -1344,7 +1288,7 @@ class _CommentTileState extends State<_CommentTile> {
 
   Future<void> _toggleLike(BuildContext context) async {
     final wasLiked = _isLiked;
-    // 涔愯鏇存柊
+    // 乐观更新
     setState(() {
       _isLiked = !wasLiked;
       _likeCount += wasLiked ? -1 : 1;
@@ -1359,7 +1303,7 @@ class _CommentTileState extends State<_CommentTile> {
         await repo.likeComment(widget.comment.id);
       }
     } catch (_) {
-      // 鍥炴粴
+      // 回滚
       if (mounted) {
         setState(() {
           _isLiked = wasLiked;
@@ -1379,8 +1323,8 @@ class _CommentTileState extends State<_CommentTile> {
     final media = MediaQuery.of(context);
     final _CommentAction? action = await showMenu<_CommentAction>(
       context: context,
-      color: MobileColors.of(context).surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: ZxTokens.of(context).raised,
+      shape: RoundedRectangleBorder(borderRadius: ZxRadius.buttonAll),
       position: RelativeRect.fromLTRB(
         details.globalPosition.dx,
         details.globalPosition.dy - 10,
@@ -1392,10 +1336,18 @@ class _CommentTileState extends State<_CommentTile> {
           value: _CommentAction.copy,
           child: Text('复制'),
         ),
-        if (_canDelete && widget.onDelete != null)
+        if (!_canDelete && widget.onReport != null)
           const PopupMenuItem<_CommentAction>(
+            value: _CommentAction.report,
+            child: Text('举报'),
+          ),
+        if (_canDelete && widget.onDelete != null)
+          PopupMenuItem<_CommentAction>(
             value: _CommentAction.delete,
-            child: Text('删除', style: TextStyle(color: MobileTheme.error)),
+            child: Text(
+              '删除',
+              style: TextStyle(color: ZxTokens.of(context).danger),
+            ),
           ),
       ],
     );
@@ -1407,9 +1359,11 @@ class _CommentTileState extends State<_CommentTile> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('已复制评论内容')));
+      zxShowToast(context, '已复制评论内容');
+      return;
+    }
+    if (action == _CommentAction.report) {
+      await widget.onReport?.call(widget.comment);
       return;
     }
     if (action == _CommentAction.delete && _canDelete) {
@@ -1566,6 +1520,7 @@ class _CommentTileState extends State<_CommentTile> {
             commentKeyBuilder: widget.commentKeyBuilder,
             currentUserId: widget.currentUserId,
             onDelete: widget.onDelete,
+            onReport: widget.onReport,
             postAuthorId: widget.postAuthorId,
           ),
       ],
@@ -1577,8 +1532,7 @@ class _CommentTileState extends State<_CommentTile> {
   }
 }
 
-/// 搴曢儴鎿嶄綔鎸夐挳
-enum _CommentAction { copy, delete }
+enum _CommentAction { copy, report, delete }
 
 /// A like / favorite / share control in the comment bar. [filled] gives the
 /// active state a soft pill, as the like has in the handoff.
@@ -1631,167 +1585,6 @@ class _BarAction extends StatelessWidget {
             ],
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// 涓炬姤琛ㄥ崟
-class _ReportSheet extends StatefulWidget {
-  final String postId;
-  final PostRepository postRepo;
-
-  const _ReportSheet({required this.postId, required this.postRepo});
-
-  @override
-  State<_ReportSheet> createState() => _ReportSheetState();
-}
-
-class _ReportSheetState extends State<_ReportSheet> {
-  String? _selectedReason;
-  final _descriptionController = TextEditingController();
-  bool _isSubmitting = false;
-
-  final _reasons = ['垃圾广告', '人身攻击', '色情低俗', '违法违规', '虚假信息', '侵犯隐私', '其他'];
-
-  @override
-  void dispose() {
-    _descriptionController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (_selectedReason == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请选择举报原因')));
-      return;
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      final postRepo = widget.postRepo;
-      await postRepo.report(
-        targetType: 'post',
-        targetId: widget.postId,
-        reason: _selectedReason!,
-        description: _descriptionController.text.trim(),
-      );
-      if (mounted) {
-        Navigator.pop(context, _selectedReason);
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('举报失败: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        16,
-        16,
-        MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '举报原因',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: colors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _reasons.map((reason) {
-              final isSelected = reason == _selectedReason;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedReason = reason;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? MobileTheme.error.withValues(alpha: 0.1)
-                        : colors.background,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: isSelected ? MobileTheme.error : colors.divider,
-                    ),
-                  ),
-                  child: Text(
-                    reason,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isSelected
-                          ? MobileTheme.error
-                          : colors.textSecondary,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _descriptionController,
-            maxLines: 3,
-            decoration: const InputDecoration(
-              hintText: '补充说明（可选）',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _submit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: MobileTheme.error,
-              ),
-              child: _isSubmitting
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : const Text('提交举报'),
-            ),
-          ),
-        ],
       ),
     );
   }

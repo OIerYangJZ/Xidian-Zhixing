@@ -1,11 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 
 /// 图片画廊组件
@@ -244,7 +243,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                             borderRadius: BorderRadius.circular(6),
                             border: Border.all(
                               color: isSelected
-                                  ? MobileTheme.primaryOf(context)
+                                  ? ZxTokens.of(context).primary
                                   : Colors.transparent,
                               width: 2,
                             ),
@@ -333,61 +332,49 @@ class PostImageGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     final displayUrls = imageUrls.take(maxDisplay).toList();
     final remaining = imageUrls.length - maxDisplay;
+    if (displayUrls.isEmpty) return const SizedBox.shrink();
+    return displayUrls.length == 1
+        ? _buildSingleImage(context, displayUrls[0], t)
+        : _buildGrid(context, displayUrls, remaining, t);
+  }
 
-    if (displayUrls.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  static const BorderRadius _radius = BorderRadius.all(Radius.circular(12));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        if (displayUrls.length == 1)
-          _buildSingleImage(context, displayUrls[0], colors)
-        else
-          _buildGrid(context, displayUrls, remaining, colors),
-      ],
+  Widget _placeholder(ZxTokens t, {bool error = false, double? height}) {
+    return Container(
+      height: height,
+      color: t.bgSunk,
+      alignment: Alignment.center,
+      child: error
+          ? Icon(Icons.broken_image_outlined, color: t.text3)
+          : const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
     );
   }
 
-  Widget _buildSingleImage(
-    BuildContext context,
-    String url,
-    MobileColors colors,
-  ) {
+  Widget _buildSingleImage(BuildContext context, String url, ZxTokens t) {
     final fullUrl = url.startsWith('http') ? url : AppConfig.resolveUrl(url);
     return GestureDetector(
-      onTap: () {
-        ImageGallery.show(context, imageUrls: imageUrls);
-      },
+      onTap: () => ImageGallery.show(context, imageUrls: imageUrls),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: _radius,
         child: ConstrainedBox(
           constraints: const BoxConstraints(
-            maxHeight: 300,
+            maxHeight: 320,
             maxWidth: double.infinity,
           ),
           child: CachedNetworkImage(
             imageUrl: fullUrl,
-            fit: BoxFit.contain,
-            placeholder: (context, url) => Container(
-              height: 200,
-              color: colors.background,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-            errorWidget: (context, url, error) => Container(
-              height: 200,
-              color: colors.background,
-              child: Center(
-                child: Icon(
-                  Icons.image_not_supported_outlined,
-                  color: colors.textTertiary,
-                ),
-              ),
-            ),
+            fit: BoxFit.cover,
+            width: double.infinity,
+            placeholder: (_, _) => _placeholder(t, height: 200),
+            errorWidget: (_, _, _) => _placeholder(t, error: true, height: 200),
           ),
         ),
       ),
@@ -398,53 +385,43 @@ class PostImageGrid extends StatelessWidget {
     BuildContext context,
     List<String> urls,
     int remaining,
-    MobileColors colors,
+    ZxTokens t,
   ) {
     return SizedBox(
-      height: 100,
+      height: 120,
       child: Row(
         children: [
-          ...urls.asMap().entries.map((entry) {
-            final index = entry.key;
-            final url = entry.value;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  ImageGallery.show(
+          for (int index = 0; index < urls.length; index++)
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(left: index > 0 ? 6 : 0),
+                child: GestureDetector(
+                  onTap: () => ImageGallery.show(
                     context,
                     imageUrls: imageUrls,
                     initialIndex: index,
-                  );
-                },
-                child: Container(
-                  margin: EdgeInsets.only(left: index > 0 ? 4 : 0),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: colors.background,
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: _buildNetworkImage(url, colors),
-                  ),
-                ),
-              ),
-            );
-          }),
-          if (remaining > 0)
-            Container(
-              width: 100,
-              margin: const EdgeInsets.only(left: 4),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                color: colors.textTertiary.withValues(alpha: 0.2),
-              ),
-              child: Center(
-                child: Text(
-                  '+$remaining',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textSecondary,
+                    borderRadius: _radius,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _buildNetworkImage(urls[index], t),
+                        // +N on the last tile when more are hidden.
+                        if (remaining > 0 && index == urls.length - 1)
+                          ColoredBox(
+                            color: t.scrim,
+                            child: Center(
+                              child: Text(
+                                '+$remaining',
+                                style: ZxType.title.copyWith(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -454,30 +431,13 @@ class PostImageGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildNetworkImage(String url, MobileColors colors) {
+  Widget _buildNetworkImage(String url, ZxTokens t) {
     final fullUrl = url.startsWith('http') ? url : AppConfig.resolveUrl(url);
     return CachedNetworkImage(
       imageUrl: fullUrl,
       fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
-        color: colors.background,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      ),
-      errorWidget: (context, url, error) => Container(
-        color: colors.background,
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            color: colors.textTertiary,
-          ),
-        ),
-      ),
+      placeholder: (_, _) => _placeholder(t),
+      errorWidget: (_, _, _) => _placeholder(t, error: true),
     );
   }
 }

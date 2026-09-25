@@ -21,13 +21,11 @@ import '../../features/profile/display_settings_page.dart';
 import '../../features/profile/about_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/profile/acknowledgements_page.dart';
-import '../../features/admin/admin_login_page.dart';
-import '../../features/admin/admin_console_page.dart';
-import '../../features/admin/admin_review_list_page.dart';
-import '../../features/admin/admin_report_list_page.dart';
-import '../../features/admin/admin_image_review_list_page.dart';
 // Pages shared with the web, already on the design system; their links to
 // posts, chats and profiles go through AppNavigation (mobile_app_entry).
+import 'package:xdu_treehole_web/core/theme/app_theme.dart';
+import 'package:xdu_treehole_web/features/admin/admin_console_page.dart' as web;
+import 'package:xdu_treehole_web/features/admin/admin_login_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_comments_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_favorites_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_posts_page.dart' as web;
@@ -36,6 +34,7 @@ import 'package:xdu_treehole_web/features/profile/blocked_accounts_page.dart'
     as web;
 import 'package:xdu_treehole_web/features/profile/edit_profile_page.dart'
     as web;
+import 'package:xdu_treehole_web/features/profile/follow_list_page.dart' as web;
 import 'package:xdu_treehole_web/features/profile/notification_preferences_page.dart'
     as web;
 import 'package:xdu_treehole_web/features/profile/public_user_profile_page.dart'
@@ -239,6 +238,16 @@ final appRouter = GoRouter(
       builder: (context, state) => const web.NotificationPreferencesPage(),
     ),
     GoRoute(
+      path: '/profile/follows',
+      builder: (context, state) => web.FollowListPage(
+        initialTab: switch (state.uri.queryParameters['tab']) {
+          'followers' => web.FollowListTab.followers,
+          'friends' => web.FollowListTab.friends,
+          _ => web.FollowListTab.following,
+        },
+      ),
+    ),
+    GoRoute(
       path: '/profile/settings/blocked',
       builder: (context, state) => const web.BlockedAccountsPage(),
     ),
@@ -279,26 +288,28 @@ final appRouter = GoRouter(
       builder: (context, state) => const ReportGuidelinesPage(),
     ),
 
-    // 管理员路由
+    // 管理员路由: the web admin console, which also lays out for phones.
     GoRoute(
       path: '/admin/login',
-      builder: (context, state) => const AdminLoginPage(),
+      builder: (context, state) =>
+          web.AdminLoginPage(onSignedIn: () => context.go('/admin')),
     ),
     GoRoute(
       path: '/admin',
-      builder: (context, state) => const AdminConsolePage(),
-    ),
-    GoRoute(
-      path: '/admin/reviews',
-      builder: (context, state) => const AdminReviewListPage(),
-    ),
-    GoRoute(
-      path: '/admin/reports',
-      builder: (context, state) => const AdminReportListPage(),
-    ),
-    GoRoute(
-      path: '/admin/images',
-      builder: (context, state) => const AdminImageReviewListPage(),
+      builder: (context, state) => Theme(
+        // 书院·青绿 marks the admin side apart from the student app.
+        data: AppTheme.designSystemFor(
+          themeKey: 'zhuqing',
+          brightness: Theme.of(context).brightness,
+        ),
+        child: web.AdminConsolePage(
+          repository: AppRepositories.adminPortal,
+          onLogout: () async {
+            await AppRepositories.adminAuth.logout();
+            if (context.mounted) context.go('/admin/login');
+          },
+        ),
+      ),
     ),
   ],
 );

@@ -6,7 +6,11 @@ import '../../repositories/app_repositories.dart';
 import 'admin_portal_page.dart';
 
 class AdminLoginPage extends StatefulWidget {
-  const AdminLoginPage({super.key});
+  const AdminLoginPage({super.key, this.onSignedIn});
+
+  /// Where to go once signed in; the web opens its admin portal. The Android
+  /// app passes its own route here.
+  final VoidCallback? onSignedIn;
 
   @override
   State<AdminLoginPage> createState() => _AdminLoginPageState();
@@ -165,6 +169,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
         password: password,
       );
       if (!mounted) {
+        return;
+      }
+      final VoidCallback? onSignedIn = widget.onSignedIn;
+      if (onSignedIn != null) {
+        onSignedIn();
         return;
       }
       Navigator.of(context).pushAndRemoveUntil(

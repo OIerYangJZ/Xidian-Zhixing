@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../design_system/design_system.dart';
+
 import '../core/config/app_config.dart';
 import '../core/theme/design_tokens.dart';
 import '../core/l10n/ui_text.dart';
@@ -130,28 +132,25 @@ class _ImageTileState extends State<_ImageTile> {
   }
 
   Widget _buildImage() {
+    final ZxTokens t = ZxTokens.of(context);
     final Widget errorPlaceholder = ColoredBox(
-      color: Colors.black12,
+      color: t.bgSunk,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Icon(
-              Icons.broken_image_outlined,
-              color: Colors.black38,
-              size: 32,
-            ),
+            Icon(Icons.broken_image_outlined, color: t.text3, size: 32),
             const SizedBox(height: 4),
             Text(
               uiText(context, zh: '加载失败', en: 'Failed to load'),
-              style: const TextStyle(color: Colors.black45, fontSize: 10),
+              style: ZxType.micro.copyWith(color: t.text3),
             ),
           ],
         ),
       ),
     );
-    const Widget loadingPlaceholder = ColoredBox(
-      color: Colors.black12,
+    final Widget loadingPlaceholder = ColoredBox(
+      color: t.bgSunk,
       child: Center(
         child: SizedBox(
           width: 24,
@@ -368,7 +367,11 @@ class _ViewerImageState extends State<_ViewerImage> {
     final Widget errorPlaceholder = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        const Icon(Icons.broken_image_outlined, color: Colors.white54, size: 64),
+        const Icon(
+          Icons.broken_image_outlined,
+          color: Colors.white54,
+          size: 64,
+        ),
         const SizedBox(height: 16),
         Text(
           uiText(context, zh: '图片加载失败', en: 'Image failed to load'),

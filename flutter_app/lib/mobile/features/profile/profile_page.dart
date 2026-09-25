@@ -4,14 +4,11 @@ import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../shell/mobile_shell.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/models/follow_user_item.dart';
 import '../../core/state/mobile_providers.dart';
-import '../widgets/avatar_widget.dart';
 
 /// 个人主页 — Twitter/Instagram 混合风格
 /// 无卡片、无圆角、紧凑信息流布局
@@ -105,19 +102,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _followError = error.toString().replaceAll('Exception: ', '');
       });
     }
-  }
-
-  void _showFollowSheet(String title, List<FollowUserItem> users) {
-    final colors = MobileColors.of(context);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: colors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => _FollowListSheet(title: title, users: users),
-    );
   }
 
   Future<void> _open(String location) async {
@@ -255,7 +239,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                     ? '–'
                                     : '${_followers.length}',
                                 label: '粉丝',
-                                onTap: () => _showFollowSheet('粉丝', _followers),
+                                onTap: () =>
+                                    _open('/profile/follows?tab=followers'),
                               ),
                               const SizedBox(width: 18),
                               _Count(
@@ -263,7 +248,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                     ? '–'
                                     : '${_following.length}',
                                 label: '关注',
-                                onTap: () => _showFollowSheet('关注', _following),
+                                onTap: () =>
+                                    _open('/profile/follows?tab=following'),
                               ),
                               const SizedBox(width: 14),
                               ZxBadge.level(
@@ -432,152 +418,3 @@ class _Quick extends StatelessWidget {
     );
   }
 }
-
-class _FollowListSheet extends StatelessWidget {
-  final String title;
-  final List<FollowUserItem> users;
-
-  const _FollowListSheet({required this.title, required this.users});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final mutual = users.where((u) => u.isMutual).toList();
-    final others = users.where((u) => !u.isMutual).toList();
-
-    return DraggableScrollableSheet(
-      initialChildSize: 0.6,
-      minChildSize: 0.4,
-      maxChildSize: 0.9,
-      expand: false,
-      builder: (ctx, scrollCtrl) {
-        return Column(
-          children: [
-            // 拖动条
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 10),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: colors.divider,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // 标题
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-              child: Row(
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                      color: colors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${users.length}',
-                    style: TextStyle(fontSize: 14, color: colors.textSecondary),
-                  ),
-                ],
-              ),
-            ),
-            Divider(height: 0.5, color: colors.divider),
-            // 列表
-            Expanded(
-              child: users.isEmpty
-                  ? Center(
-                      child: Text(
-                        '暂无数据',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: colors.textTertiary,
-                        ),
-                      ),
-                    )
-                  : ListView(
-                      controller: scrollCtrl,
-                      children: [
-                        if (mutual.isNotEmpty) ...[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                            child: Text(
-                              '好友',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                          ),
-                          ...mutual.map((u) => _FollowUserTile(user: u)),
-                          if (others.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                              child: Text(
-                                '其他',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: colors.textSecondary,
-                                ),
-                              ),
-                            ),
-                        ],
-                        ...others.map((u) => _FollowUserTile(user: u)),
-                      ],
-                    ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _FollowUserTile extends StatelessWidget {
-  final FollowUserItem user;
-
-  const _FollowUserTile({required this.user});
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return ListTile(
-      leading: AvatarWidget(
-        avatarUrl: user.avatarUrl.isNotEmpty ? user.avatarUrl : null,
-        nickname: user.nickname,
-        radius: 20,
-      ),
-      title: Text(
-        user.nickname,
-        style: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: colors.textPrimary,
-        ),
-      ),
-      trailing: user.isMutual
-          ? Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: MobileTheme.primaryWithAlpha(context, 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '好友',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: MobileTheme.primaryOf(context),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            )
-          : null,
-    );
-  }
-}
-
-/// 我的帖子 Tab — 真实数据

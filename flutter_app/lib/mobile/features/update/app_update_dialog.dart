@@ -4,8 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:xdu_treehole_web/core/config/app_config.dart';
 import 'package:xdu_treehole_web/core/utils/browser_download.dart';
 import 'package:xdu_treehole_web/models/app_release_item.dart';
-import 'package:xdu_treehole_web/mobile/core/theme/mobile_colors.dart';
-import 'package:xdu_treehole_web/mobile/core/theme/mobile_theme.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 
 Future<void> showAppUpdateDialog(
   BuildContext context, {
@@ -17,15 +16,15 @@ Future<void> showAppUpdateDialog(
     context: context,
     barrierDismissible: !release.forceUpdate,
     builder: (dialogContext) {
-      final colors = MobileColors.of(dialogContext);
+      final ZxTokens t = ZxTokens.of(dialogContext);
       return PopScope(
         canPop: !release.forceUpdate,
         child: Dialog(
-          backgroundColor: colors.cardBackground,
+          backgroundColor: t.surface,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: BorderSide(color: colors.divider, width: 0.5),
+            borderRadius: ZxRadius.cardAll,
+            side: BorderSide(color: t.line, width: 0.5),
           ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
@@ -42,12 +41,12 @@ Future<void> showAppUpdateDialog(
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: MobileTheme.primaryWithAlpha(context, 0.12),
+                            color: t.primarySoft,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Icon(
                             Icons.system_update_alt_rounded,
-                            color: MobileTheme.primaryOf(context),
+                            color: t.primary,
                             size: 24,
                           ),
                         ),
@@ -58,19 +57,12 @@ Future<void> showAppUpdateDialog(
                             children: [
                               Text(
                                 release.forceUpdate ? '发现重要更新' : '发现新版本',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: colors.textPrimary,
-                                ),
+                                style: ZxType.title.copyWith(color: t.text),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 '最新版本 ${_versionLabel(release)}',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: colors.textSecondary,
-                                ),
+                                style: TextStyle(fontSize: 13, color: t.text2),
                               ),
                             ],
                           ),
@@ -94,8 +86,8 @@ Future<void> showAppUpdateDialog(
                             label: '更新类型',
                             value: release.forceUpdate ? '强制更新' : '可选更新',
                             valueColor: release.forceUpdate
-                                ? MobileTheme.warning
-                                : colors.textPrimary,
+                                ? t.warning
+                                : t.text,
                           ),
                         ],
                       ),
@@ -110,7 +102,7 @@ Future<void> showAppUpdateDialog(
                         style: TextStyle(
                           fontSize: 14,
                           height: 1.6,
-                          color: colors.textSecondary,
+                          color: t.text2,
                         ),
                       ),
                     ),
@@ -131,43 +123,41 @@ Future<void> showAppUpdateDialog(
                     const SizedBox(height: 18),
                     Row(
                       children: [
-                        if (!release.forceUpdate)
+                        if (!release.forceUpdate) ...[
                           Expanded(
-                            child: OutlinedButton(
+                            child: ZxButton(
+                              label: '稍后再说',
+                              variant: ZxButtonVariant.secondary,
+                              expand: true,
                               onPressed: () =>
                                   Navigator.of(dialogContext).pop(),
-                              child: const Text('稍后再说'),
                             ),
                           ),
-                        if (!release.forceUpdate) const SizedBox(width: 12),
+                          const SizedBox(width: 12),
+                        ],
                         Expanded(
-                          child: FilledButton.icon(
+                          child: ZxButton(
+                            key: const Key('mobile-update-download'),
+                            label: '立即更新',
+                            icon: Icons.download_outlined,
+                            expand: true,
                             onPressed: () async {
                               final bool started = await triggerBrowserDownload(
                                 resolvedUrl,
                               );
-                              if (context.mounted) {
-                                if (started) {
-                                  Navigator.of(dialogContext).pop();
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('已开始下载新版本')),
-                                  );
-                                } else {
-                                  await Clipboard.setData(
-                                    ClipboardData(text: resolvedUrl),
-                                  );
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('无法直接下载，已复制更新链接'),
-                                      ),
-                                    );
-                                  }
+                              if (!context.mounted) return;
+                              if (started) {
+                                Navigator.of(dialogContext).pop();
+                                zxShowToast(context, '已开始下载新版本');
+                              } else {
+                                await Clipboard.setData(
+                                  ClipboardData(text: resolvedUrl),
+                                );
+                                if (context.mounted) {
+                                  zxShowToast(context, '无法直接下载，已复制更新链接');
                                 }
                               }
                             },
-                            icon: const Icon(Icons.download_outlined),
-                            label: const Text('立即更新'),
                           ),
                         ),
                       ],
@@ -191,14 +181,13 @@ class _InfoBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: colors.background,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colors.divider, width: 0.5),
+        color: t.bgSunk,
+        borderRadius: ZxRadius.buttonAll,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +197,7 @@ class _InfoBlock extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: colors.textPrimary,
+              color: t.text,
             ),
           ),
           const SizedBox(height: 8),
@@ -228,20 +217,17 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     return Row(
       children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 13, color: colors.textSecondary),
-        ),
+        Text(label, style: TextStyle(fontSize: 13, color: t.text2)),
         const Spacer(),
         Text(
           value,
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: valueColor ?? colors.textPrimary,
+            color: valueColor ?? t.text,
           ),
         ),
       ],
@@ -256,20 +242,20 @@ class _InfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: colors.cardBackground,
+        color: t.surface,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: colors.divider, width: 0.5),
+        border: Border.all(color: t.line, width: 0.5),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: colors.textPrimary,
+          color: t.text,
         ),
       ),
     );

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../design_system/design_system.dart';
-import '../../core/theme/mobile_colors.dart';
 
 /// 评论输入框组件
 /// 固定在底部，支持表情。[trailing] (the post's like / favorite / share, handoff
@@ -197,7 +196,7 @@ class EmojiPickerBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     final emojis = [
       '😀',
       '😃',
@@ -284,8 +283,8 @@ class EmojiPickerBar extends StatelessWidget {
     return Container(
       height: 200,
       decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(top: BorderSide(color: colors.divider, width: 0.5)),
+        color: t.surface,
+        border: Border(top: BorderSide(color: t.line)),
       ),
       child: GridView.builder(
         padding: const EdgeInsets.all(8),
