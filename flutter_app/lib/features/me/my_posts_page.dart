@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/post_detail_nav.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_surfaces.dart';
+import '../../design_system/design_system.dart';
 import '../../models/post_item.dart';
 import '../../repositories/app_repositories.dart';
 import '../../widgets/post_card.dart';
@@ -29,159 +28,105 @@ class _MyPostsPageState extends State<MyPostsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(uiText(context, zh: '我的帖子', en: 'My posts')),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: AppLayout.readingMaxWidth,
-          ),
-          child: _loading
-              ? AppStatePanel(
-                  icon: Icons.article_outlined,
-                  title: uiText(
-                    context,
-                    zh: '正在加载我的帖子',
-                    en: 'Loading your posts',
-                  ),
-                  message: uiText(
-                    context,
-                    zh: '正在同步发布记录和审核状态。',
-                    en: 'Syncing your publishing history and review status.',
-                  ),
-                )
-              : ListView(
-                  padding: const EdgeInsets.only(
-                    top: AppSpacing.xs,
-                    bottom: AppSpacing.xl,
-                  ),
+      body: ZxPaper(
+        child: _loading && _posts.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
                   children: <Widget>[
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
+                    Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 760),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            if (_error != null)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: ZxInlineMessage(
+                                  message: _error!,
+                                  tone: ZxMessageTone.danger,
+                                  actionLabel: uiText(
+                                    context,
+                                    zh: '重试',
+                                    en: 'Retry',
+                                  ),
+                                  onAction: _actionBusy ? null : _loadData,
+                                ),
+                              ),
+                            if (_posts.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(4, 0, 4, 10),
+                                child: Text(
+                                  uiText(
+                                    context,
+                                    zh: '共 ${_posts.length} 篇，包括匿名、仅自己可见和审核中的帖子',
+                                    en: '${_posts.length} posts, including anonymous, private and in-review ones',
+                                  ),
+                                  style: ZxType.caption.copyWith(
+                                    color: t.text3,
+                                  ),
+                                ),
+                              ),
+                            for (final PostItem post in _posts)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: _MyPostEntry(
+                                  post: post,
+                                  busy: _actionBusy,
+                                  onOpen: () => _open(post),
+                                  onStatus: (PostStatus status) =>
+                                      _updateStatus(post, status),
+                                  onPin: () => _handlePin(post),
+                                  onDelete: () => _delete(post),
+                                ),
+                              ),
+                            if (_posts.isEmpty && _error == null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 60),
+                                child: ZxStatePanel(
+                                  key: const Key('my-posts-empty-state'),
+                                  icon: Icons.post_add_outlined,
+                                  title: uiText(
+                                    context,
+                                    zh: '你还没有发布帖子',
+                                    en: 'You have not published any posts yet',
+                                  ),
+                                  message: uiText(
+                                    context,
+                                    zh: '回到帖子流，使用发布按钮分享第一条内容。',
+                                    en: 'Go back to the feed and use the compose button to share your first post.',
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                        child: AppInlineMessage(
-                          title: uiText(
-                            context,
-                            zh: '帖子加载失败',
-                            en: 'Could not load your posts',
-                          ),
-                          message: _error!,
-                          tone: AppMessageTone.error,
-                          action: TextButton(
-                            onPressed: _actionBusy ? null : _loadData,
-                            child: Text(uiText(context, zh: '重试', en: 'Retry')),
-                          ),
-                        ),
-                      ),
-                    ..._posts.map(
-                      (PostItem post) => Column(
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.md,
-                              AppSpacing.xs,
-                              AppSpacing.md,
-                              0,
-                            ),
-                            child: PostCard(
-                              post: post,
-                              onTap: () async {
-                                final PostItem? updated =
-                                    await openPostDetailPage(
-                                      context,
-                                      post: post,
-                                    );
-                                if (updated == null || !mounted) {
-                                  return;
-                                }
-                                setState(() {
-                                  _posts = _posts
-                                      .map(
-                                        (PostItem item) => item.id == updated.id
-                                            ? updated
-                                            : item,
-                                      )
-                                      .toList(growable: false);
-                                });
-                              },
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: <Widget>[
-                                OutlinedButton(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : () => _updateStatus(post),
-                                  child: Text(
-                                    uiText(
-                                      context,
-                                      zh: '更新状态',
-                                      en: 'Update status',
-                                    ),
-                                  ),
-                                ),
-                                FilledButton.tonalIcon(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : () => _handlePin(post),
-                                  icon: const Icon(Icons.push_pin_outlined),
-                                  label: Text(
-                                    post.isPinned
-                                        ? uiText(
-                                            context,
-                                            zh: '重新置顶',
-                                            en: 'Re-pin',
-                                          )
-                                        : uiText(
-                                            context,
-                                            zh: '置顶帖子',
-                                            en: 'Pin post',
-                                          ),
-                                  ),
-                                ),
-                                FilledButton.tonal(
-                                  onPressed: _actionBusy
-                                      ? null
-                                      : () => _delete(post),
-                                  child: Text(
-                                    uiText(context, zh: '删除', en: 'Delete'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ),
                     ),
-                    if (_posts.isEmpty)
-                      AppStatePanel(
-                        key: const Key('my-posts-empty-state'),
-                        icon: Icons.post_add_outlined,
-                        title: uiText(
-                          context,
-                          zh: '你还没有发布帖子',
-                          en: 'You have not published any posts yet',
-                        ),
-                        message: uiText(
-                          context,
-                          zh: '回到帖子流，使用发布按钮分享第一条内容。',
-                          en: 'Go back to the feed and use the compose button to share your first post.',
-                        ),
-                      ),
                   ],
                 ),
-        ),
+              ),
       ),
     );
+  }
+
+  Future<void> _open(PostItem post) async {
+    final PostItem? updated = await openPostDetailPage(context, post: post);
+    if (updated == null || !mounted) {
+      return;
+    }
+    setState(() {
+      _posts = _posts
+          .map((PostItem item) => item.id == updated.id ? updated : item)
+          .toList(growable: false);
+    });
   }
 
   Future<void> _loadData() async {
@@ -214,13 +159,8 @@ class _MyPostsPageState extends State<MyPostsPage> {
     }
   }
 
-  Future<void> _updateStatus(PostItem post) async {
-    final PostStatus next = switch (post.status) {
-      PostStatus.ongoing => PostStatus.resolved,
-      PostStatus.resolved => PostStatus.closed,
-      PostStatus.closed => PostStatus.ongoing,
-    };
-
+  Future<void> _updateStatus(PostItem post, PostStatus next) async {
+    if (next == post.status) return;
     setState(() {
       _actionBusy = true;
     });
@@ -252,32 +192,19 @@ class _MyPostsPageState extends State<MyPostsPage> {
   }
 
   Future<void> _delete(PostItem post) async {
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(uiText(context, zh: '删除这条帖子？', en: 'Delete this post?')),
-          content: Text(
-            uiText(
-              context,
-              zh: '删除后无法恢复，相关内容将不再展示。',
-              en: 'This cannot be undone. The post will no longer be visible.',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(uiText(context, zh: '确认删除', en: 'Delete')),
-            ),
-          ],
-        );
-      },
+    final bool confirmed = await zxConfirm(
+      context,
+      title: uiText(context, zh: '删除这条帖子？', en: 'Delete this post?'),
+      message: uiText(
+        context,
+        zh: '删除后无法恢复，相关内容将不再展示。',
+        en: 'This cannot be undone. The post will no longer be visible.',
+      ),
+      confirmLabel: uiText(context, zh: '确认删除', en: 'Delete'),
+      cancelLabel: uiText(context, zh: '取消', en: 'Cancel'),
+      danger: true,
     );
-    if (confirmed != true || !mounted) {
+    if (!confirmed || !mounted) {
       return;
     }
     setState(() {
@@ -343,127 +270,17 @@ class _MyPostsPageState extends State<MyPostsPage> {
   }
 
   Future<_PinActionInput?> _showPinDialog({required bool direct}) {
-    final TextEditingController reasonController = TextEditingController();
-    int selectedDuration = 30;
     return showDialog<_PinActionInput>(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, void Function(void Function()) setState) {
-            return AlertDialog(
-              title: Text(
-                direct
-                    ? uiText(context, zh: '选择置顶时长', en: 'Choose a pin duration')
-                    : uiText(
-                        context,
-                        zh: '申请帖子置顶',
-                        en: 'Request a pinned post',
-                      ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  DropdownButtonFormField<int>(
-                    initialValue: selectedDuration,
-                    decoration: InputDecoration(
-                      labelText: uiText(
-                        context,
-                        zh: '置顶时长',
-                        en: 'Pin duration',
-                      ),
-                    ),
-                    items: <DropdownMenuItem<int>>[
-                      DropdownMenuItem(
-                        value: 30,
-                        child: Text(
-                          uiText(context, zh: '30 分钟', en: '30 minutes'),
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: 60,
-                        child: Text(uiText(context, zh: '1 小时', en: '1 hour')),
-                      ),
-                      DropdownMenuItem(
-                        value: 120,
-                        child: Text(uiText(context, zh: '2 小时', en: '2 hours')),
-                      ),
-                      DropdownMenuItem(
-                        value: 180,
-                        child: Text(uiText(context, zh: '3 小时', en: '3 hours')),
-                      ),
-                      DropdownMenuItem(
-                        value: 1440,
-                        child: Text(uiText(context, zh: '1 天', en: '1 day')),
-                      ),
-                      DropdownMenuItem(
-                        value: 4320,
-                        child: Text(uiText(context, zh: '3 天', en: '3 days')),
-                      ),
-                    ],
-                    onChanged: (int? value) {
-                      if (value == null) {
-                        return;
-                      }
-                      setState(() {
-                        selectedDuration = value;
-                      });
-                    },
-                  ),
-                  if (!direct) ...<Widget>[
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: reasonController,
-                      minLines: 2,
-                      maxLines: 4,
-                      decoration: InputDecoration(
-                        labelText: uiText(
-                          context,
-                          zh: '申请说明（可选）',
-                          en: 'Reason (optional)',
-                        ),
-                        hintText: uiText(
-                          context,
-                          zh: '例如：活动通知、紧急求助、时效性较强等',
-                          en: 'e.g. event announcement, urgent request, time-sensitive',
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(uiText(context, zh: '取消', en: 'Cancel')),
-                ),
-                FilledButton(
-                  onPressed: () => Navigator.of(context).pop(
-                    _PinActionInput(
-                      durationMinutes: selectedDuration,
-                      reason: reasonController.text.trim(),
-                    ),
-                  ),
-                  child: Text(
-                    direct
-                        ? uiText(context, zh: '确认置顶', en: 'Pin post')
-                        : uiText(context, zh: '提交申请', en: 'Submit request'),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    ).whenComplete(reasonController.dispose);
+      builder: (_) => _PinDialog(direct: direct),
+    );
   }
 
   void _toast(String message) {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    zxShowToast(context, message);
   }
 }
 
@@ -472,4 +289,218 @@ class _PinActionInput {
 
   final int durationMinutes;
   final String reason;
+}
+
+/// One of my posts with its owner actions: status, pin and delete.
+class _MyPostEntry extends StatelessWidget {
+  const _MyPostEntry({
+    required this.post,
+    required this.busy,
+    required this.onOpen,
+    required this.onStatus,
+    required this.onPin,
+    required this.onDelete,
+  });
+
+  final PostItem post;
+  final bool busy;
+  final VoidCallback onOpen;
+  final ValueChanged<PostStatus> onStatus;
+  final VoidCallback onPin;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        PostCard(post: post, onTap: onOpen),
+        const SizedBox(height: 6),
+        Row(
+          children: <Widget>[
+            PopupMenuButton<PostStatus>(
+              key: Key('my-post-status-${post.id}'),
+              enabled: !busy,
+              tooltip: uiText(context, zh: '更新状态', en: 'Update status'),
+              onSelected: onStatus,
+              itemBuilder: (BuildContext context) =>
+                  <PopupMenuEntry<PostStatus>>[
+                    for (final PostStatus status in PostStatus.values)
+                      CheckedPopupMenuItem<PostStatus>(
+                        value: status,
+                        checked: status == post.status,
+                        child: Text(status.labelFor(locale)),
+                      ),
+                  ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: t.surface,
+                  borderRadius: ZxRadius.buttonAll,
+                  border: Border.all(color: t.line),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      uiText(
+                        context,
+                        zh: '状态：${post.status.labelFor(locale)}',
+                        en: 'Status: ${post.status.labelFor(locale)}',
+                      ),
+                      style: ZxType.caption.copyWith(
+                        color: t.text,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.expand_more_rounded, size: 16, color: t.text3),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            ZxButton(
+              key: Key('my-post-pin-${post.id}'),
+              label: post.isPinned
+                  ? uiText(context, zh: '重新置顶', en: 'Re-pin')
+                  : uiText(context, zh: '申请置顶', en: 'Request pin'),
+              icon: Icons.push_pin_outlined,
+              variant: ZxButtonVariant.ghost,
+              small: true,
+              onPressed: busy ? null : onPin,
+            ),
+            const Spacer(),
+            ZxButton(
+              key: Key('my-post-delete-${post.id}'),
+              label: uiText(context, zh: '删除', en: 'Delete'),
+              icon: Icons.delete_outline_rounded,
+              variant: ZxButtonVariant.ghost,
+              small: true,
+              onPressed: busy ? null : onDelete,
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Divider(height: 1, color: t.line),
+      ],
+    );
+  }
+}
+
+/// Owns its controller, so it lives until the dialog's exit animation ends.
+class _PinDialog extends StatefulWidget {
+  const _PinDialog({required this.direct});
+
+  final bool direct;
+
+  @override
+  State<_PinDialog> createState() => _PinDialogState();
+}
+
+class _PinDialogState extends State<_PinDialog> {
+  static const List<(int, String, String)> _durations = <(int, String, String)>[
+    (30, '30 分钟', '30 min'),
+    (60, '1 小时', '1 hour'),
+    (120, '2 小时', '2 hours'),
+    (180, '3 小时', '3 hours'),
+    (1440, '1 天', '1 day'),
+    (4320, '3 天', '3 days'),
+  ];
+
+  final TextEditingController _reason = TextEditingController();
+  int _duration = 30;
+
+  @override
+  void dispose() {
+    _reason.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final bool direct = widget.direct;
+    return AlertDialog(
+      title: Text(
+        direct
+            ? uiText(context, zh: '选择置顶时长', en: 'Choose a pin duration')
+            : uiText(context, zh: '申请帖子置顶', en: 'Request a pinned post'),
+      ),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(
+              uiText(context, zh: '置顶时长', en: 'Pin duration'),
+              style: ZxType.caption.copyWith(
+                color: t.text2,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                for (final (int minutes, String zh, String en) in _durations)
+                  ChoiceChip(
+                    showCheckmark: false,
+                    selected: _duration == minutes,
+                    label: Text(uiText(context, zh: zh, en: en)),
+                    onSelected: (_) => setState(() => _duration = minutes),
+                  ),
+              ],
+            ),
+            if (!direct) ...<Widget>[
+              const SizedBox(height: 16),
+              TextField(
+                controller: _reason,
+                minLines: 2,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  labelText: uiText(
+                    context,
+                    zh: '申请说明（可选）',
+                    en: 'Reason (optional)',
+                  ),
+                  hintText: uiText(
+                    context,
+                    zh: '例如：活动通知、紧急求助、时效性较强等',
+                    en: 'e.g. event announcement, urgent request, time-sensitive',
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: <Widget>[
+        ZxButton(
+          label: uiText(context, zh: '取消', en: 'Cancel'),
+          variant: ZxButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        ZxButton(
+          label: direct
+              ? uiText(context, zh: '确认置顶', en: 'Pin post')
+              : uiText(context, zh: '提交申请', en: 'Submit request'),
+          onPressed: () => Navigator.of(context).pop(
+            _PinActionInput(
+              durationMinutes: _duration,
+              reason: _reason.text.trim(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }

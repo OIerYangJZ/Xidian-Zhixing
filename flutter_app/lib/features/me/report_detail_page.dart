@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/navigation/post_detail_nav.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_surfaces.dart';
+import '../../design_system/design_system.dart';
 import '../../models/post_item.dart';
 import '../../models/report_item.dart';
 import '../../repositories/app_repositories.dart';
@@ -31,149 +30,147 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final String targetLabel = _report.targetTitle.trim().isNotEmpty
-        ? '${_report.target}（${_report.targetTitle}）'
-        : _report.target;
-    final String statusText = _report.result.trim().isNotEmpty
-        ? '${_report.status} · ${_report.result}'
-        : _report.status;
+    final ZxTokens t = ZxTokens.of(context);
+    final Locale locale = Localizations.localeOf(context);
+    Widget row(String label, String value) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            width: 84,
+            child: Text(
+              label,
+              style: ZxType.caption.copyWith(fontSize: 13, color: t.text3),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: ZxType.body.copyWith(color: t.text),
+            ),
+          ),
+        ],
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
         title: Text(uiText(context, zh: '举报详情', en: 'Report details')),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: AppLayout.formMaxWidth),
-          child: _loading
-              ? AppStatePanel(
-                  icon: Icons.fact_check_outlined,
-                  title: uiText(
-                    context,
-                    zh: '正在加载举报详情',
-                    en: 'Loading report details',
-                  ),
-                  message: uiText(
-                    context,
-                    zh: '正在获取最新处理结果。',
-                    en: 'Fetching the latest moderation result.',
-                  ),
-                )
-              : ListView(
-                  padding: AppLayout.pagePadding(context),
-                  children: <Widget>[
-                    if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                        child: AppInlineMessage(
-                          title: uiText(
-                            context,
-                            zh: '最新状态加载失败',
-                            en: 'Could not refresh status',
+      body: ZxPaper(
+        child: _loading && _report.id.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                children: <Widget>[
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 640),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          if (_error != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ZxInlineMessage(
+                                message: _error!,
+                                tone: ZxMessageTone.danger,
+                                actionLabel: uiText(
+                                  context,
+                                  zh: '重试',
+                                  en: 'Retry',
+                                ),
+                                onAction: _loadDetail,
+                              ),
+                            ),
+                          ZxCard(
+                            padding: const EdgeInsets.all(18),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        _report.targetLabelFor(locale),
+                                        style: ZxType.title.copyWith(
+                                          color: t.text,
+                                        ),
+                                      ),
+                                    ),
+                                    if (_report.isPending)
+                                      ZxBadge.pendingReview(
+                                        _report.statusLabelFor(locale),
+                                      )
+                                    else
+                                      ZxBadge.resolved(
+                                        _report.statusLabelFor(locale),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Divider(height: 1, color: t.line),
+                                const SizedBox(height: 6),
+                                row(
+                                  uiText(context, zh: '举报原因', en: 'Reason'),
+                                  _report.reason,
+                                ),
+                                if (_report.description.trim().isNotEmpty)
+                                  row(
+                                    uiText(context, zh: '补充说明', en: 'Details'),
+                                    _report.description,
+                                  ),
+                                if (_report.result.trim().isNotEmpty)
+                                  row(
+                                    uiText(context, zh: '处理结果', en: 'Outcome'),
+                                    _report.result,
+                                  ),
+                                if (_report.createdAt.trim().isNotEmpty)
+                                  row(
+                                    uiText(
+                                      context,
+                                      zh: '提交时间',
+                                      en: 'Submitted',
+                                    ),
+                                    _report.createdAt,
+                                  ),
+                                if (_report.handledAt.trim().isNotEmpty)
+                                  row(
+                                    uiText(context, zh: '处理时间', en: 'Handled'),
+                                    _report.handledAt,
+                                  ),
+                                row(
+                                  uiText(context, zh: '举报单号', en: 'Report ID'),
+                                  _report.id,
+                                ),
+                              ],
+                            ),
                           ),
-                          message: _error!,
-                          tone: AppMessageTone.error,
-                          action: TextButton(
-                            onPressed: _loadDetail,
-                            child: Text(
-                              uiText(context, zh: '重试', en: 'Retry'),
-                            ),
-                          ),
-                        ),
-                      ),
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              uiText(
+                          if (_canOpenTarget()) ...<Widget>[
+                            const SizedBox(height: 14),
+                            ZxButton(
+                              key: const Key('report-open-target'),
+                              label: uiText(
                                 context,
-                                zh: '举报单号：${_report.id}',
-                                en: 'Report ID: ${_report.id}',
+                                zh: '查看被举报帖子',
+                                en: 'View reported post',
                               ),
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
+                              icon: Icons.open_in_new_rounded,
+                              variant: ZxButtonVariant.secondary,
+                              expand: true,
+                              loading: _openingTarget,
+                              onPressed: _openingTarget
+                                  ? null
+                                  : _openTargetPost,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              uiText(
-                                context,
-                                zh: '举报对象：$targetLabel',
-                                en: 'Target: $targetLabel',
-                              ),
-                            ),
-                            Text(
-                              uiText(
-                                context,
-                                zh: '举报原因：${_report.reason}',
-                                en: 'Reason: ${_report.reason}',
-                              ),
-                            ),
-                            if (_report.description.trim().isNotEmpty)
-                              Text(
-                                uiText(
-                                  context,
-                                  zh: '补充说明：${_report.description}',
-                                  en: 'Details: ${_report.description}',
-                                ),
-                              ),
-                            Text(
-                              uiText(
-                                context,
-                                zh: '处理状态：$statusText',
-                                en: 'Status: $statusText',
-                              ),
-                            ),
-                            if (_report.createdAt.trim().isNotEmpty)
-                              Text(
-                                uiText(
-                                  context,
-                                  zh: '提交时间：${_report.createdAt}',
-                                  en: 'Submitted: ${_report.createdAt}',
-                                ),
-                              ),
-                            if (_report.handledAt.trim().isNotEmpty)
-                              Text(
-                                uiText(
-                                  context,
-                                  zh: '处理时间：${_report.handledAt}',
-                                  en: 'Handled: ${_report.handledAt}',
-                                ),
-                              ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
-                    if (_canOpenTarget())
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: FilledButton.icon(
-                          onPressed: _openingTarget ? null : _openTargetPost,
-                          icon: _openingTarget
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Icon(Icons.open_in_new_outlined),
-                          label: Text(
-                            _openingTarget
-                                ? uiText(context, zh: '打开中...', en: 'Opening...')
-                                : uiText(
-                                    context,
-                                    zh: '查看被举报帖子',
-                                    en: 'View reported post',
-                                  ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -241,16 +238,11 @@ class _ReportDetailPageState extends State<ReportDetailPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(
+      zxShowToast(
         context,
-      ).showSnackBar(
-        SnackBar(
-          content: Text(
-            uiTextGlobal(
-              zh: '打开帖子失败：$error',
-              en: 'Could not open the post: $error',
-            ),
-          ),
+        uiTextGlobal(
+          zh: '打开帖子失败：$error',
+          en: 'Could not open the post: $error',
         ),
       );
     } finally {
