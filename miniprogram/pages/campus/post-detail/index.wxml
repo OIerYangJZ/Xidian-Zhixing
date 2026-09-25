@@ -20,11 +20,11 @@
         <view class="post-meta" bindtap="openAuthorProfile">
           <view class="post-author-row">
             <view class="post-author">{{post.authorAlias || post.authorName || '匿名用户'}}</view>
-            <view wx:if="{{post.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</view>
+            <view wx:if="{{post.isAnonymous}}" class="zx-badge zx-badge--outline-seal" style="margin-left: 12rpx;">匿名</view>
           </view>
           <view class="post-subline">
             <text class="post-time" style="color: var(--text-secondary);">{{post.timeText || post.createdAt}}</text>
-            <text wx:if="{{post.status === 'resolved'}}" class="seal-badge-solid" style="margin-left: 8rpx;">已解决</text>
+            <text class="zx-badge {{post.statusKey === 'resolved' ? 'zx-badge--success' : post.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}" style="margin-left: 12rpx;">{{post.statusLabel}}</text>
           </view>
         </view>
         <view class="header-actions" wx:if="{{(post.canMessageAuthor && post.authorUserId && !post.isAnonymous) || (post.canFollowAuthor && post.authorUserId && !(post.followingAuthor || post.isFollowingAuthor || post.isFollowing))}}">
@@ -58,19 +58,19 @@
       </view>
       <view class="post-footer">
         <view class="detail-action {{post.liked ? 'active' : ''}}" bindtap="handleLike">
-          <view class="detail-action-icon like-icon"></view>
+          <view class="zx-i {{post.liked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view>
           <text wx:if="{{post.likeCount > 0}}" class="{{post.liked ? 'active' : ''}}">{{post.likeCount}}</text>
         </view>
         <view class="detail-action {{post.favorited ? 'favorited' : ''}}" bindtap="handleFavorite">
-          <view class="detail-action-icon bookmark-icon"></view>
+          <view class="zx-i {{post.favorited ? 'zx-i-star-fill' : 'zx-i-star'}}"></view>
           <text wx:if="{{post.favoriteCount > 0}}" class="{{post.favorited ? 'active' : ''}}">{{post.favoriteCount}}</text>
         </view>
         <view class="detail-action" bindtap="scrollToComments">
-          <view class="detail-action-icon comment-icon"></view>
+          <view class="zx-i zx-i-comment"></view>
           <text wx:if="{{post.commentCount > 0}}">{{post.commentCount}}</text>
         </view>
         <button class="detail-share-button" open-type="share">
-          <view class="detail-action-icon share-icon"></view>
+          <view class="zx-i zx-i-share"></view>
         </button>
       </view>
     </view>
@@ -93,17 +93,17 @@
         <view class="comment-content-box">
           <view class="comment-header">
             <text class="comment-author" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorAlias || item.authorName || '匿名用户'}}</text>
-            <text wx:if="{{post.authorUserId && item.authorUserId === post.authorUserId}}" class="seal-badge-hollow" style="margin-left: 8rpx; height: 32rpx; line-height: 28rpx; font-size: 18rpx; padding: 0 8rpx;">洞主</text>
+            <text wx:if="{{post.authorUserId && item.authorUserId === post.authorUserId}}" class="zx-badge zx-badge--seal" style="margin-left: 8rpx;">洞主</text>
             <text class="comment-time">{{item.timeText || item.createdAt}}</text>
           </view>
           <view class="comment-text"><text>{{item.content}}</text></view>
           <view class="comment-actions">
             <view class="comment-action {{item.liked ? 'active' : ''}}" data-index="{{index}}" bindtap="likeComment">
-              <view class="comment-action-icon like-icon"></view>
+              <view class="zx-i zx-i--sm {{item.liked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view>
               <text wx:if="{{item.likeCount}}">{{item.likeCount || 0}}</text>
             </view>
             <view class="comment-action" data-index="{{index}}" bindtap="setReplyTarget">
-              <view class="comment-action-icon comment-icon"></view>
+              <view class="zx-i zx-i--sm zx-i-reply"></view>
             </view>
           </view>
         </view>

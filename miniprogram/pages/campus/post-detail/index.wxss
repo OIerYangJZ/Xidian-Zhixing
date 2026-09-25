@@ -632,3 +632,10 @@
   padding: 12rpx 16rpx;
   color: var(--app-text-primary);
 }
+
+/* Design-system actions: the colour carries the state. */
+.detail-action { color: var(--zx-text-2); }
+.detail-action.active { color: var(--zx-primary); }
+.detail-action.favorited { color: var(--zx-accent-ink); }
+.comment-action { color: var(--zx-text-3); }
+.comment-action.active { color: var(--zx-primary); }
