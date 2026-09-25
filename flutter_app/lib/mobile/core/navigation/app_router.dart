@@ -128,7 +128,11 @@ final appRouter = GoRouter(
     ),
 
     // 搜索（全屏，不在 Tab 内）
-    GoRoute(path: '/search', builder: (context, state) => const SearchPage()),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) =>
+          SearchPage(initialKeyword: state.uri.queryParameters['q'] ?? ''),
+    ),
     // 收藏（全屏，不在 Tab 内）
     GoRoute(
       path: '/favorites',

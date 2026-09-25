@@ -68,18 +68,71 @@ final Map<String, Object> _routes = <String, Object>{
       'blockedByPeer': true,
     },
   ],
-  '/users/me/followers': <Object>[<String, Object>{'userId': 'u1', 'nickname': '林小舟', 'isFollowing': true, 'isFollower': true}],
-  '/users/me/following': <Object>[<String, Object>{'userId': 'u1', 'nickname': '林小舟', 'isFollowing': true, 'isFollower': true}, <String, Object>{'userId': 'u2', 'nickname': '组队小王', 'isFollowing': true}],
+  '/users/me/followers': <Object>[
+    <String, Object>{
+      'userId': 'u1',
+      'nickname': '林小舟',
+      'isFollowing': true,
+      'isFollower': true,
+    },
+  ],
+  '/users/me/following': <Object>[
+    <String, Object>{
+      'userId': 'u1',
+      'nickname': '林小舟',
+      'isFollowing': true,
+      'isFollower': true,
+    },
+    <String, Object>{'userId': 'u2', 'nickname': '组队小王', 'isFollowing': true},
+  ],
   '/posts/p2': samplePosts()[1],
   '/posts/p2/view': <String, Object>{'viewCount': 96},
-  '/users/u1': <String, Object>{'id': 'u1', 'nickname': '林小舟', 'userLevelLabel': 'Lv.3', 'bio': '示例签名：建模、跑步、偶尔写点东西。', 'college': '示例学院', 'major': '示例专业', 'postCount': 12, 'followingCount': 36, 'followerCount': 20, 'canFollow': true, 'canDirectMessage': true},
+  '/users/u1': <String, Object>{
+    'id': 'u1',
+    'nickname': '林小舟',
+    'userLevelLabel': 'Lv.3',
+    'bio': '示例签名：建模、跑步、偶尔写点东西。',
+    'college': '示例学院',
+    'major': '示例专业',
+    'postCount': 12,
+    'followingCount': 36,
+    'followerCount': 20,
+    'canFollow': true,
+    'canDirectMessage': true,
+  },
   '/posts/p2/comments': <Object>[
-    <String, Object>{'id': 'k1', 'postId': 'p2', 'content': '已经修好了，感谢楼下提醒！', 'authorAlias': '安静的同学', 'isPostAuthor': true, 'likeCount': 6, 'createdAt': _ago(const Duration(minutes: 5))},
-    <String, Object>{'id': 'k2', 'postId': 'p2', 'content': '示例：东侧还有两个没修。', 'authorAlias': '路过的同学', 'likeCount': 1, 'createdAt': _ago(const Duration(minutes: 3))},
+    <String, Object>{
+      'id': 'k1',
+      'postId': 'p2',
+      'content': '已经修好了，感谢楼下提醒！',
+      'authorAlias': '安静的同学',
+      'isPostAuthor': true,
+      'likeCount': 6,
+      'createdAt': _ago(const Duration(minutes: 5)),
+    },
+    <String, Object>{
+      'id': 'k2',
+      'postId': 'p2',
+      'content': '示例：东侧还有两个没修。',
+      'authorAlias': '路过的同学',
+      'likeCount': 1,
+      'createdAt': _ago(const Duration(minutes: 3)),
+    },
   ],
   '/messages/conversations/c1/messages': <Object>[
-    <String, Object>{'id': 'm1', 'content': '示例：你好，方便聊聊比赛安排吗？', 'createdAt': _ago(const Duration(minutes: 30)), 'senderAlias': '林小舟'},
-    <String, Object>{'id': 'm2', 'content': '可以，周三晚上我都有空。', 'createdAt': _ago(const Duration(minutes: 27)), 'fromMe': true, 'isRead': true},
+    <String, Object>{
+      'id': 'm1',
+      'content': '示例：你好，方便聊聊比赛安排吗？',
+      'createdAt': _ago(const Duration(minutes: 30)),
+      'senderAlias': '林小舟',
+    },
+    <String, Object>{
+      'id': 'm2',
+      'content': '可以，周三晚上我都有空。',
+      'createdAt': _ago(const Duration(minutes: 27)),
+      'fromMe': true,
+      'isRead': true,
+    },
   ],
   '/messages/requests': <Object>[
     <String, Object>{
@@ -125,10 +178,46 @@ final Map<String, Object> _routes = <String, Object>{
   },
 };
 
+/// Search results filtered like the backend: title, content and tags.
+Object? _search(String path, String keyword) {
+  final String q = keyword.toLowerCase();
+  if (path == '/posts') {
+    return <String, Object>{
+      'posts': <Object>[
+        for (final Map<String, Object?> post in samplePosts())
+          if ('${post['title']} ${post['content']} ${((post['tags'] as List<Object?>?) ?? const <Object?>[]).join(' ')}'
+              .toLowerCase()
+              .contains(q))
+            post,
+      ],
+    };
+  }
+  if (path == '/users/search') {
+    return <Object>[
+      if ('林小舟'.contains(q))
+        <String, Object>{
+          'id': 'u1',
+          'nickname': '林小舟',
+          'college': '示例学院',
+          'postCount': 12,
+          'followerCount': 20,
+          'isFollowing': true,
+          'isFollower': true,
+          'canFollow': true,
+        },
+    ];
+  }
+  return null;
+}
+
 final http.Client _client = MockClient((http.Request request) async {
   final String path = request.url.path.replaceFirst('/api', '');
+  final String keyword = request.url.queryParameters['keyword'] ?? '';
+  final Object? data = keyword.isEmpty ? null : _search(path, keyword);
   return http.Response(
-    jsonEncode(<String, Object>{'data': _routes[path] ?? <String, Object>{}}),
+    jsonEncode(<String, Object>{
+      'data': data ?? _routes[path] ?? <String, Object>{},
+    }),
     200,
     headers: const <String, String>{
       'content-type': 'application/json; charset=utf-8',
@@ -152,6 +241,8 @@ void main() {
     ('chat', '/chat/c1?name=林小舟&userId=u1'),
     ('notifications', '/notifications'),
     ('search', '/search'),
+    ('search_topic', '/search?q=%23图书馆'),
+    ('search_empty', '/search?q=量子速读社'),
     ('settings', '/profile/settings'),
     ('display', '/profile/settings/display'),
     ('user', '/user/u1'),
