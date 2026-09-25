@@ -25,6 +25,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static const bool _localTestLoginEnabled = bool.fromEnvironment(
+    'LOCAL_TEST_LOGIN',
+    defaultValue: false,
+  );
+
   bool _isBusy = false;
   String? _errorText;
 
@@ -74,6 +79,22 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
+    if (_localTestLoginEnabled) {
+      final bool launched = await launchUrl(
+        Uri.base.resolve('/local-test-login.html'),
+        webOnlyWindowName: '_self',
+      );
+      if (!launched) {
+        _showError(
+          uiTextGlobal(
+            zh: '无法打开本地测试登录入口',
+            en: 'Could not open the local test login entry',
+          ),
+        );
+      }
+      return;
+    }
+
     final AppLocalizations l10n = AppLocalizations.of(context)!;
     setState(() {
       _isBusy = true;
@@ -192,7 +213,13 @@ class _LoginForm extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                l10n.loginDescription,
+                _LoginPageState._localTestLoginEnabled
+                    ? uiText(
+                        context,
+                        zh: '本地验收模式：点击后直接使用隔离测试账号登录。',
+                        en: 'Local acceptance mode: sign in directly with the isolated test account.',
+                      )
+                    : l10n.loginDescription,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyLarge?.copyWith(color: colors.mutedInk),
@@ -222,7 +249,17 @@ class _LoginForm extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                     ],
-                    Text(isBusy ? l10n.loggingIn : l10n.loginButton),
+                    Text(
+                      isBusy
+                          ? l10n.loggingIn
+                          : _LoginPageState._localTestLoginEnabled
+                          ? uiText(
+                              context,
+                              zh: '一站式登录（本地测试账号）',
+                              en: 'Continue with local test account',
+                            )
+                          : l10n.loginButton,
+                    ),
                     if (!isBusy) ...<Widget>[
                       const SizedBox(width: AppSpacing.xs),
                       const Icon(Icons.open_in_new, size: 18),
