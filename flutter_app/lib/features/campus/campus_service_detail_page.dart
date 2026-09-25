@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -6,7 +8,6 @@ import '../../core/config/app_config.dart';
 import '../../core/l10n/campus_text.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
-import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
 
 class CampusServiceDetailPage extends ConsumerStatefulWidget {
@@ -81,7 +82,7 @@ class _CampusServiceDetailPageState
         return;
       }
       setState(() {
-        _error = uiTextGlobal(zh: '加载失败：$error', en: 'Could not load: $error');
+        _error = '$error'.replaceFirst(RegExp(r'^(Exception|Bad state): '), '');
         _loading = false;
       });
     }
@@ -147,8 +148,13 @@ class _CampusServiceDetailPageState
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(
-              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+          ? ZxStatePanel(
+              error: true,
+              icon: Icons.error_outline_rounded,
+              title: uiText(context, zh: '服务加载失败', en: 'Could not load'),
+              message: _error,
+              actionLabel: uiText(context, zh: '重试', en: 'Retry'),
+              onAction: _load,
             )
           : service == null
           ? const SizedBox.shrink()
@@ -348,7 +354,7 @@ class _ScheduleGrid extends StatelessWidget {
                   height: rowHeight,
                   child: Container(
                     decoration: BoxDecoration(
-                      border: Border.all(color: SharedColors.divider),
+                      border: Border.all(color: ZxTokens.of(context).line),
                     ),
                   ),
                 ),
@@ -417,8 +423,8 @@ class _DayHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: SharedColors.divider)),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: ZxTokens.of(context).line)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -444,10 +450,10 @@ class _TimeCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(
-          right: BorderSide(color: SharedColors.divider),
-          bottom: BorderSide(color: SharedColors.divider),
+          right: BorderSide(color: ZxTokens.of(context).line),
+          bottom: BorderSide(color: ZxTokens.of(context).line),
         ),
       ),
       child: Column(
@@ -486,13 +492,13 @@ class _ScheduleCard extends StatelessWidget {
       padding: const EdgeInsets.all(9),
       decoration: BoxDecoration(
         color: isExam
-            ? SharedColors.primary.withValues(alpha: 0.12)
-            : SharedColors.softRed,
+            ? ZxTokens.of(context).primarySoft
+            : ZxTokens.of(context).primarySoft,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isExam
-              ? SharedColors.primary.withValues(alpha: 0.22)
-              : SharedColors.divider,
+              ? ZxTokens.of(context).primary.withValues(alpha: 0.3)
+              : ZxTokens.of(context).line,
         ),
       ),
       child: Column(
@@ -562,7 +568,7 @@ class _ExamList extends StatelessWidget {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: SharedColors.divider),
+              border: Border.all(color: ZxTokens.of(context).line),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -709,7 +715,7 @@ class _EmptyBlock extends StatelessWidget {
       height: 180,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: Border.all(color: SharedColors.divider),
+        border: Border.all(color: ZxTokens.of(context).line),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Text(text),

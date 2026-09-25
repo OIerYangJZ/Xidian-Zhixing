@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:xdu_treehole_web/features/campus/campus_page.dart';
+
+import 'package:xdu_treehole_web/features/campus/campus_auth_center_page.dart';
+import 'package:xdu_treehole_web/features/campus/campus_service_detail_page.dart';
 
 import 'screen_capture.dart';
 
@@ -136,6 +140,19 @@ http.Client campusClient() {
         _service('guide', '办事指南', external: true),
         _service('exam', '考试安排'),
       ];
+    } else if (path.startsWith('/campus/services/')) {
+      final String id = path.split('/').last;
+      body = id == 'exam'
+          ? <String, Object>{
+              ..._service('exam', '考试安排'),
+              'kind': 'schedule',
+              'calendarSource': 'exam',
+              'description': '示例：本学期的考试时间与考场。',
+            }
+          : <String, Object>{
+              ..._service(id, '空教室'),
+              'description': '示例：按楼宇和节次查询空闲教室。',
+            };
     } else if (path == '/campus/schedules/today') {
       body = <String, Object>{
         'date': _iso(now),
@@ -200,6 +217,7 @@ http.Client campusClient() {
 void main() {
   setUpAll(() async {
     if (capturing) await loadScreenFonts();
+    SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
   final http.Client client = campusClient();
@@ -223,5 +241,29 @@ void main() {
         () => client,
       );
     }, skip: !capturing);
+  }
+
+  for (final (String name, Widget page) in <(String, Widget)>[
+    ('auth_center', const CampusAuthCenterPage()),
+    ('service_exam', const CampusServiceDetailPage(serviceId: 'exam')),
+    (
+      'service_classroom',
+      const CampusServiceDetailPage(serviceId: 'classroom'),
+    ),
+  ]) {
+    for (final Brightness b in Brightness.values) {
+      testWidgets('campus $name ${b.name}', (WidgetTester tester) async {
+        await http.runWithClient(
+          () => captureScreen(
+            tester,
+            name: 'campus_${name}_${b.name}',
+            home: page,
+            size: phone,
+            brightness: b,
+          ),
+          () => client,
+        );
+      }, skip: !capturing);
+    }
   }
 }

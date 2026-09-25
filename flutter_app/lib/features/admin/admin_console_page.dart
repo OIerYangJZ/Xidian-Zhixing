@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
 import '../../design_system/design_system.dart';
@@ -449,55 +448,55 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   title: '今日新增用户',
                   value: overview.todayNewUsers,
                   icon: Icons.person_add_alt_1_rounded,
-                  color: SharedColors.primary,
+                  color: ZxTokens.of(context).primary,
                 ),
                 _metricCard(
                   title: '今日发帖数',
                   value: overview.todayPosts,
                   icon: Icons.edit_note_rounded,
-                  color: SharedColors.success,
+                  color: ZxTokens.of(context).success,
                 ),
                 _metricCard(
                   title: '今日评论数',
                   value: overview.todayComments,
                   icon: Icons.forum_outlined,
-                  color: SharedColors.deep,
+                  color: ZxTokens.of(context).text2,
                 ),
                 _metricCard(
                   title: '今日举报数',
                   value: overview.todayReports,
                   icon: Icons.flag_circle_outlined,
-                  color: SharedColors.warning,
+                  color: ZxTokens.of(context).warning,
                 ),
                 _metricCard(
                   title: '待审核内容',
                   value: overview.pendingReviews,
                   icon: Icons.approval_outlined,
-                  color: SharedColors.warning,
+                  color: ZxTokens.of(context).warning,
                 ),
                 _metricCard(
                   title: '待注销申请',
                   value: overview.pendingCancellationRequests,
                   icon: Icons.person_remove_alt_1_outlined,
-                  color: SharedColors.warning,
+                  color: ZxTokens.of(context).warning,
                 ),
                 _metricCard(
                   title: '活跃账号数',
                   value: overview.activeUsers,
                   icon: Icons.groups_rounded,
-                  color: SharedColors.primary,
+                  color: ZxTokens.of(context).primary,
                 ),
                 _metricCard(
                   title: '被封禁用户',
                   value: overview.bannedUsers,
                   icon: Icons.gpp_bad_outlined,
-                  color: SharedColors.danger,
+                  color: ZxTokens.of(context).danger,
                 ),
                 _metricCard(
                   title: '被禁言用户',
                   value: overview.mutedUsers,
                   icon: Icons.volume_off_outlined,
-                  color: SharedColors.deep,
+                  color: ZxTokens.of(context).text2,
                 ),
               ],
             );
@@ -3158,12 +3157,12 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   Widget _statusChip(String status) {
     final String normalized = status.trim().toLowerCase();
     final Map<String, Color> colors = <String, Color>{
-      'pending': SharedColors.warning,
-      'approved': SharedColors.success,
-      'resolved': SharedColors.success,
-      'rejected': SharedColors.danger,
-      'closed': SharedColors.textSecondary,
-      'risk': SharedColors.warning,
+      'pending': ZxTokens.of(context).warning,
+      'approved': ZxTokens.of(context).success,
+      'resolved': ZxTokens.of(context).success,
+      'rejected': ZxTokens.of(context).danger,
+      'closed': ZxTokens.of(context).text2,
+      'risk': ZxTokens.of(context).warning,
     };
     final Map<String, String> labels = <String, String>{
       'pending': '待处理',

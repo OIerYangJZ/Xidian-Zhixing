@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:xdu_treehole_web/features/download/android_release_page.dart';
+import 'package:xdu_treehole_web/features/profile/emoji_settings_page.dart';
 import 'package:xdu_treehole_web/features/profile/follow_list_page.dart';
 import 'package:xdu_treehole_web/features/profile/notification_preferences_page.dart';
 import 'package:xdu_treehole_web/features/profile/profile_page.dart';
@@ -46,11 +48,7 @@ void main() {
         'isFollowing': true,
         'isFollower': true,
       },
-      <String, Object>{
-        'userId': 'u2',
-        'nickname': '组队小王',
-        'isFollowing': true,
-      },
+      <String, Object>{'userId': 'u2', 'nickname': '组队小王', 'isFollowing': true},
     ],
     '/users/me/followers': <Object>[
       <String, Object>{
@@ -59,13 +57,19 @@ void main() {
         'isFollowing': true,
         'isFollower': true,
       },
-      <String, Object>{
-        'userId': 'u3',
-        'nickname': '周同学',
-        'isFollower': true,
-      },
+      <String, Object>{'userId': 'u3', 'nickname': '周同学', 'isFollower': true},
     ],
     '/users/me/friends': <Object>[],
+    '/releases/android/latest': <String, Object>{
+      'platform': 'android',
+      'versionName': '1.4.0',
+      'versionCode': 34,
+      'releaseNotes': '示例：全新界面；私信规则调整；深色模式跟随系统。',
+      'fileName': 'xidian-zhixing-1.4.0.apk',
+      'sizeBytes': 31457280,
+      'downloadUrl': '/downloads/android/latest.apk',
+      'uploadedAt': '2026-09-25',
+    },
   });
 
   Future<void> capture(
@@ -137,6 +141,26 @@ void main() {
       const NotificationPreferencesPage(),
       phone,
       Brightness.dark,
+    );
+  }, skip: !capturing);
+
+  testWidgets('emoji settings phone', (WidgetTester tester) async {
+    await capture(
+      tester,
+      'emoji_settings_phone_dark',
+      const EmojiSettingsPage(),
+      phone,
+      Brightness.dark,
+    );
+  }, skip: !capturing);
+
+  testWidgets('android download phone', (WidgetTester tester) async {
+    await capture(
+      tester,
+      'android_download_phone_light',
+      const AndroidReleasePage(),
+      phone,
+      Brightness.light,
     );
   }, skip: !capturing);
 }

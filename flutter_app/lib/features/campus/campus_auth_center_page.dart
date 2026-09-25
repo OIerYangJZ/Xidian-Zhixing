@@ -2,13 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+
+import '../../design_system/design_system.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/state/app_providers.dart';
-import '../../core/theme/shared_colors.dart';
 import '../../models/campus_models.dart';
 
 class CampusAuthCenterPage extends ConsumerStatefulWidget {
@@ -148,7 +149,8 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                   crossAxisCount: columns,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: columns == 3 ? 2.3 : 1.45,
+                  // A fixed height: two lines of description always fit.
+                  mainAxisExtent: 124,
                 ),
                 itemCount: _systems.length,
                 itemBuilder: (BuildContext context, int index) {
@@ -169,7 +171,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: SharedColors.divider),
+              border: Border.all(color: ZxTokens.of(context).line),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,7 +199,7 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: SharedColors.softRed.withValues(alpha: 0.58),
+                      color: ZxTokens.of(context).primarySoft,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -215,7 +217,10 @@ class _CampusAuthCenterPageState extends ConsumerState<CampusAuthCenterPage> {
                 ],
                 if (_error != null) ...<Widget>[
                   const SizedBox(height: 10),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                  Text(
+                    _error!,
+                    style: TextStyle(color: ZxTokens.of(context).danger),
+                  ),
                 ],
                 const SizedBox(height: 14),
                 if (_active.type == _AuthType.schoolnet)
@@ -631,57 +636,54 @@ class _SystemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color primary = Theme.of(context).colorScheme.primary;
+    final ZxTokens t = ZxTokens.of(context);
     final Locale locale = Localizations.localeOf(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: active
-              ? primary.withValues(alpha: 0.08)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: active ? primary : SharedColors.divider),
+    return Material(
+      color: active ? t.primarySoft : t.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: ZxRadius.cardAll,
+        side: BorderSide(
+          color: active ? t.primary : t.line,
+          width: active ? 1.5 : 1,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Text(
-                  system.tag(locale),
-                  style: TextStyle(color: primary, fontWeight: FontWeight.w900),
-                ),
-                const Spacer(),
-                if (verified)
+      ),
+      child: InkWell(
+        customBorder: RoundedRectangleBorder(borderRadius: ZxRadius.cardAll),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
                   Text(
-                    uiText(context, zh: '已验证', en: 'Verified'),
-                    style: TextStyle(
-                      color: primary,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    system.tag(locale),
+                    style: ZxType.label.copyWith(color: t.primary),
                   ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              system.name(locale),
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              system.desc(locale),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.62),
+                  const Spacer(),
+                  if (verified)
+                    ZxBadge.verified(
+                      uiText(context, zh: '已验证', en: 'Verified'),
+                    ),
+                ],
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              Text(
+                system.name(locale),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: ZxType.label.copyWith(color: t.text),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                system.desc(locale),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: ZxType.caption.copyWith(color: t.text3),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -710,7 +712,7 @@ class _CaptchaBox extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: SharedColors.divider),
+          border: Border.all(color: ZxTokens.of(context).line),
         ),
         child: busy
             ? const SizedBox(
