@@ -14,7 +14,7 @@
   justify-content: center;
 }
 .entry-icon--bell { background: var(--zx-primary-soft); color: var(--zx-primary); }
-.entry-icon--mail { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.entry-icon--comment { background: var(--zx-info-soft); color: var(--zx-info); }
 .entry-icon--heart { background: var(--zx-danger-soft); color: var(--zx-danger); }
 .head-action { width: 72rpx; height: 72rpx; display: flex; align-items: center; justify-content: center; color: var(--zx-text-2); }
 .entry-count { position: absolute; top: -12rpx; right: -18rpx; }
@@ -28,19 +28,6 @@
   padding: 24rpx 24rpx 0;
 }
 
-.request {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
-  padding: 20rpx 20rpx 20rpx 24rpx;
-  border-radius: 28rpx;
-  background: var(--zx-accent-soft);
-}
-.request-avatar { background: var(--zx-surface); }
-.request-main { flex: 1; min-width: 0; }
-.request-reason { margin-top: 4rpx; }
-.request-reject { background: var(--zx-surface); }
 
 .conversation {
   display: flex;

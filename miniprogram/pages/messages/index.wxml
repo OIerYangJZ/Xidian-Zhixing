@@ -13,12 +13,12 @@
       </view>
       <view class="entry-label">通知</view>
     </view>
-    <view class="entry zx-card" bindtap="scrollToRequests" hover-class="zx-btn-hover">
-      <view class="entry-icon entry-icon--mail">
-        <view class="zx-i zx-i-mail"></view>
-        <view wx:if="{{pendingRequests.length > 0}}" class="zx-count entry-count">{{pendingRequests.length}}</view>
+    <view class="entry zx-card" bindtap="openComments" hover-class="zx-btn-hover">
+      <view class="entry-icon entry-icon--comment">
+        <view class="zx-i zx-i-comment"></view>
+        <view wx:if="{{commentUnread > 0}}" class="zx-count entry-count">{{commentUnread > 99 ? '99+' : commentUnread}}</view>
       </view>
-      <view class="entry-label">私信请求</view>
+      <view class="entry-label">评论回复</view>
     </view>
     <view class="entry zx-card" bindtap="openLikes" hover-class="zx-btn-hover">
       <view class="entry-icon entry-icon--heart">
@@ -30,16 +30,6 @@
   </view>
 
   <view class="sheet">
-    <view wx:for="{{pendingRequests}}" wx:key="id" class="request">
-      <view class="zx-avatar zx-avatar--sm request-avatar">{{item.avatarInitial}}</view>
-      <view class="request-main">
-        <view class="zx-label zx-ellipsis">私信请求 · {{item.fromAlias}}</view>
-        <view class="zx-caption zx-ellipsis request-reason">{{item.reason || '请求联系'}}</view>
-      </view>
-      <view class="zx-btn zx-btn--primary zx-btn--small" data-id="{{item.id}}" data-accept="1" bindtap="answerRequest">同意</view>
-      <view class="zx-btn zx-btn--secondary zx-btn--small request-reject" data-id="{{item.id}}" data-accept="0" bindtap="answerRequest">拒绝</view>
-    </view>
-
     <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
     <view wx:elif="{{errorMessage}}" class="zx-empty">
       <view class="zx-empty__title">消息加载失败</view>

@@ -17,9 +17,10 @@
     </view>
   </view>
 
-  <view wx:if="{{!loading && messages.length === 0 && !firstMessageWarningDismissed}}" class="warning-banner">
-    <text>你与对方尚未建立会话。在对方回复或关注你之前，你只能发送一条消息，请谨慎措辞。</text>
-    <view class="warning-close" bindtap="dismissFirstMessageWarning">×</view>
+  <view wx:if="{{!loading && showFirstNote}}" class="first-note zx-hero">
+    <view class="first-note-icon"><view class="zx-i zx-i-mail"></view></view>
+    <view class="zx-label first-note-title">{{awaitingReply ? '消息已发送' : '和 ' + peerName + ' 打个招呼'}}</view>
+    <view class="zx-caption first-note-text">{{awaitingReply ? peerName + ' 回复之前，你只能发送 1 条消息' : '第一条消息会直接发给对方；对方回复之前只能发这一条，请说清来意'}}</view>
   </view>
 
   <view class="message-list">
@@ -100,7 +101,15 @@
       </view>
       <view class="reply-preview-text">{{replyToContent}}</view>
     </view>
-    <view class="input-row">
+    <view wx:if="{{blockedByMe || blockedByPeer}}" class="blocked-bar">
+      <view class="zx-caption blocked-text">{{blockedByMe ? '你已屏蔽对方，不能收发消息' : '对方已屏蔽你，只能查看历史消息'}}</view>
+      <view wx:if="{{blockedByMe}}" class="zx-btn zx-btn--secondary zx-btn--block" bindtap="confirmToggleBlock">解除屏蔽</view>
+    </view>
+    <view wx:elif="{{awaitingReply}}" class="waiting-bar">
+      <view class="waiting-text"><view class="zx-i zx-i-clock zx-i--sm"></view><text>等待对方回复后可继续发送</text></view>
+      <view class="waiting-input">暂时不能发送</view>
+    </view>
+    <view wx:else class="input-row">
       <input class="chat-input" value="{{content}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
       <button class="send-button" loading="{{sending}}" bindtap="sendMessage">发送</button>
     </view>

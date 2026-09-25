@@ -30,12 +30,19 @@ Page({
     errorMessage: '',
     sending: false,
     blockedByMe: false,
+    blockedByPeer: false,
+    // No message requests: before the peer has written, one first message
+    // is all I can send (handoff H4). openedByPeer also covers a reply the
+    // server knows of but that was since recalled.
+    openedByPeer: false,
+    serverSaysWait: false,
+    showFirstNote: false,
+    awaitingReply: false,
     replyToId: '',
     replyToContent: '',
     replyToSender: '',
     selectedMessageIds: [],
     selectMode: false,
-    firstMessageWarningDismissed: false,
     showForwardPicker: false,
     forwardTargets: []
   },
@@ -47,6 +54,7 @@ Page({
     const peerAvatar = options.peerAvatar ? decodeURIComponent(options.peerAvatar) : '';
     const peerUserId = options.peerUserId || '';
     const blockedByMe = options.blockedByMe === '1';
+    const blockedByPeer = options.blockedByPeer === '1';
     wx.setNavigationBarTitle({ title: peerName });
     this.setData({
       conversationId,
@@ -54,7 +62,8 @@ Page({
       peerAvatar,
       peerName,
       peerInitial: avatarInitial(peerName),
-      blockedByMe
+      blockedByMe,
+      blockedByPeer
     });
     this.loadCurrentUser();
     if (conversationId) this.loadMessages();
@@ -80,12 +89,24 @@ Page({
   async loadMessages() {
     this.setData({ loading: true, errorMessage: '' });
     try {
-      const messages = await getConversationMessages(this.data.conversationId);
-      this.setData({
-        messages,
-        messageItems: this.buildMessageItems(messages),
-        loading: false
-      });
+      // The list carries this chat's flags whichever page opened it.
+      const [messages, conversations] = await Promise.all([
+        getConversationMessages(this.data.conversationId),
+        getConversations().catch(() => null)
+      ]);
+      const conversation = (conversations || [])
+        .find((item) => item.id === this.data.conversationId);
+      const peerWrote = messages.some((item) => !item.fromMe);
+      const flags = conversation
+        ? {
+            blockedByMe: Boolean(conversation.blockedByMe),
+            blockedByPeer: Boolean(conversation.blockedByPeer),
+            openedByPeer: peerWrote || (!conversation.awaitingReply && messages.length > 0),
+            serverSaysWait: Boolean(conversation.awaitingReply)
+          }
+        : { openedByPeer: peerWrote, serverSaysWait: false };
+      this.setData({ ...flags, loading: false });
+      this.setMessages(messages);
       this.scrollToBottom();
     } catch (error) {
       this.setData({
@@ -189,8 +210,22 @@ Page({
   setMessages(nextMessages) {
     this.setData({
       messages: nextMessages,
-      messageItems: this.buildMessageItems(nextMessages)
+      messageItems: this.buildMessageItems(nextMessages),
+      ...this.firstMessageState(nextMessages)
     });
+  },
+
+  // Before the peer has written: a note, and once my one message is out
+  // (not failed, not recalled), the locked input.
+  firstMessageState(messages, serverSaysWait = this.data.serverSaysWait) {
+    const beforeReply = !this.data.openedByPeer && !messages.some((item) => !item.fromMe);
+    const mineOut = messages.some((item) => item.fromMe
+      && !['failed', 'sending', 'recalled'].includes(item.deliveryStatus)
+      && !item.recalled);
+    return {
+      showFirstNote: beforeReply,
+      awaitingReply: beforeReply && (serverSaysWait || mineOut)
+    };
   },
 
   updateMessage(messageId, updater) {
@@ -304,10 +339,6 @@ Page({
     });
   },
 
-  dismissFirstMessageWarning() {
-    this.setData({ firstMessageWarningDismissed: true });
-  },
-
   async sendMessage() {
     const content = this.data.content.trim();
     if (!content || this.data.sending) return;
@@ -358,12 +389,21 @@ Page({
       });
       this.replaceMessage(tempId, finalMessage);
     } catch (error) {
-      this.replaceMessage(tempId, {
-        ...tempMessage,
-        timeText: '发送失败',
-        deliveryStatus: 'failed',
-        canRecall: false
-      });
+      const message = (error && error.data && error.data.message) || '';
+      if (error && error.statusCode === 403 && message.includes('对方回复前')) {
+        // Nothing was sent: drop the bubble and lock the input.
+        const rest = this.data.messages.filter((item) => item.id !== tempId);
+        this.setData({ serverSaysWait: true, content });
+        this.setMessages(rest);
+        wx.showToast({ title: message, icon: 'none' });
+      } else {
+        this.replaceMessage(tempId, {
+          ...tempMessage,
+          timeText: '发送失败',
+          deliveryStatus: 'failed',
+          canRecall: false
+        });
+      }
     }
 
     this.setData({ sending: false });
