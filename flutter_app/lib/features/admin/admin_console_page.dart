@@ -8,6 +8,7 @@ import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
 import '../../core/widgets/app_surfaces.dart';
+import '../../design_system/design_system.dart';
 import '../../models/admin_models.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/admin_repository.dart';
@@ -1380,9 +1381,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${item.userNickname} · ${item.userLevelLabel}',
-                  ),
+                  Text('${item.userNickname} · ${item.userLevelLabel}'),
                   Text('帖子ID：${item.postId}'),
                   Text(
                     '申请时长：${item.durationLabel.isEmpty ? '-' : item.durationLabel}',
@@ -4100,38 +4099,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultResult = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultResult,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '处理说明（可选）',
-              hintText: '可补充具体处理结果',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '处理说明（可选）',
+        hint: '可补充具体处理结果',
+        confirmLabel: '确认处理',
+        initial: defaultResult,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4144,38 +4121,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '审核备注（可选）',
-              hintText: '可填写判定依据',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '审核备注（可选）',
+        hint: '可填写判定依据',
+        confirmLabel: '确认处理',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4188,38 +4143,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '审核备注（可选）',
-              hintText: '可填写注销原因确认或驳回原因',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '审核备注（可选）',
+        hint: '可填写注销原因确认或驳回原因',
+        confirmLabel: '确认处理',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4232,38 +4165,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '处理备注（可选）',
-              hintText: '可填写置顶通过或驳回原因',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '处理备注（可选）',
+        hint: '可填写置顶通过或驳回原因',
+        confirmLabel: '确认处理',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4276,38 +4187,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '处理备注（可选）',
-              hintText: '可填写处理依据或恢复说明',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '处理备注（可选）',
+        hint: '可填写处理依据或恢复说明',
+        confirmLabel: '确认处理',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4320,38 +4209,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '处理备注（可选）',
-              hintText: '可填写升级通过或驳回说明',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认处理'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '处理备注（可选）',
+        hint: '可填写升级通过或驳回说明',
+        confirmLabel: '确认处理',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4364,38 +4231,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String actionLabel,
     String defaultNote = '',
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: defaultNote,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(actionLabel),
-          content: TextField(
-            controller: controller,
-            minLines: 2,
-            maxLines: 4,
-            decoration: const InputDecoration(
-              labelText: '操作备注（可选）',
-              hintText: '建议填写处理依据，便于后续追踪',
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确认执行'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: actionLabel,
+        label: '操作备注（可选）',
+        hint: '建议填写处理依据，便于后续追踪',
+        confirmLabel: '确认执行',
+        initial: defaultNote,
+      ),
     );
-    controller.dispose();
     if (value == null) {
       return;
     }
@@ -4564,33 +4409,16 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     required String title,
     required String initial,
   }) async {
-    final TextEditingController controller = TextEditingController(
-      text: initial,
-    );
     final String? value = await showDialog<String>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: TextField(
-            controller: controller,
-            decoration: const InputDecoration(labelText: '新名称'),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
-              child: const Text('确定'),
-            ),
-          ],
-        );
-      },
+      builder: (_) => _NoteDialog(
+        title: title,
+        label: '新名称',
+        hint: '',
+        confirmLabel: '确定',
+        initial: initial,
+      ),
     );
-    controller.dispose();
     return value;
   }
 
@@ -4601,5 +4429,72 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+/// 处理说明 for an admin action. Owns its controller, so it lives until the
+/// dialog's exit animation ends; pops the trimmed text, or null.
+class _NoteDialog extends StatefulWidget {
+  const _NoteDialog({
+    required this.title,
+    required this.label,
+    required this.hint,
+    required this.confirmLabel,
+    this.initial = '',
+  });
+
+  final String title;
+  final String label;
+  final String hint;
+  final String confirmLabel;
+  final String initial;
+
+  @override
+  State<_NoteDialog> createState() => _NoteDialogState();
+}
+
+class _NoteDialogState extends State<_NoteDialog> {
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initial,
+  );
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
+      content: SizedBox(
+        width: 420,
+        child: TextField(
+          key: const Key('admin-note-input'),
+          controller: _controller,
+          autofocus: true,
+          minLines: 2,
+          maxLines: 4,
+          decoration: InputDecoration(
+            labelText: widget.label,
+            hintText: widget.hint.isEmpty ? null : widget.hint,
+          ),
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      actions: <Widget>[
+        ZxButton(
+          label: '取消',
+          variant: ZxButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        ZxButton(
+          key: const Key('admin-note-confirm'),
+          label: widget.confirmLabel,
+          onPressed: () => Navigator.of(context).pop(_controller.text.trim()),
+        ),
+      ],
+    );
   }
 }
