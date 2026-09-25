@@ -40,6 +40,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _login() async {
+    if (_isLoading) return;
     if (!_agreed) {
       setState(() {
         _agreementHint = true;
@@ -257,7 +258,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           icon: Icons.badge_outlined,
                           loading: _isLoading,
                           expand: true,
-                          onPressed: _isLoading ? null : _login,
+                          onPressed: _login,
                         ),
                         const SizedBox(height: 10),
                         if (_isLoading)

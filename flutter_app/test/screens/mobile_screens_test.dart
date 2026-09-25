@@ -1,8 +1,11 @@
 // Android screens through the real router, for comparing with the handoff
 // (App 与小程序 v3). Captures only run with ZX_SCREENS_OUT set.
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -210,8 +213,25 @@ Object? _search(String path, String keyword) {
   return null;
 }
 
+/// Image uploads so far; the third never answers, holding compose at
+/// 正在上传图片 2/3 (handoff P3).
+int _uploads = 0;
+
 final http.Client _client = MockClient((http.Request request) async {
   final String path = request.url.path.replaceFirst('/api', '');
+  if (path == '/uploads/images') {
+    _uploads++;
+    if (_uploads >= 3) await Completer<void>().future;
+    return http.Response(
+      jsonEncode(<String, Object>{
+        'data': <String, Object>{'id': 'img$_uploads', 'url': '/u/$_uploads'},
+      }),
+      200,
+      headers: const <String, String>{
+        'content-type': 'application/json; charset=utf-8',
+      },
+    );
+  }
   final String keyword = request.url.queryParameters['keyword'] ?? '';
   final Object? data = keyword.isEmpty ? null : _search(path, keyword);
   return http.Response(
@@ -249,6 +269,8 @@ void main() {
     ('create', '/post/create'),
     // Body only, then 发布: handoff P2's errors.
     ('create_errors', '/post/create'),
+    // Three images, then 发布 while the third uploads: handoff P3.
+    ('create_publishing', '/post/create'),
     // Signed out; the capture taps 登录 unticked, as in handoff L2.
     ('login', '/auth/login?from=/post/p2'),
   ]) {
@@ -294,6 +316,53 @@ void main() {
           for (int i = 0; i < 12; i++) {
             await tester.pump(const Duration(milliseconds: 150));
           }
+          if (name == 'create_publishing') {
+            _uploads = 0;
+            final List<String> photos = <String>[
+              for (int i = 1; i <= 3; i++)
+                File('test/screens/fixtures/photo$i.png').absolute.path,
+            ];
+            tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+              const MethodChannel('plugins.flutter.io/image_picker'),
+              (MethodCall call) async => photos,
+            );
+            addTearDown(
+              () => tester.binding.defaultBinaryMessenger
+                  .setMockMethodCallHandler(
+                    const MethodChannel('plugins.flutter.io/image_picker'),
+                    null,
+                  ),
+            );
+            await tester.enterText(
+              find.byKey(const Key('mobile-create-title')),
+              '示例：数学建模校赛组队，缺一位会写论文的同学',
+            );
+            await tester.enterText(
+              find.byKey(const Key('mobile-create-content')),
+              '我们队目前两个人，一个负责建模、一个负责编程，还缺一位擅长写作和排版的同学。',
+            );
+            await tester.tap(find.byKey(const Key('mobile-create-add-image')));
+            await tester.pump();
+            final Finder channel = find.byKey(
+              const Key('mobile-create-channel-学习交流'),
+            );
+            await tester.ensureVisible(channel);
+            await tester.tap(channel);
+            await tester.pump();
+            await tester.drag(
+              find.byType(ListView).first,
+              const Offset(0, 1200),
+            );
+            await tester.pump(const Duration(milliseconds: 300));
+            await tester.tap(find.byKey(const Key('mobile-create-publish')));
+            // File reads run on the real clock; let two uploads finish.
+            for (int i = 0; i < 12; i++) {
+              await tester.runAsync(
+                () => Future<void>.delayed(const Duration(milliseconds: 100)),
+              );
+              await tester.pump(const Duration(milliseconds: 100));
+            }
+          }
           if (name == 'create_errors') {
             await tester.enterText(
               find.byKey(const Key('mobile-create-content')),
@@ -312,6 +381,11 @@ void main() {
           );
           await tester.pump();
           await saveBoundary(tester, boundary, 'android_${name}_${b.name}');
+          if (name == 'create_publishing') {
+            // Let the held upload time out and its toast go.
+            await tester.pump(const Duration(seconds: 20));
+            await tester.pump(const Duration(seconds: 10));
+          }
           if (signedOut) {
             await tester.runAsync(
               () => AuthStore.instance.saveToken('demo-token'),

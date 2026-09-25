@@ -64,7 +64,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   bool _showErrors = false;
   bool _publishing = false;
   String? _progressText;
-  double _progress = 0;
+
+  /// Null while submitting without images: the bar runs indeterminate.
+  double? _progress;
 
   @override
   void initState() {
@@ -211,6 +213,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Future<void> _publish() async {
+    if (_publishing) return;
     FocusManager.instance.primaryFocus?.unfocus();
     final List<GlobalKey> missing = _missing;
     if (missing.isNotEmpty) {
@@ -222,7 +225,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final int total = _images.length;
     setState(() {
       _publishing = true;
-      _progress = 0;
+      _progress = total == 0 ? null : 0;
       _progressText = total == 0 ? '正在发布' : '正在上传图片 0/$total';
     });
     try {
@@ -237,7 +240,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         uploadIds.add(uploaded.id);
         if (!mounted) return;
         setState(() {
-          _progress = (i + 1) / (total + 1);
+          _progress = (i + 1) / total;
           _progressText = i + 1 < total ? '正在上传图片 ${i + 1}/$total' : '正在发布';
         });
       }
@@ -342,7 +345,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 label: _publishing ? '发布中' : '发布',
                 small: true,
                 loading: _publishing,
-                onPressed: _publishing ? null : _publish,
+                onPressed: _publish,
               ),
             ),
           ],
@@ -412,6 +415,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   child: TextField(
                     key: const Key('mobile-create-title'),
                     controller: _titleController,
+                    minLines: 1,
+                    maxLines: 3,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.next,
                     style: ZxType.title.copyWith(color: t.text),
                     decoration: InputDecoration(
                       isDense: true,
@@ -852,7 +859,7 @@ class _ProgressLine extends StatelessWidget {
   const _ProgressLine({required this.text, required this.value});
 
   final String text;
-  final double value;
+  final double? value;
 
   @override
   Widget build(BuildContext context) {
@@ -870,10 +877,11 @@ class _ProgressLine extends StatelessWidget {
                   style: ZxType.caption.copyWith(color: t.text2),
                 ),
               ),
-              Text(
-                '${(value * 100).round()}%',
-                style: ZxType.caption.copyWith(color: t.text3),
-              ),
+              if (value != null)
+                Text(
+                  '${(value! * 100).round()}%',
+                  style: ZxType.caption.copyWith(color: t.text3),
+                ),
             ],
           ),
           const SizedBox(height: 6),
