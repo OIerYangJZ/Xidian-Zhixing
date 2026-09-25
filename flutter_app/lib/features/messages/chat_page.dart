@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/l10n/ui_text.dart';
+import '../../core/network/api_exception.dart';
 import '../../design_system/design_system.dart';
 import '../profile/public_user_profile_page.dart';
 import '../../models/conversation_item.dart';
@@ -66,6 +67,19 @@ class _ChatPageState extends State<ChatPage> {
   /// Messages recalled in this session, shown as 你撤回了一条消息 until the
   /// next load.
   final Set<String> _recalledIds = <String>{};
+
+  /// The peer has written here (even a message since recalled). Until then,
+  /// one first message is all I can send (handoff H4).
+  bool _openedByPeer = false;
+
+  /// The server refused a send with 对方回复前只能发送一条消息.
+  bool _serverSaysWait = false;
+
+  bool get _awaitingReply {
+    if (_openedByPeer || _messages.any((m) => !m.fromMe)) return false;
+    return _serverSaysWait ||
+        _messages.any((m) => m.fromMe && !_recalledIds.contains(m.id));
+  }
 
   String? get _peerId {
     final String id = widget.peerUserId ?? _conversation.peerUserId;
@@ -211,6 +225,8 @@ class _ChatPageState extends State<ChatPage> {
           Expanded(child: _buildMessageList()),
           if (_conversation.blockedByMe || _conversation.blockedByPeer)
             _buildBlockedPanel()
+          else if (_awaitingReply)
+            _buildWaitingPanel()
           else
             _buildComposer(),
         ],
@@ -307,7 +323,9 @@ class _ChatPageState extends State<ChatPage> {
       return const Center(child: CircularProgressIndicator());
     }
     final bool hasFailed = _lastFailedContent != null;
-    if (_messages.isEmpty && !hasFailed) {
+    final bool beforeReply =
+        _error == null && !_openedByPeer && !_messages.any((m) => !m.fromMe);
+    if (_messages.isEmpty && !hasFailed && !beforeReply) {
       return ZxStatePanel(
         icon: Icons.waving_hand_outlined,
         title: _error == null
@@ -318,7 +336,13 @@ class _ChatPageState extends State<ChatPage> {
             : null,
       );
     }
-    final List<Widget> rows = <Widget>[];
+    final List<Widget> rows = <Widget>[
+      if (beforeReply)
+        _FirstMessageNote(
+          waiting: _awaitingReply,
+          peer: _conversation.nameFor(Localizations.localeOf(context)),
+        ),
+    ];
     DateTime? previous;
     for (final DirectMessageItem message in _messages) {
       final DateTime? at = DateTime.tryParse(message.createdAt)?.toLocal();
@@ -353,7 +377,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
         ),
-        if (_messages.isEmpty)
+        if (_messages.isEmpty && !beforeReply)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Text(
@@ -664,6 +688,61 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   /// H3: in place of the input. Only the side that blocked can undo it.
+  /// Handoff H4: the input locked until the peer replies.
+  Widget _buildWaitingPanel() {
+    final ZxTokens t = ZxTokens.of(context);
+    return SafeArea(
+      key: const Key('chat-waiting-panel'),
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 820),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Icon(Icons.schedule_rounded, size: 15, color: t.warning),
+                    const SizedBox(width: 6),
+                    Text(
+                      uiText(
+                        context,
+                        zh: '等待对方回复后可继续发送',
+                        en: 'You can write again once they reply',
+                      ),
+                      style: ZxType.caption.copyWith(
+                        color: t.warning,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 48,
+                  width: double.infinity,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: t.bgSunk,
+                    borderRadius: ZxRadius.cardAll,
+                  ),
+                  child: Text(
+                    uiText(context, zh: '暂时不能发送', en: 'Sending is paused'),
+                    style: ZxType.body.copyWith(color: t.text3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBlockedPanel() {
     final ZxTokens t = ZxTokens.of(context);
     final bool byMe = _conversation.blockedByMe;
@@ -813,6 +892,12 @@ class _ChatPageState extends State<ChatPage> {
       setState(() {
         _messages = messages;
         _recalledIds.clear();
+        // The server also counts recalled replies, so trust it when it says
+        // the chat is open although only my messages are visible.
+        _openedByPeer =
+            messages.any((m) => !m.fromMe) ||
+            (!_conversation.awaitingReply && messages.isNotEmpty);
+        _serverSaysWait = _conversation.awaitingReply;
         _conversation = _conversation.copyWith(
           unreadCount: 0,
           hasUnread: false,
@@ -871,22 +956,31 @@ class _ChatPageState extends State<ChatPage> {
       });
       widget.onMessageSent?.call(finalCreated.content);
       _scrollToBottom();
+    } on ApiException catch (error) {
+      if (!mounted) return;
+      if (error.statusCode == 403 && error.message.contains('对方回复前')) {
+        // Nothing was sent; the text stays in the (now locked) input.
+        setState(() {
+          _serverSaysWait = true;
+          _lastFailedContent = null;
+        });
+        zxShowToast(context, error.message);
+        return;
+      }
+      _keepFailed(
+        content,
+        replyTarget,
+        retry: retryContent != null,
+        error: error,
+      );
     } catch (error) {
       if (!mounted) return;
-      // The failed text moves into a 发送失败 · 重发 bubble at the end.
-      setState(() {
-        _lastFailedContent = content;
-        _lastFailedReplyTarget = replyTarget;
-        if (retryContent == null) {
-          _inputController.clear();
-          _replyingTo = null;
-        }
-      });
-      zxShowToast(
-        context,
-        uiTextGlobal(zh: '发送失败：$error', en: 'Send failed: $error'),
+      _keepFailed(
+        content,
+        replyTarget,
+        retry: retryContent != null,
+        error: error,
       );
-      _scrollToBottom();
     } finally {
       if (mounted) {
         setState(() {
@@ -894,6 +988,28 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     }
+  }
+
+  /// The failed text moves into a 发送失败 · 重发 bubble at the end.
+  void _keepFailed(
+    String content,
+    DirectMessageItem? replyTarget, {
+    required bool retry,
+    required Object error,
+  }) {
+    setState(() {
+      _lastFailedContent = content;
+      _lastFailedReplyTarget = replyTarget;
+      if (!retry) {
+        _inputController.clear();
+        _replyingTo = null;
+      }
+    });
+    zxShowToast(
+      context,
+      uiTextGlobal(zh: '发送失败：$error', en: 'Send failed: $error'),
+    );
+    _scrollToBottom();
   }
 
   void _scrollToBottom() {
@@ -994,6 +1110,66 @@ class _ChatPageState extends State<ChatPage> {
         ),
       );
     }
+  }
+}
+
+/// Before the peer has written: the first message goes straight to them and
+/// is the only one until they reply (handoff H4).
+class _FirstMessageNote extends StatelessWidget {
+  const _FirstMessageNote({required this.waiting, required this.peer});
+
+  final bool waiting;
+  final String peer;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Container(
+      key: const Key('chat-first-message-note'),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      decoration: BoxDecoration(
+        borderRadius: ZxRadius.cardAll,
+        border: Border.all(color: t.line),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: t.heroGradient,
+        ),
+      ),
+      child: Column(
+        children: <Widget>[
+          Icon(
+            waiting ? Icons.mark_email_read_outlined : Icons.mail_outline,
+            size: 22,
+            color: t.primary,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            waiting
+                ? uiText(context, zh: '消息已发送', en: 'Message sent')
+                : uiText(context, zh: '和 $peer 打个招呼', en: 'Say hello to $peer'),
+            style: ZxType.label.copyWith(color: t.text),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            waiting
+                ? uiText(
+                    context,
+                    zh: '$peer 回复之前，你只能发送 1 条消息',
+                    en: 'Until $peer replies, you can send just this one message.',
+                  )
+                : uiText(
+                    context,
+                    zh: '第一条消息会直接发给对方；对方回复之前只能发这一条，请说清来意',
+                    en: 'Your first message goes straight to them; until they reply it is the only one, so say what it is about.',
+                  ),
+            textAlign: TextAlign.center,
+            style: ZxType.caption.copyWith(color: t.text2, height: 1.5),
+          ),
+        ],
+      ),
+    );
   }
 }
 

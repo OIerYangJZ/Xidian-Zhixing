@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../design_system/design_system.dart';
+import '../../../core/network/api_exception.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
@@ -40,7 +41,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _isLoading = true;
   String? _error;
   bool _isSending = false;
-  bool _requestNoteDismissed = false;
+
+  /// The peer has written in this chat (even a message since recalled).
+  /// Until then, one first message is all I can send.
+  bool _openedByPeer = false;
+
+  /// The server refused a send with 对方回复前只能发送一条消息.
+  bool _serverSaysWait = false;
   bool _blockedByMe = false;
   bool _blockedByPeer = false;
   bool _unblocking = false;
@@ -50,6 +57,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   /// 当前正在回复的消息
   DirectMessageItem? _replyingTo;
+
+  /// Handoff H4: my first message is out and the peer has not replied.
+  bool get _awaitingReply {
+    if (_openedByPeer || _messages.any((m) => !m.fromMe)) return false;
+    return _serverSaysWait ||
+        _messages.any(
+          (m) =>
+              m.fromMe &&
+              !_isRecalled(m) &&
+              m.deliveryStatus != 'failed' &&
+              m.deliveryStatus != 'sending',
+        );
+  }
 
   String get _peerName =>
       (widget.peerName ?? '').trim().isEmpty ? '用户' : widget.peerName!.trim();
@@ -97,6 +117,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _messages = messages;
           _blockedByMe = conversation?.blockedByMe ?? false;
           _blockedByPeer = conversation?.blockedByPeer ?? false;
+          // The server counts recalled replies too; it knows best when it
+          // says the chat is open although only my messages are visible.
+          _openedByPeer =
+              messages.any((m) => !m.fromMe) ||
+              (conversation != null &&
+                  !conversation.awaitingReply &&
+                  messages.isNotEmpty);
+          _serverSaysWait = conversation?.awaitingReply ?? false;
           _isLoading = false;
         });
         _scrollToBottom();
@@ -168,31 +196,52 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           if (index != -1) _messages[index] = finalMessage;
         });
         // 更新上层会话列表的预览和未读数
-        ref
-            .read(messagesControllerProvider.notifier)
-            .updateConversationPreview(
-              conversationId: widget.conversationId,
-              message: content,
-            );
+        final notifier = ref.read(messagesControllerProvider.notifier);
+        notifier.updateConversationPreview(
+          conversationId: widget.conversationId,
+          message: content,
+        );
+        notifier.updateConversationFlags(
+          conversationId: widget.conversationId,
+          awaitingReply: _awaitingReply,
+        );
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      if (e.statusCode == 403 && e.message.contains('对方回复前')) {
+        // Nothing was sent: drop the bubble and show the wait instead.
+        setState(() {
+          _messages.removeWhere((m) => m.id == tempMessage.id);
+          _serverSaysWait = true;
+        });
+        _messageController.text = content;
+        zxShowToast(context, e.message);
+      } else {
+        _markFailed(tempMessage);
+        debugPrint('私信发送失败: ${e.message}');
       }
     } catch (e) {
       // 发送失败：留在原位，点左侧按钮重发
       if (mounted) {
-        setState(() {
-          final index = _messages.indexWhere((m) => m.id == tempMessage.id);
-          if (index != -1) {
-            _messages[index] = tempMessage.copyWith(
-              timeText: '发送失败',
-              deliveryStatus: 'failed',
-              serverCanRecall: false,
-            );
-          }
-        });
+        _markFailed(tempMessage);
         debugPrint('私信发送失败: $e');
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
+  }
+
+  void _markFailed(DirectMessageItem temp) {
+    setState(() {
+      final index = _messages.indexWhere((m) => m.id == temp.id);
+      if (index != -1) {
+        _messages[index] = temp.copyWith(
+          timeText: '发送失败',
+          deliveryStatus: 'failed',
+          serverCanRecall: false,
+        );
+      }
+    });
   }
 
   void _scrollToBottom() {
@@ -245,6 +294,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               _buildSelectBar(t)
             else if (_blockedByMe || _blockedByPeer)
               _buildBlockedBar(t)
+            else if (_awaitingReply)
+              _buildWaitingBar(t)
             else
               _buildInputArea(t),
           ],
@@ -367,8 +418,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       .toList();
 
   Widget _buildMessageList(ZxTokens t) {
-    final bool awaitingReply =
-        _messages.isNotEmpty && _messages.every((m) => m.fromMe);
     final List<Object> rows = _groupMessagesByTime();
 
     return GestureDetector(
@@ -380,17 +429,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
-          if ((_messages.isEmpty || awaitingReply) && !_requestNoteDismissed)
-            _buildRequestNote(t),
-          if (_messages.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 48),
-              child: Text(
-                '还没有消息，打个招呼吧',
-                textAlign: TextAlign.center,
-                style: ZxType.body.copyWith(color: t.text3),
-              ),
-            ),
+          if (!_openedByPeer && !_messages.any((m) => !m.fromMe))
+            _buildFirstMessageNote(t),
           for (final Object row in rows)
             if (row is String)
               _buildTimeLabel(t, row)
@@ -401,12 +441,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  /// Handoff H4: before the other side replies, say so once.
-  Widget _buildRequestNote(ZxTokens t) {
+  /// Handoff H4. Before the peer has written: the first message goes
+  /// straight to them, and it is the only one until they reply.
+  Widget _buildFirstMessageNote(ZxTokens t) {
+    final bool waiting = _awaitingReply;
     return Container(
-      key: const Key('mobile-chat-request-note'),
+      key: const Key('mobile-chat-first-message-note'),
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
       decoration: BoxDecoration(
         borderRadius: ZxRadius.cardAll,
         border: Border.all(color: t.line),
@@ -416,42 +458,83 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           colors: t.heroGradient,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: t.surface,
-              borderRadius: ZxRadius.smallButtonAll,
+              borderRadius: ZxRadius.buttonAll,
             ),
-            child: Icon(Icons.mail_outline_rounded, size: 18, color: t.primary),
+            child: Icon(
+              waiting ? Icons.mark_email_read_outlined : Icons.mail_outline,
+              size: 20,
+              color: t.primary,
+            ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 10),
+          Text(
+            waiting ? '消息已发送' : '和 $_peerName 打个招呼',
+            style: ZxType.label.copyWith(fontSize: 15, color: t.text),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            waiting
+                ? '$_peerName 回复之前，你只能发送 1 条消息'
+                : '第一条消息会直接发给对方；对方回复之前只能发这一条，请说清来意',
+            textAlign: TextAlign.center,
+            style: ZxType.caption.copyWith(color: t.text2, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The input, locked while the first message waits for a reply.
+  Widget _buildWaitingBar(ZxTokens t) {
+    return Container(
+      key: const Key('mobile-chat-waiting'),
+      decoration: BoxDecoration(
+        color: t.surface,
+        border: Border(top: BorderSide(color: t.line)),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Icon(Icons.schedule_rounded, size: 15, color: t.warning),
+                const SizedBox(width: 6),
                 Text(
-                  _messages.isEmpty ? '开始一段新会话' : '等待 $_peerName 回复',
-                  style: ZxType.label.copyWith(color: t.text),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '在对方回复或关注你之前，请尽量用一条消息说清来意。',
-                  style: ZxType.caption.copyWith(color: t.text2, height: 1.5),
+                  '等待对方回复后可继续发送',
+                  style: ZxType.caption.copyWith(
+                    color: t.warning,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
-          ),
-          IconButton(
-            tooltip: '关闭',
-            visualDensity: VisualDensity.compact,
-            icon: Icon(Icons.close_rounded, size: 18, color: t.text3),
-            onPressed: () => setState(() => _requestNoteDismissed = true),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Container(
+              height: 44,
+              alignment: Alignment.centerLeft,
+              padding: const EdgeInsets.symmetric(horizontal: 18),
+              decoration: BoxDecoration(
+                color: t.bgSunk,
+                borderRadius: BorderRadius.circular(22),
+              ),
+              child: Text(
+                '暂时不能发送',
+                style: ZxType.body.copyWith(color: t.text3),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

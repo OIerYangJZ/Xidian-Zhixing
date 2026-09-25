@@ -191,22 +191,6 @@ class MockApiResponses {
 
   // region 私信相关
 
-  static Map<String, dynamic> dmRequestsSuccess() {
-    return <String, dynamic>{
-      'data': <Map<String, dynamic>>[
-        <String, dynamic>{
-          'id': 'req1',
-          'fromAlias': '同学-海盐',
-          'fromAvatarUrl': '',
-          'reason': '想咨询问题',
-          'timeText': '10 分钟前',
-          'status': 'pending',
-          'statusLabel': '待处理',
-        },
-      ],
-    };
-  }
-
   static Map<String, dynamic> conversationsSuccess() {
     return <String, dynamic>{
       'data': <Map<String, dynamic>>[

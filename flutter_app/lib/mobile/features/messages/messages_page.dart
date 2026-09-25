@@ -7,11 +7,11 @@ import '../shell/mobile_shell.dart';
 import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:xdu_treehole_web/features/messages/messages_controller.dart';
 import 'package:xdu_treehole_web/models/conversation_item.dart';
-import 'package:xdu_treehole_web/models/dm_request_item.dart';
 import 'package:xdu_treehole_web/models/notification_item.dart';
 
-/// 消息 (handoff A3): 通知 / 私信请求 / 赞与收藏 with their counts, the
-/// pending DM requests with 同意 / 拒绝, then the conversations.
+/// 消息 (handoff A3): 通知 / 评论回复 / 赞与收藏 with their counts, then the
+/// conversations. There are no message requests: a first message goes
+/// straight into a conversation.
 class MessagesPage extends ConsumerStatefulWidget {
   const MessagesPage({super.key});
 
@@ -62,14 +62,6 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     context.push('/notifications');
   }
 
-  Future<void> _answer(DmRequestItem request, bool accept) async {
-    final bool ok = await ref
-        .read(messagesControllerProvider.notifier)
-        .handleRequest(requestId: request.id, accept: accept);
-    if (!mounted) return;
-    zxShowToast(context, ok ? (accept ? '已同意，会话已建立' : '已拒绝') : '操作失败，请重试');
-  }
-
   Future<bool> _confirmDelete(ConversationItem c) => zxConfirm(
     context,
     title: '删除会话',
@@ -84,9 +76,12 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     final ZxTokens t = ZxTokens.of(context);
     final MessagesState state = ref.watch(messagesControllerProvider);
     final notifications = ref.watch(notificationsControllerProvider);
-    final List<DmRequestItem> pending = state.requests
-        .where((DmRequestItem r) => r.status.trim().toLowerCase() == 'pending')
-        .toList();
+    final int commentUnread = notifications.items
+        .where(
+          (NotificationItem n) =>
+              !n.isRead && (n.category == 'comment' || n.category == 'reply'),
+        )
+        .length;
     final int likeUnread = notifications.items
         .where(
           (NotificationItem n) =>
@@ -146,15 +141,12 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                         ),
                         const SizedBox(width: 10),
                         _Entry(
-                          icon: Icons.mail_outline_rounded,
-                          hue: t.accentInk,
-                          label: '私信请求',
-                          count: pending.length,
-                          onTap: () {
-                            if (pending.isEmpty) {
-                              zxShowToast(context, '暂无私信请求');
-                            }
-                          },
+                          key: const Key('mobile-messages-comments'),
+                          icon: Icons.chat_bubble_outline_rounded,
+                          hue: t.info,
+                          label: '评论回复',
+                          count: commentUnread,
+                          onTap: () => _openNotifications('comment'),
                         ),
                         const SizedBox(width: 10),
                         _Entry(
@@ -183,12 +175,6 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (final DmRequestItem r in pending)
-                          _RequestRow(
-                            request: r,
-                            busy: state.actionBusy,
-                            onAnswer: (bool accept) => _answer(r, accept),
-                          ),
                         if (state.loading && state.conversations.isEmpty)
                           const Padding(
                             padding: EdgeInsets.all(40),
@@ -283,75 +269,6 @@ class _Entry extends StatelessWidget {
             Text(label, style: ZxType.label.copyWith(color: t.text)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _RequestRow extends StatelessWidget {
-  const _RequestRow({
-    required this.request,
-    required this.busy,
-    required this.onAnswer,
-  });
-
-  final DmRequestItem request;
-  final bool busy;
-  final ValueChanged<bool> onAnswer;
-
-  @override
-  Widget build(BuildContext context) {
-    final ZxTokens t = ZxTokens.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    return Container(
-      key: const Key('mobile-dm-request'),
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-      decoration: BoxDecoration(
-        color: t.accentSoft,
-        borderRadius: ZxRadius.cardAll,
-      ),
-      child: Row(
-        children: [
-          ZxAvatar(
-            name: request.fromAliasFor(locale),
-            imageUrl: request.fromAvatarUrl,
-            size: 34,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '私信请求 · ${request.fromAliasFor(locale)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: ZxType.label.copyWith(color: t.text),
-                ),
-                Text(
-                  request.reasonFor(locale),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: ZxType.caption.copyWith(color: t.text2),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          ZxButton(
-            label: '同意',
-            small: true,
-            onPressed: busy ? null : () => onAnswer(true),
-          ),
-          const SizedBox(width: 6),
-          ZxButton(
-            label: '拒绝',
-            small: true,
-            variant: ZxButtonVariant.secondary,
-            onPressed: busy ? null : () => onAnswer(false),
-          ),
-        ],
       ),
     );
   }

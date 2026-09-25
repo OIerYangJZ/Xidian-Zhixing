@@ -57,6 +57,14 @@ final Map<String, Object> _routes = <String, Object>{
       'unreadCount': 1,
     },
     <String, Object>{
+      'id': 'cw',
+      'peerUserId': 'uw',
+      'name': '周同学',
+      'lastMessage': '示例：你好，看到你在找建模队友，想了解一下。',
+      'timeText': '11:08',
+      'awaitingReply': true,
+    },
+    <String, Object>{
       'id': 'c3',
       'peerUserId': 'u3',
       'name': '周同学',
@@ -140,6 +148,14 @@ final Map<String, Object> _routes = <String, Object>{
       'replyToId': 'm1',
       'replyToSender': '林小舟',
       'replyToContent': '方便聊聊比赛安排吗？',
+    },
+  ],
+  '/messages/conversations/cw/messages': <Object>[
+    <String, Object>{
+      'id': 'w1',
+      'content': '示例：你好，看到你在找建模队友，想了解一下。',
+      'createdAt': _ago(const Duration(minutes: 20)),
+      'fromMe': true,
     },
   ],
   '/messages/conversations/c2/messages': <Object>[
@@ -296,6 +312,8 @@ void main() {
     ('chat_failed', '/chat/c1?name=林小舟&userId=u1'),
     // Opened from 消息, so the list knows it is blocked: H3.
     ('chat_blocked', '/chat/c2?name=陈同学&userId=u2'),
+    // My one first message is out; the input waits for a reply: H4.
+    ('chat_waiting', '/chat/cw?name=周同学&userId=uw'),
     ('notifications', '/notifications'),
     ('search', '/search'),
     ('search_topic', '/search?q=%23图书馆'),
@@ -349,7 +367,7 @@ void main() {
           final bool signedOut = name == 'login';
           // Storage calls need the real clock.
           if (signedOut) await tester.runAsync(AuthStore.instance.clear);
-          if (name == 'chat_blocked') {
+          if (name == 'chat_blocked' || name == 'chat_waiting') {
             appRouter.go('/messages');
             for (int i = 0; i < 6; i++) {
               await tester.pump(const Duration(milliseconds: 150));

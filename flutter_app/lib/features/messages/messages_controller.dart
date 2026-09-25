@@ -2,26 +2,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
 import '../../models/conversation_item.dart';
-import '../../models/dm_request_item.dart';
 import '../../core/l10n/ui_text.dart';
 
 class MessagesState {
   const MessagesState({
-    this.requests = const <DmRequestItem>[],
     this.conversations = const <ConversationItem>[],
     this.loading = true,
     this.actionBusy = false,
     this.error,
   });
 
-  final List<DmRequestItem> requests;
   final List<ConversationItem> conversations;
   final bool loading;
   final bool actionBusy;
   final String? error;
 
   MessagesState copyWith({
-    List<DmRequestItem>? requests,
     List<ConversationItem>? conversations,
     bool? loading,
     bool? actionBusy,
@@ -29,7 +25,6 @@ class MessagesState {
     bool clearError = false,
   }) {
     return MessagesState(
-      requests: requests ?? this.requests,
       conversations: conversations ?? this.conversations,
       loading: loading ?? this.loading,
       actionBusy: actionBusy ?? this.actionBusy,
@@ -52,34 +47,6 @@ class MessagesController extends StateNotifier<MessagesState> {
     await _reloadData(showLoading: false);
   }
 
-  Future<bool> handleRequest({
-    required String requestId,
-    required bool accept,
-  }) async {
-    if (state.actionBusy) {
-      return false;
-    }
-    state = state.copyWith(actionBusy: true, clearError: true);
-    try {
-      await _ref.read(messageRepositoryProvider).handleDmRequest(
-            requestId: requestId,
-            accept: accept,
-          );
-      await _reloadData(
-        showLoading: false,
-        preserveActionBusy: true,
-      );
-      state = state.copyWith(actionBusy: false, clearError: true);
-      return true;
-    } catch (error) {
-      state = state.copyWith(
-        actionBusy: false,
-        error: uiTextGlobal(zh: '操作失败：$error', en: 'Action failed: $error'),
-      );
-      return false;
-    }
-  }
-
   Future<bool> _reloadData({
     bool showLoading = true,
     bool preserveActionBusy = false,
@@ -89,12 +56,10 @@ class MessagesController extends StateNotifier<MessagesState> {
     }
 
     try {
-      final List<DmRequestItem> requests =
-          await _ref.read(messageRepositoryProvider).fetchDmRequests();
-      final List<ConversationItem> conversations =
-          await _ref.read(messageRepositoryProvider).fetchConversations();
+      final List<ConversationItem> conversations = await _ref
+          .read(messageRepositoryProvider)
+          .fetchConversations();
       state = state.copyWith(
-        requests: requests,
         conversations: conversations,
         loading: false,
         actionBusy: preserveActionBusy ? state.actionBusy : false,
@@ -158,6 +123,7 @@ class MessagesController extends StateNotifier<MessagesState> {
     required String conversationId,
     bool? blockedByMe,
     bool? blockedByPeer,
+    bool? awaitingReply,
   }) {
     final List<ConversationItem> rows = List<ConversationItem>.from(
       state.conversations,
@@ -171,6 +137,7 @@ class MessagesController extends StateNotifier<MessagesState> {
     rows[index] = rows[index].copyWith(
       blockedByMe: blockedByMe,
       blockedByPeer: blockedByPeer,
+      awaitingReply: awaitingReply,
     );
     state = state.copyWith(conversations: rows, clearError: true);
   }
@@ -184,23 +151,29 @@ class MessagesController extends StateNotifier<MessagesState> {
 
   Future<void> deleteConversation(String conversationId) async {
     try {
-      await _ref.read(messageRepositoryProvider).deleteConversation(conversationId);
+      await _ref
+          .read(messageRepositoryProvider)
+          .deleteConversation(conversationId);
     } catch (_) {}
     removeConversation(conversationId);
   }
 
-  Future<void> recallMessage({required String conversationId, required String messageId}) async {
+  Future<void> recallMessage({
+    required String conversationId,
+    required String messageId,
+  }) async {
     try {
-      await _ref.read(messageRepositoryProvider).recallMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-      );
+      await _ref
+          .read(messageRepositoryProvider)
+          .recallMessage(conversationId: conversationId, messageId: messageId);
     } catch (_) {}
   }
 
   void removeMessage(String conversationId, String messageId) {
     // Update conversation preview: show the second-to-last message as the new preview
-    final List<ConversationItem> rows = List<ConversationItem>.from(state.conversations);
+    final List<ConversationItem> rows = List<ConversationItem>.from(
+      state.conversations,
+    );
     final int idx = rows.indexWhere((c) => c.id == conversationId);
     if (idx >= 0) {
       rows[idx] = rows[idx].copyWith(
@@ -224,5 +197,5 @@ class MessagesController extends StateNotifier<MessagesState> {
 
 final messagesControllerProvider =
     StateNotifierProvider<MessagesController, MessagesState>(
-  (Ref ref) => MessagesController(ref),
-);
+      (Ref ref) => MessagesController(ref),
+    );

@@ -39,7 +39,6 @@ class ApiEndpoints {
   static const String myReports = '/reports/mine';
   static const String reports = '/reports';
 
-  static const String dmRequests = '/messages/requests';
   static const String conversations = '/messages/conversations';
   static const String directConversation = '/messages/conversations/direct';
 
@@ -78,8 +77,6 @@ class ApiEndpoints {
   static String postView(String postId) => '/posts/$postId/view';
   static String commentLike(String commentId) => '/comments/$commentId/like';
 
-  static String dmRequestAction(String requestId, String action) =>
-      '/messages/requests/$requestId/$action';
   static String dmConversationMessages(String conversationId) =>
       '/messages/conversations/$conversationId/messages';
   static String dmConversation(String conversationId) =>

@@ -3,56 +3,12 @@ import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../models/conversation_item.dart';
 import '../models/direct_message_item.dart';
-import '../models/dm_request_item.dart';
 import '../core/l10n/ui_text.dart';
 
 class MessageRepository {
   MessageRepository(this._apiClient);
 
   final ApiClient _apiClient;
-
-  Future<List<DmRequestItem>> fetchDmRequests() async {
-    final dynamic response = await _apiClient.get(ApiEndpoints.dmRequests);
-    final List<dynamic> list = extractList(response);
-    final List<DmRequestItem> items = list
-        .map((dynamic item) => DmRequestItem.fromJson(asMap(item)))
-        .toList();
-    if (items.any((DmRequestItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '私信申请列表包含无效记录', en: 'The message request list contains invalid records'));
-    }
-    return items;
-  }
-
-  Future<void> handleDmRequest({
-    required String requestId,
-    required bool accept,
-  }) async {
-    final String action = accept ? 'accept' : 'reject';
-    await _apiClient.post(
-      ApiEndpoints.dmRequestAction(requestId, action),
-      body: const <String, dynamic>{},
-    );
-  }
-
-  Future<void> createDmRequest({
-    String? postId,
-    String? targetUserId,
-    String? reason,
-  }) {
-    if ((postId == null || postId.trim().isEmpty) &&
-        (targetUserId == null || targetUserId.trim().isEmpty)) {
-      throw ArgumentError('postId 和 targetUserId 至少提供一个');
-    }
-    return _apiClient.post(
-      ApiEndpoints.dmRequests,
-      body: <String, dynamic>{
-        if (postId != null && postId.trim().isNotEmpty) 'postId': postId.trim(),
-        if (targetUserId != null && targetUserId.trim().isNotEmpty)
-          'targetUserId': targetUserId.trim(),
-        if (reason != null && reason.trim().isNotEmpty) 'reason': reason.trim(),
-      },
-    );
-  }
 
   Future<List<ConversationItem>> fetchConversations() async {
     final dynamic response = await _apiClient.get(ApiEndpoints.conversations);
@@ -61,7 +17,12 @@ class MessageRepository {
         .map((dynamic item) => ConversationItem.fromJson(asMap(item)))
         .toList();
     if (items.any((ConversationItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '会话列表包含无效记录', en: 'The conversation list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '会话列表包含无效记录',
+          en: 'The conversation list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -77,7 +38,12 @@ class MessageRepository {
         .map((dynamic item) => DirectMessageItem.fromJson(asMap(item)))
         .toList();
     if (items.any((DirectMessageItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '消息列表包含无效记录', en: 'The message list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '消息列表包含无效记录',
+          en: 'The message list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -97,7 +63,12 @@ class MessageRepository {
     final Map<String, dynamic> map = extractMap(response);
     final DirectMessageItem item = DirectMessageItem.fromJson(map);
     if (item.id.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '发送消息响应缺少消息数据', en: 'The send-message response is missing message data'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '发送消息响应缺少消息数据',
+          en: 'The send-message response is missing message data',
+        ),
+      );
     }
     return item;
   }

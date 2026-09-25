@@ -14,6 +14,7 @@ class ConversationItem {
     this.hasUnread = false,
     this.blockedByMe = false,
     this.blockedByPeer = false,
+    this.awaitingReply = false,
   });
 
   final String id;
@@ -27,12 +28,17 @@ class ConversationItem {
   final bool blockedByMe;
   final bool blockedByPeer;
 
+  /// My first message is out and the peer has not replied: until they do,
+  /// the server refuses a second one.
+  final bool awaitingReply;
+
   bool get isBlocked => blockedByMe || blockedByPeer;
 
   String nameFor(Locale locale) => localizedAlias(locale, name);
 
   factory ConversationItem.fromJson(Map<String, dynamic> json) {
-    final int unreadCount = _toInt(
+    final int unreadCount =
+        _toInt(
           json['unreadCount'] ?? json['unread_count'] ?? json['badgeCount'],
         ) ??
         0;
@@ -41,14 +47,15 @@ class ConversationItem {
       peerUserId: (json['peerUserId'] ?? json['peer_user_id'] ?? '').toString(),
       name: (json['name'] ?? json['peerAlias'] ?? '匿名同学').toString(),
       avatarUrl: (json['avatarUrl'] ?? json['peerAvatarUrl'] ?? '').toString(),
-      lastMessage:
-          (json['lastMessage'] ?? json['contentPreview'] ?? '-').toString(),
+      lastMessage: (json['lastMessage'] ?? json['contentPreview'] ?? '-')
+          .toString(),
       timeText: (json['timeText'] ?? json['time'] ?? json['updatedAt'] ?? '-')
           .toString(),
       unreadCount: unreadCount,
       hasUnread: _toBool(json['hasUnread']) ?? unreadCount > 0,
       blockedByMe: _toBool(json['blockedByMe']) ?? false,
       blockedByPeer: _toBool(json['blockedByPeer']) ?? false,
+      awaitingReply: _toBool(json['awaitingReply']) ?? false,
     );
   }
 
@@ -63,6 +70,7 @@ class ConversationItem {
     bool? hasUnread,
     bool? blockedByMe,
     bool? blockedByPeer,
+    bool? awaitingReply,
   }) {
     return ConversationItem(
       id: id ?? this.id,
@@ -75,6 +83,7 @@ class ConversationItem {
       hasUnread: hasUnread ?? this.hasUnread,
       blockedByMe: blockedByMe ?? this.blockedByMe,
       blockedByPeer: blockedByPeer ?? this.blockedByPeer,
+      awaitingReply: awaitingReply ?? this.awaitingReply,
     );
   }
 

@@ -13,7 +13,10 @@ import 'package:xdu_treehole_web/features/messages/messages_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/models/conversation_item.dart';
 
-ConversationItem _conversation({bool blockedByMe = false}) => ConversationItem(
+ConversationItem _conversation({
+  bool blockedByMe = false,
+  bool awaitingReply = false,
+}) => ConversationItem(
   id: 'c1',
   peerUserId: 'u1',
   name: '同学甲',
@@ -21,6 +24,7 @@ ConversationItem _conversation({bool blockedByMe = false}) => ConversationItem(
   lastMessage: '在吗',
   timeText: '10:00',
   blockedByMe: blockedByMe,
+  awaitingReply: awaitingReply,
 );
 
 Future<void> _pump(WidgetTester tester, Widget home) async {
@@ -65,48 +69,18 @@ late Future<http.Response> Function(http.Request) _handler;
 final http.Client _client = MockClient((http.Request r) => _handler(r));
 
 void main() {
-  testWidgets('pending DM requests show on the list and can be accepted', (
-    WidgetTester tester,
-  ) async {
-    final List<String> posts = <String>[];
-    bool accepted = false;
+  testWidgets('the list has no message requests', (WidgetTester tester) async {
+    final List<String> asked = <String>[];
     _handler = (http.Request request) async {
-      final String path = request.url.path.replaceFirst('/api', '');
-      if (request.method == 'POST') {
-        posts.add(path);
-        accepted = true;
-        return _json(<String, Object>{});
-      }
-      if (path == '/messages/requests') {
-        return _json(<Object>[
-          <String, Object>{
-            'id': 'r1',
-            'fromAlias': '周同学',
-            'reason': '想组队',
-            'status': accepted ? 'accepted' : 'pending',
-          },
-          <String, Object>{
-            'id': 'r0',
-            'fromAlias': '旧请求',
-            'status': 'rejected',
-          },
-        ]);
-      }
+      asked.add(request.url.path.replaceFirst('/api', ''));
       return _json(<Object>[]);
     };
     await http.runWithClient(() async {
       await _pump(tester, const MessagesPage());
-      expect(find.byKey(const Key('dm-requests-card')), findsOneWidget);
-      expect(find.text('私信请求 · 1 条待处理'), findsOneWidget);
-      expect(find.text('旧请求'), findsNothing, reason: 'only pending ones');
-
-      await tester.tap(find.text('同意'));
-      for (int i = 0; i < 5; i++) {
-        await tester.pump(const Duration(milliseconds: 50));
-      }
-      expect(posts, <String>['/messages/requests/r1/accept']);
+      // No request step: a first message goes straight into a chat.
+      expect(asked, isNot(contains('/messages/requests')));
       expect(find.byKey(const Key('dm-requests-card')), findsNothing);
-      await tester.pump(const Duration(seconds: 5));
+      expect(find.textContaining('私信请求'), findsNothing);
     }, () => _client);
   });
 
@@ -178,6 +152,79 @@ void main() {
       expect(find.byKey(const Key('chat-blocked-panel')), findsNothing);
       expect(find.byKey(const Key('chat-input')), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
+    }, () => _client);
+  });
+
+  testWidgets('before a reply, one first message locks the input', (
+    WidgetTester tester,
+  ) async {
+    _handler = (http.Request request) async {
+      if (request.method == 'POST') {
+        return _json(<String, Object>{
+          'id': 'm1',
+          'content': '你好，想组队',
+          'fromMe': true,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+      }
+      return _json(<Object>[]);
+    };
+    await http.runWithClient(() async {
+      await _pump(tester, ChatPage(conversation: _conversation()));
+      expect(find.byKey(const Key('chat-first-message-note')), findsOneWidget);
+      expect(find.byKey(const Key('chat-input')), findsOneWidget);
+
+      await tester.enterText(find.byKey(const Key('chat-input')), '你好，想组队');
+      await tester.tap(find.byKey(const Key('chat-send')));
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.text('消息已发送'), findsOneWidget);
+      expect(find.byKey(const Key('chat-waiting-panel')), findsOneWidget);
+      expect(find.byKey(const Key('chat-input')), findsNothing);
+    }, () => _client);
+  });
+
+  testWidgets('the server holding a second message locks the input', (
+    WidgetTester tester,
+  ) async {
+    _handler = (http.Request request) async {
+      if (request.method == 'POST') {
+        return _json(<String, Object>{'message': '对方回复前只能发送一条消息'}, 403);
+      }
+      return _json(<Object>[]);
+    };
+    await http.runWithClient(() async {
+      await _pump(tester, ChatPage(conversation: _conversation()));
+      await tester.enterText(find.byKey(const Key('chat-input')), '在吗');
+      await tester.tap(find.byKey(const Key('chat-send')));
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.byKey(const Key('chat-waiting-panel')), findsOneWidget);
+      expect(find.byKey(const Key('chat-failed-message')), findsNothing);
+      await tester.pump(const Duration(seconds: 5));
+    }, () => _client);
+  });
+
+  testWidgets('a conversation still awaiting a reply opens locked', (
+    WidgetTester tester,
+  ) async {
+    _handler = (http.Request request) async => _json(<Object>[
+      <String, Object>{
+        'id': 'm1',
+        'content': '你好',
+        'fromMe': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      },
+    ]);
+    await http.runWithClient(() async {
+      await _pump(
+        tester,
+        ChatPage(conversation: _conversation(awaitingReply: true)),
+      );
+      expect(find.byKey(const Key('chat-waiting-panel')), findsOneWidget);
+      expect(find.text('暂时不能发送'), findsOneWidget);
     }, () => _client);
   });
 }

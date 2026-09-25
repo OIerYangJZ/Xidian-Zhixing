@@ -5,7 +5,6 @@ import '../../core/l10n/ui_text.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../design_system/design_system.dart';
 import '../../models/conversation_item.dart';
-import '../../models/dm_request_item.dart';
 import 'chat_page.dart';
 import 'messages_controller.dart';
 
@@ -30,9 +29,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     super.initState();
     Future<void>.microtask(() {
       final MessagesState state = ref.read(messagesControllerProvider);
-      if (!state.loading ||
-          state.requests.isNotEmpty ||
-          state.conversations.isNotEmpty) {
+      if (!state.loading || state.conversations.isNotEmpty) {
         return Future<void>.value();
       }
       return ref.read(messagesControllerProvider.notifier).loadInitial();
@@ -225,9 +222,6 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
 
   Widget _buildConversations(MessagesState state, {required bool split}) {
     final ZxTokens t = ZxTokens.of(context);
-    final List<DmRequestItem> pending = state.requests
-        .where((DmRequestItem r) => r.status.trim().toLowerCase() == 'pending')
-        .toList();
     return Column(
       children: <Widget>[
         Expanded(
@@ -237,14 +231,6 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(10, 10, 10, 24),
               children: <Widget>[
-                if (pending.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _RequestsCard(
-                      requests: pending,
-                      busy: state.actionBusy,
-                    ),
-                  ),
                 if (state.conversations.isEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 60),
@@ -407,163 +393,6 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
         child: Icon(Icons.delete_outline_rounded, color: t.onDanger),
       ),
       child: row,
-    );
-  }
-}
-
-/// 私信请求 · N 条待处理, each with 同意 / 拒绝. Shows two, 全部 expands.
-class _RequestsCard extends ConsumerStatefulWidget {
-  const _RequestsCard({required this.requests, required this.busy});
-
-  final List<DmRequestItem> requests;
-  final bool busy;
-
-  @override
-  ConsumerState<_RequestsCard> createState() => _RequestsCardState();
-}
-
-class _RequestsCardState extends ConsumerState<_RequestsCard> {
-  static const int _collapsedCount = 2;
-  bool _expanded = false;
-
-  Future<void> _handle(DmRequestItem request, bool accept) async {
-    final bool ok = await ref
-        .read(messagesControllerProvider.notifier)
-        .handleRequest(requestId: request.id, accept: accept);
-    if (!mounted) return;
-    zxShowToast(
-      context,
-      ok
-          ? (accept
-                ? uiText(context, zh: '已同意，会话已建立', en: 'Accepted')
-                : uiText(context, zh: '已拒绝', en: 'Declined'))
-          : uiText(context, zh: '操作失败，请重试', en: 'Action failed, try again'),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final ZxTokens t = ZxTokens.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    final List<DmRequestItem> shown = _expanded
-        ? widget.requests
-        : widget.requests.take(_collapsedCount).toList();
-    return Container(
-      key: const Key('dm-requests-card'),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Color.lerp(t.surface, t.accentSoft, 0.55),
-        borderRadius: ZxRadius.cardAll,
-        border: Border.all(color: t.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(Icons.mail_outline_rounded, size: 18, color: t.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  uiText(
-                    context,
-                    zh: '私信请求 · ${widget.requests.length} 条待处理',
-                    en: 'Message requests · ${widget.requests.length} pending',
-                  ),
-                  style: ZxType.label.copyWith(color: t.text),
-                ),
-              ),
-              if (widget.requests.length > _collapsedCount)
-                ZxButton(
-                  label: _expanded
-                      ? uiText(context, zh: '收起', en: 'Less')
-                      : uiText(context, zh: '全部', en: 'All'),
-                  variant: ZxButtonVariant.ghost,
-                  small: true,
-                  onPressed: () => setState(() => _expanded = !_expanded),
-                ),
-            ],
-          ),
-          for (final DmRequestItem request in shown) ...<Widget>[
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: t.surface,
-                borderRadius: ZxRadius.buttonAll,
-                border: Border.all(color: t.line),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  ZxAvatar(
-                    name: request.fromAliasFor(locale),
-                    imageUrl: request.fromAvatarUrl,
-                    size: 36,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text.rich(
-                          TextSpan(
-                            children: <InlineSpan>[
-                              TextSpan(
-                                text: request.fromAliasFor(locale),
-                                style: ZxType.label.copyWith(color: t.text),
-                              ),
-                              TextSpan(
-                                text: ' · ${request.timeText}',
-                                style: ZxType.caption.copyWith(color: t.text3),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          uiText(
-                            context,
-                            zh: '理由：${request.reasonFor(locale)}',
-                            en: 'Reason: ${request.reasonFor(locale)}',
-                          ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: ZxType.caption.copyWith(
-                            fontSize: 13,
-                            color: t.text2,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: <Widget>[
-                            ZxButton(
-                              label: uiText(context, zh: '同意', en: 'Accept'),
-                              small: true,
-                              onPressed: widget.busy
-                                  ? null
-                                  : () => _handle(request, true),
-                            ),
-                            const SizedBox(width: 8),
-                            ZxButton(
-                              label: uiText(context, zh: '拒绝', en: 'Decline'),
-                              variant: ZxButtonVariant.secondary,
-                              small: true,
-                              onPressed: widget.busy
-                                  ? null
-                                  : () => _handle(request, false),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
     );
   }
 }

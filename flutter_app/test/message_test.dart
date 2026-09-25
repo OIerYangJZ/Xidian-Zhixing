@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:xdu_treehole_web/core/network/api_client.dart';
-import 'package:xdu_treehole_web/models/dm_request_item.dart';
 import 'package:xdu_treehole_web/models/conversation_item.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
 import 'package:xdu_treehole_web/repositories/message_repository.dart';
@@ -19,35 +18,6 @@ void main() {
       mockClient = MockClient((http.Request request) async {
         final String path = request.url.path;
         final String method = request.method;
-
-        // 获取私信请求列表
-        if (path.endsWith('/messages/requests') && method == 'GET') {
-          return http.Response(
-            jsonEncode(MockApiResponses.dmRequestsSuccess()),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        // 处理私信请求（接受/拒绝）
-        final dmRequestActionPattern =
-            RegExp(r'/messages/requests/.+/(accept|reject)');
-        if (dmRequestActionPattern.hasMatch(path) && method == 'POST') {
-          return http.Response(
-            jsonEncode(<String, dynamic>{'message': '处理成功'}),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        // 创建私信请求
-        if (path.endsWith('/messages/requests') && method == 'POST') {
-          return http.Response(
-            jsonEncode(<String, dynamic>{'message': '请求已发送'}),
-            201,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
 
         // 获取会话列表
         if (path.endsWith('/messages/conversations') && method == 'GET') {
@@ -86,8 +56,9 @@ void main() {
         }
 
         // 删除会话
-        final deleteConversationPattern =
-            RegExp(r'/messages/conversations/[^/]+$');
+        final deleteConversationPattern = RegExp(
+          r'/messages/conversations/[^/]+$',
+        );
         if (deleteConversationPattern.hasMatch(path) && method == 'DELETE') {
           return http.Response(
             jsonEncode(<String, dynamic>{'message': '会话已删除'}),
@@ -121,69 +92,6 @@ void main() {
       messageRepository = MessageRepository(ApiClient(httpClient: mockClient));
     });
 
-    group('fetchDmRequests', () {
-      test('获取私信请求列表成功', () async {
-        final requests = await messageRepository.fetchDmRequests();
-
-        expect(requests, isNotEmpty);
-        expect(requests.first, isA<DmRequestItem>());
-        expect(requests.first.fromAlias, equals('同学-海盐'));
-      });
-
-      test('返回的请求包含必要字段', () async {
-        final requests = await messageRepository.fetchDmRequests();
-        final first = requests.first;
-
-        expect(first.id, isNotEmpty);
-        expect(first.fromAlias, isNotEmpty);
-        expect(first.reason, isNotEmpty);
-        expect(first.status, isNotEmpty);
-      });
-    });
-
-    group('handleDmRequest', () {
-      test('接受私信请求成功', () async {
-        await expectLater(
-          messageRepository.handleDmRequest(
-            requestId: 'req1',
-            accept: true,
-          ),
-          completes,
-        );
-      });
-
-      test('拒绝私信请求成功', () async {
-        await expectLater(
-          messageRepository.handleDmRequest(
-            requestId: 'req1',
-            accept: false,
-          ),
-          completes,
-        );
-      });
-    });
-
-    group('createDmRequest', () {
-      test('创建私信请求成功', () async {
-        await expectLater(
-          messageRepository.createDmRequest(
-            postId: 'p1',
-            reason: '想咨询问题',
-          ),
-          completes,
-        );
-      });
-
-      test('无理由创建私信请求成功', () async {
-        await expectLater(
-          messageRepository.createDmRequest(
-            postId: 'p1',
-          ),
-          completes,
-        );
-      });
-    });
-
     group('fetchConversations', () {
       test('获取会话列表成功', () async {
         final conversations = await messageRepository.fetchConversations();
@@ -205,8 +113,9 @@ void main() {
 
     group('fetchConversationMessages', () {
       test('获取会话消息列表成功', () async {
-        final messages =
-            await messageRepository.fetchConversationMessages('conv1');
+        final messages = await messageRepository.fetchConversationMessages(
+          'conv1',
+        );
 
         expect(messages, isNotEmpty);
         expect(messages.first, isA<DirectMessageItem>());
@@ -255,52 +164,19 @@ void main() {
       });
     });
 
-    group('DmRequestItem', () {
-      test('fromJson 正确解析', () {
-        final json = <String, dynamic>{
-          'id': 'req123',
-          'fromAlias': '同学-测试',
-          'fromAvatarUrl': 'https://example.com/avatar.png',
-          'reason': '想咨询问题',
-          'timeText': '5 分钟前',
-          'status': 'pending',
-          'statusLabel': '待处理',
-        };
-
-        final item = DmRequestItem.fromJson(json);
-
-        expect(item.id, equals('req123'));
-        expect(item.fromAlias, equals('同学-测试'));
-        expect(item.fromAvatarUrl, equals('https://example.com/avatar.png'));
-        expect(item.reason, equals('想咨询问题'));
-        expect(item.timeText, equals('5 分钟前'));
-        expect(item.status, equals('pending'));
-        expect(item.statusLabel, equals('待处理'));
-      });
-
-      test('fromJson 处理空数据', () {
-        final item = DmRequestItem.fromJson(<String, dynamic>{});
-
-        expect(item.id, isEmpty);
-        expect(item.fromAlias, equals('匿名同学'));
-      });
-
-      test('fromJson 使用备用字段名', () {
-        final json = <String, dynamic>{
-          'requestId': 'req456',
-          'from': '备用名称',
-          'message': '备用原因',
-        };
-
-        final item = DmRequestItem.fromJson(json);
-
-        expect(item.id, equals('req456'));
-        expect(item.fromAlias, equals('备用名称'));
-        expect(item.reason, equals('备用原因'));
-      });
-    });
-
     group('ConversationItem', () {
+      test('fromJson 读取 awaitingReply', () {
+        final item = ConversationItem.fromJson(<String, dynamic>{
+          'id': 'c1',
+          'awaitingReply': true,
+        });
+        expect(item.awaitingReply, isTrue);
+        expect(
+          ConversationItem.fromJson(<String, dynamic>{}).awaitingReply,
+          isFalse,
+        );
+      });
+
       test('fromJson 正确解析', () {
         final json = <String, dynamic>{
           'id': 'conv123',
