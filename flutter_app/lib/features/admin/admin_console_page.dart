@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/config/app_config.dart';
-import '../../core/theme/design_tokens.dart';
 import '../../core/theme/shared_colors.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
-import '../../core/widgets/app_surfaces.dart';
 import '../../design_system/design_system.dart';
 import '../../models/admin_models.dart';
 import '../../repositories/app_repositories.dart';
@@ -149,27 +147,114 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     super.dispose();
   }
 
+  /// The sidebar entry chosen on wide screens.
+  int _sectionIndex = 0;
+
+  int _pending(Iterable<String> statuses) =>
+      statuses.where((String s) => s.trim().toLowerCase() == 'pending').length;
+
+  List<_AdminSection> _sections() {
+    final List<_AdminSection> all = <_AdminSection>[
+      _AdminSection('概览', Icons.space_dashboard_outlined, _buildOverviewTab),
+      _AdminSection(
+        '帖子管理',
+        Icons.fact_check_outlined,
+        _buildReviewTab,
+        pending: _pending(_reviews.map((AdminReviewItem r) => r.reviewStatus)),
+      ),
+      _AdminSection(
+        '举报处理',
+        Icons.flag_outlined,
+        _buildReportTab,
+        pending: _pending(_reports.map((AdminReportEntry r) => r.status)),
+      ),
+      _AdminSection(
+        '图片审核',
+        Icons.image_search_outlined,
+        _buildImageReviewTab,
+        pending: _pending(
+          _imageReviews.map((AdminImageReviewItem r) => r.status),
+        ),
+      ),
+      _AdminSection(
+        '帖子置顶',
+        Icons.push_pin_outlined,
+        _buildPostPinRequestTab,
+        pending: _pending(
+          _postPinRequests.map((AdminPostPinRequestEntry r) => r.status),
+        ),
+      ),
+      _AdminSection(
+        '一级用户申请',
+        Icons.verified_user_outlined,
+        _buildUserLevelRequestTab,
+        pending: _pending(
+          _userLevelRequests.map((AdminUserLevelRequestEntry r) => r.status),
+        ),
+      ),
+      _AdminSection(
+        '注销申请',
+        Icons.person_off_outlined,
+        _buildAccountCancellationTab,
+        pending: _pending(
+          _accountCancellationRequests.map(
+            (AdminAccountCancellationRequest r) => r.status,
+          ),
+        ),
+      ),
+      _AdminSection(
+        '申诉处理',
+        Icons.gavel_outlined,
+        _buildAppealTab,
+        pending: _pending(_appeals.map((AdminAppealEntry r) => r.status)),
+      ),
+      _AdminSection('用户管理', Icons.group_outlined, _buildUserTab),
+      _AdminSection('分类标签', Icons.sell_outlined, _buildChannelTagTab),
+      _AdminSection(
+        '版本发布',
+        Icons.system_update_alt_outlined,
+        _buildAndroidReleaseTab,
+      ),
+      _AdminSection('系统配置', Icons.tune_rounded, _buildConfigTab),
+    ];
+    if (_isPrimaryAdmin) return all;
+    // Secondary admins handle pin requests and users only.
+    return all
+        .where((_AdminSection s) => s.label == '帖子置顶' || s.label == '用户管理')
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final AdminCurrentUser? admin = _currentAdmin;
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
+        titleSpacing: 16,
+        title: Row(
           children: <Widget>[
-            Icon(Icons.shield_outlined, size: 22),
-            SizedBox(width: AppSpacing.xs),
-            Expanded(
+            const ZxAvatar.anonymous(name: '知', size: 32),
+            const SizedBox(width: 10),
+            Flexible(
               child: Text(
-                '西电知行 · 管理工作台',
+                MediaQuery.sizeOf(context).width < 600
+                    ? '管理工作台'
+                    : '西电知行 · 管理工作台',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: ZxType.headline.copyWith(fontSize: 18, color: t.text),
               ),
             ),
+            if (admin != null && admin.username.isNotEmpty) ...<Widget>[
+              const SizedBox(width: 12),
+              ZxBadge.level('${admin.username} · ${admin.roleLabel}'),
+            ],
           ],
         ),
         actions: <Widget>[
           IconButton(
             onPressed: _actionBusy ? null : _loadAll,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             tooltip: '刷新全部',
           ),
           if (widget.onLogout != null)
@@ -179,249 +264,156 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   : () async {
                       await widget.onLogout!.call();
                     },
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout_rounded),
               tooltip: '退出管理员后台',
             ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: ColoredBox(
-        color: Theme.of(context).scaffoldBackgroundColor,
+      body: ZxPaper(
         child: _loading
-            ? const AppStatePanel(
+            ? const ZxStatePanel(
                 icon: Icons.admin_panel_settings_outlined,
                 title: '正在加载管理数据',
                 message: '正在汇总举报、审核与账号状态。',
               )
-            : (_isPrimaryAdmin
-                  ? _buildPrimaryConsole()
-                  : _buildSecondaryConsole()),
+            : LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints c) =>
+                    _buildConsole(_sections(), wide: c.maxWidth >= 1000),
+              ),
       ),
     );
   }
 
-  Widget _buildPrimaryConsole() {
-    return DefaultTabController(
-      length: 12,
-      child: Column(
+  Widget _buildConsole(List<_AdminSection> sections, {required bool wide}) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Widget? error = _error == null
+        ? null
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: ZxInlineMessage(
+              message: '后台数据未完全加载：${_error!}',
+              tone: ZxMessageTone.danger,
+              actionLabel: '重试',
+              onAction: _actionBusy ? null : _loadAll,
+            ),
+          );
+    final Widget? scope = _isPrimaryAdmin
+        ? null
+        : Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: const ZxInlineMessage(message: '当前账号开放用户管理和帖子置顶审核'),
+          );
+
+    if (wide) {
+      final int index = _sectionIndex.clamp(0, sections.length - 1);
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: AppInlineMessage(
-                title: '后台数据未完全加载',
-                message: _error!,
-                tone: AppMessageTone.error,
-                action: TextButton(
-                  onPressed: _actionBusy ? null : _loadAll,
-                  child: const Text('重试'),
-                ),
-              ),
+          Container(
+            width: 232,
+            decoration: BoxDecoration(
+              color: t.surface,
+              border: Border(right: BorderSide(color: t.line)),
             ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-            child: _buildDashboardHeader(),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Material(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              child: TabBar(
-                isScrollable: true,
-                dividerColor: Colors.transparent,
-                labelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.62),
-                tabs: const <Tab>[
-                  Tab(text: '概览'),
-                  Tab(text: '帖子管理'),
-                  Tab(text: '举报处理'),
-                  Tab(text: '图片审核'),
-                  Tab(text: '帖子置顶'),
-                  Tab(text: '一级用户申请'),
-                  Tab(text: '注销申请'),
-                  Tab(text: '申诉处理'),
-                  Tab(text: '用户管理'),
-                  Tab(text: '分类标签'),
-                  Tab(text: '版本发布'),
-                  Tab(text: '系统配置'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Expanded(
-            child: TabBarView(
+            child: ListView(
+              padding: const EdgeInsets.all(10),
               children: <Widget>[
-                _buildOverviewTab(),
-                _buildReviewTab(),
-                _buildReportTab(),
-                _buildImageReviewTab(),
-                _buildPostPinRequestTab(),
-                _buildUserLevelRequestTab(),
-                _buildAccountCancellationTab(),
-                _buildAppealTab(),
-                _buildUserTab(),
-                _buildChannelTagTab(),
-                _buildAndroidReleaseTab(),
-                _buildConfigTab(),
+                for (int i = 0; i < sections.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 2),
+                    child: Material(
+                      color: i == index ? t.primarySoft : Colors.transparent,
+                      borderRadius: ZxRadius.buttonAll,
+                      child: InkWell(
+                        key: Key('admin-section-${sections[i].label}'),
+                        borderRadius: ZxRadius.buttonAll,
+                        onTap: () => setState(() => _sectionIndex = i),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              Icon(
+                                sections[i].icon,
+                                size: 18,
+                                color: i == index ? t.primary : t.text2,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  sections[i].label,
+                                  style: ZxType.body.copyWith(
+                                    color: i == index ? t.primary : t.text,
+                                    fontWeight: i == index
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              ZxCountBadge(sections[i].pending),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                ?error,
+                ?scope,
+                Expanded(
+                  child: KeyedSubtree(
+                    key: ValueKey<String>(sections[index].label),
+                    child: sections[index].build(),
+                  ),
+                ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildSecondaryConsole() {
     return DefaultTabController(
-      length: 2,
+      length: sections.length,
       child: Column(
         children: <Widget>[
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: AppInlineMessage(
-                title: '后台数据未完全加载',
-                message: _error!,
-                tone: AppMessageTone.error,
-                action: TextButton(
-                  onPressed: _actionBusy ? null : _loadAll,
-                  child: const Text('重试'),
+          ?error,
+          ?scope,
+          TabBar(
+            isScrollable: sections.length > 3,
+            tabAlignment: sections.length > 3 ? TabAlignment.start : null,
+            tabs: <Tab>[
+              for (final _AdminSection section in sections)
+                Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text(section.label),
+                      if (section.pending > 0) ...<Widget>[
+                        const SizedBox(width: 6),
+                        ZxCountBadge(section.pending),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 6),
-            child: _buildDashboardHeader(),
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Material(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-              child: TabBar(
-                dividerColor: Colors.transparent,
-                labelColor: Theme.of(context).colorScheme.primary,
-                unselectedLabelColor: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.62),
-                tabs: const <Tab>[
-                  Tab(text: '帖子置顶'),
-                  Tab(text: '用户管理'),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 6),
           Expanded(
             child: TabBarView(
-              children: <Widget>[_buildPostPinRequestTab(), _buildUserTab()],
+              children: <Widget>[
+                for (final _AdminSection section in sections) section.build(),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDashboardHeader() {
-    final AdminCurrentUser? currentAdmin = _currentAdmin;
-    final AdminOverview overview =
-        _overview ??
-        AdminOverview(
-          todayNewUsers: 0,
-          todayPosts: 0,
-          todayComments: 0,
-          todayReports: 0,
-          pendingReviews: 0,
-          pendingCancellationRequests: 0,
-          activeUsers: 0,
-          bannedUsers: 0,
-          mutedUsers: 0,
-        );
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 8,
-        children: <Widget>[
-          _compactStatusChip(
-            icon: Icons.admin_panel_settings_outlined,
-            label:
-                '当前管理员 ${currentAdmin == null || currentAdmin.username.isEmpty ? '-' : currentAdmin.username}',
-          ),
-          _compactStatusChip(
-            icon: Icons.verified_user_outlined,
-            label: '权限 ${currentAdmin?.roleLabel ?? '-'}',
-          ),
-          if (_isPrimaryAdmin) ...<Widget>[
-            _compactStatusChip(
-              icon: Icons.person_add_alt_1,
-              label: '今日新用户 ${overview.todayNewUsers}',
-            ),
-            _compactStatusChip(
-              icon: Icons.article_outlined,
-              label: '今日发帖 ${overview.todayPosts}',
-            ),
-            _compactStatusChip(
-              icon: Icons.comment_outlined,
-              label: '今日评论 ${overview.todayComments}',
-            ),
-            _compactStatusChip(
-              icon: Icons.flag_outlined,
-              label: '今日举报 ${overview.todayReports}',
-            ),
-            _compactStatusChip(
-              icon: Icons.pending_actions_outlined,
-              label: '待审核 ${overview.pendingReviews}',
-            ),
-            _compactStatusChip(
-              icon: Icons.person_off_outlined,
-              label: '待注销 ${overview.pendingCancellationRequests}',
-            ),
-            _compactStatusChip(
-              icon: Icons.groups_2_outlined,
-              label: '活跃账号 ${overview.activeUsers}',
-            ),
-            _compactStatusChip(
-              icon: Icons.gpp_bad_outlined,
-              label: '封禁用户 ${overview.bannedUsers}',
-            ),
-            _compactStatusChip(
-              icon: Icons.volume_off_outlined,
-              label: '禁言用户 ${overview.mutedUsers}',
-            ),
-          ] else
-            _compactStatusChip(
-              icon: Icons.lock_outline,
-              label: '当前开放用户管理和帖子置顶审核',
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _compactStatusChip({required IconData icon, required String label}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -445,65 +437,71 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: <Widget>[
-            _metricCard(
-              title: '今日新增用户',
-              value: overview.todayNewUsers,
-              icon: Icons.person_add_alt_1_rounded,
-              color: SharedColors.primary,
-            ),
-            _metricCard(
-              title: '今日发帖数',
-              value: overview.todayPosts,
-              icon: Icons.edit_note_rounded,
-              color: SharedColors.success,
-            ),
-            _metricCard(
-              title: '今日评论数',
-              value: overview.todayComments,
-              icon: Icons.forum_outlined,
-              color: SharedColors.deep,
-            ),
-            _metricCard(
-              title: '今日举报数',
-              value: overview.todayReports,
-              icon: Icons.flag_circle_outlined,
-              color: SharedColors.warning,
-            ),
-            _metricCard(
-              title: '待审核内容',
-              value: overview.pendingReviews,
-              icon: Icons.approval_outlined,
-              color: SharedColors.warning,
-            ),
-            _metricCard(
-              title: '待注销申请',
-              value: overview.pendingCancellationRequests,
-              icon: Icons.person_remove_alt_1_outlined,
-              color: SharedColors.warning,
-            ),
-            _metricCard(
-              title: '活跃账号数',
-              value: overview.activeUsers,
-              icon: Icons.groups_rounded,
-              color: SharedColors.primary,
-            ),
-            _metricCard(
-              title: '被封禁用户',
-              value: overview.bannedUsers,
-              icon: Icons.gpp_bad_outlined,
-              color: SharedColors.danger,
-            ),
-            _metricCard(
-              title: '被禁言用户',
-              value: overview.mutedUsers,
-              icon: Icons.volume_off_outlined,
-              color: SharedColors.deep,
-            ),
-          ],
+        LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints c) {
+            // Two per row on phones; fixed-width cards otherwise.
+            _metricWidth = c.maxWidth < 600 ? (c.maxWidth - 10) / 2 : 188;
+            return Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: <Widget>[
+                _metricCard(
+                  title: '今日新增用户',
+                  value: overview.todayNewUsers,
+                  icon: Icons.person_add_alt_1_rounded,
+                  color: SharedColors.primary,
+                ),
+                _metricCard(
+                  title: '今日发帖数',
+                  value: overview.todayPosts,
+                  icon: Icons.edit_note_rounded,
+                  color: SharedColors.success,
+                ),
+                _metricCard(
+                  title: '今日评论数',
+                  value: overview.todayComments,
+                  icon: Icons.forum_outlined,
+                  color: SharedColors.deep,
+                ),
+                _metricCard(
+                  title: '今日举报数',
+                  value: overview.todayReports,
+                  icon: Icons.flag_circle_outlined,
+                  color: SharedColors.warning,
+                ),
+                _metricCard(
+                  title: '待审核内容',
+                  value: overview.pendingReviews,
+                  icon: Icons.approval_outlined,
+                  color: SharedColors.warning,
+                ),
+                _metricCard(
+                  title: '待注销申请',
+                  value: overview.pendingCancellationRequests,
+                  icon: Icons.person_remove_alt_1_outlined,
+                  color: SharedColors.warning,
+                ),
+                _metricCard(
+                  title: '活跃账号数',
+                  value: overview.activeUsers,
+                  icon: Icons.groups_rounded,
+                  color: SharedColors.primary,
+                ),
+                _metricCard(
+                  title: '被封禁用户',
+                  value: overview.bannedUsers,
+                  icon: Icons.gpp_bad_outlined,
+                  color: SharedColors.danger,
+                ),
+                _metricCard(
+                  title: '被禁言用户',
+                  value: overview.mutedUsers,
+                  icon: Icons.volume_off_outlined,
+                  color: SharedColors.deep,
+                ),
+              ],
+            );
+          },
         ),
         Card(
           child: Padding(
@@ -516,48 +514,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   onPressed: _actionBusy ? null : _loadAll,
                   icon: const Icon(Icons.sync),
                   label: const Text('刷新全部模块'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadReviews,
-                  icon: const Icon(Icons.assignment_turned_in_outlined),
-                  label: const Text('刷新人工审核'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadReports,
-                  icon: const Icon(Icons.rule_outlined),
-                  label: const Text('刷新举报列表'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy
-                      ? null
-                      : _loadAccountCancellationRequests,
-                  icon: const Icon(Icons.person_remove_alt_1_outlined),
-                  label: const Text('刷新注销申请'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadAppeals,
-                  icon: const Icon(Icons.feedback_outlined),
-                  label: const Text('刷新申诉处理'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadUsers,
-                  icon: const Icon(Icons.groups_2_outlined),
-                  label: const Text('刷新用户管理'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadImageReviews,
-                  icon: const Icon(Icons.image_search_outlined),
-                  label: const Text('刷新图片审核'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadPostPinRequests,
-                  icon: const Icon(Icons.push_pin_outlined),
-                  label: const Text('刷新置顶申请'),
-                ),
-                FilledButton.tonalIcon(
-                  onPressed: _actionBusy ? null : _loadUserLevelRequests,
-                  icon: const Icon(Icons.workspace_premium_outlined),
-                  label: const Text('刷新一级用户申请'),
                 ),
               ],
             ),
@@ -1025,50 +981,54 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                         icon: const Icon(Icons.visibility_outlined),
                         label: const Text('详情'),
                       ),
-                      OutlinedButton(
-                        onPressed: _actionBusy
-                            ? null
-                            : () => _promptAndHandleReport(
-                                reportId: report.id,
-                                action: 'delete',
-                                actionLabel: '删除内容',
-                                defaultResult: '内容已删除',
-                              ),
-                        child: const Text('删除内容'),
-                      ),
-                      OutlinedButton(
-                        onPressed: _actionBusy
-                            ? null
-                            : () => _promptAndHandleReport(
-                                reportId: report.id,
-                                action: 'warn',
-                                actionLabel: '警告用户',
-                                defaultResult: '已警告用户',
-                              ),
-                        child: const Text('警告用户'),
-                      ),
-                      OutlinedButton(
-                        onPressed: _actionBusy
-                            ? null
-                            : () => _promptAndHandleReport(
-                                reportId: report.id,
-                                action: 'ban',
-                                actionLabel: '封禁用户',
-                                defaultResult: '已封禁用户',
-                              ),
-                        child: const Text('封禁用户'),
-                      ),
-                      FilledButton.tonal(
-                        onPressed: _actionBusy
-                            ? null
-                            : () => _promptAndHandleReport(
-                                reportId: report.id,
-                                action: 'misreport',
-                                actionLabel: '标记误报',
-                                defaultResult: '标记为误报',
-                              ),
-                        child: const Text('标记误报'),
-                      ),
+                      // A handled report answers 409 to any action.
+                      if (report.status.trim().toLowerCase() ==
+                          'pending') ...<Widget>[
+                        OutlinedButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleReport(
+                                  reportId: report.id,
+                                  action: 'delete',
+                                  actionLabel: '删除内容',
+                                  defaultResult: '内容已删除',
+                                ),
+                          child: const Text('删除内容'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleReport(
+                                  reportId: report.id,
+                                  action: 'warn',
+                                  actionLabel: '警告用户',
+                                  defaultResult: '已警告用户',
+                                ),
+                          child: const Text('警告用户'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleReport(
+                                  reportId: report.id,
+                                  action: 'ban',
+                                  actionLabel: '封禁用户',
+                                  defaultResult: '已封禁用户',
+                                ),
+                          child: const Text('封禁用户'),
+                        ),
+                        FilledButton.tonal(
+                          onPressed: _actionBusy
+                              ? null
+                              : () => _promptAndHandleReport(
+                                  reportId: report.id,
+                                  action: 'misreport',
+                                  actionLabel: '标记误报',
+                                  defaultResult: '标记为误报',
+                                ),
+                          child: const Text('标记误报'),
+                        ),
+                      ],
                     ],
                   ),
                 ],
@@ -3146,47 +3106,50 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
+  double _metricWidth = 188;
+
   Widget _metricCard({
     required String title,
     required int value,
     required IconData icon,
-    required Color color,
+    Color? color,
   }) {
+    final ZxTokens t = ZxTokens.of(context);
+    // Hues come from the theme so they hold in dark mode.
+    color = t.channelFor(title);
     return SizedBox(
-      width: 188,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Icon(icon, color: color, size: 18),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: TextStyle(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.58),
-                      ),
-                    ),
+      width: _metricWidth,
+      child: ZxCard(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Color.lerp(color, t.surface, 0.86),
+                    borderRadius: ZxRadius.smallButtonAll,
                   ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                '$value',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+                  child: Icon(icon, color: color, size: 16),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: ZxType.caption.copyWith(color: t.text2),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '$value',
+              style: ZxType.display.copyWith(fontSize: 30, color: t.text),
+            ),
+          ],
         ),
       ),
     );
@@ -4497,4 +4460,15 @@ class _NoteDialogState extends State<_NoteDialog> {
       ],
     );
   }
+}
+
+class _AdminSection {
+  const _AdminSection(this.label, this.icon, this.build, {this.pending = 0});
+
+  final String label;
+  final IconData icon;
+  final Widget Function() build;
+
+  /// Items waiting for a decision, shown as a count.
+  final int pending;
 }

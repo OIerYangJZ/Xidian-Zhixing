@@ -11,7 +11,11 @@ class AdminPortalPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: AppTheme.adminTheme(Theme.of(context).brightness),
+      // 书院·青绿 marks the admin side apart from the student site.
+      data: AppTheme.designSystemFor(
+        themeKey: 'zhuqing',
+        brightness: Theme.of(context).brightness,
+      ),
       child: AdminConsolePage(
         repository: AppRepositories.adminPortal,
         onLogout: () async {
