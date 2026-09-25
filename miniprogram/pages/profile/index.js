@@ -1,20 +1,25 @@
 import { getUserInfo } from '../../api/auth';
-import { getFavoritePosts, togglePostLike } from '../../api/posts';
-import {
-  getFollowers,
-  getFollowing,
-  getMyComments,
-  getMyPosts
-} from '../../api/user';
+import { getFollowers, getFollowing } from '../../api/user';
 import { avatarInitial, resolveUrl } from '../../utils/format';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
-import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../utils/feed_images';
 
-const TABS = [
-  { key: 'posts', label: '帖子' },
-  { key: 'favorites', label: '收藏' },
-  { key: 'activities', label: '动态' }
+// 我的 (handoff A4): the profile card, four content entries and the menu.
+// The content lists are their own pages now, not tabs here.
+const QUICK_ENTRIES = [
+  { key: 'posts', label: '我的发布', icon: 'edit', tone: 'primary', url: '/pages/profile/my-posts/index' },
+  { key: 'comments', label: '我的评论', icon: 'comment', tone: 'info', url: '/pages/profile/my-comments/index' },
+  { key: 'favorites', label: '我的收藏', icon: 'star', tone: 'accent', url: '/pages/profile/favorites/index' },
+  { key: 'reports', label: '我的举报', icon: 'flag', tone: 'seal', url: '/pages/profile/my-reports/index' }
+];
+
+const MENU = [
+  { key: 'hot', label: '热榜', icon: 'fire', tone: 'danger', url: '/pages/treehole/hot/index' },
+  { key: 'college', label: '学院专区', icon: 'building', tone: 'info', url: '/pages/campus/college/index' },
+  { key: 'clubs', label: '社团', icon: 'users', tone: 'success', url: '/pages/clubs/index' },
+  { key: 'mailbox', label: '信箱', icon: 'mail', tone: 'accent', url: '/pages/profile/feedback/index' },
+  { key: 'admin', label: '管理', icon: 'shield', tone: 'neutral', url: '/pages/admin/index', adminOnly: true, note: '仅管理员' },
+  { key: 'settings', label: '设置', icon: 'sliders', tone: 'neutral', url: '/pages/profile/settings/index', note: '账号 · 隐私 · 通知 · 外观' }
 ];
 
 const buildProfile = (raw = {}) => {
@@ -40,43 +45,15 @@ const buildFollowUser = (raw = {}) => {
   };
 };
 
-const buildPost = (raw = {}) => {
-  const imageUrls = Array.isArray(raw.imageUrls)
-    ? raw.imageUrls
-    : Array.isArray(raw.images)
-      ? raw.images
-      : [];
-  const normalizedImageUrls = imageUrls.map(resolveUrl).filter(Boolean);
-  return {
-    ...raw,
-    id: String(raw.id || raw.postId || ''),
-    images: normalizedImageUrls,
-    imageUrls: normalizedImageUrls,
-    liked: Boolean(raw.liked || raw.isLiked),
-    isLiked: Boolean(raw.liked || raw.isLiked),
-    likeCount: Number(raw.likeCount || 0),
-    commentCount: Number(raw.commentCount || 0)
-  };
-};
-
 Page({
   data: {
-    tabs: TABS,
-    activeTab: 'posts',
+    quickEntries: QUICK_ENTRIES,
+    menu: MENU.filter((item) => !item.adminOnly),
     userInfo: null,
     followers: [],
     following: [],
-    posts: [],
-    favoritePosts: [],
-    comments: [],
     loadingProfile: true,
-    loadingPosts: true,
-    loadingFavorites: true,
-    loadingComments: true,
     profileError: '',
-    postsError: '',
-    favoritesError: '',
-    commentsError: '',
     showFollowSheet: false,
     followSheetTitle: '',
     followSheetUsers: [],
@@ -87,7 +64,6 @@ Page({
   },
 
   onLoad() {
-    this._tabScrollTops = { posts: 0, favorites: 0, activities: 0 };
     this._didInitialShow = false;
     applyThemeAndLanguage(this);
     this.initCustomNav();
@@ -118,15 +94,6 @@ Page({
     });
   },
 
-  goBack() {
-    const pages = getCurrentPages();
-    if (pages.length > 1) {
-      wx.navigateBack();
-      return;
-    }
-    wx.switchTab({ url: '/pages/treehole/index' });
-  },
-
   onPullDownRefresh() {
     this.refreshAll()
       .catch((error) => {
@@ -135,27 +102,12 @@ Page({
       .finally(() => wx.stopPullDownRefresh());
   },
 
-  onPageScroll(event) {
-    if (!this._tabScrollTops) return;
-    this._tabScrollTops[this.data.activeTab] = event.scrollTop || 0;
-  },
-
   loadInitialData() {
-    return Promise.all([
-      this.refreshProfile(),
-      this.loadPosts(),
-      this.loadFavorites(),
-      this.loadComments()
-    ]);
+    return this.refreshProfile();
   },
 
   refreshAll() {
-    return Promise.all([
-      this.refreshProfile(),
-      this.loadPosts(),
-      this.loadFavorites(),
-      this.loadComments()
-    ]);
+    return this.refreshProfile();
   },
 
   async refreshProfile() {
@@ -166,8 +118,10 @@ Page({
         getFollowers(),
         getFollowing()
       ]);
+      const userInfo = buildProfile(profileResponse.data);
       this.setData({
-        userInfo: buildProfile(profileResponse.data),
+        userInfo,
+        menu: MENU.filter((item) => !item.adminOnly || userInfo.isAdmin),
         followers: followers.map(buildFollowUser),
         following: following.map(buildFollowUser)
       });
@@ -178,76 +132,9 @@ Page({
     }
   },
 
-  async loadPosts() {
-    this.setData({ loadingPosts: true, postsError: '' });
-    try {
-      const posts = await getMyPosts();
-      this.setData({
-        posts: posts.map((post) => attachDisplayImages(buildPost(post)))
-      });
-      await this.hydrateProfileImages('posts');
-    } catch (error) {
-      this.setData({ postsError: '帖子加载失败，请重试' });
-    } finally {
-      this.setData({ loadingPosts: false });
-    }
-  },
-
-  async loadFavorites() {
-    this.setData({ loadingFavorites: true, favoritesError: '' });
-    try {
-      const posts = await getFavoritePosts();
-      this.setData({
-        favoritePosts: posts.map((post) => attachDisplayImages(buildPost(post)))
-      });
-      await this.hydrateProfileImages('favoritePosts');
-    } catch (error) {
-      this.setData({ favoritesError: '收藏加载失败，请重试' });
-    } finally {
-      this.setData({ loadingFavorites: false });
-    }
-  },
-
-  async hydrateProfileImages(key) {
-    const posts = this.data[key] || [];
-    const hydratedByPostId = await hydrateDisplayImages(posts);
-    const hydratedPosts = applyHydratedDisplayImages(this.data[key] || [], hydratedByPostId);
-    if (hydratedPosts !== this.data[key]) {
-      this.setData({ [key]: hydratedPosts });
-    }
-  },
-
-  async loadComments() {
-    this.setData({ loadingComments: true, commentsError: '' });
-    try {
-      const comments = await getMyComments();
-      this.setData({
-        comments: comments.map((item = {}) => ({
-          ...item,
-          id: String(item.id || item.commentId || ''),
-          postId: String(item.postId || ''),
-          postTitle: item.postTitle || '原帖',
-          content: item.content || '',
-          timeText: item.timeText || ''
-        }))
-      });
-    } catch (error) {
-      this.setData({ commentsError: '评论动态加载失败，请重试' });
-    } finally {
-      this.setData({ loadingComments: false });
-    }
-  },
-
-  switchProfileTab(event) {
-    const tab = event.currentTarget.dataset.tab;
-    if (!tab || tab === this.data.activeTab) return;
-    this._tabScrollTops[this.data.activeTab] = this._tabScrollTops[this.data.activeTab] || 0;
-    this.setData({ activeTab: tab }, () => {
-      wx.pageScrollTo({
-        scrollTop: this._tabScrollTops[tab] || 0,
-        duration: 0
-      });
-    });
+  openEntry(event) {
+    const url = event.currentTarget.dataset.url;
+    if (url && requireLoginPage()) wx.navigateTo({ url });
   },
 
   goToEditProfile() {
@@ -290,52 +177,6 @@ Page({
   },
 
   stopTouchMove() {},
-
-  goPostDetail(event) {
-    const id = event.currentTarget.dataset.id;
-    if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
-  },
-
-  openCommentDetail(event) {
-    const postId = event.currentTarget.dataset.postId;
-    const commentId = event.currentTarget.dataset.commentId;
-    if (!postId) return;
-    wx.navigateTo({
-      url: `/pages/campus/post-detail/index?id=${postId}${commentId ? `&commentId=${commentId}` : ''}`
-    });
-  },
-
-  async toggleLike(event) {
-    const source = event.currentTarget.dataset.source;
-    const index = Number(event.currentTarget.dataset.index);
-    const key = source === 'favorites' ? 'favoritePosts' : 'posts';
-    const posts = this.data[key].slice();
-    const post = posts[index];
-    if (!post || !post.id) return;
-    const before = Boolean(post.liked || post.isLiked);
-    const result = await togglePostLike(post.id);
-    const liked = Boolean(result.liked);
-    const delta = liked === before ? 0 : liked ? 1 : -1;
-    posts[index] = {
-      ...post,
-      liked,
-      isLiked: liked,
-      likeCount: Math.max(0, Number(post.likeCount || 0) + delta)
-    };
-    this.setData({ [key]: posts });
-  },
-
-  previewPostImage(event) {
-    const source = event.currentTarget.dataset.source;
-    const postIndex = Number(event.currentTarget.dataset.postIndex);
-    const current = event.currentTarget.dataset.url;
-    const posts = source === 'favorites' ? this.data.favoritePosts : this.data.posts;
-    const post = posts[postIndex];
-    const urls = (post && (post.displayImages || post.imageUrls)) || [];
-    if (current && urls.length) {
-      wx.previewImage({ current, urls });
-    }
-  },
 
   showShareToast() {
     wx.showToast({ title: '链接已复制', icon: 'none', duration: 1000 });

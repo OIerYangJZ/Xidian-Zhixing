@@ -94,6 +94,19 @@ const SECTION_COLORS = {
   其他: '#6B7FD7'
 };
 
+// One of the six theme channel colours (--zx-channel-1…6), picked with the
+// same hash as ZxTokens.channelFor on web and Android, so a section keeps
+// its colour across clients.
+export const sectionTone = (sectionName) => {
+  const text = String(sectionName || '').trim();
+  if (!text) return 1;
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = (hash * 31 + text.charCodeAt(i)) & 0x7fffffff;
+  }
+  return (hash % 6) + 1;
+};
+
 export const sectionColor = (sectionName) => {
   return SECTION_COLORS[String(sectionName || '').trim()] || '#155E75';
 };
@@ -162,6 +175,7 @@ export const normalizePost = (raw = {}) => {
     summarySegments: inlineTagSegments(summary),
     sectionName,
     sectionColor: sectionColor(sectionName),
+    sectionTone: sectionTone(sectionName),
     tags,
     tagText: tags.join(' / '),
     authorAlias,
@@ -178,6 +192,9 @@ export const normalizePost = (raw = {}) => {
     favorited: Boolean(raw.favorited || raw.isFavorited),
     isPinned: Boolean(raw.isPinned),
     statusLabel: statusLabel(raw.status),
+    statusKey: ['resolved', 'closed'].includes(String(raw.status || '').toLowerCase())
+      ? String(raw.status).toLowerCase()
+      : 'ongoing',
     imageUrls,
     firstImageUrl: imageUrls[0] || ''
   };

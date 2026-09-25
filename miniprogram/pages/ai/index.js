@@ -7,6 +7,8 @@ import { avatarInitial } from '../../utils/format';
 
 Page({
   data: {
+    examples: ['图书馆几点闭馆？', '怎么申请缓考？', '南校区哪里能打印？'],
+    statusLoaded: false,
     history: [],
     configured: false,
     currentModel: '',
@@ -66,6 +68,7 @@ Page({
     try {
       const status = await fetchAiModels();
       this.setData({
+        statusLoaded: true,
         configured: Boolean(status.configured),
         currentModel: status.model || '',
         subtitleText: status.configured ? `当前模型：${status.model}` : '服务器 AI 尚未配置',
@@ -73,6 +76,7 @@ Page({
       });
     } catch (error) {
       this.setData({
+        statusLoaded: true,
         configured: false,
         currentModel: '',
         subtitleText: '服务器 AI 状态加载失败',
@@ -123,6 +127,14 @@ Page({
     wx.navigateTo({
       url: `/pages/ai/chat/index?id=${encodeURIComponent(id)}&q=${encodeURIComponent(question)}`
     });
+  },
+
+  // 可以这样问: opens a chat with the question; it sends itself when the
+  // server has AI configured.
+  askExample(e) {
+    if (!requireLoginPage()) return;
+    const q = e.currentTarget.dataset.q || '';
+    wx.navigateTo({ url: `/pages/ai/chat/index?q=${encodeURIComponent(q)}` });
   },
 
   goToHistory() {

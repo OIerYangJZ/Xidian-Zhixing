@@ -1,54 +1,60 @@
-<view class="page ai-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
-  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-  <view class="ai-topbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px; box-sizing: border-box; background: var(--app-background);">
-    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
+<view class="zx-page ai-home {{themeClass}}">
+  <view class="ai-head" style="padding-top: {{navTop}}px;">
+    <view class="ai-head-bar" style="height: {{navHeight}}px;">
+      <view class="zx-display ai-title">{{t.ai}}</view>
     </view>
-    <view>
-      <view class="ai-title">{{t.ai}}</view>
-      <view class="ai-subtitle">{{t.ai_subtitle}}</view>
-    </view>
-  </view>
-  
-  <view class="ai-action-bar" style="margin-top: {{navTop + navHeight + 8}}px;">
-    <view wx:if="{{userErrorMessage}}" class="empty-state-desc">
-      {{userErrorMessage}}
-      <button bindtap="retryLoadUserInfo">重新加载</button>
-    </view>
-    <view wx:if="{{configError}}" class="empty-state-desc">
-      {{configError}}
-      <button bindtap="retryLoadAiStatus">重新加载</button>
-    </view>
-    <button class="new-chat-btn" bindtap="startNewChat">
-      <text class="icon">+</text>
-      <text>发起新对话</text>
-    </button>
-    <button class="settings-btn" bindtap="goToSettings">AI 设置</button>
+    <view class="ai-subtitle">问问小电：课程、办事与校园生活</view>
   </view>
 
-  <view class="history-section">
-    <view class="section-header">
-      <view class="section-title" style="margin-bottom: 0;">历史对话</view>
-      <view class="more-link" bindtap="goToHistory" wx:if="{{history.length}}">查看全部</view>
-    </view>
-    <view class="history-list">
-      <view class="history-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat">
-        <view class="item-icon"><view class="chat-glyph"></view></view>
-        <view class="item-content">
-          <view class="item-title">{{item.title}}</view>
-          <view class="item-date">{{item.date}}</view>
+  <view class="ai-body">
+    <view wx:if="{{userErrorMessage}}" class="zx-inline-message zx-inline-message--danger ai-note" bindtap="retryLoadUserInfo">{{userErrorMessage}} · 点击重试</view>
+
+    <!-- M2b: not configured → the status card; configured → the ask box. -->
+    <view wx:if="{{statusLoaded && !configured}}" class="zx-card zx-card--pad status">
+      <view class="zx-row status-head">
+        <view class="status-icon">
+          <view class="zx-i zx-i-server"></view>
+          <view class="status-dot"><view class="zx-i zx-i--sm zx-i-info"></view></view>
         </view>
-        <view class="item-arrow">></view>
+        <view>
+          <view class="zx-title">小电暂时无法回答</view>
+          <view class="status-kind">{{configError ? 'AI 状态加载失败' : '服务器 AI 尚未配置'}}</view>
+        </view>
       </view>
-      
-      <view wx:if="{{!history.length}}" class="empty-state-container" style="padding: 80rpx 40rpx;">
-        <!-- 标注：此处如果需要图片，可使用 empty_state_ai.png -->
-        <view class="empty-image-placeholder"></view>
-        <view class="empty-state-title">还没有对话</view>
-        <view class="empty-state-desc" style="margin-bottom: 24rpx;">可以从一个校园问题开始。</view>
-        <button class="primary-button empty-state-btn" bindtap="startNewChat" style="width: 240rpx; height: 72rpx; line-height: 72rpx;">问问 AI</button>
+      <view class="status-text">管理员完成配置后即可提问。历史对话仍可查看。</view>
+      <view class="zx-row status-actions">
+        <view class="zx-btn zx-btn--secondary status-btn" bindtap="goToSettings"><view class="zx-i zx-i--sm zx-i-sliders"></view>AI 设置</view>
+        <view class="zx-btn zx-btn--secondary status-btn" bindtap="retryLoadAiStatus"><view class="zx-i zx-i--sm zx-i-refresh"></view>重新检查</view>
       </view>
+    </view>
+    <view wx:elif="{{configured}}" class="zx-card ask" bindtap="startNewChat" hover-class="zx-btn-hover">
+      <view class="zx-i zx-i-ai ask-icon"></view>
+      <view class="ask-placeholder">问点什么…</view>
+      <view class="ask-send"><view class="zx-i zx-i--sm zx-i-send"></view></view>
+    </view>
+
+    <view class="zx-section-title ai-section">可以这样问</view>
+    <view class="examples">
+      <view wx:for="{{examples}}" wx:key="*this" class="example" data-q="{{item}}" bindtap="askExample" hover-class="zx-btn-hover">{{item}}</view>
+    </view>
+
+    <view class="zx-btn zx-btn--secondary zx-btn--block new-chat" bindtap="startNewChat"><view class="zx-i zx-i--sm zx-i-plus"></view>发起新对话</view>
+
+    <view class="zx-row history-head">
+      <view class="zx-title">历史对话</view>
+      <view class="zx-spacer"></view>
+      <view wx:if="{{history.length}}" class="history-more" bindtap="goToHistory">查看全部</view>
+    </view>
+    <view wx:if="{{history.length}}" class="zx-list">
+      <view class="zx-list-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat" hover-class="history-item--pressed">
+        <view class="zx-icon-tile history-icon"><view class="zx-i zx-i--sm zx-i-chat"></view></view>
+        <view class="zx-list-item__main zx-list-item__title zx-ellipsis">{{item.title}}</view>
+        <view class="zx-caption">{{item.date}}</view>
+      </view>
+    </view>
+    <view wx:else class="zx-empty history-empty">
+      <view class="zx-empty__title">还没有对话</view>
+      <view class="zx-empty__message">可以从一个校园问题开始。</view>
     </view>
   </view>
 </view>

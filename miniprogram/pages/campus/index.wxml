@@ -1,58 +1,108 @@
-<view class="page campus-page {{themeClass}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
-  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-
-  <view class="ios-nav" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
-    </view>
-    <view class="nav-title">
-      <view class="nav-name">{{t.campus}}</view>
-      <view class="nav-subtitle">{{t.campus_subtitle}}</view>
-    </view>
-  </view>
-
-  <scroll-view scroll-y class="campus-scroll" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view wx:if="{{errorMessage}}" class="today-empty">
-      <view>{{errorMessage}}</view>
-      <button bindtap="retryLoad">重新加载</button>
-    </view>
-    <view class="ids-card" bindtap="openIdsLogin">
-      <view class="ids-mark"></view>
-      <view class="ids-body">
-        <view class="ids-title">校园系统登录</view>
-        <view class="ids-desc">管理校园网自服务、宿舍水机的登录状态</view>
-      </view>
-      <view class="ids-arrow">›</view>
+<view class="zx-page campus {{themeClass}}">
+  <scroll-view scroll-y class="campus-scroll">
+    <view class="campus-head" style="padding-top: {{navTop}}px;">
+      <view class="campus-head-bar" style="height: {{navHeight}}px;"><view class="zx-display campus-title">{{t.campus}}</view></view>
+      <view class="campus-date">{{todayScheduleDate}}</view>
     </view>
 
-    <view class="today-section">
-      <view class="section-head">
-        <view>
-          <view class="section-title">今日日程</view>
-          <view class="section-subtitle">{{todayScheduleDate}}</view>
+    <view class="campus-body">
+      <view wx:if="{{errorMessage}}" class="zx-inline-message zx-inline-message--danger card-gap" bindtap="retryLoad">{{errorMessage}} · 点击重试</view>
+
+      <!-- M2: there is no unified sign-in state on the server; this is the
+           campus system sign-in (network, dorm water), as on web. -->
+      <view class="zx-card zx-card--pad zx-row auth" bindtap="openIdsLogin" hover-class="zx-btn-hover">
+        <view class="auth-icon"><view class="zx-i zx-i-key"></view></view>
+        <view class="auth-main">
+          <view class="zx-label">校园系统登录</view>
+          <view class="zx-caption">校园网自服务、宿舍水机</view>
         </view>
+        <view class="zx-btn zx-btn--secondary zx-btn--small">登录管理</view>
       </view>
-      <view class="today-list" wx:if="{{todaySchedules.length}}">
-        <view class="today-row {{item.isActive ? 'active' : ''}}" wx:for="{{todaySchedules}}" wx:key="id" data-source="{{item.source}}" bindtap="openScheduleService">
-          <view class="today-time">{{item.timeRange}}</view>
-          <view class="today-body">
-            <view class="today-title">{{item.title}}</view>
-            <view class="today-meta">{{item.sourceLabel}} · {{item.location}}</view>
+
+      <view class="zx-card zx-card--pad card-gap">
+        <view class="zx-row card-head">
+          <view class="zx-i zx-i--sm zx-i-calendar card-head-icon"></view>
+          <view class="zx-title card-head-title">今日日程</view>
+          <view class="zx-spacer"></view>
+          <view wx:if="{{todaySchedules.length}}" class="zx-caption">{{todaySchedules.length}} 项</view>
+        </view>
+        <view wx:if="{{!todaySchedules.length}}" class="empty-line">今天没有课表、考试或实验安排</view>
+        <view wx:for="{{todaySchedules}}" wx:key="id" class="today {{item.isActive ? 'today--active' : ''}}" data-source="{{item.source}}" bindtap="openScheduleService">
+          <view class="today-time">{{item.startTime || item.timeRange}}</view>
+          <view class="today-main">
+            <view class="zx-label zx-ellipsis">{{item.title}}</view>
+            <view class="zx-caption zx-ellipsis">{{item.sourceLabel}}{{item.location ? ' · ' + item.location : ''}}</view>
           </view>
-          <view wx:if="{{item.isActive}}" class="today-badge">进行中</view>
+          <view wx:if="{{item.isActive}}" class="zx-badge today-now">进行中</view>
         </view>
       </view>
-      <view wx:else class="today-empty">今天没有课表、考试或实验安排</view>
-    </view>
 
-    <view class="service-section" wx:for="{{groupedServices}}" wx:key="id">
-      <view class="section-title group-title">{{item.name}}</view>
-      <view class="service-grid">
-        <view class="service-card" wx:for="{{item.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService">
-          <view class="service-symbol service-symbol-{{service.kind}}"></view>
-          <view class="service-name">{{service.name}}</view>
+      <view class="zx-card zx-card--pad card-gap">
+        <view class="zx-row card-head">
+          <view class="zx-i zx-i--sm zx-i-table card-head-icon"></view>
+          <view class="zx-title card-head-title">课表</view>
+          <view class="zx-spacer"></view>
+          <view class="zx-row week-nav">
+            <view class="week-step" data-delta="-1" bindtap="shiftWeek"><view class="zx-i zx-i--sm zx-i-back"></view></view>
+            <view class="week-label">{{weekLabel}}</view>
+            <view class="week-step week-step--next" data-delta="1" bindtap="shiftWeek"><view class="zx-i zx-i--sm zx-i-back"></view></view>
+          </view>
         </view>
+        <view wx:if="{{!isThisWeek}}" class="this-week"><view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="thisWeek">回到本周</view></view>
+        <view wx:if="{{timetableError}}" class="zx-inline-message zx-inline-message--danger" bindtap="loadWeek">{{timetableError}}</view>
+        <block wx:else>
+          <view class="days">
+            <view wx:for="{{weekDays}}" wx:key="label" class="day {{item.isToday ? 'day--today' : ''}}">
+              <view class="day-label">{{item.label}}</view>
+              <view class="day-num">{{item.day}}</view>
+              <view class="day-dots"><view wx:for="{{item.dots}}" wx:for-item="d" wx:key="*this" class="day-dot"></view></view>
+            </view>
+          </view>
+          <view wx:for="{{timetable}}" wx:key="label" wx:for-item="row" class="grid-row">
+            <view class="grid-label">{{row.label}}</view>
+            <view wx:for="{{row.cells}}" wx:for-item="cell" wx:key="key" class="cell {{cell.title ? 'cell--filled zx-tone-' + cell.tone : ''}} {{cell.tone === 0 && cell.title ? 'cell--exam' : ''}}" data-source="{{cell.source}}" bindtap="openScheduleService">{{cell.title}}</view>
+          </view>
+          <view class="zx-caption grid-note">左右切换周次 · 点课程看教室与教师</view>
+        </block>
+      </view>
+
+      <view class="zx-card zx-card--pad card-gap">
+        <view class="zx-row card-head">
+          <view class="zx-i zx-i--sm zx-i-exam card-head-icon"></view>
+          <view class="zx-title card-head-title">考试</view>
+          <view class="zx-spacer"></view>
+          <view wx:if="{{exams.length}}" class="head-link" data-source="examSchedules" bindtap="openScheduleService">全部 {{exams.length}} 场</view>
+        </view>
+        <view wx:if="{{!exams.length}}" class="empty-line">近一个月没有考试安排</view>
+        <view wx:for="{{exams}}" wx:key="id" class="exam" data-source="examSchedules" bindtap="openScheduleService">
+          <view class="exam-date"><view class="exam-day">{{item.day}}</view><view class="zx-caption">{{item.month}}</view></view>
+          <view class="exam-main">
+            <view class="zx-label">{{item.title}}</view>
+            <view class="zx-caption">{{item.meta}}</view>
+          </view>
+          <view class="exam-count {{item.soon ? 'exam-count--soon' : ''}}">{{item.countdown}}</view>
+        </view>
+      </view>
+
+      <view class="zx-card zx-card--pad card-gap">
+        <view class="zx-row card-head">
+          <view class="zx-i zx-i--sm zx-i-grid card-head-icon"></view>
+          <view class="zx-title card-head-title">服务入口</view>
+          <view class="zx-spacer"></view>
+          <view class="zx-caption">外链在浏览器中打开</view>
+        </view>
+        <block wx:for="{{groupedServices}}" wx:key="id" wx:for-item="group">
+          <view class="zx-section-title service-group">{{group.name}}</view>
+          <view class="services">
+            <view class="service" wx:for="{{group.items}}" wx:for-item="service" wx:key="id" data-id="{{service.id}}" bindtap="openService" hover-class="zx-btn-hover">
+              <view class="service-icon zx-tone-{{service.tone}}">
+                <view class="zx-i zx-i-{{service.icon}}"></view>
+                <view wx:if="{{service.external}}" class="service-ext"><view class="zx-i zx-i-external"></view></view>
+              </view>
+              <view class="service-name zx-ellipsis">{{service.name}}</view>
+            </view>
+          </view>
+        </block>
       </view>
     </view>
   </scroll-view>

@@ -1,537 +1,64 @@
-page {
-  background: var(--app-background);
-}
+/* 我的 (handoff A4). */
+.me { padding-bottom: 48rpx; }
 
-.profile-page {
-  min-height: 100vh;
-  padding: 0;
-  background: var(--app-background);
-}
-
-.ios-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 60;
-  display: flex;
-  align-items: center;
-  padding-left: 32rpx;
-  padding-right: 260rpx;
-  padding-bottom: 8px;
-  background: var(--app-background);
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.profile-back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 80rpx;
-  height: 80rpx;
-  flex: 0 0 auto;
-  margin-right: 8rpx;
-  border-radius: 40rpx;
-}
-
-.profile-back-icon {
-  width: 22rpx;
-  height: 22rpx;
-  border-left: 4rpx solid var(--brand-deep);
-  border-bottom: 4rpx solid var(--brand-deep);
-  transform: rotate(45deg);
-}
-
-.nav-title {
-  flex: 1;
-  min-width: 0;
-}
-
-.nav-name {
-  color: var(--brand-deep);
-  font-size: 31rpx;
-  font-weight: 700;
-}
-
-.nav-subtitle {
-  color: var(--text-secondary);
-  font-size: 22rpx;
-}
-
-.profile-header {
-  position: relative;
-  background: var(--app-surface);
-}
-
-.profile-background {
-  position: relative;
-  height: 120rpx;
-  background: var(--app-primary-soft);
-  overflow: hidden;
-}
-
-.profile-background.has-image {
-  height: 240rpx;
-  background: var(--app-surface);
-}
-
-.profile-background-image,
-.profile-background-overlay {
+.me-hero { position: relative; padding: 0 40rpx 40rpx; background: var(--zx-hero); overflow: hidden; }
+.me-mark {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.profile-background-image {
-  background: var(--app-primary-soft);
-}
-
-.profile-background-overlay {
-  background: rgba(255, 255, 255, .08);
-}
-
-
-.profile-avatar-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  min-height: 96rpx;
-  padding: 0 32rpx;
-}
-
-.profile-avatar-wrap {
-  position: relative;
-  z-index: 2;
-  width: 160rpx;
-  height: 160rpx;
-  margin-top: -48rpx;
-  border: 8rpx solid var(--app-surface);
-  border-radius: 36rpx;
-  background: var(--app-primary-soft);
-  overflow: hidden;
-}
-
-.profile-avatar {
-  display: block;
-  width: 144rpx;
-  height: 144rpx;
-  border-radius: 30rpx;
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
-  font-size: 40rpx;
-  font-weight: 700;
-  line-height: 144rpx;
-  text-align: center;
-}
-
-.profile-avatar-text {
-  display: block;
-}
-
-.profile-actions {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
-  margin-bottom: 32rpx;
-}
-
-.profile-pill-button,
-.profile-icon-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 56rpx;
-  border: 1rpx solid var(--app-divider);
-  border-radius: 40rpx;
-  background: var(--app-surface);
-  color: var(--app-text-primary);
-  font-size: 26rpx;
-  font-weight: 600;
-  line-height: 56rpx;
-}
-
-.profile-pill-button {
-  padding: 0 32rpx;
-}
-
-.profile-icon-button {
-  width: 80rpx;
-  padding-bottom: 2rpx;
-  font-size: 28rpx;
-}
-
-.profile-info {
-  padding: 0 32rpx 24rpx;
-  background: var(--app-surface);
-}
-
-.profile-info.with-background {
-  background: var(--app-surface-translucent);
-}
-
-
-.profile-name {
-  color: var(--app-text-primary);
-  font-size: 36rpx;
-  font-weight: 700;
-  line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.profile-bio {
-  margin-top: 8rpx;
-  color: var(--app-text-secondary);
-  font-size: 28rpx;
-  line-height: 1.45;
-  word-break: break-word;
-}
-
-.profile-school-meta {
-  margin-top: 8rpx;
-  color: var(--app-text-primary);
-  font-size: 26rpx;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.profile-gender {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  margin-top: 8rpx;
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
-  line-height: 1.25;
-}
-
-.profile-gender-icon {
-  font-size: 28rpx;
+  right: -40rpx;
+  top: 40rpx;
+  font-family: "STZhongsong", "Songti SC", "STSong", serif;
+  font-size: 320rpx;
   line-height: 1;
+  color: var(--zx-primary);
+  opacity: 0.07;
 }
-
-.profile-stats {
-  display: flex;
-  align-items: center;
-  gap: 40rpx;
-  margin-top: 16rpx;
-}
-
-.profile-stat {
-  display: flex;
-  align-items: flex-end;
-  gap: 6rpx;
-  min-height: 32rpx;
-}
-
-.profile-stat-value {
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.profile-stat-label {
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
-  line-height: 1;
-}
-
-.profile-level {
-  height: 34rpx;
-  padding: 0 16rpx;
-  border-radius: 8rpx;
-  background: var(--app-accent-soft);
-  color: var(--app-accent);
-  font-size: 24rpx;
-  font-weight: 600;
-  line-height: 34rpx;
-}
-
-.profile-divider {
-  height: 1rpx;
-  background: var(--app-divider);
-}
-
-.profile-tabs {
-  display: flex;
-  height: 92rpx;
-  background: var(--app-surface);
-}
-
-.profile-tab {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--app-text-secondary);
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.profile-tab.active {
-  color: var(--app-text-primary);
-  font-weight: 600;
-}
-
-.profile-tab-indicator {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 4rpx;
-  background: var(--app-primary);
-}
-
-.profile-tab-body {
-  min-height: 60vh;
-  background: var(--app-background);
-}
-
-.profile-post-card {
-  /* Inherit standard feed-card style */
-}
-
-.anonymous-feed-avatar {
-  border: none;
-}
-
-.profile-card-images {
-  width: 100%;
-  height: 560rpx;
-  margin-top: 16rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
-  background: var(--app-divider);
-}
-
-.profile-card-image {
-  width: 100%;
-  height: 100%;
-  background: var(--app-divider);
-}
-
-.profile-loading,
-.profile-empty {
-  min-height: 360rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--app-text-tertiary);
-  font-size: 28rpx;
-}
-
-.profile-empty {
-  flex-direction: column;
-  gap: 24rpx;
-}
-
-.profile-empty-icon {
-  position: relative;
-  width: 96rpx;
-  height: 96rpx;
-  color: var(--app-divider);
-}
-
-.article-icon {
-  border: 6rpx solid currentColor;
-  border-radius: 10rpx;
-}
-
-.article-icon::before,
-.article-icon::after {
-  content: '';
-  position: absolute;
-  left: 18rpx;
-  right: 18rpx;
-  height: 6rpx;
-  border-radius: 3rpx;
-  background: currentColor;
-}
-
-.article-icon::before {
-  top: 28rpx;
-}
-
-.article-icon::after {
-  top: 48rpx;
-}
-
-.star-icon::before {
-  content: '☆';
-  position: absolute;
-  inset: 0;
-  font-size: 92rpx;
-  line-height: 96rpx;
-  text-align: center;
-}
-
-.comment-empty-icon {
-  border: 6rpx solid currentColor;
-  border-radius: 20rpx;
-}
-
-.comment-empty-icon::after {
-  content: '';
+.me-settings {
   position: absolute;
   left: 24rpx;
-  bottom: -12rpx;
-  width: 28rpx;
-  height: 28rpx;
-  border-left: 6rpx solid currentColor;
-  border-bottom: 6rpx solid currentColor;
-  transform: rotate(-45deg);
-  background: var(--app-background);
-}
-
-.activity-list {
-  background: var(--app-surface);
-}
-
-.activity-item {
-  padding: 24rpx 32rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.activity-post {
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
-  line-height: 1.35;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.activity-content {
-  display: -webkit-box;
-  margin-top: 8rpx;
-  color: var(--app-text-primary);
-  font-size: 28rpx;
-  line-height: 1.45;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  word-break: break-word;
-}
-
-.activity-time {
-  margin-top: 8rpx;
-  color: var(--app-text-tertiary);
-  font-size: 24rpx;
-}
-
-.follow-sheet-mask {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  background: rgba(0, 0, 0, .24);
-}
-
-.follow-sheet {
-  width: 100%;
-  max-height: 78vh;
-  padding-bottom: env(safe-area-inset-bottom);
-  border-radius: 32rpx 32rpx 0 0;
-  background: var(--app-surface);
-  overflow: hidden;
-}
-
-.follow-sheet-handle {
-  width: 80rpx;
-  height: 8rpx;
-  margin: 20rpx auto;
-  border-radius: 4rpx;
-  background: var(--app-divider);
-}
-
-.follow-sheet-head {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 24rpx;
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  padding: 0 32rpx 24rpx;
+  justify-content: center;
+  background: var(--zx-glass);
+  color: var(--zx-text-2);
 }
+.me-error { margin-bottom: 20rpx; }
+.me-identity { gap: 28rpx; position: relative; }
+.me-avatar { box-shadow: 0 0 0 6rpx var(--zx-surface); }
+.me-names { flex: 1; min-width: 0; }
+.me-name-row { gap: 12rpx; }
+.me-name { font-size: 44rpx; line-height: 58rpx; max-width: 70%; }
+.me-school { margin-top: 6rpx; font-size: 26rpx; color: var(--zx-text-2); }
+.me-stats { gap: 32rpx; margin-top: 32rpx; position: relative; }
+.me-stat { display: flex; align-items: baseline; gap: 8rpx; }
+.me-stat-value { font-size: 36rpx; font-weight: 700; color: var(--zx-text); }
+.me-edit { background: var(--zx-surface); box-shadow: inset 0 0 0 2rpx var(--zx-line); }
 
-.follow-sheet-title {
-  color: var(--app-text-primary);
-  font-size: 34rpx;
-  font-weight: 600;
-}
+.me-body { padding: 0 32rpx; margin-top: -8rpx; }
+.quick { display: flex; padding: 28rpx 8rpx; }
+.quick-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 14rpx; }
+.quick-icon { width: 80rpx; height: 80rpx; border-radius: 24rpx; display: flex; align-items: center; justify-content: center; }
+.quick-label { font-size: 24rpx; font-weight: 600; color: var(--zx-text); }
 
-.follow-sheet-count {
-  color: var(--app-text-secondary);
-  font-size: 28rpx;
-}
+.quick-icon--primary, .menu-icon--primary { background: var(--zx-primary-soft); color: var(--zx-primary); }
+.quick-icon--info, .menu-icon--info { background: var(--zx-info-soft); color: var(--zx-info); }
+.quick-icon--accent, .menu-icon--accent { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+.quick-icon--seal, .menu-icon--seal { background: var(--zx-seal-soft); color: var(--zx-seal); }
+.quick-icon--success, .menu-icon--success { background: var(--zx-success-soft); color: var(--zx-success); }
+.quick-icon--danger, .menu-icon--danger { background: var(--zx-danger-soft); color: var(--zx-danger); }
+.quick-icon--neutral, .menu-icon--neutral { background: var(--zx-bg-sunk); color: var(--zx-text-2); }
 
-.follow-sheet-divider {
-  height: 1rpx;
-  background: var(--app-divider);
-}
+.menu { margin-top: 24rpx; }
+.menu-icon { width: 56rpx; height: 56rpx; border-radius: 18rpx; display: flex; align-items: center; justify-content: center; flex: none; }
+.menu-item--pressed { background: var(--zx-bg-sunk); }
 
-.follow-sheet-list {
-  max-height: calc(78vh - 120rpx);
-}
-
-.follow-sheet-empty {
-  padding: 96rpx 32rpx;
-  color: var(--app-text-tertiary);
-  font-size: 28rpx;
-  text-align: center;
-}
-
-.follow-sheet-section {
-  padding: 24rpx 32rpx 8rpx;
-  color: var(--app-text-secondary);
-  font-size: 24rpx;
-  font-weight: 600;
-}
-
-.follow-user-row {
-  display: flex;
-  align-items: center;
-  min-height: 96rpx;
-  padding: 12rpx 32rpx;
-}
-
-.follow-avatar {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 20rpx;
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 80rpx;
-  text-align: center;
-}
-
-.follow-avatar-text {
-  display: block;
-}
-
-.follow-name {
-  flex: 1;
-  min-width: 0;
-  margin-left: 24rpx;
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.follow-mutual-badge {
-  height: 40rpx;
-  padding: 0 16rpx;
-  border-radius: 20rpx;
-  background: var(--app-primary-soft);
-  color: var(--app-primary);
-  font-size: 24rpx;
-  font-weight: 600;
-  line-height: 40rpx;
-}
+.sheet-mask { position: fixed; inset: 0; z-index: 50; background: var(--zx-scrim); display: flex; align-items: flex-end; }
+.follow-sheet { width: 100%; max-height: 70vh; background: var(--zx-raised); border-radius: 48rpx 48rpx 0 0; padding: 16rpx 32rpx 48rpx; box-sizing: border-box; }
+.follow-handle { width: 72rpx; height: 8rpx; border-radius: 4rpx; background: var(--zx-line-strong); margin: 0 auto 24rpx; }
+.follow-head { gap: 12rpx; padding-bottom: 16rpx; }
+.follow-list { max-height: 56vh; }
+.follow-section { padding-top: 16rpx; }
+.follow-row { gap: 20rpx; padding: 16rpx 0; }
+.follow-name { flex: 1; }

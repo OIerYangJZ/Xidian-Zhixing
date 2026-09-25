@@ -1,37 +1,25 @@
-<view class="page campus-page {{themeClass}} treehole-layout-{{postLayout}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
-  <radio-drawer open="{{drawerOpen}}" bind:close="closeDrawer"></radio-drawer>
-
-  <view class="home-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="nav-avatar-button" bindtap="openDrawer" aria-label="打开抽屉">
-      <image wx:if="{{userInfo && userInfo.avatarUrl}}" class="nav-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="nav-avatar nav-avatar-text">{{userInfo ? userInfo.avatarInitial : '匿'}}</view>
-    </view>
-    <view class="filter-trigger" bindtap="toggleFilterMenu" aria-label="筛选">
-      <view class="menu-lines"><view></view><view></view><view></view></view>
-    </view>
-    <view class="icon-button" bindtap="goSearch" aria-label="搜索">
-      <view class="search-icon" style="border-color: var(--brand-deep);"></view>
-    </view>
+<view class="zx-page treehole {{themeClass}} treehole-layout-{{postLayout}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
+  <!-- M1: the top-left avatar and the side drawer are gone; their entries live in 我的 and 消息. -->
+  <view class="appbar" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="zx-display appbar-title">{{t.home}}</view>
+    <view class="appbar-action" bindtap="toggleFilterMenu" aria-label="筛选"><view class="zx-i zx-i-filter"></view></view>
+    <view class="appbar-action" bindtap="goSearch" aria-label="搜索"><view class="zx-i zx-i-search"></view></view>
   </view>
 
-  <view class="filter-menu-mask" wx:if="{{showFilterMenu}}" bindtap="closeFilterMenu"></view>
-  <view class="filter-menu" wx:if="{{showFilterMenu}}" style="top: {{navTop + navHeight + 8}}px;">
-    <view class="filter-menu-section"><view class="filter-menu-title">排序</view></view>
-    <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="filter-menu-item {{activeSort === item.value ? 'active' : ''}}" bindtap="onSortTap">
-      <text>{{item.label}}</text><text wx:if="{{activeSort === item.value}}" class="check-mark">✓</text>
+  <view class="filter-mask" wx:if="{{showFilterMenu}}" bindtap="closeFilterMenu"></view>
+  <view class="filter-menu zx-card" wx:if="{{showFilterMenu}}" style="top: {{navTop + navHeight + 8}}px;">
+    <view class="zx-section-title filter-title">排序</view>
+    <view wx:for="{{sortOptions}}" wx:key="value" data-sort="{{item.value}}" class="filter-item {{activeSort === item.value ? 'filter-item--on' : ''}}" bindtap="onSortTap">
+      <text>{{item.label}}</text><view wx:if="{{activeSort === item.value}}" class="zx-i zx-i--sm zx-i-check"></view>
     </view>
-    <view class="filter-menu-section"><view class="filter-menu-title">分区</view></view>
-    <view wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" class="filter-menu-item {{activeSection && activeSection.id === item.id ? 'active' : ''}}" bindtap="selectSection">
-      <text>{{item.sectionName}}</text><text wx:if="{{activeSection && activeSection.id === item.id}}" class="check-mark">✓</text>
+    <view class="zx-section-title filter-title">分区</view>
+    <view wx:for="{{sectionTree.sections}}" wx:key="id" data-section="{{item}}" class="filter-item {{activeSection && activeSection.id === item.id ? 'filter-item--on' : ''}}" bindtap="selectSection">
+      <text>{{item.sectionName}}</text><view wx:if="{{activeSection && activeSection.id === item.id}}" class="zx-i zx-i--sm zx-i-check"></view>
     </view>
-  </view>
-
-  <view class="refresh-feedback" wx:if="{{refreshFeedbackVisible}}" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view class="refresh-feedback-pill">正在刷新</view>
   </view>
 
   <scroll-view
-    class="feed-list"
+    class="feed"
     scroll-y
     refresher-enabled
     refresher-triggered="{{refreshTriggered}}"
@@ -41,91 +29,53 @@
     bindscroll="onScroll"
     style="padding-top: {{navTop + navHeight + 8}}px;"
   >
-    <view class="editorial-intro" wx:if="{{!activeSection}}">
-      <view class="editorial-kicker">{{t.app_title}}</view>
-      <view class="editorial-title">{{t.tagline}}</view>
-      <view class="editorial-color-bar">
-        <view class="editorial-coral"></view>
-        <view class="editorial-apricot"></view>
-      </view>
+    <view class="intro" wx:if="{{!activeSection}}">
+      <view class="intro-mark">知</view>
+      <view class="zx-display intro-title">{{t.app_title}}</view>
+      <view class="intro-tagline">{{t.tagline}}</view>
     </view>
-    <view class="active-filter-bar" wx:if="{{activeSection}}">
-      <view class="filter-info">
-        <text class="filter-text">当前筛选：#{{activeSection.sectionName || activeSection.name}}</text>
-      </view>
-      <view class="filter-clear-btn" bindtap="clearActiveSection">清除筛选</view>
+    <view class="section-head" wx:if="{{activeSection}}">
+      <view class="zx-display section-title">#{{activeSection.sectionName || activeSection.name}}</view>
+      <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="clearActiveSection">清除筛选</view>
     </view>
     <view class="section-rule" wx:if="{{activeSection && activeSection.ruleText}}">{{activeSection.ruleText}}</view>
-    <block wx:if="{{postLayout === 'threads'}}">
-      <view class="thread-post" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-        <view class="thread-avatar-wrap">
-          <view wx:if="{{item.isAnonymous}}" class="thread-avatar">{{item.authorInitial || '匿'}}</view>
-          <block wx:else>
-            <image wx:if="{{item.authorAvatarUrl}}" class="thread-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile"></image>
-            <view wx:else class="thread-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">{{item.authorInitial}}</view>
-          </block>
-          <view wx:if="{{item.canShowFollowDot}}" class="thread-follow-dot">+</view>
+
+    <view class="sheet">
+      <view class="post {{postLayout === 'threads' ? 'post--thread' : 'post--card zx-card'}}" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+        <view class="post-rail">
+          <view wx:if="{{item.isAnonymous}}" class="zx-avatar zx-avatar--seal post-avatar">{{item.authorInitial || '匿'}}</view>
+          <view wx:else class="zx-avatar post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">
+            <image wx:if="{{item.authorAvatarUrl}}" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
+            <text wx:else>{{item.authorInitial}}</text>
+          </view>
+          <view wx:if="{{item.canShowFollowDot}}" class="post-follow">+</view>
+          <view wx:if="{{postLayout === 'threads'}}" class="post-line"></view>
         </view>
 
-        <view class="thread-body">
-          <view class="thread-head">
-            <view class="thread-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
-            <view class="thread-time">{{item.timeText}}</view>
-            <view class="thread-menu-dot"></view>
+        <view class="post-body">
+          <view class="zx-row post-head">
+            <view class="zx-label zx-ellipsis post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
+            <view class="zx-caption post-time">· {{item.timeText}}</view>
+            <view class="zx-spacer"></view>
+            <view class="zx-i zx-i-more post-more"></view>
           </view>
-          <view class="thread-text" wx:if="{{item.titleSegments && item.titleSegments.length}}">
+          <view class="post-badges">
+            <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
+            <view wx:if="{{item.isAnonymous}}" class="zx-badge zx-badge--outline-seal">匿名</view>
+            <view wx:if="{{item.sectionName}}" class="zx-badge zx-badge--channel zx-tone-{{item.sectionTone}}"><view class="zx-dot"></view>{{item.sectionName}}</view>
+            <view class="zx-badge {{item.statusKey === 'resolved' ? 'zx-badge--success' : item.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}">
+              <view class="zx-i zx-i--sm {{item.statusKey === 'resolved' ? 'zx-i-check' : 'zx-i-clock'}}"></view>{{item.statusLabel}}
+            </view>
+          </view>
+          <view class="post-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
             <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
               <text wx:else>{{segment.text}}</text>
             </block>
           </view>
-          <view class="thread-text" wx:if="{{item.summarySegments && item.summarySegments.length}}">
+          <view class="post-summary" wx:if="{{item.summarySegments && item.summarySegments.length}}">
             <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-              <text wx:else>{{segment.text}}</text>
-            </block>
-          </view>
-          <swiper class="post-images thread-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-            <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
-              <image src="{{img}}" mode="aspectFill" class="post-image"></image>
-            </swiper-item>
-          </swiper>
-          <view class="thread-actions">
-            <view class="thread-action {{item.liked || item.isLiked ? 'active' : ''}}" data-index="{{index}}" catchtap="togglePostLike"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-            <view class="thread-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="thread-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
-          </view>
-        </view>
-      </view>
-    </block>
-
-    <block wx:else>
-      <view class="feed-card" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-        <view wx:if="{{item.isAnonymous}}" class="feed-avatar">{{item.authorInitial || '匿'}}</view>
-        <block wx:else>
-          <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile"></image>
-          <view wx:else class="feed-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">{{item.authorInitial}}</view>
-        </block>
-        <view class="feed-body">
-          <view class="feed-head">
-            <view class="feed-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
-            <view wx:if="{{item.isAnonymous}}" class="seal-badge-hollow" style="margin-left: 8rpx;">匿名</view>
-            <block wx:if="{{item.sectionName}}">
-              <view class="feed-dot" style="background: {{item.sectionColor}}"></view>
-              <view class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</view>
-            </block>
-            <view wx:if="{{item.isPinned}}" class="pin-icon"></view>
-            <view class="feed-time">{{item.timeText}}</view>
-          </view>
-          <view class="feed-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
-            <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-              <text wx:else>{{segment.text}}</text>
-            </block>
-          </view>
-          <view class="feed-summary" wx:if="{{!(item.displayImages && item.displayImages.length > 0) && item.summarySegments && item.summarySegments.length}}">
-            <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+              <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
               <text wx:else>{{segment.text}}</text>
             </block>
           </view>
@@ -134,32 +84,32 @@
               <image src="{{img}}" mode="aspectFill" class="post-image"></image>
             </swiper-item>
           </swiper>
-          <view class="feed-actions">
-            <view class="feed-action {{item.liked || item.isLiked ? 'active' : ''}}" data-index="{{index}}" catchtap="togglePostLike"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-            <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="feed-action {{item.favorited || item.isFavorited ? 'favorited' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+          <view class="post-actions">
+            <view class="action {{item.liked || item.isLiked ? 'action--liked' : ''}}" data-index="{{index}}" catchtap="togglePostLike">
+              <view class="zx-i zx-i--sm {{item.liked || item.isLiked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view><text>{{item.likeCount || 0}}</text>
+            </view>
+            <view class="action"><view class="zx-i zx-i--sm zx-i-comment"></view><text>{{item.commentCount || 0}}</text></view>
+            <view class="action {{item.favorited || item.isFavorited ? 'action--saved' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite">
+              <view class="zx-i zx-i--sm {{item.favorited || item.isFavorited ? 'zx-i-star-fill' : 'zx-i-star'}}"></view><text>{{item.favoriteCount || 0}}</text>
+            </view>
           </view>
         </view>
       </view>
-    </block>
-    <view class="loading-state" wx:if="{{loading}}">正在寻找声音...</view>
 
-    <view class="empty-state-container" wx:if="{{!loading && errorMessage && posts.length === 0}}">
-      <view class="empty-state-title">加载失败</view>
-      <view class="empty-state-desc">{{errorMessage}}</view>
-      <button class="primary-button empty-state-btn" bindtap="retryFeed">重新加载</button>
+      <view class="zx-empty" wx:if="{{loading}}"><view class="zx-empty__message">正在寻找声音…</view></view>
+      <view class="zx-empty" wx:if="{{!loading && errorMessage && posts.length === 0}}">
+        <view class="zx-empty__title">加载失败</view>
+        <view class="zx-empty__message">{{errorMessage}}</view>
+        <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryFeed">重新加载</view>
+      </view>
+      <view class="zx-empty" wx:elif="{{!loading && posts.length === 0}}">
+        <view class="zx-empty__title">这里还没有声音</view>
+        <view class="zx-empty__message">第一枚印章，等你盖下。</view>
+        <view class="zx-btn zx-btn--primary zx-btn--small empty-action" bindtap="goCreatePost">写入树洞</view>
+      </view>
+      <view class="no-more" wx:if="{{!loading && !hasMore && posts.length > 0}}">没有更多了</view>
     </view>
-
-    <view class="empty-state-container" wx:elif="{{!loading && posts.length === 0}}">
-      <!-- 标注：此处如果需要图片，可使用 empty_state_treehole.png -->
-      <view class="empty-image-placeholder"></view>
-      <view class="empty-state-title">这里还没有声音</view>
-      <view class="empty-state-desc">第一枚印章，等你盖下。</view>
-      <button class="primary-button empty-state-btn" bindtap="goCreatePost">写入树洞</button>
-    </view>
-    
-    <view class="no-more" wx:if="{{!loading && !hasMore && posts.length > 0}}">没有更多了</view>
   </scroll-view>
 
-  <view class="floating-publish {{showPublishButton ? '' : 'hidden'}}" bindtap="goCreatePost">+</view>
+  <view class="fab {{showPublishButton ? '' : 'fab--hidden'}}" bindtap="goCreatePost" aria-label="发帖"><view class="zx-i zx-i--lg zx-i-plus"></view></view>
 </view>
