@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
-import 'package:xdu_treehole_web/core/config/app_config.dart';
+import '../widgets/avatar_widget.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
@@ -279,28 +278,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         child: Row(
           children: [
             // 头像
-            if (widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty)
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
-                backgroundImage: CachedNetworkImageProvider(
-                  widget.peerAvatar!.startsWith('http')
-                      ? widget.peerAvatar!
-                      : AppConfig.resolveUrl(widget.peerAvatar!),
-                ),
-              )
-            else
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
-                child: Text(
-                  (widget.peerName ?? '用户').substring(0, 1),
-                  style: TextStyle(
-                    color: MobileTheme.primaryOf(context),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
+            AvatarWidget(
+              avatarUrl: widget.peerAvatar,
+              nickname: widget.peerName ?? '用户',
+              radius: 18,
+            ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -514,30 +496,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               onTap: widget.peerUserId != null
                   ? () => context.push('/user/${widget.peerUserId}')
                   : null,
-              child: widget.peerAvatar != null && widget.peerAvatar!.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 16,
-                      backgroundImage: CachedNetworkImageProvider(
-                        widget.peerAvatar!.startsWith('http')
-                            ? widget.peerAvatar!
-                            : AppConfig.resolveUrl(widget.peerAvatar!),
-                      ),
-                    )
-                  : CircleAvatar(
-                      radius: 16,
-                      backgroundColor: MobileTheme.primaryWithAlpha(
-                        context,
-                        0.1,
-                      ),
-                      child: Text(
-                        (widget.peerName ?? '用户').substring(0, 1),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: MobileTheme.primaryOf(context),
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+              child: AvatarWidget(
+                avatarUrl: widget.peerAvatar,
+                nickname: widget.peerName ?? '用户',
+                radius: 16,
+              ),
             ),
             const SizedBox(width: 8),
           ],
@@ -629,27 +592,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               onTap: _myUserId.isNotEmpty
                   ? () => context.push('/user/$_myUserId')
                   : null,
-              child: _myAvatar.isNotEmpty
-                  ? CircleAvatar(
-                      radius: 16,
-                      backgroundImage: CachedNetworkImageProvider(
-                        _myAvatar.startsWith('http')
-                            ? _myAvatar
-                            : AppConfig.resolveUrl(_myAvatar),
-                      ),
-                    )
-                  : CircleAvatar(
-                      radius: 16,
-                      backgroundColor: MobileTheme.primaryWithAlpha(
-                        context,
-                        0.1,
-                      ),
-                      child: Icon(
-                        Icons.person,
-                        size: 16,
-                        color: MobileTheme.primaryOf(context),
-                      ),
-                    ),
+              child: AvatarWidget(
+                avatarUrl: _myAvatar,
+                nickname: _currentUser?.nickname ?? '我',
+                radius: 16,
+              ),
             ),
           ],
           if (_selectMode)
@@ -704,12 +651,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               media.size.width - estimatedWidth - rightPadding,
             )
             .toDouble();
-    final double top = (globalPosition.dy - actionBarHeightEstimate - verticalGap)
-        .clamp(
-          media.padding.top + 8.0,
-          media.size.height - actionBarHeightEstimate - verticalGap,
-        )
-        .toDouble();
+    final double top =
+        (globalPosition.dy - actionBarHeightEstimate - verticalGap)
+            .clamp(
+              media.padding.top + 8.0,
+              media.size.height - actionBarHeightEstimate - verticalGap,
+            )
+            .toDouble();
 
     _overlayEntry = OverlayEntry(
       builder: (ctx) => Stack(
@@ -990,23 +938,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           else
             ...available.map(
               (c) => ListTile(
-                leading: CircleAvatar(
+                leading: AvatarWidget(
+                  avatarUrl: c.avatarUrl,
+                  nickname: c.name,
                   radius: 18,
-                  backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
-                  backgroundImage: c.avatarUrl.isNotEmpty
-                      ? CachedNetworkImageProvider(
-                          c.avatarUrl.startsWith('http')
-                              ? c.avatarUrl
-                              : AppConfig.resolveUrl(c.avatarUrl),
-                        )
-                      : null,
-                  child: c.avatarUrl.isEmpty
-                      ? Icon(
-                          Icons.person,
-                          color: MobileTheme.primaryOf(context),
-                          size: 18,
-                        )
-                      : null,
                 ),
                 title: Text(c.name),
                 onTap: () async {

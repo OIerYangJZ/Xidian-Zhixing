@@ -418,10 +418,14 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget _buildAvatarDisplay(String? url, String nickname) {
     if (_selectedAvatarBase64 != null) {
       final bytes = base64Decode(_selectedAvatarBase64!);
-      return CircleAvatar(
-        radius: 48,
-        backgroundColor: MobileTheme.primaryWithAlpha(context, 0.1),
-        backgroundImage: MemoryImage(Uint8List.fromList(bytes)),
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(96 * 0.24),
+        child: Image.memory(
+          Uint8List.fromList(bytes),
+          width: 96,
+          height: 96,
+          fit: BoxFit.cover,
+        ),
       );
     }
 

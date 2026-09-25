@@ -6,6 +6,7 @@ import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/theme/mobile_colors.dart';
 import '../../core/theme/mobile_theme.dart';
+import '../widgets/avatar_widget.dart';
 
 class SettingsMainPage extends ConsumerStatefulWidget {
   const SettingsMainPage({super.key});
@@ -81,20 +82,10 @@ class _SettingsMainPageState extends ConsumerState<SettingsMainPage> {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  AvatarWidget(
+                    avatarUrl: user.avatarUrl,
+                    nickname: user.nickname,
                     radius: 30,
-                    backgroundColor: MobileTheme.primaryOf(
-                      context,
-                    ).withValues(alpha: 0.1),
-                    child: Text(
-                      (user.nickname.isNotEmpty ? user.nickname[0] : '?')
-                          .toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: MobileTheme.primaryOf(context),
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(

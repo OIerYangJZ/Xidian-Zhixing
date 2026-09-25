@@ -215,9 +215,9 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                       ClipboardData(text: ShareLink.user(widget.userId).url),
                     );
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('已复制主页链接')),
-                    );
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(const SnackBar(content: Text('已复制主页链接')));
                   },
                 ),
               ],
@@ -241,7 +241,7 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
                             offset: const Offset(0, -24),
                             child: Container(
                               decoration: BoxDecoration(
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: colors.surface,
                                   width: 4,
