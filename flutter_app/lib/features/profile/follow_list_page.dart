@@ -4,7 +4,7 @@ import '../../core/l10n/ui_text.dart';
 import '../../design_system/design_system.dart';
 import '../../models/follow_user_item.dart';
 import '../../repositories/app_repositories.dart';
-import 'public_user_profile_page.dart';
+import '../../core/navigation/post_detail_nav.dart';
 
 enum FollowListTab { following, followers, friends }
 
@@ -180,11 +180,7 @@ class _FollowListPageState extends State<FollowListPage> {
     final bool busy = _busy.contains(user.userId);
     return InkWell(
       borderRadius: ZxRadius.buttonAll,
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => PublicUserProfilePage(userId: user.userId),
-        ),
-      ),
+      onTap: () => openUserProfilePage(context, user.userId),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(

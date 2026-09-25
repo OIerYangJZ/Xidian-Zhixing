@@ -13,7 +13,6 @@ import '../../models/public_user_profile.dart';
 import '../../repositories/app_repositories.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
-import '../messages/chat_page.dart';
 import '../post/report_dialog.dart';
 
 /// Someone else's profile (handoff U1–U4): the card with 私信 / 关注 / ⋯,
@@ -258,11 +257,10 @@ class _PublicUserProfilePageState extends ConsumerState<PublicUserProfilePage> {
       final conversation = await AppRepositories.messages
           .createDirectConversation(profile.id);
       if (!mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) =>
-              ChatPage(conversation: conversation, peerUserId: profile.id),
-        ),
+      await openChatPage(
+        context,
+        conversation: conversation,
+        peerUserId: profile.id,
       );
     } catch (error) {
       _feedback(

@@ -10,6 +10,11 @@ class AppUpdateController extends ChangeNotifier {
 
   static final AppUpdateController instance = AppUpdateController._();
 
+  /// A singleton: the provider handing it out must not end it.
+  @override
+  // ignore: must_call_super
+  void dispose() {}
+
   Future<void>? _initializeFuture;
   bool _initialized = false;
   bool _checking = false;

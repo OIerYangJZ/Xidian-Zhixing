@@ -1,257 +1,165 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 
-/// 帮助与反馈页
+/// 帮助与反馈: common questions that expand in place, the report entries, and
+/// how to reach the admins. Open without signing in as well.
 class HelpAndFeedbackPage extends StatelessWidget {
   const HelpAndFeedbackPage({super.key});
 
+  static const List<(IconData, String, String)> _faq =
+      <(IconData, String, String)>[
+        (
+          Icons.lock_outline_rounded,
+          '登录失败怎么办？',
+          '请在西电官方统一身份认证页面按提示处理；忘记密码请用官方页面的找回密码功能。',
+        ),
+        (
+          Icons.verified_user_outlined,
+          '需要单独注册吗？',
+          '不需要。首次通过西电统一身份认证后，平台会自动创建账号。',
+        ),
+        (
+          Icons.visibility_off_outlined,
+          '如何匿名发帖？',
+          '发帖时打开「匿名发布」，可以自定义匿名昵称，也可以点「随机」生成一个。',
+        ),
+        (
+          Icons.mail_outline_rounded,
+          '私信是怎么开始的？',
+          '第一条消息会直接发给对方；对方回复之前只能发这一条，回复之后就可以自由聊天。',
+        ),
+        (
+          Icons.block_rounded,
+          '如何屏蔽某个用户？',
+          '在对方主页或聊天页右上角选择「屏蔽」。屏蔽名单在「设置 · 隐私」里管理。',
+        ),
+        (
+          Icons.flag_outlined,
+          '举报后多久处理？',
+          '管理员会在 24 小时内审核，处理结果可以在「我的举报」里查看。',
+        ),
+      ];
+
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.surface,
-        title: const Text('帮助与反馈'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // 常见问题
-          _buildSectionHeader(context, '常见问题'),
-          const SizedBox(height: 8),
-          _buildFAQItem(
-            context,
-            icon: Icons.lock_outline,
-            title: '登录失败怎么办？',
-            description: '请在西电官方统一身份认证页面按提示处理；如忘记密码，请使用官方页面的找回密码功能。',
-          ),
-          _buildFAQItem(
-            context,
-            icon: Icons.verified_user_outlined,
-            title: '需要单独注册吗？',
-            description: '不需要。首次通过西电官方统一身份认证后，平台会自动创建账号。',
-          ),
-          _buildFAQItem(
-            context,
-            icon: Icons.visibility_off_outlined,
-            title: '如何匿名发帖？',
-            description: '在发帖页面底部开关区域，开启"匿名发布"开关，可自定义匿名别名或使用系统随机生成。',
-          ),
-          _buildFAQItem(
-            context,
-            icon: Icons.flag_outlined,
-            title: '举报后多久处理？',
-            description:
-                '管理员将在 24 小时内审核处理。工作日 9:00-18:00 平均处理时长 2-6 小时，处理结果可在"我的举报"中查看。',
-          ),
-          _buildFAQItem(
-            context,
-            icon: Icons.block_outlined,
-            title: '如何屏蔽某用户？',
-            description: '目前支持通过举报功能反馈不希望接收私信的对象，管理员将酌情处理。',
-          ),
-
-          const SizedBox(height: 24),
-
-          // 反馈入口
-          _buildSectionHeader(context, '我要反馈'),
-          const SizedBox(height: 8),
-          _buildMenuItem(
-            context,
-            icon: Icons.flag_outlined,
-            title: '举报说明',
-            subtitle: '了解如何举报违规内容',
-            onTap: () => context.push('/legal/report'),
-          ),
-          _buildMenuItem(
-            context,
-            icon: Icons.article_outlined,
-            title: '我的举报记录',
-            subtitle: '查看所有举报的处理状态',
-            onTap: () => context.push('/profile/reports'),
-          ),
-
-          const SizedBox(height: 24),
-
-          // 联系管理员
-          _buildSectionHeader(context, '联系管理员'),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: MobileTheme.primaryWithAlpha(context, 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.headset_mic_outlined,
-                    color: MobileTheme.primaryOf(context),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '仍有疑问？',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '可通过站内私信联系管理员，或发送邮件至平台管理员邮箱。',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    final colors = MobileColors.of(context);
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: colors.textSecondary,
-        letterSpacing: 0.5,
-      ),
-    );
-  }
-
-  Widget _buildFAQItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    final colors = MobileColors.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          leading: Icon(icon, color: MobileTheme.primaryOf(context), size: 20),
-          title: Text(
-            title,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-              color: colors.textPrimary,
-            ),
-          ),
-          childrenPadding: const EdgeInsets.fromLTRB(56, 0, 16, 16),
+      appBar: AppBar(title: const Text('帮助与反馈')),
+      body: ZxPaper(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
-            Text(
-              description,
-              style: TextStyle(
-                fontSize: 14,
-                color: colors.textSecondary,
-                height: 1.6,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(
+                '常见问题',
+                style: ZxType.caption.copyWith(
+                  color: t.text3,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ],
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    final colors = MobileColors.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: MobileTheme.primaryWithAlpha(context, 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  icon,
-                  color: MobileTheme.primaryOf(context),
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: colors.textSecondary,
+            ZxCard(
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  for (int i = 0; i < _faq.length; i++) ...[
+                    if (i > 0) Divider(height: 1, color: t.line),
+                    Theme(
+                      // No divider lines from the expansion itself.
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: ExpansionTile(
+                        key: Key('mobile-help-faq-$i'),
+                        leading: Icon(_faq[i].$1, size: 20, color: t.primary),
+                        title: Text(
+                          _faq[i].$2,
+                          style: ZxType.label.copyWith(color: t.text),
+                        ),
+                        iconColor: t.text3,
+                        collapsedIconColor: t.text3,
+                        childrenPadding: const EdgeInsets.fromLTRB(
+                          56,
+                          0,
+                          16,
+                          14,
+                        ),
+                        expandedAlignment: Alignment.centerLeft,
+                        children: [
+                          Text(
+                            _faq[i].$3,
+                            style: ZxType.body.copyWith(
+                              color: t.text2,
+                              height: 1.6,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-              Icon(Icons.chevron_right, color: colors.textTertiary, size: 20),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            ZxListSection(
+              title: '举报',
+              children: [
+                ZxListItem(
+                  icon: Icons.flag_outlined,
+                  title: '举报说明',
+                  subtitle: '了解举报受理与处理流程',
+                  onTap: () => context.push('/legal/report'),
+                ),
+                ZxListItem(
+                  icon: Icons.article_outlined,
+                  title: '我的举报',
+                  subtitle: '查看举报的处理状态',
+                  onTap: () => context.push('/profile/reports'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ZxCard(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: t.primarySoft,
+                      borderRadius: ZxRadius.buttonAll,
+                    ),
+                    child: Icon(
+                      Icons.headset_mic_outlined,
+                      color: t.primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '仍有疑问？',
+                          style: ZxType.label.copyWith(color: t.text),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '可以私信管理员，或发送邮件至平台管理员邮箱。',
+                          style: ZxType.caption.copyWith(color: t.text3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

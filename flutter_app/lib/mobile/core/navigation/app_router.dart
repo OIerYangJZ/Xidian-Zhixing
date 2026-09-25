@@ -9,23 +9,16 @@ import '../../features/auth/login_page.dart';
 import '../../features/home/home_page.dart';
 import '../../features/search/search_page.dart';
 import '../../features/messages/messages_page.dart';
-import '../../features/favorites/favorites_page.dart';
-import '../../features/profile/public_user_profile_page.dart';
 import '../../features/profile/profile_page.dart';
 import '../../features/post/post_detail_page.dart';
 import '../../features/post/create_post_page.dart';
 import '../../features/messages/chat_page.dart';
 import '../../features/notifications/notification_center_page.dart';
-import '../../features/profile/edit_profile_page.dart';
 import '../../features/profile/settings_main_page.dart';
 import '../../features/profile/privacy_settings_page.dart';
 import '../../features/profile/account_security_page.dart';
 import '../../features/profile/display_settings_page.dart';
 import '../../features/profile/about_page.dart';
-import '../../features/profile/notification_settings_page.dart';
-import '../../features/profile/my_posts_page.dart';
-import '../../features/profile/my_comments_page.dart';
-import '../../features/profile/my_reports_page.dart';
 import '../../features/profile/help_and_feedback_page.dart';
 import '../../features/profile/acknowledgements_page.dart';
 import '../../features/admin/admin_login_page.dart';
@@ -33,6 +26,23 @@ import '../../features/admin/admin_console_page.dart';
 import '../../features/admin/admin_review_list_page.dart';
 import '../../features/admin/admin_report_list_page.dart';
 import '../../features/admin/admin_image_review_list_page.dart';
+// Pages shared with the web, already on the design system; their links to
+// posts, chats and profiles go through AppNavigation (mobile_app_entry).
+import 'package:xdu_treehole_web/features/me/my_comments_page.dart' as web;
+import 'package:xdu_treehole_web/features/me/my_favorites_page.dart' as web;
+import 'package:xdu_treehole_web/features/me/my_posts_page.dart' as web;
+import 'package:xdu_treehole_web/features/me/my_reports_page.dart' as web;
+import 'package:xdu_treehole_web/features/profile/blocked_accounts_page.dart'
+    as web;
+import 'package:xdu_treehole_web/features/profile/edit_profile_page.dart'
+    as web;
+import 'package:xdu_treehole_web/features/profile/notification_preferences_page.dart'
+    as web;
+import 'package:xdu_treehole_web/features/profile/public_user_profile_page.dart'
+    as web;
+import 'package:xdu_treehole_web/models/user_profile.dart';
+import 'package:xdu_treehole_web/repositories/app_repositories.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:xdu_treehole_web/features/legal/terms_of_service_page.dart';
 import 'package:xdu_treehole_web/features/legal/privacy_policy_page.dart';
 import 'package:xdu_treehole_web/features/legal/community_guidelines_page.dart';
@@ -136,7 +146,7 @@ final appRouter = GoRouter(
     // 收藏（全屏，不在 Tab 内）
     GoRoute(
       path: '/favorites',
-      builder: (context, state) => const FavoritesPage(),
+      builder: (context, state) => const web.MyFavoritesPage(),
     ),
 
     // 他人主页
@@ -144,7 +154,7 @@ final appRouter = GoRouter(
       path: '/user/:id',
       builder: (context, state) {
         final userId = state.pathParameters['id']!;
-        return PublicUserProfilePage(userId: userId);
+        return web.PublicUserProfilePage(userId: userId);
       },
     ),
 
@@ -197,12 +207,12 @@ final appRouter = GoRouter(
       path: '/users/:userId',
       builder: (context, state) {
         final userId = state.pathParameters['userId']!;
-        return PublicUserProfilePage(userId: userId);
+        return web.PublicUserProfilePage(userId: userId);
       },
     ),
     GoRoute(
       path: '/profile/edit',
-      builder: (context, state) => const EditProfilePage(),
+      builder: (context, state) => const _EditProfileRoute(),
     ),
     GoRoute(
       path: '/profile/settings',
@@ -226,19 +236,23 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/profile/settings/notifications',
-      builder: (context, state) => const NotificationSettingsPage(),
+      builder: (context, state) => const web.NotificationPreferencesPage(),
+    ),
+    GoRoute(
+      path: '/profile/settings/blocked',
+      builder: (context, state) => const web.BlockedAccountsPage(),
     ),
     GoRoute(
       path: '/profile/posts',
-      builder: (context, state) => const MyPostsPage(),
+      builder: (context, state) => const web.MyPostsPage(),
     ),
     GoRoute(
       path: '/profile/comments',
-      builder: (context, state) => const MyCommentsPage(),
+      builder: (context, state) => const web.MyCommentsPage(),
     ),
     GoRoute(
       path: '/profile/reports',
-      builder: (context, state) => const MyReportsPage(),
+      builder: (context, state) => const web.MyReportsPage(),
     ),
     GoRoute(
       path: '/profile/help-feedback',
@@ -288,3 +302,32 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+/// The shared 编辑资料 takes the profile it edits: the signed-in user when
+/// already known, otherwise fetched first.
+class _EditProfileRoute extends StatelessWidget {
+  const _EditProfileRoute();
+
+  @override
+  Widget build(BuildContext context) {
+    final UserProfile? cached = AuthStore.instance.currentUser;
+    if (cached != null) return web.EditProfilePage(profile: cached);
+    return FutureBuilder<UserProfile>(
+      future: AppRepositories.users.fetchProfile(),
+      builder: (BuildContext context, AsyncSnapshot<UserProfile> snap) {
+        if (snap.hasData) return web.EditProfilePage(profile: snap.data!);
+        return Scaffold(
+          appBar: AppBar(title: const Text('编辑资料')),
+          body: snap.hasError
+              ? ZxStatePanel(
+                  error: true,
+                  icon: Icons.error_outline_rounded,
+                  title: '资料加载失败',
+                  message: '${snap.error}',
+                )
+              : const Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
+  }
+}

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:xdu_treehole_web/models/user_profile.dart';
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
 import '../../core/state/mobile_providers.dart';
 
 class PrivacySettingsPage extends ConsumerStatefulWidget {
@@ -91,153 +91,84 @@ class _PrivacySettingsPageState extends ConsumerState<PrivacySettingsPage> {
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    zxShowToast(context, message);
+  }
+
+  Widget _switch({
+    required Key key,
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return ZxListItem(
+      key: key,
+      title: title,
+      subtitle: subtitle,
+      trailing: Switch(value: value, onChanged: _saving ? null : onChanged),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final UserProfile? p = _profile;
     return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        title: const Text('隐私设置'),
-        backgroundColor: colors.background,
-        centerTitle: true,
-      ),
-      body: _loading
-          ? Center(
-              child: CircularProgressIndicator(
-                color: MobileTheme.primaryOf(context),
-              ),
-            )
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (_error != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: MobileTheme.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          size: 18,
-                          color: MobileTheme.error,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: MobileTheme.error,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                // 隐私设置
-                Container(
-                  decoration: BoxDecoration(
-                    color: colors.cardBackground,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: colors.divider.withValues(alpha: 0.5),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: Column(
+      appBar: AppBar(title: const Text('隐私')),
+      body: ZxPaper(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null || p == null
+            ? ZxStatePanel(
+                error: true,
+                icon: Icons.error_outline_rounded,
+                title: '隐私设置加载失败',
+                message: _error,
+                actionLabel: '重试',
+                onAction: _loadProfile,
+              )
+            : ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                children: [
+                  ZxListSection(
+                    title: '私信与联系',
                     children: [
-                      _buildSwitchTile(
-                        icon: Icons.chat_bubble_outline,
+                      _switch(
+                        key: const Key('mobile-privacy-stranger-dm'),
                         title: '允许陌生人私信',
-                        subtitle: '关闭后，其他人无法通过你的公开主页或帖子给你发起私信',
-                        value: _profile?.allowStrangerDm ?? false,
-                        onChanged: _saving
-                            ? null
-                            : (value) => _updatePrivacy(
-                                allowStrangerDm: value,
-                                showContactable:
-                                    _profile?.showContactable ?? false,
-                              ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 56),
-                        child: Divider(
-                          height: 0.5,
-                          thickness: 0.5,
-                          color: colors.divider,
+                        subtitle: '关闭后，别人不能从你的主页或帖子给你发起私信',
+                        value: p.allowStrangerDm,
+                        onChanged: (bool v) => _updatePrivacy(
+                          allowStrangerDm: v,
+                          showContactable: p.showContactable,
                         ),
                       ),
-                      _buildSwitchTile(
-                        icon: Icons.visibility_outlined,
-                        title: '显示"可联系"状态',
-                        subtitle: '开启后，其他用户可以看到你的联系方式',
-                        value: _profile?.showContactable ?? false,
-                        onChanged: _saving
-                            ? null
-                            : (value) => _updatePrivacy(
-                                allowStrangerDm:
-                                    _profile?.allowStrangerDm ?? false,
-                                showContactable: value,
-                              ),
+                      _switch(
+                        key: const Key('mobile-privacy-contactable'),
+                        title: '显示「可联系」状态',
+                        subtitle: '开启后，你的主页会显示可以联系你',
+                        value: p.showContactable,
+                        onChanged: (bool v) => _updatePrivacy(
+                          allowStrangerDm: p.allowStrangerDm,
+                          showContactable: v,
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required bool value,
-    required ValueChanged<bool>? onChanged,
-  }) {
-    final colors = MobileColors.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: colors.textSecondary),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: colors.textPrimary,
+                  const SizedBox(height: 20),
+                  ZxListSection(
+                    title: '屏蔽',
+                    children: [
+                      ZxListItem(
+                        key: const Key('mobile-privacy-blocked'),
+                        icon: Icons.block_rounded,
+                        title: '屏蔽名单',
+                        subtitle: '被屏蔽的人不能给你发私信',
+                        onTap: () => context.push('/profile/settings/blocked'),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: TextStyle(fontSize: 12, color: colors.textTertiary),
-                ),
-              ],
-            ),
-          ),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: MobileTheme.primaryOf(context),
-          ),
-        ],
+                ],
+              ),
       ),
     );
   }
