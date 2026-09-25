@@ -51,6 +51,7 @@ final Map<String, Object> _routes = <String, Object>{
       'id': 'c2',
       'peerUserId': 'u2',
       'name': '陈同学',
+      'blockedByMe': true,
       'lastMessage': '示例：好的，到时候见。',
       'timeText': '昨天',
       'unreadCount': 1,
@@ -125,14 +126,33 @@ final Map<String, Object> _routes = <String, Object>{
   '/messages/conversations/c1/messages': <Object>[
     <String, Object>{
       'id': 'm1',
-      'content': '示例：你好，方便聊聊比赛安排吗？',
-      'createdAt': _ago(const Duration(minutes: 30)),
+      'content': '示例：你好，看到你在评论区留言，方便聊聊比赛安排吗？',
+      'createdAt': _ago(const Duration(minutes: 3)),
       'senderAlias': '林小舟',
     },
     <String, Object>{
       'id': 'm2',
       'content': '可以，周三晚上我都有空。',
-      'createdAt': _ago(const Duration(minutes: 27)),
+      'createdAt': _ago(const Duration(minutes: 1)),
+      'fromMe': true,
+      'isRead': true,
+      'canRecall': true,
+      'replyToId': 'm1',
+      'replyToSender': '林小舟',
+      'replyToContent': '方便聊聊比赛安排吗？',
+    },
+  ],
+  '/messages/conversations/c2/messages': <Object>[
+    <String, Object>{
+      'id': 'b1',
+      'content': '示例：资料我发你邮箱了。',
+      'createdAt': _ago(const Duration(days: 2)),
+      'senderAlias': '陈同学',
+    },
+    <String, Object>{
+      'id': 'b2',
+      'content': '示例：收到。',
+      'createdAt': _ago(const Duration(days: 2, minutes: -6)),
       'fromMe': true,
       'isRead': true,
     },
@@ -219,6 +239,15 @@ int _uploads = 0;
 
 final http.Client _client = MockClient((http.Request request) async {
   final String path = request.url.path.replaceFirst('/api', '');
+  if (request.method == 'POST' && path.endsWith('/messages')) {
+    return http.Response(
+      jsonEncode(<String, Object>{'message': '网络不稳定'}),
+      500,
+      headers: const <String, String>{
+        'content-type': 'application/json; charset=utf-8',
+      },
+    );
+  }
   if (path == '/uploads/images') {
     _uploads++;
     if (_uploads >= 3) await Completer<void>().future;
@@ -259,6 +288,14 @@ void main() {
     ('profile', '/profile'),
     ('post', '/post/p2'),
     ('chat', '/chat/c1?name=林小舟&userId=u1'),
+    // Long-press on my message: handoff H1's menu.
+    ('chat_menu', '/chat/c1?name=林小舟&userId=u1'),
+    // 多选 from that menu: H2.
+    ('chat_select', '/chat/c1?name=林小舟&userId=u1'),
+    // A send that fails stays in place with 重发.
+    ('chat_failed', '/chat/c1?name=林小舟&userId=u1'),
+    // Opened from 消息, so the list knows it is blocked: H3.
+    ('chat_blocked', '/chat/c2?name=陈同学&userId=u2'),
     ('notifications', '/notifications'),
     ('search', '/search'),
     ('search_topic', '/search?q=%23图书馆'),
@@ -312,9 +349,42 @@ void main() {
           final bool signedOut = name == 'login';
           // Storage calls need the real clock.
           if (signedOut) await tester.runAsync(AuthStore.instance.clear);
-          appRouter.go(location);
+          if (name == 'chat_blocked') {
+            appRouter.go('/messages');
+            for (int i = 0; i < 6; i++) {
+              await tester.pump(const Duration(milliseconds: 150));
+            }
+            appRouter.push(location);
+          } else {
+            appRouter.go(location);
+          }
           for (int i = 0; i < 12; i++) {
             await tester.pump(const Duration(milliseconds: 150));
+          }
+          if (name == 'chat_menu' || name == 'chat_select') {
+            await tester.longPress(
+              find.byKey(const Key('mobile-chat-message-m2')),
+            );
+            await tester.pump(const Duration(milliseconds: 300));
+            if (name == 'chat_select') {
+              await tester.tap(
+                find.byKey(const Key('mobile-chat-menu-select')),
+              );
+              await tester.pump(const Duration(milliseconds: 300));
+            }
+          }
+          if (name == 'chat_failed') {
+            await tester.enterText(
+              find.byKey(const Key('mobile-chat-input')),
+              '地点定在图书馆研讨间？',
+            );
+            await tester.pump();
+            await tester.tap(find.byKey(const Key('mobile-chat-send')));
+            for (int i = 0; i < 6; i++) {
+              await tester.pump(const Duration(milliseconds: 150));
+            }
+            // The toast goes before the capture.
+            await tester.pump(const Duration(seconds: 5));
           }
           if (name == 'create_publishing') {
             _uploads = 0;
