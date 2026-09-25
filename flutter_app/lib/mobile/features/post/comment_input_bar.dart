@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../core/theme/mobile_theme.dart';
+import '../../../design_system/design_system.dart';
 import '../../core/theme/mobile_colors.dart';
 
 /// 评论输入框组件
-/// 固定在底部，支持表情和图片附件
+/// 固定在底部，支持表情。[trailing] (the post's like / favorite / share, handoff
+/// A2) shows while the field is idle; typing swaps it for 发送.
 class CommentInputBar extends StatefulWidget {
   final Function(String) onSubmit;
   final String? placeholder;
@@ -13,6 +14,7 @@ class CommentInputBar extends StatefulWidget {
   final VoidCallback? onEmojiToggle;
   final ValueChanged<bool>? onFocusChanged;
   final VoidCallback? onTextFieldTap;
+  final List<Widget> trailing;
 
   const CommentInputBar({
     super.key,
@@ -23,6 +25,7 @@ class CommentInputBar extends StatefulWidget {
     this.onEmojiToggle,
     this.onFocusChanged,
     this.onTextFieldTap,
+    this.trailing = const <Widget>[],
   });
 
   @override
@@ -33,6 +36,7 @@ class _CommentInputBarState extends State<CommentInputBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
   bool _hasText = false;
+  bool _focused = false;
 
   @override
   void initState() {
@@ -57,6 +61,9 @@ class _CommentInputBarState extends State<CommentInputBar> {
   }
 
   void _onFocusChange() {
+    if (_focused != _focusNode.hasFocus) {
+      setState(() => _focused = _focusNode.hasFocus);
+    }
     widget.onFocusChanged?.call(_focusNode.hasFocus);
     if (_focusNode.hasFocus && widget.scrollController != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -105,85 +112,77 @@ class _CommentInputBarState extends State<CommentInputBar> {
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final bool idle = !_hasText && !_focused && widget.trailing.isNotEmpty;
     return Container(
       padding: EdgeInsets.fromLTRB(12, 8, 8, 8 + bottomInset),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // 表情按钮
-          GestureDetector(
-            onTap: widget.onEmojiToggle,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              child: Icon(
-                Icons.emoji_emotions_outlined,
-                color: colors.textSecondary,
-                size: 24,
-              ),
-            ),
-          ),
-
-          // 输入框
           Expanded(
             child: Container(
-              constraints: const BoxConstraints(maxHeight: 120, minHeight: 36),
+              constraints: const BoxConstraints(maxHeight: 120, minHeight: 44),
               decoration: BoxDecoration(
-                color: colors.background,
-                borderRadius: BorderRadius.circular(18),
+                color: t.bgSunk,
+                borderRadius: BorderRadius.circular(22),
               ),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focusNode,
-                autofocus: widget.autofocus,
-                onTap: widget.onTextFieldTap,
-                maxLines: null,
-                textInputAction: TextInputAction.newline,
-                style: TextStyle(fontSize: 15, color: colors.textPrimary),
-                decoration: InputDecoration(
-                  hintText: widget.placeholder,
-                  hintStyle: TextStyle(
-                    color: colors.textTertiary,
-                    fontSize: 15,
-                    fontFamily: MobileTheme.quoteFontFamily,
-                    fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: widget.onEmojiToggle,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 11, 2, 11),
+                      child: Icon(
+                        Icons.sentiment_satisfied_outlined,
+                        color: t.text3,
+                        size: 22,
+                      ),
+                    ),
                   ),
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: widget.autofocus,
+                      onTap: widget.onTextFieldTap,
+                      maxLines: null,
+                      textInputAction: TextInputAction.newline,
+                      style: ZxType.body.copyWith(color: t.text),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: false,
+                        hintText: widget.placeholder,
+                        hintStyle: ZxType.body.copyWith(color: t.text3),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: const EdgeInsets.fromLTRB(
+                          6,
+                          12,
+                          14,
+                          12,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
-
-          const SizedBox(width: 8),
-
-          // 发送按钮
-          GestureDetector(
-            onTap: _hasText ? _submit : null,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _hasText
-                    ? MobileTheme.primaryOf(context)
-                    : colors.textTertiary.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Text(
-                '发送',
-                style: TextStyle(
-                  color: _hasText ? Colors.white : colors.textTertiary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
+          const SizedBox(width: 6),
+          if (idle)
+            ...widget.trailing
+          else
+            Padding(
+              padding: const EdgeInsets.only(bottom: 2),
+              child: ZxButton(
+                label: '发送',
+                small: true,
+                onPressed: _hasText ? _submit : null,
               ),
             ),
-          ),
         ],
       ),
     );

@@ -6,11 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
+import '../../../design_system/design_system.dart';
 import '../widgets/avatar_widget.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
-import '../../../core/theme/shared_colors.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../core/utils/post_share.dart';
 import '../../core/utils/time_utils.dart';
@@ -20,7 +20,6 @@ import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/post_content_body.dart';
 import 'image_gallery.dart';
 import 'comment_input_bar.dart';
-import '../widgets/seal_widgets.dart';
 
 /// 甯栧瓙璇︽儏椤?
 /// 鍖呭惈甯栧瓙姝ｆ枃銆佸浘鐗囩敾寤娿€佽瘎璁哄垪琛ㄣ€佺偣璧?鏀惰棌/涓炬姤浜や簰
@@ -176,20 +175,8 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   List<CommentItem> _buildCommentTree(List<CommentItem> flat) {
     final Map<String, CommentItem> map = {};
     for (final c in flat) {
-      map[c.id] = CommentItem(
-        id: c.id,
-        authorAlias: c.authorAlias,
-        content: c.content,
-        createdAt: c.createdAt,
-        likeCount: c.likeCount,
-        authorAvatar: c.authorAvatar,
-        isLiked: c.isLiked,
-        isPinned: c.isPinned,
-        parentId: c.parentId,
-        authorUserId: c.authorUserId,
-        replyCount: c.replyCount,
-        replies: [],
-      );
+      // copyWith keeps every field (isPostAuthor, isAnonymous, …).
+      map[c.id] = c.copyWith(replies: <CommentItem>[]);
     }
     final List<CommentItem> roots = [];
     for (final c in flat) {
@@ -617,22 +604,38 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     return Scaffold(
-      backgroundColor: colors.background,
+      backgroundColor: t.bg,
       appBar: AppBar(
-        backgroundColor: colors.surface,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+        backgroundColor: t.bg,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: _SquareAction(
+            icon: Icons.arrow_back_ios_new_rounded,
+            tooltip: '返回',
+            onTap: () => context.pop(),
+          ),
         ),
+        leadingWidth: 60,
+        titleSpacing: 4,
         title: const Text('帖子详情'),
         actions: [
-          if (_post != null)
-            IconButton(
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () => _showOptionsSheet(),
+          if (_post != null) ...[
+            _SquareAction(
+              key: const Key('mobile-post-copy-link'),
+              icon: Icons.link_rounded,
+              tooltip: '复制链接',
+              onTap: _copyLink,
             ),
+            const SizedBox(width: 8),
+            _SquareAction(
+              icon: Icons.more_horiz,
+              tooltip: '更多',
+              onTap: _showOptionsSheet,
+            ),
+            const SizedBox(width: 12),
+          ],
         ],
       ),
       body: _isLoading
@@ -642,27 +645,46 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
           : _post == null
           ? _buildEmptyView()
           : _buildContent(),
-      bottomNavigationBar: _post != null && _post!.allowComment
-          ? Container(
+      bottomNavigationBar: _post == null
+          ? null
+          : Container(
               decoration: BoxDecoration(
-                color: colors.surface,
-                border: Border(
-                  top: BorderSide(color: colors.divider, width: 0.5),
-                ),
+                color: t.surface,
+                border: Border(top: BorderSide(color: t.line)),
               ),
               child: SafeArea(
                 top: false,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_replyingTo != null) _buildReplyBanner(),
-                    _buildBottomBarWithEmoji(),
-                  ],
-                ),
+                child: _post!.allowComment
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (_replyingTo != null) _buildReplyBanner(),
+                          _buildBottomBarWithEmoji(),
+                        ],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '作者关闭了评论',
+                                style: ZxType.body.copyWith(color: t.text3),
+                              ),
+                            ),
+                            ..._buildBottomActions(),
+                          ],
+                        ),
+                      ),
               ),
-            )
-          : null,
+            ),
     );
+  }
+
+  Future<void> _copyLink() async {
+    await copyPostShareLink(widget.postId);
+    if (!mounted) return;
+    zxShowToast(context, '已复制帖子链接');
   }
 
   Widget _buildBottomBarWithEmoji() {
@@ -681,6 +703,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
             onEmojiToggle: _toggleEmoji,
             onFocusChanged: _handleCommentInputFocusChanged,
             onTextFieldTap: _handleCommentInputTap,
+            trailing: _buildBottomActions(),
           ),
           ClipRect(
             child: AnimatedContainer(
@@ -759,196 +782,148 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   }
 
   Widget _buildContent() {
-    return Column(
-      children: [
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: _loadData,
-            color: MobileTheme.primaryOf(context),
-            child: SingleChildScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 帖子详情卡片（包含内容与操作栏）
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: SharedColors.divider, width: 0.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: SharedColors.deep.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildPostContent(),
-                          _buildActionBar(),
-                          const SizedBox(height: 12),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 评论区标题与评论列表
-                  _buildCommentsSection(),
-                ],
-              ),
-            ),
-          ),
+    final ZxTokens t = ZxTokens.of(context);
+    return RefreshIndicator(
+      onRefresh: _loadData,
+      color: t.primary,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildPostContent(),
+            Divider(height: 1, indent: 20, endIndent: 20, color: t.line),
+            _buildCommentsSection(),
+          ],
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildPostContent() {
-    final colors = MobileColors.of(context);
+    final ZxTokens t = ZxTokens.of(context);
     final post = _post!;
     final List<String> supplementaryImageUrls = _supplementaryImageUrls(post);
+    final bool canOpenAuthor =
+        !post.isAnonymous && post.authorUserId.isNotEmpty && !post.isOwnPost;
+    final bool canDm = post.canMessageAuthor && post.authorUserId.isNotEmpty;
+    final bool canFollow =
+        post.canFollowAuthor &&
+        post.authorUserId.isNotEmpty &&
+        !post.isFollowingAuthor;
+    final Widget? statusBadge = switch (post.status) {
+      PostStatus.resolved => const ZxBadge.resolved('已解决'),
+      PostStatus.closed => const ZxBadge.closed('已结束'),
+      PostStatus.ongoing => null,
+    };
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 作者信息
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
-          child: Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              // 头像
               GestureDetector(
-                onTap: () {
-                  // 匿名帖或自己的帖子不跳转
-                  if (!post.isAnonymous &&
-                      post.authorUserId.isNotEmpty &&
-                      !post.isOwnPost) {
-                    context.push('/user/${post.authorUserId}');
-                  }
-                },
+                onTap: canOpenAuthor
+                    ? () => context.push('/user/${post.authorUserId}')
+                    : null,
                 child: post.isAnonymous
-                    ? SealAvatar(text: post.authorAlias, size: 44)
+                    ? ZxAvatar.anonymous(name: post.authorAlias, size: 46)
                     : AvatarWidget(
                         avatarUrl: post.authorAvatarUrl,
                         nickname: post.authorAlias,
-                        radius: 22,
+                        radius: 23,
                       ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      post.authorAlias,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
                     Row(
                       children: [
-                        Text(
-                          _formatTime(post.createdAt),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.textSecondary,
+                        Flexible(
+                          child: Text(
+                            post.authorAlias,
+                            style: ZxType.label.copyWith(color: t.text),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (post.status == PostStatus.resolved) ...[
+                        if (post.isAnonymous) ...[
                           const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 1,
-                            ),
-                            decoration: BoxDecoration(
-                              color: MobileTheme.success.withValues(
-                                alpha: 0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(3),
-                            ),
-                            child: const Text(
-                              '已解决',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: MobileTheme.success,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          const ZxBadge.anonymous('匿名'),
                         ],
                       ],
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      post.viewCount > 0
+                          ? '${_formatTime(post.createdAt)} · ${post.viewCount} 阅读'
+                          : _formatTime(post.createdAt),
+                      style: ZxType.caption.copyWith(color: t.text3),
+                    ),
                   ],
                 ),
               ),
-              if ((post.canMessageAuthor && post.authorUserId.isNotEmpty) ||
-                  (post.canFollowAuthor &&
-                      post.authorUserId.isNotEmpty &&
-                      !post.isFollowingAuthor))
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              ?statusBadge,
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
                   children: [
-                    if (post.canMessageAuthor && post.authorUserId.isNotEmpty)
-                      TextButton.icon(
-                        onPressed: _handleDm,
-                        icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                        label: const Text('私信'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: MobileTheme.primaryOf(context),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                        ),
-                      ),
-                    if (post.canFollowAuthor &&
-                        post.authorUserId.isNotEmpty &&
-                        !post.isFollowingAuthor)
-                      TextButton.icon(
-                        onPressed: _isFollowing ? null : _handleFollowAuthor,
-                        icon: const Icon(
-                          Icons.person_add_alt_1_outlined,
-                          size: 16,
-                        ),
-                        label: const Text('关注'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: MobileTheme.primaryOf(context),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                        ),
-                      ),
+                    if (post.isPinned) const ZxBadge.pinned('置顶'),
+                    ZxBadge.channel(
+                      post.channel,
+                      color: t.channelFor(post.channel),
+                    ),
                   ],
+                ),
+              ),
+              if (canDm)
+                ZxButton(
+                  label: '私信',
+                  small: true,
+                  variant: ZxButtonVariant.ghost,
+                  onPressed: _handleDm,
+                ),
+              if (canFollow)
+                ZxButton(
+                  key: const Key('mobile-post-follow'),
+                  label: '关注',
+                  small: true,
+                  variant: ZxButtonVariant.outline,
+                  loading: _isFollowing,
+                  onPressed: _handleFollowAuthor,
                 ),
             ],
           ),
-        ),
-
-        // 标题
-        if (post.title.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-            child: SelectableText(
+          if (post.title.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            SelectableText(
               post.title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: colors.textPrimary,
-                height: 1.3,
+              style: ZxType.title.copyWith(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: t.text,
+                height: 1.4,
               ),
             ),
-          ),
-
-        // 正文
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: DefaultTextStyle.merge(
-            style: TextStyle(fontSize: 15, color: colors.textPrimary, height: 1.4),
+          ],
+          const SizedBox(height: 10),
+          DefaultTextStyle.merge(
+            style: ZxType.body.copyWith(
+              fontSize: 16,
+              color: t.text2,
+              height: 1.7,
+            ),
             child: PostContentBody(
               content: post.content,
               contentFormat: post.contentFormat,
@@ -956,28 +931,29 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
               selectable: true,
             ),
           ),
-        ),
-
-        // 图片
-        if (post.hasImage && supplementaryImageUrls.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: PostImageGrid(imageUrls: supplementaryImageUrls),
-          ),
-
-        // 标签
-        if (post.tags.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Wrap(
+          if (post.tags.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Wrap(
               spacing: 8,
-              runSpacing: 6,
-              children: post.tags.map((tag) {
-                return SealBadge(text: '#$tag', type: SealBadgeType.light);
-              }).toList(),
+              runSpacing: 4,
+              children: [
+                for (final String tag in post.tags)
+                  Text(
+                    '#$tag',
+                    style: ZxType.body.copyWith(
+                      color: t.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
             ),
-          ),
-      ],
+          ],
+          if (post.hasImage && supplementaryImageUrls.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            PostImageGrid(imageUrls: supplementaryImageUrls),
+          ],
+        ],
+      ),
     );
   }
 
@@ -989,7 +965,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         .where((String url) => !post.markdownSource.contains(url))
         .toList();
   }
-
 
   Future<void> _changeCommentSort(CommentSort nextSort) async {
     if (_isSortingComments || _commentSort == nextSort) {
@@ -1109,136 +1084,103 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   String get _commentSortLabel => _commentSort == CommentSort.hot ? '热度' : '时间';
 
   Widget _buildCommentsSection() {
-    final colors = MobileColors.of(context);
-    return Container(
+    final ZxTokens t = ZxTokens.of(context);
+    final int count = _post?.commentCount ?? _comments.length;
+    return Column(
       key: _commentsSectionKey,
-      color: colors.surface,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 璇勮鍖烘爣棰?
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            child: Row(
-              children: [
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTapDown: _showCommentSortMenu,
-                  child: Row(
-                    children: [
-                      Text(
-                        _commentSortLabel,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: colors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 18,
-                        color: colors.textTertiary,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(),
-                if (_isSortingComments)
-                  SizedBox(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          child: Row(
+            children: [
+              Text('评论', style: ZxType.title.copyWith(color: t.text)),
+              const SizedBox(width: 6),
+              Text('$count', style: ZxType.title.copyWith(color: t.text3)),
+              const Spacer(),
+              if (_isSortingComments)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: SizedBox(
                     width: 14,
                     height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: colors.textTertiary,
+                      color: t.text3,
                     ),
                   ),
-              ],
-            ),
-          ),
-
-          // 璇勮鍒楄〃
-          if (_comments.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32),
-              child: Center(
-                child: Text(
-                  '暂无评论，快来抢沙发~',
-                  style: TextStyle(color: colors.textTertiary, fontSize: 14),
+                ),
+              GestureDetector(
+                key: const Key('mobile-post-comment-sort'),
+                behavior: HitTestBehavior.opaque,
+                onTapDown: _showCommentSortMenu,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+                  decoration: BoxDecoration(
+                    color: t.bgSunk,
+                    borderRadius: ZxRadius.buttonAll,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _commentSortLabel,
+                        style: ZxType.caption.copyWith(
+                          fontSize: 13,
+                          color: t.text2,
+                        ),
+                      ),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 18,
+                        color: t.text3,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            )
-          else
-            _buildCommentList(_comments),
-        ],
-      ),
+            ],
+          ),
+        ),
+        if (_comments.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                '还没有评论，来说第一句吧',
+                style: ZxType.body.copyWith(color: t.text3),
+              ),
+            ),
+          )
+        else
+          _buildCommentList(_comments),
+      ],
     );
   }
 
-  Widget _buildActionBar() {
+  /// Like, favorite and share beside the comment field (handoff A2).
+  List<Widget> _buildBottomActions() {
     final post = _post!;
-    final colors = MobileColors.of(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-      child: Row(
-        children: [
-          // 鐐硅禐
-          _ActionItem(
-            icon: Icons.favorite_border,
-            activeIcon: Icons.favorite,
-            label: post.likeCount > 0 ? '${post.likeCount}' : '',
-            isActive: _postIsLiked,
-            isLoading: _isLiking,
-            activeColor: const Color(0xFFFF2D55),
-            onTap: _handleLike,
-          ),
-          const SizedBox(width: 22),
-
-          // 鏀惰棌
-          _ActionItem(
-            icon: Icons.bookmark_border,
-            activeIcon: Icons.bookmark,
-            label: post.favoriteCount > 0 ? '${post.favoriteCount}' : '',
-            isActive: post.isFavorited,
-            isLoading: _isFavoriting,
-            activeColor: const Color(0xFFFF9500),
-            onTap: _handleFavorite,
-            iconSize: 22,
-          ),
-          const SizedBox(width: 22),
-
-          // 璇勮
-          _ActionItem(
-            icon: Icons.chat_bubble_outline,
-            activeIcon: Icons.chat_bubble,
-            label: post.commentCount > 0 ? '${post.commentCount}' : '',
-            isActive: false,
-            activeColor: MobileTheme.primaryOf(context),
-            onTap: () {
-              _scrollToComments();
-            },
-          ),
-
-          const Spacer(),
-
-          // 鍒嗕韩
-          IconButton(
-            icon: Icon(Icons.share_outlined, color: colors.textPrimary),
-            iconSize: 22,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
-            onPressed: () async {
-              await copyPostShareLink(widget.postId);
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('已复制帖子链接')));
-            },
-          ),
-        ],
+    return <Widget>[
+      _BarAction(
+        key: const Key('mobile-post-like'),
+        icon: _postIsLiked ? Icons.favorite_rounded : Icons.favorite_border,
+        count: post.likeCount,
+        active: _postIsLiked,
+        filled: true,
+        loading: _isLiking,
+        onTap: _handleLike,
       ),
-    );
+      _BarAction(
+        key: const Key('mobile-post-favorite'),
+        icon: post.isFavorited ? Icons.star_rounded : Icons.star_border_rounded,
+        count: post.favoriteCount,
+        active: post.isFavorited,
+        loading: _isFavoriting,
+        onTap: _handleFavorite,
+      ),
+      _BarAction(icon: Icons.ios_share_rounded, onTap: _copyLink),
+    ];
   }
 
   void _showOptionsSheet() {
@@ -1331,14 +1273,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: comments.length,
-      separatorBuilder: (_, __) => isNested
-          ? const SizedBox.shrink()
-          : const SizedBox(height: 8), // 卡片式评论之间使用间距
+      separatorBuilder: (_, _) => const SizedBox.shrink(),
       itemBuilder: (context, index) {
         final comment = comments[index];
-        final bool needsTopSpacing = !isNested && index > 0;
         return Padding(
-          padding: EdgeInsets.only(top: needsTopSpacing ? 6 : 0),
+          padding: EdgeInsets.zero,
           child: _CommentTile(
             comment: comment,
             indentLevel: isNested ? 1 : 0,
@@ -1479,234 +1418,157 @@ class _CommentTileState extends State<_CommentTile> {
 
   @override
   Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
     final comment = widget.comment;
-    final colors = MobileColors.of(context);
-    final double avatarRadius = (22 - widget.indentLevel * 2)
-        .clamp(14, 22)
-        .toDouble();
-    final double leftPadding = (widget.indentLevel * 20)
-        .clamp(0, 60)
-        .toDouble();
-    final int effectiveIndent = widget.indentLevel.clamp(0, 3);
-    final double guideWidth = effectiveIndent * 12.0;
+    final int indent = widget.indentLevel.clamp(0, 3);
+    final double avatarSize = indent == 0 ? 34 : 28;
+    final bool isPostAuthor =
+        comment.isPostAuthor ||
+        (widget.postAuthorId.isNotEmpty &&
+            comment.authorUserId == widget.postAuthorId);
+    final bool hasAvatar =
+        comment.authorAvatar != null && comment.authorAvatar!.isNotEmpty;
+    final VoidCallback? openAuthor = comment.authorUserId.isNotEmpty
+        ? () => context.push('/user/${comment.authorUserId}')
+        : null;
+    final TextStyle meta = ZxType.caption.copyWith(color: t.text3);
 
-    final isPostAuthor = widget.postAuthorId.isNotEmpty && comment.authorUserId == widget.postAuthorId;
-
-    final Widget commentContent = Container(
-      key: widget.commentKeyBuilder?.call(comment.id),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GestureDetector(
-            behavior: HitTestBehavior.translucent,
-            onLongPressStart: _showActionMenu,
-            child: IntrinsicHeight(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 左侧缩进 + 竖线
-                  SizedBox(
-                    width:
-                        leftPadding + (effectiveIndent > 0 ? guideWidth : 16),
-                    child: effectiveIndent > 0
-                        ? Row(
-                            children: [
-                              SizedBox(width: leftPadding),
-                              ...List.generate(effectiveIndent, (i) {
-                                return Container(
-                                  width: 2,
-                                  margin: const EdgeInsets.only(right: 10),
-                                  color: colors.divider,
-                                );
-                              }),
-                            ],
-                          )
-                        : SizedBox(width: leftPadding),
-                  ),
-                  // 头像
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: comment.authorUserId.isNotEmpty
-                          ? () => context.push('/user/${comment.authorUserId}')
-                          : null,
-                      child: (comment.authorAvatar == null || comment.authorAvatar!.isEmpty)
-                          ? SealAvatar(text: comment.authorAlias, size: avatarRadius * 2)
-                          : AvatarWidget(
-                              avatarUrl: comment.authorAvatar,
-                              nickname: comment.authorAlias,
-                              radius: avatarRadius,
-                            ),
+    final Widget row = GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onLongPressStart: _showActionMenu,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20.0 + indent * 42, 10, 20, 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: openAuthor,
+              child: hasAvatar
+                  ? AvatarWidget(
+                      avatarUrl: comment.authorAvatar,
+                      nickname: comment.authorAlias,
+                      radius: avatarSize / 2,
+                    )
+                  : ZxAvatar.anonymous(
+                      name: comment.authorAlias,
+                      size: avatarSize,
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  // 内容
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 昵称 + 洞主徽章 + 时间
-                        Row(
-                          children: [
-                            Flexible(
-                              child: GestureDetector(
-                                onTap: comment.authorUserId.isNotEmpty
-                                    ? () => context.push(
-                                        '/user/${comment.authorUserId}',
-                                      )
-                                    : null,
-                                child: Text(
-                                  comment.authorAlias,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: comment.authorUserId.isNotEmpty
-                                        ? MobileTheme.primaryOf(context)
-                                        : colors.textPrimary,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                            if (isPostAuthor) ...[
-                              const SizedBox(width: 6),
-                              const SealBadge(text: '洞主', type: SealBadgeType.hollow),
-                            ],
-                            const SizedBox(width: 6),
-                            Text(
-                              _formatTime(comment.createdAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: colors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 5),
-                        // 正文：点击触发回复
-                        GestureDetector(
-                          onTap: () => widget.onReply?.call(comment),
-                          behavior: HitTestBehavior.opaque,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: GestureDetector(
+                          onTap: openAuthor,
                           child: Text(
-                            comment.content,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colors.textPrimary,
-                              height: 1.4,
+                            comment.authorAlias,
+                            style: ZxType.label.copyWith(
+                              fontSize: 13,
+                              color: t.text,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 8),
-                        // 底部操作栏：点赞 + 回复数
-                        Row(
-                          children: [
-                            // 点赞
-                            GestureDetector(
-                              onTap: () => _toggleLike(context),
-                              behavior: HitTestBehavior.opaque,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    _isLiked
-                                        ? Icons.favorite_rounded
-                                        : Icons.favorite_border_rounded,
-                                    size: 18,
-                                    color: _isLiked
-                                        ? colors.accent
-                                        : colors.textPrimary,
-                                  ),
-                                  if (_likeCount > 0) ...[
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '$_likeCount',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: _isLiked
-                                            ? colors.accent
-                                            : colors.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            // 回复数
-                            GestureDetector(
-                              onTap: () => widget.onReply?.call(comment),
-                              behavior: HitTestBehavior.opaque,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.chat_bubble_outline_rounded,
-                                    size: 18,
-                                    color: colors.textPrimary,
-                                  ),
-                                  if (comment.effectiveReplyCount > 0) ...[
-                                    const SizedBox(width: 3),
-                                    Text(
-                                      '${comment.effectiveReplyCount}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: colors.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
+                      ),
+                      if (isPostAuthor) ...[
+                        const SizedBox(width: 6),
+                        const ZxBadge.author('洞主'),
                       ],
+                      const SizedBox(width: 6),
+                      Text(_formatTime(comment.createdAt), style: meta),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  GestureDetector(
+                    onTap: () => widget.onReply?.call(comment),
+                    behavior: HitTestBehavior.opaque,
+                    child: Text(
+                      comment.content,
+                      style: ZxType.body.copyWith(
+                        fontSize: 15,
+                        color: t.text,
+                        height: 1.55,
+                      ),
                     ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => widget.onReply?.call(comment),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            comment.effectiveReplyCount > 0
+                                ? '回复 ${comment.effectiveReplyCount}'
+                                : '回复',
+                            style: meta,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 18),
+                      GestureDetector(
+                        onTap: () => _toggleLike(context),
+                        behavior: HitTestBehavior.opaque,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _isLiked
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                size: 15,
+                                color: _isLiked ? t.primary : t.text3,
+                              ),
+                              if (_likeCount > 0) ...[
+                                const SizedBox(width: 4),
+                                Text(
+                                  '$_likeCount',
+                                  style: meta.copyWith(
+                                    color: _isLiked ? t.primary : t.text3,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-          // 递归渲染子回复；超过 3 层后不再增加视觉缩进，但继续显示内容
-          if (comment.replies.isNotEmpty)
-            ...comment.replies.map(
-              (reply) => _CommentTile(
-                comment: reply,
-                indentLevel: widget.indentLevel + 1,
-                onReply: widget.onReply,
-                commentKeyBuilder: widget.commentKeyBuilder,
-                currentUserId: widget.currentUserId,
-                onDelete: widget.onDelete,
-                postAuthorId: widget.postAuthorId,
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
 
-    if (widget.indentLevel == 0) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SharedColors.divider, width: 0.5),
-            boxShadow: [
-              BoxShadow(
-                color: SharedColors.deep.withValues(alpha: 0.02),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
+    return Column(
+      key: widget.commentKeyBuilder?.call(comment.id),
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        row,
+        // 超过 3 层后不再增加缩进，但继续显示内容
+        for (final CommentItem reply in comment.replies)
+          _CommentTile(
+            comment: reply,
+            indentLevel: widget.indentLevel + 1,
+            onReply: widget.onReply,
+            commentKeyBuilder: widget.commentKeyBuilder,
+            currentUserId: widget.currentUserId,
+            onDelete: widget.onDelete,
+            postAuthorId: widget.postAuthorId,
           ),
-          padding: const EdgeInsets.all(12),
-          child: commentContent,
-        ),
-      );
-    }
-    return commentContent;
+      ],
+    );
   }
 
   String _formatTime(DateTime dateTime) {
@@ -1717,60 +1579,99 @@ class _CommentTileState extends State<_CommentTile> {
 /// 搴曢儴鎿嶄綔鎸夐挳
 enum _CommentAction { copy, delete }
 
-class _ActionItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
-  final String label;
-  final bool isActive;
-  final bool isLoading;
-  final Color activeColor;
-  final VoidCallback onTap;
-  final double iconSize;
-
-  const _ActionItem({
+/// The rounded-square app-bar button of handoff A2.
+class _SquareAction extends StatelessWidget {
+  const _SquareAction({
+    super.key,
     required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isActive,
-    this.isLoading = false,
-    required this.activeColor,
+    required this.tooltip,
     required this.onTap,
-    this.iconSize = 22,
   });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final inactiveColor = colors.textPrimary;
-    final Color effectiveColor = isActive ? activeColor : inactiveColor;
-    return GestureDetector(
-      onTap: isLoading ? null : onTap,
-      child: Row(
-        children: [
-          isLoading
-              ? SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: inactiveColor,
-                  ),
-                )
-              : Icon(
-                  isActive ? activeIcon : icon,
-                  size: iconSize,
-                  color: effectiveColor,
-                ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: effectiveColor,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+    final ZxTokens t = ZxTokens.of(context);
+    return Center(
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: t.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: ZxRadius.buttonAll,
+            side: BorderSide(color: t.line),
+          ),
+          child: InkWell(
+            customBorder: RoundedRectangleBorder(
+              borderRadius: ZxRadius.buttonAll,
+            ),
+            onTap: onTap,
+            child: SizedBox(
+              width: 40,
+              height: 40,
+              child: Icon(icon, size: 20, color: t.text),
             ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A like / favorite / share control in the comment bar. [filled] gives the
+/// active state a soft pill, as the like has in the handoff.
+class _BarAction extends StatelessWidget {
+  const _BarAction({
+    super.key,
+    required this.icon,
+    required this.onTap,
+    this.count = 0,
+    this.active = false,
+    this.filled = false,
+    this.loading = false,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final int count;
+  final bool active;
+  final bool filled;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final Color color = active ? t.primary : t.text2;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: loading ? null : onTap,
+      child: Container(
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: active && filled ? t.primarySoft : null,
+          borderRadius: BorderRadius.circular(22),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 21, color: color),
+            if (count > 0) ...[
+              const SizedBox(width: 4),
+              Text(
+                '$count',
+                style: ZxType.label.copyWith(
+                  fontSize: 13,
+                  color: color,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
