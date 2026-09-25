@@ -70,6 +70,17 @@ final Map<String, Object> _routes = <String, Object>{
   ],
   '/users/me/followers': <Object>[<String, Object>{'userId': 'u1', 'nickname': '林小舟', 'isFollowing': true, 'isFollower': true}],
   '/users/me/following': <Object>[<String, Object>{'userId': 'u1', 'nickname': '林小舟', 'isFollowing': true, 'isFollower': true}, <String, Object>{'userId': 'u2', 'nickname': '组队小王', 'isFollowing': true}],
+  '/posts/p2': samplePosts()[1],
+  '/posts/p2/view': <String, Object>{'viewCount': 96},
+  '/users/u1': <String, Object>{'id': 'u1', 'nickname': '林小舟', 'userLevelLabel': 'Lv.3', 'bio': '示例签名：建模、跑步、偶尔写点东西。', 'college': '示例学院', 'major': '示例专业', 'postCount': 12, 'followingCount': 36, 'followerCount': 20, 'canFollow': true, 'canDirectMessage': true},
+  '/posts/p2/comments': <Object>[
+    <String, Object>{'id': 'k1', 'postId': 'p2', 'content': '已经修好了，感谢楼下提醒！', 'authorAlias': '安静的同学', 'isPostAuthor': true, 'likeCount': 6, 'createdAt': _ago(const Duration(minutes: 5))},
+    <String, Object>{'id': 'k2', 'postId': 'p2', 'content': '示例：东侧还有两个没修。', 'authorAlias': '路过的同学', 'likeCount': 1, 'createdAt': _ago(const Duration(minutes: 3))},
+  ],
+  '/messages/conversations/c1/messages': <Object>[
+    <String, Object>{'id': 'm1', 'content': '示例：你好，方便聊聊比赛安排吗？', 'createdAt': _ago(const Duration(minutes: 30)), 'senderAlias': '林小舟'},
+    <String, Object>{'id': 'm2', 'content': '可以，周三晚上我都有空。', 'createdAt': _ago(const Duration(minutes: 27)), 'fromMe': true, 'isRead': true},
+  ],
   '/messages/requests': <Object>[
     <String, Object>{
       'id': 'r1',
@@ -127,6 +138,14 @@ void main() {
     ('home', '/'),
     ('messages', '/messages'),
     ('profile', '/profile'),
+    ('post', '/post/p2'),
+    ('chat', '/chat/c1?name=林小舟&userId=u1'),
+    ('notifications', '/notifications'),
+    ('search', '/search'),
+    ('settings', '/profile/settings'),
+    ('display', '/profile/settings/display'),
+    ('user', '/user/u1'),
+    ('create', '/post/create'),
   ]) {
     for (final Brightness b in Brightness.values) {
       testWidgets('android $name ${b.name}', (WidgetTester tester) async {

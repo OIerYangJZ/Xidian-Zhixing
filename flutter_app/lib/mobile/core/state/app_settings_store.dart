@@ -26,6 +26,12 @@ class AppSettingsStore extends ChangeNotifier {
   Locale? get locale => _locale;
   String get themeKey => _themeKey;
 
+  /// A process-wide singleton: appSettingsProvider hands it to Riverpod,
+  /// which disposes it when a ProviderScope goes away. It must outlive that.
+  @override
+  // ignore: must_call_super
+  void dispose() {}
+
   /// 应用启动时调用，从 SharedPreferences 恢复持久化状态。
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
