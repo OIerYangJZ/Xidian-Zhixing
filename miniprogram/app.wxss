@@ -44,10 +44,11 @@ page {
   --app-accent-soft: var(--background-softRed);
 
   --font-zh-display: "STZhongsong", "华文中宋", "STSong", "华文宋体", "SimSun", "宋体";
-  --font-zh-body: "STSong", "华文宋体", "SimSun", "宋体";
+  /* Body text is sans, as in the design system; titles keep the serif. */
+  --font-zh-body: "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
   --font-zh-accent: "STKaiti", "华文楷体", "KaiTi", "楷体";
   --font-en-display: "Anthropic Serif Web", "Anthropic Serif Web Text", "Times New Roman";
-  --font-en-body: "Times New Roman", "Anthropic Serif Web";
+  --font-en-body: -apple-system, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
   --font-en-accent: "Apple Chancery", "Times New Roman";
   --font-display: var(--font-zh-display);
   --font-body: var(--font-zh-body);

@@ -1,6 +1,6 @@
 /* 校园 AI (handoff M2b). */
-.ai-home { background: var(--zx-hero); padding-bottom: 48rpx; }
-.ai-head { padding: 0 40rpx 32rpx; }
+.ai-home { background: var(--zx-bg); padding-bottom: 48rpx; }
+.ai-head { padding: 0 40rpx 72rpx; margin-bottom: -40rpx; background: var(--zx-hero); }
 .ai-head-bar { display: flex; align-items: center; }
 .ai-title { font-size: 44rpx; line-height: 56rpx; }
 .ai-subtitle { margin-top: 12rpx; font-size: 26rpx; color: var(--zx-text-2); }

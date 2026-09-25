@@ -23,7 +23,16 @@ export const clearAiConfig = () => {
 };
 
 export const fetchAiModels = async () => {
-  const response = await request.get('/api/ai/models', {}, { timeout: 25000 });
+  let response;
+  try {
+    response = await request.get('/api/ai/models', {}, { timeout: 25000, silentErrorToast: true });
+  } catch (error) {
+    // 503: no AI provider set up on the server. A state, not a failure.
+    if (error && error.statusCode === 503) {
+      return saveAiConfig({ configured: false, model: '', models: [] });
+    }
+    throw error;
+  }
   const data = getData(response, {});
   const status = {
     configured: Boolean(data.currentModel),

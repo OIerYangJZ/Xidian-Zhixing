@@ -1,8 +1,8 @@
 <view class="zx-page messages-page {{themeClass}}">
-  <view class="messages-head zx-row">
+  <view class="messages-head zx-row" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
     <view class="zx-display messages-title">消息</view>
     <view class="zx-spacer"></view>
-    <view class="head-action" bindtap="retryLoad" hover-class="zx-btn-hover"><view class="zx-i zx-i-refresh"></view></view>
+    <view class="head-action" style="margin-right: 190rpx;" bindtap="retryLoad" hover-class="zx-btn-hover"><view class="zx-i zx-i-refresh"></view></view>
   </view>
 
   <view class="entry-row">

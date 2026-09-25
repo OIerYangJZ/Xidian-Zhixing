@@ -13,10 +13,14 @@ Page({
     pendingRequests: [],
     notificationUnread: 0,
     likeUnread: 0,
-    busy: false
+    busy: false,
+    navTop: 44,
+    navHeight: 32
   },
 
   onShow() {
+    const app = getApp();
+    this.setData({ navTop: app.globalData.navTop || 44, navHeight: app.globalData.navHeight || 32 });
     applyThemeAndLanguage(this);
     if (!requireLoginPage()) return;
     this.loadData();
