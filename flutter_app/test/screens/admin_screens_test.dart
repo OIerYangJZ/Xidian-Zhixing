@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
+import 'package:xdu_treehole_web/features/admin/admin_login_page.dart';
 import 'package:xdu_treehole_web/repositories/admin_repository.dart';
 
 import 'screen_capture.dart';
@@ -99,6 +100,15 @@ void main() {
       home: AdminConsolePage(repository: _repo()),
       size: phone,
       themeKey: 'zhuqing',
+    );
+  }, skip: !capturing);
+
+  testWidgets('admin login', (WidgetTester tester) async {
+    await captureScreen(
+      tester,
+      name: 'admin_login_phone_light',
+      home: const AdminLoginPage(),
+      size: phone,
     );
   }, skip: !capturing);
 }
