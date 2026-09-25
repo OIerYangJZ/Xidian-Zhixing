@@ -247,6 +247,8 @@ void main() {
     ('display', '/profile/settings/display'),
     ('user', '/user/u1'),
     ('create', '/post/create'),
+    // Body only, then 发布: handoff P2's errors.
+    ('create_errors', '/post/create'),
     // Signed out; the capture taps 登录 unticked, as in handoff L2.
     ('login', '/auth/login?from=/post/p2'),
   ]) {
@@ -291,6 +293,14 @@ void main() {
           appRouter.go(location);
           for (int i = 0; i < 12; i++) {
             await tester.pump(const Duration(milliseconds: 150));
+          }
+          if (name == 'create_errors') {
+            await tester.enterText(
+              find.byKey(const Key('mobile-create-content')),
+              '想找人一起晨跑，六点操场见。',
+            );
+            await tester.tap(find.byKey(const Key('mobile-create-publish')));
+            await tester.pump(const Duration(milliseconds: 600));
           }
           if (signedOut) {
             await tester.tap(find.byKey(const Key('mobile-login-submit')));

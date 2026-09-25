@@ -6,17 +6,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../core/theme/mobile_theme.dart';
-import '../../core/theme/mobile_colors.dart';
-import '../../../core/theme/shared_colors.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../design_system/design_system.dart';
 import '../../core/state/mobile_providers.dart';
+import '../widgets/square_icon_button.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
-/// 发帖页 — Instagram 极简风格
-/// 无卡片、无冗余设置项、底部工具栏图标操作
+/// 发帖 (handoff P1–P3). The title, body and images sit in one card, the
+/// settings in another. 发布 checks everything at once (P2): a banner counts
+/// what is missing and jumps to it, each field says what it needs. While
+/// publishing (P3) the form dims and locks, and the top bar shows the image
+/// uploads and their progress. Images upload on publish, not on pick, so a
+/// removed image never lingers as an upload.
 class CreatePostPage extends ConsumerStatefulWidget {
   const CreatePostPage({super.key});
 
@@ -25,75 +28,76 @@ class CreatePostPage extends ConsumerStatefulWidget {
 }
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
-  final _titleController = TextEditingController();
-  final _contentController = TextEditingController();
-  final _imagePicker = ImagePicker();
+  static const int _titleMax = 60;
+  static const int _contentMax = 2000;
+  static const int _imageMax = 9;
+  static const List<String> _fallbackChannels = <String>[
+    '综合',
+    '学习交流',
+    '求助问答',
+    '二手交易',
+    '吐槽日常',
+  ];
 
-  String _selectedChannel = '综合';
-  List<String> _selectedTags = [];
-  PostStatus _postStatus = PostStatus.ongoing;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
+  final TextEditingController _aliasController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
 
-  final _anonymousAliasController = TextEditingController();
+  final GlobalKey _titleKey = GlobalKey();
+  final GlobalKey _contentKey = GlobalKey();
+  final GlobalKey _channelKey = GlobalKey();
+
+  String? _channel;
+  List<String> _tags = <String>[];
+  PostStatus _status = PostStatus.ongoing;
+  bool _privateOnly = false;
   bool _isAnonymous = false;
-
-  int? _selectedPinDurationMinutes;
-  bool _showPinSelector = false;
+  int? _pinMinutes;
   bool _isLevelOneUser =
       AuthStore.instance.currentUser?.isLevelOneUser ?? false;
 
-  final List<XFile> _selectedImages = [];
-  final List<String> _uploadedImageIds = [];
-  bool _isUploading = false;
-  bool _isPublishing = false;
+  final List<XFile> _images = <XFile>[];
+  List<String> _channels = <String>[];
 
-  List<String> _channels = [];
-  bool _isLoadingChannels = true;
-
-  // Inline selector states
-  bool _showChannelSelector = false;
-  bool _showTagSelector = false;
-  bool _showStatusSelector = false;
-
-  // Visibility
-  bool _privateOnly = false;
+  /// Set after the first 发布, so errors only show once asked for.
+  bool _showErrors = false;
+  bool _publishing = false;
+  String? _progressText;
+  double _progress = 0;
 
   @override
   void initState() {
     super.initState();
     _loadChannels();
     _loadUserLevel();
-    _contentController.addListener(() => setState(() {}));
+    _titleController.addListener(_refresh);
+    _contentController.addListener(_refresh);
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _contentController.dispose();
-    _anonymousAliasController.dispose();
+    _aliasController.dispose();
     super.dispose();
   }
 
+  void _refresh() => setState(() {});
+
   Future<void> _loadChannels() async {
+    List<String> channels;
     try {
-      final postRepo = ref.read(postRepositoryProvider);
-      final channels = await postRepo.fetchChannels();
-      if (mounted) {
-        setState(() {
-          // 过滤掉"全部"，它不是真实频道
-          _channels = channels.isNotEmpty
-              ? channels.where((c) => c != '全部').toList()
-              : ['综合', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
-          _isLoadingChannels = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _channels = ['综合', '学习', '吐槽日常', '失物招领', '二手交易', '找搭子'];
-          _isLoadingChannels = false;
-        });
-      }
+      channels = (await ref.read(postRepositoryProvider).fetchChannels())
+          .where((String c) => c != '全部')
+          .toList();
+    } catch (_) {
+      channels = const <String>[];
     }
+    if (!mounted) return;
+    setState(() {
+      _channels = channels.isEmpty ? _fallbackChannels : channels;
+    });
   }
 
   Future<void> _loadUserLevel() async {
@@ -101,93 +105,76 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       final profile = await ref.read(userRepositoryProvider).fetchProfile();
       AuthStore.instance.setCurrentUser(profile);
       if (!mounted) return;
-      setState(() {
-        _isLevelOneUser = profile.isLevelOneUser;
-      });
+      setState(() => _isLevelOneUser = profile.isLevelOneUser);
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _isLevelOneUser =
-            AuthStore.instance.currentUser?.isLevelOneUser ?? false;
-      });
+      // Keep the cached level.
     }
   }
 
+  // ---- validation ----
+
+  String? get _titleError {
+    final String title = _titleController.text.trim();
+    if (title.isEmpty) return '请填写标题';
+    if (title.characters.length > _titleMax) return '标题最多 $_titleMax 字';
+    return null;
+  }
+
+  String? get _contentError {
+    final String content = _contentController.text.trim();
+    if (content.isEmpty) return '请填写正文';
+    if (content.characters.length > _contentMax) {
+      return '正文最多 $_contentMax 字';
+    }
+    return null;
+  }
+
+  String? get _channelError => _channel == null ? '请选择分区' : null;
+
+  /// Missing or invalid fields, in page order.
+  List<GlobalKey> get _missing => <GlobalKey>[
+    if (_titleError != null) _titleKey,
+    if (_contentError != null) _contentKey,
+    if (_channelError != null) _channelKey,
+  ];
+
+  void _scrollTo(GlobalKey key) {
+    final BuildContext? target = key.currentContext;
+    if (target == null) return;
+    Scrollable.ensureVisible(
+      target,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+      alignment: 0.1,
+    );
+  }
+
+  // ---- actions ----
+
   Future<void> _pickImages() async {
+    final int room = _imageMax - _images.length;
+    if (room <= 0) {
+      zxShowToast(context, '最多 $_imageMax 张图片');
+      return;
+    }
     try {
-      final images = await _imagePicker.pickMultiImage(
+      final List<XFile> picked = await _imagePicker.pickMultiImage(
         maxWidth: 1920,
         maxHeight: 1920,
         imageQuality: 85,
       );
-
-      if (images.isNotEmpty) {
-        final maxImages = 9 - _selectedImages.length;
-        final imagesToAdd = images.take(maxImages).toList();
-
-        setState(() {
-          _selectedImages.addAll(imagesToAdd);
-        });
-
-        _uploadImages(imagesToAdd);
+      if (!mounted || picked.isEmpty) return;
+      if (picked.length > room) {
+        zxShowToast(context, '最多 $_imageMax 张，已保留前 $room 张');
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('选择图片失败: $e')));
-      }
+      setState(() => _images.addAll(picked.take(room)));
+    } catch (error) {
+      if (mounted) zxShowToast(context, '选择图片失败：$error');
     }
   }
 
-  Future<void> _uploadImages(List<XFile> images) async {
-    if (_isUploading) return;
-
-    setState(() {
-      _isUploading = true;
-    });
-
-    try {
-      final postRepo = ref.read(postRepositoryProvider);
-
-      for (final image in images) {
-        final bytes = await image.readAsBytes();
-        final base64Data = base64Encode(bytes);
-        final fileName = image.name;
-        final contentType = _getContentType(image.path);
-
-        try {
-          final uploadedImage = await postRepo.uploadImage(
-            fileName: fileName,
-            contentType: contentType,
-            dataBase64: base64Data,
-          );
-          _uploadedImageIds.add(uploadedImage.id);
-        } catch (e) {
-          debugPrint('图片上传失败: $e');
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('图片上传失败: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUploading = false;
-        });
-      }
-    }
-  }
-
-  String _getContentType(String path) {
-    final ext = path.split('.').last.toLowerCase();
-    switch (ext) {
-      case 'jpg':
-      case 'jpeg':
-        return 'image/jpeg';
+  String _contentType(String path) {
+    switch (path.split('.').last.toLowerCase()) {
       case 'png':
         return 'image/png';
       case 'gif':
@@ -208,1071 +195,830 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           .read(postRepositoryProvider)
           .fetchRandomAnonymousAlias();
       if (!mounted || !_isAnonymous) return;
-      setState(() => _anonymousAliasController.text = alias);
+      setState(() => _aliasController.text = alias);
     } catch (error) {
       if (!mounted || !explicit) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('随机昵称获取失败：$error')));
+      zxShowToast(context, '随机昵称获取失败：$error');
     }
   }
 
-  void _removeImage(int index) {
+  void _setAnonymous(bool value) {
     setState(() {
-      _selectedImages.removeAt(index);
-      if (index < _uploadedImageIds.length) {
-        _uploadedImageIds.removeAt(index);
-      }
+      _isAnonymous = value;
+      if (!value) _aliasController.clear();
     });
+    if (value && _aliasController.text.isEmpty) _fillRandomAlias();
   }
 
-  Future<void> _handlePublish() async {
-    final content = _contentController.text.trim();
-    if (content.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('请输入帖子内容')));
+  Future<void> _publish() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final List<GlobalKey> missing = _missing;
+    if (missing.isNotEmpty) {
+      setState(() => _showErrors = true);
+      _scrollTo(missing.first);
       return;
     }
-
+    final PostRepository repo = ref.read(postRepositoryProvider);
+    final int total = _images.length;
     setState(() {
-      _isPublishing = true;
+      _publishing = true;
+      _progress = 0;
+      _progressText = total == 0 ? '正在发布' : '正在上传图片 0/$total';
     });
-
     try {
-      final postRepo = ref.read(postRepositoryProvider);
-      final input = CreatePostInput(
-        title: _titleController.text.trim(),
-        content: content,
-        channel: _selectedChannel,
-        tags: _selectedTags,
-        allowComment: true,
-        allowDm: !_isAnonymous,
-        privateOnly: _privateOnly,
-        status: _postStatus,
-        hasImage: _selectedImages.isNotEmpty,
-        imageUploadIds: _uploadedImageIds,
-        useAnonymousAlias: _isAnonymous,
-        anonymousAlias: _isAnonymous ? _anonymousAliasController.text : null,
-        pinDurationMinutes: _selectedPinDurationMinutes,
+      final List<String> uploadIds = <String>[];
+      for (int i = 0; i < total; i++) {
+        final XFile image = _images[i];
+        final uploaded = await repo.uploadImage(
+          fileName: image.name,
+          contentType: _contentType(image.path),
+          dataBase64: base64Encode(await image.readAsBytes()),
+        );
+        uploadIds.add(uploaded.id);
+        if (!mounted) return;
+        setState(() {
+          _progress = (i + 1) / (total + 1);
+          _progressText = i + 1 < total ? '正在上传图片 ${i + 1}/$total' : '正在发布';
+        });
+      }
+      await repo.createPost(
+        CreatePostInput(
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+          channel: _channel!,
+          tags: _tags,
+          allowComment: true,
+          allowDm: !_isAnonymous,
+          privateOnly: _privateOnly,
+          status: _status,
+          hasImage: uploadIds.isNotEmpty,
+          imageUploadIds: uploadIds,
+          useAnonymousAlias: _isAnonymous,
+          anonymousAlias: _isAnonymous ? _aliasController.text.trim() : null,
+          pinDurationMinutes: _pinMinutes,
+        ),
       );
-
-      await postRepo.createPost(input);
-
-      if (mounted) {
-        final successMsg = _isAnonymous ? '已悄悄放进树洞' : '发布成功！';
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(successMsg)));
-        context.pop();
-      }
+      if (!mounted) return;
+      zxShowToast(context, _isAnonymous ? '已悄悄放进树洞' : '发布成功');
+      context.pop();
     } on ApiException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('发布失败: ${error.message}')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('发布失败: $e')));
-      }
+      if (mounted) zxShowToast(context, '发布失败：${error.message}');
+    } catch (error) {
+      if (mounted) zxShowToast(context, '发布失败：$error');
     } finally {
       if (mounted) {
         setState(() {
-          _isPublishing = false;
+          _publishing = false;
+          _progressText = null;
         });
       }
     }
   }
 
-  void _confirmDiscard() {
+  Future<void> _confirmDiscard() async {
+    if (_publishing) return;
     if (_titleController.text.isEmpty &&
         _contentController.text.isEmpty &&
-        _selectedImages.isEmpty) {
+        _images.isEmpty) {
       context.pop();
       return;
     }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('放弃编辑？'),
-        content: const Text('确定要放弃当前编辑内容吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              this.context.pop();
-            },
-            style: TextButton.styleFrom(foregroundColor: MobileTheme.error),
-            child: const Text('放弃'),
-          ),
-        ],
-      ),
+    final bool discard = await zxConfirm(
+      context,
+      title: '放弃编辑？',
+      message: '当前填写的内容不会保存。',
+      confirmLabel: '放弃',
+      cancelLabel: '继续编辑',
+      danger: true,
     );
+    if (discard && mounted) context.pop();
   }
 
-  bool get _canPublish =>
-      _contentController.text.trim().isNotEmpty && !_isPublishing;
+  Future<void> _editTags() async {
+    final List<String>? tags = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _TagSheet(selected: _tags),
+    );
+    if (tags != null && mounted) setState(() => _tags = tags);
+  }
 
-  bool get _canPin => _isLevelOneUser;
+  // ---- layout ----
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final contentLen = _contentController.text.length;
-    final canPublish = _canPublish;
+    final ZxTokens t = ZxTokens.of(context);
+    final List<GlobalKey> missing = _showErrors ? _missing : const [];
 
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.background,
-        scrolledUnderElevation: 0.5,
-        toolbarHeight: 48,
-        leading: IconButton(
-          icon: Icon(Icons.close, color: colors.textPrimary),
-          onPressed: _confirmDiscard,
-        ),
-        title: Text(
-          '$contentLen / 2000',
-          style: TextStyle(
-            fontSize: 13,
-            color: contentLen > 2000 ? MobileTheme.error : colors.textSecondary,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: FilledButton(
-              onPressed: canPublish ? _handlePublish : null,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                disabledBackgroundColor: colors.divider,
-                backgroundColor: MobileTheme.primaryOf(context),
-              ),
-              child: _isPublishing
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Text(_isAnonymous ? '盖章发布' : '发布到校园'),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 频道选择行
-                  _buildCompactSelector(
-                    label: '频道',
-                    value: _selectedChannel,
-                    isExpanded: _showChannelSelector,
-                    onTap: () {
-                      setState(() {
-                        _showChannelSelector = !_showChannelSelector;
-                        _showTagSelector = false;
-                        _showStatusSelector = false;
-                      });
-                    },
-                    children: _isLoadingChannels
-                        ? [const SizedBox(width: 16)]
-                        : _channels
-                              .map(
-                                (c) => _PillChip(
-                                  label: c,
-                                  isSelected: c == _selectedChannel,
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedChannel = c;
-                                      _showChannelSelector = false;
-                                    });
-                                  },
-                                ),
-                              )
-                              .toList(),
-                  ),
-
-                  Divider(height: 0.5, color: colors.divider),
-
-                  // 优雅的白底便签卡片编辑区
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: colors.divider, width: 0.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: SharedColors.deep.withValues(alpha: 0.04),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 标题输入
-                          TextField(
-                            controller: _titleController,
-                            maxLength: 50,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: colors.textPrimary,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: '标题（选填）',
-                              hintStyle: TextStyle(
-                                color: colors.textTertiary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.normal,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              counterText: '',
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                          const Divider(height: 16),
-                          // 正文输入
-                          TextField(
-                            controller: _contentController,
-                            maxLines: null,
-                            minLines: 8,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: colors.textPrimary,
-                              height: 1.6,
-                            ),
-                            decoration: InputDecoration(
-                              hintText: '今天想悄悄说些什么？',
-                              hintStyle: TextStyle(
-                                color: colors.textTertiary,
-                                fontSize: 15,
-                                fontFamily: MobileTheme.quoteFontFamily,
-                                fontFamilyFallback: MobileTheme.quoteFontFamilyFallback,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  // 已选标签横排（紧凑）
-                  if (_selectedTags.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: _selectedTags
-                            .map(
-                              (tag) => _SelectedTagChip(
-                                label: tag,
-                                onRemove: () {
-                                  setState(() {
-                                    _selectedTags.remove(tag);
-                                  });
-                                },
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    ),
-
-                  // 匿名昵称编辑行（仅在匿名模式下显示）
-                  if (_isAnonymous)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.visibility_off_outlined,
-                            size: 16,
-                            color: colors.textSecondary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: TextField(
-                              controller: _anonymousAliasController,
-                              // Same limit as the server's sanitize_alias.
-                              maxLength: 24,
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: colors.textPrimary,
-                              ),
-                              decoration: InputDecoration(
-                                hintText: '自定义匿名昵称（选填）',
-                                hintStyle: TextStyle(
-                                  fontSize: 14,
-                                  color: colors.textTertiary,
-                                ),
-                                border: InputBorder.none,
-                                isDense: true,
-                                contentPadding: EdgeInsets.zero,
-                                counterText: '',
-                              ),
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: () => _fillRandomAlias(explicit: true),
-                            icon: const Icon(Icons.casino_outlined, size: 16),
-                            label: const Text('随机'),
-                            style: TextButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  // 已选状态（内联紧凑展示）
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                    child: Row(children: [_StatusBadge(status: _postStatus)]),
-                  ),
-
-                  // 图片预览横排
-                  if (_selectedImages.isNotEmpty) _buildImagePreview(),
-
-                  const SizedBox(height: 8),
-                ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (!didPop) _confirmDiscard();
+      },
+      child: Scaffold(
+        backgroundColor: t.bg,
+        appBar: AppBar(
+          backgroundColor: t.surface,
+          leading: Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Opacity(
+              opacity: _publishing ? 0.4 : 1,
+              child: SquareIconButton(
+                icon: Icons.close_rounded,
+                tooltip: '关闭',
+                onTap: _confirmDiscard,
               ),
             ),
           ),
-
-          // 上传进度提示
-          if (_isUploading)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  const SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '图片上传中...',
-                    style: TextStyle(fontSize: 13, color: colors.textSecondary),
-                  ),
-                ],
+          leadingWidth: 60,
+          titleSpacing: 4,
+          title: const Text('发布'),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ZxButton(
+                key: const Key('mobile-create-publish'),
+                label: _publishing ? '发布中' : '发布',
+                small: true,
+                loading: _publishing,
+                onPressed: _publishing ? null : _publish,
               ),
-            ),
-
-          // 底部工具栏
-          Container(
-            decoration: BoxDecoration(
-              color: colors.surface,
-              border: Border(
-                top: BorderSide(color: colors.divider, width: 0.5),
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 内联选择器展开区（频道 / 标签 / 状态）
-                  if (_showChannelSelector ||
-                      _showTagSelector ||
-                      _showStatusSelector ||
-                      _showPinSelector)
-                    _buildInlineSelectorArea(),
-
-                  // 工具栏图标行
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-                    child: Row(
-                      children: [
-                        // 图片按钮
-                        _ToolbarIconButton(
-                          icon: Icons.image_outlined,
-                          onTap: _pickImages,
-                        ),
-                        // 标签按钮
-                        _ToolbarIconButton(
-                          icon: Icons.tag,
-                          onTap: () {
-                            setState(() {
-                              _showTagSelector = !_showTagSelector;
-                              _showChannelSelector = false;
-                              _showStatusSelector = false;
-                            });
-                          },
-                        ),
-                        // 状态按钮
-                        _ToolbarIconButton(
-                          icon: _postStatus == PostStatus.resolved
-                              ? Icons.check_circle
-                              : _postStatus == PostStatus.closed
-                              ? Icons.lock
-                              : Icons.help_outline,
-                          onTap: () {
-                            setState(() {
-                              _showStatusSelector = !_showStatusSelector;
-                              _showChannelSelector = false;
-                              _showTagSelector = false;
-                            });
-                          },
-                        ),
-                        // 匿名按钮
-                        _ToolbarIconButton(
-                          icon: _isAnonymous
-                              ? Icons.visibility_off
-                              : Icons.visibility_off_outlined,
-                          isActive: _isAnonymous,
-                          onTap: () {
-                            setState(() {
-                              _isAnonymous = !_isAnonymous;
-                              if (!_isAnonymous) {
-                                _anonymousAliasController.clear();
-                              }
-                            });
-                            if (_isAnonymous &&
-                                _anonymousAliasController.text.isEmpty) {
-                              _fillRandomAlias();
-                            }
-                          },
-                        ),
-                        // 置顶按钮
-                        if (_canPin)
-                          _ToolbarIconButton(
-                            icon: _selectedPinDurationMinutes != null
-                                ? Icons.push_pin
-                                : Icons.push_pin_outlined,
-                            isActive: _selectedPinDurationMinutes != null,
-                            onTap: () {
-                              setState(() {
-                                _showPinSelector = !_showPinSelector;
-                                _showChannelSelector = false;
-                                _showTagSelector = false;
-                                _showStatusSelector = false;
-                              });
-                            },
-                          ),
-                        const Spacer(),
-                        // 可见性选项
-                        _VisibilitySelector(
-                          privateOnly: _privateOnly,
-                          onChanged: (privateOnly) {
-                            setState(() {
-                              _privateOnly = privateOnly;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactSelector({
-    required String label,
-    required String value,
-    required bool isExpanded,
-    required VoidCallback onTap,
-    required List<Widget> children,
-  }) {
-    final colors = MobileColors.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Row(
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 14, color: colors.textSecondary),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: MobileTheme.primaryWithAlpha(context, 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    value,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: MobileTheme.primaryOf(context),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  isExpanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  size: 18,
-                  color: colors.textTertiary,
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (isExpanded)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Wrap(spacing: 6, runSpacing: 6, children: children),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildInlineSelectorArea() {
-    final colors = MobileColors.of(context);
-    if (_showStatusSelector) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Row(
-          children: PostStatus.values.map((s) {
-            final isSelected = s == _postStatus;
-            return Padding(
-              padding: const EdgeInsets.only(right: 6),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _postStatus = s;
-                    _showStatusSelector = false;
-                  });
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? MobileTheme.primaryWithAlpha(context, 0.12)
-                        : colors.background,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: isSelected
-                          ? MobileTheme.primaryOf(context)
-                          : colors.divider,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        s == PostStatus.resolved
-                            ? Icons.check_circle
-                            : s == PostStatus.closed
-                            ? Icons.lock
-                            : Icons.help_outline,
-                        size: 13,
-                        color: isSelected
-                            ? MobileTheme.primaryOf(context)
-                            : colors.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        s.label,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                          color: isSelected
-                              ? MobileTheme.primaryOf(context)
-                              : colors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      );
-    }
-
-    if (_showTagSelector) {
-      return _TagInlineSheet(
-        selectedTags: _selectedTags,
-        onSelect: (tags) {
-          setState(() {
-            _selectedTags = tags;
-            _showTagSelector = false;
-          });
-        },
-        onClose: () {
-          setState(() {
-            _showTagSelector = false;
-          });
-        },
-      );
-    }
-
-    if (_showPinSelector) {
-      const pinOptions = <_PinOption>[
-        _PinOption(label: '不置顶', minutes: null),
-        _PinOption(label: '30 分钟', minutes: 30),
-        _PinOption(label: '1 小时', minutes: 60),
-        _PinOption(label: '2 小时', minutes: 120),
-        _PinOption(label: '3 小时', minutes: 180),
-        _PinOption(label: '1 天', minutes: 1440),
-        _PinOption(label: '3 天', minutes: 4320),
-      ];
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.push_pin,
-                  size: 16,
-                  color: MobileTheme.primaryOf(context),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '发帖后立即置顶',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: MobileTheme.primaryOf(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: pinOptions.map((opt) {
-                final isSelected = opt.minutes == _selectedPinDurationMinutes;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedPinDurationMinutes = opt.minutes;
-                      _showPinSelector = false;
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? MobileTheme.primaryWithAlpha(context, 0.12)
-                          : colors.background,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isSelected
-                            ? MobileTheme.primaryOf(context)
-                            : colors.divider,
-                      ),
-                    ),
-                    child: Text(
-                      opt.label,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                        color: isSelected
-                            ? MobileTheme.primaryOf(context)
-                            : colors.textSecondary,
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
             ),
           ],
+          bottom: _publishing
+              ? PreferredSize(
+                  preferredSize: const Size.fromHeight(34),
+                  child: _ProgressLine(
+                    text: _progressText ?? '',
+                    value: _progress,
+                  ),
+                )
+              : null,
         ),
-      );
-    }
-
-    return const SizedBox.shrink();
+        body: IgnorePointer(
+          ignoring: _publishing,
+          child: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: _publishing ? 0.55 : 1,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+              children: [
+                if (missing.isNotEmpty) ...[
+                  ZxInlineMessage(
+                    key: const Key('mobile-create-errors'),
+                    tone: ZxMessageTone.danger,
+                    message: '还有 ${missing.length} 项需要填写',
+                    actionLabel: '点击定位',
+                    onAction: () => _scrollTo(missing.first),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                _buildEditorCard(t),
+                const SizedBox(height: 12),
+                _buildSettingsCard(t),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
-  Widget _buildImagePreview() {
-    final colors = MobileColors.of(context);
-    return SizedBox(
-      height: 80,
-      child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemCount: _selectedImages.length + 1,
-        itemBuilder: (context, index) {
-          if (index == _selectedImages.length) {
-            return GestureDetector(
-              onTap: _pickImages,
-              child: Container(
-                width: 80,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  color: colors.background,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: colors.divider),
-                ),
-                child: Icon(
-                  Icons.add_photo_alternate_outlined,
-                  size: 24,
-                  color: colors.textSecondary,
-                ),
+  Widget _buildEditorCard(ZxTokens t) {
+    final String? titleError = _showErrors ? _titleError : null;
+    final String? contentError = _showErrors ? _contentError : null;
+    final int titleLength = _titleController.text.trim().characters.length;
+    final int contentLength = _contentController.text.characters.length;
+    return ZxCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            key: _titleKey,
+            padding: const EdgeInsets.fromLTRB(14, 2, 12, 2),
+            decoration: BoxDecoration(
+              color: t.surface,
+              borderRadius: ZxRadius.buttonAll,
+              border: Border.all(
+                color: titleError != null ? t.danger : t.line,
+                width: titleError != null ? 1.5 : 1,
               ),
-            );
-          }
-
-          final image = _selectedImages[index];
-          return Stack(
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const Key('mobile-create-title'),
+                    controller: _titleController,
+                    style: ZxType.title.copyWith(color: t.text),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      filled: false,
+                      hintText: '标题（必填）',
+                      hintStyle: ZxType.title.copyWith(
+                        color: t.text3,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                Text(
+                  '$titleLength/$_titleMax',
+                  style: ZxType.micro.copyWith(
+                    color: titleLength > _titleMax ? t.danger : t.text3,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (titleError != null) _FieldError(titleError),
+          const SizedBox(height: 4),
+          Divider(height: 16, color: t.line),
+          TextField(
+            key: const Key('mobile-create-content'),
+            controller: _contentController,
+            minLines: 6,
+            maxLines: null,
+            style: ZxType.body.copyWith(color: t.text, height: 1.7),
+            decoration: InputDecoration(
+              filled: false,
+              hintText: '今天想悄悄说些什么？',
+              hintStyle: ZxType.body.copyWith(color: t.text3),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 4),
+            ),
+          ),
+          Row(
+            key: _contentKey,
             children: [
-              Container(
-                width: 80,
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: colors.background,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.file(File(image.path), fit: BoxFit.cover),
+              if (contentError != null)
+                Expanded(child: _FieldError(contentError))
+              else
+                const Spacer(),
+              Text(
+                '$contentLength/$_contentMax',
+                style: ZxType.micro.copyWith(
+                  color: contentLength > _contentMax ? t.danger : t.text3,
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildImages(t),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImages(ZxTokens t) {
+    const double side = 84;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (int i = 0; i < _images.length; i++)
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: ZxRadius.buttonAll,
+                child: Image.file(
+                  File(_images[i].path),
+                  width: side,
+                  height: side,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) =>
+                      Container(width: side, height: side, color: t.bgSunk),
+                ),
+              ),
+              if (i == 0)
+                Positioned(
+                  left: 6,
+                  bottom: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: t.scrim,
+                      borderRadius: ZxRadius.badgeAll,
+                    ),
+                    child: Text(
+                      '封面',
+                      style: ZxType.micro.copyWith(color: Colors.white),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 4,
-                right: 10,
+                right: 4,
                 child: GestureDetector(
-                  onTap: () => _removeImage(index),
+                  onTap: () => setState(() => _images.removeAt(i)),
                   child: Container(
-                    padding: const EdgeInsets.all(3),
+                    width: 22,
+                    height: 22,
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.5),
+                      color: t.scrim,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
-                      Icons.close,
-                      size: 12,
+                      Icons.close_rounded,
+                      size: 14,
                       color: Colors.white,
                     ),
                   ),
                 ),
               ),
             ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _PillChip extends StatelessWidget {
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _PillChip({
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? MobileTheme.primaryWithAlpha(context, 0.12)
-              : colors.background,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? MobileTheme.primaryOf(context) : colors.divider,
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            color: isSelected
-                ? MobileTheme.primaryOf(context)
-                : colors.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SelectedTagChip extends StatelessWidget {
-  final String label;
-  final VoidCallback onRemove;
-
-  const _SelectedTagChip({required this.label, required this.onRemove});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: MobileTheme.primaryWithAlpha(context, 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MobileTheme.primaryWithAlpha(context, 0.3)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '#$label',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: MobileTheme.primaryOf(context),
+        if (_images.length < _imageMax)
+          Material(
+            color: t.bgSunk,
+            borderRadius: ZxRadius.buttonAll,
+            child: InkWell(
+              key: const Key('mobile-create-add-image'),
+              borderRadius: ZxRadius.buttonAll,
+              onTap: _pickImages,
+              child: SizedBox(
+                width: side,
+                height: side,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_photo_alternate_outlined,
+                      size: 24,
+                      color: t.text3,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${_images.length}/$_imageMax',
+                      style: ZxType.micro.copyWith(color: t.text3),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 2),
-          GestureDetector(
-            onTap: onRemove,
-            child: Icon(
-              Icons.close,
-              size: 12,
-              color: MobileTheme.primaryOf(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final PostStatus status;
-
-  const _StatusBadge({required this.status});
-
-  @override
-  Widget build(BuildContext context) {
-    final displayLabel = status.label;
-    final displayColor = status == PostStatus.resolved
-        ? MobileTheme.success
-        : status == PostStatus.closed
-        ? MobileColors.of(context).textSecondary
-        : MobileTheme.primaryOf(context);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: displayColor.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        displayLabel,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: displayColor,
-        ),
-      ),
-    );
-  }
-}
-
-class _ToolbarIconButton extends StatelessWidget {
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _ToolbarIconButton({
-    required this.icon,
-    this.isActive = false,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: isActive
-              ? MobileTheme.primaryWithAlpha(context, 0.1)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Icon(
-          icon,
-          size: 22,
-          color: isActive
-              ? MobileTheme.primaryOf(context)
-              : colors.textSecondary,
-        ),
-      ),
-    );
-  }
-}
-
-class _VisibilitySelector extends StatelessWidget {
-  final bool privateOnly;
-  final ValueChanged<bool> onChanged;
-
-  const _VisibilitySelector({
-    required this.privateOnly,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return PopupMenuButton<String>(
-      offset: const Offset(0, -120),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: colors.surface,
-      icon: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            privateOnly ? Icons.lock_outline : Icons.public,
-            size: 18,
-            color: colors.textSecondary,
-          ),
-          const SizedBox(width: 2),
-          Icon(Icons.arrow_drop_up, size: 18, color: colors.textTertiary),
-        ],
-      ),
-      onSelected: (value) {
-        switch (value) {
-          case 'all':
-            onChanged(false);
-            break;
-          case 'private':
-            onChanged(true);
-            break;
-        }
-      },
-      itemBuilder: (context) => [
-        _buildVisibilityItem(
-          context,
-          'all',
-          Icons.public,
-          '所有人可见',
-          !privateOnly,
-        ),
-        _buildVisibilityItem(
-          context,
-          'private',
-          Icons.lock_outline,
-          '仅自己可见',
-          privateOnly,
-        ),
       ],
     );
   }
 
-  PopupMenuItem<String> _buildVisibilityItem(
-    BuildContext context,
-    String value,
-    IconData icon,
-    String label,
-    bool isSelected,
-  ) {
-    final colors = MobileColors.of(context);
-    return PopupMenuItem<String>(
-      value: value,
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 18,
-            color: isSelected
-                ? MobileTheme.primaryOf(context)
-                : colors.textSecondary,
+  Widget _buildSettingsCard(ZxTokens t) {
+    final String? channelError = _showErrors ? _channelError : null;
+    Widget heading(String label, {bool required = false, Widget? trailing}) =>
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            children: [
+              Text(label, style: ZxType.label.copyWith(color: t.text)),
+              if (required)
+                Text(' *', style: ZxType.label.copyWith(color: t.primary)),
+              const Spacer(),
+              ?trailing,
+            ],
           ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              color: isSelected
-                  ? MobileTheme.primaryOf(context)
-                  : colors.textPrimary,
+        );
+    Widget section(Widget child) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: child,
+    );
+    Widget divider() => Divider(height: 1, color: t.line);
+
+    return ZxCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          section(
+            Column(
+              key: _channelKey,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                heading('分区', required: true),
+                Container(
+                  padding: channelError != null
+                      ? const EdgeInsets.all(8)
+                      : EdgeInsets.zero,
+                  decoration: channelError != null
+                      ? BoxDecoration(
+                          borderRadius: ZxRadius.buttonAll,
+                          border: Border.all(color: t.danger, width: 1.5),
+                        )
+                      : null,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final String channel in _channels)
+                        _ChannelChip(
+                          key: Key('mobile-create-channel-$channel'),
+                          label: channel,
+                          dot: t.channelFor(channel),
+                          selected: _channel == channel,
+                          onTap: () => setState(() => _channel = channel),
+                        ),
+                    ],
+                  ),
+                ),
+                if (channelError != null) _FieldError(channelError),
+              ],
             ),
           ),
-          const Spacer(),
-          if (isSelected)
-            Icon(Icons.check, size: 16, color: MobileTheme.primaryOf(context)),
+          divider(),
+          section(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                heading(
+                  '标签',
+                  trailing: Text(
+                    '${_tags.length}/5',
+                    style: ZxType.caption.copyWith(color: t.text3),
+                  ),
+                ),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final String tag in _tags)
+                      InputChip(
+                        label: Text('#$tag'),
+                        labelStyle: ZxType.caption.copyWith(
+                          fontSize: 13,
+                          color: t.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        backgroundColor: t.primarySoft,
+                        side: BorderSide.none,
+                        deleteIconColor: t.primary,
+                        onDeleted: () => setState(() => _tags.remove(tag)),
+                      ),
+                    ActionChip(
+                      key: const Key('mobile-create-tags'),
+                      avatar: Icon(Icons.add_rounded, size: 16, color: t.text2),
+                      label: const Text('添加标签'),
+                      onPressed: _editTags,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          divider(),
+          section(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                heading('状态'),
+                _Segmented<PostStatus>(
+                  keyPrefix: 'mobile-create-status',
+                  value: _status,
+                  options: const <(PostStatus, String)>[
+                    (PostStatus.ongoing, '进行中'),
+                    (PostStatus.resolved, '已解决'),
+                    (PostStatus.closed, '已结束'),
+                  ],
+                  onChanged: (PostStatus s) => setState(() => _status = s),
+                ),
+              ],
+            ),
+          ),
+          divider(),
+          section(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                heading('可见范围'),
+                _Segmented<bool>(
+                  keyPrefix: 'mobile-create-visibility',
+                  value: _privateOnly,
+                  options: const <(bool, String)>[
+                    (false, '所有人'),
+                    (true, '仅自己'),
+                  ],
+                  onChanged: (bool v) => setState(() => _privateOnly = v),
+                ),
+              ],
+            ),
+          ),
+          divider(),
+          section(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '匿名发布',
+                            style: ZxType.label.copyWith(color: t.text),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '以印章代替头像，昵称可自定义',
+                            style: ZxType.caption.copyWith(color: t.text3),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      key: const Key('mobile-create-anonymous'),
+                      value: _isAnonymous,
+                      onChanged: _setAnonymous,
+                    ),
+                  ],
+                ),
+                if (_isAnonymous) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 4, 4),
+                    decoration: BoxDecoration(
+                      color: t.bgSunk,
+                      borderRadius: ZxRadius.buttonAll,
+                    ),
+                    child: Row(
+                      children: [
+                        ZxAvatar.anonymous(
+                          name: _aliasController.text.trim().isEmpty
+                              ? '匿'
+                              : _aliasController.text.trim(),
+                          size: 30,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _aliasController,
+                            // Same limit as the server's sanitize_alias.
+                            maxLength: 24,
+                            onChanged: (_) => setState(() {}),
+                            style: ZxType.body.copyWith(color: t.text),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              filled: false,
+                              counterText: '',
+                              hintText: '匿名昵称（选填）',
+                              hintStyle: ZxType.body.copyWith(color: t.text3),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        ZxButton(
+                          label: '随机',
+                          icon: Icons.casino_outlined,
+                          small: true,
+                          variant: ZxButtonVariant.ghost,
+                          onPressed: () => _fillRandomAlias(explicit: true),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (_isLevelOneUser) ...[
+            divider(),
+            section(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  heading('置顶时长', trailing: const ZxBadge.pinned('一级用户可用')),
+                  _Segmented<int?>(
+                    keyPrefix: 'mobile-create-pin',
+                    value: _pinMinutes,
+                    options: const <(int?, String)>[
+                      (null, '不置顶'),
+                      (60, '1 小时'),
+                      (1440, '1 天'),
+                      (4320, '3 天'),
+                    ],
+                    onChanged: (int? v) => setState(() => _pinMinutes = v),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _TagInlineSheet extends StatefulWidget {
-  final List<String> selectedTags;
-  final Function(List<String>) onSelect;
-  final VoidCallback onClose;
+class _FieldError extends StatelessWidget {
+  const _FieldError(this.message);
 
-  const _TagInlineSheet({
-    required this.selectedTags,
-    required this.onSelect,
-    required this.onClose,
-  });
+  final String message;
 
   @override
-  State<_TagInlineSheet> createState() => _TagInlineSheetState();
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 2),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, size: 14, color: t.danger),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              message,
+              style: ZxType.caption.copyWith(
+                color: t.danger,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _TagInlineSheetState extends State<_TagInlineSheet> {
-  late List<String> _tempSelected;
-  final _customTagController = TextEditingController();
+/// 正在上传图片 2/3 · 66%, under the app bar while publishing (P3).
+class _ProgressLine extends StatelessWidget {
+  const _ProgressLine({required this.text, required this.value});
 
-  final _allTags = [
+  final String text;
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  text,
+                  style: ZxType.caption.copyWith(color: t.text2),
+                ),
+              ),
+              Text(
+                '${(value * 100).round()}%',
+                style: ZxType.caption.copyWith(color: t.text3),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(2),
+            child: LinearProgressIndicator(
+              value: value,
+              minHeight: 3,
+              color: t.primary,
+              backgroundColor: t.bgSunk,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChannelChip extends StatelessWidget {
+  const _ChannelChip({
+    super.key,
+    required this.label,
+    required this.dot,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color dot;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Material(
+      color: selected ? t.primarySoft : t.surface,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: selected ? t.primary : t.lineStrong,
+          width: selected ? 1.5 : 1,
+        ),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: ZxType.caption.copyWith(
+                  fontSize: 13,
+                  color: selected ? t.primary : t.text,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The handoff's segmented track: a sunk bar with the choice raised on it.
+class _Segmented<T> extends StatelessWidget {
+  const _Segmented({
+    required this.keyPrefix,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String keyPrefix;
+  final T value;
+  final List<(T, String)> options;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: t.bgSunk,
+        borderRadius: ZxRadius.buttonAll,
+      ),
+      child: Row(
+        children: [
+          for (int i = 0; i < options.length; i++)
+            Expanded(
+              child: GestureDetector(
+                key: Key('$keyPrefix-$i'),
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(options[i].$1),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: options[i].$1 == value ? t.surface : null,
+                    borderRadius: BorderRadius.circular(ZxRadius.smallButton),
+                    boxShadow: options[i].$1 == value ? t.shadow1 : null,
+                  ),
+                  child: Text(
+                    options[i].$2,
+                    style: ZxType.caption.copyWith(
+                      fontSize: 13,
+                      color: options[i].$1 == value ? t.primary : t.text2,
+                      fontWeight: options[i].$1 == value
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Up to five tags: common ones to tap, or typed ones. Returns the choice.
+class _TagSheet extends StatefulWidget {
+  const _TagSheet({required this.selected});
+
+  final List<String> selected;
+
+  @override
+  State<_TagSheet> createState() => _TagSheetState();
+}
+
+class _TagSheetState extends State<_TagSheet> {
+  static const int _max = 5;
+  static const List<String> _common = <String>[
     '求助',
     '学习',
     '二手',
@@ -1290,185 +1036,102 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
     '社团',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _tempSelected = List.from(widget.selectedTags);
-  }
+  late final List<String> _chosen = List<String>.of(widget.selected);
+  final TextEditingController _custom = TextEditingController();
 
   @override
   void dispose() {
-    _customTagController.dispose();
+    _custom.dispose();
     super.dispose();
   }
 
-  void _toggleTag(String tag) {
+  void _toggle(String tag) {
     setState(() {
-      if (_tempSelected.contains(tag)) {
-        _tempSelected.remove(tag);
-      } else {
-        if (_tempSelected.length < 5) {
-          _tempSelected.add(tag);
-        }
+      if (_chosen.contains(tag)) {
+        _chosen.remove(tag);
+      } else if (_chosen.length < _max) {
+        _chosen.add(tag);
       }
     });
   }
 
-  void _addCustomTag() {
-    final input = _customTagController.text.trim();
-    if (input.isEmpty) return;
-    final newTags = input
-        .split(RegExp(r'[,，\s\n]+'))
-        .map((t) => t.trim())
-        .where((t) => t.isNotEmpty && !_tempSelected.contains(t))
+  void _addCustom() {
+    final List<String> typed = _custom.text
+        .split(RegExp(r'[,，\s#]+'))
+        .map((String s) => s.trim())
+        .where((String s) => s.isNotEmpty && !_chosen.contains(s))
         .toList();
-
-    if (newTags.isEmpty) return;
-    final remaining = 5 - _tempSelected.length;
-    if (remaining <= 0) return;
-
+    if (typed.isEmpty) return;
     setState(() {
-      _tempSelected.addAll(newTags.take(remaining));
-      _customTagController.clear();
+      _chosen.addAll(typed.take(_max - _chosen.length));
+      _custom.clear();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: colors.divider, width: 0.5)),
+    final ZxTokens t = ZxTokens.of(context);
+    final List<String> shown = <String>{..._chosen, ..._common}.toList();
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        0,
+        20,
+        16 + MediaQuery.viewInsetsOf(context).bottom,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 头部
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '标签（${_tempSelected.length}/5）',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: colors.textSecondary,
-                ),
+                '标签 ${_chosen.length}/$_max',
+                style: ZxType.title.copyWith(color: t.text),
               ),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      widget.onSelect(_tempSelected);
-                    },
-                    child: Text(
-                      '完成',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: MobileTheme.primaryOf(context),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: widget.onClose,
-                    child: Icon(
-                      Icons.close,
-                      size: 16,
-                      color: colors.textTertiary,
-                    ),
-                  ),
-                ],
+              const Spacer(),
+              ZxButton(
+                key: const Key('mobile-create-tags-done'),
+                label: '完成',
+                small: true,
+                onPressed: () => Navigator.of(context).pop(_chosen),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // 预设标签
+          const SizedBox(height: 14),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: _allTags.map((tag) {
-              final isSelected = _tempSelected.contains(tag);
-              return GestureDetector(
-                onTap: () => _toggleTag(tag),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? MobileTheme.primaryWithAlpha(context, 0.12)
-                        : colors.background,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isSelected
-                          ? MobileTheme.primaryOf(context)
-                          : colors.divider,
-                    ),
-                  ),
-                  child: Text(
-                    tag,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                      color: isSelected
-                          ? MobileTheme.primaryOf(context)
-                          : colors.textSecondary,
-                    ),
-                  ),
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final String tag in shown)
+                FilterChip(
+                  showCheckmark: false,
+                  label: Text('#$tag'),
+                  selected: _chosen.contains(tag),
+                  onSelected: (_) => _toggle(tag),
                 ),
-              );
-            }).toList(),
+            ],
           ),
-          const SizedBox(height: 8),
-          // 自定义标签输入
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(
                 child: TextField(
-                  controller: _customTagController,
-                  style: const TextStyle(fontSize: 13),
-                  decoration: InputDecoration(
-                    hintText: '自定义标签',
-                    hintStyle: TextStyle(
-                      fontSize: 13,
-                      color: colors.textTertiary,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: colors.divider),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: colors.divider),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: MobileTheme.primaryOf(context),
-                      ),
-                    ),
+                  controller: _custom,
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _addCustom(),
+                  decoration: const InputDecoration(
                     isDense: true,
+                    hintText: '自定义标签，空格分隔',
                   ),
-                  onSubmitted: (_) => _addCustomTag(),
                 ),
               ),
               const SizedBox(width: 8),
-              TextButton(
-                onPressed: _addCustomTag,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
-                child: const Text('添加'),
+              ZxButton(
+                label: '添加',
+                small: true,
+                variant: ZxButtonVariant.secondary,
+                onPressed: _chosen.length >= _max ? null : _addCustom,
               ),
             ],
           ),
@@ -1476,10 +1139,4 @@ class _TagInlineSheetState extends State<_TagInlineSheet> {
       ),
     );
   }
-}
-
-class _PinOption {
-  final String label;
-  final int? minutes;
-  const _PinOption({required this.label, required this.minutes});
 }
