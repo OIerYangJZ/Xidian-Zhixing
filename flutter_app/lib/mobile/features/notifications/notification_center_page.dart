@@ -3,12 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:xdu_treehole_web/models/notification_item.dart';
 
+import '../../../design_system/design_system.dart';
 import '../../core/state/mobile_providers.dart';
-import '../../core/theme/mobile_colors.dart';
-import '../../core/theme/mobile_theme.dart';
 import '../../core/utils/time_utils.dart';
-import '../widgets/avatar_widget.dart';
+import '../widgets/square_icon_button.dart';
 
+/// 通知中心 (handoff N1): category chips, rows grouped by 今天 / 更早,
+/// unread rows tinted with a dot, swipe left to mark one read.
 class NotificationCenterPage extends ConsumerStatefulWidget {
   const NotificationCenterPage({super.key});
 
@@ -19,9 +20,6 @@ class NotificationCenterPage extends ConsumerStatefulWidget {
 
 class _NotificationCenterPageState
     extends ConsumerState<NotificationCenterPage> {
-  final Map<String, String> _actorAvatarCache = <String, String>{};
-  final Set<String> _actorAvatarLoading = <String>{};
-
   @override
   void initState() {
     super.initState();
@@ -34,62 +32,6 @@ class _NotificationCenterPageState
     await ref.read(notificationsControllerProvider.notifier).refresh();
   }
 
-  void _markAllRead() {
-    ref.read(notificationsControllerProvider.notifier).markAllRead();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(notificationsControllerProvider);
-    final colors = MobileColors.of(context);
-    if (state.items.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
-        _prefetchActorAvatars(state.items);
-      });
-    }
-
-    return Scaffold(
-      backgroundColor: colors.background,
-      appBar: AppBar(
-        backgroundColor: colors.surface,
-        title: const Text('通知中心'),
-        actions: [
-          // Scoped to the selected category, like the list.
-          if (state.unreadIn(state.category) > 0)
-            TextButton(
-              onPressed: state.actionBusy ? null : _markAllRead,
-              child: state.actionBusy
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('全部已读'),
-            ),
-        ],
-      ),
-      body: state.loading
-          ? const Center(child: CircularProgressIndicator())
-          : state.error != null
-          ? _buildErrorState(state.error!)
-          : state.items.isEmpty
-          ? _buildEmptyState()
-          : Column(
-              children: [
-                _buildCategoryBar(state),
-                Expanded(
-                  child: state.visibleItems.isEmpty
-                      ? _buildEmptyState(filtered: true)
-                      : _buildNotificationList(state.visibleItems),
-                ),
-              ],
-            ),
-    );
-  }
-
   static const Map<String, String> _categoryLabels = <String, String>{
     'comment': '评论',
     'reply': '回复',
@@ -99,11 +41,83 @@ class _NotificationCenterPageState
     'system': '系统',
   };
 
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = ZxTokens.of(context);
+    final state = ref.watch(notificationsControllerProvider);
+    final bool canPop = context.canPop();
+
+    return Scaffold(
+      backgroundColor: t.surface,
+      appBar: AppBar(
+        backgroundColor: t.surface,
+        automaticallyImplyLeading: false,
+        leading: canPop
+            ? Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: SquareIconButton(
+                  icon: Icons.arrow_back_ios_new_rounded,
+                  tooltip: '返回',
+                  onTap: () => context.pop(),
+                ),
+              )
+            : null,
+        leadingWidth: canPop ? 60 : null,
+        titleSpacing: canPop ? 4 : 20,
+        title: const Text('通知'),
+        actions: [
+          // Scoped to the selected category, like the list.
+          if (state.unreadIn(state.category) > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: ZxButton(
+                key: const Key('mobile-notifications-read-all'),
+                label: '全部已读',
+                icon: Icons.done_all_rounded,
+                small: true,
+                variant: ZxButtonVariant.secondary,
+                loading: state.actionBusy,
+                onPressed: () => ref
+                    .read(notificationsControllerProvider.notifier)
+                    .markAllRead(),
+              ),
+            ),
+        ],
+      ),
+      body: state.loading
+          ? const Center(child: CircularProgressIndicator())
+          : state.error != null
+          ? ZxStatePanel(
+              error: true,
+              icon: Icons.error_outline_rounded,
+              title: '通知加载失败',
+              message: state.error!,
+              actionLabel: '重试',
+              onAction: _refresh,
+            )
+          : Column(
+              children: [
+                _buildCategoryBar(state),
+                Divider(height: 1, color: t.line),
+                Expanded(
+                  child: state.visibleItems.isEmpty
+                      ? ZxStatePanel(
+                          icon: Icons.notifications_none_rounded,
+                          title: state.category == null ? '暂无通知' : '这一类还没有通知',
+                        )
+                      : _buildList(state.visibleItems),
+                ),
+              ],
+            ),
+    );
+  }
+
   Widget _buildCategoryBar(NotificationsState state) {
+    final ZxTokens t = ZxTokens.of(context);
     final controller = ref.read(notificationsControllerProvider.notifier);
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
       child: Row(
         children: [
           for (final String? category in <String?>[
@@ -112,14 +126,13 @@ class _NotificationCenterPageState
           ])
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: ChoiceChip(
+              child: _CategoryChip(
+                key: Key('mobile-notifications-${category ?? 'all'}'),
+                label: category == null ? '全部' : _categoryLabels[category]!,
+                count: state.unreadIn(category),
                 selected: state.category == category,
-                onSelected: (_) => controller.selectCategory(category),
-                label: Text(
-                  state.unreadIn(category) > 0
-                      ? '${category == null ? '全部' : _categoryLabels[category]} ${state.unreadIn(category) > 99 ? '99+' : state.unreadIn(category)}'
-                      : (category == null ? '全部' : _categoryLabels[category]!),
-                ),
+                onTap: () => controller.selectCategory(category),
+                tokens: t,
               ),
             ),
         ],
@@ -127,245 +140,95 @@ class _NotificationCenterPageState
     );
   }
 
-  Widget _buildErrorState(String error) {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: colors.textTertiary),
-          const SizedBox(height: 16),
-          Text(
-            error,
-            style: TextStyle(fontSize: 14, color: colors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _refresh, child: const Text('重试')),
-        ],
+  Widget _buildList(List<NotificationItem> items) {
+    final ZxTokens t = ZxTokens.of(context);
+    final DateTime now = DateTime.now();
+    bool isToday(NotificationItem item) {
+      final DateTime? at = DateTime.tryParse(item.createdAt)?.toLocal();
+      return at != null &&
+          at.year == now.year &&
+          at.month == now.month &&
+          at.day == now.day;
+    }
+
+    final List<NotificationItem> today = items.where(isToday).toList();
+    final List<NotificationItem> earlier = items
+        .where((NotificationItem i) => !isToday(i))
+        .toList();
+
+    Widget heading(String label) => Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 6),
+      child: Text(
+        label,
+        style: ZxType.caption.copyWith(
+          color: t.text3,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
-  }
 
-  Widget _buildEmptyState({bool filtered = false}) {
-    final colors = MobileColors.of(context);
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.notifications_none, size: 64, color: colors.textTertiary),
-          const SizedBox(height: 16),
-          Text(
-            filtered ? '这一类还没有通知' : '暂无通知',
-            style: TextStyle(fontSize: 16, color: colors.textSecondary),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotificationList(List<NotificationItem> items) {
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: ListView.builder(
+      child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _NotificationTile(
-            notification: item,
-            resolvedActorAvatarUrl: _resolveActorAvatarUrl(item),
-            onTap: () => _handleNotificationTap(item),
-          );
-        },
+        padding: const EdgeInsets.only(bottom: 32),
+        children: [
+          if (today.isNotEmpty) ...[
+            heading('今天'),
+            for (final NotificationItem item in today) _row(item),
+          ],
+          if (earlier.isNotEmpty) ...[
+            heading('更早'),
+            for (final NotificationItem item in earlier) _row(item),
+          ],
+        ],
       ),
     );
   }
 
-  void _prefetchActorAvatars(List<NotificationItem> items) {
-    for (final NotificationItem item in items) {
-      if (!_isActorDrivenType(item.type)) {
-        continue;
-      }
-      final String actorId = item.actorId.trim();
-      final String payloadAvatar = item.actorAvatarUrl.trim();
-      if (payloadAvatar.isNotEmpty && actorId.isNotEmpty) {
-        _actorAvatarCache[actorId] = payloadAvatar;
-      }
-      if (actorId.isEmpty ||
-          _actorAvatarCache.containsKey(actorId) ||
-          _actorAvatarLoading.contains(actorId)) {
-        continue;
-      }
-      _actorAvatarLoading.add(actorId);
-      ref
-          .read(userRepositoryProvider)
-          .fetchUserProfile(actorId)
-          .then((profile) {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              final String avatarUrl = profile.avatarUrl.trim();
-              if (avatarUrl.isNotEmpty) {
-                _actorAvatarCache[actorId] = avatarUrl;
-              }
-              _actorAvatarLoading.remove(actorId);
-            });
-          })
-          .catchError((_) {
-            if (!mounted) {
-              return;
-            }
-            setState(() {
-              _actorAvatarLoading.remove(actorId);
-            });
-          });
-    }
-  }
+  Widget _row(NotificationItem item) {
+    final ZxTokens t = ZxTokens.of(context);
+    final controller = ref.read(notificationsControllerProvider.notifier);
+    final String actor = item.actorAlias.trim();
+    final String title = item.displayTitleFor(Localizations.localeOf(context));
+    final Color hue = _hueFor(t, item.category);
+    final String content = item.content.trim();
 
-  bool _isActorDrivenType(String type) {
-    switch (type) {
-      case 'comment':
-      case 'reply':
-      case 'like':
-      case 'favorite':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  String _resolveActorAvatarUrl(NotificationItem item) {
-    final String payloadAvatar = item.actorAvatarUrl.trim();
-    if (payloadAvatar.isNotEmpty) {
-      return payloadAvatar;
-    }
-    final String actorId = item.actorId.trim();
-    if (actorId.isEmpty) {
-      return '';
-    }
-    return _actorAvatarCache[actorId] ?? '';
-  }
-
-  void _handleNotificationTap(NotificationItem notification) {
-    ref
-        .read(notificationsControllerProvider.notifier)
-        .markRead(notification.id);
-    if (notification.opensPost) {
-      // A reply or comment points at the comment; open the post at it.
-      final bool atComment =
-          notification.relatedType.trim().toLowerCase() == 'comment' &&
-          notification.relatedId.trim().isNotEmpty;
-      context.push(
-        Uri(
-          path: '/post/${notification.postId}',
-          queryParameters: atComment
-              ? <String, String>{'commentId': notification.relatedId}
-              : null,
-        ).toString(),
-      );
-    }
-  }
-}
-
-class _NotificationTile extends StatelessWidget {
-  const _NotificationTile({
-    required this.notification,
-    required this.resolvedActorAvatarUrl,
-    required this.onTap,
-  });
-
-  final NotificationItem notification;
-  final String resolvedActorAvatarUrl;
-  final VoidCallback onTap;
-
-  IconData get _icon {
-    switch (notification.type) {
-      case 'comment':
-        return Icons.comment_outlined;
-      case 'reply':
-        return Icons.reply_outlined;
-      case 'like':
-        return Icons.thumb_up_outlined;
-      case 'favorite':
-        return Icons.star_outline;
-      case 'report_result':
-        return Icons.flag_outlined;
-      case 'system':
-        return Icons.campaign_outlined;
-      default:
-        return Icons.notifications_outlined;
-    }
-  }
-
-  Color _iconColor(BuildContext context) {
-    switch (notification.type) {
-      case 'comment':
-      case 'reply':
-        return Colors.blue;
-      case 'like':
-        return Colors.red;
-      case 'favorite':
-        return Colors.amber;
-      case 'report_result':
-        return Colors.orange;
-      case 'system':
-        return Colors.purple;
-      default:
-        return MobileTheme.primaryOf(context);
-    }
-  }
-
-  bool get _preferActorAvatar {
-    return notification.actorId.trim().isNotEmpty ||
-        notification.actorAlias.trim().isNotEmpty ||
-        notification.actorAvatarUrl.trim().isNotEmpty;
-  }
-
-  String get _timeText {
-    final DateTime? parsed = DateTime.tryParse(notification.createdAt);
-    if (parsed != null) {
-      final DateTime localTime = parsed.isUtc ? parsed.toLocal() : parsed;
-      return formatRelativeTime(localTime);
-    }
-    final String fallback = notification.timeText.trim();
-    return fallback.isEmpty ? '--' : fallback;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = MobileColors.of(context);
-    final String actorNickname = notification.actorAlias.trim().isNotEmpty
-        ? notification.actorAlias.trim()
-        : '树洞';
-
-    return Material(
-      color: colors.surface,
+    final Widget row = Material(
+      color: item.isRead ? t.surface : t.primarySoft.withValues(alpha: 0.5),
       child: InkWell(
-        onTap: onTap,
+        onTap: () => _open(item),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.fromLTRB(8, 12, 20, 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _preferActorAvatar
-                  ? AvatarWidget(
-                      avatarUrl: resolvedActorAvatarUrl,
-                      nickname: actorNickname,
-                      radius: 20,
-                    )
-                  : Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _iconColor(context).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
+              SizedBox(
+                width: 12,
+                child: item.isRead
+                    ? null
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 17),
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: t.danger,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
                       ),
-                      child: Icon(_icon, color: _iconColor(context), size: 20),
-                    ),
-              const SizedBox(width: 10),
+              ),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Color.lerp(hue, t.surface, 0.86),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(_iconFor(item.category), size: 20, color: hue),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -375,53 +238,196 @@ class _NotificationTile extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            notification.displayTitle,
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: notification.isRead
+                            actor.isEmpty ? title : '$actor $title',
+                            style: ZxType.label.copyWith(
+                              color: t.text,
+                              fontWeight: item.isRead
                                   ? FontWeight.w500
-                                  : FontWeight.w600,
-                              color: colors.textPrimary,
-                              height: 1.25,
+                                  : FontWeight.w700,
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        if (!notification.isRead) ...[
-                          Container(
-                            width: 7,
-                            height: 7,
-                            margin: const EdgeInsets.only(top: 6),
-                            decoration: BoxDecoration(
-                              color: MobileTheme.primaryOf(context),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
                         Text(
-                          _timeText,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: colors.textTertiary,
-                          ),
+                          _timeText(item),
+                          style: ZxType.caption.copyWith(color: t.text3),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      notification.content,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colors.textSecondary,
-                        height: 1.35,
+                    if (content.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: t.bgSunk,
+                          borderRadius: ZxRadius.badgeAll,
+                        ),
+                        child: Text(
+                          content,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: ZxType.caption.copyWith(
+                            fontSize: 13,
+                            height: 1.45,
+                            color: t.text2,
+                          ),
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ],
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (item.isRead) return row;
+    return Dismissible(
+      key: ValueKey<String>('notification-${item.id}'),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        color: t.primary,
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.check_rounded, color: t.onPrimary, size: 20),
+            const SizedBox(height: 2),
+            Text('标为已读', style: ZxType.caption.copyWith(color: t.onPrimary)),
+          ],
+        ),
+      ),
+      // The row stays in the list; only its state changes.
+      confirmDismiss: (_) async {
+        await controller.markRead(item.id);
+        return false;
+      },
+      child: row,
+    );
+  }
+
+  String _timeText(NotificationItem item) {
+    final DateTime? parsed = DateTime.tryParse(item.createdAt);
+    if (parsed != null) {
+      return formatRelativeTime(parsed.isUtc ? parsed.toLocal() : parsed);
+    }
+    final String fallback = item.timeText.trim();
+    return fallback.isEmpty ? '--' : fallback;
+  }
+
+  Color _hueFor(ZxTokens t, String category) => switch (category) {
+    'comment' => t.info,
+    'reply' => t.success,
+    'like' => t.danger,
+    'favorite' => t.accentInk,
+    'report_result' => t.success,
+    _ => t.text2,
+  };
+
+  IconData _iconFor(String category) => switch (category) {
+    'comment' => Icons.chat_bubble_outline_rounded,
+    'reply' => Icons.reply_rounded,
+    'like' => Icons.favorite_border_rounded,
+    'favorite' => Icons.star_border_rounded,
+    'report_result' => Icons.verified_user_outlined,
+    _ => Icons.notifications_none_rounded,
+  };
+
+  void _open(NotificationItem item) {
+    ref.read(notificationsControllerProvider.notifier).markRead(item.id);
+    if (item.opensPost) {
+      // A reply or comment points at the comment; open the post at it.
+      final bool atComment =
+          item.relatedType.trim().toLowerCase() == 'comment' &&
+          item.relatedId.trim().isNotEmpty;
+      context.push(
+        Uri(
+          path: '/post/${item.postId}',
+          queryParameters: atComment
+              ? <String, String>{'commentId': item.relatedId}
+              : null,
+        ).toString(),
+      );
+      return;
+    }
+    if (item.category == 'report_result') {
+      context.push('/profile/reports');
+      return;
+    }
+    if (item.content.trim().isNotEmpty) {
+      showDialog<void>(
+        context: context,
+        builder: (BuildContext context) => AlertDialog(
+          title: Text(item.displayTitle),
+          content: SingleChildScrollView(child: Text(item.content)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('关闭'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+}
+
+/// A filter chip; the selected one is ink-filled with its count raised.
+class _CategoryChip extends StatelessWidget {
+  const _CategoryChip({
+    super.key,
+    required this.label,
+    required this.count,
+    required this.selected,
+    required this.onTap,
+    required this.tokens,
+  });
+
+  final String label;
+  final int count;
+  final bool selected;
+  final VoidCallback onTap;
+  final ZxTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    final ZxTokens t = tokens;
+    final Color fg = selected ? t.bg : t.text;
+    return Material(
+      color: selected ? t.text : t.surface,
+      shape: StadiumBorder(
+        side: BorderSide(color: selected ? t.text : t.lineStrong),
+      ),
+      child: InkWell(
+        customBorder: const StadiumBorder(),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: ZxType.label.copyWith(
+                  fontSize: 13,
+                  color: fg,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+              if (count > 0) ...[
+                const SizedBox(width: 3),
+                Text(
+                  count > 99 ? '99+' : '$count',
+                  style: ZxType.micro.copyWith(color: fg),
+                ),
+              ],
             ],
           ),
         ),

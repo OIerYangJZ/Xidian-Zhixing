@@ -8,6 +8,7 @@ import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
 import '../../../design_system/design_system.dart';
 import '../widgets/avatar_widget.dart';
+import '../widgets/square_icon_button.dart';
 
 import '../../core/theme/mobile_theme.dart';
 import '../../core/theme/mobile_colors.dart';
@@ -611,7 +612,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         backgroundColor: t.bg,
         leading: Padding(
           padding: const EdgeInsets.only(left: 12),
-          child: _SquareAction(
+          child: SquareIconButton(
             icon: Icons.arrow_back_ios_new_rounded,
             tooltip: '返回',
             onTap: () => context.pop(),
@@ -622,14 +623,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
         title: const Text('帖子详情'),
         actions: [
           if (_post != null) ...[
-            _SquareAction(
+            SquareIconButton(
               key: const Key('mobile-post-copy-link'),
               icon: Icons.link_rounded,
               tooltip: '复制链接',
               onTap: _copyLink,
             ),
             const SizedBox(width: 8),
-            _SquareAction(
+            SquareIconButton(
               icon: Icons.more_horiz,
               tooltip: '更多',
               onTap: _showOptionsSheet,
@@ -1578,48 +1579,6 @@ class _CommentTileState extends State<_CommentTile> {
 
 /// 搴曢儴鎿嶄綔鎸夐挳
 enum _CommentAction { copy, delete }
-
-/// The rounded-square app-bar button of handoff A2.
-class _SquareAction extends StatelessWidget {
-  const _SquareAction({
-    super.key,
-    required this.icon,
-    required this.tooltip,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final ZxTokens t = ZxTokens.of(context);
-    return Center(
-      child: Tooltip(
-        message: tooltip,
-        child: Material(
-          color: t.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: ZxRadius.buttonAll,
-            side: BorderSide(color: t.line),
-          ),
-          child: InkWell(
-            customBorder: RoundedRectangleBorder(
-              borderRadius: ZxRadius.buttonAll,
-            ),
-            onTap: onTap,
-            child: SizedBox(
-              width: 40,
-              height: 40,
-              child: Icon(icon, size: 20, color: t.text),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 /// A like / favorite / share control in the comment bar. [filled] gives the
 /// active state a soft pill, as the like has in the handoff.
