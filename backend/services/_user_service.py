@@ -358,6 +358,13 @@ def serialize_public_user_profile(
         "isFollower": is_user_following(db, target_user_id, viewer_user_id),
         "isOwnProfile": bool(viewer_user_id and viewer_user_id == target_user_id),
         "canFollow": bool(viewer_user_id and viewer_user_id != target_user_id),
+        # Only the viewer's own block: whether the target blocked the viewer
+        # stays private.
+        "isBlockedByMe": bool(
+            viewer_user_id
+            and viewer_user_id != target_user_id
+            and is_user_blocked(db, viewer_user_id, target_user_id)
+        ),
         "bio": str(target_user.get("bio", "")).strip(),
         "gender": str(target_user.get("gender", "")).strip(),
         "college": str(target_user.get("college", "")).strip(),

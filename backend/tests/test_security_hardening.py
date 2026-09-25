@@ -1778,7 +1778,8 @@ def test_web_entry_points_to_the_admin_console_are_all_guarded():
 
     login = _flutter("lib/features/auth/login_page.dart")
     # 登录页的「管理员登录」按钮
-    assert "if (AppConfig.adminConsoleEnabled)\n                TextButton(" in login
+    assert "if (AppConfig.adminConsoleEnabled) ...<Widget>[" in login
+    assert login.count("onAdminLogin") >= 2, "the button calls the guarded route"
     # 以及跳转本身，避免只藏按钮、路由仍可达
     assert "if (!AppConfig.adminConsoleEnabled) {\n      return;\n    }" in login
 

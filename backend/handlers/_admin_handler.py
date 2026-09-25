@@ -1100,8 +1100,15 @@ def handle_admin_report_action(
 
     target_type = str(report.get("targetType", "")).strip()
     target_id = str(report.get("targetId", "")).strip()
-    owner = target_owner(db, target_id)
-    owner_id = str(owner.get("authorId", "")).strip() if owner else ""
+    if target_type == "user":
+        # A reported person: warn and ban reach them; there is no content.
+        if action == "delete":
+            json_error(handler, HTTPStatus.BAD_REQUEST, "用户举报没有可删除的内容")
+            return
+        owner_id = target_id if find_user_by_id(db, target_id) else ""
+    else:
+        owner = target_owner(db, target_id)
+        owner_id = str(owner.get("authorId", "")).strip() if owner else ""
 
     db_snapshot = copy.deepcopy(db)
     storage_backups: list[StorageObjectBackup] = []
@@ -1129,7 +1136,11 @@ def handle_admin_report_action(
 
     if owner_id and action in {"delete", "warn", "ban"}:
         notif_title = "内容处理通知"
-        notif_content = f"您发布的内容因「{review_note}」被处理，请注意社区规范。"
+        notif_content = (
+            f"您的账号因「{review_note}」被处理，请注意社区规范。"
+            if target_type == "user"
+            else f"您发布的内容因「{review_note}」被处理，请注意社区规范。"
+        )
         if action == "ban":
             target_user = find_user_by_id(db, owner_id)
             if target_user:

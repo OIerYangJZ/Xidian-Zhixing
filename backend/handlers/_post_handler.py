@@ -540,6 +540,10 @@ def handle_get_reports_mine(
             )
             if comment is not None:
                 target_title = str(comment.get("content", "")).strip()[:50]
+        elif target_type == "user":
+            reported = find_user_by_id(db, target_id)
+            if reported is not None:
+                target_title = user_nickname(reported)
         result.append({
             "id": report.get("id"),
             "target": f"{target_type}: {target_id}",
@@ -1624,6 +1628,14 @@ def handle_pin_request(
     )
 
 
+# The mini program sends the first five; web and Android send the second
+# list. Both are accepted so neither client's reports bounce.
+_REPORT_REASONS = frozenset({
+    "广告引流", "人身攻击", "违规内容", "垃圾信息", "其他",
+    "垃圾广告", "违法违规", "色情低俗", "虚假信息", "侵犯隐私",
+})
+
+
 def handle_submit_report(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -1639,17 +1651,26 @@ def handle_submit_report(
     reason = str(body.get("reason", "")).strip()
     description = str(body.get("description", "")).strip()
 
-    if target_type not in {"post", "comment"}:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "targetType 必须是 post 或 comment")
+    if target_type not in {"post", "comment", "user"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "targetType 必须是 post、comment 或 user")
         return
     if not target_id:
         json_error(handler, HTTPStatus.BAD_REQUEST, "缺少目标 ID")
         return
-    if reason not in {"广告引流", "人身攻击", "违规内容", "垃圾信息", "其他"}:
+    if reason not in _REPORT_REASONS:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的举报原因")
         return
 
-    if target_type == "post":
+    if target_type == "user":
+        # A person, reported from their profile.
+        if target_id == str(user.get("id", "")):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "不能举报自己")
+            return
+        target_user = find_user_by_id(db, target_id)
+        if target_user is None or target_user.get("deleted"):
+            json_error(handler, HTTPStatus.NOT_FOUND, "目标用户不存在")
+            return
+    elif target_type == "post":
         post = next(
             (p for p in db["posts"] if p.get("id") == target_id and not p.get("deleted")),
             None,
