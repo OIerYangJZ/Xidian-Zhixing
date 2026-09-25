@@ -32,7 +32,6 @@ TABLES_IN_DEP_ORDER = [
     "likes",
     "favorites",
     "reports",
-    "dm_requests",
     "conversations",
     "audit_logs",
 ]
@@ -592,41 +591,6 @@ def migrate_data(conn: Any, db: dict[str, Any], dialect: str) -> dict[str, int]:
             },
         )
         stats["reports"] += 1
-
-    dm_requests = db.get("dmRequests", [])
-    seen_request_ids: set[str] = set()
-    for dm_request in dm_requests:
-        if not isinstance(dm_request, dict):
-            continue
-        request_id = str(dm_request.get("id", "")).strip()
-        if not request_id or request_id in seen_request_ids:
-            continue
-        seen_request_ids.add(request_id)
-
-        to_user_id_raw = str(dm_request.get("toUserId", "")).strip()
-        to_user_id = to_user_id_raw if to_user_id_raw in seen_user_ids else None
-        created_at = to_sql_datetime(dm_request.get("createdAt"), dialect) or now_dt
-        updated_at = to_sql_datetime(dm_request.get("updatedAt"), dialect)
-
-        conn.execute(
-            text(
-                "INSERT INTO dm_requests ("
-                "id, to_user_id, from_alias, reason, status, created_at, updated_at"
-                ") VALUES ("
-                ":id, :to_user_id, :from_alias, :reason, :status, :created_at, :updated_at"
-                ")"
-            ),
-            {
-                "id": request_id,
-                "to_user_id": to_user_id,
-                "from_alias": str(dm_request.get("fromAlias", "anonymous")) or "anonymous",
-                "reason": str(dm_request.get("reason", "")),
-                "status": str(dm_request.get("status", "pending")).strip() or "pending",
-                "created_at": created_at,
-                "updated_at": updated_at,
-            },
-        )
-        stats["dm_requests"] += 1
 
     conversations = db.get("conversations", [])
     seen_conversation_ids: set[str] = set()

@@ -241,7 +241,6 @@ class TestAdminOverviewData:
             "posts",
             "comments",
             "reports",
-            "dmRequests",
             "conversations",
             "mediaUploads",
         ]
@@ -266,7 +265,8 @@ class TestSettingsManagement:
         assert "messageRateLimit" in DEFAULT_SETTINGS
         assert "imageMaxMB" in DEFAULT_SETTINGS
         assert "reportRateLimit" in DEFAULT_SETTINGS
-        assert "dmRequestRateLimit" in DEFAULT_SETTINGS
+        # No message requests: a first message goes straight into a chat.
+        assert "dmRequestRateLimit" not in DEFAULT_SETTINGS
 
     def test_sensitive_words_default(self):
         """测试默认敏感词。"""

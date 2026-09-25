@@ -132,18 +132,6 @@ CREATE TABLE IF NOT EXISTS reports (
   handled_by VARCHAR(64) NULL REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE TABLE IF NOT EXISTS dm_requests (
-  id VARCHAR(64) PRIMARY KEY,
-  to_user_id VARCHAR(64) NULL REFERENCES users(id) ON DELETE SET NULL,
-  from_alias VARCHAR(128) NOT NULL,
-  from_user_id VARCHAR(64) NULL REFERENCES users(id) ON DELETE SET NULL,
-  from_avatar_url VARCHAR(512) NOT NULL DEFAULT '',
-  reason TEXT NOT NULL DEFAULT '',
-  status VARCHAR(16) NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMPTZ NOT NULL,
-  updated_at TIMESTAMPTZ NULL
-);
-
 CREATE TABLE IF NOT EXISTS conversations (
   id VARCHAR(64) PRIMARY KEY,
   user_id VARCHAR(64) NULL REFERENCES users(id) ON DELETE SET NULL,
@@ -195,10 +183,6 @@ CREATE INDEX IF NOT EXISTS idx_reports_target
 CREATE INDEX IF NOT EXISTS idx_reports_user_created
   ON reports (user_id, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_dm_requests_to_status_created
-  ON dm_requests (to_user_id, status, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_dm_requests_status_updated
-  ON dm_requests (status, updated_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_conversations_user_updated
   ON conversations (user_id, updated_at DESC);

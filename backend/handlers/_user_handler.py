@@ -55,7 +55,6 @@ from services import (
     user_nickname,
     is_user_blocked,
     iso_to_time_text,
-    reject_pending_dm_requests_between,
 )
 
 
@@ -604,12 +603,6 @@ def handle_block_user_globally(
             "blockedUserId": target_user_id,
             "createdAt": blocked_at,
         })
-        reject_pending_dm_requests_between(
-            db,
-            left_user_id=user["id"],
-            right_user_id=target_user_id,
-            updated_at=blocked_at,
-        )
         add_audit_log(db, user["id"], "block_user", f"屏蔽用户 {target_user_id}")
         save_db(db)
 

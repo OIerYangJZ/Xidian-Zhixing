@@ -210,7 +210,7 @@ python3 backend/server.py
 - 评论：`/posts/{id}/comments` `/comments/mine` `/comments/{id}`
 - 互动：`/posts/{id}/like` `/posts/{id}/favorite`（POST 收藏、DELETE 取消收藏）
 - 举报：`/reports` `/reports/mine`
-- 消息：`/messages/requests` `/messages/requests/{id}/accept|reject` `/messages/conversations`
+- 消息：`/messages/conversations` `/messages/conversations/direct` `/messages/conversations/{id}/messages`（没有私信申请：第一条消息直接发出，对方回复前不能发第二条，会话带 `awaitingReply`）
 - 管理员：
   - 认证：`/admin/auth/login` `/admin/auth/logout` `/admin/auth/me` `/admin/auth/password`
   - 概览：`/admin/overview`
@@ -305,7 +305,7 @@ Content-Type: application/json
 - 频率限制按用户维度执行（默认 1 小时窗口）：
   - `postRateLimit`：发帖
   - `commentRateLimit`：评论
-  - `messageRateLimit`：举报、私信申请处理、图片上传
+  - `messageRateLimit`：举报、私信、图片上传
 - 以上阈值可在管理员配置接口中调整：`/api/admin/config`
 - 文本风控（发帖/评论）：
   - 目前不再对联系方式关键词、手机号、外链做封控
@@ -348,7 +348,7 @@ python3 backend/migrate_json_to_sql.py \
 
 - PostgreSQL: `backend/sql/schema_postgresql.sql`
 - MySQL: `backend/sql/schema_mysql.sql`
-- 索引已覆盖：帖子流、评论、举报、私信申请、会话、审计日志等高频查询。
+- 索引已覆盖：帖子流、评论、举报、会话、审计日志等高频查询。
 
 > 注意：当前 `backend/server.py` 运行时只支持 SQLite。上述脚本和 schema 是历史 `db.json` 的离线迁移工具，不代表在线服务可切换数据库，也不进入生产发布包。
 
@@ -369,7 +369,6 @@ python3 backend/migrate_json_to_sql.py \
 - 新增内测部署脚本：`scripts/build_web_beta.sh`、`scripts/run_backend_beta.sh`
 - 认证体验优化：注册自动从邮箱前缀推导学号，登录支持学号标识
 - 当时曾加入邮件未配置时的内测验证码逻辑；该逻辑已在 2026-07-17 移除
-- 私信申请列表返回并展示申请状态（待处理/已同意/已拒绝）
 - 用户资料收藏数改为按可见收藏帖子计算，和收藏列表一致
 - 验证码发送失败时新增“邮箱不存在/不可达”识别提示
 

@@ -173,14 +173,6 @@ final Map<String, Object> _routes = <String, Object>{
       'isRead': true,
     },
   ],
-  '/messages/requests': <Object>[
-    <String, Object>{
-      'id': 'r1',
-      'fromAlias': '周同学',
-      'reason': '示例：看到你在找建模队友，想了解一下。',
-      'status': 'pending',
-    },
-  ],
   '/notifications': <String, Object>{
     'items': <Object>[
       <String, Object>{

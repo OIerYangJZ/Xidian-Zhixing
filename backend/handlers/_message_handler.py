@@ -2,9 +2,6 @@
 handlers/_message_handler.py
 
 Direct-message & conversation endpoints:
-  GET  /api/messages/requests                          — list received DM requests
-  POST /api/messages/requests                          — send a DM request
-  POST re("/api/messages/requests/([^/]+)/(accept|reject)") — accept/reject DM request
   GET  /api/messages/conversations                     — list DM conversations
   POST /api/messages/conversations/direct             — find or create conversation directly
   GET  re("/api/messages/conversations/([^/]+)/messages") — list messages in conversation
@@ -41,7 +38,6 @@ from services import (
     can_request_dm_to_user,
     conversation_block_state,
     deliver_message_to_conversation_pair,
-    effective_post_allow_dm,
     find_user_by_id,
     get_setting_int,
     is_post_anonymous,
@@ -51,7 +47,6 @@ from services import (
     next_id,
     post_counts,
     refresh_conversation_pair_metadata,
-    reject_pending_dm_requests_between,
     save_db,
     serialize_direct_message,
     serialize_notification,
@@ -147,296 +142,6 @@ def awaiting_peer_reply(
         if sender == viewer_user_id and not msg.get("deleted"):
             viewer_pending = True
     return viewer_pending and not peer_wrote
-
-
-def handle_get_requests(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-) -> None:
-    """GET /api/messages/requests"""
-    user = _require_auth(handler, db)
-    if user is None:
-        return
-    if user.get("muted"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送私信申请")
-        return
-
-    requests = []
-    for row in db["dmRequests"]:
-        if row.get("toUserId") != user["id"]:
-            continue
-        status = str(row.get("status", "pending")).strip().lower() or "pending"
-        from_user = find_user_by_id(db, str(row.get("fromUserId", "")))
-        from_alias = user_nickname(from_user) if from_user else sanitize_alias(
-            str(row.get("fromAlias", "")),
-            fallback="匿名同学",
-        )
-        from_avatar = user_avatar_url(from_user)
-        if not from_avatar:
-            from_avatar = _globals.normalize_avatar_url(str(row.get("fromAvatarUrl", "")))
-        status_label = {
-            "pending": "待处理",
-            "accepted": "已同意",
-            "rejected": "已拒绝",
-        }.get(status, status)
-        requests.append({
-            "id": row.get("id"),
-            "fromAlias": from_alias,
-            "fromAvatarUrl": from_avatar,
-            "reason": row.get("reason", "请求联系"),
-            "timeText": _globals.iso_to_time_text(row.get("createdAt")),
-            "status": status,
-            "statusLabel": status_label,
-            "createdAt": row.get("createdAt", ""),
-            "updatedAt": row.get("updatedAt", ""),
-        })
-
-    requests.sort(key=lambda x: x.get("updatedAt", "") or x.get("createdAt", ""), reverse=True)
-    requests.sort(key=lambda x: 0 if x.get("status") == "pending" else 1)
-    send_json(handler, HTTPStatus.OK, {"data": requests})
-
-
-def handle_send_request(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-) -> None:
-    """POST /api/messages/requests"""
-    user = _require_message_sender(handler, db)
-    if user is None:
-        return
-
-    body = read_json_body(handler)
-    target_user_id = str(body.get("targetUserId", "")).strip()
-    post_id = str(body.get("postId") or body.get("fromPostId") or "").strip()
-    reason = str(body.get("reason", "想认识你")).strip()
-    if len(reason) > 120:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "私信申请理由不能超过 120 个字符")
-        return
-
-    post = None
-    if post_id:
-        post, target_user_id, error_message = _resolve_post_dm_target(
-            db,
-            from_post_id=post_id,
-            target_user_id=target_user_id,
-        )
-        if error_message:
-            status = HTTPStatus.BAD_REQUEST if error_message == "帖子作者与私信目标不一致" else HTTPStatus.NOT_FOUND
-            json_error(handler, status, error_message)
-            return
-        if is_post_anonymous(db, post):
-            json_error(handler, HTTPStatus.BAD_REQUEST, "匿名帖子不支持通过帖子发起私信")
-            return
-        if not effective_post_allow_dm(db, post):
-            target = find_user_by_id(db, str(post.get("authorId", "")).strip())
-            if target is not None and not bool(target.get("allowStrangerDm", True)):
-                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-            else:
-                json_error(handler, HTTPStatus.BAD_REQUEST, "该帖子未开启私信")
-            return
-
-    if not target_user_id:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "缺少联系对象")
-        return
-    if target_user_id == user["id"]:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "不能给自己发送私信申请")
-        return
-
-    target = find_user_by_id(db, target_user_id)
-    if target is None or target.get("deleted"):
-        json_error(handler, HTTPStatus.NOT_FOUND, "联系对象不存在")
-        return
-
-    if post is not None:
-        if not can_request_dm_from_post(
-            db,
-            viewer_user_id=str(user.get("id", "")),
-            post=post,
-        ):
-            if not bool(target.get("allowStrangerDm", True)):
-                json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-                return
-            if is_user_blocked(db, user["id"], target_user_id):
-                json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
-                return
-            if is_user_blocked(db, target_user_id, user["id"]):
-                json_error(handler, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
-                return
-            json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
-            return
-    elif not can_request_dm_to_user(
-        db,
-        viewer_user_id=str(user.get("id", "")),
-        target_user_id=target_user_id,
-    ):
-        if not bool(target.get("showContactable", True)):
-            json_error(handler, HTTPStatus.FORBIDDEN, "对方当前未开放联系入口")
-            return
-        if not bool(target.get("allowStrangerDm", True)):
-            json_error(handler, HTTPStatus.FORBIDDEN, "对方暂不接受私信")
-            return
-        if is_user_blocked(db, user["id"], target_user_id):
-            json_error(handler, HTTPStatus.FORBIDDEN, "你已屏蔽对方，解除屏蔽后才能发起私信")
-            return
-        if is_user_blocked(db, target_user_id, user["id"]):
-            json_error(handler, HTTPStatus.FORBIDDEN, "对方已屏蔽你，暂时无法发起私信")
-            return
-        json_error(handler, HTTPStatus.FORBIDDEN, "当前无法发起私信")
-        return
-
-    allowed, retry_after = consume_rate_limit(
-        db,
-        user_id=user["id"],
-        action="dm_request",
-        setting_key="dmRequestRateLimit",
-        default_limit=_globals.DEFAULT_SETTINGS["dmRequestRateLimit"],
-    )
-    if not allowed:
-        send_rate_limit_error(
-            handler,
-            action_text="发送私信申请",
-            retry_after_seconds=retry_after,
-        )
-        return
-
-    existing_conversation = next(
-        (
-            row
-            for row in db.get("conversations", [])
-            if row.get("userId") == user["id"]
-            and row.get("peerUserId") == target_user_id
-        ),
-        None,
-    )
-    if existing_conversation is not None:
-        existing_conversation["deleted"] = False
-        existing_conversation["updatedAt"] = now_iso()
-        save_db(db)
-        send_json(
-            handler,
-            HTTPStatus.OK,
-            {
-                "message": "你们已经可以直接私信了",
-                "data": {
-                    "conversationId": existing_conversation.get("id", ""),
-                    "alreadyAvailable": True,
-                },
-            },
-        )
-        return
-
-    existing = next(
-        (r for r in db["dmRequests"]
-         if r.get("fromUserId") == user["id"] and r.get("toUserId") == target_user_id
-         and r.get("status") == "pending"),
-        None,
-    )
-    if existing:
-        send_json(
-            handler,
-            HTTPStatus.OK,
-            {
-                "message": "私信申请已发送，请等待对方处理",
-                "data": existing,
-            },
-        )
-        return
-
-    created_at = now_iso()
-    req = {
-        "id": next_id(db, "request", "req"),
-        "toUserId": target_user_id,
-        "fromUserId": user["id"],
-        "fromAlias": user_nickname(user),
-        "fromAvatarUrl": user_avatar_url(user),
-        "postId": post_id,
-        "reason": reason or "想和你继续交流这个话题",
-        "status": "pending",
-        "createdAt": created_at,
-        "updatedAt": created_at,
-    }
-    db["dmRequests"].append(req)
-    add_audit_log(
-        db,
-        user["id"],
-        "create_dm_request",
-        f"to={target_user_id} post={post_id or '-'}",
-    )
-    save_db(db)
-    send_json(
-        handler,
-        HTTPStatus.OK,
-        {
-            "message": "私信申请已发送",
-            "data": req,
-        },
-    )
-
-
-def handle_accept_request(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    request_id: str,
-) -> None:
-    """POST /api/messages/requests/<id>/accept"""
-    user = _require_auth(handler, db)
-    if user is None:
-        return
-    if user.get("muted"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被禁言，暂时无法发送消息")
-        return
-
-    req = next(
-        (r for r in db["dmRequests"] if r.get("id") == request_id and r.get("toUserId") == user["id"]),
-        None,
-    )
-    if req is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "请求不存在")
-        return
-    if req.get("status") != "pending":
-        json_error(handler, HTTPStatus.BAD_REQUEST, "请求已被处理")
-        return
-
-    req["status"] = "accepted"
-    req["updatedAt"] = now_iso()
-    sync_conversation_pair(
-        db,
-        left_user_id=user["id"],
-        right_user_id=str(req.get("fromUserId", "")),
-        last_message="已同意私信申请，开始聊天吧。",
-        updated_at=str(req.get("updatedAt", "")),
-    )
-    add_audit_log(db, user["id"], "accept_dm_request", f"接受来自 {req.get('fromUserId')} 的私信请求")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
-
-
-def handle_reject_request(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    request_id: str,
-) -> None:
-    """POST /api/messages/requests/<id>/reject"""
-    user = _require_auth(handler, db)
-    if user is None:
-        return
-
-    req = next(
-        (r for r in db["dmRequests"] if r.get("id") == request_id and r.get("toUserId") == user["id"]),
-        None,
-    )
-    if req is None:
-        json_error(handler, HTTPStatus.NOT_FOUND, "请求不存在")
-        return
-    if req.get("status") != "pending":
-        json_error(handler, HTTPStatus.BAD_REQUEST, "请求已被处理")
-        return
-
-    req["status"] = "rejected"
-    req["updatedAt"] = now_iso()
-    add_audit_log(db, user["id"], "reject_dm_request", f"拒绝来自 {req.get('fromUserId')} 的私信请求")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
 def handle_get_conversations(
@@ -895,12 +600,6 @@ def handle_block_peer(
             "blockedUserId": peer_user_id,
             "createdAt": blocked_at,
         })
-        reject_pending_dm_requests_between(
-            db,
-            left_user_id=user["id"],
-            right_user_id=peer_user_id,
-            updated_at=blocked_at,
-        )
         add_audit_log(db, user["id"], "block_user", f"屏蔽用户 {peer_user_id}")
         save_db(db)
 

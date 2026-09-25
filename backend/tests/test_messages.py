@@ -11,34 +11,19 @@ backend_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(backend_dir))
 
 
-class TestDmRequestHelpers:
-    """测试私信请求相关的辅助函数。"""
+class TestNoMessageRequests:
+    """There is no request step: nothing stores or routes message requests."""
 
-    def test_default_db_has_dm_requests(self):
-        """测试默认数据库包含私信请求。"""
+    def test_default_db_has_no_dm_requests(self):
         from server import default_db
 
-        db = default_db()
+        assert "dmRequests" not in default_db()
 
-        assert "dmRequests" in db
-        assert len(db["dmRequests"]) > 0
+    def test_request_routes_are_gone(self):
+        from pathlib import Path
 
-    def test_dm_request_structure(self):
-        """测试私信请求结构。"""
-        from server import default_db
-
-        db = default_db()
-        requests = db["dmRequests"]
-
-        for req in requests:
-            assert "id" in req
-            assert "fromAlias" in req
-            assert "reason" in req
-            assert "status" in req
-            assert "createdAt" in req
-
-            # 验证状态值
-            assert req["status"] in {"pending", "accepted", "rejected"}
+        source = (Path(__file__).parent.parent / "server.py").read_text(encoding="utf-8")
+        assert "/api/messages/requests" not in source
 
 
 class TestConversationHelpers:
@@ -127,12 +112,6 @@ class TestRateLimitsForMessages:
 
         assert "messageRateLimit" in DEFAULT_SETTINGS
         assert "message" in IP_RATE_LIMITS
-
-    def test_dm_request_rate_limit_config(self):
-        """测试私信请求限流配置。"""
-        from server import DEFAULT_SETTINGS
-
-        assert "dmRequestRateLimit" in DEFAULT_SETTINGS
 
 
 class TestConversationQueries:

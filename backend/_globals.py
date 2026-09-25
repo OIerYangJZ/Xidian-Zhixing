@@ -243,7 +243,6 @@ def configure() -> None:
         "uploadRateLimit": 30,
         "imageMaxMB": 5,
         "reportRateLimit": 10,
-        "dmRequestRateLimit": 20,
         "authLoginRateLimit": 10,
         "adminLoginRateLimit": 5,
         "verificationSendRateLimit": 3,
@@ -319,7 +318,7 @@ def configure() -> None:
     RATE_LIMIT_WINDOWS_SECONDS.clear()
     RATE_LIMIT_WINDOWS_SECONDS.update({
         "post": 3600, "comment": 3600, "message": 3600,
-        "report": 3600, "dm_request": 3600, "upload": 3600,
+        "report": 3600, "upload": 3600,
         "auth_login": 900,
         "admin_login": 900,
         "verification_send": 600,

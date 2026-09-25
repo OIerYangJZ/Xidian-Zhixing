@@ -83,17 +83,7 @@ void main() {
     final String path = request.url.path.replaceFirst('/api', '');
     Object body = <String, Object>{};
     int status = 200;
-    if (path == '/messages/requests') {
-      body = <Object>[
-        <String, Object>{
-          'id': 'r1',
-          'fromAlias': '周同学',
-          'reason': '示例——看到你在找建模队友，想了解一下。',
-          'timeText': '10 分钟前',
-          'status': 'pending',
-        },
-      ];
-    } else if (path == '/messages/conversations') {
+    if (path == '/messages/conversations') {
       body = conversations;
     } else if (path.endsWith('/messages') && request.method == 'GET') {
       body = messages;

@@ -59,17 +59,13 @@ from handlers._comment_handler import (
     handle_level_upgrade_request,
 )
 from handlers._message_handler import (
-    handle_accept_request,
     handle_block_peer,
     handle_delete_conversation,
     handle_direct_conversation,
     handle_get_conversations,
     handle_get_messages,
-    handle_get_requests,
     handle_message_recall,
-    handle_reject_request,
     handle_send_message,
-    handle_send_request,
     handle_unblock_peer,
 )
 from handlers._notification_handler import (
@@ -171,16 +167,12 @@ __all__ = [
     "handle_cancel_account_request",
     "handle_level_upgrade_request",
     # message
-    "handle_accept_request",
     "handle_block_peer",
     "handle_delete_conversation",
     "handle_direct_conversation",
     "handle_get_conversations",
     "handle_get_messages",
-    "handle_get_requests",
-    "handle_reject_request",
     "handle_send_message",
-    "handle_send_request",
     "handle_unblock_peer",
     # notification
     "handle_get_notifications",

@@ -3104,7 +3104,6 @@ def default_db() -> dict[str, Any]:
             "comment": 0,
             "report": 0,
             "cancellation": 0,
-            "request": 0,
             "conversation": 0,
             "notification": 0,
             "announcement": 0,
@@ -3218,7 +3217,6 @@ def default_db() -> dict[str, Any]:
         "likes": [],
         "favorites": [],
         "reports": [],
-        "dmRequests": [],
         "userBlocks": [],
         "userFollows": [],
         "conversations": [],
@@ -3280,21 +3278,6 @@ def default_db() -> dict[str, Any]:
     db["favorites"].append({"userId": "u1", "postId": "p1"})
     db["favorites"].append({"userId": "u1", "postId": "p2"})
 
-    db["dmRequests"].append(
-        {
-            "id": "req1", "toUserId": "u1", "fromAlias": "同学-海盐",
-            "fromUserId": "seed-user-1", "fromAvatarUrl": "",
-            "reason": "想咨询图书馆座位信息", "createdAt": created, "status": "pending",
-        }
-    )
-    db["dmRequests"].append(
-        {
-            "id": "req2", "toUserId": "u1", "fromAlias": "同学-留白",
-            "fromUserId": "seed-user-2", "fromAvatarUrl": "",
-            "reason": "想问二手显示器细节", "createdAt": created, "status": "pending",
-        }
-    )
-    db["seq"]["request"] = 2
 
     db["conversations"].append(
         {
@@ -3598,7 +3581,7 @@ def migrate_db(db: dict[str, Any]) -> bool:
         changed = True
     for key in [
         "user", "adminAccount", "post", "comment", "report",
-        "cancellation", "request", "conversation", "message",
+        "cancellation", "conversation", "message",
         "notification", "announcement", "appeal", "pinRequest",
         "levelRequest", "audit", "upload",
     ]:

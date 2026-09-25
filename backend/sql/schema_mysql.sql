@@ -146,20 +146,6 @@ CREATE TABLE IF NOT EXISTS reports (
   CONSTRAINT fk_reports_handler FOREIGN KEY (handled_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS dm_requests (
-  id VARCHAR(64) PRIMARY KEY,
-  to_user_id VARCHAR(64) NULL,
-  from_alias VARCHAR(128) NOT NULL,
-  from_user_id VARCHAR(64) NULL,
-  from_avatar_url VARCHAR(512) NOT NULL DEFAULT '',
-  reason TEXT NOT NULL,
-  status VARCHAR(16) NOT NULL DEFAULT 'pending',
-  created_at DATETIME(6) NOT NULL,
-  updated_at DATETIME(6) NULL,
-  CONSTRAINT fk_dm_requests_user FOREIGN KEY (to_user_id) REFERENCES users(id) ON DELETE SET NULL,
-  CONSTRAINT fk_dm_requests_from_user FOREIGN KEY (from_user_id) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS conversations (
   id VARCHAR(64) PRIMARY KEY,
   user_id VARCHAR(64) NULL,
@@ -214,10 +200,6 @@ CREATE INDEX idx_reports_target
 CREATE INDEX idx_reports_user_created
   ON reports (user_id, created_at);
 
-CREATE INDEX idx_dm_requests_to_status_created
-  ON dm_requests (to_user_id, status, created_at);
-CREATE INDEX idx_dm_requests_status_updated
-  ON dm_requests (status, updated_at);
 
 CREATE INDEX idx_conversations_user_updated
   ON conversations (user_id, updated_at);

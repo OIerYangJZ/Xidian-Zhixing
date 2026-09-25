@@ -61,7 +61,6 @@ TABLE_SOURCE_KEYS: dict[str, tuple[str, ...]] = {
     "likes": ("likes",),
     "favorites": ("favorites",),
     "reports": ("reports",),
-    "dm_requests": ("dmRequests",),
     "user_follows": ("userFollows",),
     "user_blocks": ("userBlocks",),
     "conversations": ("conversations",),
@@ -271,7 +270,6 @@ class SqliteTreeholeRepository:
                 "favorites",
                 "user_follows",
                 "reports",
-                "dm_requests",
                 "user_blocks",
                 "conversations",
                 "direct_messages",
@@ -547,20 +545,6 @@ class SqliteTreeholeRepository:
               FOREIGN KEY(handled_by) REFERENCES users(id) ON DELETE SET NULL
             );
 
-            CREATE TABLE IF NOT EXISTS dm_requests (
-              id TEXT PRIMARY KEY,
-              to_user_id TEXT NULL,
-              from_alias TEXT NOT NULL,
-              from_user_id TEXT NULL,
-              from_avatar_url TEXT NOT NULL DEFAULT '',
-              reason TEXT NOT NULL DEFAULT '',
-              status TEXT NOT NULL DEFAULT 'pending',
-              created_at TEXT NOT NULL,
-              updated_at TEXT NULL,
-              FOREIGN KEY(to_user_id) REFERENCES users(id) ON DELETE SET NULL,
-              FOREIGN KEY(from_user_id) REFERENCES users(id) ON DELETE SET NULL
-            );
-
             CREATE TABLE IF NOT EXISTS user_blocks (
               blocker_user_id TEXT NOT NULL,
               blocked_user_id TEXT NOT NULL,
@@ -751,8 +735,6 @@ class SqliteTreeholeRepository:
               ON user_follows(follower_user_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_user_follows_followee_created
               ON user_follows(followee_user_id, created_at DESC);
-            CREATE INDEX IF NOT EXISTS idx_dm_requests_to_status_created
-              ON dm_requests(to_user_id, status, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_user_blocks_blocker
               ON user_blocks(blocker_user_id, created_at DESC);
             CREATE INDEX IF NOT EXISTS idx_user_blocks_blocked
@@ -842,8 +824,6 @@ class SqliteTreeholeRepository:
               AND purpose != 'password_reset'
             """
         )
-        self._ensure_column(conn, "dm_requests", "from_user_id", "TEXT NULL")
-        self._ensure_column(conn, "dm_requests", "from_avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "peer_user_id", "TEXT NULL")
         self._ensure_column(conn, "conversations", "avatar_url", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "conversations", "unread_count", "INTEGER NOT NULL DEFAULT 0")
@@ -942,7 +922,6 @@ class SqliteTreeholeRepository:
             "favorites": [],
             "userFollows": [],
             "reports": [],
-            "dmRequests": [],
             "userBlocks": [],
             "conversations": [],
             "directMessages": [],
@@ -1240,27 +1219,6 @@ class SqliteTreeholeRepository:
                     "createdAt": row["created_at"],
                     "handledAt": _to_str(row["handled_at"]),
                     "handledBy": _to_str(row["handled_by"]),
-                }
-            )
-
-        for row in conn.execute(
-            """
-            SELECT id, to_user_id, from_alias, from_user_id, from_avatar_url, reason, status, created_at, updated_at
-            FROM dm_requests
-            ORDER BY created_at DESC, id DESC
-            """
-        ):
-            db["dmRequests"].append(
-                {
-                    "id": row["id"],
-                    "toUserId": _to_str(row["to_user_id"]),
-                    "fromAlias": row["from_alias"],
-                    "fromUserId": _to_str(row["from_user_id"]),
-                    "fromAvatarUrl": _to_str(row["from_avatar_url"]),
-                    "reason": row["reason"],
-                    "status": row["status"],
-                    "createdAt": row["created_at"],
-                    "updatedAt": _to_str(row["updated_at"]),
                 }
             )
 
@@ -1615,7 +1573,6 @@ class SqliteTreeholeRepository:
                 "conversations",
                 "user_blocks",
                 "user_follows",
-                "dm_requests",
                 "reports",
                 "favorites",
                 "likes",
@@ -2022,31 +1979,6 @@ class SqliteTreeholeRepository:
                         _to_str(row.get("createdAt")) or created_now,
                         _to_str(row.get("handledAt")) or None,
                         _to_str(row.get("handledBy")) or None,
-                    ),
-                )
-
-            for row in db.get("dmRequests", []):
-                if not isinstance(row, dict):
-                    continue
-                rid = _to_str(row.get("id")).strip()
-                if not rid:
-                    continue
-                conn.execute(
-                    """
-                    INSERT INTO dm_requests (
-                      id, to_user_id, from_alias, from_user_id, from_avatar_url, reason, status, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """,
-                    (
-                        rid,
-                        _to_str(row.get("toUserId")) or None,
-                        _to_str(row.get("fromAlias"), "匿名同学"),
-                        _to_str(row.get("fromUserId")) or None,
-                        _to_str(row.get("fromAvatarUrl")),
-                        _to_str(row.get("reason")),
-                        _to_str(row.get("status"), "pending"),
-                        _to_str(row.get("createdAt")) or created_now,
-                        _to_str(row.get("updatedAt")) or None,
                     ),
                 )
 

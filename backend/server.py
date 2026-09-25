@@ -112,7 +112,7 @@ from services import (
     serialize_account_cancellation_request, serialize_appeal,
     serialize_admin_user_level_request, serialize_admin_post_pin_request,
     sync_cancellation_requests_after_admin_cancel, recalc_post_has_image,
-    reject_pending_dm_requests_between, upsert_conversation_for_user,
+    upsert_conversation_for_user,
     sync_conversation_pair, deliver_message_to_conversation_pair,
     mark_conversation_read, serialize_direct_message, is_user_blocked,
     conversation_block_state, conversation_key_for_users, can_request_dm_to_user,
@@ -662,10 +662,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _post_handler.handle_get_report_detail(self, db, _report_match.group(1))
                 return
 
-            # Messages — requests & conversations
-            if path == "/api/messages/requests":
-                _message_handler.handle_get_requests(self, db)
-                return
+            # Messages — conversations
             if path == "/api/messages/conversations":
                 _message_handler.handle_get_conversations(self, db)
                 return
@@ -1046,10 +1043,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _notification_handler.handle_mark_notification_read(self, db, match_notification_read.group(1))
                 return
 
-            if path == "/api/messages/requests":
-                _message_handler.handle_send_request(self, db)
-                return
-
             if path == "/api/messages/conversations/direct":
                 _message_handler.handle_direct_conversation(self, db)
                 return
@@ -1188,16 +1181,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 add_audit_log(db, user["id"], "submit_feedback", feedback["id"])
                 save_db(db)
                 send_json(self, HTTPStatus.OK, {"data": {"ok": True, "id": feedback["id"]}})
-                return
-
-            match_action = re.fullmatch(r"/api/messages/requests/([^/]+)/(accept|reject)", path)
-            if match_action:
-                request_id = match_action.group(1)
-                action = match_action.group(2)
-                if action == "accept":
-                    _message_handler.handle_accept_request(self, db, request_id)
-                else:
-                    _message_handler.handle_reject_request(self, db, request_id)
                 return
 
             match_comment = re.fullmatch(r"/api/posts/([^/]+)/comments", path)

@@ -785,27 +785,6 @@ def mark_conversation_read(
     return changed
 
 
-def reject_pending_dm_requests_between(
-    db: dict[str, Any],
-    *,
-    left_user_id: str,
-    right_user_id: str,
-    updated_at: str,
-) -> bool:
-    changed = False
-    for row in db.get("dmRequests", []):
-        if str(row.get("status", "pending")).strip().lower() != "pending":
-            continue
-        from_user_id = str(row.get("fromUserId", "")).strip()
-        to_user_id = str(row.get("toUserId", "")).strip()
-        if {from_user_id, to_user_id} != {left_user_id.strip(), right_user_id.strip()}:
-            continue
-        row["status"] = "rejected"
-        row["updatedAt"] = updated_at
-        changed = True
-    return changed
-
-
 def serialize_direct_message(
     db: dict[str, Any],
     row: dict[str, Any],
@@ -1328,11 +1307,6 @@ def cancel_user_account(
         if uid == user_id:
             db["sessions"].pop(token, None)
 
-    db["dmRequests"] = [
-        row
-        for row in db.get("dmRequests", [])
-        if row.get("toUserId") != user_id and row.get("fromUserId") != user_id
-    ]
     db["userBlocks"] = [
         row
         for row in db.get("userBlocks", [])
