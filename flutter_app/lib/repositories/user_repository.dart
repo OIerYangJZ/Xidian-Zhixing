@@ -40,6 +40,13 @@ class UserRepository {
     return extractList(response).map((dynamic item) => asMap(item)).toList();
   }
 
+  Future<void> blockUser(String userId) async {
+    await _apiClient.post(
+      ApiEndpoints.meBlocks,
+      body: <String, dynamic>{'targetUserId': userId},
+    );
+  }
+
   Future<void> unblockUser(String userId) async {
     await _apiClient.delete(ApiEndpoints.meBlock(userId));
   }

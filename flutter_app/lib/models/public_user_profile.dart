@@ -18,6 +18,9 @@ class PublicUserProfile {
     this.bio = '',
     this.gender = '',
     this.backgroundImageUrl = '',
+    this.college = '',
+    this.major = '',
+    this.isBlockedByMe = false,
   });
 
   final String id;
@@ -36,6 +39,12 @@ class PublicUserProfile {
   final String bio;
   final String gender;
   final String backgroundImageUrl;
+  final String college;
+  final String major;
+
+  /// Whether the viewer blocked this user. Whether they blocked the viewer
+  /// is not disclosed.
+  final bool isBlockedByMe;
 
   /// 兼容旧代码，userId 映射到 id
   String get userId => id;
@@ -86,6 +95,9 @@ class PublicUserProfile {
       backgroundImageUrl:
           (json['backgroundImageUrl'] ?? json['backgroundImage'] ?? '')
               .toString(),
+      college: (json['college'] ?? '').toString(),
+      major: (json['major'] ?? '').toString(),
+      isBlockedByMe: _toBool(json['isBlockedByMe']) ?? false,
     );
   }
 
@@ -104,6 +116,9 @@ class PublicUserProfile {
     String? bio,
     String? gender,
     String? backgroundImageUrl,
+    String? college,
+    String? major,
+    bool? isBlockedByMe,
   }) {
     return PublicUserProfile(
       id: id ?? this.id,
@@ -120,6 +135,9 @@ class PublicUserProfile {
       bio: bio ?? this.bio,
       gender: gender ?? this.gender,
       backgroundImageUrl: backgroundImageUrl ?? this.backgroundImageUrl,
+      college: college ?? this.college,
+      major: major ?? this.major,
+      isBlockedByMe: isBlockedByMe ?? this.isBlockedByMe,
     );
   }
 
