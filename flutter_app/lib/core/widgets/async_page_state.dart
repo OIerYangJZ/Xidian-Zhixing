@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/ui_text.dart';
-import '../theme/design_tokens.dart';
-import 'app_surfaces.dart';
+import '../../design_system/design_system.dart';
 
 class AsyncPageState extends StatelessWidget {
   const AsyncPageState({
@@ -32,7 +31,7 @@ class AsyncPageState extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 320),
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+              padding: const EdgeInsets.all(28),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
@@ -41,12 +40,12 @@ class AsyncPageState extends StatelessWidget {
                     height: 30,
                     child: CircularProgressIndicator(strokeWidth: 3),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: 14),
                   Text(
                     loadingLabel ??
                         uiText(context, zh: '正在加载内容', en: 'Loading content'),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    style: ZxType.body.copyWith(
+                      color: ZxTokens.of(context).text3,
                     ),
                   ),
                 ],
@@ -61,20 +60,13 @@ class AsyncPageState extends StatelessWidget {
       return ListView(
         padding: const EdgeInsets.all(16),
         children: <Widget>[
-          AppInlineMessage(
-            title: uiText(
-              context,
-              zh: '内容加载失败',
-              en: 'Failed to load content',
-            ),
+          ZxInlineMessage(
             message: error!,
-            tone: AppMessageTone.error,
-            action: onRetry == null
+            tone: ZxMessageTone.danger,
+            actionLabel: onRetry == null
                 ? null
-                : TextButton(
-                    onPressed: onRetry,
-                    child: Text(uiText(context, zh: '重试', en: 'Retry')),
-                  ),
+                : uiText(context, zh: '重试', en: 'Retry'),
+            onAction: onRetry,
           ),
           const SizedBox(height: 12),
           emptyFallback!,
@@ -87,20 +79,13 @@ class AsyncPageState extends StatelessWidget {
         if (error != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-            child: AppInlineMessage(
-              title: uiText(
-                context,
-                zh: '内容加载失败',
-                en: 'Failed to load content',
-              ),
+            child: ZxInlineMessage(
               message: error!,
-              tone: AppMessageTone.error,
-              action: onRetry == null
+              tone: ZxMessageTone.danger,
+              actionLabel: onRetry == null
                   ? null
-                  : TextButton(
-                      onPressed: onRetry,
-                      child: Text(uiText(context, zh: '重试', en: 'Retry')),
-                    ),
+                  : uiText(context, zh: '重试', en: 'Retry'),
+              onAction: onRetry,
             ),
           ),
         Expanded(child: child),

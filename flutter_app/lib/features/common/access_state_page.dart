@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/l10n/ui_text.dart';
-import '../../core/theme/design_tokens.dart';
-import '../../core/widgets/app_surfaces.dart';
+import '../../design_system/design_system.dart';
 
 class AccessStatePage extends StatelessWidget {
   const AccessStatePage.notFound({super.key})
@@ -41,23 +40,18 @@ class AccessStatePage extends StatelessWidget {
           forbidden ? uiText(context, zh: '无权限', en: 'Forbidden') : '404',
         ),
       ),
-      body: AppPageFrame(
-        maxWidth: AppLayout.readingMaxWidth,
-        alignment: Alignment.center,
-        child: AppStatePanel(
-          icon: forbidden
-              ? Icons.lock_outline_rounded
-              : Icons.explore_off_outlined,
-          title: localizedTitle,
-          message: localizedMessage,
-          action: FilledButton.icon(
-            onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
-            },
-            icon: const Icon(Icons.home_outlined),
-            label: Text(uiText(context, zh: '返回首页', en: 'Back to home')),
+      body: ZxPaper(
+        child: Center(
+          child: ZxStatePanel(
+            icon: forbidden
+                ? Icons.lock_outline_rounded
+                : Icons.explore_off_outlined,
+            title: localizedTitle,
+            message: localizedMessage,
+            actionLabel: uiText(context, zh: '返回首页', en: 'Back to home'),
+            onAction: () => Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false),
           ),
         ),
       ),
