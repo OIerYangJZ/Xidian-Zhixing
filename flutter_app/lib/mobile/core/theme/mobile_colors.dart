@@ -234,6 +234,25 @@ class MobileColors extends ThemeExtension<MobileColors> {
     error: _error,
   );
 
+  /// 墨朱·新页：与 Web 的 SharedColors.discussionLight 同一组色值。
+  static const _mozhuxinye = MobileColors(
+    background: Color(0xFFFFFFFF),
+    surface: Color(0xFFFFFFFF),
+    cardBackground: Color(0xFFFFFFFF),
+    textPrimary: Color(0xFF191917),
+    textSecondary: Color(0xFF6F706B),
+    textTertiary: Color(0xFFA2A39E),
+    divider: Color(0xFFE8E8E4),
+    primary: Color(0xFFAB3E36),
+    primaryDark: Color(0xFF852E29),
+    accent: Color(0xFFD87569),
+    seal: Color(0xFFAB3E36),
+    softBackground: Color(0xFFFAECE9),
+    success: _success,
+    warning: _warning,
+    error: _error,
+  );
+
   /// 根据主题 key 返回对应的 MobileColors 配色
   static MobileColors fromThemeKey(String key) {
     return switch (key) {
@@ -247,6 +266,7 @@ class MobileColors extends ThemeExtension<MobileColors> {
       'xingrenhuang' => _xingrenhuang,
       'haiyanqing' => _haiyanqing,
       'mohui' => _mohui,
+      'mozhuxinye' => _mozhuxinye,
       _ => _zhushachi,
     };
   }

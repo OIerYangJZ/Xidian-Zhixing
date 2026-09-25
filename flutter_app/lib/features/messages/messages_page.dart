@@ -18,6 +18,10 @@ class MessagesPage extends ConsumerStatefulWidget {
 }
 
 class _MessagesPageState extends ConsumerState<MessagesPage> {
+  /// Below this width the chat opens as its own route; at or above it the
+  /// list and the open conversation sit side by side.
+  static const double _splitMinWidth = 900;
+
   String? _selectedId;
   @override
   void initState() {
@@ -65,7 +69,9 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
               ref.read(messagesControllerProvider.notifier).loadInitial(),
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
-              if (constraints.maxWidth < 900) return _buildConversations(state);
+              if (constraints.maxWidth < _splitMinWidth) {
+                return _buildConversations(state);
+              }
               final ConversationItem? selected = state.conversations
                   .where((ConversationItem item) => item.id == _selectedId)
                   .firstOrNull;
@@ -217,6 +223,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                     ],
                   ],
                 ),
+                selected: split && session.id == _selectedId,
                 onTap: () => _openConversation(session, split: split),
               ),
             ),

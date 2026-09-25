@@ -1,11 +1,20 @@
-const TAB_ROUTES = ["/pages/treehole/index","/pages/campus/search/index","/pages/ai/index","/pages/profile/notifications/index","/pages/profile/conversations/index"];
+export const TAB_ROUTES = [
+  '/pages/treehole/index',
+  '/pages/campus/search/index',
+  '/pages/ai/index',
+  '/pages/profile/notifications/index',
+  '/pages/profile/conversations/index'
+];
+
+export const isTabRoute = (route) =>
+  TAB_ROUTES.includes(String(route || '').split('?')[0]);
 export const openAppTarget = (target = {}) => {
   const path = String(target.path || target.jumpUrl || '').trim();
   const url = String(target.url || target.originalUrl || '').trim();
   if (/^\/?pages\//.test(path)) {
     const route = path.startsWith('/') ? path : '/' + path;
     const routePath = route.split('?')[0];
-    if (TAB_ROUTES.includes(routePath)) {
+    if (isTabRoute(route)) {
       if (routePath === '/pages/campus/search/index' && route.includes('?')) {
         const keyword = route.match(/[?&]keyword=([^&]*)/);
         wx.switchTab({ url: routePath, success() {

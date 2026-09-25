@@ -1,14 +1,7 @@
 import { clearCampusAuthSession } from './campus_auth';
+import { isTabRoute } from './navigation';
 
 const LOGIN_PAGE = '/pages/profile/auth/index';
-
-const TABBAR_PAGES = [
-  "/pages/treehole/index",
-  "/pages/campus/search/index",
-  "/pages/ai/index",
-  "/pages/profile/notifications/index",
-  "/pages/profile/conversations/index"
-];
 
 let isNavigating = false;
 
@@ -29,12 +22,22 @@ const isLoginRoute = () => {
   return route === LOGIN_PAGE;
 };
 
+const currentPageUrl = () => {
+  const pages = getCurrentPages();
+  const current = pages[pages.length - 1];
+  if (!current) return '';
+  const query = Object.keys(current.options || {})
+    .map((key) => key + '=' + encodeURIComponent(current.options[key]))
+    .join('&');
+  return '/' + (current.route || '') + (query ? '?' + query : '');
+};
+
 const isCurrentPageTabbar = () => {
   const pages = getCurrentPages();
   const current = pages[pages.length - 1];
   if (!current) return false;
   const route = `/${current.route || ''}`;
-  return TABBAR_PAGES.includes(route);
+  return isTabRoute(route);
 };
 
 export const hasLogin = () => {
@@ -53,7 +56,12 @@ export const requireLoginPage = () => {
       if (isCurrentPageTabbar()) {
         wx.navigateTo({ url: LOGIN_PAGE });
       } else {
-        wx.redirectTo({ url: LOGIN_PAGE });
+        const redirect = currentPageUrl();
+        wx.redirectTo({
+          url: redirect
+            ? LOGIN_PAGE + '?redirect=' + encodeURIComponent(redirect)
+            : LOGIN_PAGE
+        });
       }
     });
   }

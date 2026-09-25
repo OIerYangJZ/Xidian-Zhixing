@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_store.dart';
 import '../features/auth/login_page.dart';
 import '../core/navigation/post_detail_nav.dart';
+import '../core/network/api_exception.dart';
 import '../core/navigation/url_query_state.dart';
 import '../l10n/generated/app_localizations.dart';
 import '../models/post_item.dart';
@@ -177,6 +178,12 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   Future<void> _restorePostFromUrlIfNeeded() async {
     if (_postUrlHandled) return;
     _postUrlHandled = true;
+    final String? linkedPostId = currentPostLinkId();
+    if (linkedPostId != null) {
+      clearPostLinkFromUrl();
+      await _openLinkedPost(linkedPostId);
+      return;
+    }
     final String? postId = currentPostIdFromUrl();
     if (postId == null || postId.trim().isEmpty) return;
     try {
@@ -186,5 +193,48 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     } catch (_) {
       setPostIdOnUrl(null);
     }
+  }
+
+  /// Unlike a reload restore, a shared link was followed on purpose, so a
+  /// post that is gone or hidden from this viewer is reported, not skipped.
+  Future<void> _openLinkedPost(String postId) async {
+    final PostItem post;
+    try {
+      post = await AppRepositories.posts.fetchPostDetail(postId);
+    } on ApiException catch (error) {
+      _showLinkError(
+        error.statusCode == 404
+            ? uiTextGlobal(
+                zh: '帖子不存在，或你没有权限查看',
+                en: 'This post does not exist or is not visible to you',
+              )
+            : uiTextGlobal(
+                zh: '帖子打开失败：${error.message}',
+                en: 'Could not open the post: ${error.message}',
+              ),
+      );
+      return;
+    } catch (error) {
+      _showLinkError(
+        uiTextGlobal(
+          zh: '帖子打开失败：$error',
+          en: 'Could not open the post: $error',
+        ),
+      );
+      return;
+    }
+    if (!mounted) {
+      return;
+    }
+    await openPostDetailPage(context, post: post);
+  }
+
+  void _showLinkError(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
