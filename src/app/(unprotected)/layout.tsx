@@ -1,4 +1,3 @@
-import { Feather } from '@/svg_components';
 import { LogoText } from '@/components/LogoText';
 import Link from 'next/link';
 import React from 'react';
@@ -7,7 +6,7 @@ import { HomeMobileDropdownMenu } from './HomeMobileDropdownMenu';
 
 function HomeNavLink({ children, href }: { children: React.ReactNode; href: string }) {
   return (
-    <h3 className="cursor-pointer px-4 py-3 text-lg font-semibold text-muted-foreground hover:text-primary">
+    <h3 className="cursor-pointer px-3 py-3 text-sm font-medium text-muted-foreground hover:text-primary">
       <Link href={href}>{children}</Link>
     </h3>
   );
@@ -19,24 +18,21 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex min-h-screen w-full justify-center">
-      <div className="w-full max-w-3xl gap-3 py-4 sm:py-8">
+      <div className="w-full max-w-6xl gap-3 py-4 sm:py-8">
         <nav className="flex items-center justify-between px-4 sm:px-0">
-          <Link href="/" title="Home page">
+          <Link href="/" title="西电知行首页">
             <div className="flex cursor-pointer flex-row items-center justify-center gap-2 sm:pr-5">
-              <Feather className="stroke-primary" width={32} height={32} />
-              <LogoText className="text-2xl" />
+              <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-9 w-9 rounded-md object-cover" />
+              <LogoText className="text-xl text-foreground" />
             </div>
           </Link>
           <div className="hidden gap-3 sm:flex">
-            <HomeNavLink href="/terms">Terms</HomeNavLink>
-            <HomeNavLink href="/privacy-policy">Privacy Policy</HomeNavLink>
+            <HomeNavLink href="/campus">校园服务</HomeNavLink>
+            <HomeNavLink href="/terms">使用条款</HomeNavLink>
+            <HomeNavLink href="/privacy-policy">隐私说明</HomeNavLink>
 
-            {!isLoggedIn && (
-              <>
-                <HomeNavLink href="/login">Login</HomeNavLink>
-                <HomeNavLink href="/register">Sign Up</HomeNavLink>
-              </>
-            )}
+            {!isLoggedIn && <HomeNavLink href="/login">登录</HomeNavLink>}
+            {isLoggedIn && <HomeNavLink href="/feed">进入知行</HomeNavLink>}
           </div>
           <div className="sm:hidden">
             <HomeMobileDropdownMenu />

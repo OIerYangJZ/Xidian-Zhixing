@@ -6,13 +6,13 @@ import { FindPostResult, GetPost, GetVisualMedia } from '@/types/definitions';
 import { convertMentionUsernamesToIds } from '../convertMentionUsernamesToIds';
 import { fileNameToUrl } from '../s3/fileNameToUrl';
 
-export async function toGetPost(findPostResult: FindPostResult): Promise<GetPost> {
+export async function toGetPost(findPostResult: FindPostResult, viewerUserId?: string): Promise<GetPost> {
   /**
    * Exclude the `postLikes` property as this is not needed in <GetPost>,
    * it is only used to determine whether the user requesting the post
    * has liked the post or not.
    */
-  const { postLikes, content, ...rest } = findPostResult;
+  const { postLikes, bookmarks, reposts, content, userId: authorUserId, ...rest } = findPostResult;
 
   // Convert the `@` `id` mentions back to usernames
   const { str } = await convertMentionUsernamesToIds({
@@ -27,17 +27,23 @@ export async function toGetPost(findPostResult: FindPostResult): Promise<GetPost
 
   return {
     ...rest,
-    user: {
-      id: rest.user.id,
-      // The `name` and `username` are guaranteed to be filled after the user's registration,
-      // thus we can safely use non-null assertion here.
-      username: rest.user.username!,
-      name: rest.user.name!,
-      // Convert the `profilePhoto` file name to a full S3 URL
-      profilePhoto: fileNameToUrl(rest.user.profilePhoto),
-    },
+    user:
+      rest.displayIdentity === 'USER'
+        ? {
+            id: rest.user.id,
+            username: rest.user.username!,
+            name: rest.user.name!,
+            profilePhoto: fileNameToUrl(rest.user.profilePhoto),
+          }
+        : null,
+    publishedAsClub: rest.publishedAsClub
+      ? { ...rest.publishedAsClub, avatar: fileNameToUrl(rest.publishedAsClub.avatar) }
+      : null,
     visualMedia,
     content: str,
     isLiked: postLikes.length > 0,
+    isBookmarked: bookmarks.length > 0,
+    isReposted: reposts.length > 0,
+    isOwnPost: authorUserId === viewerUserId,
   };
 }

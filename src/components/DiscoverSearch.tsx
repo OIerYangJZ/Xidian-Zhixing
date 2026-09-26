@@ -5,7 +5,7 @@ import SvgSearch from '@/svg_components/Search';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
 
-export function DiscoverSearch({ label = 'Search People' }: { label?: string }) {
+export function DiscoverSearch({ label = '搜索同学、帖子和话题' }: { label?: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -26,7 +26,7 @@ export function DiscoverSearch({ label = 'Search People' }: { label?: string }) 
   );
 
   return (
-    <div className="sticky top-4 z-[2] mb-4">
+    <div className="mb-3">
       <TextInput onChange={handleChange} label={label} Icon={SvgSearch} />
     </div>
   );

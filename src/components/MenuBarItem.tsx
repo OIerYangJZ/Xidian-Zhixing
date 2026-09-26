@@ -14,61 +14,55 @@ export function MenuBarItem({
   Icon,
   route,
   badge,
+  mobileTab = false,
 }: {
   children: React.ReactNode;
   Icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
   route: string;
   badge?: number;
+  mobileTab?: boolean;
 }) {
   const router = useRouter();
   const [isActive] = useActiveRouteChecker(route);
   const { confirm } = useDialogs();
-
   const onItemClick = useCallback(() => {
-    if (route === '/api/auth/signout') {
-      confirm({
-        title: 'Confirm Logout',
-        message: 'Do you really wish to logout?',
-        onConfirm: () => signOut({ callbackUrl: '/' }),
-      });
-    } else {
-      router.push(route);
-    }
+    if (route === '/api/auth/signout')
+      confirm({ title: '退出登录', message: '确定退出西电知行吗？', onConfirm: () => signOut({ callbackUrl: '/' }) });
+    else router.push(route);
   }, [route, router, confirm]);
-
   useEffect(() => {
-    if (route === '/api/auth/signout') return;
-    router.prefetch(route);
+    if (route !== '/api/auth/signout') router.prefetch(route);
   }, [route, router]);
 
   return (
     <ButtonNaked
       aria-label={children as string}
-      className="group relative flex h-14 flex-1 cursor-pointer flex-row items-center justify-center px-4 hover:bg-primary-accent/30 md:mt-2 md:flex-none md:rounded-lg md:last:mt-auto"
+      aria-current={isActive ? 'page' : undefined}
+      className={cn(
+        'group relative flex h-12 w-full cursor-pointer items-center justify-center gap-0 rounded-full px-3 text-foreground transition-colors hover:bg-secondary md:justify-center xl:justify-start xl:gap-4 xl:px-4',
+        mobileTab && 'h-14 flex-1 flex-col gap-0.5 rounded-md px-1 hover:bg-transparent',
+        isActive && !mobileTab && 'bg-secondary/80 font-semibold',
+        isActive && mobileTab && 'text-primary',
+      )}
       onPress={onItemClick}>
-      <div
+      <span
         className={cn(
-          'absolute left-0 hidden h-10 w-[4px] origin-bottom scale-y-0 rounded-r-lg bg-primary transition-transform group-hover:origin-top group-hover:scale-y-100 md:block',
-          isActive && 'scale-y-100',
+          'absolute left-1 hidden h-7 w-[3px] rounded-full bg-primary xl:block',
+          !isActive && 'scale-y-0 opacity-0',
         )}
       />
-      <div
-        className={cn(
-          'absolute bottom-0 h-[4px] w-[70%] scale-x-0 rounded-t-lg bg-primary transition-transform group-hover:scale-x-100 md:hidden',
-          isActive && 'scale-x-100',
-        )}
-      />
-      <div className="relative md:mr-3">
-        <Icon className="h-6 w-6 stroke-muted-foreground" />
-        {badge !== undefined && badge !== 0 && (
-          <div className="absolute right-[-25%] top-[-50%]">
+      <span className={cn('relative grid h-8 w-8 place-items-center rounded-full', mobileTab && 'h-6 w-7')}>
+        <Icon className={cn('h-[22px] w-[22px] stroke-current', isActive && 'stroke-[2.4px]')} />
+        {badge !== undefined && badge !== 0 ? (
+          <span className="absolute -right-2 -top-1">
             <Badge>{badge}</Badge>
-          </div>
-        )}
-      </div>
-      <p className={cn('hidden text-base transition-colors duration-300 md:block', isActive && 'font-bold')}>
+          </span>
+        ) : null}
+      </span>
+      <span
+        className={cn('hidden text-[15px] leading-5 xl:block', mobileTab && 'block text-[10px] leading-3 md:hidden')}>
         {children}
-      </p>
+      </span>
     </ButtonNaked>
   );
 }

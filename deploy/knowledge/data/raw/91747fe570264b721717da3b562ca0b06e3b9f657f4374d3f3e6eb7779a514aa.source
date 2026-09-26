@@ -1,0 +1,356 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>关于开展第十五届陕西青年科技奖候选人推荐与评选工作的通知-西安电子科技大学  综合信息网</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于开展第十五届陕西青年科技奖候选人推荐与评选工作的通知">
+<META Name="keywords" Content="西安电子科技大学   综合信息网,候选人,推荐,科技奖,评选,青年,工作,陕西,通知,开展" />
+<META Name="description" Content="关于开展第十五届陕西青年科技奖候选人推荐与评选工作的通知各有关单位：根据陕西省科协《关于开展第十五届陕西青年科技奖候选人推荐和评选工作的通知》（陕科协发〔2026〕组字17号）精神，现开展第十五届陕西青年科技奖候选人推荐工作，有关事项通知如下：一、候选人应具备的条件（一）拥护党的路线、方针、政策，思想政治坚定，深刻领悟“两个确立”的决定性意义，坚决做到“两个维护”，热爱祖国，作风廉洁，遵纪守法，学风正派，..." />
+
+
+
+
+
+<META charset="UTF-8">
+<META content="IE=Edge,chrome=1" http-equiv="X-UA-Compatible"><LINK rel="stylesheet" href="../../css2019/style.css"><LINK rel="stylesheet" href="../../css2019/aos.css"><script src="../../js2019/bdtxk.js"></script><script src="../../js2019/slide.js"></script><script src="../../js2019/index.js"></script><script src="../../js2019/aos.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../zContent.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|mobile|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1014,'/zContent.jsp',110170,1000571818)</script>
+</HEAD>
+<BODY><!-- head  -->
+<DIV class="head w10">
+<DIV class="w12 clear">
+<DIV class="email fl clear">    <script language="javascript" src="/system/resource/js/dynclicks.js"></script><DIV class="email01 fl"> <A href="https://webmail.xidian.edu.cn/" target="_blank"><IMG src="../../2019images/ic-email.png">教工邮箱</A> </DIV>
+<DIV class="email02 fl"><A href="http://mail.stu.xidian.edu.cn/" target="_blank"><IMG src="../../2019images/ic-email.png"> 学生邮箱</A> </DIV>
+
+
+
+</DIV>
+<DIV class="logo fl">    <A href="../../index.htm"><IMG src="../../2019images/logo.png"></A>
+</DIV>
+<DIV class="right fr clear"><A href="https://www.xidian.edu.cn/">西电主站</A> 
+<DIV class="search clear">
+
+
+
+<!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+       
+<div class="search clear">
+              <DIV class="ss"><input type="text" class="text"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit"></DIV>
+              <DIV class="btn"><input class="img" type="image" name="submit_button"  v-on:click="onSubmit()" src="../../2019images/ic-search.png"></DIV>
+         </div>
+         
+         
+
+         
+         
+         
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+
+
+
+
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1000571818";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1000571818";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+
+
+</DIV></DIV></DIV></DIV><!-- nav  -->
+<DIV class="navbar">
+<UL id="nav" class="nav clearfix"><LI class="nLi on">
+<H3><A href="../../index.htm" target="_blank">首页</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="https://ywtb.xidian.edu.cn/" target="_blank">一网通办</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="https://xxzx.xidian.edu.cn/" target="_blank">网络服务</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="http://gis.xidian.edu.cn/" target="_blank">校园ＧＩＳ</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="https://faculty.xidian.edu.cn/" target="_blank">教师主页</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="http://job.xidian.edu.cn/" target="_blank">就业信息</A></H3></LI>
+<LI class="nLi on">
+<H3><A href="https://www.xidian.edu.cn/jzbg.htm" target="_blank">会议讲座</A></H3></LI>
+
+</UL></DIV><script id="jsID" type="text/javascript">
+            jQuery("#nav").slide({
+                type: "menu", // 效果类型，针对菜单/导航而引入的参数（默认slide）
+                titCell: ".nLi", //鼠标触发对象
+                targetCell: ".sub", //titCell里面包含的要显示/消失的对象
+                effect: "slideDown", //targetCell下拉效果
+                delayTime: 300, //效果时间
+                triggerTime: 0, //鼠标延迟触发时间（默认150）
+                returnDefault: true //鼠标移走后返回默认状态，例如默认频道是“预告片”，鼠标移走后会返回“预告片”（默认false）
+            });
+        </script><!-- banner-now -->
+<DIV class="banner-in">    <IMG src="../../2019images/banner-ny03.png"> 
+
+<DIV class="banner-cover">
+<H4 class="w12"><div>
+    当前位置: 
+                        <a href="../../index.htm">首页</a>
+                >>
+                <a href="../../kyxx.htm">科研信息</a>
+                >>
+                正文
+</div>
+
+
+</H4></DIV></DIV><!-- nry -->
+<DIV class="nry w12">
+
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+
+<div class="nry w12">
+		
+
+<div class="title">
+				<h4>关于开展第十五届陕西青年科技奖候选人推荐与评选工作的通知</h4>
+				<i>发布时间：2026-07-15 16:36:31&nbsp;&nbsp;&nbsp;
+    点击：<script>_showDynClicks("wbnews", 1000571818, 110170)</script></i>
+			</div>
+
+
+
+    <div id="vsb_content" class="nry-con"><div class="v_news_content">
+<style>.docx-wrapper { background: gray; padding: 30px; padding-bottom: 0px; display: flex; flex-flow: column; align-items: center;} .docx-wrapper>section.docx { background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); margin-bottom: 30px;}.docx { color: black; hyphens: auto;}section.docx { box-sizing: border-box; display: flex; flex-flow: column nowrap; position: relative; overflow: hidden;}section.docx>article { margin-bottom: auto; z-index: 1;}section.docx>footer { z-index: 1;}.docx table { border-collapse: collapse;}.docx table td, .docx table th { vertical-align: top;}.docx p { margin: 0pt !important; min-height: 1em;}.docx span { white-space: pre-wrap; overflow-wrap: break-word;}.docx a { color: inherit; text-decoration: inherit;}</style><style>.docx {  --docx-majorhansi-font: Calibri Light;  --docx-minorhansi-font: Calibri;  --docx-dk1-color: #000000;  --docx-lt1-color: #FFFFFF;  --docx-dk2-color: #44546A;  --docx-lt2-color: #E7E6E6;  --docx-accent1-color: #5B9BD5;  --docx-accent2-color: #ED7D31;  --docx-accent3-color: #A5A5A5;  --docx-accent4-color: #FFC000;  --docx-accent5-color: #4472C4;  --docx-accent6-color: #70AD47;  --docx-hlink-color: #0563C1;  --docx-folhlink-color: #954F72;}</style><style>.docx span {  font-family: Times New Roman;}.docx p, p.docx_1 {  text-align: justify;}.docx p, p.docx_1 span {  font-family: var(--docx-minorHAnsi-font);  min-height: 10.50pt;  font-size: 10.50pt;}.docx table, table.docx_5 p {  margin-top: 0.00pt;  margin-bottom: 0.00pt;  margin-left: 0.00pt;  margin-right: 0.00pt;}.docx table, table.docx_5 span {  font-family: Times New Roman;  min-height: 10.00pt;  font-size: 10.00pt;}.docx table, table.docx_5 td {  padding-top: 0.00pt;  padding-left: 5.40pt;  padding-bottom: 0.00pt;  padding-right: 5.40pt;}p.docx_2 {  text-align: left;}p.docx_2 span {  min-height: 9.00pt;  font-size: 9.00pt;  font-family: var(--docx-minorHAnsi-font);}p.docx_3 {  border-top: 0.00pt solid black;  border-left: 0.00pt solid black;  border-bottom: 0.00pt solid black;  border-right: 0.00pt solid black;  line-height: 1.00;  text-align: justify;}p.docx_3 span {  min-height: 9.00pt;  font-size: 9.00pt;  font-family: var(--docx-minorHAnsi-font);}p.docx_4 {  margin-top: 5.00pt;  margin-bottom: 5.00pt;  text-align: left;}p.docx_4 span {  font-family: 宋体;  min-height: 12.00pt;  font-size: 12.00pt;}span.docx_7 {  font-weight: bold;}span.docx_8 {  color: #0000FF;  text-decoration: underline;}p.docx_9 {}p.docx_9 span {  font-family: 仿宋_GB2312;  color: #000000;  min-height: 12.00pt;  font-size: 12.00pt;}</style><section class="docx"><article><p style="min-height: 28pt; line-height: 28pt; text-align: center; vertical-align: baseline; text-indent: 0pt;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 22pt; font-size: 22pt;">关于开展第</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 22pt; font-size: 22pt;">十五</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 22pt; font-size: 22pt;">届陕西青年科技奖候选人</span></p><p style="min-height: 28pt; line-height: 28pt; text-align: center; vertical-align: baseline; text-indent: 0pt;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 22pt; font-size: 22pt;">推荐与评选工作的通知</span></p><p style="min-height: 28pt; line-height: 28pt; vertical-align: baseline; text-indent: 0pt;"><br></p><p style="min-height: 28pt; line-height: 28pt; margin-right: 0pt; vertical-align: baseline; text-indent: 0pt;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">各</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">有关</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">单位：</span></p><p class="docx_9" style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; color: black; min-height: 16pt; font-size: 16pt;">根据陕西省科协《关于开展第十五届陕西青年科技奖候选人推荐和评选工作的通知》（</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">陕科协发〔20</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">26</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">〕组字</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">17</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">号）精神，现开展第</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">十五</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">届陕西青年科技奖候选人推荐工作，有关事项通知如下：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">一、候选人应具备的条件</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（一）拥护党的路线、方针、政策，思想政治坚定，深刻领悟“两个确立”的决定性意义，坚决做到“两个维护”，热爱祖国，作风廉洁，遵纪守法，学风正派，积极践行科学家精神。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（二）陕西青年科技奖候选人应符合以下条件之一：</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">1.在自然科学研究领域取得重要的、创新性的成就和作出突出贡献；</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">2.在工程技术方面取得重大的、创造性的成果和作出贡献，并有显著应用成效；</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">3.在宣传普及科学知识、推广技术、转化成果工作中取得突出成绩，产生显著的社会效益或经济效益。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（三）陕西青年科技标兵候选人应符合以下条件：</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">承担“卡脖子”重大攻关任务、或重大基础研究任务、或重大科技基础设施任务，在科学研究或工程技术等方面取得重大成就或作出突出贡献、具有较大发展潜力、堪为遵守科学道德典范的优秀青年科技人才。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（四）中华人民共和国公民。男性候选人1986年1月1日及以后出生，女性候选人1981年1月 1日及以后出生。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（五）无违法违纪、科研失信问题。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（六）未曾获得本奖。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（七）每位候选人只能由一个渠道推荐。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">二、推荐要求</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（一）各推荐单位要坚持公开、公平、公正原则，扩大人才发现和举荐视野，严格评选条件，严格评审程序，保证评选质量。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（二）各推荐单位要坚持以创新价值、能力、贡献为导向的科技人才评价标准，克服唯论文、唯职称、唯学历、唯奖项倾向。代表性成果、重大项目、重要组织任职等是评价的重要参考，应与创新价值、能力、贡献中的有关内容对应。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（三）推荐单位和候选人要自觉恪守科学道德和学术规范，推荐材料要客观、准确、完整，对于推荐材料填报不实的，实行“一票否决”。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（四）候选人的科技成果应以在国内做出的成果为主，候选人应作为主要完成人或主要贡献者。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（五）候选人的推荐要注重向长期工作在科研与生产第一线和艰苦行业的优秀青年科技工作者倾斜。</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（六）候选人推荐材料不得涉及国家秘密及敏感信息，候选人所在单位应对推荐材料(含附件)进行保密审查。违反保密规定的，取消被推荐资格。</span></p><p style="min-height: 27pt; line-height: 27pt; text-indent: 32pt;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（七）</span><span style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">候选人获奖后，本人及所在单位、推荐单位，应积极配合在有关媒体</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">进行</span><span style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">宣传报道</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">，</span><span style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">积极参加省科协组织的陕西省科协年会、“全国科技工作者日”“全国科普月”、陕西青年科学家大会等活动。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">三、推荐名额</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">我校可推荐</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">4</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">名</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">候选人至省科协，校内各单位可推荐不超过</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">1名</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">候选人至</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">科学研究院</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">四、推荐材料报送要求</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">请各推荐单位于</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">2026年7月2</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">4</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">日</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 16pt; font-size: 16pt;">（周五）</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">前提交以下推荐材料至邮箱</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">kxy@xidian.edu.cn</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">：</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（一）《第</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">十五</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">届陕西青年科技奖推荐表》</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">附件1，word版及盖章</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">PDF</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">扫描版</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">）</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">需注意：</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">申报人</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">单位</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">需按照</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">表格</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">要求</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">内容</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">填写候选人所在单位意见、推荐单位意见）</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（二）</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">《第十</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">五</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">届陕西青年科技奖</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">申报</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">人员信息表》（附件2，</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">Excel</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">版）。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">三</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">）</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">科研诚信证明</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">附件3，word版及盖章</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">PDF</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">扫描版</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">）</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">（</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">四</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">）</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">有关附件材料（电子版）</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">：</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（1）代表性成果的相关证明材料（被他人引用的论文、专著证明材料；技术鉴定证书及知识产权证明材料；技术应用证明材料等。非学术类报刊不作为证明材料）；</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（2）获得表彰奖励证明材料；</span></p><p style="margin: 0pt; min-height: 28pt; line-height: 28pt; text-indent: 32pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; color: rgb(0, 0, 0); min-height: 16pt; font-size: 16pt;">（3）其他材料。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">本次申报不接收教师个人</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">提交材料</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">，须由所在单位统一</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">审核</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">报送。</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">申报单位</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">逾期未提交申报材料的，将视为无申报意向</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">。</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">申报单位</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">若对申报人资格</span><span lang="null" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">、</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">申报人材料</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">审核</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">有误</span><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">，则对应名额作放弃处理。</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: normal; min-height: 16pt; font-size: 16pt;">五、联系方式</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">联 系 人：</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">于志斌</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;"> &nbsp;者文静</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">联系电话：029</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">-</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">81892598</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: left; vertical-align: baseline;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">&nbsp;</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">附件：</span></p><p class="docx-num-0-undefined" style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">1. 第十五届陕西青年科技奖推荐表</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">2. 第十五届陕西青年科技奖推荐人员信息表</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: justify; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">3. 科研诚信证明（模板）</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp;</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: center; vertical-align: baseline;"><br></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: center; vertical-align: baseline;"><span id="_GoBack"></span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; text-align: center; vertical-align: baseline;"><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;</span><span lang="en-US" style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;"> &nbsp;</span><span style="font-family: &quot;Times New Roman&quot;; min-height: 16pt; font-size: 16pt;">科学研究院</span></p><p style="text-align: center; min-height: 28pt; line-height: 28pt; text-indent: 32pt; margin-right: 0pt; vertical-align: baseline;"><span lang="en-US" style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2026</span><span style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;">年</span><span lang="en-US" style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;">7</span><span style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;">月</span><span lang="en-US" style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;">15</span><span style="text-align: right; text-indent: 32pt; min-height: 16pt; font-size: 16pt;">日</span></p><p style="min-height: 28pt; line-height: 28pt; text-indent: 30pt; margin-right: 0pt; vertical-align: baseline;"><br></p></article><footer><p class="docx_2" style="text-indent: 0pt;"><span style="min-height: 9pt; font-size: 9pt;"><svg width="0" height="0" style="position:absolute;left:0pt;margin-top:0pt;height:144pt;width:144pt;mso-position-horizontal:center;mso-position-horizontal-relative:margin;mso-wrap-style:none;z-index:251659264;mso-width-relative:page;mso-height-relative:page;"><image stroke="null" stroke-width="0.5pt" width="100%" height="100%"><foreignobject width="100%" height="100%"></foreignobject></image></svg></span></p><p class="docx_2" style="text-indent: 0pt;">1</p><p></p></footer></section>
+</div></div><div id="div_vote_id"></div>
+    
+    <p>
+        <UL style="list-style-type:none;"> 
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1000571818&wbfileid=0CFAF56CDFF0A1964DB7ECFEA5098966" target="_blank">附件2：第十五届陕西青年科技奖申报人员信息表.xlsx</a>】已下载<span id="nattach18292713"><script language="javascript">getClickTimes(18292713,1000571818,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1000571818&wbfileid=5CD47EBD77B54D6112AF81668A3F7804" target="_blank">附件3：科研诚信证明.docx</a>】已下载<span id="nattach18292714"><script language="javascript">getClickTimes(18292714,1000571818,"wbnewsfile","attach")</script></span>次</li>
+            <li>附件【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1000571818&wbfileid=5CDC5E9075D24344967207940B44956E" target="_blank">附件1：第十五届陕西青年科技奖推荐表.doc</a>】已下载<span id="nattach18292715"><script language="javascript">getClickTimes(18292715,1000571818,"wbnewsfile","attach")</script></span>次</li>
+        </UL>
+    </p>
+
+
+		<div class="pre-next">
+			<a href="112270.htm"><span>上一篇：</span>科学研究院2026年暑假值班安排</a>
+			<a href="109630.htm"><span>下一篇：</span>关于2026年度吴文俊人工智能科学技术奖提名工作的通知</a>
+		</div>
+	
+
+
+    <p align="right">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+
+</DIV><!-- footer -->
+<DIV class="w10 footer">
+<DIV class="w12">
+<DIV class="top clear">
+<DIV class="footer-logo fl"><IMG src="../../images2019/footer-logo.png"> </DIV>
+<DIV class="south fl clear"><SPAN>长安校区</SPAN> 
+<DIV class="text"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>地址：陕西省西安市西沣路兴隆段266号</p> 
+<p>邮编：710126</p> 
+<p>&nbsp;</p></DIV></DIV>
+<DIV class="north fl clear"><SPAN>雁塔校区</SPAN> 
+<DIV class="text">
+<p>地址：陕西省西安市太白南路2号</p> 
+<p>邮编：710071</p></DIV></DIV></DIV>
+<DIV class="bottom">
+
+
+<p><span><span><span><span>版权所有：西安电子科技大学&nbsp; &nbsp; &nbsp; 联系电话：029-81891000&nbsp; &nbsp; &nbsp; 建设与运维：</span></span></span></span><a href="https://xxzx.xidian.edu.cn">信息网络技术中心</a>&nbsp; &nbsp; &nbsp; 技术支持：西安聚力</p>
+
+</DIV></DIV></DIV><!-- backtop -->
+<DIV class="backtop"><IMG src="../../images2019/backtop.png"> </DIV><script type="text/javascript">
+            jQuery(".sideMenu").slide({
+                titCell: "h3", //鼠标触发对象
+                targetCell: "ul", //与titCell一一对应，第n个titCell控制第n个targetCell的显示隐藏
+                effect: "slideDown", //targetCell下拉效果
+                delayTime: 300, //效果时间
+                triggerTime: 150, //鼠标延迟触发时间（默认150）
+                defaultPlay: true, //默认是否执行效果（默认true）
+                returnDefault: true //鼠标从.sideMen移走后返回默认状态（默认false）
+            });
+        </script><script type="text/javascript">
+            jQuery(".kyxx").slide();
+            jQuery(".bkjx").slide();
+            jQuery(".rsdt").slide();
+            jQuery(".bkzs").slide();
+            jQuery(".zhbgs").slide();
+            jQuery(".dwzzb").slide();
+            jQuery(".rlzy").slide();
+            jQuery(".zybzb").slide();
+        </script><script>
+            AOS.init({
+                easing: 'ease-out-back',
+                duration: 1000
+            });
+        </script>
+
+</BODY></HTML>

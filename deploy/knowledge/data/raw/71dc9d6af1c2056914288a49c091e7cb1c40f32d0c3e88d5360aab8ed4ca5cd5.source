@@ -1,0 +1,359 @@
+﻿<!DOCTYPE html><HTML><HEAD><TITLE>办事指南- 西安电子科技大学-党委学生工作部/学生工作处</TITLE><meta name="pageType" content="2">
+<meta name="pageTitle" content="办事指南">
+<META Name="keywords" Content="西安电子科技大学,党委学生工作部/学生工作处,教学研究" />
+
+
+
+
+
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type"><script type="text/javascript" src="js/bdtxk.js"></script><script type="text/javascript" src="js/super.js"></script><LINK rel="stylesheet" type="text/css" href="style/style.css" media="all">
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="zhengwen.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1014,'/zhengwen.jsp',-1,1370093333)</script>
+</HEAD>
+<BODY><!-- 头部开始 -->
+<DIV id="header">
+<DIV id="top">
+<DIV class="w cl">
+<DIV class="f fl">&nbsp; </DIV>
+<DIV class="f fr cl"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><div class="frr">
+    <ul>
+      <li class="line"><a href="http://www.xidian.edu.cn/" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34050)">学校主页</a></li>
+      <li><a href="javascript:void(0)" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1370093333, 34052)">欢迎访问西安电子科技大学-党委学生工作部/学生工作处网站！</a></li>
+    </ul>
+</div></DIV></DIV><!--.w--></DIV><!--/top-->
+<DIV id="mid">
+<DIV class="logo w" style="overflow: hidden">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="index.htm" title="学工处" style="float:left;"><img src="images/xgc_logo.png" width="742" height="67" border="0" alt="学工处" title="学工处"></a><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu2 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu2 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu2"></div>
+<script type="text/html" id="htmlu2">
+    <div id="appu2">
+        <div v-if="!isError">
+ <table border='0' cellspacing="1" cellpadding="0" style="float:right;margin-top:57px;">
+  <tr>
+      <td>
+       <input size='12' style="height:28px;line-height:28px;background:url(images/inputtxtbg.png);border:none;width:174px;padding-left:15px;" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" >
+   </td>
+   <td align="absmiddle" nowrap="nowrap" height="1">
+       <input type="image" src="images/search-icon.png" align="absmiddle" valign="bottom" style="cursor: hand" value="" v-on:click="onSubmit()"/>
+   </td>
+  </tr>
+ </table>
+        </div>
+        
+        
+
+        
+        
+        
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu2").html($("#htmlu2").text());
+</script>
+<script>
+    var appOwner = "1370093333";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu2",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu2 = document.querySelector("#appu2");
+   if (appElementu2 && appElementu2.__vue__) {
+
+   } else {
+      $("#divu2").html($("#htmlu2").text());
+      var appOwner = "1370093333";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou2 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu2(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu2();
+        }
+      };
+
+      function onSubmitu2(e) {
+        queryInfou2.query.keyWord= $("#appu2  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou2.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></DIV><!--.logo--></DIV><!--/mid-->
+<DIV id="bot"><!--.nav 菜单开始-->
+<DIV class="nav w">
+<UL class="cl">
+<LI><A href="index.htm">网站首页</A> 
+
+<LI><A href="bmjs.htm">部门介绍</A> 
+<UL>
+<LI><A href="bmjs/ldfg.htm">领导分工</A></LI>
+<LI><A href="bmjs/bmjj.htm">部门简介</A></LI>
+<LI><A href="bmjs/jgsz.htm">机构设置</A></LI>
+</UL></LI>
+
+<LI><A href="gzzd.htm">规章制度</A> 
+<UL>
+<LI><A href="gzzd/gjfg.htm">国家法规</A></LI>
+<LI><A href="gzzd/xxgz.htm">学校规章</A></LI>
+</UL></LI>
+
+<LI><A href="tzgg1.htm">通知公告</A> 
+
+<LI><A href="xgyw.htm">学工要闻</A> 
+
+<LI><A href="xydt.htm">学院动态</A> 
+
+<LI><A href="bszn.htm">办事指南</A> 
+
+<LI><A href="bszn1.htm">下载专区</A> 
+
+</UL></DIV><!--.nav 菜单结束--></DIV><img src="images/list-banner.png" width="100%" height="305" /></DIV>
+<DIV class="main cl">
+<DIV class="wape-left">
+
+
+
+
+
+
+<div>办事指南
+            <p></p></div>
+
+</DIV><!--wape-left-->
+<DIV class="wape-right">
+<DIV class="biaoTi"><SPAN>
+办事指南</SPAN><span>
+    当前位置： 
+                        <a href="index.htm">网站首页</a>
+                &gt;&gt;
+                <a href="bszn.htm">办事指南</a>
+</span></DIV><!--biaoTi-->
+<DIV class="right-con" style="min-height: 300px">
+
+
+<script>
+function seeContenta8(contentid,size,displayid)
+{
+	document.getElementById(contentid).innerHTML = "[";
+	for(var i=0;i<=size;i++)
+	{
+		var allcontentid = contentid+(i+1);
+		if(allcontentid==displayid)
+		{
+			document.getElementById(contentid).innerHTML += " <span id='"+allcontentid+"' name='"+allcontentid+"' "+' class="wb_content" '+" >"+(i+1)+"</span> ";
+			document.getElementById(displayid).style.display = 'block';
+		}else
+		{
+			document.getElementById(contentid).innerHTML += " <span style='cursor:pointer' id='"+allcontentid+"' name='"+allcontentid+"' onclick=seeContenta8('"+contentid+"','"+size+"','"+allcontentid+"') "+' class="wb_content" '+" >"+(i+1)+"</span> ";
+			document.getElementById(allcontentid).style.display = "none";
+		}
+	}
+
+	document.getElementById(contentid).innerHTML += "]";
+}
+</script>
+<table class="wb_window" width="100%">
+<script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+		<script>
+		_addDynClicks('wbnews',1370093333,4235)
+		</script>
+
+		<tr><td align="center"><span class="titlestyle251663">办事指南</span></td></tr>
+<tr><td align="center"><span class="timestyle251663">
+	</span><span class="authorstyle251663"></span></td></tr>
+<tr><td class="contentstyle251663"><div id="vsb_content_2_4235_u81"><div id="vsb_content_2"><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><div class="v_news_content"><p style="text-align: justify; line-height: 2em;"><strong><span style="font-size: 16px;">一、 长安校区办事指南</span></strong></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">部长/处长办公室&nbsp; &nbsp;长安校区办公楼215</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">副部长/<span style="font-size: 16px;">副</span>处长办公室（教育管理）&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼217</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">思想教育科&nbsp;&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼216&nbsp;&nbsp;&nbsp; 81891096</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">学生党建科&nbsp;&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼216&nbsp;&nbsp;&nbsp; 81891096</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">学生管理科&nbsp;&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼214&nbsp;&nbsp;&nbsp; 81891097</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">学习辅导科&nbsp;&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼212&nbsp;&nbsp;&nbsp; 81891832</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">少数民族管理科/预科学院办公室&nbsp;&nbsp; <span style="font-size: 16px;"><span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼214</span>&nbsp;&nbsp; 81891097</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">资助科&nbsp; &nbsp;<span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼212&nbsp; 81891099</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">学生社区建设科&nbsp;&nbsp;&nbsp;<span style="font-size: 16px;"><span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区办公楼212</span></span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">本科生就业办公室&nbsp;&nbsp; <span style="font-size: 16px; text-align: justify; text-indent: 32px;">长安</span>校区E楼一区105&nbsp; &nbsp; 81891222/81891198</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">工作职能</span></p><p style="text-indent: 28px; text-align: justify; line-height: 2em;"><span style="font-size: 16px;">本科生思想教育；本科生日常管理、奖励、惩处；本科生导学体系、学业帮扶体系的构建与推进；校级学情调研相关工作；学生资助；本科生就业指导服务；辅导员队伍建设；有关本科生教育管理</span><span style="font-size: 16px;">工作的其他事项</span><span style="font-size: 16px;">。</span></p><p style="text-align: justify; line-height: 2em;"><strong><span style="font-size: 16px;">二、 雁塔校区办事指南</span></strong></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">研究生就业办公室&nbsp; 雁塔校区图书馆西裙楼305&nbsp; &nbsp;88202234/88202307</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">工作职能</span></p><p style="text-align: justify; line-height: 2em;"><span style="font-size: 16px;">研究生就业指导服务。</span></p></div></div></div></td></tr>
+<tr><td class="wb_content" align="left" id="vsb_content_2_4235_u8" name="vsb_content_2_4235_u8"></td></tr>
+
+</table>
+<table cellspacing="" cellpadding="" border="0">
+<tr><td align="center"></td></tr>
+</table></DIV><!--right-con--></DIV><!--wape-right--></DIV><!-- main部分结束 --><!-- 底部开始 -->
+<DIV id="footer">
+<DIV class="w cl">
+<DIV class="f fl"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p><p>
+    <span class="banquan">版权所有©西安电子科技大学党委学生工作部/学生工作处</span><span class="adress">地址：西安市西沣路兴隆段266号</span>
+</p>
+<p>
+    电话：029-81891096
+</p>
+<p>
+    技术支持：<a href="#" target="_blank">西安聚力</a>
+</p></p></DIV>
+<DIV class="f fr cl">    <div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/xuegong.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学工</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/xdxsjz.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电学生奖助</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/jiuye.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">西电科大就业中心</p>
+</div>
+<div style="float:left;width:99px;text-align:center;margin-right:10px;">
+<img src="images/hsmzdb.jpg" style="width:99px; height:99px;">
+<p style="font-size:12px;line-height:30px;color:#fff;">红色民族电波</p>
+</div>
+</DIV></DIV></DIV><!-- 底部结束 -->
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>常见认证问题解答</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .question-page {
+            width: 80vw;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 12px;
+            /* box-shadow: 2px 2px 8px 4px #eee; */
+        }
+
+        .question-page p {
+            margin: 10px 0;
+        }
+
+        .question-page h3 {
+            margin-top: 20px;
+        }
+
+        .question-page a {
+            color: #0c4af9;
+            text-decoration: none;
+        }
+
+        .question-page img {
+            width: 100%;
+            box-shadow: 2px 2px 8px 4px #eee;
+        }
+
+        .question-page .warn {
+            color: #F24829;
+        }
+
+        .question-page .has-space {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body class="question-page">
+    <!-- <p>常见认证问题解答</p> -->
+    <div>
+        <h3>一、如何申请统一身份认证账号？</h3>
+        <p>
+            * 教职工办理入职手续后，自收到分配工号的短信通知的一个工作日内，系统将自动开通统一身份认证，账号为工号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。
+        </p>
+        <p>
+            * 新生统一身份认证账号是自己的学号，首次登录需要激活，统一身份认证页面点击“账号激活”操作。
+        </p>
+        <p>
+            账号激活如下图所示：
+        </p>
+        <p>
+            <img src="../images/mob1.png" alt="">
+        </p>
+        <p>
+            <img src="../images/mob2.png" alt="">
+        </p>
+        <p>
+            <img src="../images/mob3.png" alt="">
+        </p>
+        <p>
+            <img src="../images/mob4.png" alt="">
+        </p>
+        <p>
+            <img src="../images/mob5.png" alt="">
+        </p>
+        <p>密码设置成功后即可登录。</p>
+    </div>
+
+    <div>
+        <h3>二、统一身份认证如何修改密码？</h3>
+        <p>
+            1、登陆校内任意系统跳转统一认证登陆页面，点击忘记密码操作。或者点击下方网址，点击找回密码进行修改。
+        </p>
+        <p>
+            <a href="http://ids.xidian.edu.cn/authserver/login"
+                target="_blank">http://ids.xidian.edu.cn/authserver/login</a>
+        </p>
+        <p>
+            <img src="../images/mob6.png">
+        </p>
+        <p>
+            <img src="../images/mob7.png">
+        </p>
+        <p>
+            <img src="../images/mob8.png">
+        </p>
+        <p>
+            <img src="../images/mob9.png">
+        </p>
+        <p>
+            <img src="../images/mob10.png">
+        </p>
+        <p class="has-space">
+            2、若点击忘记密码自助重置密码时提示<span class="warn">用户不存在</span>，需要激活后登录，点击“账号激活”操作后使用。
+        </p>
+        <p class="has-space">
+            3、自助重置密码过程中，手机号码不再使用、邮箱无法登录等情况可以拨打人工服务电话88201650。
+        </p>
+        <p class="has-space">
+            4、已绑定手机号码、邮箱需要修改时点击<a href="http://ids.xidian.edu.cn/authserver/login"
+                target="_blank">http://ids.xidian.edu.cn/authserver/login</a>登录账号，操作邮箱和手机号码解绑和更换。
+        </p>
+    </div>
+</body>
+
+</html>

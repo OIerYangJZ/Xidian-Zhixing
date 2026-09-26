@@ -18,10 +18,10 @@ export function GenericDialog({ title, handleClose, children, ...props }: Generi
     <div
       {...dialogProps}
       ref={dialogRef}
-      className="flex h-full w-full flex-col items-center overflow-y-auto p-2 sm:justify-center">
+      className="flex h-full max-h-dvh w-full flex-col items-center justify-end overflow-y-auto sm:justify-center sm:p-3">
       <ResponsiveContainer>
-        <div className="mb-6 rounded-xl border border-border bg-popover">
-          <div className="relative mb-4 rounded-t-xl border-b border-b-border bg-card py-4">
+        <div className="mb-0 max-h-[90dvh] w-full overflow-y-auto rounded-t-3xl border border-b-0 border-border bg-popover pb-[env(safe-area-inset-bottom)] sm:mb-6 sm:max-h-[min(80dvh,720px)] sm:rounded-lg sm:border sm:pb-0">
+          <div className="sticky top-0 z-10 mb-4 rounded-t-3xl border-b border-border bg-background/95 py-4 backdrop-blur-xl sm:rounded-t-2xl">
             <h3 {...titleProps} className="text-center text-lg font-semibold">
               {title}
             </h3>

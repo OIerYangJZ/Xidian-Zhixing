@@ -14,6 +14,7 @@ import { commentWriteSchema } from '@/lib/validations/comment';
 import { NextResponse } from 'next/server';
 import { GetComment } from '@/types/definitions';
 import { z } from 'zod';
+import { assessPostText } from '@/lib/moderation/text';
 
 export async function POST(request: Request, { params }: { params: { commentId: string } }) {
   const [user] = await getServerUser();
@@ -24,6 +25,13 @@ export async function POST(request: Request, { params }: { params: { commentId: 
   try {
     const body = await request.json();
     let { content } = commentWriteSchema.parse(body);
+    const moderation = assessPostText(content);
+    if (moderation.decision !== 'approve') {
+      return NextResponse.json(
+        { error: '回复命中平台审核规则，请修改后重试。', reasons: moderation.reasons },
+        { status: 422 },
+      );
+    }
     const { str, usersMentioned } = await convertMentionUsernamesToIds({
       str: content,
     });
@@ -36,10 +44,18 @@ export async function POST(request: Request, { params }: { params: { commentId: 
       select: {
         userId: true,
         postId: true,
+        moderationCases: { where: { status: 'OPEN' }, select: { id: true } },
+        post: { select: { status: true, userId: true } },
       },
     });
 
-    if (!comment) return NextResponse.json({ error: 'The comment to reply to does not exist.' }, { status: 404 });
+    if (
+      !comment ||
+      comment.moderationCases.length > 0 ||
+      (comment.post.status !== 'PUBLISHED' && comment.post.userId !== userId)
+    ) {
+      return NextResponse.json({ error: 'The comment to reply to does not exist.' }, { status: 404 });
+    }
 
     const res = await prisma.comment.create({
       data: {

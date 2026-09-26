@@ -24,7 +24,6 @@ export async function GET(request: Request) {
       username: true,
       name: true,
       profilePhoto: true,
-      gender: true,
     },
   };
   const activities: FindActivityResults = await prisma.activity.findMany({

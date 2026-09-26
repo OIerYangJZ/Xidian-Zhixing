@@ -2,8 +2,21 @@ import { includeUserSummary } from './includeUserSummary';
 
 export const selectPost = (userId: string | undefined) => ({
   id: true,
+  userId: true,
   content: true,
   createdAt: true,
+  viewCount: true,
+  status: true,
+  displayIdentity: true,
+  spaceId: true,
+  publishedAsClub: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      avatar: true,
+    },
+  },
   ...includeUserSummary(),
   visualMedia: true,
   /**
@@ -19,10 +32,20 @@ export const selectPost = (userId: string | undefined) => ({
       userId,
     },
   },
+  bookmarks: {
+    select: { id: true },
+    where: { userId: userId ?? '' },
+  },
+  reposts: {
+    select: { id: true },
+    where: { userId: userId ?? '' },
+  },
   _count: {
     select: {
       postLikes: true,
       comments: true,
+      reposts: true,
+      bookmarks: true,
     },
   },
 });

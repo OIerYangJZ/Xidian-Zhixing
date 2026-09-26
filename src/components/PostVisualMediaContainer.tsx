@@ -16,7 +16,7 @@ export function PostVisualMediaContainer({ visualMedia }: { visualMedia: GetVisu
   );
 
   return (
-    <div className={cn('relative grid', numOfVisualMedia > 2 ? 'grid-cols-2' : 'grid-cols-1')}>
+    <div className={cn('relative grid gap-1', numOfVisualMedia > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
       {numOfVisualMedia > 0 &&
         visualMedia.map((item, i) => {
           // Only display four images.
@@ -28,7 +28,7 @@ export function PostVisualMediaContainer({ visualMedia }: { visualMedia: GetVisu
               url={item.url}
               height={numOfVisualMedia > 1 ? '300px' : '480px'}
               // If odd and numOfVisualMedia is < 4, the first image must take the full width.
-              colSpan={isOdd(numOfVisualMedia) && numOfVisualMedia < 4 && i === 0 ? 2 : 1}
+              colSpan={isOdd(numOfVisualMedia) && numOfVisualMedia < 4 && i === numOfVisualMedia - 1 ? 2 : 1}
               onClick={onClick(i)}
             />
           );

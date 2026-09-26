@@ -24,7 +24,7 @@ export function useCreateCommentMutations() {
       return (await res.json()) as GetComment;
     },
     onSuccess: (createdComment) => {
-      qc.setQueryData<GetComment[]>(['posts', createdComment.postId, 'comments'], (oldComments) => {
+      qc.setQueriesData<GetComment[]>({ queryKey: ['posts', createdComment.postId, 'comments'] }, (oldComments) => {
         if (!oldComments) return oldComments;
         return [...oldComments, createdComment];
       });

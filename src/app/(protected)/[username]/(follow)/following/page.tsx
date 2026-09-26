@@ -1,12 +1,12 @@
 import { DiscoverProfiles } from '@/components/DiscoverProfiles';
 import { DiscoverSearch } from '@/components/DiscoverSearch';
-import { DiscoverFilters } from '@/components/DiscoverFilters';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { getProfile } from '../../getProfile';
 
 export async function generateMetadata({ params }: { params: { username: string } }) {
   const profile = await getProfile(params.username);
   return {
-    title: `Following | ${profile?.name}` || 'Following',
+    title: `关注 | ${profile?.name || '西电知行'}`,
   };
 }
 
@@ -14,11 +14,14 @@ export default async function Page({ params }: { params: { username: string } })
   const profile = await getProfile(params.username);
 
   return (
-    <div className="p-4">
-      <h1 className="mb-6 mt-1 text-4xl font-bold">{profile?.name}&apos;s Following</h1>
-      <DiscoverSearch label="Search Following" />
-      <DiscoverFilters />
-      <DiscoverProfiles followingOf={profile?.id} />
+    <div>
+      <PageHeader title="关注" sticky />
+      <div className="pt-4">
+        <div className="px-4 sm:px-5">
+          <DiscoverSearch label="搜索关注" />
+        </div>
+        <DiscoverProfiles followingOf={profile?.id} />
+      </div>
     </div>
   );
 }

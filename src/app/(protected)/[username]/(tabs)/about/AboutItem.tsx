@@ -10,14 +10,12 @@ export function AboutItem({
   Icon: (props: SVGProps<SVGSVGElement>) => JSX.Element;
 }) {
   return (
-    <div className="flex items-center">
-      <div className="flex items-center gap-2 rounded-l-3xl bg-input p-2 sm:gap-3 sm:p-4">
-        <Icon className="h-5 w-5 stroke-muted-foreground sm:h-6 sm:w-6" />
-        <p className="font-medium text-muted-foreground sm:text-lg">{field}</p>
+    <div className="feed-separator flex items-start gap-3 border-b px-4 py-4 sm:px-5">
+      <Icon className="mt-0.5 h-5 w-5 shrink-0 stroke-primary" />
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-muted-foreground">{field}</p>
+        <p className="mt-1 break-words text-sm font-medium text-foreground">{value || '未填写'}</p>
       </div>
-      <p className="flex flex-1 items-center self-stretch rounded-r-3xl border border-border pl-4">
-        <span className="font-semibold text-foreground sm:text-lg">{value || 'Not set'}</span>
-      </p>
     </div>
   );
 }

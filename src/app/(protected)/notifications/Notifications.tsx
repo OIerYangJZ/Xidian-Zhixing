@@ -14,6 +14,7 @@ import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCoun
 import { GenericLoading } from '@/components/GenericLoading';
 import { SomethingWentWrong } from '@/components/SometingWentWrong';
 import { getNotifications } from '@/lib/client_data_fetching/getNotifications';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export function Notifications({ userId }: { userId: string }) {
   const { data: notificationCount } = useNotificationsCountQuery();
@@ -91,23 +92,24 @@ export function Notifications({ userId }: { userId: string }) {
 
   return (
     <div>
-      <div className="flex justify-between">
-        <div className="mb-4 flex items-center gap-2">
-          <h1 className="text-4xl font-bold">Notifications</h1>
-        </div>
-        <DropdownMenuButton
-          key="notifications-option"
-          label="Notifications option"
-          onAction={markAllAsRead}
-          disabledKeys={disabledKeys}>
-          <Section>
-            <Item key="mark-all">Mark all as read</Item>
-          </Section>
-        </DropdownMenuButton>
-      </div>
+      <PageHeader
+        title="通知"
+        sticky
+        action={
+          <DropdownMenuButton
+            key="notifications-option"
+            label="通知选项"
+            onAction={markAllAsRead}
+            disabledKeys={disabledKeys}>
+            <Section>
+              <Item key="mark-all">全部标为已读</Item>
+            </Section>
+          </DropdownMenuButton>
+        }
+      />
       <div>
         {isPending ? (
-          <GenericLoading>Loading notifications</GenericLoading>
+          <GenericLoading>正在加载通知</GenericLoading>
         ) : (
           data?.pages.flat().map((activity) => <Activity key={activity.id} {...activity} />)
         )}
@@ -121,7 +123,7 @@ export function Notifications({ userId }: { userId: string }) {
          * so the bottom loader has to be hidden first
          */
         style={bottomLoaderStyle}>
-        {isFetchingNextPage && <GenericLoading>Loading more notifications</GenericLoading>}
+        {isFetchingNextPage && <GenericLoading>正在加载更多通知</GenericLoading>}
       </div>
       {isError && error.message !== NO_PREV_DATA_LOADED && <SomethingWentWrong />}
       {!isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}

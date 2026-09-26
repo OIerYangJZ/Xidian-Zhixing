@@ -1,22 +1,70 @@
 'use client';
 
 import { memo, useCallback, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import type { SVGProps } from 'react';
 import { cn } from '@/lib/cn';
-import formatDistanceStrict from 'date-fns/formatDistanceStrict';
+import { useLanguage } from '@/hooks/useLanguage';
+/* eslint-disable import/no-duplicates */
+import { formatDistanceToNowStrict } from 'date-fns';
+import { zhCN, enUS } from 'date-fns/locale';
+
 import SvgComment from '@/svg_components/Comment';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetPost, PostId } from '@/types/definitions';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
-import { useQuery } from '@tanstack/react-query';
+import SvgBookmark from '@/svg_components/Bookmark';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePostLikesMutations } from '@/hooks/mutations/usePostLikesMutations';
+import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutations';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
 import ProfileBlock from './ProfileBlock';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 import { PostOptions } from './PostOptions';
+
+function formatCount(count: number) {
+  return count >= 10000 ? `${(count / 10000).toFixed(1).replace(/\.0$/, '')}万` : count.toLocaleString();
+}
+
+function RepostIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="m17 1 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4m14-1v2a4 4 0 0 1-4 4H3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function AnalyticsIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path d="M3 20V11m6 9V4m6 16v-7m6 7V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function ShareIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M12 16V3m0 0L7 8m5-5 5 5M5 13v7h14v-7"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
 
 export const Post = memo(
   ({
@@ -26,9 +74,34 @@ export const Post = memo(
   }: PostId & {
     toggleComments: (postId: number) => void;
   }) => {
-    const { data: session } = useSession();
-    const userId = session?.user?.id;
+    const { t, language } = useLanguage();
     const { likeMutation, unLikeMutation } = usePostLikesMutations({ postId });
+    const { bookmarkMutation, removeBookmarkMutation } = usePostBookmarkMutations({ postId });
+    const qc = useQueryClient();
+    const { data: session } = useSession();
+    const repostMutation = useMutation({
+      mutationFn: async (isReposted: boolean) => {
+        const response = await fetch(`/api/users/${session?.user.id}/reposts${isReposted ? `/${postId}` : ''}`, {
+          method: isReposted ? 'DELETE' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          ...(isReposted ? {} : { body: JSON.stringify({ postId }) }),
+        });
+        if (!response.ok) throw new Error('转发失败');
+      },
+      onMutate: async (nextReposted) => {
+        await qc.cancelQueries({ queryKey: ['posts', postId] });
+        const previous = qc.getQueryData<GetPost>(['posts', postId]);
+        if (previous)
+          qc.setQueryData<GetPost>(['posts', postId], {
+            ...previous,
+            isReposted: nextReposted,
+            _count: { ...previous._count, reposts: previous._count.reposts + (nextReposted ? 1 : -1) },
+          });
+        return { previous };
+      },
+      onError: (_error, _nextReposted, context) => qc.setQueryData(['posts', postId], context?.previous),
+      onSettled: () => qc.invalidateQueries({ queryKey: ['posts', postId] }),
+    });
 
     const { data, isPending, isError } = useQuery<GetPost>({
       queryKey: ['posts', postId],
@@ -71,56 +144,139 @@ export const Post = memo(
       [],
     );
 
-    if (isPending) return <p>Loading...</p>;
-    if (isError) return <p>Error loading post.</p>;
-    if (!data) return <p>This post no longer exists.</p>;
+    if (isPending)
+      return <p className="px-4 py-6 text-sm text-muted-foreground">{t('正在加载动态…', 'Loading post…')}</p>;
+    if (isError)
+      return (
+        <p className="px-4 py-6 text-sm text-muted-foreground">{t('动态加载失败。', 'Could not load this post.')}</p>
+      );
+    if (!data)
+      return (
+        <p className="px-4 py-6 text-sm text-muted-foreground">
+          {t('这条动态已不存在。', 'This post is no longer available.')}
+        </p>
+      );
 
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const { content, createdAt, user: author, visualMedia, isLiked, _count } = data;
-    const isOwnPost = userId === author.id;
-    const numberOfLikes = _count.postLikes;
+    const {
+      content,
+      createdAt,
+      user: author,
+      publishedAsClub,
+      displayIdentity,
+      visualMedia,
+      isLiked,
+      isBookmarked,
+      isReposted,
+      viewCount,
+      _count: postCounts,
+    } = data;
+    const { isOwnPost } = data;
+    const numberOfLikes = postCounts.postLikes;
+    const postTime = formatDistanceToNowStrict(new Date(createdAt), {
+      addSuffix: true,
+      locale: language === 'zh' ? zhCN : enUS,
+    });
 
     return (
-      <div className="rounded-2xl bg-card px-4 shadow sm:px-8">
-        <div className="flex items-center justify-between pt-4 sm:pt-5">
-          <ProfileBlock
-            name={author.name!}
-            username={author.username!}
-            time={formatDistanceStrict(new Date(createdAt), new Date())}
-            photoUrl={author.profilePhoto!}
-          />
-          {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
-        </div>
-        {content && (
-          <p className="mb-4 mt-5 text-lg text-muted-foreground">
-            <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
-          </p>
-        )}
-        {visualMedia.length > 0 && (
-          <div className="mb-4 mt-5 overflow-hidden rounded-2xl">
-            <PostVisualMediaContainer visualMedia={visualMedia} />
+      <article className="feed-separator border-b px-4 py-3 transition-colors hover:bg-foreground/[0.012] sm:px-4">
+        <div className="flex items-start gap-3">
+          {displayIdentity === 'ANONYMOUS' ? (
+            <div className="flex items-center gap-3">
+              <div className="grid h-10 w-10 place-items-center rounded-full bg-secondary text-base font-semibold text-muted-foreground">
+                {t('匿', 'A')}
+              </div>
+              <div className="flex flex-wrap items-center gap-x-2">
+                <div className="text-[15px] font-semibold text-foreground">{t('匿名同学', 'Anonymous student')}</div>
+                <span className="text-sm text-muted-foreground">· {postTime}</span>
+              </div>
+            </div>
+          ) : displayIdentity === 'CLUB' && publishedAsClub ? (
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 overflow-hidden rounded-full bg-secondary">
+                {publishedAsClub.avatar ? (
+                  <img src={publishedAsClub.avatar} alt="" className="h-full w-full object-cover" />
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <div className="text-[15px] font-semibold text-foreground">{publishedAsClub.name}</div>
+                  <span className="text-sm text-muted-foreground">
+                    {t('社团', 'Club')} · {postTime}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : author ? (
+            <ProfileBlock
+              name={author.name}
+              username={author.username}
+              time={postTime}
+              photoUrl={author.profilePhoto || ''}
+            />
+          ) : null}
+          <div className="ml-auto shrink-0">
+            {isOwnPost && <PostOptions postId={postId} content={content} visualMedia={visualMedia} />}
           </div>
-        )}
-        <div
-          className={cn([
-            'flex justify-start gap-2 border-y border-y-border py-2',
-            !commentsShown && 'border-b-transparent',
-          ])}>
-          <ToggleStepper
-            isSelected={isLiked}
-            onChange={handleLikeToggle}
-            Icon={SvgHeart}
-            quantity={numberOfLikes}
-            // noun="Like"
-          />
-          <ToggleStepper
-            isSelected={commentsShown || false}
-            onChange={handleCommentsToggle}
-            Icon={SvgComment}
-            quantity={_count.comments}
-            color="blue"
-            // noun="Comment"
-          />
+        </div>
+        <div className="ml-[52px] min-w-0">
+          {content && (
+            <p className="mb-3 mt-1 whitespace-pre-wrap break-words text-[15px] leading-6 text-foreground">
+              <HighlightedMentionsAndHashTags text={content} shouldAddLinks />
+            </p>
+          )}
+          {visualMedia.length > 0 && (
+            <div className="mb-3 mt-2 overflow-hidden rounded-xl border border-border bg-secondary/30">
+              <PostVisualMediaContainer visualMedia={visualMedia} />
+            </div>
+          )}
+          <div className="-ml-2 flex items-center justify-between pt-1 text-muted-foreground">
+            <ToggleStepper
+              isSelected={commentsShown || false}
+              onChange={handleCommentsToggle}
+              Icon={SvgComment}
+              quantity={postCounts.comments}
+              color="blue"
+            />
+            <ToggleStepper
+              isSelected={isReposted}
+              onChange={() => repostMutation.mutate(!isReposted)}
+              Icon={RepostIcon}
+              quantity={postCounts.reposts}
+              color="blue"
+            />
+            <ToggleStepper
+              isSelected={isLiked}
+              onChange={handleLikeToggle}
+              Icon={SvgHeart}
+              quantity={numberOfLikes}
+              color="red"
+            />
+            <Link
+              href={`/posts/${postId}`}
+              aria-label={`${formatCount(viewCount)} ${t('次浏览', 'views')}`}
+              className="flex min-w-12 items-center gap-2 rounded-full px-2 py-2 text-xs font-medium hover:bg-primary/10 hover:text-primary">
+              <AnalyticsIcon className="h-5 w-5" />
+              {formatCount(viewCount)}
+            </Link>
+            <button
+              type="button"
+              aria-label={isBookmarked ? t('取消收藏', 'Remove bookmark') : t('收藏', 'Bookmark')}
+              aria-pressed={isBookmarked}
+              onClick={() => (isBookmarked ? removeBookmarkMutation.mutate() : bookmarkMutation.mutate())}
+              disabled={bookmarkMutation.isPending || removeBookmarkMutation.isPending}
+              className="flex h-10 min-w-10 items-center justify-center gap-1 rounded-full px-2 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50">
+              <SvgBookmark className={cn('h-5 w-5', isBookmarked && 'fill-primary stroke-primary')} />
+              <span className="text-xs font-medium">{formatCount(postCounts.bookmarks)}</span>
+            </button>
+            <button
+              type="button"
+              aria-label={t('分享帖子', 'Share post')}
+              onClick={() => navigator.share?.({ url: `${window.location.origin}/posts/${postId}` })}
+              className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
+              <ShareIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         <AnimatePresence>
@@ -130,7 +286,7 @@ export const Post = memo(
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
+      </article>
     );
   },
   (oldProps, newProps) => isEqual(oldProps, newProps),

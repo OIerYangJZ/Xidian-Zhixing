@@ -1,0 +1,9 @@
+ALTER TABLE "User"
+  ADD COLUMN "allowStrangerDm" BOOLEAN NOT NULL DEFAULT false,
+  ADD COLUMN "showContactable" BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE "NotificationPreference"
+  ADD COLUMN "replies" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "favorites" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "reportResults" BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN "system" BOOLEAN NOT NULL DEFAULT true;

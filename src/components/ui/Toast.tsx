@@ -44,7 +44,7 @@ export function Toast<T extends ToastType>({ state, ...props }: ToastProps<T>) {
       {...toastProps}
       ref={ref}
       className={cn(
-        'flex items-center justify-between gap-4 rounded-xl border p-6',
+        'flex items-center justify-between gap-4 rounded-md border p-6',
         toastColors[type].bg,
         toastColors[type].border,
       )}>

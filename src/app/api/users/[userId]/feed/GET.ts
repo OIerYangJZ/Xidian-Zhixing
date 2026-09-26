@@ -4,7 +4,7 @@
  * posted by the user and their followed users.
  */
 
-import { usePostsSorter } from '@/hooks/usePostsSorter';
+import { getPostsSorter } from '@/hooks/usePostsSorter';
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { selectPost } from '@/lib/prisma/selectPost';
@@ -13,7 +13,7 @@ import { NextResponse } from 'next/server';
 import { GetPost } from '@/types/definitions';
 
 export async function GET(request: Request, { params }: { params: { userId: string } }) {
-  const { filters, limitAndOrderBy } = usePostsSorter(request.url);
+  const { filters, limitAndOrderBy } = getPostsSorter(request.url);
 
   const [user] = await getServerUser();
   if (!user || params.userId !== user.id) return NextResponse.json({}, { status: 401 });
@@ -34,13 +34,19 @@ export async function GET(request: Request, { params }: { params: { userId: stri
       userId: {
         in: [...followingIds, user.id],
       },
+      status: 'PUBLISHED',
+      moderationCases: { none: { status: 'OPEN' } },
+      NOT: [
+        { user: { blocksMade: { some: { blockedId: user.id } } } },
+        { user: { blocksReceived: { some: { blockerId: user.id } } } },
+      ],
       ...filters,
     },
     ...limitAndOrderBy,
     select: selectPost(user.id),
   });
 
-  const postsPromises = res.map(toGetPost);
+  const postsPromises = res.map((post) => toGetPost(post, user.id));
   const posts = await Promise.all(postsPromises);
 
   return NextResponse.json<GetPost[]>(posts);

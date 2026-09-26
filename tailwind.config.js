@@ -19,8 +19,7 @@ module.exports = {
         'primary-foreground': 'rgba(var(--primary-foreground) / <alpha-value>)',
         'primary-accent': 'rgba(var(--primary-accent) / <alpha-value>)',
         secondary: 'rgba(var(--secondary) / <alpha-value>)',
-        'secondary-foreground':
-          'rgba(var(--secondary-foreground) / <alpha-value>)',
+        'secondary-foreground': 'rgba(var(--secondary-foreground) / <alpha-value>)',
         'secondary-accent': 'rgba(var(--secondary-accent) / <alpha-value>)',
         muted: 'rgba(var(--muted) / <alpha-value>)',
         'muted-foreground': 'rgba(var(--muted-foreground) / <alpha-value>)',
@@ -31,15 +30,22 @@ module.exports = {
         warning: 'rgba(var(--warning) / <alpha-value>)',
         'warning-foreground': 'rgba(var(--warning-foreground) / <alpha-value>)',
         destructive: 'rgba(var(--destructive) / <alpha-value>)',
-        'destructive-foreground':
-          'rgba(var(--destructive-foreground) / <alpha-value>)',
+        'destructive-foreground': 'rgba(var(--destructive-foreground) / <alpha-value>)',
         border: 'rgba(var(--border) / <alpha-value>)',
         input: 'rgba(var(--input) / <alpha-value>)',
       },
+      borderRadius: {
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        full: 'var(--radius-full)',
+      },
+      maxWidth: {
+        content: 'var(--content-width)',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-conic':
-          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
       },
     },
   },

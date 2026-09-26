@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync approved public posts into Xiao Dian retrieval
+After=zhixing-knowledge.service
+
+[Service]
+Type=oneshot
+User=zhixing
+WorkingDirectory=/opt/zhixing-knowledge/current
+EnvironmentFile=/opt/zhixing-knowledge/knowledge.env
+ExecStart=/opt/zhixing-knowledge/venv/bin/python -m knowledge_service.community --app-db ${KNOWLEDGE_APP_DB}
+TimeoutStartSec=30min

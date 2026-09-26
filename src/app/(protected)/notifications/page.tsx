@@ -2,7 +2,7 @@ import { getServerUser } from '@/lib/getServerUser';
 import { Notifications } from './Notifications';
 
 export const metadata = {
-  title: 'Munia | Notifications',
+  title: '通知 | 西电知行',
 };
 
 export default async function Page() {
@@ -10,7 +10,7 @@ export default async function Page() {
 
   if (!user) return null;
   return (
-    <div className="px-4 pt-4">
+    <div>
       <Notifications userId={user.id} />
     </div>
   );

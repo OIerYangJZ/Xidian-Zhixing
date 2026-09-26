@@ -1,11 +1,8 @@
 import type { NextAuthConfig } from 'next-auth';
-import GitHub from 'next-auth/providers/github';
-import Facebook from 'next-auth/providers/facebook';
-import Google from 'next-auth/providers/google';
 import { NextResponse } from 'next/server';
 
 export default {
-  providers: [GitHub, Facebook, Google],
+  providers: [],
   pages: {
     signIn: '/login',
   },

@@ -23,16 +23,16 @@ export function CommentCreate({ postId }: { postId: number }) {
   }, [content, createCommentMutation, postId]);
 
   return (
-    <div className="mt-2 border-t-2 border-t-border py-4">
-      <div className="flex">
-        <div className="mr-3 h-10 w-10">
+    <div className="feed-separator mt-2 border-t py-4">
+      <div className="flex items-start gap-3">
+        <div className="h-10 w-10 shrink-0">
           <ProfilePhotoOwn />
         </div>
         <div className="flex flex-1 flex-col justify-center">
           <TextAreaWithMentionsAndHashTags
             content={content}
             setContent={setContent}
-            placeholder="Write your comment here..."
+            placeholder="写下你的评论…"
             shouldFocusOnMount={false}
           />
         </div>

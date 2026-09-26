@@ -33,8 +33,6 @@ export function DiscoverProfiles({ followersOf, followingOf }: { followersOf?: s
       'discover',
       {
         search: searchParams.get('search'),
-        gender: searchParams.get('gender'),
-        relationshipStatus: searchParams.get('relationship-status'),
         followersOf,
         followingOf,
       },
@@ -73,16 +71,15 @@ export function DiscoverProfiles({ followersOf, followingOf }: { followersOf?: s
   const variants = useMemo(
     () => ({
       initial: (animate: boolean) => ({
-        scale: animate ? 0.8 : 1,
-        opacity: animate ? 0.2 : 1,
+        y: animate ? 6 : 0,
+        opacity: animate ? 0 : 1,
       }),
       animate: {
-        scale: 1,
         x: 0,
+        y: 0,
         opacity: 1,
       },
       exit: {
-        scale: 0.8,
         opacity: 0,
       },
     }),
@@ -96,11 +93,11 @@ export function DiscoverProfiles({ followersOf, followingOf }: { followersOf?: s
   return (
     <>
       {isPending ? (
-        <GenericLoading>Loading profiles</GenericLoading>
+        <GenericLoading>正在查找同学</GenericLoading>
       ) : isError ? (
         <SomethingWentWrong />
       ) : (
-        <div className="grid grid-cols-1 gap-x-8 gap-y-8 sm:grid-cols-2">
+        <div className="flex flex-col">
           <AnimatePresence>
             {data?.pages.flat().map((profile) => (
               <motion.div

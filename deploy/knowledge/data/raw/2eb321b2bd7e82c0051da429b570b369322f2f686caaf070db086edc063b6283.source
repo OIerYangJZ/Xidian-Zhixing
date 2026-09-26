@@ -1,0 +1,456 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>关于缴纳2026年度大学生基本医疗保险费的通知-西安电子科技大学-校医院</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="关于缴纳2026年度大学生基本医疗保险费的通知">
+<META Name="keywords" Content="西安电子科技大学-校医院,大学生,医疗,基本,年度,保险费,通知,缴纳" />
+<META Name="description" Content="根据《关于做好2025年城乡居民基本医疗保险参保缴费工作的通知》（陕医保发〔2025〕20号）文件规定，现将我校大学生医保缴纳具体事项通知如下：一、缴费标准普通学生个人参保缴费标准为每人每年400元；陕西省内特殊贫困人员享受资助政策，个人缴费标准按后期文件执行。陕西省外特殊贫困人员参保缴费标准为每人每年400元。二、缴费时间和缴费方式缴费时间：即日起至2025年11月23日。缴费方式：采取网上自助缴费，登录校医院医保及体检管理系统，..." />
+
+<link rel="stylesheet" href="../../style/public.css" />
+<link rel="stylesheet" href="../../style/master.css" />
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.SuperSlide.js"></script>
+<script type="text/javascript" src="../../js/index.js"></script>
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1069,'/content.jsp',3656,1827564999)</script>
+</head>
+<body>
+<!--top-->
+<div class="stickWrap"></div>
+<div class="headerWrap">
+    
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" class="logo"></a>
+ <div class="xyy-tblj">
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><UL>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71980)">24小时急诊</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71981)">北校区：029-88202779</a></li>
+    <LI><a href="#" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71982)">南校区：029-81891203</a></li>
+</UL>
+
+    </div>
+    <div class="linSea">
+        <div class="link">
+        <UL>
+    <LI style="    float: right;    margin-left: 20px;"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1827564999, 71967)" style="font-size: 9pt"> 学校首页</a></li>
+</UL>
+
+
+
+        </div>
+        <div class="search">
+       <!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{/*
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;*/
+        width: 243px;
+    height: 24px;
+    font-size: 14px;
+    color: rgb(162, 162, 162);
+    margin-top: 5px;
+    margin-left: 16px;
+    line-height: 24px;
+    font-family: 微软雅黑;
+    background: rgb(255, 255, 255);
+    border-width: 0px;
+    border-style: initial;
+    border-color: initial;
+    border-image: initial;
+    outline: none;}
+    }
+    #appu3 .tj{}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+            <input type="text" class="qwss" placeholder="请输入关键字进行搜索" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit">
+           
+            <span>
+ <input class="tj" type="image" src="../../images/search.png" v-on:click="onSubmit()"/>
+</span>
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "1827564999";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "1827564999";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+        </div>
+    </div>
+</div>
+<!--nav-->
+<div class="navWrap">
+    <div class="innavWrap">
+        <ul class="cleafix">
+
+               <li class="mainMenu">
+                <a class="link " href="../../index.htm">首页</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../yygk/yyjj.htm">医院概况</a>
+                                <div id="nav">
+
+                                           <a href="../../yygk/yyjj.htm">医院简介</a>
+                                           <a href="../../yygk/zzjg.htm">组织架构</a>
+                                           <a href="../../yygk/xrld.htm">现任领导</a>
+                                           <a href="../../yygk/ksjs1/lcks.htm">科室介绍</a>
+                                           <a href="../../yygk/ysjs1/ebhk.htm">医师介绍</a>
+                                           <a href="../../yygk/yyfc.htm">医院风采</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../ywgk.htm">院务公开</a>
+                                <div id="nav">
+
+                                           <a href="../../ywgk/yydt.htm">医院动态</a>
+                                           <a href="../../ywgk/tzgg.htm">通知公告</a>
+                                           <a href="../../ywgk/zcfg.htm">政策法规</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../djgz.htm">党建工作</a>
+                                <div id="nav">
+
+                                           <a href="../../djgz/zzjg.htm">组织架构</a>
+                                           <a href="../../djgz/xfjs.htm">行风建设</a>
+                                           <a href="../../djgz/zbjs.htm">支部建设</a>
+                                           <a href="../../djgz/xxyd.htm">学习园地</a>
+                                           <a href="../../djgz/ghgz.htm">工会工作</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../fwzn.htm">服务指南</a>
+                                <div id="nav">
+
+                                           <a href="../../fwzn/ksdh.htm">科室电话</a>
+                                           <a href="../../fwzn/jzlc.htm">就诊流程</a>
+                                           <a href="../../fwzn/jzsj.htm">就诊时间</a>
+                                           <a href="../../fwzn/wjxz.htm">文件下载</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jkgl.htm">健康管理</a>
+                                <div id="nav">
+
+                                           <a href="../../jkgl/yfjz.htm">预防接种</a>
+                                           <a href="../../jkgl/jkjy.htm">健康教育</a>
+                                           <a href="../../jkgl/crbfz.htm">传染病防治</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../zhyl.htm">智慧医疗</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../jjyl.htm">居家养老</a>
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link  cur " href="../../ybzl.htm">医保专栏</a>
+                                <div id="nav">
+
+                                           <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                                           <a href="../../ybzl/gfyl.htm">公费医疗</a>
+                                           <a href="../../ybzl/jzgyb.htm">教职工医保</a>
+                                           <a href="../../ybzl/zzzn.htm">转诊指南</a>
+                                           <a href="../../ybzl/bxzn.htm">报销指南</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../rczp.htm">人才招聘</a>
+                                <div id="nav">
+
+                                           <a href="../../rczp/zpqs.htm">招聘启事</a>
+                                </div> 
+           </li>
+
+   
+
+               <li class="mainMenu">
+                <a class="link " href="../../lxwm.htm">联系我们</a>
+                                <div id="nav">
+
+                                           <a href="../../lxwm/tsjy.htm">投诉建议</a>
+                                </div> 
+           </li>
+
+   
+
+</ul>
+
+
+
+    </div>
+</div>
+
+
+
+<div class="n_ban">    
+            
+              <img src="../../images/ban001.jpg" />  
+      
+</div>
+
+
+
+
+
+
+<!--内页主体部分-->
+<div class="vsb-box">
+    <div class="vsb-container mainCon" containerid="2" columns="4">
+        <div class="local cleafix">  
+            <i><img src="../../images/ico9.png" /></i> 
+                        <a href="../../index.htm">首页</a>
+                <em>&gt;</em>
+                <a href="../../ybzl.htm">医保专栏</a>
+                <em>&gt;</em>
+                <a href="../../ybzl/dxsyb.htm">大学生医保</a>
+                <em>&gt;</em>
+                正文
+
+        </div>
+        <div class="vsb-space n_con" columns="4">
+            
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+    <h2>关于缴纳2026年度大学生基本医疗保险费的通知</h2>
+			<h3><span>作者：</span><span>时间：2025-10-13</span><span>点击数：<script>_showDynClicks("wbnews", 1827564999, 3656)</script></span></h3>
+<div class="con_con"><p>
+    <div id="vsb_content"><div class="v_news_content">
+<p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">根据《关于做好2025年城乡居民基本医疗保险参保缴费工作的通知》（陕医保发〔2025〕20号）文件规定，现将我校大学生医保缴纳具体事项通知如下：</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">一、缴费标准</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">普通学生个人参保缴费标准为每人每年400元；陕西省内特殊贫困人员享受资助政策，个人缴费标准按后期文件执行。陕西省外特殊贫困人员参保缴费标准为每人每年400元。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">二、缴费时间和缴费方式</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">缴费时间：即日起至2025年11月23日。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">缴费方式：采取网上自助缴费，登录校医院医保及体检管理系统，网址：https://ybtjxt.xidian.edu.cn。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">在登录缴费系统时，因降级或延长学制显示无权限的学生，携带在读证明（可在一站式自助机打印）到南北校区医保办，线下办理参保缴费。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">三、医保待遇享受期</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">符合连续参保：即2025年度在生源地或学籍地（非本校）已参保，且在集中缴费期内缴纳2026年度大学生医保的学生，待遇享受期为2025年9月1日至2026年12月31日。在本校连续参保的老生（含本升硕/博），待遇享受期为2026年1月1日至2026年12月31日。期间报销金额与2026年度共享最高支付限额。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">不符合连续参保：即2025年度在生源地和学籍地都未参保（断保），且在集中缴费期内缴纳2026年度大学生医保的学生，按照长效机制规定，设置待遇等待期3个月，待遇享受期为2025年12月1日至2026年12月31日，待遇等待期间发生的医疗费用均不能报销。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">具体医保政策如有调整，以上级文件为准。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">四、注意事项</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">1.大学生原则上在学籍地参保，不得重复参保。选择在校参保缴费的学生，在家无需重复缴纳当地医保。大学生医保只能通过学校统一缴纳，不可自行手机或银行缴纳。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2.陕西省以外的学生如在校参保，网上缴费后请立即将个人之前的居民医保或职工医保办理停保。停保流程：下载“国家医保服务平台”APP—左下角“地方专区”—点击本省地区—业务办理—城乡居民暂停参保。陕西省内的学生系统会自动停保，不用个人办理。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">3.属陕西省特殊贫困人员的学生，可先在缴费系统中申请，待上级文件明确缴费标准且审核通过后再进行缴费。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">4.放弃参保的学生，需在校医院缴费系统申请弃保。在系统中未缴费也未申请弃保的，一律视为自动弃保。弃保后不能享受医保待遇。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">5.请及时了解医保政策，关注“西安电子科技大学医院”微信公众号—师生医保—大学生医保。在使用缴费系统时，有关技术问题可进技术人员QQ群（231623124）咨询。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">大学生医保事关每个学生的切身利益，是保障同学们在校期间健康权益的重要保障，请大家高度重视，务必在集中缴费期内完成医保费用缴纳，逾期未缴费的均视作自动弃保，相关责任自负。</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">医保办咨询服务电话： 029-88201871 (北校区医院三楼）；</span><span style="font-family: 仿宋_gb2312, fangsong_gb2312; text-indent: 2em;">029-81892663 (南校区医院一楼）</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">电话咨询时间：周内正常工作日</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: justify;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;"><br></span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: right;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">校医院</span></p><p style="text-indent: 2em; font-size: 21px; line-height: 2em; margin-bottom: 5px; margin-top: 5px; text-align: right;"><span style="font-family: 仿宋_gb2312, fangsong_gb2312; font-size: 21px;">2025年10月13日</span></p><p><br></p>
+</div></div><div id="div_vote_id"></div></p>
+</div>
+    
+
+
+
+
+<div class="sx cleafix">
+    
+       <span class="bo-le">上一条：<a href="3666.htm">2025年大学生参保常见问题解答</a></span>
+        <span class="bo-le fl">下一条：<a href="3136.htm">2025年大学生医保门诊报销的通知</a></span>
+    
+</div>
+
+</form>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+
+
+<!--footer-->
+<div class="footerWrap">
+    <!--footTwo-->
+    <div class="footTwo">
+        <div class="foot cleafix">
+            <ul class="fttwo_l fl">
+</UL>
+            <div class="fttwo_r fl">        
+
+</div>
+        </div>
+    </div>
+    <!--footThree-->
+    <div class="footThree"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>CopyRight 2015 西安电子科技大学医院</p><p>地址: 西安市太白南路2号 西安电子科技大学医院&nbsp; &nbsp; &nbsp;技术支持：西安聚力</p></div>
+</div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

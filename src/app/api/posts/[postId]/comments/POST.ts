@@ -14,6 +14,7 @@ import { includeToComment } from '@/lib/prisma/includeToComment';
 import { toGetComment } from '@/lib/prisma/toGetComment';
 import { convertMentionUsernamesToIds } from '@/lib/convertMentionUsernamesToIds';
 import { mentionsActivityLogger } from '@/lib/mentionsActivityLogger';
+import { assessPostText } from '@/lib/moderation/text';
 
 export async function POST(request: Request, { params }: { params: { postId: string } }) {
   const [user] = await getServerUser();
@@ -24,6 +25,19 @@ export async function POST(request: Request, { params }: { params: { postId: str
   try {
     const body = await request.json();
     let { content } = commentWriteSchema.parse(body);
+    const moderation = assessPostText(content);
+    if (moderation.decision !== 'approve') {
+      return NextResponse.json(
+        { error: '评论命中平台审核规则，请修改后重试。', reasons: moderation.reasons },
+        { status: 422 },
+      );
+    }
+    const post = await prisma.post.findFirst({
+      where: { id: postId, OR: [{ status: 'PUBLISHED' }, { userId }] },
+      select: { userId: true },
+    });
+    if (!post) return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
+
     const { str, usersMentioned } = await convertMentionUsernamesToIds({
       str: content,
     });
@@ -40,25 +54,15 @@ export async function POST(request: Request, { params }: { params: { postId: str
 
     // Record a 'CREATE_COMMENT' activity
     // Find the owner of the post
-    const post = await prisma.post.findUnique({
-      where: {
-        id: postId,
-      },
-      select: {
-        userId: true,
+    await prisma.activity.create({
+      data: {
+        type: 'CREATE_COMMENT',
+        sourceId: res.id,
+        sourceUserId: userId,
+        targetId: postId,
+        targetUserId: post.userId,
       },
     });
-    if (post) {
-      await prisma.activity.create({
-        data: {
-          type: 'CREATE_COMMENT',
-          sourceId: res.id,
-          sourceUserId: userId,
-          targetId: postId,
-          targetUserId: post.userId,
-        },
-      });
-    }
 
     // Log the 'COMMENT_MENTION' activity if applicable
     await mentionsActivityLogger({

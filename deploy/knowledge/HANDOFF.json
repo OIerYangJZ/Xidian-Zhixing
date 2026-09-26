@@ -1,0 +1,24 @@
+{
+  "scope": "manual deployment; local test credentials and community corpus excluded",
+  "archives": [
+    {
+      "file": "xiaodian-code-web.zip",
+      "bytes": 42422231,
+      "sha256": "71586c74264ab3a9bb5bd103454c31ee0cb65aa50c9f0dece53c5d677263c5a0",
+      "files": 142
+    },
+    {
+      "file": "xiaodian-official-data.zip",
+      "bytes": 7694892,
+      "sha256": "19414768cce139a3f65791fa4638b7533b0465a48a077f2a433101e32526fa86",
+      "files": 632
+    },
+    {
+      "file": "xiaodian-bge-models.zip",
+      "bytes": 3432769187,
+      "sha256": "fe9049f8adfcc805cf765e0d4184ed36e3419cc2ab3d7f3a84408f7e5cf55137",
+      "files": 20
+    }
+  ],
+  "publishedDocuments": 567
+}

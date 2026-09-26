@@ -1,4 +1,6 @@
 import { GetVisualMedia } from '@/types/definitions';
+import prisma from '@/lib/prisma/prisma';
+import { fileNameToUrl } from '@/lib/s3/fileNameToUrl';
 import { getProfile } from '../../getProfile';
 import { Gallery } from './Gallery';
 
@@ -11,10 +13,14 @@ export async function generateMetadata({ params }: { params: { username: string 
 
 async function getVisualMedia(username: string) {
   const profile = await getProfile(username);
-  const res = await fetch(`${process.env.URL}/api/users/${profile?.id}/photos`, { cache: 'no-store' });
+  if (!profile) return [];
 
-  if (!res.ok) throw new Error("Error fetching user's photos.");
-  return (await res.json()) as GetVisualMedia[];
+  const media = await prisma.visualMedia.findMany({
+    where: { userId: profile.id },
+    orderBy: { id: 'desc' },
+  });
+
+  return media.map(({ type, fileName }) => ({ type, url: fileNameToUrl(fileName)! })) as GetVisualMedia[];
 }
 
 export default async function Page({ params }: { params: { username: string } }) {

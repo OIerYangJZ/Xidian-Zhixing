@@ -34,22 +34,22 @@ export function ThemeSwitch() {
   return (
     <button
       type="button"
-      className="relative h-[48px] w-[48px] overflow-hidden rounded-full border-2 border-secondary hover:border-muted sm:h-[56px] sm:w-[56px]"
-      aria-label="Switch theme"
+      className="relative h-10 w-10 overflow-hidden rounded-full text-muted-foreground transition hover:bg-secondary hover:text-foreground"
+      aria-label={`当前主题：${theme === 'system' ? '跟随系统' : theme === 'light' ? '浅色' : '深色'}，点击切换`}
       onClick={switchTheme}>
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <motion.div animate={systemThemeAnimation}>
-          <DeviceLaptop className="stroke-foreground" height={24} width={24} />
+          <DeviceLaptop className="stroke-current" height={20} width={20} />
         </motion.div>
       </div>
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <motion.div animate={lightThemeAnimation}>
-          <WeatherSun className="stroke-foreground" height={24} width={24} />
+          <WeatherSun className="stroke-current" height={20} width={20} />
         </motion.div>
       </div>
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <motion.div animate={darkThemeAnimation}>
-          <WeatherMoon className="stroke-foreground" height={24} width={24} />
+          <WeatherMoon className="stroke-current" height={20} width={20} />
         </motion.div>
       </div>
     </button>

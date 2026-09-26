@@ -1,4 +1,4 @@
-import { VisualMediaType, User, Follow, ActivityType, Gender, VisualMedia, RelationshipStatus } from '@prisma/client';
+import { VisualMediaType, User, Follow, ActivityType, VisualMedia, DisplayIdentity, PostStatus } from '@prisma/client';
 
 type UserSummary = Pick<User, 'id' | 'username' | 'name' | 'profilePhoto'>;
 /**
@@ -13,9 +13,15 @@ export interface UserSummaryAfterSetUp {
   profilePhoto: string | null;
 }
 
-interface UserAfterSetUp extends User {
+interface UserAfterSetUp {
+  id: string;
   username: string;
   name: string;
+  bio: string | null;
+  website: string | null;
+  showContactable: boolean;
+  profilePhoto: string | null;
+  coverPhoto: string | null;
 }
 
 // Use this type when finding a User in prisma.
@@ -51,8 +57,14 @@ export interface VisualMediaModalType {
 // Use this type when finding a Post in prisma.
 export interface FindPostResult {
   id: number;
+  userId: string;
   content: string | null;
   createdAt: Date;
+  viewCount: number;
+  status: PostStatus;
+  displayIdentity: DisplayIdentity;
+  spaceId: number | null;
+  publishedAsClub: { id: number; name: string; slug: string; avatar: string | null } | null;
   /**
    * Use `postLikes` to store the <PostLike>'s id of the user to the Post.
    * If there is a <PostLike> id, that means the user requesting has
@@ -61,11 +73,15 @@ export interface FindPostResult {
   postLikes: {
     id: number;
   }[];
+  bookmarks: { id: number }[];
+  reposts: { id: number }[];
   user: UserSummary;
   visualMedia: VisualMedia[];
   _count: {
     postLikes: number;
     comments: number;
+    reposts: number;
+    bookmarks: number;
   };
 }
 
@@ -78,16 +94,26 @@ export interface GetPost {
   id: number;
   content: string | null;
   createdAt: Date;
+  viewCount: number;
+  status: PostStatus;
+  displayIdentity: DisplayIdentity;
+  spaceId: number | null;
+  publishedAsClub: { id: number; name: string; slug: string; avatar: string | null } | null;
+  isOwnPost: boolean;
   /**
    * The `isLiked` is used to check whether the authenticated user requesting
    * the post has liked it or not.
    */
   isLiked: boolean;
-  user: UserSummaryAfterSetUp;
+  isBookmarked: boolean;
+  isReposted: boolean;
+  user: UserSummaryAfterSetUp | null;
   visualMedia: GetVisualMedia[];
   _count: {
     postLikes: number;
     comments: number;
+    reposts: number;
+    bookmarks: number;
   };
 }
 
@@ -147,13 +173,6 @@ export interface GetComment {
   repliesShown?: boolean;
 }
 
-export type DiscoverFilterKeys = 'gender' | 'relationship-status';
-
-export interface DiscoverFilters {
-  gender?: Gender;
-  'relationship-status'?: RelationshipStatus;
-}
-
 interface FindActivityResult {
   id: number;
   type: ActivityType;
@@ -161,14 +180,14 @@ interface FindActivityResult {
   targetId: number | null;
   createdAt: Date;
   isNotificationRead: boolean;
-  sourceUser: UserSummary & { gender: Gender | null };
-  targetUser: UserSummary & { gender: Gender | null };
+  sourceUser: UserSummary;
+  targetUser: UserSummary;
 }
 export type FindActivityResults = FindActivityResult[];
 
 export interface GetActivity extends FindActivityResult {
-  sourceUser: UserSummaryAfterSetUp & { gender: Gender | null };
-  targetUser: UserSummaryAfterSetUp & { gender: Gender | null };
+  sourceUser: UserSummaryAfterSetUp;
+  targetUser: UserSummaryAfterSetUp;
   content?: string | null;
 }
 export type GetActivities = GetActivity[];

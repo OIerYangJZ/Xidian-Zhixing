@@ -27,17 +27,11 @@ export function Activity({
   const isNotification = targetUser.id === userId;
   const userToDisplay = isActivity ? targetUser : sourceUser;
 
-  const sourceProperNoun = isActivity ? 'You' : sourceUser.name;
-  const sourcePossessiveNoun = isActivity
-    ? 'your'
-    : sourceUser.gender === 'MALE'
-    ? 'his'
-    : sourceUser.gender === 'FEMALE'
-    ? 'her'
-    : 'their';
+  const sourceProperNoun = isActivity ? '你' : sourceUser.name;
+  const sourcePossessiveNoun = isActivity ? '你的' : `${sourceUser.name}的`;
 
-  const targetProperNoun = isNotification ? 'you' : targetUser.name;
-  const targetPossessiveNoun = isNotification ? 'your' : `${targetUser.name}'s`;
+  const targetProperNoun = isNotification ? '你' : targetUser.name;
+  const targetPossessiveNoun = isNotification ? '你的' : `${targetUser.name}的`;
 
   const isRead = isActivity || isNotificationRead;
   const navigate = (href: string) => () => {
@@ -56,7 +50,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/${isActivity ? targetUser.username : sourceUser.username}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> started following <SemiBold>{targetProperNoun}</SemiBold>!
+        <SemiBold>{sourceProperNoun}</SemiBold> 关注了 <SemiBold>{targetProperNoun}</SemiBold>
       </ActivityCard>
     );
   }
@@ -69,8 +63,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/posts/${targetId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> liked <SemiBold>{targetPossessiveNoun}</SemiBold> post: &quot;{content}
-        &quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 赞了 <SemiBold>{targetPossessiveNoun}</SemiBold>动态：「{content}」
       </ActivityCard>
     );
   }
@@ -82,8 +75,8 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/posts/${sourceId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> mentioned <SemiBold>{targetProperNoun}</SemiBold> in{' '}
-        {sourcePossessiveNoun} post: &quot;{content}&quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 在{sourcePossessiveNoun}动态中提到了{' '}
+        <SemiBold>{targetProperNoun}</SemiBold>：「{content}」
       </ActivityCard>
     );
   }
@@ -96,8 +89,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${sourceId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> commented on <SemiBold>{targetPossessiveNoun}</SemiBold> post: &quot;
-        {content}&quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 评论了 <SemiBold>{targetPossessiveNoun}</SemiBold>动态：「{content}」
       </ActivityCard>
     );
   }
@@ -109,9 +101,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${targetId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> liked <SemiBold>{targetPossessiveNoun}</SemiBold> comment: &quot;
-        {content}
-        &quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 赞了 <SemiBold>{targetPossessiveNoun}</SemiBold>评论：「{content}」
       </ActivityCard>
     );
   }
@@ -123,8 +113,8 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${sourceId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> mentioned <SemiBold>{targetProperNoun}</SemiBold> in{' '}
-        {sourcePossessiveNoun} comment: &quot;{content}&quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 在{sourcePossessiveNoun}评论中提到了{' '}
+        <SemiBold>{targetProperNoun}</SemiBold>：「{content}」
       </ActivityCard>
     );
   }
@@ -137,9 +127,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${sourceId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> replied to <SemiBold>{targetPossessiveNoun}</SemiBold> comment: &quot;
-        {content}
-        &quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 回复了 <SemiBold>{targetPossessiveNoun}</SemiBold>评论：「{content}」
       </ActivityCard>
     );
   }
@@ -151,8 +139,7 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${targetId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> liked <SemiBold>{targetPossessiveNoun}</SemiBold> reply: &quot;{content}
-        &quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 赞了 <SemiBold>{targetPossessiveNoun}</SemiBold>回复：「{content}」
       </ActivityCard>
     );
   }
@@ -164,8 +151,8 @@ export function Activity({
         date={new Date(createdAt)}
         isRead={isRead}
         onClick={navigate(`/comments/${sourceId}`)}>
-        <SemiBold>{sourceProperNoun}</SemiBold> mentioned <SemiBold>{targetProperNoun}</SemiBold> in{' '}
-        {sourcePossessiveNoun} reply: &quot;{content}&quot;
+        <SemiBold>{sourceProperNoun}</SemiBold> 在{sourcePossessiveNoun}回复中提到了{' '}
+        <SemiBold>{targetProperNoun}</SemiBold>：「{content}」
       </ActivityCard>
     );
   }

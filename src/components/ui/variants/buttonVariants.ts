@@ -5,10 +5,10 @@ export const buttonVariants = cva(
   {
     variants: {
       size: {
-        huge: 'gap-4 rounded-2xl px-8 py-5 text-lg',
-        large: 'gap-4 rounded-2xl px-8 py-5 text-base',
-        medium: 'gap-3 rounded-xl px-6 py-4 text-base',
-        small: 'gap-3 rounded-lg px-4 py-[9px] text-[13px]',
+        huge: 'gap-4 rounded-lg px-6 py-4 text-base',
+        large: 'gap-4 rounded-lg px-6 py-4 text-base',
+        medium: 'gap-3 rounded-md px-4 py-2.5 text-sm',
+        small: 'gap-2 rounded-md px-3 py-2 text-[13px]',
       },
       mode: {
         primary: 'bg-primary text-primary-foreground hover:bg-primary-accent active:ring-primary/30',

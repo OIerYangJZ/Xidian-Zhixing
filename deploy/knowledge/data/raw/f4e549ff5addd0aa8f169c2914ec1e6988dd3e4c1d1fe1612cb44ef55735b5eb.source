@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>以劳益美 | 郁金香盛放：共赴春约-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="以劳益美 | 郁金香盛放：共赴春约">
+<META Name="keywords" Content="本科生院,西安电子科技大学,赴,盛放,共,郁金香,春,约,劳益美" />
+<META Name="description" Content="春意盎然，海棠5号楼1楼社区生态花园内一片生机勃勃。去年深秋种下的郁金香种球，在社区师生共同的精心养护下，历经寒冬的酝酿，在这个春天绚烂绽放，为社区增添了不少明媚的色彩。这些由同学们亲手培育的花朵，凝结着同学们的汗水和付出，也让同学们体会到创造美的成就感。深耕厚植：躬身播撒希望之种去年深秋时节，社区以&quot;劳动创造美&quot;为主题组织开展郁金香种植劳动教育实践。同学们在社区辅导员老师的指导下，严格按照种植规范完成选种、..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1020,'/content.jsp',25542,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+书院风采</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>以劳益美 | 郁金香盛放：共赴春约</h3>
+   <div class="time"><span>发布时间：</span>2025-04-08 11:54:31<span>来源：</span>
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 25542)</script></div>
+
+    
+    <div id="vsb_content"><div class="v_news_content">
+<style>.docx-wrapper { background: gray; padding: 30px; padding-bottom: 0px; display: flex; flex-flow: column; align-items: center;} .docx-wrapper>section.docx { background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); margin-bottom: 30px;}.docx { color: black; hyphens: auto;}section.docx { box-sizing: border-box; display: flex; flex-flow: column nowrap; position: relative; overflow: hidden;}section.docx>article { margin-bottom: auto; z-index: 1;}section.docx>footer { z-index: 1;}.docx table { border-collapse: collapse;}.docx table td, .docx table th { vertical-align: top;}.docx p { margin: 0pt !important; min-height: 1em;}.docx span { white-space: pre-wrap; overflow-wrap: break-word;}.docx a { color: inherit; text-decoration: inherit;}</style><style>.docx {  --docx-majorhansi-font: Calibri Light;  --docx-minorhansi-font: Calibri;  --docx-dk1-color: #000000;  --docx-lt1-color: #FFFFFF;  --docx-dk2-color: #44546A;  --docx-lt2-color: #E7E6E6;  --docx-accent1-color: #4874CB;  --docx-accent2-color: #EE822F;  --docx-accent3-color: #F2BA02;  --docx-accent4-color: #75BD42;  --docx-accent5-color: #30C0B4;  --docx-accent6-color: #E54C5E;  --docx-hlink-color: #0026E5;  --docx-folhlink-color: #7E1FAD;}</style><style>.docx span {  font-family: Times New Roman;}.docx p, p.docx_1 {  text-align: justify;}.docx p, p.docx_1 span {  font-family: var(--docx-minorHAnsi-font);  min-height: 10.50pt;  font-size: 10.50pt;}p.docx_2 {  margin-top: 0.00pt;  margin-bottom: 0.00pt;  text-align: left;}p.docx_2 span {  font-family: 宋体;  font-weight: bold;  min-height: 24.00pt;  font-size: 24.00pt;}.docx table, table.docx_4 td {  padding-top: 0.00pt;  padding-left: 5.40pt;  padding-bottom: 0.00pt;  padding-right: 5.40pt;}p.docx_3 {  margin-top: 0.00pt;  margin-bottom: 0.00pt;  margin-left: 0.00pt;  margin-right: 0.00pt;  text-align: left;}p.docx_3 span {  min-height: 12.00pt;  font-size: 12.00pt;  font-family: var(--docx-minorHAnsi-font);}span.docx_6 {  font-weight: bold;}</style><section class="docx"><article><p class="docx_2" style="border-width: 0pt; border-style: solid; border-color: black; background-color: rgb(255, 255, 255); margin: 0pt 0pt 7pt; line-height: calc(100% + 0.7pt); text-indent: 0pt; text-align: center;"><br></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; min-height: 12pt; font-size: 12pt;">春意盎然，海棠5号楼1楼社区生态花园内一片生机勃勃。去年深秋种下的郁金香种球，在社区师生共同的精心养护下，历经寒冬的酝酿，在这个春天绚烂绽放，为社区增添了不少明媚的色彩。这些由同学们亲手培育的花朵，凝结着同学们的汗水和付出，也让同学们体会到创造美的成就感。</span></p><p style="line-height: 1.5; text-align: center; text-indent: 0pt;"><span lang="null"><span style=" position: relative; text-indent: 0px; width: 303.8pt; height: 150.7pt;"><img src="/__local/5/5B/52/770BF0A6558664FCAB4F5165056_88A7FA55_182D6.jpeg" vsbhref="vurl" vurl="/_vsl/55B52770BF0A6558664FCAB4F5165056/88A7FA55/182D6" vheight=" 150.7pt" vwidth=" 303.8pt" orisrc="/__local/A/75/6B/4707819E419A0400C28B907F494_5AEE3B89_16CA3.jpeg" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 303.8pt; height: 150.7pt;"></span></span><span id="_GoBack"></span></p><p style="line-height: 1.5; text-indent: 24.1pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; font-weight: bold; min-height: 12pt; font-size: 12pt;">深耕厚植：躬身播撒希望之种</span></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; min-height: 12pt; font-size: 12pt;">去年深秋时节，社区以"劳动创造美"为主题组织开展郁金香种植劳动教育实践。同学们在社区辅导员老师的指导下，严格按照种植规范完成选种、松土、浇灌等环节，亲身体验园艺劳动的完整流程。通过理论学习与实践操作，同学们感悟到"一锹一土养根性，一花一叶见匠心"的内涵。</span></p><p style="line-height: 1.5; text-align: center; text-indent: 0pt;"><span lang="null"><span style=" position: relative; text-indent: 0px; width: 300.5pt; height: 225.4pt;"><img src="/__local/7/6F/11/D8A0A0C18E683046E3CC1B1BE8A_E6224F31_73115.png" vsbhref="vurl" vurl="/_vsl/76F11D8A0A0C18E683046E3CC1B1BE8A/E6224F31/73115" vheight=" 225.4pt" vwidth=" 300.5pt" orisrc="/__local/4/75/1A/AADC2D1ADBB4157A08ADB00EBC9_2D06DCFA_14CB74.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 300.5pt; height: 225.4pt;"></span></span></p><p style="line-height: 1.5; text-indent: 24.1pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; font-weight: bold; min-height: 12pt; font-size: 12pt;">静待花开：汗水浇灌成长印记</span></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; min-height: 12pt; font-size: 12pt;">在守护花开的过程中，同学们组成养护小组，定期为郁金香除草、松土、追肥。参与活动的同学说：“养护初期我们对松土深度和温度调控缺乏经验，现在不仅能熟练使用园艺工具，还会根据天气调整养护方案。在这个过程中，我们不仅掌握了园艺知识，更培养了责任意识和持之以恒的品格。”</span></p><p style="line-height: 1.5; text-align: center; text-indent: 0pt;"><span lang="null"><span style=" position: relative; text-indent: 0px; width: 311.45pt; height: 233.65pt;"><img src="/__local/F/47/CE/971C57E969EC75E870D34796D11_EFED5EE7_892C0.png" vsbhref="vurl" vurl="/_vsl/F47CE971C57E969EC75E870D34796D11/EFED5EE7/892C0" vheight=" 233.65pt" vwidth=" 311.45pt" orisrc="/__local/2/16/33/04D706A866708D8467509309CF9_FBD94051_18D758.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 311.45pt; height: 233.65pt;"></span></span></p><p style="line-height: 1.5; text-indent: 24.1pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; font-weight: bold; min-height: 12pt; font-size: 12pt;">繁花似锦：劳动之美浸润心田</span></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; min-height: 12pt; font-size: 12pt;">历经四个月的精心养护和耐心等待，郁金香如期绽放，红如焰、黄似锦、粉若霞的花朵在春风中摇曳生姿，装点了社区花园美景。这场从秋种到春收的长期实践，让同学们深刻体会到“美”需要用双手去创造和守护。</span></p><p style="line-height: 1.5; text-align: center; text-indent: 0pt;"><span lang="null"><span style=" position: relative; text-indent: 0px; width: 311.4pt; height: 311.4pt;"><img src="/__local/3/E8/8A/5A9A4D639D0F059CE4012AD8047_2DBEA504_9CF32.png" vsbhref="vurl" vurl="/_vsl/3E88A5A9A4D639D0F059CE4012AD8047/2DBEA504/9CF32" vheight=" 311.4pt" vwidth=" 311.4pt" orisrc="/__local/D/C0/70/900D1583B344F5EF3BC6C946853_31A0EF34_19370E.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 311.4pt; height: 311.4pt;"></span></span></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><span lang="en-US" style="font-family: 宋体; min-height: 12pt; font-size: 12pt;">高年级学生社区（2021级）将持续丰富劳动教育形式，引导学生通过“学做合一”的方式，将课堂理论融入动手实践，培养踏实肯干、热爱劳动的品质，实现以劳增智、以劳益美的育人目标，让同学们在劳动中提升技能、收获成长。</span></p><p style="line-height: 1.5; text-indent: 24pt; text-align: left;"><br></p></article></section>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：</div>
+    
+
+
+
+<div class="pn"> <span>上一篇：</span><a href="4366.htm">书院风采</a>
+<br />
+          <br />
+          <span>下一篇：</span><a href="25452.htm">职繁业茂 | 第五十期：就业指导活动回顾——“职场小白入职避坑指南”</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

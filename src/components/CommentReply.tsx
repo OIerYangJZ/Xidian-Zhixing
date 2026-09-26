@@ -52,12 +52,12 @@ export const CommentReply = memo(
     const shouldHighlight = searchParams.get('comment-id') === commentId.toString();
 
     return (
-      <div className="mt-2 flex gap-4">
-        <div className="h-10 w-10 flex-shrink-0">
+      <div className="mt-3 flex gap-3">
+        <div className="h-9 w-9 flex-shrink-0">
           <ProfilePhoto name={author.name} username={author.username} photoUrl={author.profilePhoto} />
         </div>
 
-        <div>
+        <div className="min-w-0 flex-1">
           <CommentContent
             name={author.name}
             username={author.username}
@@ -69,13 +69,10 @@ export const CommentReply = memo(
           <div className="flex origin-left">
             <ToggleStepper isSelected={isLiked} onPress={handleLikeClick} Icon={SvgHeart} quantity={numberOfLikes} />
             {isOwnReply && (
-              <DropdownMenuButton
-                key={`replies-${commentId}-options`}
-                label="Reply options"
-                onAction={onDropdownAction}>
+              <DropdownMenuButton key={`replies-${commentId}-options`} label="回复选项" onAction={onDropdownAction}>
                 <Section>
-                  <Item key="edit">Edit reply</Item>
-                  <Item key="delete">Delete reply</Item>
+                  <Item key="edit">编辑回复</Item>
+                  <Item key="delete">删除回复</Item>
                 </Section>
               </DropdownMenuButton>
             )}

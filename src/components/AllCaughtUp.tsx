@@ -1,14 +1,12 @@
-import { CircleActionsSuccess } from '@/svg_components';
+'use client';
+
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function AllCaughtUp() {
+  const { t } = useLanguage();
   return (
-    <div className="grid place-items-center">
-      <div className="inline-block rounded-xl bg-success px-8 py-6">
-        <div className="flex items-center gap-4">
-          <CircleActionsSuccess className="stroke-success-foreground" width={24} height={24} />
-          <p className="text-lg font-semibold text-success-foreground">All caught up!</p>
-        </div>
-      </div>
+    <div className="grid place-items-center px-4 py-7">
+      <p className="text-sm text-muted-foreground">{t('暂时没有更多内容', 'You are all caught up')}</p>
     </div>
   );
 }

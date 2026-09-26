@@ -31,10 +31,8 @@ export default function ProfilePhoto({
   }, [photoUrl, showVisualMediaModal]);
 
   return (
-    <div className="absolute bottom-[-88px] h-44 w-44 border-white bg-cover">
-      {photoUrl && (
-        <img src={photoUrl} alt="Profile" className="absolute h-full w-full rounded-full border-4 object-cover" />
-      )}
+    <div className="absolute bottom-[-72px] left-4 h-36 w-36 rounded-full border-4 border-background bg-background">
+      {photoUrl && <img src={photoUrl} alt="Profile" className="absolute h-full w-full rounded-full object-cover" />}
       {photoUrl ? (
         <button
           type="button"

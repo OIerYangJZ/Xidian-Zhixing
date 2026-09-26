@@ -1,6 +1,8 @@
 import { ProfilePhoto } from '@/components/ui/ProfilePhoto';
 import { ActivityType } from '@prisma/client';
+/* eslint-disable import/no-duplicates */
 import { formatDistanceToNowStrict } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import React, { ComponentProps, useRef } from 'react';
 import { UserSummaryAfterSetUp } from '@/types/definitions';
 import { mergeProps, useFocusRing, useLink } from 'react-aria';
@@ -25,24 +27,26 @@ export function ActivityCard({ children, user, date, type, isRead, ...rest }: Ac
       {...mergeProps(linkProps, focusProps)}
       ref={ref}
       className={cn(
-        'mb-4 flex cursor-pointer gap-3 rounded-3xl bg-card p-4 last:mb-0 hover:bg-card/90 focus:outline-none',
-        isFocusVisible && 'ring ring-violet-500 ring-offset-2',
+        'feed-separator flex min-h-[88px] cursor-pointer gap-3 border-b px-4 py-4 transition-colors hover:bg-foreground/[0.025] focus:outline-none sm:px-5',
+        isFocusVisible && 'ring-2 ring-inset ring-primary',
       )}
-      aria-label="Open link"
+      aria-label="查看互动"
       {...rest}>
-      <div className="relative h-16 w-16 sm:h-20 sm:w-20">
+      <div className="relative h-11 w-11 shrink-0">
         <ProfilePhoto name={user.name} username={user.username} photoUrl={user.profilePhoto} />
         <ActivityIcon type={type} />
       </div>
 
-      <div className="my-auto flex-1">
-        <p>{children}</p>
-        <p className="text-sm text-muted-foreground">{formatDistanceToNowStrict(date)} ago</p>
+      <div className="my-auto min-w-0 flex-1">
+        <p className="text-[14px] leading-5">{children}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {formatDistanceToNowStrict(date, { addSuffix: true, locale: zhCN })}
+        </p>
       </div>
 
       {!isRead && (
         <div className="grid place-items-center">
-          <div className="h-3 w-3 rounded-full bg-violet-500" />
+          <div className="h-2.5 w-2.5 rounded-full bg-primary" />
         </div>
       )}
     </div>

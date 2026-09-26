@@ -1,0 +1,439 @@
+﻿<!DOCTYPE html>
+
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>Sino-Russia Seminar on Probability Theory and Applications-XIDIAN UNIVERSITY</title><meta name="pageType" content="3">
+<meta name="pageTitle" content="Sino-Russia Seminar on Probability Theory and Applications">
+<META Name="keywords" Content="XIDIAN UNIVERSITY,Sino-Russia,Seminar,on,Probability,Theory,and,Applications" />
+<META Name="description" Content="Sino-Russia Seminar on Probability Theory and ApplicationsDate: 8:00 am 14th, Nov. to 12:00 am 16th, Nov.Location: Room 305, North Campus, XDUOn-line: Tencent Meeting 949 138 770" />
+
+        <link rel="stylesheet" href="../../css/css.css" />
+        <link rel="stylesheet" href="../../css/aos.css">
+        <!--公用文件 END-->
+        <script type="text/javascript" src="../../js/jquery_002.js"></script>
+        <script type="text/javascript" src="../../js/tiaohua.js"></script>
+        <script type="text/javascript" src="../../js/slide.js"></script>
+        <style type="text/css">
+        <!--    font-size: 18px;
+    color: #333333;
+    line-height: 30px;
+    text-align: justify;-->
+        </style> 
+    <!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../show-study.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1070,'/show-study.jsp',9491,2133202801)</script>
+</head>
+    <body>
+
+        <!--banner开始-->
+            <div class="head3">
+                <div class="top clear">
+                    <div class="logo">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<A href="../../index.htm" title="西安电子科技大学英文25"></A></div>
+                    <div class="top-r clear">
+                        <div class="top-links clear">
+                            <div class="top-links2">
+                            <div class="link-nr">
+                            <p><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script>   <a href="https://faculty.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111306)">Faculty Profile</a>
+</p>
+                            <i></i>
+                            <p></p>
+                            <i></i>
+                            <!-- <div class="search-btn"></div> -->
+                            <div class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu3 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu3 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu3"></div>
+<script type="text/html" id="htmlu3">
+    <div id="appu3">
+        <div v-if="!isError">
+  
+            
+              <input class="text" type="text" placeholder="" autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" />
+  <input class="btn" type="button" value="Search" style="cursor: hand" v-on:click="onSubmit()"/>
+            
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu3").html($("#htmlu3").text());
+</script>
+<script>
+    var appOwner = "2133202801";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu3",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu3 = document.querySelector("#appu3");
+   if (appElementu3 && appElementu3.__vue__) {
+
+   } else {
+      $("#divu3").html($("#htmlu3").text());
+      var appOwner = "2133202801";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou3 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu3(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu3();
+        }
+      };
+
+      function onSubmitu3(e) {
+        queryInfou3.query.keyWord= $("#appu3  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou3.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script></div>
+                            <div class="language"><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111304)">中文</a>
+</div>
+                            </div>
+                        </div>
+                        </div>
+                        <div class="navBar"><ul class="nav clearfix">
+<li id="m1" class="m">
+<h3><a href="../../About.htm" target="_blank">About</a></h3>
+<ul class="sub">
+<li><a href="../../About/XDU_Overview.htm" target="_blank">XDU Overview</a></li>
+<li><a href="../../About/Why_XDU.htm" target="_blank">Why XDU</a></li>
+<li><a href="../../About/History.htm" target="_blank">History</a></li>
+<li><a href="../../About/Reputation2.htm" target="_blank">Reputation</a></li>
+<li><a href="../../About/Current_Administrators.htm" target="_blank">Current Administrators</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Admission.htm" target="_blank">Admission</a></h3>
+<ul class="sub">
+<li><a href="../../Admission/International_Applicants.htm" target="_blank">International Applicants</a></li>
+<li><a href="https://www.xidian.edu.cn/zsjy.htm#A" target="_blank">Chinese Applicants</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Academics.htm" target="_blank">Academics</a></h3>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Research.htm" target="_blank">Research</a></h3>
+<ul class="sub">
+<li><a href="../../Research/Key_Research_Areas1.htm" target="_blank">Key Research Areas</a></li>
+<li><a href="../../Research/Platforms_Laboratories.htm" target="_blank">Platforms &amp; Laboratories</a></li>
+<li><a href="../../Research/Achievements.htm" target="_blank">Achievements</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Campus.htm" target="_blank">Campus</a></h3>
+<ul class="sub">
+<li><a href="../../Campus/Events1.htm" target="_blank">Events</a></li>
+<li><a href="../../Campus/Student_Life.htm" target="_blank">Student Life</a></li>
+<li><a href="../../Campus/Library.htm" target="_blank">Library</a></li>
+<li><a href="../../Campus/Exploring_XDU.htm" target="_blank">Exploring XDU</a></li>
+<li><a href="../../Campus/Campus_in_Photos.htm" target="_blank">Campus in Photos</a></li>
+</ul>
+</li>
+<li id="m1" class="m">
+<h3><a href="../../Global_Initiatives.htm" target="_blank">Global Initiatives</a></h3>
+<ul class="sub">
+<li><a href="../../Global_Initiatives/Joint_Education.htm" target="_blank">Joint Education</a></li>
+<li><a href="../../Global_Initiatives/Partner_Universities.htm" target="_blank">Partner Universities</a></li>
+<li><a href="../../Global_Initiatives/Joint_International_Institutes.htm" target="_blank">Joint International Institutes</a></li>
+<li><a href="../../Global_Initiatives/Confucius_Institute.htm" target="_blank">Confucius Institute</a></li>
+<li><a href="../../Global_Initiatives/Study_Abroad.htm" target="_blank">Study Abroad</a></li>
+<li><a href="../../Global_Initiatives/Summer_Schools.htm" target="_blank">Summer School  </a></li>
+<li><a href="../../Global_Initiatives/Working_at_XDU.htm" target="_blank">Working at XDU</a></li>
+<li><a href="../../Global_Initiatives/Contact_Us.htm" target="_blank">Contact Us</a></li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+                         <script type="text/javascript" src="../../js/jquery_002.js"></script>
+        <script type="text/javascript" src="../../js/tiaohua.js"></script>
+        <script type="text/javascript" src="../../js/slide.js"></script>
+                    </div>
+                </div>
+            </div>
+            <div class="list-banner">
+                <div class="pic"><img src="../../images/list-banner.png"></div>
+                <div class="list-position">
+                    <h5><a href="">Events</a></h5><p>Position : 
+                        <a href="../../index.htm">Home</a>
+                        >
+                <a href="../../Events.htm">Events</a>
+                        >
+                Content
+        </p>
+</div>
+            </div>
+            <!-- list-events -->
+            <div class="list-box wrap">
+                <div class="list-nav fl"><ul>
+<li class="on"><a href="../../Events.htm" title="Events">Events</a></li>
+</ul></div>
+                <div class="list-r fr">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div class="show-news show-study">
+<div class="show-news01">
+    <h5 align="center" style="font-weight:bold;">Sino-Russia Seminar on Probability Theory and Applications</h5>
+	<p><i>Time:&nbsp;Nov 10, 2025</i></p></div>
+    <table cellspacing="0" cellpadding="3" border="0" align="center" style="border-collapse:collapse;display:none;">
+            <tr>
+                <td width="20%" style="border:1px solid gray">时间</td>
+                <td width="30%" style="border:1px solid gray">8:00 am 14th, Nov. to 12:00 am 16th, Nov.</td>
+            
+            
+                <td width="20%" style="border:1px solid gray">地点</td>
+                <td width="30%" style="border:1px solid gray">Room 305, North Campus, XDU</td>
+            </tr>
+            <tr>
+                <td width="20%" style="border:1px solid gray">人物</td>
+                <td width="30%" style="border:1px solid gray"></td>
+            </tr>
+    </table>
+	<div id="vsb_content" style="font-size: 18px;color: #333333;line-height: 30px;text-align: justify;"><div class="v_news_content">
+<style>.docx-wrapper { background: gray; padding: 30px; padding-bottom: 0px; display: flex; flex-flow: column; align-items: center;} .docx-wrapper>section.docx { background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); margin-bottom: 30px;}.docx { color: black; hyphens: auto;}section.docx { box-sizing: border-box; display: flex; flex-flow: column nowrap; position: relative; overflow: hidden;}section.docx>article { margin-bottom: auto; z-index: 1;}section.docx>footer { z-index: 1;}.docx table { border-collapse: collapse;}.docx table td, .docx table th { vertical-align: top;}.docx p { margin: 0pt !important; min-height: 1em;}.docx span { white-space: pre-wrap; overflow-wrap: break-word;}.docx a { color: inherit; text-decoration: inherit;}</style><style>.docx {  --docx-majorhansi-font: 等线 Light;  --docx-minorhansi-font: 等线;  --docx-dk1-color: #000000;  --docx-lt1-color: #FFFFFF;  --docx-dk2-color: #44546A;  --docx-lt2-color: #E7E6E6;  --docx-accent1-color: #4472C4;  --docx-accent2-color: #ED7D31;  --docx-accent3-color: #A5A5A5;  --docx-accent4-color: #FFC000;  --docx-accent5-color: #5B9BD5;  --docx-accent6-color: #70AD47;  --docx-hlink-color: #0563C1;  --docx-folhlink-color: #954F72;}</style><style>.docx span {  font-family: var(--docx-minorHAnsi-font);  min-height: 10.50pt;  font-size: 10.50pt;}.docx p, p.docx_a {  text-align: justify;}.docx table, table.docx_a1 td {  padding-top: 0.00pt;  padding-left: 5.40pt;  padding-bottom: 0.00pt;  padding-right: 5.40pt;}p.docx_a3 {  border-bottom: 0.75pt solid black;  text-align: center;}p.docx_a3 span {  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_a3 span {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_a4 {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_a4 p {  border-bottom: 0.75pt solid black;  text-align: center;}span.docx_a4 {  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_a5 {  text-align: left;}p.docx_a5 span {  min-height: 9.00pt;  font-size: 9.00pt;}p.docx_a5 span {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_a6 {  min-height: 9.00pt;  font-size: 9.00pt;}span.docx_a6 p {  text-align: left;}span.docx_a6 {  min-height: 9.00pt;  font-size: 9.00pt;}</style><section class="docx"><article><p style="text-align: center; text-indent: 0pt;"><span style="font-family: &quot;Times New Roman&quot;; font-weight: bold; min-height: 14pt; font-size: 20px;">Sino-Russia Seminar on Probability Theory and Applications</span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><br></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><img src="/__local/E/81/E8/C0D99C09C84AB4FC17FB55F1DEE_2D6A5233_4602D.png" vsbhref="vurl" vurl="/_vsl/E81E8C0D99C09C84AB4FC17FB55F1DEE/2D6A5233/4602D" vheight=" 232.75pt" vwidth=" 415.25pt" orisrc="/__local/7/B2/4A/0E54707DB75BB79E7F8F7D32FFD_7569318D_CCE71.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; text-align: justify; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 415.25pt; height: 232.75pt;"></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;">Date: 8:00 am 14<sup>th</sup>, Nov. to 12:00 am 16<sup>th</sup>, Nov.</span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;">Location: Room 305, North Campus, XDU</span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;">On-line: Tencent Meeting 949 138 770</span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><br></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><img src="/__local/C/1F/03/D1F620DDF17E26FB66C110C595E_D8FF74B7_6E1D.png" vsbhref="vurl" vurl="/_vsl/C1F03D1F620DDF17E26FB66C110C595E/D8FF74B7/6E1D" vheight=" 114.5pt" vwidth=" 233.25pt" orisrc="/__local/4/5D/5B/85F828FEF9858C3DE24B9B3E150_2A9252D2_EF04.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 233.25pt; height: 114.5pt;"></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><img src="/__local/0/0F/1B/23323BD0C2919F09175444A6AC4_F14F528E_94BE.png" vsbhref="vurl" vurl="/_vsl/00F1B23323BD0C2919F09175444A6AC4/F14F528E/94BE" vheight=" 128.6pt" vwidth=" 233.25pt" orisrc="/__local/7/2A/AB/63E7B1923C73CDDAC1BA58D002C_15F680CC_14398.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 233.25pt; height: 128.6pt;"></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><img src="/__local/6/A0/D3/F330D618688F94F508D58023414_B9003FC4_BFA5.png" vsbhref="vurl" vurl="/_vsl/6A0D3F330D618688F94F508D58023414/B9003FC4/BFA5" vheight=" 168.25pt" vwidth=" 233.25pt" orisrc="/__local/0/76/5F/8E000DA84B66A1ECDB1AB802244_01839D5E_1A591.png" class="img_vsb_content" style="font-family: &quot;Times New Roman&quot;; font-size: 18.6667px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 233.25pt; height: 168.25pt;"><br></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><span style="font-family: &quot;Times New Roman&quot;; min-height: 14pt; font-size: 14pt;"><img src="/__local/7/70/33/B3DB7A3F53C9796E1DC66642FA6_9C280135_8023.png" vsbhref="vurl" vurl="/_vsl/77033B3DB7A3F53C9796E1DC66642FA6/9C280135/8023" vheight=" 124.4pt" vwidth=" 233.25pt" orisrc="/__local/4/48/4D/6FE1F87FD75CEC0366C29253E60_8738C8DD_1173E.png" class="img_vsb_content" style="font-family: &quot;Times New Roman&quot;; font-size: 18.6667px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 233.25pt; height: 124.4pt;"></span></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/1/E1/87/9C9123ED46542F997E440E5D973_486860D7_15EA1.png" vsbhref="vurl" vurl="/_vsl/1E1879C9123ED46542F997E440E5D973/486860D7/15EA1" vheight=" 187.8pt" vwidth=" 252.75pt" orisrc="/__local/B/C4/94/5E7C78FE6D186E8D5574B782A83_0BF39052_19B92.png" class="img_vsb_content" style="font-family: &quot;Times New Roman&quot;; font-size: 18.6667px; text-align: justify; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 252.75pt; height: 187.8pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/0/BC/F7/D498F8CE1DA4F01DACC595FD79D_5A192B13_860A.png" vsbhref="vurl" vurl="/_vsl/0BCF7D498F8CE1DA4F01DACC595FD79D/5A192B13/860A" vheight=" 147.61pt" vwidth=" 253.5pt" orisrc="/__local/0/A1/5F/15B8FAE632443FA00A3BD397CC8_9FA2F68A_1300A.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; text-align: justify; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 253.5pt; height: 147.61pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/B/AA/CF/C9D64525A751C32CE19712F4CAD_2A75E2F1_BD1A.png" vsbhref="vurl" vurl="/_vsl/BAACFC9D64525A751C32CE19712F4CAD/2A75E2F1/BD1A" vheight=" 164.25pt" vwidth=" 253.7pt" orisrc="/__local/B/4C/2D/5B3C4496911C7FACABA920BE5AF_B88BA3A1_1B2CF.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 253.7pt; height: 164.25pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/4/B8/0D/8F0320A11705C9B7B4CD1D87058_8685430A_1167E.png" vsbhref="vurl" vurl="/_vsl/4B80D8F0320A11705C9B7B4CD1D87058/8685430A/1167E" vheight=" 146.35pt" vwidth=" 253.5pt" orisrc="/__local/1/48/F3/7C8D95F5BC1DBC440C3E5B168BA_6B8702ED_1796E.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 253.5pt; height: 146.35pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/6/FA/55/A7E6B8048704E58B2F5DD7385EB_FA214312_122A8.png" vsbhref="vurl" vurl="/_vsl/6FA55A7E6B8048704E58B2F5DD7385EB/FA214312/122A8" vheight=" 175.5pt" vwidth=" 274.93pt" orisrc="/__local/3/E5/67/DC981F339C646E257A351B8E22F_C9E379DA_16574.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 274.93pt; height: 175.5pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/F/F6/ED/A1B3246CBA6F3BB6A573ED34D99_7BDC8302_BA13.png" vsbhref="vurl" vurl="/_vsl/FF6EDA1B3246CBA6F3BB6A573ED34D99/7BDC8302/BA13" vheight=" 181.44pt" vwidth=" 274.9pt" orisrc="/__local/E/DF/16/147118E0C88F6E5816980EA9163_035C1C86_19F86.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 274.9pt; height: 181.44pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/6/5B/90/0E3DBCB3434EA76285937467991_27536E64_B11B.png" vsbhref="vurl" vurl="/_vsl/65B900E3DBCB3434EA76285937467991/27536E64/B11B" vheight=" 198.3pt" vwidth=" 274.9pt" orisrc="/__local/A/B2/E8/5B09EC88259B1E72548DE85284A_21251EA5_176AD.png" class="img_vsb_content" style="font-family: 等线; font-size: 14px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 274.9pt; height: 198.3pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><img src="/__local/F/B7/73/43EFC83D86FA959748837F9F98E_4F482031_1380D.png" vsbhref="vurl" vurl="/_vsl/FB77343EFC83D86FA959748837F9F98E/4F482031/1380D" vheight=" 184.94pt" vwidth=" 274.9pt" orisrc="/__local/8/5D/62/25EEC53278E39A4E8370B3581B4_DCD56302_18426.png" class="img_vsb_content" style="font-family: &quot;Times New Roman&quot;; font-size: 18.6667px; white-space: pre-wrap; position: relative; left: 0pt; top: 0pt; width: 274.9pt; height: 184.94pt;"></p><p style="min-height: 18pt; line-height: 18pt; text-indent: 0pt; text-align: center;"><br></p></article></section>
+</div></div><div id="div_vote_id"></div>
+    	<div class="show-news03"><p>PREV：<a href="9631.htm">“Photonics Crystal Fiber Gyroscope Technology”by Professor Zhang Chunxi from Beihang University</a></p>
+	<p>NEXT：<a href="1615.htm">Global Competence Forum for Young Elites 2020</a></p></div>
+    <p align="right">【<a href="javascript:window.opener=null;window.open('','_self');window.close();" style="font-family:微软雅黑; font-size:14px; color:#000000;">Close</a>】</p>
+</div>
+</form>
+</div>
+                <div class="clear"></div>
+            </div>
+            
+            
+            <!-- footer -->
+               <div class="w10 footer">
+                <div class="w14">
+                    <div class="footer-top clear">
+                        <div class="footer-l fl"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<p>South Campus: 266 Xinglong Section of Xifeng Road, Xi’an, Shaanxi 710126</p> 
+<p>North Campus: No. 2 South Taibai Road, Xi’an, Shaanxi 710071</p></div>
+                        <div class="footer-c fl"><img src="../../images/footer04.png"></div>
+                        <div class="footer-r fr"><a href="../../Global_Initiatives/Contact_Us.htm" title="" onclick="_addDynClicks(&#34;wburl&#34;, 2133202801, 111307)">Contact</a></div>
+                    </div>
+                    <div class="copyright"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>Copyright&nbsp;2019 © xidian university all rights reserved &nbsp;support:xianjuli</p></div>
+                </div>
+            </div>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript" src="../../js/index.js"></script>
+        <script type="text/javascript" src="../../js/base.js"></script>
+        <script type="text/javascript" src="../../js/aos.js"></script>
+        <script type="text/javascript">
+            jQuery(".nav").slide({
+                type: "menu", //效果类型
+                titCell: ".m", // 鼠标触发对象
+                targetCell: ".sub", // 效果对象，必须被titCell包含
+                effect: "slideDown", //下拉效果
+                delayTime: 300, // 效果时间
+                triggerTime: 0, //鼠标延迟触发时间
+                returnDefault: true //返回默认状态
+            });
+        </script>
+        <!-- 头部固定开始 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.head3').addClass('head4');
+                    $('.back').fadeIn();
+                } else {
+                    $('.head3').removeClass('head4');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <!-- 头部固定结束 -->
+        <script type="text/javascript">
+            var doc = $(document),
+                win = $(window);
+            win.scroll(function() {
+                if (doc.scrollTop() >= 200) {
+                    $('.list-nav').addClass('list-nav2');
+                    $('.back').fadeIn();
+                } else {
+                    $('.list-nav2').removeClass('list-nav2');
+                    $('.back').fadeOut();
+                }
+            })
+            $('.back').click(function() {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 1000);
+            })
+        </script>
+        <script>
+            AOS.init({
+                easing: 'ease-out-back',
+                duration: 1000
+            });
+        </script>
+    </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,15 +1,18 @@
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { ResponsiveContainer } from '@/components/ui/ResponsiveContainer';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export const metadata = {
-  title: 'Munia | Edit Profile',
+  title: '编辑资料 | 西电知行',
 };
 
 export default function Page() {
   return (
-    <ResponsiveContainer className="mx-auto mb-4 px-4 md:px-0">
-      <h1 className="my-4 text-3xl font-bold">Edit Profile</h1>
-      <EditProfileForm />
-    </ResponsiveContainer>
+    <div>
+      <PageHeader title="编辑资料" sticky />
+      <ResponsiveContainer className="px-4 py-5 md:px-5">
+        <EditProfileForm />
+      </ResponsiveContainer>
+    </div>
   );
 }

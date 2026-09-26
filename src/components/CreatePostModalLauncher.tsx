@@ -16,23 +16,23 @@ export function CreatePostModalLauncher() {
   }, [launchCreatePost]);
 
   return (
-    <div className="rounded-xl bg-card px-4 py-4 shadow sm:px-8 sm:py-5">
-      <div className="mb-[18px] flex flex-row">
-        <div className="mr-3 h-12 w-12">
+    <div className="border-b border-border/80 px-4 py-4 sm:px-5">
+      <div className="flex flex-row items-center gap-3">
+        <div className="h-10 w-10 flex-shrink-0">
           <ProfilePhotoOwn />
         </div>
-        <ButtonNaked onPress={launcCreatePostFinderClosed} className="flex flex-grow flex-col justify-center">
-          <p className="text-muted-foreground/70">What&apos;s on your mind?</p>
+        <ButtonNaked
+          onPress={launcCreatePostFinderClosed}
+          className="flex min-h-11 flex-grow items-center rounded-full bg-secondary/80 px-4 text-left transition hover:bg-secondary">
+          <p className="text-[15px] text-muted-foreground">分享此刻，写下你的校园生活…</p>
         </ButtonNaked>
       </div>
-      <div className="flex flex-row gap-4">
+      <div className="ml-[52px] mt-3 flex flex-row gap-2">
         <ButtonNaked
           onPress={launchCreatePostFinderOpened}
-          className="group flex cursor-pointer flex-row items-center gap-4">
-          <SvgImage className="h-6 w-6 text-muted-foreground" />
-          <p className="text-base font-semibold text-muted-foreground group-hover:text-muted-foreground/80">
-            Image / Video
-          </p>
+          className="group flex cursor-pointer flex-row items-center gap-2 rounded-full px-3 py-2 text-muted-foreground transition hover:bg-secondary">
+          <SvgImage className="h-[18px] w-[18px] text-primary" />
+          <p className="text-sm font-medium group-hover:text-foreground">图片 / 视频</p>
         </ButtonNaked>
         {/* <ButtonNaked className="group flex cursor-pointer flex-row items-center gap-4">
           <EmojiHappySmile stroke="black" width={24} height={24} />

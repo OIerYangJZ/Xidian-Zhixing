@@ -16,20 +16,29 @@ export async function GET(request: Request, { params }: { params: { postId: stri
    */
   const [user] = await getServerUser();
   const userId = user?.id;
+  const sort = new URL(request.url).searchParams.get('sort') === 'time' ? 'time' : 'hot';
 
   const res: FindCommentResult[] = await prisma.comment.findMany({
     where: {
       postId: parseInt(params.postId, 10),
       parentId: null,
+      post: { OR: [{ status: 'PUBLISHED' }, { userId }] },
+      moderationCases: { none: { status: 'OPEN' } },
     },
     include: includeToComment(userId),
-    orderBy: {
-      id: 'asc',
-    },
+    orderBy: { id: 'desc' },
   });
 
   const commentsPromises = res.map(toGetComment);
   const comments = await Promise.all(commentsPromises);
+  if (sort === 'hot') {
+    comments.sort(
+      (a, b) =>
+        b._count.commentLikes - a._count.commentLikes ||
+        b._count.replies - a._count.replies ||
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+  }
 
   return NextResponse.json<GetComment[]>(comments);
 }

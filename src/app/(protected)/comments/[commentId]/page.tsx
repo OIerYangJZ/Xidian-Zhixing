@@ -16,7 +16,7 @@ export default async function Page({ params }: { params: { commentId: string } }
       parentId: true,
     },
   });
-  if (!comment) return <p>This comment or reply no longer exists.</p>;
+  if (!comment) return <p className="px-4 py-6 text-sm text-muted-foreground">这条评论或回复已不存在。</p>;
   const { id: commentId, parentId, postId } = comment;
 
   const searchParams = new URLSearchParams('');

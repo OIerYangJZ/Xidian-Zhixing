@@ -46,7 +46,7 @@ export function Activities({ userId }: { userId: string }) {
   return (
     <>
       {isPending ? (
-        <GenericLoading>Loading activities</GenericLoading>
+        <GenericLoading>正在加载互动</GenericLoading>
       ) : isError ? (
         <SomethingWentWrong />
       ) : (
@@ -61,7 +61,7 @@ export function Activities({ userId }: { userId: string }) {
          * so the bottom loader has to be hidden first
          */
         style={bottomLoaderStyle}>
-        {hasNextPage && <GenericLoading>Loading more notifications</GenericLoading>}
+        {hasNextPage && <GenericLoading>正在加载更多互动</GenericLoading>}
       </div>
       {isError && <SomethingWentWrong />}
       {!isError && !isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}

@@ -1,0 +1,293 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>职繁业茂 | 第五十期：就业指导活动回顾——“职场小白入职避坑指南”-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="职繁业茂 | 第五十期：就业指导活动回顾——“职场小白入职避坑指南”">
+<META Name="keywords" Content="本科生院,西安电子科技大学,职,入,小白,指导,就业,职场,活动,回顾,茂,避,业,坑,繁,指南" />
+<META Name="description" Content="为强化学生目标引领和专业引领，促进学业发展，明晰人生目标，本科生导师进社区系列分享交流活动正在持续进行。第六周，高年级学生社区（2021级）共举办分享交流活动6期，6位老师进驻社区，为学生进行更专业、更前沿、更具深度的学术引领。让我们一起来回顾一下本周精彩的导学现场吧！3月24日周一/五号楼前沿交叉院 符吉祥如何利用AI工具高质量完成毕业设计任务3月26日周三/五号楼数学与统计学院 高志鹏    马氏过程及其应用，论文写作指导3月27日周四/..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1020,'/content.jsp',25452,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+书院风采</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>职繁业茂 | 第五十期：就业指导活动回顾——“职场小白入职避坑指南”</h3>
+   <div class="time"><span>发布时间：</span>2025-04-01 15:42:32<span>来源：</span>
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 25452)</script></div>
+
+    
+    <div id="vsb_content"><div class="v_news_content">
+<style>.docx-wrapper { background: gray; padding: 30px; padding-bottom: 0px; display: flex; flex-flow: column; align-items: center;} .docx-wrapper>section.docx { background: white; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); margin-bottom: 30px;}.docx { color: black; hyphens: auto;}section.docx { box-sizing: border-box; display: flex; flex-flow: column nowrap; position: relative; overflow: hidden;}section.docx>article { margin-bottom: auto; z-index: 1;}section.docx>footer { z-index: 1;}.docx table { border-collapse: collapse;}.docx table td, .docx table th { vertical-align: top;}.docx p { margin: 0pt !important; min-height: 1em;}.docx span { white-space: pre-wrap; overflow-wrap: break-word;}.docx a { color: inherit; text-decoration: inherit;}</style><style>.docx {  --docx-majorhansi-font: Cambria;  --docx-minorhansi-font: Calibri;  --docx-dk1-color: #000000;  --docx-lt1-color: #FFFFFF;  --docx-dk2-color: #1F497D;  --docx-lt2-color: #EEECE1;  --docx-accent1-color: #4F81BD;  --docx-accent2-color: #C0504D;  --docx-accent3-color: #9BBB59;  --docx-accent4-color: #8064A2;  --docx-accent5-color: #4BACC6;  --docx-accent6-color: #F79646;  --docx-hlink-color: #0000FF;  --docx-folhlink-color: #800080;}</style><style>.docx span {  font-family: Calibri;}.docx p, p.docx_1 {  text-align: justify;}.docx p, p.docx_1 span {  font-family: Calibri;  min-height: 10.50pt;  font-size: 10.50pt;}.docx table, table.docx_2 td {  padding-top: 0.00pt;  padding-left: 5.40pt;  padding-bottom: 0.00pt;  padding-right: 5.40pt;}</style><section class="docx"><article><p style="line-height: 1.5; margin-left: 10pt; text-align: center; text-indent: 0pt;"><br></p><p style="line-height: 1.5; text-indent: 21pt; margin-left: 10pt; margin-right: 0pt;"><span lang="en-US">为强化学生目标引领和专业引领，促进学业发展，明晰人生目标，本科生导师进社区系列分享交流活动正在持续进行。第六周，高年级学生社区（2021级）共举办分享交流活动6期，6位老师进驻社区，为学生进行更专业、更前沿、更具深度的学术引领。让我们一起来回顾一下本周精彩的导学现场吧！</span></p><p style="line-height: 1.5; margin-left: 10pt; text-indent: 0pt;"><span lang="en-US">3月24日周一/五号楼前沿交叉院 符吉祥如何利用AI工具高质量完成毕业设计任务</span></p><p style="line-height: 1.5; margin-left: 10pt; text-align: center; text-indent: 0pt;"><span style=" position: relative; text-indent: 0px; width: 207pt; height: 155.25pt;"><img src="/__local/4/94/CC/091AE5E1ED8E9C8241BC98B699A_6CEF8203_1C6DA.png" vsbhref="vurl" vurl="/_vsl/494CC091AE5E1ED8E9C8241BC98B699A/6CEF8203/1C6DA" vheight=" 155.25pt" vwidth=" 207pt" orisrc="/__local/2/3F/5E/F64BD78079AF3975153F690501F_731CC1EF_4C59C.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 207pt; height: 155.25pt;"></span></p><p style="line-height: 1.5; margin-left: 10pt; text-indent: 0pt;"><span lang="en-US">3月26日周三/五号楼数学与统计学院 高志鹏&nbsp; &nbsp;&nbsp;马氏过程及其应用，论文写作指导</span></p><p style="line-height: 1.5; margin-left: 10pt; text-align: center; text-indent: 0pt;"><span style=" position: relative; text-indent: 0px; width: 207pt; height: 155.2pt;"><img src="/__local/1/BD/EB/31762E5C780DA066F796739837A_1EF2E3D4_1805E.png" vsbhref="vurl" vurl="/_vsl/1BDEB31762E5C780DA066F796739837A/1EF2E3D4/1805E" vheight=" 155.25pt" vwidth=" 207pt" orisrc="/__local/6/46/54/02D016275501A635B1C2AB1B144_F764F8F0_365DC.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 207pt; height: 155.25pt;"></span></p><p style="line-height: 1.5; margin-left: 10pt; text-indent: 0pt;"><span lang="en-US">3月27日周四/五号楼数学与统计学院 李童庆偏微分方程反问题简介，论文写作指导</span></p><p style="line-height: 1.5; margin-left: 10pt; text-align: center; text-indent: 0pt;"><span style=" position: relative; text-indent: 0px; width: 207pt; height: 155.15pt;"><img src="/__local/F/FB/7E/F9DE66F4475721AC239667FEC01_2E521DB7_199FC.png" vsbhref="vurl" vurl="/_vsl/FFB7EF9DE66F4475721AC239667FEC01/2E521DB7/199FC" vheight=" 155.16pt" vwidth=" 207pt" orisrc="/__local/1/3F/03/F7CB4C1DBDB7CF315118A3131E4_EE145442_43E42.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 207pt; height: 155.16pt;"></span></p><p style="line-height: 1.5; margin-left: 10pt; text-indent: 0pt;"><span lang="en-US">3月27日周四/五号楼先进材料与纳米科技学院 苏晨如何写好毕设论文</span></p><p style="line-height: 1.5; margin-left: 10pt; text-align: center; text-indent: 0pt;"><span style=" position: relative; text-indent: 0px; width: 207pt; height: 155.25pt;"><img src="/__local/C/39/D1/7E990FE2F451B00DF5A288B374E_AF794FA2_1AA15.png" vsbhref="vurl" vurl="/_vsl/C39D17E990FE2F451B00DF5A288B374E/AF794FA2/1AA15" vheight=" 155.25pt" vwidth=" 207pt" orisrc="/__local/E/59/E0/A34B4B110681D11655E7E7312F2_352AC68A_40D23.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 207pt; height: 155.25pt;"></span></p><p style="line-height: 1.5; margin-left: 10pt; text-indent: 0pt;"><span lang="en-US">3月28日周五/五号楼数学与统计学院 白旭清控制中的数学问题，论文写作指导</span></p><p style="text-indent: 0pt;"><br></p><p style="text-align: center; text-indent: 0pt;"><span style=" position: relative; text-indent: 0px; width: 207pt; height: 155.3pt;"><img src="/__local/5/B1/93/9B79DFFF2E843EC086961F5A39C_A3E86BAA_1B72B.png" vsbhref="vurl" vurl="/_vsl/5B1939B79DFFF2E843EC086961F5A39C/A3E86BAA/1B72B" vheight=" 155.33pt" vwidth=" 207pt" orisrc="/__local/F/A2/81/7648C04080D9651DEFE74890A59_F876F01D_4CA01.png" class="img_vsb_content" style="position: relative; left: 0pt; top: 0pt; width: 207pt; height: 155.33pt;"></span><span id="_GoBack"></span></p><p style="text-indent: 0pt;"><br></p><p style="text-indent: 0pt;"><br></p><p style="text-indent: 0pt;"><br></p><p style="text-indent: 0pt;"><br></p><p style="text-indent: 0pt;"><br></p></article></section>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：许溪</div>
+    
+
+
+
+<div class="pn"> <span>上一篇：</span><a href="25542.htm">以劳益美 | 郁金香盛放：共赴春约</a>
+<br />
+          <br />
+          <span>下一篇：</span><a href="25412.htm">社区导学 | 第五周社区导学活动精彩回顾</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

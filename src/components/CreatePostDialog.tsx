@@ -4,7 +4,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { GetVisualMedia } from '@/types/definitions';
 import { useWritePostMutations } from '@/hooks/mutations/useWritePostMutations';
 import { useDialogs } from '@/hooks/useDialogs';
-import { capitalize } from 'lodash';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { ToEditValues } from '@/lib/createPost';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
@@ -66,8 +65,8 @@ export function CreatePostDialog({
 
   const confirmExit = useCallback(() => {
     confirm({
-      title: 'Unsaved Changes',
-      message: 'Do you really wish to exit?',
+      title: '保留未发布内容？',
+      message: '退出后，这条动态的草稿会被丢弃。',
       onConfirm: () => setTimeout(() => exit(), 300),
     });
   }, [confirm, exit]);
@@ -119,7 +118,7 @@ export function CreatePostDialog({
   }, []);
 
   return (
-    <GenericDialog title={`${capitalize(mode)} Post`} handleClose={handleClose}>
+    <GenericDialog title={mode === 'create' ? '发布动态' : '编辑动态'} handleClose={handleClose}>
       <div className="mb-[18px] flex flex-row gap-3 px-4">
         <div className="h-11 w-11">
           <ProfilePhotoOwn />
@@ -128,7 +127,7 @@ export function CreatePostDialog({
           <TextAreaWithMentionsAndHashTags
             content={content}
             setContent={setContent}
-            placeholder="What's on your mind?"
+            placeholder="分享此刻，写下你的校园生活…"
           />
         </div>
         <div>
@@ -137,7 +136,7 @@ export function CreatePostDialog({
             size="small"
             isDisabled={content === '' && visualMedia.length === 0}
             loading={createPostMutation.isPending || updatePostMutation.isPending}>
-            Post
+            {mode === 'create' ? '发布' : '保存'}
           </Button>
         </div>
       </div>

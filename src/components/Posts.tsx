@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { NO_PREV_DATA_LOADED, POSTS_PER_PAGE } from '@/constants';
 import { chunk } from 'lodash';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
+import { useLanguage } from '@/hooks/useLanguage';
 import { deductLowerMultiple } from '@/lib/deductLowerMultiple';
 import SvgForwardArrow from '@/svg_components/ForwardArrow';
 import { postFramerVariants } from '@/lib/framerVariants';
@@ -16,6 +17,7 @@ import { ButtonNaked } from './ui/ButtonNaked';
 import { AllCaughtUp } from './AllCaughtUp';
 import { Post } from './Post';
 import { GenericLoading } from './GenericLoading';
+import { PostSkeleton } from './PostSkeleton';
 
 // If the `type` is 'profile' or 'feed', the `userId` property is required
 // If the `type` is 'hashtag', the `hashtag` property is required
@@ -29,9 +31,15 @@ type PostsProps =
       type: 'profile' | 'feed';
       userId: string;
       hashtag?: undefined;
+    }
+  | {
+      type: 'bookmarks';
+      userId: string;
+      hashtag?: undefined;
     };
 
 export function Posts({ type, hashtag, userId }: PostsProps) {
+  const { t } = useLanguage();
   const qc = useQueryClient();
   // Need to memoize `queryKey`, so when used in a dependency array, it won't trigger the `useEffect`/`useCallback`
   const queryKey = useMemo(
@@ -73,7 +81,7 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
       const fetchUrl =
         type === 'hashtag'
           ? `/api/posts/hashtag/${hashtag}`
-          : `/api/users/${userId}/${type === 'profile' ? 'posts' : 'feed'}`;
+          : `/api/users/${userId}/${type === 'profile' ? 'posts' : type === 'bookmarks' ? 'bookmarks' : 'feed'}`;
       const res = await fetch(`${fetchUrl}?${params.toString()}`);
 
       if (!res.ok) throw Error('Failed to load posts.');
@@ -222,14 +230,18 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
                   <SvgForwardArrow className="h-5 w-5" />
                 </div>
                 <p className="text-primary-foreground">
-                  <b>{numberOfNewPostsLoaded}</b> new {numberOfNewPostsLoaded > 1 ? 'posts' : 'post'} loaded
+                  {t('已有', '')} <b>{numberOfNewPostsLoaded}</b> {t('条新动态', 'new posts')}
                 </p>
               </ButtonNaked>
             </motion.div>
           )}
         </AnimatePresence>
         {isPending ? (
-          <GenericLoading>Loading posts</GenericLoading>
+          <div>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </div>
         ) : (
           <AnimatePresence>
             {data?.pages.map((page) =>
@@ -257,7 +269,7 @@ export function Posts({ type, hashtag, userId }: PostsProps) {
          * so the bottom loader has to be hidden first
          */
         style={bottomLoaderStyle}>
-        {isFetchingNextPage && <GenericLoading>Loading more posts...</GenericLoading>}
+        {isFetchingNextPage && <GenericLoading>{t('正在加载更多动态…', 'Loading more posts…')}</GenericLoading>}
       </div>
       {isError && error.message !== NO_PREV_DATA_LOADED && <SomethingWentWrong />}
       {!isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}

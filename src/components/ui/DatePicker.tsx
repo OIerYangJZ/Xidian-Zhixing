@@ -42,7 +42,7 @@ export function DatePicker({ triggerRef, ...props }: DatePickerProps) {
     <>
       <div
         className={cn(
-          'relative flex-col rounded-2xl bg-input pb-2 pr-5 pt-8 text-left outline-none ring-foreground focus-within:ring-2',
+          'relative flex-col rounded-lg bg-input pb-2 pr-5 pt-8 text-left outline-none ring-foreground focus-within:ring-2',
           isError && 'bg-destructive ring-destructive-foreground focus-within:ring-4',
         )}>
         <span

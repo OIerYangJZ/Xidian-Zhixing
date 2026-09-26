@@ -11,6 +11,7 @@ import { Item, Section } from 'react-stately';
 import { useCreateCommentMutations } from '@/hooks/mutations/useCreateCommentMutations';
 import { useUpdateDeleteComments } from '@/hooks/useUpdateDeleteComments';
 import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
+import { useLanguage } from '@/hooks/useLanguage';
 import { QueryKey } from '@tanstack/react-query';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { ButtonNaked } from './ui/ButtonNaked';
@@ -38,6 +39,7 @@ export const Comment = memo(
     queryKey: QueryKey;
   }) => {
     const numberOfLikes = _count.commentLikes;
+    const { t } = useLanguage();
     const numberOfReplies = _count.replies;
     const { prompt } = useDialogs();
     const { createReplyMutation } = useCreateCommentMutations();
@@ -54,8 +56,8 @@ export const Comment = memo(
     );
     const handleCreateReply = useCallback(() => {
       prompt({
-        title: 'Reply',
-        message: `You are replying to ${author.name}'s comment.`,
+        title: t('回复评论', 'Reply to comment'),
+        message: t(`你正在回复 ${author.name} 的评论。`, `You are replying to ${author.name}'s comment.`),
         promptType: 'textarea',
         onSubmit: (value) => {
           createReplyMutation.mutate(
@@ -69,7 +71,7 @@ export const Comment = memo(
           );
         },
       });
-    }, [author.name, commentId, createReplyMutation, prompt, repliesShown, toggleReplies]);
+    }, [author.name, commentId, createReplyMutation, prompt, repliesShown, toggleReplies, t]);
     const handleLikeToggle = useCallback(
       (isSelected: boolean) => (isSelected ? likeComment({ commentId }) : unLikeComment({ commentId })),
       [commentId, likeComment, unLikeComment],
@@ -95,12 +97,12 @@ export const Comment = memo(
     }, []);
 
     return (
-      <div className="flex gap-4">
-        <div className="h-10 w-10 flex-shrink-0">
+      <div className="relative flex gap-3 before:absolute before:bottom-0 before:left-5 before:top-11 before:w-px before:bg-border">
+        <div className="relative z-[1] h-10 w-10 flex-shrink-0 rounded-full bg-background">
           <ProfilePhoto name={author.name} username={author.username} photoUrl={author.profilePhoto} />
         </div>
 
-        <div>
+        <div className="min-w-0 flex-1">
           <CommentContent
             name={author.name}
             username={author.username}
@@ -121,22 +123,28 @@ export const Comment = memo(
             {isOwnComment && (
               <DropdownMenuButton
                 key={`comments-${commentId}-options`}
-                label="Comment options"
+                label={t('评论选项', 'Comment options')}
                 onAction={onDropdownAction}>
                 <Section>
-                  <Item key="edit">Edit comment</Item>
-                  <Item key="delete">Delete comment</Item>
+                  <Item key="edit">{t('编辑评论', 'Edit comment')}</Item>
+                  <Item key="delete">{t('删除评论', 'Delete comment')}</Item>
                 </Section>
               </DropdownMenuButton>
             )}
           </div>
 
-          {repliesShown && <CommentReplies parentId={commentId} />}
+          {repliesShown && (
+            <div className="ml-5 mt-1 border-l border-border pl-3">
+              <CommentReplies parentId={commentId} />
+            </div>
+          )}
           {numberOfReplies !== 0 && (
             <ButtonNaked
               onPress={toggleReplies}
               className="my-1 cursor-pointer text-sm font-semibold text-muted-foreground hover:text-muted-foreground/70">
-              {!repliesShown ? `Show ${numberOfReplies} replies...` : 'Hide replies'}
+              {!repliesShown
+                ? t(`查看 ${numberOfReplies} 条回复`, `View ${numberOfReplies} replies`)
+                : t('收起回复', 'Hide replies')}
             </ButtonNaked>
           )}
         </div>

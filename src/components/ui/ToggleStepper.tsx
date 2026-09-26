@@ -4,29 +4,32 @@ import { VariantProps, cva } from 'class-variance-authority';
 import { AriaToggleButtonProps, mergeProps, useFocusRing, useToggleButton } from 'react-aria';
 import { useToggleState } from 'react-stately';
 
-const toggle = cva('flex cursor-pointer select-none items-center gap-3 rounded-full px-4 py-2 active:ring-4', {
-  variants: {
-    color: {
-      red: 'hover:bg-destructive-foreground/30 focus:outline-none',
-      blue: 'hover:bg-blue-200 focus:outline-none dark:hover:bg-blue-900',
-      purple: 'hover:bg-primary-accent/30 focus:outline-none',
+const toggle = cva(
+  'flex min-w-12 cursor-pointer select-none items-center gap-2 rounded-full px-2 py-2 text-sm active:ring-4',
+  {
+    variants: {
+      color: {
+        red: 'hover:bg-rose-500/10 focus:outline-none',
+        blue: 'hover:bg-sky-500/10 focus:outline-none',
+        accent: 'hover:bg-primary/10 focus:outline-none',
+      },
+    },
+    defaultVariants: {
+      color: 'accent',
     },
   },
-  defaultVariants: {
-    color: 'purple',
-  },
-});
+);
 
-const icon = cva('h-6 w-6', {
+const icon = cva('h-[18px] w-[18px]', {
   variants: {
     color: {
-      red: 'fill-destructive-foreground',
-      blue: 'fill-blue-500 dark:fill-blue-600',
-      purple: 'fill-primary-accent',
+      red: 'fill-rose-500',
+      blue: 'fill-sky-500',
+      accent: 'fill-primary',
     },
   },
   defaultVariants: {
-    color: 'purple',
+    color: 'accent',
   },
 });
 
@@ -50,10 +53,10 @@ export function ToggleStepper({ Icon, quantity, noun, color, ...rest }: ToggleSt
       className={cn(
         'transition-transform active:scale-90',
         toggle({ color }),
-        isFocusVisible && 'ring-2 ring-violet-500 ring-offset-2',
+        isFocusVisible && 'ring-2 ring-primary ring-offset-2',
       )}>
       <Icon width={24} height={24} className={cn(state.isSelected ? icon({ color }) : 'stroke-muted-foreground')} />
-      <p className="text-lg font-medium text-muted-foreground">
+      <p className="text-xs font-medium text-muted-foreground">
         {quantity} {noun !== undefined ? (quantity === 1 ? noun : `${noun}s`) : ''}
       </p>
     </button>

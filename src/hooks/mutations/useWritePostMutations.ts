@@ -7,6 +7,14 @@ import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { useToast } from '../useToast';
 import { useErrorNotifier } from '../useErrorNotifier';
 
+async function readPostResponse(response: Response) {
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(payload?.error || response.statusText);
+  }
+  return (await response.json()) as GetPost;
+}
+
 export function useWritePostMutations({
   content,
   visualMedia,
@@ -30,7 +38,7 @@ export function useWritePostMutations({
       if (url.startsWith('blob:')) {
         // If the url is a blob, fetch the blob and append it to the formData
         const file = await fetch(url).then((r) => r.blob());
-        formData.append('files', file, file.name);
+        formData.append('files', file, 'upload');
       } else {
         // If the url is a link, just append it to the formData
         formData.append('files', url);
@@ -48,37 +56,38 @@ export function useWritePostMutations({
         body: await generateFormData(),
       });
 
-      if (!res.ok) throw new Error(res.statusText);
-      // Return the created post to be used by callbacks.
-      return (await res.json()) as GetPost;
+      return readPostResponse(res);
     },
     onSuccess: (createdPost) => {
       // Create a query for the created post
       qc.setQueryData(['posts', createdPost.id], createdPost);
 
-      // Update the inifinite query of `PostIds`
-      qc.setQueriesData<InfiniteData<PostIds>>({ queryKey }, (oldData) => {
-        if (!oldData) return oldData;
+      if (createdPost.status === 'PUBLISHED')
+        qc.setQueriesData<InfiniteData<PostIds>>({ queryKey }, (oldData) => {
+          if (!oldData) return oldData;
 
-        // Flatten the old pages first then prepend the newly created post
-        const newPosts = [{ id: createdPost.id, commentsShown: false }, ...(oldData?.pages ?? []).flat()];
+          // Flatten the old pages first then prepend the newly created post
+          const newPosts = [{ id: createdPost.id, commentsShown: false }, ...(oldData?.pages ?? []).flat()];
 
-        // Chunk the `newPosts` depending on the number of posts per page
-        const newPages = chunk(newPosts, POSTS_PER_PAGE);
+          // Chunk the `newPosts` depending on the number of posts per page
+          const newPages = chunk(newPosts, POSTS_PER_PAGE);
 
-        const newPageParams = [
-          // The first `pageParam` is undefined as the initial page does not use a `pageParam`
-          undefined,
-          // Create the new `pageParams`, it must contain the id of each page's (except last page's) last post
-          ...newPages.slice(0, -1).map((page) => page.at(-1)?.id),
-        ];
+          const newPageParams = [
+            // The first `pageParam` is undefined as the initial page does not use a `pageParam`
+            undefined,
+            // Create the new `pageParams`, it must contain the id of each page's (except last page's) last post
+            ...newPages.slice(0, -1).map((page) => page.at(-1)?.id),
+          ];
 
-        return {
-          pages: newPages,
-          pageParams: newPageParams,
-        };
+          return {
+            pages: newPages,
+            pageParams: newPageParams,
+          };
+        });
+      showToast({
+        title: createdPost.status === 'PUBLISHED' ? '发布成功' : '已提交审核，通过后会公开显示',
+        type: 'success',
       });
-      showToast({ title: 'Successfully Posted', type: 'success' });
       revokeVisualMediaObjectUrls(visualMedia);
       exitCreatePostModal();
     },
@@ -94,9 +103,7 @@ export function useWritePostMutations({
         body: await generateFormData(),
       });
 
-      if (!res.ok) throw new Error(res.statusText);
-      // Return the created post to be used by callbacks.
-      return (await res.json()) as GetPost;
+      return readPostResponse(res);
     },
     onSuccess: (updatedPost) => {
       // Update the query for the updated post
@@ -107,23 +114,26 @@ export function useWritePostMutations({
         if (!oldData) return oldData;
 
         // Flatten the old pages first
-        const oldPosts = oldData?.pages.flat();
-
-        // Find the index of the updated post
-        const index = oldPosts?.findIndex((post) => post.id === updatedPost.id);
-
-        // Write the updated post
-        oldPosts[index] = {
-          id: updatedPost.id,
-          commentsShown: false,
-        };
+        const oldPosts = oldData.pages.flat();
+        const index = oldPosts.findIndex((post) => post.id === updatedPost.id);
+        const newPosts =
+          updatedPost.status === 'PUBLISHED'
+            ? index < 0
+              ? oldPosts
+              : oldPosts.map((post) =>
+                  post.id === updatedPost.id ? { id: updatedPost.id, commentsShown: false } : post,
+                )
+            : oldPosts.filter((post) => post.id !== updatedPost.id);
 
         return {
-          pages: chunk(oldPosts, POSTS_PER_PAGE),
+          pages: chunk(newPosts, POSTS_PER_PAGE),
           pageParams: oldData.pageParams,
         };
       });
-      showToast({ title: 'Successfully Edited', type: 'success' });
+      showToast({
+        title: updatedPost.status === 'PUBLISHED' ? '动态已更新' : '已提交审核，通过后会公开显示',
+        type: 'success',
+      });
       revokeVisualMediaObjectUrls(visualMedia);
       exitCreatePostModal();
     },

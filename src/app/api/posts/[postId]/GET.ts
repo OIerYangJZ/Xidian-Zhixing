@@ -19,10 +19,31 @@ export async function GET(request: Request, { params }: { params: { postId: stri
   const res = await prisma.post.findUnique({
     where: {
       id: parseInt(params.postId, 10),
+      OR: [
+        { status: 'PUBLISHED', moderationCases: { none: { status: 'OPEN' } } },
+        ...(user?.id ? [{ userId: user.id }] : []),
+      ],
+      ...(user?.id && {
+        NOT: [
+          { user: { blocksMade: { some: { blockedId: user.id } } } },
+          { user: { blocksReceived: { some: { blockerId: user.id } } } },
+        ],
+      }),
     },
     select: selectPost(user?.id),
   });
 
   if (res === null) return NextResponse.json(null);
-  return NextResponse.json<GetPost>(await toGetPost(res));
+  return NextResponse.json<GetPost>(await toGetPost(res, user?.id));
+}
+
+export async function POST(_request: Request, { params }: { params: { postId: string } }) {
+  const postId = Number.parseInt(params.postId, 10);
+  if (!Number.isInteger(postId)) return NextResponse.json({ error: 'Invalid post id.' }, { status: 400 });
+  const post = await prisma.post.update({
+    where: { id: postId },
+    data: { viewCount: { increment: 1 } },
+    select: { viewCount: true },
+  });
+  return NextResponse.json(post);
 }

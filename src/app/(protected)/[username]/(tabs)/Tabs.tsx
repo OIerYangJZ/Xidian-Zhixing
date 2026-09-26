@@ -8,12 +8,15 @@ export default function Tabs({ isOwnProfile }: { isOwnProfile: boolean }) {
   const parentLayoutSegment = `/${usePathname().split('/')[1]}`;
 
   return (
-    <div className="mt-4 inline-flex flex-row gap-6 overflow-x-auto border-b-[1px] border-muted">
+    <div className="mt-5 flex flex-row justify-around gap-3 overflow-x-auto border-b border-border/80">
       {[
-        { title: 'Posts', segment: parentLayoutSegment },
-        { title: 'Photos', segment: `${parentLayoutSegment}/photos` },
-        { title: 'About', segment: `${parentLayoutSegment}/about` },
-        ...[isOwnProfile ? { title: 'Activity', segment: `${parentLayoutSegment}/activity` } : undefined],
+        { title: '动态', segment: parentLayoutSegment },
+        { title: '媒体', segment: `${parentLayoutSegment}/photos` },
+        {
+          title: isOwnProfile ? '收藏' : '简介',
+          segment: `${parentLayoutSegment}/${isOwnProfile ? 'bookmarks' : 'about'}`,
+        },
+        ...[isOwnProfile ? { title: '互动', segment: `${parentLayoutSegment}/activity` } : undefined],
       ].map((item) => {
         if (!item) return null;
         const { title, segment } = item;

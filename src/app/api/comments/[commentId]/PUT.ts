@@ -12,6 +12,7 @@ import { includeToComment } from '@/lib/prisma/includeToComment';
 import { toGetComment } from '@/lib/prisma/toGetComment';
 import { convertMentionUsernamesToIds } from '@/lib/convertMentionUsernamesToIds';
 import { mentionsActivityLogger } from '@/lib/mentionsActivityLogger';
+import { assessPostText } from '@/lib/moderation/text';
 import { z } from 'zod';
 import { verifyAccessToComment } from './verifyAccessToComment';
 
@@ -21,13 +22,20 @@ export async function PUT(request: Request, { params }: { params: { commentId: s
   const userId = user?.id;
   const commentId = parseInt(params.commentId, 10);
 
-  if (!verifyAccessToComment(commentId)) {
+  if (!(await verifyAccessToComment(commentId))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
   }
 
   try {
     const body = await request.json();
     let { content } = commentWriteSchema.parse(body);
+    const moderation = assessPostText(content);
+    if (moderation.decision !== 'approve') {
+      return NextResponse.json(
+        { error: '评论命中平台审核规则，请修改后重试。', reasons: moderation.reasons },
+        { status: 422 },
+      );
+    }
     const { str, usersMentioned } = await convertMentionUsernamesToIds({
       str: content,
     });

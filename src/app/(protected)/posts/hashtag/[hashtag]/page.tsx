@@ -1,9 +1,10 @@
 import { Posts } from '@/components/Posts';
+import { PageHeader } from '@/components/ui/PageHeader';
 
 export default function Page({ params }: { params: { hashtag: string } }) {
   return (
-    <div className="px-4 pt-4">
-      <h1 className="mb-4 text-4xl font-bold">#{params.hashtag}</h1>
+    <div>
+      <PageHeader title={`#${params.hashtag}`} sticky />
       <Posts type="hashtag" hashtag={params.hashtag} />
     </div>
   );

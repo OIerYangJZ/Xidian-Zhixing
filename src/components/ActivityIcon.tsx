@@ -7,35 +7,35 @@ import { ActivityType } from '@prisma/client';
 
 function CreateFollowNotificationIcon() {
   return (
-    <div className="absolute -bottom-2 right-0 rounded-full bg-gradient-to-r from-pink-400 to-red-500 p-2">
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-primary p-1 ring-2 ring-background">
       <SvgProfile width={18} height={18} stroke="white" />
     </div>
   );
 }
 function LikeNotificationIcon() {
   return (
-    <div className="absolute -bottom-2 right-0 rounded-full bg-gradient-to-r from-violet-400 to-violet-500 p-2">
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-rose-500 p-1 ring-2 ring-background">
       <SvgHeart width={18} height={18} stroke="white" />
     </div>
   );
 }
 function MentionNotificationIcon() {
   return (
-    <div className="absolute -bottom-2 right-0 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-2">
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-primary p-1 ring-2 ring-background">
       <SvgAtSign width={18} height={18} stroke="white" />
     </div>
   );
 }
 function CreateCommentNotificationIcon() {
   return (
-    <div className="absolute -bottom-2 right-0 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 p-2">
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-sky-500 p-1 ring-2 ring-background">
       <SvgComment width={18} height={18} stroke="white" />
     </div>
   );
 }
 function CreateReplyNotificationIcon() {
   return (
-    <div className="absolute -bottom-2 right-0 rounded-full bg-gradient-to-r from-blue-400 to-blue-500 p-2">
+    <div className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-sky-500 p-1 ring-2 ring-background">
       <SvgArrowReply width={18} height={18} stroke="white" />
     </div>
   );

@@ -191,9 +191,9 @@ export function TextAreaWithMentionsAndHashTags({
           className="min-w-[200px]">
           <ul className="max-h-[242px] w-full overflow-auto border border-border bg-popover outline-none">
             {isPending ? (
-              <li>Loading...</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">正在查找同学…</li>
             ) : isError ? (
-              <li>Error Loading users.</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">暂时无法加载同学。</li>
             ) : data.length > 0 ? (
               data.map((user) => (
                 <TextAreaMentionItem
@@ -204,7 +204,7 @@ export function TextAreaWithMentionsAndHashTags({
                 />
               ))
             ) : (
-              <li>No users found.</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">没有找到同学。</li>
             )}
           </ul>
         </Popover>

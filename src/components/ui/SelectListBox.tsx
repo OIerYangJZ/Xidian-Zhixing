@@ -80,7 +80,7 @@ export function ListBox(props: ListBoxProps) {
     <ul
       {...listBoxProps}
       ref={listBoxRef}
-      className="w-full origin-top scale-95 overflow-auto rounded-xl border border-border bg-popover py-2 outline-none transition-transform focus-within:scale-100">
+      className="w-full origin-top scale-95 overflow-auto rounded-md border border-border bg-popover py-2 outline-none transition-transform focus-within:scale-100">
       {[...state.collection].map((item) =>
         item.type === 'section' ? (
           <ListBoxSection key={item.key} section={item} state={state} />

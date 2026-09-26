@@ -8,7 +8,7 @@ import { selectPost } from '@/lib/prisma/selectPost';
 import { GetPost } from '@/types/definitions';
 import { toGetPost } from '@/lib/prisma/toGetPost';
 import { getServerUser } from '@/lib/getServerUser';
-import { usePostsSorter } from '@/hooks/usePostsSorter';
+import { getPostsSorter } from '@/hooks/usePostsSorter';
 
 export async function GET(request: Request, { params }: { params: { hashtag: string } }) {
   /**
@@ -16,10 +16,12 @@ export async function GET(request: Request, { params }: { params: { hashtag: str
    * user requesting the Posts have like them or not.
    */
   const [user] = await getServerUser();
-  const { filters, limitAndOrderBy } = usePostsSorter(request.url);
+  const { filters, limitAndOrderBy } = getPostsSorter(request.url);
 
   const res = await prisma.post.findMany({
     where: {
+      status: 'PUBLISHED',
+      moderationCases: { none: { status: 'OPEN' } },
       content: {
         search: params.hashtag,
       },
@@ -29,7 +31,7 @@ export async function GET(request: Request, { params }: { params: { hashtag: str
     select: selectPost(user?.id),
   });
 
-  const postsPromises = res.map(toGetPost);
+  const postsPromises = res.map((post) => toGetPost(post, user?.id));
   const posts = await Promise.all(postsPromises);
 
   return NextResponse.json<GetPost[] | null>(posts);

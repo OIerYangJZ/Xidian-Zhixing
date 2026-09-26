@@ -39,18 +39,17 @@ model Session {
 model User {
   // Do not change the `id` field, it must be permanent and immutable.
   id                 String              @id @default(cuid())
+  status             UserStatus          @default(ACTIVE)
+  role               UserRole            @default(USER)
   // The `username` can be updated anytime by the user.
   // It will acquire the `id` as its default value.
   username           String?             @unique
   email              String?             @unique
   name               String?
-  gender             Gender?
-  birthDate          DateTime?
-  phoneNumber        String?
-  address            String?
   bio                String?
   website            String?
-  relationshipStatus RelationshipStatus?
+  allowStrangerDm    Boolean             @default(false)
+  showContactable    Boolean             @default(false)
   emailVerified      DateTime?
   image              String?
   accounts           Account[]
@@ -66,6 +65,23 @@ model User {
   following          Follow[]            @relation("follower")
   activities         Activity[]          @relation("activity")
   notifications      Activity[]          @relation("notification")
+  institutionIdentities InstitutionIdentity[]
+  xidianLoginAttempts XidianLoginAttempt[]
+  spaceMemberships  SpaceMembership[]
+  bookmarks         Bookmark[]
+  reposts           Repost[]
+  blocksMade        UserBlock[]          @relation("blocker")
+  blocksReceived    UserBlock[]          @relation("blocked")
+  conversationLinks ConversationParticipant[]
+  sentMessages      Message[]
+  submittedReports  Report[]
+  openedCases       ModerationCase[]     @relation("caseOpener")
+  assignedCases     ModerationCase[]     @relation("caseAssignee")
+  appeals           Appeal[]
+  workflowRequests  WorkflowRequest[]    @relation("requester")
+  reviewedRequests  WorkflowRequest[]    @relation("reviewer")
+  notificationPreference NotificationPreference?
+  aiConversations    AiConversation[]
 }
 
 model VerificationToken {
@@ -78,9 +94,9 @@ model VerificationToken {
 
 model Follow {
   id          Int    @id @default(autoincrement())
-  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Restrict)
   followerId  String
-  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Restrict)
   followingId String
 
   @@unique([followerId, followingId])
@@ -88,19 +104,35 @@ model Follow {
 
 model Post {
   id          Int           @id @default(autoincrement())
+  viewCount   Int           @default(0)
   content     String?
   createdAt   DateTime      @default(now())
+  status      PostStatus    @default(PUBLISHED)
+  displayIdentity DisplayIdentity @default(USER)
+  deletedAt   DateTime?
   visualMedia VisualMedia[]
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId      String
   postLikes   PostLike[]
   comments    Comment[]
+  space       Space?        @relation("SpacePosts", fields: [spaceId], references: [id], onDelete: Restrict)
+  spaceId     Int?
+  publishedAsClub Club?     @relation("ClubPosts", fields: [publisherClubId], references: [id], onDelete: SetNull)
+  publisherClubId Int?
+  bookmarks   Bookmark[]
+  reposts     Repost[]
+  tags        PostTag[]
+  reports     Report[]
+  moderationCases ModerationCase[]
+
+  @@index([status, createdAt])
+  @@index([spaceId, status, createdAt])
 }
 
 model PostLike {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId    String
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId    Int
@@ -112,7 +144,7 @@ model Comment {
   id           Int           @id @default(autoincrement())
   content      String
   createdAt    DateTime      @default(now())
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId       String
   commentLikes CommentLike[]
 
@@ -126,12 +158,14 @@ model Comment {
 
   // Self-referential relation
   replies Comment[] @relation("Replies")
+  reports Report[]
+  moderationCases ModerationCase[]
 }
 
 model CommentLike {
   id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId    String
   comment   Comment  @relation(fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
@@ -144,7 +178,7 @@ model VisualMedia {
   type       VisualMediaType @default(PHOTO)
   fileName   String
   uploadedAt DateTime        @default(now())
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User            @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId     String
   post       Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     Int
@@ -166,9 +200,9 @@ model Activity {
   type                 ActivityType
   sourceId             Int
   targetId             Int?
-  sourceUser           User         @relation("activity", fields: [sourceUserId], references: [id], onDelete: Cascade)
+  sourceUser           User         @relation("activity", fields: [sourceUserId], references: [id], onDelete: Restrict)
   sourceUserId         String
-  targetUser           User         @relation("notification", fields: [targetUserId], references: [id], onDelete: Cascade)
+  targetUser           User         @relation("notification", fields: [targetUserId], references: [id], onDelete: Restrict)
   targetUserId         String
   isNotificationActive Boolean      @default(true)
   isNotificationRead   Boolean      @default(false)
@@ -194,15 +228,435 @@ enum VisualMediaType {
   VIDEO
 }
 
-enum Gender {
-  FEMALE
-  MALE
-  NONBINARY
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DEACTIVATED
 }
 
-enum RelationshipStatus {
-  SINGLE
-  IN_A_RELATIONSHIP
-  ENGAGED
-  MARRIED
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+enum SpaceType {
+  GLOBAL
+  COLLEGE
+  CLUB
+}
+
+enum SpaceStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum SpaceMemberRole {
+  MEMBER
+  MODERATOR
+  ADMIN
+}
+
+enum ClubStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum PostStatus {
+  PUBLISHED
+  HIDDEN
+  REMOVED
+  DELETED_BY_AUTHOR
+}
+
+enum DisplayIdentity {
+  USER
+  CLUB
+  ANONYMOUS
+}
+
+enum ModerationCaseStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+  APPEALED
+}
+
+enum ModerationActionType {
+  NO_ACTION
+  LIMIT_VISIBILITY
+  REMOVE_CONTENT
+  WARN_USER
+  SUSPEND_USER
+}
+
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  MISINFORMATION
+  INAPPROPRIATE_CONTENT
+  OTHER
+}
+
+enum WorkflowRequestType {
+  CLUB_APPLICATION
+  PINNED_POST
+  ACCOUNT_DELETION
+  ROLE_CHANGE
+}
+
+enum WorkflowRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum AiMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum KnowledgeDocumentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model InstitutionIdentity {
+  id        String   @id @default(cuid())
+  issuer    String
+  subject   String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([issuer, subject])
+  @@index([userId])
+}
+
+model XidianLoginAttempt {
+  id          String           @id
+  state       String           @unique
+  callbackUrl String           @default("/feed")
+  status      XidianLoginStatus @default(PENDING)
+  user        User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String?
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime         @default(now())
+
+  @@index([status, expiresAt])
+  @@index([userId, createdAt])
+}
+
+enum XidianLoginStatus {
+  PENDING
+  APPROVED
+  FAILED
+}
+
+model Space {
+  id          Int          @id @default(autoincrement())
+  type        SpaceType
+  name        String
+  slug        String       @unique
+  description String?      @db.Text
+  avatar      String?
+  banner      String?
+  status      SpaceStatus  @default(ACTIVE)
+  sortOrder   Int          @default(0)
+  collegeCode String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  posts       Post[]       @relation("SpacePosts")
+  memberships SpaceMembership[]
+  club        Club?
+
+  @@index([type, status, sortOrder])
+  @@index([collegeCode])
+}
+
+model Club {
+  id          Int        @id @default(autoincrement())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  avatar      String?
+  status      ClubStatus @default(PENDING)
+  spaceId     Int        @unique
+  space       Space      @relation(fields: [spaceId], references: [id], onDelete: Restrict)
+  posts       Post[]     @relation("ClubPosts")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model SpaceMembership {
+  id          Int            @id @default(autoincrement())
+  space       Space          @relation(fields: [spaceId], references: [id], onDelete: Restrict)
+  spaceId     Int
+  user        User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId      String
+  role        SpaceMemberRole @default(MEMBER)
+  trusted     Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+
+  @@unique([spaceId, userId])
+  @@index([userId, role])
+}
+
+model Bookmark {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Restrict)
+  postId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([userId, createdAt])
+}
+
+model Repost {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Restrict)
+  postId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([createdAt])
+}
+
+model UserBlock {
+  id        Int      @id @default(autoincrement())
+  blocker   User     @relation("blocker", fields: [blockerId], references: [id], onDelete: Restrict)
+  blockerId String
+  blocked   User     @relation("blocked", fields: [blockedId], references: [id], onDelete: Restrict)
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  posts     PostTag[]
+  createdAt DateTime  @default(now())
+}
+
+model PostTag {
+  post      Post @relation(fields: [postId], references: [id], onDelete: Restrict)
+  postId    Int
+  tag       Tag  @relation(fields: [tagId], references: [id], onDelete: Restrict)
+  tagId     Int
+
+  @@id([postId, tagId])
+  @@index([tagId, postId])
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+}
+
+model ConversationParticipant {
+  id             Int          @id @default(autoincrement())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  conversationId String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId         String
+  archivedAt     DateTime?
+  lastReadAt     DateTime?
+  joinedAt       DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId, archivedAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  conversationId String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
+  senderId       String
+  content        String       @db.Text
+  createdAt      DateTime     @default(now())
+  editedAt       DateTime?
+  deletedAt      DateTime?
+
+  @@index([conversationId, createdAt])
+}
+
+model Report {
+  id          String       @id @default(cuid())
+  reporter    User         @relation(fields: [reporterId], references: [id], onDelete: Restrict)
+  reporterId  String
+  post        Post?        @relation(fields: [postId], references: [id], onDelete: Restrict)
+  postId      Int?
+  comment     Comment?     @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  commentId   Int?
+  reason      ReportReason
+  details     String?      @db.Text
+  createdAt   DateTime     @default(now())
+  case        ModerationCase?
+
+  @@index([reporterId, createdAt])
+  @@index([postId])
+  @@index([commentId])
+}
+
+model ModerationCase {
+  id           String               @id @default(cuid())
+  status       ModerationCaseStatus @default(OPEN)
+  action       ModerationActionType @default(NO_ACTION)
+  post         Post?                @relation(fields: [postId], references: [id], onDelete: Restrict)
+  postId       Int?
+  comment      Comment?             @relation(fields: [commentId], references: [id], onDelete: Restrict)
+  commentId    Int?
+  report       Report?              @relation(fields: [reportId], references: [id], onDelete: Restrict)
+  reportId     String?              @unique
+  openedBy     User?                @relation("caseOpener", fields: [openedById], references: [id], onDelete: SetNull)
+  openedById   String?
+  assignedTo   User?                @relation("caseAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  assignedToId String?
+  notes        String?              @db.Text
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  resolvedAt   DateTime?
+  appeals      Appeal[]
+
+  @@index([status, createdAt])
+}
+
+model Appeal {
+  id        String         @id @default(cuid())
+  case      ModerationCase @relation(fields: [caseId], references: [id], onDelete: Restrict)
+  caseId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  reason    String         @db.Text
+  createdAt DateTime       @default(now())
+  resolvedAt DateTime?
+
+  @@index([caseId, createdAt])
+}
+
+model WorkflowRequest {
+  id           String               @id @default(cuid())
+  type         WorkflowRequestType
+  status       WorkflowRequestStatus @default(PENDING)
+  requester    User                 @relation("requester", fields: [requesterId], references: [id], onDelete: Restrict)
+  requesterId  String
+  reviewer     User?                @relation("reviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  reviewerId   String?
+  payload      Json
+  reviewNote   String?              @db.Text
+  createdAt    DateTime             @default(now())
+  reviewedAt   DateTime?
+
+  @@index([type, status, createdAt])
+  @@index([requesterId, createdAt])
+}
+
+model NotificationPreference {
+  id             Int      @id @default(autoincrement())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId         String   @unique
+  follows        Boolean  @default(true)
+  likes          Boolean  @default(true)
+  comments       Boolean  @default(true)
+  messages       Boolean  @default(true)
+  replies        Boolean  @default(true)
+  favorites      Boolean  @default(true)
+  reportResults  Boolean  @default(true)
+  system         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  subjectType String
+  subjectId   String?
+  details     Json?
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([subjectType, subjectId])
+}
+
+model AiConversation {
+  id        String      @id @default(cuid())
+  user      User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId    String
+  title     String
+  messages  AiMessage[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model AiMessage {
+  id             String         @id @default(cuid())
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  conversationId String
+  role           AiMessageRole
+  content        String         @db.Text
+  sources        Json?
+  createdAt      DateTime       @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model KnowledgeDocument {
+  id        String                  @id @default(cuid())
+  title     String
+  source    String?
+  status    KnowledgeDocumentStatus @default(DRAFT)
+  chunks    KnowledgeChunk[]
+  createdAt DateTime                @default(now())
+  updatedAt DateTime                @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+model KnowledgeChunk {
+  id         String            @id @default(cuid())
+  document   KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  documentId String
+  ordinal    Int
+  content    String            @db.Text
+  createdAt  DateTime          @default(now())
+
+  @@unique([documentId, ordinal])
+  @@index([documentId, ordinal])
+}
+
+model AiTrace {
+  id                String   @id @default(cuid())
+  userId            String?
+  provider          String
+  model             String
+  requestId         String?
+  promptTokens      Int?
+  completionTokens  Int?
+  durationMs        Int?
+  metadata          Json?
+  createdAt         DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

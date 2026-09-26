@@ -18,9 +18,20 @@ export async function GET(request: Request, { params }: { params: { commentId: s
   const [user] = await getServerUser();
   const userId = user?.id;
 
+  const parent = await prisma.comment.findFirst({
+    where: {
+      id: parseInt(params.commentId, 10),
+      moderationCases: { none: { status: 'OPEN' } },
+      post: { OR: [{ status: 'PUBLISHED' }, { userId }] },
+    },
+    select: { id: true },
+  });
+  if (!parent) return NextResponse.json({ error: 'Comment not found.' }, { status: 404 });
+
   const res: FindCommentResult[] = await prisma.comment.findMany({
     where: {
       parentId: parseInt(params.commentId, 10),
+      moderationCases: { none: { status: 'OPEN' } },
     },
     include: includeToComment(userId),
     orderBy: {

@@ -1,0 +1,53 @@
+import { getServerUser } from '@/lib/getServerUser';
+import prisma from '@/lib/prisma/prisma';
+import { NextResponse } from 'next/server';
+
+export async function GET(_request: Request, { params }: { params: { conversationId: string } }) {
+  const [user] = await getServerUser();
+  if (!user?.id) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
+  const participant = await prisma.conversationParticipant.findFirst({
+    where: { conversationId: params.conversationId, userId: user.id, archivedAt: null },
+    include: {
+      conversation: {
+        include: {
+          participants: {
+            include: {
+              user: { select: { id: true, username: true, name: true, profilePhoto: true, status: true } },
+            },
+          },
+          messages: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: 'asc' },
+            take: 100,
+          },
+        },
+      },
+    },
+  });
+
+  if (!participant) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+  const isBlocked = await prisma.userBlock.findFirst({
+    where: {
+      OR: [
+        { blockerId: user.id, blockedId: { in: participant.conversation.participants.map(({ userId }) => userId) } },
+        { blockedId: user.id, blockerId: { in: participant.conversation.participants.map(({ userId }) => userId) } },
+      ],
+    },
+  });
+  if (isBlocked) return NextResponse.json({ error: 'not_found' }, { status: 404 });
+
+  await prisma.conversationParticipant.update({ where: { id: participant.id }, data: { lastReadAt: new Date() } });
+  return NextResponse.json({
+    id: participant.conversation.id,
+    participants: participant.conversation.participants
+      .filter(({ user: participantUser }) => participantUser.status === 'ACTIVE')
+      .map(({ user: participantUser }) => ({
+        id: participantUser.id,
+        username: participantUser.username,
+        name: participantUser.name,
+        profilePhoto: participantUser.profilePhoto,
+      })),
+    messages: participant.conversation.messages,
+  });
+}

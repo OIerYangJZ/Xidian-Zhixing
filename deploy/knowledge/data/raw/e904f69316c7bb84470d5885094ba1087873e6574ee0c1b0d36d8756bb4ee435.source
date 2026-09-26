@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html><HTML lang="en"><HEAD><TITLE>西电开设 “启智・2026 新生大语言模型科普直播课” 助力新生认知 AI 时代-本科生院 西安电子科技大学</TITLE><meta name="pageType" content="3">
+<meta name="pageTitle" content="西电开设 “启智・2026 新生大语言模型科普直播课” 助力新生认知 AI 时代">
+<META Name="keywords" Content="本科生院,西安电子科技大学,新生,语言,课,模型,直播,认知,启智,AI,开设,西电,时代" />
+<META Name="description" Content="8 月 18 日，由西安电子科技大学创新创业学院联合极创工作室打造的“启智 · 2026 新生线上大语言模型科普直播课”顺利开讲。作为全国高校首个面向全体本科新生的大语言模型训推全流程科普直播课，本次活动创新采用“产业实战分享+朋辈成长指引+国产算力配套支撑”的三位一体育人范式，通过哔哩哔哩、小红书、学在西电课程平台三端同步直播，主要面向 2026 级全体本科新生并开放全校师生旁听，单场直播累计观看超万人次，为新生构建起从原理认知、..." />
+
+
+
+
+
+<META charset="UTF-8"><LINK rel="stylesheet" href="../../css/style.css"><script src="../../js/bdtxk.js"></script>
+
+<!--Announced by Visual SiteBuilder 9-->
+<script language="javascript" src="../../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:77656262657232306975475350545742000400004256 -->
+<link rel="stylesheet" type="text/css" href="../../content.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/vsbscreen.min.js" id="_vsbscreen" devices="pc|pad"></script>
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1004,'/content.jsp',35322,1482657449)</script>
+</HEAD>
+<BODY><!-- top -->
+<DIV class="top">
+<DIV class="wrap">
+<DIV class="fl">
+<!-- 网站logo图片地址请在本组件"内容配置-网站logo"处填写 -->
+<a href="../../index.htm" title="本科生院"><img src="../../images/logo.png" width="460" height="64" border="0" alt="本科生院" title="本科生院"></a></DIV>
+<DIV class="fr">
+<DIV class="search"><!-- 3.1.3版本 -->
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/jquery/jquery-latest.min.js"></script><script language="javascript" src="/system/resource/vue/vue.js"></script><script language="javascript" src="/system/resource/vue/bluebird.min.js"></script><script language="javascript" src="/system/resource/vue/axios.js"></script><script language="javascript" src="/system/resource/vue/polyfill.js"></script><script language="javascript" src="/system/resource/vue/token.js"></script><LINK href="/system/resource/vue/static/element/index.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/vue/static/element/index.js"></script><script language="javascript" src="/system/resource/vue/static/public.js"></script><script language="javascript" src="/system/resource/openapp/search/js/containsHtmlTags.js"></script><script language="javascript" src="/system/resource/openapp/search/layui/layui.js"></script><style>
+    #appu1 .qwss{
+        height: 31px;
+        font-size: 12px;
+        min-width: 190px;
+        max-width: 600px;
+        width: 60%;
+        margin-top: -15px;
+        outline: none;
+        padding-left: 10px;
+        border-radius: 2px;
+        border: 1px solid #e4e7ed;}
+    #appu1 .tj{
+        padding-left: 6px;
+        letter-spacing: 5px;
+        color: white;
+        min-width: 53px;
+        max-width: 150px;
+        height: 32px;
+        border: 0;
+        border-radius: 2px;
+        background-color: #1890FF;
+        position: relative;
+        top: 1px;
+        width: 20%;
+        margin-top: -15px;}
+</style>
+<div id="divu1"></div>
+<script type="text/html" id="htmlu1">
+    <div id="appu1">
+        <div v-if="!isError">
+
+            <INPUT class="ss"  autocomplete=off v-model=query.keyWord @keyup.enter="onSubmit" > 
+            <INPUT class="btn" src="../../images/search.png" type="image" v-on:click="onSubmit()"> 
+            
+            
+        </div>
+        <div v-if="isError" style="color: #b30216; font-size:18px;text-align: center;padding:20px;">
+            应用维护中！
+        </div>
+    </div>
+</script>
+<script>
+    $("#divu1").html($("#htmlu1").text());
+</script>
+<script>
+    var appOwner = "1482657449";
+    var token = 'tourist';
+    var urlPrefix = "/aop_component/";
+
+    jQuery.support.cors = true;
+    $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+    });
+
+    new Vue({
+        el: "#appu1",
+        data: function () {
+            return {
+                query: {
+                    keyWord: "",//搜索关键词
+                    owner: appOwner,
+                    token: token,
+                    urlPrefix: urlPrefix,
+                    lang:"i18n_zh_CN"
+                },
+                isError: false
+            }
+        },
+        mounted: function () {
+            var _this = this;
+            // _this.init();
+        },
+        methods: {
+            init: function(){
+                $.ajax({
+                    url: "/aop_component//webber/search/test",
+                    type: "get",
+                    success: function (response) {
+                        if (response.code == "0000") {
+                        } else if (response.code == "220") {
+                            _this.isError = true;
+                            console.log(response);
+                        } else if (!response.code) {
+                            _this.isError = true;
+                            console.log(response);
+                        }
+                    },
+                    error: function (response) {
+                        _this.isError = true;
+                    }
+                });
+            },
+            onSubmit: function (e) {
+                var url = "/aop_views/search/modules/resultpc/soso.html";
+                if ("10" == "1" || "10" == "2") {
+                    url = "" + url;
+                }
+                var _this = this;
+                var query = _this.query;
+                if (url.indexOf("?") > -1) {
+                    url = url.split("?")[0];
+                }
+                if (query.keyWord) {
+                    var query = new Base64().encode(JSON.stringify(query));
+                    window.open(url + "?query=" + query);
+                } else {
+                    alert("请填写搜索内容")
+                }
+            },
+        }
+    })
+</script>
+
+<script>
+   var appElementu1 = document.querySelector("#appu1");
+   if (appElementu1 && appElementu1.__vue__) {
+
+   } else {
+      $("#divu1").html($("#htmlu1").text());
+      var appOwner = "1482657449";   
+      var urlPrefix = "/aop_component/";
+      var ifLogin="";
+      var token = ifLogin=='true'?gettoken(10, true).trim():'tourist';
+      if (containsHtmlTags(token) || !token) { 
+         token = 'tourist';
+      }
+      jQuery.support.cors = true;
+      $.ajaxSetup({
+        beforeSend: function (request, settings) {
+            request.setRequestHeader("Authorization", token);
+            request.setRequestHeader("owner", appOwner);
+        }
+      });
+      var queryInfou1 = {
+        query: {
+            keyWord: "",//搜索关键词
+            owner: appOwner,
+            token: token,
+            urlPrefix: urlPrefix,
+            lang:"i18n_zh_CN"
+        },
+        isError: false
+      };
+      function keyUpFunu1(e){
+        var theEvent = e || window.event;
+        var keyCode = theEvent.keyCode || theEvent.which || theEvent.charCode;
+        if(keyCode == 13){
+          onSubmitu1();
+        }
+      };
+
+      function onSubmitu1(e) {
+        queryInfou1.query.keyWord= $("#appu1  .qwss").val();
+        
+        var url = "/aop_views/search/modules/resultpc/soso.html";      
+        if ("10" == "1" || "10" == "2") {
+           url = "" + url;
+        }
+        var query = queryInfou1.query;
+        if (url.indexOf("?") > -1) {
+            url = url.split("?")[0];
+        }
+        if (query.keyWord) {
+            var query = new Base64().encode(JSON.stringify(query));
+            window.open(url + "?query=" + query);
+        } else {
+            alert("请填写搜索内容")
+        }
+      };
+   }
+</script>
+<FORM onsubmit="return subsearchdataa222254a()" method="post" name="a222254a" action="/system/resource/code/notemp.jsp?owner=1482657449&wbtreeid=-1&tempname=%E6%96%87%E7%AB%A0%E6%90%9C%E7%B4%A2%E7%BB%93%E6%9E%9C%E9%A1%B5&notuse=notuse" style="display: inline"></DIV>
+<UL>    <li><a href="../../index.htm" title="网站首页">网站首页</a></li>
+    <li><a href="../../bmjs.htm" title="部门介绍">部门介绍</a></li>
+    <li><a href="../../tzgg.htm" title="通知公告">通知公告</a></li>
+    <li><a href="../../gzdt.htm" title="工作动态">工作动态</a></li>
+    <li><a href="https://bksy.xidian.edu.cn/info/1020/4366.htm" title="书院风采">书院风采</a></li>
+    <li><a href="../../bszn.htm" title="办事指南">办事指南</a></li>
+    <li><a href="../../xzzq.htm" title="下载专区">下载专区</a></li>
+</UL>
+<DIV class="clear"></DIV></DIV>
+<DIV class="en"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="https://www.xidian.edu.cn/" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41785)">学校主页</a>
+<a href="../../English.htm" target="_blank" title="" onclick="_addDynClicks(&#34;wburl&#34;, 1482657449, 41786)">English</a>
+		<a href="javascript:void(0);" title="手机版" onclick="_vsb_multiscreen.setDevice('mobile')">手机版</a>
+</DIV></DIV></DIV><!-- banner-in -->
+<DIV class="banner-in"><img src="../../images/zwy.png" /></DIV>
+<DIV class="main">
+<DIV class="wrap">
+<DIV class="zwy">
+<DIV class="now">
+<DIV class="fl">
+工作动态</DIV>
+<DIV class="fr">位置: 
+                        <a href="../../index.htm">网站首页</a>
+               &gt;
+                <a href="../../gzdt.htm">工作动态</a>
+               &gt;
+                正文
+</DIV></DIV>
+<DIV class="artical">
+
+<script language="javascript" src="../../_dwr/interface/NewsvoteDWR.js"></script><script language="javascript" src="../../_dwr/engine.js"></script><script language="javascript" src="/system/resource/js/news/newscontent.js"></script><LINK href="/system/resource/js/photoswipe/3.0.5.1/photoswipe.css" type="text/css" rel="stylesheet"><script language="javascript" src="/system/resource/js/photoswipe/3.0.5.1/pw.js"></script><link rel="stylesheet" Content-type="text/css" href="/system/resource/style/component/news/content/format2.css"><script language="javascript" src="/system/resource/js/ajax.js"></script><form name="_newscontent_fromname">
+<div>
+    <h3>西电开设 “启智・2026 新生大语言模型科普直播课” 助力新生认知 AI 时代</h3>
+   <div class="time"><span>发布时间：</span>2026-08-21 16:17:45<span>来源：</span>
+    <span> 点击：</span><script>_showDynClicks("wbnews", 1482657449, 35322)</script></div>
+
+    
+    <div id="vsb_content_2"><div class="v_news_content">
+<p class="vsbcontent_img"><img src="/__local/5/9C/B9/0E564D45B149A7BAA1741C3C4C7_EDF44905_1FC55.png" vsbhref="vurl" vurl="/_vsl/59CB90E564D45B149A7BAA1741C3C4C7/EDF44905/1FC55" vheight=" 246pt" vwidth=" 414pt" orisrc="/__local/1/85/E4/13226675C28180FE0B5FAB134FE_ADE62838_79DAF.png" class="img_vsb_content" style="width: 414pt;height: 246pt"></p><p>8 月 18 日，由西安电子科技大学创新创业学院联合极创工作室打造的“启智 · 2026 新生线上大语言模型科普直播课”顺利开讲。</p><p>作为全国高校首个面向全体本科新生的大语言模型训推全流程科普直播课，本次活动创新采用“产业实战分享+朋辈成长指引+国产算力配套支撑”的三位一体育人范式，通过哔哩哔哩、小红书、学在西电课程平台三端同步直播，主要面向 2026 级全体本科新生并开放全校师生旁听，单场直播累计观看超万人次，为新生构建起从原理认知、训练方法到实践落地、学习生活应用的大模型训推全生命周期启蒙。</p><p>本次活动是学校落实“人工智能+教育”模式改革、推进新生数字素养前置培育的创新实践，深度践行了我校“面向前沿、强化实践、以生为本”的人才培养理念，打破了传统科普“重理论轻实践、重输入轻闭环”的常规模式，为全国高校新生人工智能通识教育打造了可复制的新样本。</p><p>三项首创突破，构建新生AI科普育人新范式</p><p>区别于传统通识课程与零散讲座，本次活动在全国高校新生人工智能科普领域实现三项首创：</p><p>一是前置课程时间。为帮助学生提前建立对大模型技术的客观认知与理性态度，本次活动特地将大语言模型专项科普前置至新生入学报到前，将数字素养培育嵌入新生入学准备全周期，平稳衔接智能时代的大学学习模式。</p><p>二是覆盖训推全体系。构建覆盖大模型训推全生命周期的科普内容体系，跳出“只讲应用和基础、不谈原理和训练”的浅层科普模式，由一线从业者系统拆解大模型训练核心逻辑，从底层原理解释大模型常见问题的成因，让新生不仅“知其然”，更“知其所以然”，为后续进阶实践筑牢理论基础。</p><p>三是首创配套实践资源。本次活动针对进入交流群、有深入学习意愿的新生开放国产算力支持，提供了价值万元的算力资源额度，可支撑开展模型微调、强化学习等全流程训推操作，真正打通大模型技术从理论到实践的“最后一公里”。</p><p>朋辈引领实战导向，打造新生友好型科普实践内容</p><p>本次直播课 120 分钟的内容分为主题分享、圆桌对话与互动答疑三大模块，针对大一新生的知识基础与成长需求，既覆盖大模型核心原理，也融入了丰富的产业实践案例与成长指引。</p><p>主题分享环节，活动邀请到了多位活跃于 AI 开源一线、兼具扎实工程实践与社区影响力的青年嘉宾，其中大语言模型科普项目 Happy-LLM 负责人宋志学博士以《从0到1，本科生如何入门踏入大模型世界》为题，系统梳理大模型技术核心逻辑，为本科生指明系统化学习大模型的路径；国内领先的人工智能实验管理工具 SwanLab 产品负责人林泽毅博士结合西电求学经历，讲述 HiVisionIDPhotos 项目登顶开源趋势榜的成长经历，分享大学阶段AI技术实践的规划方法。同时，从学生身边出发找榜样，国家奖学金获得者郭源同学以自身成长轨迹为线索，讲述普通本科生在校参与大模型微调、智能体开发等项目的真实路径与实操技巧。整场分享贯穿大模型训推全生命周期，既有底层原理解析，也有一线训练实践经验，为新生提供了体系化的学习参考。</p><p>圆桌讨论与答疑环节，三位嘉宾围绕“新生如何与大模型同行：认知、边界与成长”展开深度对话，就大模型能力边界、学术伦理、学习误区等新生关注的核心问题交流碰撞，引导新生建立“会用而不依赖、善用而不迷信”的健康认知，在技术浪潮中守护独立思考与批判精神。直播过程中互动氛围热烈，弹幕提问持续不断，真正实现了“听得懂、学得会、能上手”的科普目标。</p><p>紧扣人才培养主线，打造全链条 AI 育人体系</p><p>本次“启智”直播课的落地，是西安电子科技大学深化人工智能通识教育、完善新生培育体系的创新举措，也是学校作为教育部首批国家级创新创业学院建设单位，推进“铸魂·赋能·聚力”创新创业育人体系与“人工智能+教育”改革融合落地的一次生动实践。</p><p>近年来，创新创业学院构建了“资源赋能、产教融合、AI驱动”三位一体的数智化双创教育体系，着力培养适应数智时代发展的拔尖创新人才。极创工作室作为双创学院重点支持的学生科技创新俱乐部之一，此次将大模型科普延伸至新生入学前，并由学生团队深度参与策划与主讲，正是这一育人体系向入学教育场景的自然延伸。</p><p class="vsbcontent_end">未来，创新创业学院将持续打磨“启智”科普品牌，推动其成为新生入学教育的固定环节，进一步贯通“入学科普—通识课程—实践实训—创新竞赛”的育人链条，持续开放国产算力资源，支持新生开展大模型训推实践；极创工作室也将继续发挥朋辈育人优势，依托直播交流群开展常态化答疑与实践带练，帮助新生把大模型真正用进学习生活，让更多学生在入校之初即“懂技术、善应用、能创新”。</p>
+</div></div><div id="div_vote_id"></div>
+<div class="editor" style="margin-top:20px;">责任编辑：刘毅</div>
+    
+
+
+
+<div class="pn"> <span>上一篇：</span><a href="33162.htm">构建一体推动协调机制 聚焦重点三层协同发力</a>
+<br />
+          <br />
+          <span>下一篇：</span><a href="35192.htm">西电学子在第十二届全国大学生机械创新设计大赛中获佳绩</a>
+ </div>
+
+
+
+
+
+    <p align="right" style="display:none">【<a href="javascript:window.opener=null;window.open('','_self');window.close();">关闭</a>】</p>
+</div>
+</form>
+</FORM></DIV></DIV></DIV></DIV><!-- copyright -->
+<DIV class="copyright">
+<DIV class="wrap"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>
+    版权所有©西安电子科技大学本科生院 &nbsp; &nbsp; &nbsp;地址：西安市西沣路兴隆段266号&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;技术支持 西安聚力</p></DIV></DIV><script>
+
+$('.search').hover(function(){
+			$(this).find('.ss').stop().slideToggle();
+			$(this).find('.btn').stop().slideToggle();
+		})
+
+</script>
+
+</BODY></HTML>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

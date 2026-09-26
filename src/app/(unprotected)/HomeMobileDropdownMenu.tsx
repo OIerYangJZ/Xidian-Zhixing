@@ -16,20 +16,22 @@ export function HomeMobileDropdownMenu() {
 
   const menuItems = useMemo(() => {
     const items = [
-      { key: '/terms', label: 'Terms' },
-      { key: '/privacy-policy', label: 'Privacy Policy' },
+      { key: '/campus', label: '校园服务' },
+      { key: '/terms', label: '使用条款' },
+      { key: '/privacy-policy', label: '隐私说明' },
     ];
 
     if (!isLoggedIn) {
-      items.push({ key: '/login', label: 'Login' });
-      items.push({ key: '/register', label: 'Sign Up' });
+      items.push({ key: '/login', label: '登录' });
+    } else {
+      items.push({ key: '/feed', label: '进入知行' });
     }
 
     return items;
   }, [isLoggedIn]);
 
   return (
-    <DropdownMenuButton key="home-dropdown-menu" label="Home dropdown menu" onAction={onAction} Icon={HamburgerMenu}>
+    <DropdownMenuButton key="home-dropdown-menu" label="页面菜单" onAction={onAction} Icon={HamburgerMenu}>
       <Section>
         {menuItems.map((item) => (
           <Item key={item.key}>{item.label}</Item>

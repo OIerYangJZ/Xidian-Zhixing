@@ -21,11 +21,7 @@ export const ButtonNaked = forwardRef<HTMLButtonElement, ButtonProps>(
         type="button"
         {...mergeProps(buttonProps, focusProps)}
         ref={ref}
-        className={cn(
-          'rounded-sm focus:outline-none',
-          className,
-          isFocusVisible && 'ring ring-violet-500 ring-offset-2',
-        )}>
+        className={cn('rounded-sm focus:outline-none', className, isFocusVisible && 'ring ring-primary ring-offset-2')}>
         {children}
       </button>
     );
