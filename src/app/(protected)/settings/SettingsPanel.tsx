@@ -39,9 +39,9 @@ export function SettingsPanel() {
           href: '/settings/privacy',
         },
         {
-          label: t('隐藏和屏蔽', 'Mute and block'),
+          label: t('屏蔽账号', 'Blocked accounts'),
           detail: t('管理你屏蔽的账号。', 'Manage accounts you have blocked.'),
-          href: '/settings/privacy',
+          href: '/settings/blocked',
         },
         {
           label: t('隐私说明', 'Privacy policy'),

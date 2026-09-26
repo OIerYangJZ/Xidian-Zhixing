@@ -8,6 +8,7 @@
 | 帖子详情 | `post-detail-desktop-1440.png` | `post-detail-mobile-390.png` |
 | 个人主页 | `profile-desktop-1440.png` | `profile-mobile-390.png` |
 | 设置 | `settings-desktop-1440.png` | `settings-mobile-390.png` |
+| 屏蔽账号设置 | `blocked-settings-desktop-1440.png` | `blocked-settings-mobile-390.png` |
 | 知行 AI | `ai-desktop-1440.png` | `ai-mobile-390.png` |
 | 私信 | `messages-desktop-1440.png` | `messages-mobile-390.png` |
 | 照片 | — | `photos-mobile-390.png` |

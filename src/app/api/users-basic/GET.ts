@@ -21,9 +21,13 @@ export async function GET(request: Request) {
   const res = await prisma.user.findMany({
     where: {
       ...(search && searchUser(search)),
+      ...(user && {
+        AND: [{ blocksMade: { none: { blockedId: user.id } } }, { blocksReceived: { none: { blockerId: user.id } } }],
+      }),
       id: {
         not: user?.id,
       },
+      status: 'ACTIVE',
       name: {
         not: null,
       },

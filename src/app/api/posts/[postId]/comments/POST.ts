@@ -37,6 +37,16 @@ export async function POST(request: Request, { params }: { params: { postId: str
       select: { userId: true },
     });
     if (!post) return NextResponse.json({ error: 'Post not found.' }, { status: 404 });
+    const block = await prisma.userBlock.findFirst({
+      where: {
+        OR: [
+          { blockerId: userId, blockedId: post.userId },
+          { blockerId: post.userId, blockedId: userId },
+        ],
+      },
+      select: { id: true },
+    });
+    if (block) return NextResponse.json({ error: 'This post is unavailable.' }, { status: 404 });
 
     const { str, usersMentioned } = await convertMentionUsernamesToIds({
       str: content,

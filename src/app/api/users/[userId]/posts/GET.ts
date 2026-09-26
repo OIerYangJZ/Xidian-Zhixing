@@ -24,6 +24,12 @@ export async function GET(request: Request, { params }: { params: { userId: stri
       userId: params.userId,
       status: 'PUBLISHED',
       moderationCases: { none: { status: 'OPEN' } },
+      ...(user && {
+        NOT: [
+          { user: { blocksMade: { some: { blockedId: user.id } } } },
+          { user: { blocksReceived: { some: { blockerId: user.id } } } },
+        ],
+      }),
       ...filters,
     },
     ...limitAndOrderBy,

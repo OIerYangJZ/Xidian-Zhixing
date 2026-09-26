@@ -11,6 +11,18 @@ export async function GET(request: Request, { params }: { params: { userId: stri
   const [user] = await getServerUser();
 
   const { userId } = params;
+  if (user && user.id !== userId) {
+    const block = await prisma.userBlock.findFirst({
+      where: {
+        OR: [
+          { blockerId: user.id, blockedId: userId },
+          { blockerId: userId, blockedId: user.id },
+        ],
+      },
+      select: { id: true },
+    });
+    if (block) return NextResponse.json(null);
+  }
   const res: FindUserResult | null = await prisma.user.findFirst({
     where: {
       id: userId,

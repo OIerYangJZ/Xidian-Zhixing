@@ -22,7 +22,21 @@ export async function GET(request: Request, { params }: { params: { postId: stri
     where: {
       postId: parseInt(params.postId, 10),
       parentId: null,
-      post: { OR: [{ status: 'PUBLISHED' }, { userId }] },
+      post: {
+        AND: [
+          { OR: [{ status: 'PUBLISHED' }, { userId }] },
+          ...(user
+            ? [
+                {
+                  user: {
+                    blocksMade: { none: { blockedId: user.id } },
+                    blocksReceived: { none: { blockerId: user.id } },
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
       moderationCases: { none: { status: 'OPEN' } },
     },
     include: includeToComment(userId),

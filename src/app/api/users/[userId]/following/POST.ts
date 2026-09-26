@@ -20,6 +20,17 @@ export async function POST(request: Request, { params }: { params: { userId: str
 
   try {
     const { userIdToFollow } = followPostSchema.parse(await request.json());
+    const block = await prisma.userBlock.findFirst({
+      where: {
+        OR: [
+          { blockerId: user.id, blockedId: userIdToFollow },
+          { blockerId: userIdToFollow, blockedId: user.id },
+        ],
+      },
+      select: { id: true },
+    });
+    if (block) return NextResponse.json({ error: 'This account is unavailable.' }, { status: 403 });
+
     const res = await prisma.follow.create({
       data: {
         followerId: user.id,

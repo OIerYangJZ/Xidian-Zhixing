@@ -30,6 +30,9 @@ export async function GET(request: Request) {
   const res: FindUserResult[] | null = await prisma.user.findMany({
     where: {
       ...(search && searchUser(search)),
+      ...(user && {
+        AND: [{ blocksMade: { none: { blockedId: user.id } } }, { blocksReceived: { none: { blockerId: user.id } } }],
+      }),
       ...(followersOf && {
         following: {
           some: {
