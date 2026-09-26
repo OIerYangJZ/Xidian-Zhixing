@@ -1,5 +1,5 @@
 import { baseUrl, envName } from '../config/env';
-import { clearLoginAndRedirect } from './auth_guard';
+import { clearLoginAndRedirect, redirectToAppeal } from './auth_guard';
 
 // 防止多个并发请求失败时弹出多个 Toast
 let _lastToastTime = 0;
@@ -91,6 +91,14 @@ const request = (options) => {
             title: '登录已过期，请重新登录',
             icon: 'none'
           });
+          reject(res);
+        } else if (
+          statusCode === 403
+          && token
+          && data && data.data && data.data.accountState === 'banned'
+        ) {
+          // 账号已被封禁: the appeal page explains; no toast on top of it.
+          redirectToAppeal();
           reject(res);
         } else {
           // 其他服务器错误

@@ -24,7 +24,7 @@
 
     <view class="zx-section-title">处理结果</view>
     <view class="zx-card block">
-      <view class="zx-body {{report.result ? '' : 'block-empty'}}">{{report.result || '管理员还没有处理，处理后会通知你'}}</view>
+      <view class="zx-body {{report.result ? '' : 'block-empty'}}">{{report.result || '管理员还没有处理，处理后结果会显示在这里'}}</view>
     </view>
 
     <view wx:if="{{report.targetType === 'post'}}" class="zx-btn zx-btn--secondary zx-btn--block target-button" bindtap="openTarget">查看被举报的帖子</view>

@@ -1,6 +1,5 @@
 import request from '../utils/request';
-import { avatarInitial } from '../utils/format';
-import { getData, toArray } from '../utils/format';
+import { avatarInitial, getData, resolveUrl, toArray } from '../utils/format';
 
 export const getConversations = async () => {
   const response = await request.get('/api/messages/conversations');
@@ -10,6 +9,7 @@ export const getConversations = async () => {
       ...item,
       id: String(item.id || ''),
       name,
+      avatarUrl: resolveUrl(item.avatarUrl || ''),
       avatarInitial: avatarInitial(name)
     };
   });
@@ -22,7 +22,8 @@ export const getConversationMessages = async (conversationId) => {
 
 export const createDirectConversation = async (payload) => {
   const response = await request.post('/api/messages/conversations/direct', payload);
-  return getData(response, {});
+  const conversation = getData(response, {});
+  return { ...conversation, avatarUrl: resolveUrl(conversation.avatarUrl || '') };
 };
 
 export const sendConversationMessage = async (conversationId, payload) => {

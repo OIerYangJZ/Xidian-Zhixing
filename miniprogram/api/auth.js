@@ -19,12 +19,18 @@ const requireSessionData = (response) => {
   if (token && studentId && data.verified === true) {
     return response;
   }
+  // A result is handed out once; polling again gets 登录结果已使用，请重新发起登录.
+  if (!token && String(data.message || '').trim()) {
+    throw responseContractError(String(data.message).trim());
+  }
   throw responseContractError('统一认证响应缺少有效登录凭据');
 };
 
 const normalizeUser = (user = {}) => {
   return {
     ...user,
+    // PATCH /api/users/me only accepts the relative storage path.
+    backgroundImagePath: user.backgroundImageUrl || '',
     avatarUrl: resolveUrl(user.avatarUrl || ''),
     backgroundImageUrl: resolveUrl(user.backgroundImageUrl || '')
   };

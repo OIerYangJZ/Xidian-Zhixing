@@ -60,7 +60,7 @@
 
   <view class="composer">
     <view class="composer-pill">
-      <input class="composer-input" placeholder="{{messages.length > 1 ? '继续提问' : '问问校园里的事'}}" value="{{inputVal}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" cursor-spacing="20" disabled="{{!configured || configLoading}}" />
+      <input class="composer-input" maxlength="12000" placeholder="{{messages.length > 1 ? '继续提问' : '问问校园里的事'}}" value="{{inputVal}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" cursor-spacing="20" disabled="{{!configured || configLoading}}" />
       <view wx:if="{{isSending}}" class="send send--stop" bindtap="stopMessage"><view class="stop-square"></view></view>
       <view wx:else class="send {{inputVal && configured && !configLoading ? 'send--on' : ''}}" bindtap="sendMessage"><view class="zx-i zx-i-send"></view></view>
     </view>

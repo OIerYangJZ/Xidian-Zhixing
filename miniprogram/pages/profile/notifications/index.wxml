@@ -2,7 +2,7 @@
   <view class="toolbar" wx:if="{{items.length}}">
     <scroll-view class="tabs" scroll-x enhanced show-scrollbar="{{false}}">
       <view class="tabs-row">
-        <view wx:for="{{tabs}}" wx:key="key" class="chip {{category === item.key ? 'chip--on' : ''}}" data-key="{{item.key}}" bindtap="selectCategory">
+        <view wx:for="{{tabs}}" wx:key="key" class="chip {{item.on ? 'chip--on' : ''}}" data-key="{{item.key}}" bindtap="selectCategory">
           <text>{{item.label}}</text>
           <text wx:if="{{item.unread}}" class="chip-count">{{item.unread > 99 ? '99+' : item.unread}}</text>
         </view>

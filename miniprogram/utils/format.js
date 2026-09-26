@@ -191,6 +191,8 @@ export const normalizePost = (raw = {}) => {
     liked: Boolean(raw.liked || raw.isLiked),
     favorited: Boolean(raw.favorited || raw.isFavorited),
     isPinned: Boolean(raw.isPinned),
+    // Only one's own posts come back pending / rejected (待审核 / 未通过审核).
+    reviewStatus: String(raw.reviewStatus || 'approved'),
     statusLabel: statusLabel(raw.status),
     statusKey: ['resolved', 'closed'].includes(String(raw.status || '').toLowerCase())
       ? String(raw.status).toLowerCase()

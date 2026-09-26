@@ -47,11 +47,11 @@
       </view>
       <view class="field">
         <view class="field-label">学院</view>
-        <input class="field-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" placeholder="例如：计算机科学与技术学院" placeholder-class="field-placeholder" />
+        <input class="field-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" maxlength="80" placeholder="例如：计算机科学与技术学院" placeholder-class="field-placeholder" />
       </view>
       <view class="field">
         <view class="field-label">专业</view>
-        <input class="field-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" placeholder="例如：软件工程" placeholder-class="field-placeholder" />
+        <input class="field-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" maxlength="80" placeholder="例如：软件工程" placeholder-class="field-placeholder" />
       </view>
     </view>
 

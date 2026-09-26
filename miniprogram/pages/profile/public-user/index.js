@@ -1,6 +1,6 @@
 import { userIdFromScannedLink, userShareLink } from '../../../utils/share_links';
 import { blockUserGlobally, followUser, getPublicUser, unblockUserGlobally, unfollowUser } from '../../../api/user';
-import { getPosts, reportTarget } from '../../../api/posts';
+import { getPostsPage, reportTarget } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
 import { attachDisplayImages } from '../../../utils/feed_images';
 import { requireLoginPage } from '../../../utils/auth_guard';
@@ -11,11 +11,23 @@ const REPORT_REASONS = ['广告引流', '人身攻击', '违规内容', '垃圾�
 // 主页 (handoff U1–U3): the cover under a custom bar, the profile with
 // 私信 / 关注, then TA 的帖子. 「⋯」 copies the link, blocks or reports; once
 // blocked, the posts give way to a note and 关注 / 私信 to 解除屏蔽.
+const PAGE_SIZE = 20;
+
+// What anyone else sees here, and what postCount counts: on their own page
+// the owner would otherwise also get their anonymous, private and unreviewed
+// posts, relabelled with their name.
+const isPublicPost = (post) => !post.isAnonymous
+  && post.visibility !== 'private'
+  && ['approved', 'resolved'].includes(post.reviewStatus);
+
 Page({
   data: {
     userId: '',
     profile: null,
     posts: [],
+    page: 1,
+    hasMore: false,
+    loadingMore: false,
     loading: true,
     errorMessage: '',
     busy: false,
@@ -50,21 +62,13 @@ Page({
   async loadProfile() {
     this.setData({ loading: true, errorMessage: '' });
     try {
-      const [profile, posts] = await Promise.all([
-        getPublicUser(this.data.userId),
-        getPosts({ authorId: this.data.userId, page: 1, limit: 20 })
-      ]);
-      const decorated = this.decorate(profile);
-      // Rows show this page's owner, not a stale alias or 匿名 from the feed.
-      const byOwner = (post) => Object.assign(attachDisplayImages(post), {
-        authorAlias: decorated.name,
-        authorAvatarUrl: decorated.avatarUrl || '',
-        authorInitial: decorated.avatarInitial,
-        isAnonymous: false
-      });
+      const profile = this.decorate(await getPublicUser(this.data.userId));
+      const page = await this.fetchPublicPage(1, profile);
       this.setData({
-        profile: decorated,
-        posts: posts.map(byOwner),
+        profile,
+        posts: page.rows,
+        page: page.page,
+        hasMore: page.hasMore,
         loading: false
       });
     } catch (error) {
@@ -74,6 +78,43 @@ Page({
           || (error && error.message)
           || '主页加载失败，请重试'
       });
+    }
+  },
+
+  // Rows show this page's owner, not a stale alias from the feed.
+  ownerRows(posts, profile) {
+    return posts.filter(isPublicPost).map((post) => Object.assign(attachDisplayImages(post), {
+      authorAlias: profile.name,
+      authorAvatarUrl: profile.avatarUrl || '',
+      authorInitial: profile.avatarInitial
+    }));
+  },
+
+  // From page `first` on until one yields a public row or the list ends: on
+  // the owner's own page a whole server page can be anonymous or private,
+  // and a page with no rows gives onReachBottom nothing to scroll to.
+  async fetchPublicPage(first, profile) {
+    let page = first;
+    for (;;) {
+      const result = await getPostsPage({ authorId: this.data.userId, page, limit: PAGE_SIZE });
+      const rows = this.ownerRows(result.items, profile);
+      if (rows.length || !result.hasMore) return { rows, page, hasMore: result.hasMore };
+      page += 1;
+    }
+  },
+
+  async onReachBottom() {
+    if (!this.data.hasMore || this.data.loadingMore || !this.data.profile) return;
+    this.setData({ loadingMore: true });
+    try {
+      const page = await this.fetchPublicPage(this.data.page + 1, this.data.profile);
+      this.setData({
+        posts: this.data.posts.concat(page.rows),
+        page: page.page,
+        hasMore: page.hasMore
+      });
+    } finally {
+      this.setData({ loadingMore: false });
     }
   },
 
@@ -126,8 +167,10 @@ Page({
     try {
       if (block) await blockUserGlobally(this.data.userId);
       else await unblockUserGlobally(this.data.userId);
-      this.setData({ profile: this.decorate({ ...this.data.profile, isBlockedByMe: block, isFollowing: block ? false : this.data.profile.isFollowing }) });
       wx.showToast({ title: block ? '已屏蔽' : '已解除屏蔽', icon: 'none' });
+      // The server keeps the follow and filters TA's posts while blocked:
+      // reload both rather than guess them here.
+      await this.loadProfile();
     } catch (error) {
       wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     } finally {

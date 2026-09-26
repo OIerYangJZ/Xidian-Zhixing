@@ -37,32 +37,3 @@ export const getPosts = async (params = {}) => {
   const response = await request.get('/api/posts', params);
   return normalizeLegacyPostListResponse(response);
 };
-
-/**
- * 获取帖子详情
- * @param {string} postId - 帖子 ID
- */
-export const getPostById = async (postId) => {
-  const response = await request.get(`/api/posts/${postId}`);
-  return {
-    ...response,
-    data: normalizeLegacyPost(getData(response, {}))
-  };
-};
-
-/**
- * 点赞帖子
- * @param {string} postId - 帖子 ID
- * @param {boolean} isLike - true 为点赞，false 为取消点赞
- */
-export const likePost = (postId, isLike = true) => {
-  return request.post(`/api/posts/${postId}/like`, { like: isLike });
-};
-
-/**
- * 发布帖子
- * @param {Object} data - 帖子数据 { content, sectionId, sectionType, tags, imageIds, isAnonymous }
- */
-export const createPost = (data) => {
-  return request.post('/api/posts', data);
-};

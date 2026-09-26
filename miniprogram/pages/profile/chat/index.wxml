@@ -113,7 +113,7 @@
         <view class="reply-close" bindtap="clearReply"><view class="zx-i zx-i-close zx-i--sm"></view></view>
       </view>
       <view class="input-row">
-        <input class="chat-input" value="{{content}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
+        <input class="chat-input" value="{{content}}" maxlength="1000" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
         <view class="send {{content ? 'send--on' : ''}}" bindtap="sendMessage"><view class="zx-i zx-i-send"></view></view>
       </view>
     </block>

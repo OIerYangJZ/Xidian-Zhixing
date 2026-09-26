@@ -7,8 +7,8 @@ import {
   getPostComments,
   incrementPostView,
   reportTarget,
-  toggleCommentLike,
-  togglePostLike,
+  setCommentLiked,
+  setPostLiked,
   unfavoritePost
 } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
@@ -43,9 +43,12 @@ const COMMENT_SORT_LABELS = {
 };
 
 const buildCommentRows = (comments, targetCommentId = '') => {
+  const ids = new Set(comments.map((item) => item.id));
   const byParent = {};
   comments.forEach((item) => {
-    const parentId = item.parentId || '';
+    // A reply whose parent the server left out (deleted, pending, or by a
+    // blocked user) is shown at the top level instead of vanishing with it.
+    const parentId = item.parentId && ids.has(item.parentId) ? item.parentId : '';
     if (!byParent[parentId]) byParent[parentId] = [];
     byParent[parentId].push(item);
   });
@@ -193,15 +196,14 @@ Page({
     if (!this.data.post || this.data.isLiking) return;
     this.setData({ isLiking: true });
     try {
-      const result = await togglePostLike(this.data.postId);
-      const liked = Boolean(result.liked);
       const post = this.data.post;
+      const result = await setPostLiked(post.id, !post.liked);
       this.setData({
         post: {
           ...post,
-          liked,
-          isLiked: liked,
-          likeCount: Math.max(0, post.likeCount + (liked ? 1 : -1))
+          liked: result.liked,
+          isLiked: result.liked,
+          likeCount: result.likeCount
         }
       });
     } catch (error) {
@@ -474,14 +476,14 @@ Page({
     const comment = this.data.comments[index];
     if (!comment) return;
     try {
-      const result = await toggleCommentLike(comment.id);
-      const liked = Boolean(result.liked);
+      const result = await setCommentLiked(comment.id, !comment.liked);
+      const liked = result.liked;
       const comments = this.data.comments.slice();
       comments[index] = {
         ...comment,
         liked,
         isLiked: liked,
-        likeCount: Math.max(0, comment.likeCount + (liked ? 1 : -1))
+        likeCount: Math.max(0, comment.likeCount + (liked === comment.liked ? 0 : liked ? 1 : -1))
       };
       this.setData({ comments });
     } catch (error) {}

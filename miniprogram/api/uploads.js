@@ -1,23 +1,10 @@
 import request from '../utils/request';
 import { getData, resolveUrl, responseContractError } from '../utils/format';
 
-const IMAGE_TYPES = {
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  png: 'image/png',
-  webp: 'image/webp',
-  gif: 'image/gif'
-};
-
 const fileNameFromPath = (filePath, fallback) => {
   const cleanPath = String(filePath || '').split('?')[0];
   const name = cleanPath.split('/').filter(Boolean).pop();
   return name || fallback;
-};
-
-const contentTypeFromName = (fileName) => {
-  const ext = String(fileName || '').split('.').pop().toLowerCase();
-  return IMAGE_TYPES[ext] || 'image/jpeg';
 };
 
 const readFileBase64 = (filePath) => {
@@ -33,16 +20,13 @@ const readFileBase64 = (filePath) => {
 
 const uploadLocalImage = async (filePath, options = {}) => {
   const fileName = options.fileName || fileNameFromPath(filePath, 'image.jpg');
-  const contentType = options.contentType || contentTypeFromName(fileName);
   const dataBase64 = await readFileBase64(filePath);
+  // No contentType: the server reads the type from the bytes and refuses a
+  // declared one that disagrees, and a temp file's extension can be missing
+  // or wrong.
   const response = await request.post(options.url, {
     dataBase64,
-    imageDataBase64: dataBase64,
-    avatarDataBase64: dataBase64,
     fileName,
-    contentType,
-    avatarFileName: fileName,
-    avatarContentType: contentType,
     ...(options.extra || {})
   });
   return getData(response, {});
@@ -91,6 +75,7 @@ export const uploadBackgroundImage = async (filePath, options = {}) => {
   }
   const result = {
     ...upload,
+    path: upload.url,
     url: resolveUrl(upload.url)
   };
   if (!result.url) {

@@ -1,6 +1,7 @@
 import { getClubDetail } from '../../../api/clubs';
 import { normalizePost } from '../../../utils/format';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 
 // Skips a malformed post instead of losing the whole club page.
 const safePost = (raw) => {
@@ -28,7 +29,8 @@ Page({
     this.setData({ loading: true, errorMessage: '' });
     try {
       const club = await getClubDetail(this.data.id);
-      const posts = (Array.isArray(club.posts) ? club.posts : []).map(safePost).filter(Boolean);
+      const posts = (Array.isArray(club.posts) ? club.posts : []).map(safePost).filter(Boolean)
+        .map(attachDisplayImages);
       this.setData({
         club: Object.assign({}, club, {
           initial: String(club.name || '社').trim().charAt(0) || '社',
@@ -37,6 +39,8 @@ Page({
         loading: false
       });
       if (club.name) wx.setNavigationBarTitle({ title: club.name });
+      const hydrated = await hydrateDisplayImages(posts);
+      this.setData({ 'club.posts': applyHydratedDisplayImages(this.data.club.posts, hydrated) });
     } catch (error) {
       this.setData({
         loading: false,

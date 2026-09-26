@@ -35,7 +35,7 @@
       <view class="fields">
         <view class="field">
           <view class="field-label">账号</view>
-          <input class="field-input" value="{{studentId}}" placeholder="学号或校园网账号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
+          <input class="field-input" value="{{studentId}}" disabled placeholder="完成学号认证后自动填入" placeholder-class="field-placeholder" />
         </view>
         <view class="field">
           <view class="field-label">密码</view>

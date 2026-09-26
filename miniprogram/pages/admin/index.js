@@ -1,11 +1,10 @@
 import {
-  addChannel,
   addTag,
   createKnowledgeSource,
   deleteKnowledgeSource,
-  deleteChannel,
   deleteTag,
   getAdminAppeals,
+  getAdminFeedbacks,
   getAdminConfig,
   getAdminImages,
   getAdminOverview,
@@ -13,13 +12,14 @@ import {
   getAdminReviews,
   getAdminUsers,
   getCancellationRequests,
-  getChannelsTags,
+  getTags,
   getClubApplications,
   getKnowledgeSources,
   getCurrentAdmin,
   getPostPinRequests,
   getUserLevelRequests,
   handleAdminAppeal,
+  handleAdminFeedback,
   handleAdminImage,
   handleAdminReport,
   handleAdminReview,
@@ -29,7 +29,6 @@ import {
   handlePostPinRequest,
   handleUserLevelRequest,
   reindexKnowledge,
-  renameChannel,
   renameTag,
   updateAdminConfig,
   updateKnowledgeSource
@@ -44,6 +43,7 @@ const TABS = [
   { key: 'images', label: '图片' },
   { key: 'users', label: '用户' },
   { key: 'requests', label: '申请' },
+  { key: 'feedback', label: '反馈' },
   { key: 'system', label: '系统' }
 ];
 
@@ -63,6 +63,7 @@ const REVIEW_STATUSES = [
 const REPORT_STATUSES = [
   { key: 'pending', label: '待处理' },
   { key: 'resolved', label: '已处理' },
+  { key: 'misreport', label: '误报' },
   { key: 'all', label: '全部' }
 ];
 
@@ -83,7 +84,6 @@ const REQUEST_STATUSES = [
 
 const SYSTEM_TYPES = [
   { key: 'config', label: '配置' },
-  { key: 'channels', label: '频道' },
   { key: 'tags', label: '标签' },
   { key: 'knowledge', label: '知识库' }
 ];
@@ -91,6 +91,15 @@ const SYSTEM_TYPES = [
 // Mini program admins sign in with their student account, which the backend
 // treats as a secondary admin: only pin and club requests and the knowledge
 // base are open to them. Everything else answers 403.
+const FEEDBACK_STATUSES = [
+  { key: 'pending', label: '待处理' },
+  { key: 'resolved', label: '已回复' },
+  { key: 'closed', label: '已关闭' },
+  { key: 'all', label: '全部' }
+];
+
+const FEEDBACK_STATUS_TEXT = { pending: '待处理', resolved: '已回复', closed: '已关闭' };
+
 const SECONDARY_TABS = ['requests', 'system'];
 const SECONDARY_REQUEST_TYPES = ['pin', 'club'];
 const SECONDARY_SYSTEM_TYPES = ['knowledge'];
@@ -100,6 +109,8 @@ const STATUS_TEXT = {
   approved: '已通过',
   rejected: '已驳回',
   resolved: '已处理',
+  misreport: '误报',
+  closed: '已关闭',
   risk: '风险',
   deleted: '已删除',
   all: '全部'
@@ -121,6 +132,9 @@ Page({
     reviewTypes: REVIEW_TYPES,
     reviewStatuses: REVIEW_STATUSES,
     reportStatuses: REPORT_STATUSES,
+    feedbackStatuses: FEEDBACK_STATUSES,
+    feedbackStatus: 'pending',
+    feedbacks: [],
     requestTypes: REQUEST_TYPES,
     requestStatuses: REQUEST_STATUSES,
     systemTypes: SYSTEM_TYPES,
@@ -144,7 +158,6 @@ Page({
     requestRows: [],
     sensitiveWordsText: '',
     rateRulesText: '',
-    channels: [],
     tags: [],
     knowledgeForm: {
       name: '',
@@ -216,6 +229,7 @@ Page({
     if (activeTab === 'images') return this.loadImages();
     if (activeTab === 'users') return this.loadUsers();
     if (activeTab === 'requests') return this.loadRequests();
+    if (activeTab === 'feedback') return this.loadFeedbacks();
     if (activeTab === 'system') return this.loadSystem();
     return Promise.resolve();
   },
@@ -236,6 +250,10 @@ Page({
 
   setReportStatus(event) {
     this.setData({ reportStatus: event.currentTarget.dataset.key }, () => this.loadReports());
+  },
+
+  setFeedbackStatus(event) {
+    this.setData({ feedbackStatus: event.currentTarget.dataset.key }, () => this.loadFeedbacks());
   },
 
   setRequestType(event) {
@@ -260,7 +278,8 @@ Page({
         { label: '评论', value: overview.totalComments || 0 },
         { label: '待审', value: overview.pendingReviewCount || overview.pendingReviews || 0 },
         { label: '举报', value: overview.pendingReportCount || overview.pendingReports || 0 },
-        { label: '图片', value: overview.pendingImageCount || overview.pendingImages || 0 }
+        { label: '图片', value: overview.pendingImageCount || overview.pendingImages || 0 },
+        { label: '反馈', value: overview.pendingFeedbacks }
       ];
       this.setData({ overview, overviewCards, loading: false, errorMessage: '' });
     } catch (error) {
@@ -341,6 +360,25 @@ Page({
     }
   },
 
+  async loadFeedbacks() {
+    this.setData({ loading: true, errorMessage: '' });
+    try {
+      const rows = await getAdminFeedbacks({ status: this.data.feedbackStatus });
+      this.setData({
+        feedbacks: rows.map((item) => ({
+          ...item,
+          statusText: FEEDBACK_STATUS_TEXT[item.status] || item.status,
+          displayUser: [item.userNickname, item.studentId ? `学号 ${item.studentId}` : item.userEmail]
+            .filter(Boolean).join(' · ')
+        })),
+        loading: false,
+        errorMessage: ''
+      });
+    } catch (error) {
+      this.setData({ loading: false, errorMessage: '反馈列表加载失败，请重试' });
+    }
+  },
+
   async loadRequests() {
     this.setData({ loading: true, errorMessage: '' });
     try {
@@ -363,7 +401,7 @@ Page({
 
   async loadSystem() {
     if (this.data.systemType === 'config') return this.loadConfig();
-    if (this.data.systemType === 'channels' || this.data.systemType === 'tags') return this.loadChannelsTags();
+    if (this.data.systemType === 'tags') return this.loadTags();
     if (this.data.systemType === 'knowledge') return this.loadKnowledgeSources();
     this.setData({ loading: false });
     return Promise.resolve();
@@ -375,7 +413,7 @@ Page({
       const config = await getAdminConfig();
       this.setData({
         sensitiveWordsText: (config.sensitiveWords || []).join('\n'),
-        rateRulesText: JSON.stringify(config.rateLimitRules || {}, null, 2),
+        rateRulesText: JSON.stringify(config.settings, null, 2),
         loading: false,
         errorMessage: ''
       });
@@ -384,18 +422,13 @@ Page({
     }
   },
 
-  async loadChannelsTags() {
+  async loadTags() {
     this.setData({ loading: true, errorMessage: '' });
     try {
-      const data = await getChannelsTags();
-      this.setData({
-        channels: data.channels || [],
-        tags: data.tags || [],
-        loading: false,
-        errorMessage: ''
-      });
+      const tags = await getTags();
+      this.setData({ tags, loading: false, errorMessage: '' });
     } catch (error) {
-      this.setData({ loading: false, errorMessage: '频道与标签加载失败，请重试' });
+      this.setData({ loading: false, errorMessage: '标签加载失败，请重试' });
     }
   },
 
@@ -496,6 +529,23 @@ Page({
     });
   },
 
+  // 回复 needs text (the user sees it); 关闭 may go without.
+  actFeedback(event) {
+    const { id, action } = event.currentTarget.dataset;
+    const reply = action === 'reply';
+    this.askNote({
+      title: reply ? '回复反馈' : '关闭反馈',
+      placeholderText: reply ? '回复内容（用户可见）' : '说明（选填，用户可见）',
+      confirmText: reply ? '发送' : '关闭'
+    }, (text) => {
+      if (reply && !text) {
+        wx.showToast({ title: '回复内容不能为空', icon: 'none' });
+        return;
+      }
+      this.runAction(() => handleAdminFeedback(id, { action, reply: text }));
+    });
+  },
+
   actRequest(event) {
     const { id, action } = event.currentTarget.dataset;
     this.askNote({ title: '处理申请', placeholderText: '处理备注', confirmText: '提交' }, (reviewNote) => {
@@ -503,7 +553,8 @@ Page({
       this.runAction(() => {
         if (this.data.requestType === 'pin') return handlePostPinRequest(id, payload);
         if (this.data.requestType === 'level') return handleUserLevelRequest(id, payload);
-        if (this.data.requestType === 'cancel') return handleCancellationRequest(id, payload);
+        // The cancellation handler reads `note`; the others take reviewNote.
+        if (this.data.requestType === 'cancel') return handleCancellationRequest(id, { action, note: reviewNote });
         if (this.data.requestType === 'appeal') return handleAdminAppeal(id, payload);
         return handleClubApplication(id, payload);
       });
@@ -519,9 +570,9 @@ Page({
   },
 
   saveConfig() {
-    let rateLimitRules = {};
+    let settings = {};
     try {
-      rateLimitRules = JSON.parse(this.data.rateRulesText || '{}');
+      settings = JSON.parse(this.data.rateRulesText || '{}');
     } catch (error) {
       wx.showToast({ title: '频控配置不是有效 JSON', icon: 'none' });
       return;
@@ -530,29 +581,7 @@ Page({
       .split(/\r?\n/)
       .map((item) => item.trim())
       .filter(Boolean);
-    this.runAction(() => updateAdminConfig({ sensitiveWords, rateLimitRules }));
-  },
-
-  addChannel() {
-    this.askNote({ title: '新增频道', placeholderText: '频道名称', confirmText: '保存' }, (value) => {
-      if (!value) return;
-      this.runAction(() => addChannel(value));
-    });
-  },
-
-  editChannel(event) {
-    const name = event.currentTarget.dataset.name;
-    this.askNote({ title: '重命名频道', placeholderText: name, confirmText: '保存' }, (value) => {
-      if (!value) return;
-      this.runAction(() => renameChannel(name, value));
-    });
-  },
-
-  removeChannel(event) {
-    const name = event.currentTarget.dataset.name;
-    this.confirm({ title: '删除频道', content: name, confirmText: '删除' }, () => {
-      this.runAction(() => deleteChannel(name));
-    });
+    this.runAction(() => updateAdminConfig({ sensitiveWords, settings }));
   },
 
   addTag() {

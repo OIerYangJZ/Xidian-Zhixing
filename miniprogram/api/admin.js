@@ -1,7 +1,11 @@
 import request from '../utils/request';
-import { getData, resolveUrl, toArray } from '../utils/format';
+import { getData, resolveUrl, responseContractError, toArray } from '../utils/format';
 
 const adminOptions = { keepSessionOnUnauthorized: true };
+// The backend waits up to 300 s (upsert) / 600 s (reindex) on the knowledge
+// service, so these calls must outlast that instead of the default 15 s.
+const knowledgeWriteOptions = { ...adminOptions, timeout: 310 * 1000 };
+const knowledgeReindexOptions = { ...adminOptions, timeout: 610 * 1000 };
 
 const normalizeImage = (item = {}) => ({
   ...item,
@@ -104,6 +108,17 @@ export const handleAdminAppeal = async (id, payload) => {
   return getData(response, {});
 };
 
+export const getAdminFeedbacks = async (params = {}) => {
+  const response = await request.get('/api/admin/feedbacks', params, adminOptions);
+  return toArray(getData(response, []));
+};
+
+// payload: { action: 'reply' | 'close', reply }
+export const handleAdminFeedback = async (id, payload) => {
+  const response = await request.post(`/api/admin/feedbacks/${id}/handle`, payload, adminOptions);
+  return getData(response, {});
+};
+
 export const getClubApplications = async (params = {}) => {
   const response = await request.get('/api/admin/clubs/applications', params, adminOptions);
   return toArray(getData(response, []));
@@ -114,24 +129,14 @@ export const handleClubApplication = async (id, payload) => {
   return getData(response, {});
 };
 
-export const getChannelsTags = async () => {
+// Sections replaced channels; the route keeps its name and returns { tags }.
+export const getTags = async () => {
   const response = await request.get('/api/admin/channels-tags', {}, adminOptions);
-  return getData(response, { channels: [], tags: [] });
-};
-
-export const addChannel = async (channel) => {
-  const response = await request.post('/api/admin/channels', { channel }, adminOptions);
-  return getData(response, {});
-};
-
-export const renameChannel = async (oldName, channel) => {
-  const response = await request.patch(`/api/admin/channels/${encodeURIComponent(oldName)}`, { channel }, adminOptions);
-  return getData(response, {});
-};
-
-export const deleteChannel = async (name) => {
-  const response = await request.delete(`/api/admin/channels/${encodeURIComponent(name)}`, {}, adminOptions);
-  return getData(response, {});
+  const data = getData(response, {});
+  if (!Array.isArray(data.tags)) {
+    throw responseContractError('标签列表响应缺少 tags');
+  }
+  return data.tags;
 };
 
 export const addTag = async (tag) => {
@@ -151,7 +156,7 @@ export const deleteTag = async (name) => {
 
 export const getAdminConfig = async () => {
   const response = await request.get('/api/admin/config', {}, adminOptions);
-  return getData(response, { sensitiveWords: [], rateLimitRules: {} });
+  return getData(response, {});
 };
 
 export const updateAdminConfig = async (payload) => {
@@ -160,7 +165,7 @@ export const updateAdminConfig = async (payload) => {
 };
 
 export const createKnowledgeSource = async (payload) => {
-  const response = await request.post('/api/admin/ai/knowledge-sources', payload, adminOptions);
+  const response = await request.post('/api/admin/ai/knowledge-sources', payload, knowledgeWriteOptions);
   return getData(response, {});
 };
 
@@ -170,7 +175,7 @@ export const getKnowledgeSources = async () => {
 };
 
 export const updateKnowledgeSource = async (id, payload) => {
-  const response = await request.patch(`/api/admin/ai/knowledge-sources/${encodeURIComponent(id)}`, payload, adminOptions);
+  const response = await request.patch(`/api/admin/ai/knowledge-sources/${encodeURIComponent(id)}`, payload, knowledgeWriteOptions);
   return getData(response, {});
 };
 
@@ -180,6 +185,6 @@ export const deleteKnowledgeSource = async (id) => {
 };
 
 export const reindexKnowledge = async () => {
-  const response = await request.post('/api/admin/ai/reindex', {}, adminOptions);
+  const response = await request.post('/api/admin/ai/reindex', {}, knowledgeReindexOptions);
   return getData(response, {});
 };

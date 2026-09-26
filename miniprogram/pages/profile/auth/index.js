@@ -130,6 +130,11 @@ Page({
       clearCampusAuthSession();
       wx.setStorageSync('token', data.token);
       this.setData({ attemptId: '', authorizeUrl: '' });
+      if (data.banned) {
+        // Every page but the appeal one would be refused.
+        wx.reLaunch({ url: '/pages/profile/appeal/index' });
+        return;
+      }
       wx.showToast({ title: '登录成功', icon: 'success' });
       setTimeout(() => this.returnAfterLogin(), 800);
     } catch (err) {

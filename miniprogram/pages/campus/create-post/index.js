@@ -9,8 +9,10 @@ import { sectionTone } from '../../../utils/format';
 import { markdownToNodes } from '../../../utils/markdown';
 
 const MAX_IMAGE_COUNT = 9;
-const CONTENT_LIMIT = 2000;
-const TITLE_LIMIT = 60;
+// The server's limits (_post_handler.py _MAX_POST_*, _MAX_TAGS).
+const CONTENT_LIMIT = 10000;
+const TITLE_LIMIT = 200;
+const TAG_LIMIT = 10;
 const DRAFT_KEY = 'createPostDraft';
 const STATUS_OPTIONS = [
   { label: '进行中', value: 'ongoing', icon: 'help' },
@@ -58,10 +60,13 @@ const VISIBILITY_OPTIONS = [
   { label: '仅自己可见', value: 'private', icon: 'lock' }
 ];
 
+// The server's own extraction (_extract_inline_tags), so the chips are the
+// tags the post will get.
 function extractInlineTags(...values) {
   const tags = [];
   values.forEach((value) => {
-    String(value || '').replace(/#([^\s#]{1,30})(?=\s)/g, (_, tag) => {
+    // Python's \w is Unicode-aware; JS needs \p{L}\p{N} and the u flag.
+    String(value || '').replace(/#([\p{L}\p{N}_-]{1,30})/gu, (_, tag) => {
       const cleanTag = String(tag || '').trim();
       if (cleanTag && !tags.includes(cleanTag)) tags.push(cleanTag);
       return '';
@@ -191,7 +196,6 @@ Page({
       sectionIndex: -1,
       loading: false
     });
-    this.restoreDraft();
   },
 
   async loadInitialData() {
@@ -202,6 +206,8 @@ Page({
         this.loadClubs(),
         this.loadUserLevel()
       ]);
+      // After both lists: a draft's section and identity name one of each.
+      this.restoreDraft();
     } catch (error) {
       this.setData({
         loading: false,
@@ -217,7 +223,8 @@ Page({
   },
 
   async loadClubs() {
-    const clubs = await getClubs();
+    // Only clubs the server lets this user post as (owner / manager).
+    const clubs = (await getClubs()).filter((club) => club.canPublishAs);
     this.setData({ clubs });
   },
 
@@ -277,14 +284,14 @@ Page({
   // ---- drafts ----
 
   afterEdit() {
-    this.setData({ tagChips: extractInlineTags(this.data.content) });
+    this.setData({ tagChips: extractInlineTags(this.data.title, this.data.content) });
     this.refreshErrors();
     clearTimeout(this._draftTimer);
     this._draftTimer = setTimeout(() => this.saveDraft(), 800);
   },
 
   saveDraft() {
-    const { title, content, markdown, sectionIndex, sections, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias } = this.data;
+    const { title, content, markdown, sectionIndex, sections, clubs, clubIdentityIndex, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias } = this.data;
     if (!title.trim() && !content.trim()) {
       wx.removeStorageSync(DRAFT_KEY);
       this.setData({ draftSavedAt: '' });
@@ -293,7 +300,8 @@ Page({
     const section = sectionIndex >= 0 ? sections[sectionIndex] : null;
     wx.setStorageSync(DRAFT_KEY, {
       title, content, markdown, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias,
-      sectionName: section ? section.sectionName : ''
+      sectionName: section ? section.sectionName : '',
+      clubId: clubIdentityIndex >= 0 && clubs[clubIdentityIndex] ? clubs[clubIdentityIndex].id : ''
     });
     const now = new Date();
     this.setData({ draftSavedAt: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` });
@@ -302,7 +310,13 @@ Page({
   restoreDraft() {
     const draft = wx.getStorageSync(DRAFT_KEY);
     if (!draft || (!draft.title && !draft.content)) return;
-    const sectionIndex = this.data.sections.findIndex((item) => item.sectionName === draft.sectionName);
+    const clubIdentityIndex = draft.clubId
+      ? this.data.clubs.findIndex((club) => club.id === draft.clubId)
+      : -1;
+    const club = clubIdentityIndex >= 0 ? this.data.clubs[clubIdentityIndex] : null;
+    let sectionIndex = this.data.sections.findIndex((item) => item.sectionName === draft.sectionName);
+    // The club may no longer be one this user can post as.
+    if (sectionIndex >= 0 && !this.clubFitsSection(club, this.data.sections[sectionIndex])) sectionIndex = -1;
     const statusIndex = Number.isInteger(draft.postStatusIndex) && draft.postStatusIndex >= 0 ? draft.postStatusIndex : 0;
     this.setData({
       title: draft.title || '',
@@ -312,12 +326,14 @@ Page({
       contentSegments: buildInlineSegments(draft.content || ''),
       markdown: Boolean(draft.markdown),
       sectionIndex,
+      clubIdentityIndex,
+      clubIdentityLabel: club ? (club.name || club.clubName || '社团') : '以个人身份',
       postStatusIndex: statusIndex,
       selectedStatus: STATUS_OPTIONS[statusIndex],
       privateOnly: Boolean(draft.privateOnly),
       useAnonymousAlias: Boolean(draft.useAnonymousAlias),
       anonymousAlias: draft.anonymousAlias || '',
-      tagChips: extractInlineTags(draft.content || ''),
+      tagChips: extractInlineTags(draft.title || '', draft.content || ''),
       draftSavedAt: '已恢复'
     });
     this.updatePublishState();
@@ -390,14 +406,35 @@ Page({
     this.afterEdit();
   },
 
+  // The server takes a club section only from its own club, posting as the
+  // club; any identity may post elsewhere.
+  clubFitsSection(club, section) {
+    if (!section || section.sectionType !== 'club') return true;
+    return Boolean(club && club.sectionId
+      && (club.sectionId === section.sectionId || club.sectionId === section.id));
+  },
+
+  setClubIdentity(index) {
+    const club = index >= 0 ? this.data.clubs[index] : null;
+    const section = this.data.sectionIndex >= 0 ? this.data.sections[this.data.sectionIndex] : null;
+    const keepSection = this.clubFitsSection(club, section);
+    this.setData({
+      clubIdentityIndex: index,
+      clubIdentityLabel: club ? (club.name || club.clubName || '社团') : '以个人身份',
+      clubIdentityOpen: false,
+      ...(keepSection ? {} : { sectionIndex: -1 })
+    });
+    if (!keepSection) {
+      wx.showToast({ title: '社团分区只能以该社团身份发布，已取消分区', icon: 'none' });
+    }
+    this.afterEdit();
+  },
+
   chooseClubIdentity() {
     const names = ['以个人身份', ...this.data.clubs.map((club) => club.name || club.clubName || '社团')];
     wx.showActionSheet({
       itemList: names,
-      success: (res) => {
-        const index = res.tapIndex - 1;
-        this.setData({ clubIdentityIndex: index, clubIdentityLabel: names[res.tapIndex] });
-      }
+      success: (res) => this.setClubIdentity(res.tapIndex - 1)
     });
   },
 
@@ -451,6 +488,17 @@ Page({
         return;
       }
     }
+    if (section && section.sectionType === 'club' && this.data.sectionIndex !== index) {
+      // A club section takes posts only from its own club, posting as the club.
+      const clubIndex = this.data.clubs.findIndex((club) => club.sectionId
+        && (club.sectionId === section.sectionId || club.sectionId === section.id));
+      if (clubIndex < 0) {
+        wx.showToast({ title: '社团分区仅允许负责人以社团身份发布', icon: 'none' });
+        return;
+      }
+      const club = this.data.clubs[clubIndex];
+      this.setData({ clubIdentityIndex: clubIndex, clubIdentityLabel: club.name || club.clubName || '社团' });
+    }
     this.setData({
       sectionIndex: this.data.sectionIndex === index ? -1 : index,
       sectionSelectorOpen: false
@@ -470,10 +518,7 @@ Page({
   },
 
   onClubIdentityTap(event) {
-    this.setData({
-      clubIdentityIndex: Number(event.currentTarget.dataset.index),
-      clubIdentityOpen: false
-    });
+    this.setClubIdentity(Number(event.currentTarget.dataset.index));
   },
 
   toggleTagSelector() {
@@ -730,6 +775,11 @@ Page({
       return;
     }
     const content = this.data.content.trim();
+    const tags = extractInlineTags(this.data.title, content);
+    if (tags.length > TAG_LIMIT) {
+      wx.showToast({ title: `话题最多 ${TAG_LIMIT} 个，当前 ${tags.length} 个`, icon: 'none' });
+      return;
+    }
 
     this.setData({ isPublishing: true, canPublish: false });
     wx.showLoading({ title: '发布中' });
@@ -740,7 +790,6 @@ Page({
         .filter(Boolean);
       const pinMinutes = PIN_OPTIONS[this.data.pinIndex].minutes;
       const anonymousAlias = this.data.anonymousAlias.trim();
-      const tags = extractInlineTags(content).slice(0, 5);
       const selectedSection = this.data.sectionIndex >= 0 ? this.data.sections[this.data.sectionIndex] : null;
       const payload = {
         title: this.data.title.trim(),

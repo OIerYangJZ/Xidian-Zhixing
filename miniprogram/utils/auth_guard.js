@@ -2,6 +2,7 @@ import { clearCampusAuthSession } from './campus_auth';
 import { isTabRoute } from './navigation';
 
 const LOGIN_PAGE = '/pages/profile/auth/index';
+const APPEAL_PAGE = '/pages/profile/appeal/index';
 
 let isNavigating = false;
 
@@ -68,6 +69,17 @@ export const requireLoginPage = () => {
     });
   }
   return false;
+};
+
+// A banned session reaches only its profile and the appeal endpoints, so every
+// other page would be a screen of refused requests.
+export const redirectToAppeal = () => {
+  const pages = getCurrentPages();
+  const current = pages[pages.length - 1];
+  if (current && `/${current.route || ''}` === APPEAL_PAGE) return;
+  withNavLock(() => {
+    wx.reLaunch({ url: APPEAL_PAGE });
+  });
 };
 
 export const clearLoginAndRedirect = () => {

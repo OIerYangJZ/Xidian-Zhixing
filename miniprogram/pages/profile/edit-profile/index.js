@@ -24,6 +24,7 @@ Page({
     },
     avatarPreview: '',
     backgroundPreview: '',
+    backgroundPath: '',
     avatarInitial: '匿',
     genderOptions: [
       { value: '', label: '不显示' },
@@ -62,6 +63,7 @@ Page({
         },
         avatarPreview: profile.avatarUrl || '',
         backgroundPreview: profile.backgroundImageUrl || '',
+        backgroundPath: profile.backgroundImagePath || '',
         avatarInitial: avatarInitial(nickname || '匿'),
         loading: false,
         errorMessage: ''
@@ -129,7 +131,7 @@ Page({
         wx.showLoading({ title: '上传中' });
         try {
           const uploadRes = await uploadBackgroundImage(tempPath);
-          this.setData({ backgroundPreview: uploadRes.url || '' });
+          this.setData({ backgroundPreview: uploadRes.url, backgroundPath: uploadRes.path });
         } catch (error) {
           wx.showToast({
             title: (error && error.data && error.data.message) || '背景图片上传失败',
@@ -144,7 +146,7 @@ Page({
   },
 
   clearBackground() {
-    this.setData({ backgroundPreview: '' });
+    this.setData({ backgroundPreview: '', backgroundPath: '' });
   },
 
   async saveProfile() {
@@ -168,8 +170,8 @@ Page({
         gender: this.data.form.gender,
         college: this.data.form.college.trim(),
         major: this.data.form.major.trim(),
-        avatarUrl: this.data.avatarPreview || '',
-        backgroundImageUrl: this.data.backgroundPreview || ''
+        // The avatar is saved by its upload endpoint; this route rejects changes to it.
+        backgroundImageUrl: this.data.backgroundPath
       });
       wx.hideLoading();
       wx.showToast({ title: '资料已保存', icon: 'success' });

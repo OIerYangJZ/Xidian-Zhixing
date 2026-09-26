@@ -12,6 +12,12 @@ import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 const RECALL_WINDOW_SECONDS = 120;
+// The server refuses a message over 1000 characters; a forward adds its prefix.
+const MESSAGE_MAX_CHARS = 1000;
+const FORWARD_PREFIX = '[转发] ';
+
+// wx.request rejects with the response ({ statusCode, data }) or a fail object ({ errMsg }).
+const errorText = (error) => (error && error.data && error.data.message) || (error && error.errMsg) || '网络异常';
 
 Page({
   data: {
@@ -32,8 +38,8 @@ Page({
     blockedByMe: false,
     blockedByPeer: false,
     // No message requests: before the peer has written, one first message
-    // is all I can send (handoff H4). openedByPeer also covers a reply the
-    // server knows of but that was since recalled.
+    // is all I can send (handoff H4). A reply the peer since recalled still
+    // comes back as a recalled placeholder, so it counts too.
     openedByPeer: false,
     serverSaysWait: false,
     showFirstNote: false,
@@ -84,7 +90,7 @@ Page({
       const user = response && response.data ? response.data : null;
       if (!user) return;
       this.setData({
-        myUserId: user.userId || '',
+        myUserId: user.id,
         myAvatar: user.avatarUrl || '',
         myInitial: avatarInitial(user.nickname || user.alias || '我')
       });
@@ -106,7 +112,7 @@ Page({
         ? {
             blockedByMe: Boolean(conversation.blockedByMe),
             blockedByPeer: Boolean(conversation.blockedByPeer),
-            openedByPeer: peerWrote || (!conversation.awaitingReply && messages.length > 0),
+            openedByPeer: peerWrote,
             serverSaysWait: Boolean(conversation.awaitingReply)
           }
         : { openedByPeer: peerWrote, serverSaysWait: false };
@@ -158,6 +164,8 @@ Page({
     const deliveryStatus = message.deliveryStatus || (isRecalled ? 'recalled' : 'sent');
     return {
       ...message,
+      // The server sends a recalled message without its content.
+      content: isRecalled ? (message.fromMe ? '你撤回了一条消息' : '对方撤回了一条消息') : message.content,
       deliveryStatus,
       isRecalled,
       hasReplyContent: Boolean(message.hasReply || message.replyToContent),
@@ -206,7 +214,8 @@ Page({
     if (!message || !message.fromMe) return false;
     if (message.deliveryStatus === 'failed') return false;
     if (message.canRecall === false) return false;
-    if (message.canRecall === true) return true;
+    // The server's canRecall was computed when the list loaded; the window
+    // keeps closing while the chat stays open.
     const createdAt = Date.parse(message.createdAt || '');
     if (Number.isNaN(createdAt)) return false;
     return (Date.now() - createdAt) / 1000 <= RECALL_WINDOW_SECONDS;
@@ -429,6 +438,7 @@ Page({
         this.setMessages(rest);
         wx.showToast({ title: message, icon: 'none' });
       } else {
+        if (message) wx.showToast({ title: message, icon: 'none' });
         this.replaceMessage(tempId, {
           ...tempMessage,
           timeText: '发送失败',
@@ -495,6 +505,9 @@ Page({
     }
     try {
       await recallConversationMessage(this.data.conversationId, messageId);
+      // A recalled first message frees the slot; firstMessageState rechecks
+      // whether any of mine is still out.
+      this.setData({ serverSaysWait: false });
       this.replaceMessage(messageId, {
         ...message,
         content: message.fromMe ? '你撤回了一条消息' : '对方撤回了一条消息',
@@ -506,7 +519,7 @@ Page({
       }
       wx.showToast({ title: '已撤回', icon: 'success' });
     } catch (error) {
-      wx.showToast({ title: `撤回失败：${error}`, icon: 'none' });
+      wx.showToast({ title: `撤回失败：${errorText(error)}`, icon: 'none' });
     }
   },
 
@@ -538,18 +551,14 @@ Page({
               canRecall: false
             };
           });
-          this.setData({
-            messages: nextMessages,
-            messageItems: this.buildMessageItems(nextMessages),
-            selectMode: false,
-            selectedMessageIds: []
-          });
+          this.setData({ serverSaysWait: false, selectMode: false, selectedMessageIds: [] });
+          this.setMessages(nextMessages);
           if (this.data.replyToId && recalledIds.has(this.data.replyToId)) {
             this.clearReply();
           }
           wx.showToast({ title: `已撤回 ${recallableMessages.length} 条消息`, icon: 'success' });
         } catch (error) {
-          wx.showToast({ title: `撤回失败：${error}`, icon: 'none' });
+          wx.showToast({ title: `撤回失败：${errorText(error)}`, icon: 'none' });
         }
       }
     });
@@ -589,10 +598,15 @@ Page({
   },
 
   async openForwardPicker(message) {
+    const messages = Array.isArray(message) ? message : [message];
+    if (messages.some((item) => (FORWARD_PREFIX + (item.content || '')).length > MESSAGE_MAX_CHARS)) {
+      wx.showToast({ title: `加上转发标记后超过 ${MESSAGE_MAX_CHARS} 字，无法转发`, icon: 'none' });
+      return;
+    }
     try {
       const conversations = await getConversations();
       const forwardTargets = conversations
-        .filter(item => item.id !== this.data.conversationId && !item.blockedByMe && !item.blockedByPeer)
+        .filter(item => item.id !== this.data.conversationId && !item.blockedByMe && !item.blockedByPeer && !item.awaitingReply)
         .map(item => ({
           ...item,
           avatarInitial: avatarInitial(item.name || '')
@@ -601,13 +615,13 @@ Page({
         wx.showToast({ title: '暂无可转发会话', icon: 'none' });
         return;
       }
-      this._forwardMessages = Array.isArray(message) ? message : [message];
+      this._forwardMessages = messages;
       this.setData({
         showForwardPicker: true,
         forwardTargets
       });
     } catch (error) {
-      wx.showToast({ title: `转发失败：${error}`, icon: 'none' });
+      wx.showToast({ title: `转发失败：${errorText(error)}`, icon: 'none' });
     }
   },
 
@@ -628,14 +642,14 @@ Page({
       // 逐条转发: one message after another, in order.
       for (const message of messages) {
         await sendConversationMessage(target.id, {
-          content: `[转发] ${message.content || ''}`
+          content: `${FORWARD_PREFIX}${message.content || ''}`
         });
       }
       wx.showToast({ title: '已转发', icon: 'success' });
       this.closeForwardPicker();
       if (this.data.selectMode) this.exitSelectMode();
     } catch (error) {
-      wx.showToast({ title: `转发失败：${error}`, icon: 'none' });
+      wx.showToast({ title: `转发失败：${errorText(error)}`, icon: 'none' });
     }
   },
 
@@ -672,7 +686,7 @@ Page({
           this.setData({ blockedByMe: isBlocking });
           wx.showToast({ title: isBlocking ? '已屏蔽对方' : '已解除屏蔽', icon: 'success' });
         } catch (error) {
-          wx.showToast({ title: `操作失败：${error}`, icon: 'none' });
+          wx.showToast({ title: `操作失败：${errorText(error)}`, icon: 'none' });
         }
       }
     });

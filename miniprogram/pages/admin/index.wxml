@@ -78,7 +78,7 @@
           <view class="card-content" wx:if="{{item.description}}">{{item.description}}</view>
           <view class="card-content" wx:if="{{item.result}}">{{item.result}}</view>
           <view class="card-time">{{item.createdAt}}</view>
-          <view class="action-row">
+          <view wx:if="{{item.status === 'pending'}}" class="action-row">
             <view class="action-button primary" data-id="{{item.id}}" data-action="resolve" bindtap="actReport">处理</view>
             <view class="action-button" data-id="{{item.id}}" data-action="warn" bindtap="actReport">警告</view>
             <view class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actReport">删除</view>
@@ -160,9 +160,34 @@
           <view class="card-meta">{{item.displayUser}}</view>
           <view class="card-content" wx:if="{{item.displayContent}}">{{item.displayContent}}</view>
           <view class="card-time">{{item.createdAt}}</view>
-          <view class="action-row">
+          <view wx:if="{{item.status === 'pending'}}" class="action-row">
             <view class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actRequest">通过</view>
             <view class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actRequest">驳回</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!errorMessage && activeTab === 'feedback'}}" class="admin-body">
+      <scroll-view class="filter-row" scroll-x enable-flex>
+        <view wx:for="{{feedbackStatuses}}" wx:key="key" class="filter-chip {{feedbackStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setFeedbackStatus">{{item.label}}</view>
+      </scroll-view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!feedbacks.length}}" class="zx-empty compact">暂无反馈</view>
+      <view wx:else>
+        <view wx:for="{{feedbacks}}" wx:key="id" class="admin-card">
+          <view class="card-head">
+            <view class="card-title">{{item.category}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
+          </view>
+          <view class="card-meta">{{item.displayUser}}</view>
+          <view class="card-meta" wx:if="{{item.contact}}">联系方式：{{item.contact}}</view>
+          <view class="card-content">{{item.content}}</view>
+          <view class="card-content" wx:if="{{item.schoolReply}}">回复：{{item.schoolReply}}</view>
+          <view class="card-time">{{item.createdAt}}</view>
+          <view wx:if="{{item.status === 'pending'}}" class="action-row">
+            <view class="action-button primary" data-id="{{item.id}}" data-action="reply" bindtap="actFeedback">回复</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="close" bindtap="actFeedback">关闭</view>
           </view>
         </view>
       </view>
@@ -179,18 +204,6 @@
         <view class="form-label">频控配置</view>
         <textarea class="form-textarea code" value="{{rateRulesText}}" bindinput="onRateRulesInput" maxlength="-1"></textarea>
         <view class="full-button" bindtap="saveConfig">保存配置</view>
-      </view>
-
-      <view wx:if="{{systemType === 'channels'}}" class="admin-card">
-        <view class="section-head">
-          <view class="section-title">频道</view>
-          <view class="small-button" bindtap="addChannel">新增</view>
-        </view>
-        <view wx:for="{{channels}}" wx:key="*this" class="simple-row">
-          <view class="simple-name">{{item}}</view>
-          <view class="text-button" data-name="{{item}}" bindtap="editChannel">重命名</view>
-          <view class="text-button danger-text" data-name="{{item}}" bindtap="removeChannel">删除</view>
-        </view>
       </view>
 
       <view wx:if="{{systemType === 'tags'}}" class="admin-card">

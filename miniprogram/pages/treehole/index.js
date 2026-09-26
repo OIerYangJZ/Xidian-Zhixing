@@ -1,6 +1,6 @@
 import { getUserInfo } from '../../api/auth';
 import { getPosts } from '../../api/post';
-import { favoritePost, togglePostLike as togglePostLikeApi, unfavoritePost } from '../../api/posts';
+import { favoritePost, setPostLiked, unfavoritePost } from '../../api/posts';
 import { getSectionsTree } from '../../api/campus';
 import { requireLoginPage } from '../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../utils/theme_i18n';
@@ -11,6 +11,12 @@ const SORT_OPTIONS = [
   { label: '最新', value: 'latest' },
   { label: '热度', value: 'hot' }
 ];
+
+// request.js already toasts HTTP and network failures; a response that fails
+// its shape check is an Error it never saw.
+const toastContractError = (error) => {
+  if (error instanceof Error) wx.showToast({ title: error.message, icon: 'none' });
+};
 
 Page({
   data: {
@@ -265,14 +271,19 @@ Page({
     const index = Number(event.currentTarget.dataset.index);
     const post = this.data.posts[index];
     if (!post || !post.id) return;
-    const result = await togglePostLikeApi(post.id);
-    const liked = Boolean(result.liked);
+    let result;
+    try {
+      result = await setPostLiked(post.id, !post.liked);
+    } catch (error) {
+      toastContractError(error);
+      return;
+    }
     const posts = this.data.posts.slice();
     posts[index] = {
       ...post,
-      liked,
-      isLiked: liked,
-      likeCount: Math.max(0, Number(post.likeCount || 0) + (liked ? 1 : -1))
+      liked: result.liked,
+      isLiked: result.liked,
+      likeCount: result.likeCount
     };
     this.setData({ posts });
   },
@@ -282,14 +293,19 @@ Page({
     const post = this.data.posts[index];
     if (!post || !post.id) return;
     const favorited = Boolean(post.favorited || post.isFavorited);
-    const result = favorited ? await unfavoritePost(post.id) : await favoritePost(post.id);
-    const nextFavorited = !favorited;
+    let result;
+    try {
+      result = favorited ? await unfavoritePost(post.id) : await favoritePost(post.id);
+    } catch (error) {
+      toastContractError(error);
+      return;
+    }
     const posts = this.data.posts.slice();
     posts[index] = {
       ...post,
-      favorited: nextFavorited,
-      isFavorited: nextFavorited,
-      favoriteCount: Number(result.favoriteCount)
+      favorited: result.favorited,
+      isFavorited: result.favorited,
+      favoriteCount: result.favoriteCount
     };
     this.setData({ posts });
   },

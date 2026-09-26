@@ -107,7 +107,9 @@ Page({
     try {
       const response = await getUserInfo();
       const user = response.data || {};
-      const studentId = user.studentId || String(user.email || '').split('@')[0] || '';
+      // The server signs in to the campus systems with the caller's own
+      // verified student id and refuses any other.
+      const studentId = user.studentId || '';
       if (!studentId || this.data.studentId) return;
       this.setData({ studentId });
       // The captcha needs the account, which only just arrived.
@@ -176,10 +178,6 @@ Page({
     this.setActiveSystem(systemId);
   },
 
-  onStudentIdInput(event) {
-    this.setData({ studentId: event.detail.value });
-  },
-
   onPasswordInput(event) {
     this.setData({ password: event.detail.value });
   },
@@ -202,7 +200,7 @@ Page({
 
   requireStudentAndPassword(label) {
     if (!this.data.studentId) {
-      wx.showToast({ title: '请输入学号', icon: 'none' });
+      wx.showToast({ title: '请先完成学号认证', icon: 'none' });
       return false;
     }
     if (!this.data.password) {
@@ -224,7 +222,7 @@ Page({
   async refreshSchoolnetCaptcha() {
     if (this.data.captchaLoading) return;
     if (!this.data.studentId) {
-      wx.showToast({ title: '请输入学号后获取验证码', icon: 'none' });
+      wx.showToast({ title: '请先完成学号认证后再获取验证码', icon: 'none' });
       return;
     }
     this.setData({ captchaLoading: true, schoolnetCaptcha: '', resultMessage: '' });

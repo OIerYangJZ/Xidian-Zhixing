@@ -9,8 +9,8 @@
     </view>
     <view class="field">
       <view class="field-label">内容<text class="required">*</text></view>
-      <textarea class="field-textarea" maxlength="800" value="{{content}}" placeholder="具体说说遇到的问题或建议" placeholder-class="field-placeholder" bindinput="onContentInput" />
-      <view class="zx-caption field-count">{{content.length}}/800</view>
+      <textarea class="field-textarea" maxlength="1000" value="{{content}}" placeholder="具体说说遇到的问题或建议" placeholder-class="field-placeholder" bindinput="onContentInput" />
+      <view class="zx-caption field-count">{{content.length}}/1000</view>
     </view>
     <view class="field">
       <view class="field-label">联系方式 · 可选</view>

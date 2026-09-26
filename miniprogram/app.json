@@ -40,6 +40,7 @@
     "pages/profile/display-settings/index",
     "pages/profile/about/index",
     "pages/profile/feedback/index",
+    "pages/profile/appeal/index",
     "pages/profile/legal/index"
   ],
   "window": {

@@ -77,6 +77,7 @@
 .zx-badge--accent { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
 .zx-badge--success { background: var(--zx-success-soft); color: var(--zx-success); }
 .zx-badge--danger { background: var(--zx-danger-soft); color: var(--zx-danger); }
+.zx-badge--warning { background: var(--zx-warning-soft); color: var(--zx-warning); }
 .zx-badge--info { background: var(--zx-info-soft); color: var(--zx-info); }
 .zx-badge--seal { background: var(--zx-seal-soft); color: var(--zx-seal); }
 .zx-badge--neutral { background: var(--zx-bg-sunk); color: var(--zx-text-2); }

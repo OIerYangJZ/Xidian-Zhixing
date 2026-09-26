@@ -1,0 +1,48 @@
+<view class="zx-page appeal-page safe-bottom {{themeClass}}">
+  <view class="notice">
+    <view class="notice-icon"><view class="zx-i zx-i-block"></view></view>
+    <view class="zx-body notice-text">封禁期间不能发帖、评论、私信或使用校园 AI。如认为处理有误，可以提交解封申诉。</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small action" bindtap="loadState">重试</view>
+  </view>
+
+  <block wx:else>
+    <view wx:if="{{mode === 'lifted'}}" class="zx-card panel">
+      <view class="zx-title">封禁已解除</view>
+      <view class="zx-body panel-text">申诉已通过，账号已恢复正常。</view>
+      <view class="zx-btn zx-btn--primary zx-btn--block action" bindtap="enterApp">进入西电知行</view>
+    </view>
+
+    <view wx:elif="{{mode === 'pending'}}" class="pending">
+      <view class="zx-label">申诉正在审核中</view>
+      <view class="zx-body panel-text">同一时间只能有一份待处理申诉。下方回显你提交的说明。</view>
+      <view wx:if="{{appealContent}}" class="echo">{{appealContent}}</view>
+    </view>
+
+    <view wx:elif="{{mode === 'email'}}" class="zx-card panel">
+      <view class="zx-title">申诉未通过</view>
+      <view wx:if="{{adminNote}}" class="zx-body panel-text">管理员说明：{{adminNote}}</view>
+      <view class="zx-body panel-text">站内申诉次数已用完，请用本人校园邮箱发送至支持邮箱。</view>
+      <view wx:if="{{supportEmail}}" class="zx-row email" bindtap="copySupportEmail">
+        <text class="email-text">{{supportEmail}}</text>
+        <view class="zx-i zx-i-copy zx-i--sm"></view>
+      </view>
+    </view>
+
+    <view wx:else class="zx-card panel">
+      <view class="zx-title">提交解封申诉</view>
+      <view class="field-label">申诉说明</view>
+      <textarea class="field-textarea" maxlength="{{contentLimit}}" value="{{content}}" placeholder="请说明你认为处理有误的原因，以及相关的帖子或时间。" placeholder-class="field-placeholder" bindinput="onContentInput" />
+      <view class="zx-caption field-count">{{content.length}}/{{contentLimit}}</view>
+      <view class="zx-btn zx-btn--primary zx-btn--block action {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submitAppeal">{{submitting ? '提交中…' : '提交申诉'}}</view>
+    </view>
+
+    <view class="refresh zx-caption" bindtap="loadState">刷新状态</view>
+  </block>
+
+  <view class="zx-btn zx-btn--secondary zx-btn--block sign-out" bindtap="signOut"><view class="zx-i zx-i-logout zx-i--sm"></view>退出登录</view>
+</view>

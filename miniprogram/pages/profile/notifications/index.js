@@ -18,6 +18,11 @@ const CATEGORY_LOOK = {
   system: { icon: 'bell', tone: 'neutral' }
 };
 
+// category is '' (all), one key, or keys joined by commas: 消息's
+// 评论回复 and 赞与收藏 entries each open two categories.
+const inCategory = (item, category) => !category
+  || category.split(',').includes(notificationCategory(item.type));
+
 Page({
   data: {
     loading: true,
@@ -33,10 +38,14 @@ Page({
 
   // Rebuilds the tab counts and the list, grouped 今天 / 更早, from items.
   applyFilter(items = this.data.items, category = this.data.category) {
-    const unread = (key) => items.filter((item) => !item.isRead
-      && (!key || notificationCategory(item.type) === key)).length;
+    const unread = (key) => items.filter((item) => !item.isRead && inCategory(item, key)).length;
     const tabs = [{ key: '', label: '全部' }, ...NOTIFICATION_CATEGORIES]
-      .map((tab) => ({ ...tab, unread: unread(tab.key) }));
+      .map((tab) => ({
+        ...tab,
+        unread: unread(tab.key),
+        // A grouped category lights each of its chips.
+        on: tab.key ? category.split(',').includes(tab.key) : !category
+      }));
     const now = new Date();
     const isToday = (value) => {
       const d = new Date(String(value || ''));
@@ -45,7 +54,7 @@ Page({
     };
     const rows = items
       .map((item, index) => ({ ...item, sourceIndex: index, ...CATEGORY_LOOK[notificationCategory(item.type)] }))
-      .filter((item) => !category || notificationCategory(item.type) === category);
+      .filter((item) => inCategory(item, category));
     const groups = [
       { key: 'today', label: '今天', rows: rows.filter((item) => isToday(item.createdAt)) },
       { key: 'earlier', label: '更早', rows: rows.filter((item) => !isToday(item.createdAt)) }
@@ -64,10 +73,10 @@ Page({
     this.applyFilter(this.data.items, event.currentTarget.dataset.key || '');
   },
 
-  // ?category=like opens on one category, e.g. from 消息 → 赞与收藏.
+  // ?category=like,favorite opens on those categories, e.g. from 消息 → 赞与收藏.
   onLoad(options = {}) {
     const category = String(options.category || '');
-    if (NOTIFICATION_CATEGORIES.some((tab) => tab.key === category)) {
+    if (category && category.split(',').every((key) => NOTIFICATION_CATEGORIES.some((tab) => tab.key === key))) {
       this.setData({ category });
     }
   },
@@ -107,9 +116,13 @@ Page({
   async markAllRead() {
     const { category } = this.data;
     try {
-      await markAllNotificationsRead(category || undefined);
+      if (category) {
+        await Promise.all(category.split(',').map((key) => markAllNotificationsRead(key)));
+      } else {
+        await markAllNotificationsRead();
+      }
       const items = this.data.items.map((item) => (
-        !category || notificationCategory(item.type) === category
+        inCategory(item, category)
           ? { ...item, isRead: true }
           : item
       ));
@@ -144,6 +157,10 @@ Page({
     }
     if (item.relatedType === 'user') {
       wx.navigateTo({ url: `/pages/profile/public-user/index?id=${item.relatedId}` });
+    }
+    // A reply to 信箱 feedback: the records list shows it.
+    if (item.relatedType === 'feedback') {
+      wx.navigateTo({ url: '/pages/profile/feedback/index' });
     }
   }
 });

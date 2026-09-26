@@ -1,0 +1,19 @@
+/* 账号已被封禁 (handoff W9): why, then the appeal, its status, or the mailbox. */
+.appeal-page { padding: 24rpx 32rpx calc(64rpx + env(safe-area-inset-bottom)); background: var(--zx-bg); }
+.notice { display: flex; align-items: center; padding: 32rpx; border-radius: 32rpx; background: var(--zx-danger-soft); }
+.notice-icon { flex: none; display: flex; align-items: center; justify-content: center; width: 84rpx; height: 84rpx; margin-right: 28rpx; border-radius: 24rpx; background: var(--zx-danger); color: var(--zx-on-danger); font-size: 44rpx; }
+.notice-text { flex: 1; color: var(--zx-text); }
+.panel { margin-top: 28rpx; padding: 36rpx 32rpx; }
+.panel-text { margin-top: 12rpx; color: var(--zx-text-2); }
+.pending { margin-top: 28rpx; padding: 32rpx; border-radius: 32rpx; background: var(--zx-accent-soft); }
+.echo { margin-top: 20rpx; padding: 24rpx; border-radius: 20rpx; background: var(--zx-surface); font-size: 28rpx; line-height: 42rpx; color: var(--zx-text); white-space: pre-wrap; word-break: break-all; }
+.email { margin-top: 24rpx; padding: 20rpx 24rpx; border-radius: 20rpx; background: var(--zx-bg-sunk); color: var(--zx-text-3); }
+.email-text { flex: 1; min-width: 0; font-size: 28rpx; font-weight: 600; color: var(--zx-text); word-break: break-all; }
+.field-label { margin-top: 24rpx; font-size: 24rpx; font-weight: 600; color: var(--zx-text-3); }
+.field-textarea { margin-top: 12rpx; width: 100%; height: 320rpx; font-size: 30rpx; line-height: 44rpx; color: var(--zx-text); }
+.field-placeholder { color: var(--zx-text-3); }
+.field-count { text-align: right; }
+.action { margin-top: 28rpx; }
+.refresh { margin-top: 32rpx; text-align: center; color: var(--zx-text-2); }
+.sign-out { margin-top: 48rpx; }
+.sign-out .zx-i { margin-right: 8rpx; }

@@ -93,7 +93,7 @@
         <view class="comment-content-box">
           <view class="comment-header">
             <text class="comment-author" data-id="{{item.authorUserId}}" bindtap="openCommentAuthor">{{item.authorAlias || item.authorName || '匿名用户'}}</text>
-            <text wx:if="{{post.authorUserId && item.authorUserId === post.authorUserId}}" class="zx-badge zx-badge--seal" style="margin-left: 8rpx;">洞主</text>
+            <text wx:if="{{item.isPostAuthor}}" class="zx-badge zx-badge--seal" style="margin-left: 8rpx;">洞主</text>
             <text class="comment-time">{{item.timeText || item.createdAt}}</text>
           </view>
           <view class="comment-text"><text>{{item.content}}</text></view>
@@ -134,7 +134,7 @@
     </view>
     <view class="comment-compose">
       <view class="emoji-toggle" bindtap="toggleEmojiPanel">☺</view>
-      <input class="comment-input" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
+      <input class="comment-input" maxlength="2000" placeholder="温柔地回应一下" placeholder-class="comment-placeholder" value="{{commentContent}}" bindinput="onCommentInput" confirm-type="send" bindconfirm="submitComment" cursor-spacing="20" />
       <button class="send-btn" bindtap="submitComment" disabled="{{isSending || !canSendComment}}">发送</button>
     </view>
   </view>

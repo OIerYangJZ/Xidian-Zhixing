@@ -1,6 +1,7 @@
 import { getColleges } from '../../../api/campus';
 import { getPosts } from '../../../api/posts';
 import { requireLoginPage } from '../../../utils/auth_guard';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -38,18 +39,31 @@ Page({
       let { colleges } = this.data;
       if (!colleges.length) {
         const collegesRes = await getColleges();
-        colleges = ((collegesRes && collegesRes.data) || []).map((item) => item.name || item);
+        const rows = (collegesRes && collegesRes.data) || [];
+        // Each college's id is the sectionId its posts are filed under.
+        this._collegeSectionIds = {};
+        rows.forEach((item) => { this._collegeSectionIds[item.name] = item.id; });
+        colleges = rows.map((item) => item.name);
         this.setData({ colleges });
       }
       const activeCollege = this.data.activeCollege || colleges[0] || '';
-      const posts = activeCollege ? await getPosts({ keyword: activeCollege, sort: 'latest' }) : [];
+      const posts = activeCollege
+        ? await getPosts({
+          sectionType: 'college',
+          sectionId: this._collegeSectionIds[activeCollege],
+          sort: 'latest'
+        })
+        : [];
       // A reply for a college the user already switched away from.
       if (this.data.activeCollege !== requested && this.data.activeCollege !== activeCollege) return;
       this.setData({
         activeCollege,
-        posts,
+        posts: posts.map(attachDisplayImages),
         loading: false
       });
+      const hydrated = await hydrateDisplayImages(this.data.posts);
+      if (this.data.activeCollege !== activeCollege) return;
+      this.setData({ posts: applyHydratedDisplayImages(this.data.posts, hydrated) });
     } catch (error) {
       if (this.data.activeCollege !== requested) return;
       this.setData({

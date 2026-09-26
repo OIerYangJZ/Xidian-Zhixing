@@ -24,8 +24,8 @@
 
     <view class="zx-card card">
       <view class="title-row {{titleError ? 'field--error' : ''}}">
-        <textarea class="title-input" value="{{title}}" placeholder="标题（必填）" auto-height maxlength="60" bindinput="onTitleInput" />
-        <view class="counter">{{titleLength}}/60</view>
+        <textarea class="title-input" value="{{title}}" placeholder="标题（必填）" auto-height maxlength="200" bindinput="onTitleInput" />
+        <view class="counter">{{titleLength}}/200</view>
       </view>
       <view wx:if="{{titleError}}" class="field-error"><view class="zx-i zx-i-alert zx-i--sm"></view>{{titleError}}</view>
 
@@ -42,12 +42,12 @@
       </view>
 
       <view wx:if="{{previewMode}}" class="preview"><rich-text nodes="{{previewNodes}}"></rich-text></view>
-      <textarea wx:else class="content-input" value="{{content}}" placeholder="今天想悄悄说些什么？可以用 #话题" maxlength="2000" auto-height
+      <textarea wx:else class="content-input" value="{{content}}" placeholder="今天想悄悄说些什么？可以用 #话题" maxlength="10000" auto-height
         bindinput="onContentInput" bindblur="onContentBlur" />
       <view class="zx-row content-foot">
         <view wx:if="{{contentError}}" class="field-error"><view class="zx-i zx-i-alert zx-i--sm"></view>{{contentError}}</view>
         <view class="zx-spacer"></view>
-        <view class="counter">{{contentLength}}/2000</view>
+        <view class="counter">{{contentLength}}/10000</view>
       </view>
 
       <view class="toolbar">

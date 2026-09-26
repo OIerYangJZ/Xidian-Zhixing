@@ -69,11 +69,11 @@ Page({
   },
 
   openLikes() {
-    wx.navigateTo({ url: '/pages/profile/notifications/index?category=like' });
+    wx.navigateTo({ url: '/pages/profile/notifications/index?category=like,favorite' });
   },
 
   openComments() {
-    wx.navigateTo({ url: '/pages/profile/notifications/index?category=comment' });
+    wx.navigateTo({ url: '/pages/profile/notifications/index?category=comment,reply' });
   },
 
   openChat(event) {

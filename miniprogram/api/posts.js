@@ -45,6 +45,16 @@ export const getPosts = async (params = {}) => {
   return rows.map(normalizePost);
 };
 
+// One page of /api/posts; with page/limit the server answers { items, hasMore }.
+export const getPostsPage = async (params = {}) => {
+  const response = await request.get('/api/posts', params);
+  const payload = getData(response);
+  if (!payload || !Array.isArray(payload.items) || typeof payload.hasMore !== 'boolean') {
+    throw responseContractError('帖子分页响应格式错误');
+  }
+  return { items: payload.items.map(normalizePost), hasMore: payload.hasMore };
+};
+
 export const getPost = async (postId) => {
   const response = await request.get(`/api/posts/${postId}`);
   return normalizePost(getData(response, {}));
@@ -69,22 +79,23 @@ export const createComment = async (postId, payload) => {
   return normalizeComment(getData(response, {}));
 };
 
-export const togglePostLike = async (postId) => {
-  const response = await request.post(`/api/posts/${postId}/like`, {});
+export const setPostLiked = async (postId, liked) => {
+  const response = await request.post(`/api/posts/${postId}/like`, { liked });
   const data = getData(response, {});
   requireBooleanField(data, 'liked', '帖子点赞');
+  requireNumberField(data, 'likeCount', '帖子点赞');
   return data;
 };
 
-export const toggleCommentLike = async (commentId) => {
-  const response = await request.post(`/api/comments/${commentId}/like`, {});
+export const setCommentLiked = async (commentId, liked) => {
+  const response = await request.post(`/api/comments/${commentId}/like`, { liked });
   const data = getData(response, {});
   requireBooleanField(data, 'liked', '评论点赞');
   return data;
 };
 
 export const favoritePost = async (postId) => {
-  const response = await request.post(`/api/posts/${postId}/favorite`, {});
+  const response = await request.post(`/api/posts/${postId}/favorite`, { favorited: true });
   const data = getData(response, {});
   requireBooleanField(data, 'favorited', '帖子收藏');
   requireNumberField(data, 'favoriteCount', '帖子收藏');
@@ -95,6 +106,7 @@ export const unfavoritePost = async (postId) => {
   const response = await request.delete(`/api/posts/${postId}/favorite`, {});
   const data = getData(response, {});
   requireOk(data, '取消收藏');
+  requireBooleanField(data, 'favorited', '取消收藏');
   requireNumberField(data, 'favoriteCount', '取消收藏');
   return data;
 };

@@ -1,6 +1,7 @@
 import { getMyPosts } from '../../../api/user';
 import { deletePost, updatePost } from '../../../api/posts';
 import { requireLoginPage } from '../../../utils/auth_guard';
+import { applyHydratedDisplayImages, attachDisplayImages, hydrateDisplayImages } from '../../../utils/feed_images';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
@@ -24,7 +25,9 @@ Page({
     this.setData({ loading: true, errorMessage: '' });
     try {
       const posts = await getMyPosts();
-      this.setData({ posts, loading: false });
+      this.setData({ posts: posts.map(attachDisplayImages), loading: false });
+      const hydrated = await hydrateDisplayImages(this.data.posts);
+      this.setData({ posts: applyHydratedDisplayImages(this.data.posts, hydrated) });
     } catch (error) {
       this.setData({
         loading: false,
@@ -62,7 +65,7 @@ Page({
     try {
       const updated = await updatePost(post.id, { status });
       const posts = this.data.posts.slice();
-      posts[index] = updated;
+      posts[index] = { ...updated, displayImages: post.displayImages };
       this.setData({ posts });
       wx.showToast({ title: '已更新', icon: 'success' });
     } catch (error) {}
