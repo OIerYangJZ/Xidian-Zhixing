@@ -17,7 +17,6 @@ from helpers import (
     send_rate_limit_error,
 )
 from rag_service import (
-    forum_citations,
     index_summary as rag_index_summary,
     rebuild_rag_index,
 )
