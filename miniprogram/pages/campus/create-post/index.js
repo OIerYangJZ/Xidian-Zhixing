@@ -5,10 +5,13 @@ import { createPost, getRandomAnonymousAlias } from '../../../api/posts';
 import { uploadPostImage } from '../../../api/uploads';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
+import { sectionTone } from '../../../utils/format';
+import { markdownToNodes } from '../../../utils/markdown';
 
 const MAX_IMAGE_COUNT = 9;
 const CONTENT_LIMIT = 2000;
-const TITLE_LIMIT = 50;
+const TITLE_LIMIT = 60;
+const DRAFT_KEY = 'createPostDraft';
 const STATUS_OPTIONS = [
   { label: '进行中', value: 'ongoing', icon: 'help' },
   { label: '已解决', value: 'resolved', icon: 'check' },
@@ -101,7 +104,20 @@ Page({
     clubIdentityOpen: false,
 
     title: '',
+    titleLength: 0,
     content: '',
+    // Handoff P1: Markdown with 编辑 / 预览, drafts, one-shot validation (P2).
+    markdown: false,
+    previewMode: false,
+    previewNodes: [],
+    tagChips: [],
+    draftSavedAt: '',
+    showErrors: false,
+    titleError: '',
+    sectionError: '',
+    contentError: '',
+    errorCount: 0,
+    clubIdentityLabel: '以个人身份',
     contentLength: 0,
     contentCursor: 0,
     contentSegments: [],
@@ -112,8 +128,8 @@ Page({
     tagOptions: TAG_OPTIONS,
 
     statusOptions: STATUS_OPTIONS,
-    postStatusIndex: -1,
-    selectedStatus: null,
+    postStatusIndex: 0,
+    selectedStatus: STATUS_OPTIONS[0],
     statusSelectorOpen: false,
 
     pinOptions: PIN_OPTIONS,
@@ -170,7 +186,12 @@ Page({
         dedupedSections.push(section);
       }
     });
-    this.setData({ sections: dedupedSections, sectionIndex: -1, loading: false });
+    this.setData({
+      sections: dedupedSections.map((section) => ({ ...section, tone: sectionTone(section.sectionName) })),
+      sectionIndex: -1,
+      loading: false
+    });
+    this.restoreDraft();
   },
 
   async loadInitialData() {
@@ -233,7 +254,151 @@ Page({
   },
 
   onTitleInput(event) {
-    this.setData({ title: event.detail.value.slice(0, TITLE_LIMIT) });
+    const title = event.detail.value.slice(0, TITLE_LIMIT);
+    this.setData({ title, titleLength: title.length });
+    this.afterEdit();
+  },
+
+  // ---- validation (handoff P2) ----
+
+  validate() {
+    const title = this.data.title.trim();
+    const titleError = !title ? '请填写标题' : (title.length > TITLE_LIMIT ? `标题最多 ${TITLE_LIMIT} 字` : '');
+    const sectionError = this.data.sectionIndex < 0 ? '请选择分区' : '';
+    const contentError = this.data.content.trim() ? '' : '请填写正文';
+    const errorCount = [titleError, sectionError, contentError].filter(Boolean).length;
+    return { titleError, sectionError, contentError, errorCount };
+  },
+
+  refreshErrors() {
+    if (this.data.showErrors) this.setData(this.validate());
+  },
+
+  // ---- drafts ----
+
+  afterEdit() {
+    this.setData({ tagChips: extractInlineTags(this.data.content) });
+    this.refreshErrors();
+    clearTimeout(this._draftTimer);
+    this._draftTimer = setTimeout(() => this.saveDraft(), 800);
+  },
+
+  saveDraft() {
+    const { title, content, markdown, sectionIndex, sections, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias } = this.data;
+    if (!title.trim() && !content.trim()) {
+      wx.removeStorageSync(DRAFT_KEY);
+      this.setData({ draftSavedAt: '' });
+      return;
+    }
+    const section = sectionIndex >= 0 ? sections[sectionIndex] : null;
+    wx.setStorageSync(DRAFT_KEY, {
+      title, content, markdown, postStatusIndex, privateOnly, useAnonymousAlias, anonymousAlias,
+      sectionName: section ? section.sectionName : ''
+    });
+    const now = new Date();
+    this.setData({ draftSavedAt: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` });
+  },
+
+  restoreDraft() {
+    const draft = wx.getStorageSync(DRAFT_KEY);
+    if (!draft || (!draft.title && !draft.content)) return;
+    const sectionIndex = this.data.sections.findIndex((item) => item.sectionName === draft.sectionName);
+    const statusIndex = Number.isInteger(draft.postStatusIndex) && draft.postStatusIndex >= 0 ? draft.postStatusIndex : 0;
+    this.setData({
+      title: draft.title || '',
+      titleLength: (draft.title || '').length,
+      content: draft.content || '',
+      contentLength: (draft.content || '').length,
+      contentSegments: buildInlineSegments(draft.content || ''),
+      markdown: Boolean(draft.markdown),
+      sectionIndex,
+      postStatusIndex: statusIndex,
+      selectedStatus: STATUS_OPTIONS[statusIndex],
+      privateOnly: Boolean(draft.privateOnly),
+      useAnonymousAlias: Boolean(draft.useAnonymousAlias),
+      anonymousAlias: draft.anonymousAlias || '',
+      tagChips: extractInlineTags(draft.content || ''),
+      draftSavedAt: '已恢复'
+    });
+    this.updatePublishState();
+  },
+
+  clearDraft() {
+    wx.showModal({
+      title: '清空草稿？',
+      content: '标题、正文和已选设置会一并清空。',
+      confirmText: '清空',
+      confirmColor: '#B3261E',
+      success: (res) => {
+        if (!res.confirm) return;
+        wx.removeStorageSync(DRAFT_KEY);
+        this.setData({
+          title: '', titleLength: 0, content: '', contentLength: 0, contentSegments: [], tagChips: [],
+          images: [], sectionIndex: -1, markdown: false, previewMode: false, draftSavedAt: '',
+          showErrors: false, titleError: '', sectionError: '', contentError: '', errorCount: 0
+        });
+        this.updatePublishState('');
+      }
+    });
+  },
+
+  // ---- Markdown ----
+
+  toggleMarkdown() {
+    this.setData({ markdown: !this.data.markdown, previewMode: false });
+    this.afterEdit();
+  },
+
+  setEditMode(event) {
+    const preview = event.currentTarget.dataset.mode === 'preview';
+    this.setData({
+      previewMode: preview,
+      previewNodes: preview ? markdownToNodes(this.data.content) : []
+    });
+  },
+
+  insertMarkdown(event) {
+    const snippets = {
+      bold: ['**', '粗体', '**'],
+      italic: ['*', '斜体', '*'],
+      list: ['\n- ', '', ''],
+      quote: ['\n> ', '', ''],
+      link: ['[', '链接文字', '](https://)']
+    };
+    const [before, middle, after] = snippets[event.currentTarget.dataset.kind] || ['', '', ''];
+    const content = this.data.content;
+    const cursor = Math.max(0, Math.min(this.data.contentCursor, content.length));
+    const insert = `${before}${middle}${after}`;
+    const next = `${content.slice(0, cursor)}${insert}${content.slice(cursor)}`.slice(0, CONTENT_LIMIT);
+    this.setData({
+      content: next,
+      contentLength: next.length,
+      contentCursor: cursor + insert.length,
+      contentSegments: buildInlineSegments(next)
+    });
+    this.updatePublishState(next);
+    this.afterEdit();
+  },
+
+  removeTag(event) {
+    const tag = String(event.currentTarget.dataset.tag || '');
+    if (!tag) return;
+    const escaped = tag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const next = this.data.content.replace(new RegExp(`\\s?#${escaped}(?=\\s|$)`, 'g'), '').trim();
+    this.setData({ content: next, contentLength: next.length, contentSegments: buildInlineSegments(next) });
+    this.updatePublishState(next);
+    this.afterEdit();
+  },
+
+  chooseClubIdentity() {
+    const names = ['以个人身份', ...this.data.clubs.map((club) => club.name || club.clubName || '社团')];
+    wx.showActionSheet({
+      itemList: names,
+      success: (res) => {
+        const index = res.tapIndex - 1;
+        this.setData({ clubIdentityIndex: index, clubIdentityLabel: names[res.tapIndex] });
+      }
+    });
   },
 
   onContentInput(event) {
@@ -246,6 +411,7 @@ Page({
       contentSegments: buildInlineSegments(value),
       canPublish: value.trim().length > 0 && !this.data.isPublishing
     });
+    this.afterEdit();
   },
 
   onContentBlur(event) {
@@ -289,6 +455,7 @@ Page({
       sectionIndex: this.data.sectionIndex === index ? -1 : index,
       sectionSelectorOpen: false
     });
+    this.afterEdit();
   },
 
   toggleClubIdentity() {
@@ -370,6 +537,7 @@ Page({
       contentSegments: buildInlineSegments(nextContent),
       canPublish: nextContent.trim().length > 0 && !this.data.isPublishing
     });
+    this.afterEdit();
   },
 
   toggleStatusSelector() {
@@ -383,12 +551,12 @@ Page({
 
   onStatusTap(event) {
     const index = Number(event.currentTarget.dataset.index || 0);
-    const nextIndex = this.data.postStatusIndex === index ? -1 : index;
     this.setData({
-      postStatusIndex: nextIndex,
-      selectedStatus: nextIndex >= 0 ? STATUS_OPTIONS[nextIndex] : null,
+      postStatusIndex: index,
+      selectedStatus: STATUS_OPTIONS[index],
       statusSelectorOpen: false
     });
+    this.afterEdit();
   },
 
   togglePinSelector() {
@@ -554,12 +722,14 @@ Page({
   },
 
   async submitPost() {
-    if (!this.data.canPublish || this.data.isPublishing) return;
-    const content = this.data.content.trim();
-    if (!content) {
-      wx.showToast({ title: '请输入帖子内容', icon: 'none' });
+    if (this.data.isPublishing) return;
+    const check = this.validate();
+    if (check.errorCount) {
+      this.setData({ ...check, showErrors: true });
+      wx.pageScrollTo({ scrollTop: 0, duration: 200 });
       return;
     }
+    const content = this.data.content.trim();
 
     this.setData({ isPublishing: true, canPublish: false });
     wx.showLoading({ title: '发布中' });
@@ -575,7 +745,8 @@ Page({
       const payload = {
         title: this.data.title.trim(),
         content,
-        contentFormat: 'plain',
+        contentFormat: this.data.markdown ? 'markdown' : 'plain',
+        markdownSource: this.data.markdown ? content : undefined,
         sectionType: selectedSection ? selectedSection.sectionType : '',
         sectionId: selectedSection ? (selectedSection.sectionId || selectedSection.id) : '',
         sectionName: selectedSection ? selectedSection.sectionName : '',
@@ -605,6 +776,8 @@ Page({
         throw new Error('发布响应缺少帖子 ID');
       }
       wx.hideLoading();
+      clearTimeout(this._draftTimer);
+      wx.removeStorageSync(DRAFT_KEY);
       const isCampus = payload.sectionType === 'college';
       wx.showToast({ title: isCampus ? '已发布到校园' : '已悄悄放进树洞', icon: 'success' });
       setTimeout(() => {
@@ -640,17 +813,9 @@ Page({
       wx.navigateBack();
       return;
     }
-    wx.showModal({
-      title: '放弃编辑？',
-      content: '确定要放弃当前编辑内容吗？',
-      cancelText: '取消',
-      confirmText: '放弃',
-      confirmColor: '#ff3b30',
-      success: (res) => {
-        if (res.confirm) {
-          wx.navigateBack();
-        }
-      }
-    });
+    // Nothing is lost: the draft is saved and restored next time.
+    clearTimeout(this._draftTimer);
+    this.saveDraft();
+    wx.navigateBack();
   }
 });

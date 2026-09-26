@@ -1,236 +1,164 @@
-<view class="page create-page {{themeClass}}">
-  <view class="create-appbar" style="padding-top: {{navTop}}px; height: {{navTop + navHeight + 8}}px;">
-    <view class="appbar-icon-button" bindtap="confirmDiscard" aria-label="关闭">
-      <view class="close-icon"></view>
-    </view>
-    <view class="content-counter {{contentLength > 2000 ? 'error' : ''}}">{{contentLength}} / 2000</view>
-    <button
-      class="publish-button {{canPublish ? '' : 'disabled'}}"
-      disabled="{{!canPublish}}"
-      loading="{{isPublishing}}"
-      bindtap="submitPost"
-      style="width: auto !important; min-width: 160rpx;"
-    >{{sectionIndex >= 0 && sections[sectionIndex].sectionType === 'college' ? '发布到校园' : '盖章发布'}}</button>
+<view class="zx-page create-page {{themeClass}}">
+  <!-- Handoff P1: 取消 · 发布, clear of the capsule. -->
+  <view class="create-bar" style="padding-top: {{navTop}}px; height: {{navHeight}}px; line-height: {{navHeight}}px;">
+    <view class="bar-cancel" bindtap="confirmDiscard">取消</view>
+    <view class="zx-label bar-title" style="top: {{navTop}}px; height: {{navHeight}}px; line-height: {{navHeight}}px;">发布</view>
   </view>
+  <view style="height: {{navTop + navHeight}}px;"></view>
 
-  <view class="create-content" style="padding-top: {{navTop + navHeight + 8}}px;">
-    <view wx:if="{{loadErrorMessage}}" class="section-rule-tip">
-      <view>{{loadErrorMessage}}</view>
-      <button bindtap="retryLoadInitialData">重新加载</button>
-    </view>
-    <view class="compact-selector">
-      <view class="compact-selector-row" bindtap="toggleSectionSelector">
-        <text class="compact-selector-label">分区</text>
-        <text class="compact-selector-pill {{sectionIndex >= 0 ? '' : 'placeholder'}}">{{sectionIndex >= 0 ? sections[sectionIndex].sectionName : '不选分区'}}</text>
-        <text class="selector-arrow">{{sectionSelectorOpen ? '⌃' : '⌄'}}</text>
-      </view>
-      <view wx:if="{{sectionIndex >= 0 && sections[sectionIndex].sectionType === 'college'}}" class="section-rule-tip">
-        学院分区仅允许本学院同学发布，其他同学可浏览。
-      </view>
-      <view class="selector-chip-wrap" wx:if="{{sectionSelectorOpen}}">
-        <view
-          wx:for="{{sections}}"
-          wx:key="id"
-          data-index="{{index}}"
-          class="pill-chip {{sectionIndex === index ? 'active' : ''}}"
-          bindtap="onSectionTap"
-        >{{item.sectionName}}</view>
-      </view>
+  <view class="create-body">
+    <view class="draft-line">
+      <view class="zx-i zx-i-cloud zx-i--sm"></view>
+      <text>{{draftSavedAt === '已恢复' ? '已恢复上次的草稿' : (draftSavedAt ? '草稿已自动保存 · ' + draftSavedAt : '草稿会在输入停顿后自动保存')}}</text>
+      <view class="zx-spacer"></view>
+      <text wx:if="{{draftSavedAt}}" class="draft-clear" bindtap="clearDraft">清空草稿</text>
     </view>
 
-    <view class="compact-selector" wx:if="{{clubs.length}}">
-      <view class="compact-selector-row" bindtap="toggleClubIdentity">
-        <text class="compact-selector-label">身份</text>
-        <text class="compact-selector-pill">{{clubIdentityIndex >= 0 ? clubs[clubIdentityIndex].name : '个人发布'}}</text>
-        <text class="selector-arrow">{{clubIdentityOpen ? '⌃' : '⌄'}}</text>
-      </view>
-      <view class="selector-chip-wrap" wx:if="{{clubIdentityOpen}}">
-        <view data-index="-1" class="pill-chip {{clubIdentityIndex < 0 ? 'active' : ''}}" bindtap="onClubIdentityTap">个人发布</view>
-        <view
-          wx:for="{{clubs}}"
-          wx:key="id"
-          data-index="{{index}}"
-          class="pill-chip {{clubIdentityIndex === index ? 'active' : ''}}"
-          bindtap="onClubIdentityTap"
-        >{{item.name}}</view>
-      </view>
+    <view wx:if="{{loadErrorMessage}}" class="zx-inline-message zx-inline-message--danger banner">
+      {{loadErrorMessage}} <text class="banner-action" bindtap="retryLoadInitialData">重新加载</text>
+    </view>
+    <!-- Handoff P2: everything missing, at once. -->
+    <view wx:if="{{showErrors && errorCount}}" class="zx-inline-message zx-inline-message--danger banner">
+      还有 {{errorCount}} 项需要填写
     </view>
 
-    <view class="create-divider"></view>
-
-    <input
-      class="title-input"
-      placeholder="标题（选填）"
-      placeholder-class="input-placeholder"
-      maxlength="50"
-      value="{{title}}"
-      bindinput="onTitleInput"
-    />
-
-    <view class="content-editor">
-      <view class="content-highlight" wx:if="{{content}}">
-        <text wx:for="{{contentSegments}}" wx:key="index" class="{{item.type === 'tag' ? 'inline-tag' : ''}}">{{item.text}}</text>
+    <view class="zx-card card">
+      <view class="title-row {{titleError ? 'field--error' : ''}}">
+        <textarea class="title-input" value="{{title}}" placeholder="标题（必填）" auto-height maxlength="60" bindinput="onTitleInput" />
+        <view class="counter">{{titleLength}}/60</view>
       </view>
-      <textarea
-        class="content-input {{content ? 'with-highlight' : ''}}"
-        placeholder="今天想悄悄说些什么？"
-        placeholder-class="textarea-placeholder"
-        maxlength="2000"
-        value="{{content}}"
-        cursor="{{contentCursor}}"
-        bindinput="onContentInput"
-        bindblur="onContentBlur"
-        auto-height
-      />
-    </view>
+      <view wx:if="{{titleError}}" class="field-error"><view class="zx-i zx-i-alert zx-i--sm"></view>{{titleError}}</view>
 
-    <view class="anonymous-row" wx:if="{{useAnonymousAlias}}">
-      <view class="eye-off-icon small"></view>
-      <input
-        class="anonymous-input"
-        placeholder="自定义匿名昵称（选填）"
-        placeholder-class="anonymous-placeholder"
-        maxlength="24"
-        value="{{anonymousAlias}}"
-        bindinput="onAnonymousAliasInput"
-      />
-      <view class="anonymous-random" bindtap="fillRandomAlias">随机</view>
-    </view>
+      <view class="zx-row mode-row">
+        <view wx:if="{{markdown}}" class="segment">
+          <view class="segment-option {{previewMode ? '' : 'segment-option--on'}}" data-mode="edit" bindtap="setEditMode">编辑</view>
+          <view class="segment-option {{previewMode ? 'segment-option--on' : ''}}" data-mode="preview" bindtap="setEditMode">预览</view>
+        </view>
+        <view class="zx-spacer"></view>
+        <view class="md-switch" bindtap="toggleMarkdown">
+          <view class="zx-i zx-i-markdown zx-i--sm"></view><text>Markdown</text>
+          <switch checked="{{markdown}}" color="#A43B32" style="transform: scale(0.72);" />
+        </view>
+      </view>
 
-    <view class="status-badge-row" wx:if="{{selectedStatus}}">
-      <view class="status-badge {{selectedStatus.value}}">
-        {{selectedStatus.label}}
+      <view wx:if="{{previewMode}}" class="preview"><rich-text nodes="{{previewNodes}}"></rich-text></view>
+      <textarea wx:else class="content-input" value="{{content}}" placeholder="今天想悄悄说些什么？可以用 #话题" maxlength="2000" auto-height
+        bindinput="onContentInput" bindblur="onContentBlur" />
+      <view class="zx-row content-foot">
+        <view wx:if="{{contentError}}" class="field-error"><view class="zx-i zx-i-alert zx-i--sm"></view>{{contentError}}</view>
+        <view class="zx-spacer"></view>
+        <view class="counter">{{contentLength}}/2000</view>
+      </view>
+
+      <view class="toolbar">
+        <block wx:if="{{markdown && !previewMode}}">
+          <view class="tool" data-kind="bold" bindtap="insertMarkdown"><text class="tool-b">B</text></view>
+          <view class="tool" data-kind="italic" bindtap="insertMarkdown"><text class="tool-i">I</text></view>
+          <view class="tool" data-kind="list" bindtap="insertMarkdown"><view class="zx-i zx-i-list zx-i--sm"></view></view>
+          <view class="tool" data-kind="quote" bindtap="insertMarkdown"><view class="zx-i zx-i-quote zx-i--sm"></view></view>
+          <view class="tool" data-kind="link" bindtap="insertMarkdown"><view class="zx-i zx-i-link zx-i--sm"></view></view>
+        </block>
+        <view class="tool" bindtap="toggleTagSelector"><view class="zx-i zx-i-hash zx-i--sm"></view></view>
+        <view class="tool" bindtap="chooseImages"><view class="zx-i zx-i-image zx-i--sm"></view></view>
+      </view>
+
+      <view wx:if="{{tagSelectorOpen}}" class="tag-panel">
+        <view class="chips">
+          <view wx:for="{{tagOptions}}" wx:key="*this" class="chip" data-tag="{{item}}" bindtap="insertTag">#{{item}}</view>
+        </view>
+        <view class="zx-row tag-custom">
+          <input class="tag-input" value="{{customTagText}}" placeholder="自定义标签，空格分隔" bindinput="onCustomTagInput" bindconfirm="addCustomTag" />
+          <view class="zx-btn zx-btn--secondary zx-btn--small" bindtap="addCustomTag">添加</view>
+          <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="closeTagSelector">完成</view>
+        </view>
+      </view>
+
+      <view class="images">
+        <view wx:for="{{images}}" wx:key="localPath" class="image-tile" data-path="{{item.localPath}}" bindtap="previewImage">
+          <image src="{{item.localPath}}" mode="aspectFill" class="image"></image>
+          <view wx:if="{{index === 0}}" class="image-cover">封面</view>
+          <view wx:if="{{item.uploading}}" class="image-loading">上传中</view>
+          <view class="image-remove" data-index="{{index}}" catchtap="removeImage"><view class="zx-i zx-i-close zx-i--sm"></view></view>
+        </view>
+        <view wx:if="{{images.length < 9}}" class="image-add" bindtap="chooseImages">
+          <view class="zx-i zx-i-camera"></view>
+          <text>{{images.length}}/9</text>
+        </view>
       </view>
     </view>
 
-    <scroll-view class="image-preview-list" wx:if="{{images.length}}" scroll-x>
-      <view class="image-preview-strip">
-        <view class="image-preview-cell" wx:for="{{images}}" wx:key="localPath">
-          <image
-            src="{{item.localPath}}"
-            mode="aspectFill"
-            data-path="{{item.localPath}}"
-            bindtap="previewImage"
-          ></image>
-          <view class="image-loading" wx:if="{{item.uploading}}">上传中...</view>
-          <view class="image-remove" data-index="{{index}}" catchtap="removeImage">
-            <view class="remove-cross"></view>
+    <view class="zx-card card">
+      <view class="setting">
+        <view class="setting-title">分区<text class="required">*</text></view>
+        <view class="chips {{sectionError ? 'chips--error' : ''}}">
+          <view wx:for="{{sections}}" wx:key="id" class="chip chip--section zx-tone-{{item.tone}} {{sectionIndex === index ? 'chip--on' : ''}}" data-index="{{index}}" bindtap="onSectionTap">
+            <view class="zx-dot section-dot"></view>{{item.sectionName}}
           </view>
         </view>
-        <view class="image-preview-add" bindtap="chooseImages">
-          <view class="image-add-icon"></view>
+        <view wx:if="{{sectionError}}" class="field-error"><view class="zx-i zx-i-alert zx-i--sm"></view>{{sectionError}}</view>
+        <view wx:if="{{sectionIndex >= 0 && sections[sectionIndex].sectionType === 'college'}}" class="zx-caption setting-note">学院分区仅允许本学院同学发布，其他同学可浏览。</view>
+      </view>
+      <view class="setting">
+        <view class="setting-title">标签</view>
+        <view class="chips">
+          <view wx:for="{{tagChips}}" wx:key="*this" class="chip chip--tag">#{{item}}<view class="chip-x" data-tag="{{item}}" catchtap="removeTag"><view class="zx-i zx-i-close zx-i--sm"></view></view></view>
+          <view class="chip chip--add" bindtap="toggleTagSelector"><view class="zx-i zx-i-plus zx-i--sm"></view>添加标签</view>
         </view>
       </view>
-    </scroll-view>
+      <view class="setting">
+        <view class="setting-title">状态</view>
+        <view class="segment segment--full">
+          <view wx:for="{{statusOptions}}" wx:key="value" class="segment-option {{postStatusIndex === index ? 'segment-option--on' : ''}}" data-index="{{index}}" bindtap="onStatusTap">{{item.label}}</view>
+        </view>
+      </view>
+      <view class="setting">
+        <view class="setting-title">可见范围</view>
+        <view class="segment segment--full">
+          <view class="segment-option {{privateOnly ? '' : 'segment-option--on'}}" data-value="public" bindtap="onVisibilityTap"><view class="zx-i zx-i-globe zx-i--sm"></view>所有人</view>
+          <view class="segment-option {{privateOnly ? 'segment-option--on' : ''}}" data-value="private" bindtap="onVisibilityTap"><view class="zx-i zx-i-lock zx-i--sm"></view>仅自己</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="zx-card card">
+      <view class="setting zx-row anon-head" bindtap="toggleAnonymous">
+        <view class="anon-main">
+          <view class="setting-title setting-title--flat">匿名发布</view>
+          <view class="zx-caption">以朱印头像和匿名昵称显示</view>
+        </view>
+        <switch checked="{{useAnonymousAlias}}" color="#A43B32" catchtap="toggleAnonymous" />
+      </view>
+      <view wx:if="{{useAnonymousAlias}}" class="alias-row">
+        <view class="zx-avatar zx-avatar--seal zx-avatar--sm">{{anonymousAlias ? anonymousAlias[0] : '匿'}}</view>
+        <input class="alias-input" value="{{anonymousAlias}}" placeholder="匿名昵称（选填）" maxlength="24" bindinput="onAnonymousAliasInput" />
+        <text class="counter">{{anonymousAlias.length}}/24</text>
+        <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="fillRandomAlias"><view class="zx-i zx-i-refresh zx-i--sm"></view>随机</view>
+      </view>
+      <view wx:if="{{clubs.length}}" class="setting zx-row club-row" bindtap="chooseClubIdentity">
+        <view class="setting-title setting-title--flat">社团身份</view>
+        <view class="zx-badge zx-badge--neutral">仅小程序</view>
+        <view class="zx-spacer"></view>
+        <text class="zx-caption">{{clubIdentityLabel}}</text>
+        <view class="zx-list-item__chevron"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{isLevelOneUser}}" class="zx-card card card--pin">
+      <view class="setting">
+        <view class="zx-row pin-head">
+          <view class="setting-title setting-title--flat">置顶时长</view>
+          <view class="zx-badge zx-badge--accent"><view class="zx-i zx-i-pin zx-i--sm"></view>仅一级用户可见</view>
+        </view>
+        <view class="chips">
+          <view wx:for="{{pinOptions}}" wx:key="label" class="chip {{pinIndex === index ? 'chip--on' : ''}}" data-index="{{index}}" bindtap="onPinTap">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
   </view>
 
-    <view class="bottom-editor-bar">
-    <view class="inline-selector-area" wx:if="{{tagSelectorOpen || statusSelectorOpen || pinSelectorOpen || visibilitySelectorOpen}}">
-      <view class="status-selector" wx:if="{{statusSelectorOpen}}">
-        <view
-          wx:for="{{statusOptions}}"
-          wx:key="value"
-          data-index="{{index}}"
-          class="option-pill {{postStatusIndex === index ? 'active' : ''}}"
-          bindtap="onStatusTap"
-        >
-          <view class="status-option-icon {{item.icon}}"></view>
-          <text>{{item.label}}</text>
-        </view>
-      </view>
-
-      <view class="tag-selector-sheet" wx:if="{{tagSelectorOpen}}">
-        <view class="selector-head">
-          <text>插入标签</text>
-          <view class="selector-actions">
-            <text class="selector-close" bindtap="closeTagSelector">×</text>
-          </view>
-        </view>
-        <view class="tag-option-wrap">
-          <view
-          wx:for="{{tagOptions}}"
-            wx:key="*this"
-            data-tag="{{item}}"
-            class="option-pill"
-            bindtap="insertTag"
-          >{{item}}</view>
-        </view>
-        <view class="custom-tag-row">
-          <input
-            class="custom-tag-input"
-            placeholder="自定义标签"
-            placeholder-class="custom-tag-placeholder"
-            value="{{customTagText}}"
-            bindinput="onCustomTagInput"
-            confirm-type="done"
-            bindconfirm="addCustomTag"
-          />
-          <view class="custom-tag-add" bindtap="addCustomTag">添加</view>
-        </view>
-      </view>
-
-      <view class="pin-selector" wx:if="{{pinSelectorOpen}}">
-        <view class="pin-selector-title">
-          <view class="pin-icon active"></view>
-          <text>发帖后立即置顶</text>
-        </view>
-        <view class="tag-option-wrap">
-          <view
-            wx:for="{{pinOptions}}"
-            wx:key="label"
-            data-index="{{index}}"
-            class="option-pill {{pinIndex === index ? 'active' : ''}}"
-            bindtap="onPinTap"
-          >{{item.label}}</view>
-        </view>
-      </view>
-
-      <view class="visibility-selector" wx:if="{{visibilitySelectorOpen}}">
-        <view
-          wx:for="{{visibilityOptions}}"
-          wx:key="value"
-          data-value="{{item.value}}"
-          class="visibility-item {{(privateOnly && item.value === 'private') || (!privateOnly && item.value === 'public') ? 'active' : ''}}"
-          bindtap="onVisibilityTap"
-        >
-          <view class="visibility-icon {{item.icon}}"></view>
-          <text>{{item.label}}</text>
-          <text class="visibility-check" wx:if="{{(privateOnly && item.value === 'private') || (!privateOnly && item.value === 'public')}}">✓</text>
-        </view>
-      </view>
-    </view>
-
-    <view class="upload-row" wx:if="{{isUploading}}">
-      <view class="upload-spinner"></view>
-      <text>图片上传中...</text>
-    </view>
-
-    <view class="toolbar-row">
-      <view class="toolbar-icon-button" bindtap="chooseImages" aria-label="添加图片">
-        <view class="image-outline-icon"></view>
-      </view>
-      <view class="toolbar-icon-button {{tagSelectorOpen ? 'active' : ''}}" bindtap="toggleTagSelector" aria-label="标签">
-        <view class="tag-icon"></view>
-      </view>
-      <view class="toolbar-icon-button {{statusSelectorOpen ? 'active' : ''}}" bindtap="toggleStatusSelector" aria-label="状态">
-        <view class="status-toolbar-icon {{selectedStatus ? selectedStatus.icon : 'help'}}"></view>
-      </view>
-      <view class="toolbar-icon-button {{useAnonymousAlias ? 'active' : ''}}" bindtap="toggleAnonymous" aria-label="匿名">
-        <view class="eye-off-icon"></view>
-      </view>
-      <view
-        wx:if="{{isLevelOneUser}}"
-        class="toolbar-icon-button {{pinIndex > 0 ? 'active' : ''}}"
-        bindtap="togglePinSelector"
-        aria-label="置顶"
-      >
-        <view class="pin-icon {{pinIndex > 0 ? 'active' : ''}}"></view>
-      </view>
-      <view class="toolbar-spacer"></view>
-      <view class="visibility-trigger" bindtap="toggleVisibilitySelector" aria-label="可见性">
-        <view class="visibility-icon {{privateOnly ? 'lock' : 'public'}}"></view>
-        <text class="visibility-arrow">▴</text>
-      </view>
+  <view class="publish-bar">
+    <view class="zx-btn zx-btn--primary zx-btn--block {{isPublishing ? 'zx-btn--disabled' : ''}}" bindtap="submitPost">
+      <view class="zx-i zx-i-send zx-i--sm"></view>{{isPublishing ? '发布中…' : '发布'}}
     </view>
   </view>
 </view>
