@@ -125,14 +125,16 @@ export function SettingsPanel() {
           {index === 3 && (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <label className="flex flex-col gap-2 text-sm font-medium">
-                {t('视觉主题风格', 'Visual style')}
+                {t('视觉风格', 'Visual style')}
                 <select
-                  aria-label={t('视觉主题风格', 'Visual style')}
+                  aria-label={t('视觉风格', 'Visual style')}
                   value={visualTheme}
                   onChange={(event) => handleVisualThemeChange(event.target.value as 'zhixing' | 'editorial')}
                   className="min-h-11 border border-border bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <option value="zhixing">{t('知行首页风格（默认）', 'Zhixing home (default)')}</option>
-                  <option value="editorial">{t('暖纸编辑风格', 'Warm editorial')}</option>
+                  <option value="editorial">
+                    {t('西电暖色风格（参考图）', 'Xidian warm style (reference-inspired)')}
+                  </option>
                 </select>
               </label>
               <label className="flex flex-col gap-2 text-sm font-medium">

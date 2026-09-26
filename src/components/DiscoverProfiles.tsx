@@ -14,9 +14,11 @@ import { GenericLoading } from '@/components/GenericLoading';
 import { getDiscoverProfiles } from '@/lib/client_data_fetching/getDiscoverProfiles';
 import { DISCOVER_PROFILES_PER_PAGE } from '@/constants';
 import { cn } from '@/lib/cn';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function DiscoverProfiles({ followersOf, followingOf }: { followersOf?: string; followingOf?: string }) {
   const searchParams = useSearchParams();
+  const { t } = useLanguage();
   const bottomElRef = useRef<HTMLDivElement>(null);
   const isBottomOnScreen = useOnScreen(bottomElRef);
   const qc = useQueryClient();
@@ -93,7 +95,7 @@ export function DiscoverProfiles({ followersOf, followingOf }: { followersOf?: s
   return (
     <>
       {isPending ? (
-        <GenericLoading>正在查找同学</GenericLoading>
+        <GenericLoading>{t('正在查找同学', 'Finding people')}</GenericLoading>
       ) : isError ? (
         <SomethingWentWrong />
       ) : (

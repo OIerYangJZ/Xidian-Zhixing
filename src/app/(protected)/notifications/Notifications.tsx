@@ -15,8 +15,10 @@ import { GenericLoading } from '@/components/GenericLoading';
 import { SomethingWentWrong } from '@/components/SometingWentWrong';
 import { getNotifications } from '@/lib/client_data_fetching/getNotifications';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function Notifications({ userId }: { userId: string }) {
+  const { t } = useLanguage();
   const { data: notificationCount } = useNotificationsCountQuery();
   const { markAllAsReadMutation } = useNotificationsReadStatusMutations();
 
@@ -93,23 +95,23 @@ export function Notifications({ userId }: { userId: string }) {
   return (
     <div>
       <PageHeader
-        title="通知"
+        title={t('通知', 'Notifications')}
         sticky
         action={
           <DropdownMenuButton
             key="notifications-option"
-            label="通知选项"
+            label={t('通知选项', 'Notification options')}
             onAction={markAllAsRead}
             disabledKeys={disabledKeys}>
             <Section>
-              <Item key="mark-all">全部标为已读</Item>
+              <Item key="mark-all">{t('全部标为已读', 'Mark all as read')}</Item>
             </Section>
           </DropdownMenuButton>
         }
       />
       <div>
         {isPending ? (
-          <GenericLoading>正在加载通知</GenericLoading>
+          <GenericLoading>{t('正在加载通知', 'Loading notifications')}</GenericLoading>
         ) : (
           data?.pages.flat().map((activity) => <Activity key={activity.id} {...activity} />)
         )}
@@ -123,7 +125,7 @@ export function Notifications({ userId }: { userId: string }) {
          * so the bottom loader has to be hidden first
          */
         style={bottomLoaderStyle}>
-        {isFetchingNextPage && <GenericLoading>正在加载更多通知</GenericLoading>}
+        {isFetchingNextPage && <GenericLoading>{t('正在加载更多通知', 'Loading more notifications')}</GenericLoading>}
       </div>
       {isError && error.message !== NO_PREV_DATA_LOADED && <SomethingWentWrong />}
       {!isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}

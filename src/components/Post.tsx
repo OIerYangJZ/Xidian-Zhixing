@@ -80,11 +80,11 @@ export const Post = memo(
     const qc = useQueryClient();
     const { data: session } = useSession();
     const repostMutation = useMutation({
-      mutationFn: async (isReposted: boolean) => {
-        const response = await fetch(`/api/users/${session?.user.id}/reposts${isReposted ? `/${postId}` : ''}`, {
-          method: isReposted ? 'DELETE' : 'POST',
+      mutationFn: async (nextIsReposted: boolean) => {
+        const response = await fetch(`/api/users/${session?.user.id}/reposts${nextIsReposted ? '' : `/${postId}`}`, {
+          method: nextIsReposted ? 'POST' : 'DELETE',
           headers: { 'Content-Type': 'application/json' },
-          ...(isReposted ? {} : { body: JSON.stringify({ postId }) }),
+          ...(nextIsReposted ? { body: JSON.stringify({ postId }) } : {}),
         });
         if (!response.ok) throw new Error('转发失败');
       },
@@ -240,7 +240,7 @@ export const Post = memo(
             />
             <ToggleStepper
               isSelected={isReposted}
-              onChange={() => repostMutation.mutate(!isReposted)}
+              onChange={(nextIsReposted) => repostMutation.mutate(nextIsReposted)}
               Icon={RepostIcon}
               quantity={postCounts.reposts}
               color="blue"

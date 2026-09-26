@@ -21,6 +21,7 @@ import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
 
 function DesktopComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
+  const { t } = useLanguage();
   return (
     <button
       type="button"
@@ -29,19 +30,20 @@ function DesktopComposeButton() {
       <span className="text-2xl leading-none xl:hidden" aria-hidden="true">
         ＋
       </span>
-      <span className="hidden xl:inline">发布</span>
-      <span className="sr-only xl:hidden">发布动态</span>
+      <span className="hidden xl:inline">{t('发布', 'Post')}</span>
+      <span className="sr-only xl:hidden">{t('发布动态', 'Create post')}</span>
     </button>
   );
 }
 
 function MobileComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
+  const { t } = useLanguage();
   return (
     <button
       type="button"
       onClick={() => launchCreatePost({})}
-      aria-label="发布动态"
+      aria-label={t('发布动态', 'Create post')}
       className="fixed bottom-[calc(84px+env(safe-area-inset-bottom))] right-4 z-30 grid h-14 w-14 place-items-center rounded-full bg-primary text-3xl font-light text-primary-foreground transition active:scale-95 md:hidden">
       +
     </button>
@@ -77,12 +79,12 @@ export function MenuBar() {
       <aside className="sticky top-0 hidden h-dvh w-[72px] flex-col items-center px-2 py-3 md:flex xl:w-[220px] xl:items-stretch xl:px-3">
         <a
           href="/"
-          aria-label="西电知行首页"
+          aria-label={t('西电知行首页', 'Zhixing home')}
           className="mb-5 flex h-12 items-center justify-center gap-3 rounded-full px-2 transition hover:bg-secondary/70 xl:justify-start xl:px-3">
           <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-9 w-9 rounded-md object-cover" />
           <LogoText className="hidden text-xl text-foreground xl:block" />
         </a>
-        <nav className="flex w-full flex-col gap-1" aria-label="主导航">
+        <nav className="flex w-full flex-col gap-1" aria-label={t('主导航', 'Main navigation')}>
           {items.map((item) => (
             <MenuBarItem key={item.route} {...item} />
           ))}

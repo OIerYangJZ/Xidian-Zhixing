@@ -6,6 +6,7 @@ import { useWritePostMutations } from '@/hooks/mutations/useWritePostMutations';
 import { useDialogs } from '@/hooks/useDialogs';
 import { revokeVisualMediaObjectUrls } from '@/lib/revokeVisualMediaObjectUrls';
 import { ToEditValues } from '@/lib/createPost';
+import { useLanguage } from '@/hooks/useLanguage';
 import { TextAreaWithMentionsAndHashTags } from './TextAreaWithMentionsAndHashTags';
 import { GenericDialog } from './GenericDialog';
 import { CreatePostSort } from './CreatePostSort';
@@ -21,6 +22,7 @@ export function CreatePostDialog({
   shouldOpenFileInputOnMount: boolean;
   setShown: (isOpen: boolean) => void;
 }) {
+  const { t } = useLanguage();
   const mode: 'create' | 'edit' = toEditValues === null ? 'create' : 'edit';
   const [content, setContent] = useState(toEditValues?.initialContent || '');
   const [visualMedia, setVisualMedia] = useState<GetVisualMedia[]>(toEditValues?.initialVisualMedia ?? []);
@@ -65,11 +67,11 @@ export function CreatePostDialog({
 
   const confirmExit = useCallback(() => {
     confirm({
-      title: '保留未发布内容？',
-      message: '退出后，这条动态的草稿会被丢弃。',
+      title: t('保留未发布内容？', 'Discard this draft?'),
+      message: t('退出后，这条动态的草稿会被丢弃。', 'Leaving will discard this post draft.'),
       onConfirm: () => setTimeout(() => exit(), 300),
     });
-  }, [confirm, exit]);
+  }, [confirm, exit, t]);
 
   const handleClose = useCallback(() => {
     if (mode === 'create') {
@@ -118,7 +120,9 @@ export function CreatePostDialog({
   }, []);
 
   return (
-    <GenericDialog title={mode === 'create' ? '发布动态' : '编辑动态'} handleClose={handleClose}>
+    <GenericDialog
+      title={mode === 'create' ? t('发布动态', 'Create post') : t('编辑动态', 'Edit post')}
+      handleClose={handleClose}>
       <div className="mb-[18px] flex flex-row gap-3 px-4">
         <div className="h-11 w-11">
           <ProfilePhotoOwn />
@@ -127,7 +131,7 @@ export function CreatePostDialog({
           <TextAreaWithMentionsAndHashTags
             content={content}
             setContent={setContent}
-            placeholder="分享此刻，写下你的校园生活…"
+            placeholder={t('分享此刻，写下你的校园生活…', 'Share a moment from campus…')}
           />
         </div>
         <div>
@@ -136,7 +140,7 @@ export function CreatePostDialog({
             size="small"
             isDisabled={content === '' && visualMedia.length === 0}
             loading={createPostMutation.isPending || updatePostMutation.isPending}>
-            {mode === 'create' ? '发布' : '保存'}
+            {mode === 'create' ? t('发布', 'Post') : t('保存', 'Save')}
           </Button>
         </div>
       </div>

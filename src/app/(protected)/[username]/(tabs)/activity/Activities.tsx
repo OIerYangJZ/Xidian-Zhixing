@@ -9,8 +9,10 @@ import { Activity } from '@/components/Activity';
 import { SomethingWentWrong } from '@/components/SometingWentWrong';
 import { GenericLoading } from '@/components/GenericLoading';
 import { getActivities } from '@/lib/client_data_fetching/getActivities';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export function Activities({ userId }: { userId: string }) {
+  const { t } = useLanguage();
   const bottomElRef = useRef<HTMLDivElement>(null);
   const isBottomOnScreen = useOnScreen(bottomElRef);
   const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<
@@ -46,7 +48,7 @@ export function Activities({ userId }: { userId: string }) {
   return (
     <>
       {isPending ? (
-        <GenericLoading>正在加载互动</GenericLoading>
+        <GenericLoading>{t('正在加载互动', 'Loading activity')}</GenericLoading>
       ) : isError ? (
         <SomethingWentWrong />
       ) : (
@@ -61,7 +63,7 @@ export function Activities({ userId }: { userId: string }) {
          * so the bottom loader has to be hidden first
          */
         style={bottomLoaderStyle}>
-        {hasNextPage && <GenericLoading>正在加载更多互动</GenericLoading>}
+        {hasNextPage && <GenericLoading>{t('正在加载更多互动', 'Loading more activity')}</GenericLoading>}
       </div>
       {isError && <SomethingWentWrong />}
       {!isError && !isPending && !isFetchingNextPage && !hasNextPage && <AllCaughtUp />}

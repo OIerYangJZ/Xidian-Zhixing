@@ -6,11 +6,13 @@ import { memo } from 'react';
 import { useUserQuery } from '@/hooks/queries/useUserQuery';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useLanguage } from '@/hooks/useLanguage';
 
 export const DiscoverProfile = memo(
   ({ userId }: { userId: string }) => {
     const { data: user, isPending, isError } = useUserQuery(userId);
     const { data: session } = useSession();
+    const { t } = useLanguage();
 
     if (isPending) return <div className="feed-separator h-20 animate-pulse border-b bg-secondary/30" />;
     if (isError || !user) return null;
@@ -32,9 +34,12 @@ export const DiscoverProfile = memo(
             </Link>
             <span className="truncate text-xs text-muted-foreground">@{user.username}</span>
           </div>
-          <p className="mt-1 line-clamp-2 text-sm leading-5 text-foreground/85">{user.bio || '还没有填写个人介绍。'}</p>
+          <p className="mt-1 line-clamp-2 text-sm leading-5 text-foreground/85">
+            {user.bio || t('还没有填写个人介绍。', 'No bio yet.')}
+          </p>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            {user.followerCount} 粉丝 <span aria-hidden="true">·</span> {user.followingCount} 关注
+            {user.followerCount} {t('粉丝', 'followers')} <span aria-hidden="true">·</span> {user.followingCount}{' '}
+            {t('关注', 'following')}
           </p>
         </div>
         {session?.user.id !== user.id && <ProfileActionButtons targetUserId={user.id} />}

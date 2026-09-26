@@ -4,8 +4,10 @@ import { TextInput } from '@/components/ui/TextInput';
 import SvgSearch from '@/svg_components/Search';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 
-export function DiscoverSearch({ label = '搜索同学、帖子和话题' }: { label?: string }) {
+export function DiscoverSearch({ label }: { label?: string }) {
+  const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -27,7 +29,11 @@ export function DiscoverSearch({ label = '搜索同学、帖子和话题' }: { l
 
   return (
     <div className="mb-3">
-      <TextInput onChange={handleChange} label={label} Icon={SvgSearch} />
+      <TextInput
+        onChange={handleChange}
+        label={label || t('搜索同学、帖子和话题', 'Search people, posts, and topics')}
+        Icon={SvgSearch}
+      />
     </div>
   );
 }

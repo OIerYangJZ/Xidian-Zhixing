@@ -2,6 +2,7 @@
 
 import React, { forwardRef, useCallback, useRef } from 'react';
 import SvgImage from '@/svg_components/Image';
+import { useLanguage } from '@/hooks/useLanguage';
 import { ButtonNaked } from './ui/ButtonNaked';
 
 export const CreatePostOptions = forwardRef<
@@ -10,6 +11,7 @@ export const CreatePostOptions = forwardRef<
     handleVisualMediaChange: React.ChangeEventHandler<HTMLInputElement>;
   }
 >(({ handleVisualMediaChange }, forwardedRef) => {
+  const { t } = useLanguage();
   const localRef = useRef<HTMLInputElement | null>(null);
   const assignRef = useCallback(
     (node: HTMLInputElement) => {
@@ -29,11 +31,13 @@ export const CreatePostOptions = forwardRef<
   return (
     <div className="flex flex-row justify-center gap-6 px-4 pb-5 sm:justify-start">
       <ButtonNaked
-        aria-label="上传图片或视频"
+        aria-label={t('上传图片或视频', 'Upload a photo or video')}
         className="flex items-center gap-2 rounded-full px-3 py-2 text-muted-foreground transition hover:bg-secondary"
         onPress={onUploadImageOrVideoPress}>
         <SvgImage className="h-6 w-6 text-muted-foreground" />
-        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground">图片 / 视频</p>
+        <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground">
+          {t('图片 / 视频', 'Photo / video')}
+        </p>
       </ButtonNaked>
       <input
         ref={assignRef}
