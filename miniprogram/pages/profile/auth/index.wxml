@@ -1,25 +1,37 @@
-<view class="auth-page {{themeClass}}">
-  <view class="auth-main">
-    <view class="brand-block">
-      <view class="brand-mark">电</view>
-      <view class="brand-name">SeeRadio</view>
-      <view class="brand-subtitle">西电统一身份认证登录</view>
-    </view>
+<view class="auth-page zx-hero {{themeClass}}">
+  <view class="watermark">知</view>
+  <view style="height: {{navTop + navHeight + 8}}px;"></view>
 
-    <view class="auth-tip">账号登录时，学号和密码仅在西电官方统一身份认证页面输入，西电知行不会接触或保存该登录密码。完成认证后，请点击左上角返回小程序。</view>
-
-    <button class="login-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="handleLogin">
-      {{attemptId ? '重新打开官方认证页面' : '前往西电官方认证'}}
-    </button>
-
+  <view wx:if="{{sharedKind}}" class="share-card">
+    <view class="share-icon"><view class="zx-i zx-i-link zx-i--sm"></view></view>
+    <view class="zx-label">{{sharedKind === 'post' ? '登录后将打开分享的帖子' : '登录后将打开分享的主页'}}</view>
   </view>
 
-  <view class="agreement-hint" wx:if="{{agreementHint}}">请先阅读并同意用户协议和隐私政策</view>
-  <view class="agreement {{agreementHint ? 'agreement-shake' : ''}}" bindtap="toggleAgreement">
-    <view class="agreement-box {{agreed ? 'agreement-box-on' : ''}} {{agreementHint ? 'agreement-box-error' : ''}}">{{agreed ? '✓' : ''}}</view>
-    <text>我已阅读并同意</text>
-    <text class="agreement-link" catchtap="goTerms">《用户协议》</text>
-    <text>和</text>
-    <text class="agreement-link" catchtap="goPrivacy">《隐私政策》</text>
+  <view class="brand">
+    <view class="zx-avatar zx-avatar--seal brand-seal">知</view>
+    <view class="zx-display brand-name">西电知行</view>
+    <view class="brand-latin">XIDIAN ZHIXING</view>
+    <view class="brand-tagline">让校园里的真实声音被听见</view>
+  </view>
+
+  <view class="panel">
+    <view class="zx-btn zx-btn--primary zx-btn--block {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="handleLogin">
+      <view class="zx-i zx-i-idcard zx-i--sm"></view>{{attemptId ? '重新打开官方认证页面' : '西电统一身份认证登录'}}
+    </view>
+    <view class="panel-note">{{attemptId ? '完成认证后，请点左上角返回小程序' : '将跳转到学校统一身份认证页面，用学号和密码登录'}}</view>
+    <view class="panel-safe">学号和密码只在西电官方页面输入，西电知行不会接触或保存。</view>
+
+    <view class="hint-wrap">
+      <view wx:if="{{agreementHint}}" class="hint">请先阅读并同意用户协议和隐私政策</view>
+    </view>
+    <view class="agreement {{agreementHint ? 'agreement--shake' : ''}}" bindtap="toggleAgreement">
+      <view class="box {{agreed ? 'box--on' : ''}} {{agreementHint ? 'box--error' : ''}}">
+        <view wx:if="{{agreed}}" class="zx-i zx-i-check zx-i--sm"></view>
+      </view>
+      <text>我已阅读并同意</text>
+      <text class="link" catchtap="goTerms">《用户协议》</text>
+      <text>和</text>
+      <text class="link" catchtap="goPrivacy">《隐私政策》</text>
+    </view>
   </view>
 </view>

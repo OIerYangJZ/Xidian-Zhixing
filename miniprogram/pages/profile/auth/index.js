@@ -8,6 +8,8 @@ import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 Page({
   onShow() {
+    const app = getApp();
+    this.setData({ navTop: app.globalData.navTop || 44, navHeight: app.globalData.navHeight || 32 });
     applyThemeAndLanguage(this);
     if (this._awaitingOfficialReturn) {
       this._awaitingOfficialReturn = false;
@@ -20,7 +22,13 @@ Page({
     submitting: false,
     // Consent has to be given explicitly before signing in.
     agreed: false,
-    agreementHint: false
+    agreementHint: false,
+    // Bumped per attempt without consent, to replay the shake.
+    nudge: 0,
+    // Handoff L1: from a shared link, say what opens after signing in.
+    sharedKind: '',
+    navTop: 44,
+    navHeight: 32
   },
 
   toggleAgreement() {
@@ -28,7 +36,6 @@ Page({
   },
 
   onLoad(options = {}) {
-    wx.setNavigationBarTitle({ title: '统一身份认证登录' });
     let redirect = '';
     try {
       redirect = decodeURIComponent(options.redirect || '');
@@ -37,6 +44,11 @@ Page({
     }
     // Only in-app pages; anything else falls back to navigateBack.
     this._redirect = /^\/pages\//.test(redirect) ? redirect : '';
+    this.setData({
+      sharedKind: this._redirect.startsWith('/pages/campus/post-detail')
+        ? 'post'
+        : (this._redirect.startsWith('/pages/profile/public-user') ? 'profile' : '')
+    });
   },
 
   returnAfterLogin() {
