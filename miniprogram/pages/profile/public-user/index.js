@@ -1,20 +1,32 @@
 import { userIdFromScannedLink, userShareLink } from '../../../utils/share_links';
-import { followUser, getPublicUser, unfollowUser } from '../../../api/user';
-import { getPosts } from '../../../api/posts';
+import { blockUserGlobally, followUser, getPublicUser, unblockUserGlobally, unfollowUser } from '../../../api/user';
+import { getPosts, reportTarget } from '../../../api/posts';
 import { createDirectConversation } from '../../../api/messages';
+import { attachDisplayImages } from '../../../utils/feed_images';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
+const REPORT_REASONS = ['广告引流', '人身攻击', '违规内容', '垃圾信息', '其他'];
+
+// 主页 (handoff U1–U3): the cover under a custom bar, the profile with
+// 私信 / 关注, then TA 的帖子. 「⋯」 copies the link, blocks or reports; once
+// blocked, the posts give way to a note and 关注 / 私信 to 解除屏蔽.
 Page({
-  onShow() {
-    applyThemeAndLanguage(this);
-  },
   data: {
     userId: '',
     profile: null,
     posts: [],
     loading: true,
-    errorMessage: ''
+    errorMessage: '',
+    busy: false,
+    navTop: 44,
+    navHeight: 32
+  },
+
+  onShow() {
+    const app = getApp();
+    this.setData({ navTop: app.globalData.navTop || 44, navHeight: app.globalData.navHeight || 32 });
+    applyThemeAndLanguage(this);
   },
 
   onLoad(options) {
@@ -24,6 +36,17 @@ Page({
     if (userId) this.loadProfile();
   },
 
+  decorate(profile) {
+    const mutual = Boolean(profile.isFollowing && profile.isFollower);
+    return {
+      ...profile,
+      name: profile.nickname || profile.alias || '西电同学',
+      levelLabel: `Lv.${profile.isLevelOneUser ? 1 : (profile.userLevel || 2)}`,
+      schoolLine: [profile.college, profile.major].filter(Boolean).join(' · '),
+      followLabel: mutual ? '互相关注' : (profile.isFollowing ? '已关注' : '关注')
+    };
+  },
+
   async loadProfile() {
     this.setData({ loading: true, errorMessage: '' });
     try {
@@ -31,8 +54,11 @@ Page({
         getPublicUser(this.data.userId),
         getPosts({ authorId: this.data.userId, page: 1, limit: 20 })
       ]);
-      wx.setNavigationBarTitle({ title: profile.nickname || profile.alias || '主页' });
-      this.setData({ profile, posts, loading: false });
+      this.setData({
+        profile: this.decorate(profile),
+        posts: posts.map(attachDisplayImages),
+        loading: false
+      });
     } catch (error) {
       this.setData({
         loading: false,
@@ -47,21 +73,114 @@ Page({
     this.loadProfile();
   },
 
+  goBack() {
+    if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.switchTab({ url: '/pages/treehole/index' });
+  },
+
+  showMore() {
+    const profile = this.data.profile;
+    if (!profile) return;
+    const blocked = Boolean(profile.isBlockedByMe);
+    const actions = ['复制主页链接', blocked ? '解除屏蔽' : '屏蔽', '举报'];
+    wx.showActionSheet({
+      itemList: actions,
+      success: (res) => {
+        const action = actions[res.tapIndex];
+        if (action === '复制主页链接') this.copyProfileLink();
+        else if (action === '屏蔽') this.confirmBlock();
+        else if (action === '解除屏蔽') this.setBlocked(false);
+        else if (action === '举报') this.reportUser();
+      }
+    });
+  },
+
   copyProfileLink() {
     if (!this.data.userId) return;
     wx.setClipboardData({ data: userShareLink(this.data.userId) });
   },
 
-  async toggleFollow() {
-    if (!this.data.profile) return;
-    try {
-      if (this.data.profile.isFollowing) {
-        await unfollowUser(this.data.userId);
-      } else {
-        await followUser(this.data.userId);
+  confirmBlock() {
+    wx.showModal({
+      title: `屏蔽 ${this.data.profile.name}？`,
+      content: '屏蔽后不再看到 TA 的帖子，也不会收到 TA 的私信。',
+      confirmText: '屏蔽',
+      confirmColor: '#B3261E',
+      success: (res) => {
+        if (res.confirm) this.setBlocked(true);
       }
-      this.setData({ 'profile.isFollowing': !this.data.profile.isFollowing });
-    } catch (error) {}
+    });
+  },
+
+  async setBlocked(block) {
+    if (this.data.busy) return;
+    this.setData({ busy: true });
+    try {
+      if (block) await blockUserGlobally(this.data.userId);
+      else await unblockUserGlobally(this.data.userId);
+      this.setData({ profile: this.decorate({ ...this.data.profile, isBlockedByMe: block, isFollowing: block ? false : this.data.profile.isFollowing }) });
+      wx.showToast({ title: block ? '已屏蔽' : '已解除屏蔽', icon: 'none' });
+    } catch (error) {
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ busy: false });
+    }
+  },
+
+  unblock() {
+    this.setBlocked(false);
+  },
+
+  reportUser() {
+    wx.showActionSheet({
+      itemList: REPORT_REASONS,
+      success: (res) => {
+        const reason = REPORT_REASONS[res.tapIndex];
+        if (!reason) return;
+        wx.showModal({
+          title: `举报：${reason}`,
+          editable: true,
+          placeholderText: '补充说明（选填）',
+          confirmText: '提交',
+          success: async (modal) => {
+            if (!modal.confirm) return;
+            try {
+              await reportTarget({
+                targetType: 'user',
+                targetId: this.data.userId,
+                reason,
+                description: String(modal.content || '').trim()
+              });
+              wx.showToast({ title: '举报已提交', icon: 'success' });
+            } catch (error) {
+              wx.showToast({ title: '举报失败，请重试', icon: 'none' });
+            }
+          }
+        });
+      }
+    });
+  },
+
+  async toggleFollow() {
+    const profile = this.data.profile;
+    if (!profile || this.data.busy) return;
+    this.setData({ busy: true });
+    const next = !profile.isFollowing;
+    try {
+      if (next) await followUser(this.data.userId);
+      else await unfollowUser(this.data.userId);
+      this.setData({
+        profile: this.decorate({
+          ...profile,
+          isFollowing: next,
+          followerCount: Math.max(0, (Number(profile.followerCount) || 0) + (next ? 1 : -1))
+        })
+      });
+    } catch (error) {
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+    } finally {
+      this.setData({ busy: false });
+    }
   },
 
   async messageUser() {
@@ -69,13 +188,23 @@ Page({
     try {
       const conversation = await createDirectConversation({ targetUserId: this.data.userId });
       wx.navigateTo({
-        url: `/pages/profile/chat/index?id=${conversation.id}&name=${encodeURIComponent(conversation.name || '私信')}&peerUserId=${encodeURIComponent(this.data.userId)}&peerAvatar=${encodeURIComponent((this.data.profile && this.data.profile.avatarUrl) || conversation.avatarUrl || '')}`
+        url: `/pages/profile/chat/index?id=${conversation.id}&name=${encodeURIComponent(conversation.name || this.data.profile.name)}&peerUserId=${encodeURIComponent(this.data.userId)}&peerAvatar=${encodeURIComponent(this.data.profile.avatarUrl || conversation.avatarUrl || '')}`
       });
-    } catch (error) {}
+    } catch (error) {
+      const message = (error && error.data && error.data.message) || '无法发起私信';
+      wx.showToast({ title: message, icon: 'none' });
+    }
   },
 
-  openPost(event) {
+  goToDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
-  }
+  },
+
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (tag) wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
+  },
+
+  openAuthorProfile() {}
 });

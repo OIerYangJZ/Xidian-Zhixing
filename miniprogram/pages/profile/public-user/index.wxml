@@ -1,53 +1,107 @@
-<view class="page public-page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+<view class="zx-page public-page {{themeClass}}">
+  <view class="topbar" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <view class="topbar-btn" bindtap="goBack"><view class="zx-i zx-i-back"></view></view>
+    <view class="zx-spacer"></view>
+    <view wx:if="{{profile}}" class="topbar-btn topbar-more" bindtap="showMore"><view class="zx-i zx-i-more"></view></view>
   </view>
-  <view wx:elif="{{!profile}}" class="empty">用户不存在</view>
-  <view wx:else>
-    <view class="profile-head">
-      <image class="cover" wx:if="{{profile.backgroundImageUrl}}" src="{{profile.backgroundImageUrl}}" mode="aspectFill"></image>
-      <view class="avatar {{profile.avatarUrl ? 'has-image' : 'fallback'}}">
-        <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
-        <text wx:else>{{profile.avatarInitial}}</text>
-      </view>
-      <view class="name">{{profile.nickname || profile.alias || '西电同学'}}</view>
-      <view wx:if="{{profile.college || profile.major}}" class="school-meta">
-        {{profile.college}}{{profile.college && profile.major ? ' · ' : ''}}{{profile.major}}
-      </view>
-      <view class="bio">{{profile.bio || '这个同学还没有填写简介'}}</view>
-      <view class="stats">
-        <text>关注 {{profile.followingCount || 0}}</text>
-        <text>粉丝 {{profile.followerCount || 0}}</text>
-      </view>
+
+  <view wx:if="{{loading}}" class="zx-empty page-state"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty page-state">
+    <view class="zx-empty__title">主页加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!profile}}" class="zx-empty page-state"><view class="zx-empty__title">用户不存在</view></view>
+  <block wx:else>
+    <view class="cover" style="height: {{navTop + navHeight + 90}}px;">
+      <image wx:if="{{profile.backgroundImageUrl}}" class="cover-image" src="{{profile.backgroundImageUrl}}" mode="aspectFill"></image>
     </view>
-    <view class="actions">
-      <button class="primary" bindtap="toggleFollow">{{profile.isFollowing ? '已关注' : '关注'}}</button>
-      <button class="secondary" bindtap="messageUser">私信</button>
-      <button class="secondary" bindtap="copyProfileLink">复制主页链接</button>
-    </view>
-    <view class="post-section">
-      <view class="section-title">TA 的发布</view>
-      <view wx:if="{{!posts.length}}" class="empty-small">暂无公开发布</view>
-      <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="openPost">
-        <image wx:if="{{item.authorAvatarUrl}}" class="feed-avatar" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-        <view wx:else class="feed-avatar">{{item.authorInitial || profile.avatarInitial}}</view>
-        <view class="feed-body">
-          <view class="feed-head">
-            <text class="feed-author">{{item.authorAlias || profile.nickname || profile.alias}}</text>
-            <view wx:if="{{item.sectionName}}" class="feed-channel">{{item.sectionName}}</view>
-            <text class="feed-time">{{item.timeText}}</text>
+
+    <view class="head">
+      <view class="zx-row head-row">
+        <view class="zx-avatar zx-avatar--lg head-avatar">
+          <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+          <text wx:else>{{profile.avatarInitial}}</text>
+        </view>
+        <view class="zx-spacer"></view>
+        <block wx:if="{{profile.isBlockedByMe}}">
+          <view class="zx-btn zx-btn--secondary zx-btn--small" bindtap="unblock"><view class="zx-i zx-i-block zx-i--sm"></view>解除屏蔽</view>
+        </block>
+        <block wx:elif="{{!profile.isOwnProfile}}">
+          <view wx:if="{{profile.canDirectMessage}}" class="zx-btn zx-btn--secondary zx-btn--small head-btn" bindtap="messageUser"><view class="zx-i zx-i-chat zx-i--sm"></view>私信</view>
+          <view wx:if="{{profile.canFollow}}" class="zx-btn zx-btn--small head-btn {{profile.isFollowing ? 'zx-btn--secondary' : 'zx-btn--primary'}}" bindtap="toggleFollow">
+            <view wx:if="{{!profile.isFollowing}}" class="zx-i zx-i-plus zx-i--sm"></view>{{profile.followLabel}}
           </view>
-          <view class="feed-title">{{item.displayTitle}}</view>
-          <view class="feed-summary">{{item.summary}}</view>
-          <view class="feed-actions">
-            <view class="feed-action"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-            <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
+        </block>
+      </view>
+      <view class="zx-row name-row">
+        <view class="zx-display name">{{profile.name}}</view>
+        <view wx:if="{{profile.verified}}" class="zx-badge zx-badge--success"><view class="zx-i zx-i-check zx-i--sm"></view>已认证</view>
+        <view class="zx-badge zx-badge--accent">{{profile.levelLabel}}</view>
+      </view>
+      <view wx:if="{{profile.bio}}" class="bio">{{profile.bio}}</view>
+      <view wx:if="{{profile.schoolLine}}" class="zx-caption school">{{profile.schoolLine}}</view>
+      <view class="stats">
+        <view class="stat"><text class="stat-num">{{profile.postCount || 0}}</text><text class="stat-label">帖子</text></view>
+        <view class="stat"><text class="stat-num">{{profile.followingCount || 0}}</text><text class="stat-label">关注</text></view>
+        <view class="stat"><text class="stat-num">{{profile.followerCount || 0}}</text><text class="stat-label">粉丝</text></view>
+      </view>
+    </view>
+
+    <!-- Handoff U3: blocked, the posts give way to a note. -->
+    <view wx:if="{{profile.isBlockedByMe}}" class="blocked">
+      <view class="blocked-mark"><view class="zx-i zx-i-block zx-i--lg"></view></view>
+      <view class="zx-display blocked-title">你已屏蔽 TA</view>
+      <view class="zx-caption blocked-text">不显示 TA 的帖子。解除屏蔽后恢复。</view>
+    </view>
+    <block wx:else>
+      <view class="tabs"><view class="tab tab--on">TA 的帖子<text class="tab-count">{{posts.length}}</text></view></view>
+      <view wx:if="{{!posts.length}}" class="zx-empty"><view class="zx-empty__message">还没有公开的帖子</view></view>
+      <view wx:else class="sheet">
+        <view class="post post--thread" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+          <view class="post-rail">
+            <view class="zx-avatar post-avatar">
+              <image wx:if="{{profile.avatarUrl}}" src="{{profile.avatarUrl}}" mode="aspectFill"></image>
+              <text wx:else>{{profile.avatarInitial}}</text>
+            </view>
+          </view>
+          <view class="post-body">
+            <view class="zx-row post-head">
+              <view class="zx-label zx-ellipsis post-author">{{profile.name}}</view>
+              <view class="zx-caption post-time">· {{item.timeText}}</view>
+            </view>
+            <view class="post-badges">
+              <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
+              <view wx:if="{{item.sectionName}}" class="zx-badge zx-badge--channel zx-tone-{{item.sectionTone}}"><view class="zx-dot"></view>{{item.sectionName}}</view>
+              <view class="zx-badge {{item.statusKey === 'resolved' ? 'zx-badge--success' : item.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}">
+                <view class="zx-i zx-i--sm {{item.statusKey === 'resolved' ? 'zx-i-check' : 'zx-i-clock'}}"></view>{{item.statusLabel}}
+              </view>
+            </view>
+            <view class="post-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
+              <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+                <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+                <text wx:else>{{segment.text}}</text>
+              </block>
+            </view>
+            <view class="post-summary" wx:if="{{item.summarySegments && item.summarySegments.length}}">
+              <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+                <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+                <text wx:else>{{segment.text}}</text>
+              </block>
+            </view>
+            <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}">
+              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
+                <image src="{{img}}" mode="aspectFill" class="post-image"></image>
+              </swiper-item>
+            </swiper>
+            <view class="post-actions">
+              <view class="action"><view class="zx-i zx-i--sm zx-i-heart"></view><text>{{item.likeCount || 0}}</text></view>
+              <view class="action"><view class="zx-i zx-i--sm zx-i-comment"></view><text>{{item.commentCount || 0}}</text></view>
+              <view class="action"><view class="zx-i zx-i--sm zx-i-star"></view><text>{{item.favoriteCount || 0}}</text></view>
+            </view>
           </view>
         </view>
       </view>
-    </view>
-  </view>
+    </block>
+  </block>
 </view>
