@@ -2,8 +2,8 @@ import { getServerUser } from '@/lib/getServerUser';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { Notifications } from './Notifications';
 
-export function generateMetadata() {
-  return { title: getInterfaceLanguage() === 'en' ? 'Notifications | Xidian Zhixing' : '通知 | 西电知行' };
+export async function generateMetadata() {
+  return { title: (await getInterfaceLanguage()) === 'en' ? 'Notifications | Xidian Zhixing' : '通知 | 西电知行' };
 }
 
 export default async function Page() {

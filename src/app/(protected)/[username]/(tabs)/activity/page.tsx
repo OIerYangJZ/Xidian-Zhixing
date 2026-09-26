@@ -4,17 +4,19 @@ import { getProfile } from '../../getProfile';
 import { Activities } from './Activities';
 import { ActivityAccessMessage } from './ActivityAccessMessage';
 
-export async function generateMetadata({ params }: { params: { username: string } }) {
+export async function generateMetadata(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const profile = await getProfile(params.username);
   return {
     title:
-      getInterfaceLanguage() === 'en'
+      (await getInterfaceLanguage()) === 'en'
         ? `Activity | ${profile?.name || 'Xidian Zhixing'}`
         : `互动 | ${profile?.name || '西电知行'}`,
   };
 }
 
-export default async function Page({ params }: { params: { username: string } }) {
+export default async function Page(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user) return <ActivityAccessMessage reason="signin" />;
   const profile = await getProfile(params.username);

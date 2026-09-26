@@ -9,7 +9,8 @@ import { NextResponse } from 'next/server';
 import { GetVisualMedia } from '@/types/definitions';
 import { getServerUser } from '@/lib/getServerUser';
 
-export async function GET(request: Request, { params }: { params: { userId: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (user && user.id !== params.userId) {
     const block = await prisma.userBlock.findFirst({

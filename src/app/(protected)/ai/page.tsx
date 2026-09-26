@@ -3,8 +3,8 @@ import prisma from '@/lib/prisma/prisma';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { AIChat, type AIConversationData } from './AIChat';
 
-export function generateMetadata() {
-  return { title: getInterfaceLanguage() === 'en' ? 'Zhixing AI' : '知行 AI' };
+export async function generateMetadata() {
+  return { title: (await getInterfaceLanguage()) === 'en' ? 'Zhixing AI' : '知行 AI' };
 }
 
 export default async function Page() {

@@ -16,7 +16,7 @@ export const metadata = {
 };
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const [session, cookieStore] = await Promise.all([auth(), Promise.resolve(cookies())]);
+  const [session, cookieStore] = await Promise.all([auth(), cookies()]);
   const initialLanguage = cookieStore.get('zhixing-language')?.value === 'en' ? 'en' : 'zh';
   return (
     <html lang={initialLanguage === 'zh' ? 'zh-CN' : 'en'} className="overflow-y-scroll">

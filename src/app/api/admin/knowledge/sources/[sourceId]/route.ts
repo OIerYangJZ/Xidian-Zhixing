@@ -2,9 +2,10 @@ import { getKnowledgeAdmin } from '@/lib/ai/admin';
 import { knowledgeRequest, AiServiceError } from '@/lib/ai/rag';
 import { apiError, apiSuccess } from '@/lib/apiResponse';
 
-type RouteContext = { params: { sourceId: string } };
+type RouteContext = { params: Promise<{ sourceId: string }> };
 
-export async function PATCH(request: Request, { params }: RouteContext) {
+export async function PATCH(request: Request, props: RouteContext) {
+  const params = await props.params;
   if (!(await getKnowledgeAdmin())) return apiError('需要管理员权限。', 403);
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
   try {
@@ -23,7 +24,8 @@ export async function PATCH(request: Request, { params }: RouteContext) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: RouteContext) {
+export async function DELETE(_request: Request, props: RouteContext) {
+  const params = await props.params;
   if (!(await getKnowledgeAdmin())) return apiError('需要管理员权限。', 403);
   try {
     const result = await knowledgeRequest('/documents/status', {

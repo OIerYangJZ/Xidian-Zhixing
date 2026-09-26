@@ -7,7 +7,8 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma/prisma';
 import { verifyAccessToPost } from './verifyAccessToPost';
 
-export async function DELETE(request: Request, { params }: { params: { postId: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   const postId = parseInt(params.postId, 10);
   if (!(await verifyAccessToPost(postId))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });

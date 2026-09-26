@@ -10,7 +10,8 @@ import { toGetPost } from '@/lib/prisma/toGetPost';
 import { getServerUser } from '@/lib/getServerUser';
 import { getPostsSorter } from '@/hooks/usePostsSorter';
 
-export async function GET(request: Request, { params }: { params: { hashtag: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ hashtag: string }> }) {
+  const params = await props.params;
   /**
    * The [user] will only be used to check whether the
    * user requesting the Posts have like them or not.

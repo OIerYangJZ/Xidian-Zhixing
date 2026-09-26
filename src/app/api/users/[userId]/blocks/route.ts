@@ -7,7 +7,8 @@ import { z } from 'zod';
 
 const createBlockSchema = z.object({ blockedId: z.string().min(1) });
 
-export async function GET(_request: Request, { params }: { params: { userId: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user || user.id !== params.userId) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 
@@ -28,7 +29,8 @@ export async function GET(_request: Request, { params }: { params: { userId: str
   );
 }
 
-export async function POST(request: Request, { params }: { params: { userId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user || user.id !== params.userId) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
 

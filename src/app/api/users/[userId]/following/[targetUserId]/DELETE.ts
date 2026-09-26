@@ -7,7 +7,8 @@ import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { NextResponse } from 'next/server';
 
-export async function DELETE(request: Request, { params }: { params: { userId: string; targetUserId: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ userId: string; targetUserId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user || user.id !== params.userId) return NextResponse.json({}, { status: 403 });
 

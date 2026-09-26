@@ -3,7 +3,8 @@ import { getServerUser } from '@/lib/getServerUser';
 import { getCampusServices } from '@/lib/campus/catalog';
 import prisma from '@/lib/prisma/prisma';
 
-export async function GET(_request: Request, { params }: { params: { serviceId: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ serviceId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user?.id) return apiError('请先登录。', 401);
   const identityCount = await prisma.institutionIdentity.count({ where: { userId: user.id } });

@@ -10,7 +10,8 @@ import { toGetComment } from '@/lib/prisma/toGetComment';
 import { NextResponse } from 'next/server';
 import { FindCommentResult } from '@/types/definitions';
 
-export async function GET(request: Request, { params }: { params: { commentId: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ commentId: string }> }) {
+  const params = await props.params;
   /**
    * The `userId` will only be used to check whether the user
    * requesting the comments has liked them or not.

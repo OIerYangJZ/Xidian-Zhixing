@@ -16,7 +16,8 @@ import { convertMentionUsernamesToIds } from '@/lib/convertMentionUsernamesToIds
 import { mentionsActivityLogger } from '@/lib/mentionsActivityLogger';
 import { assessPostText } from '@/lib/moderation/text';
 
-export async function POST(request: Request, { params }: { params: { postId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user) return NextResponse.json({}, { status: 401 });
   const userId = user.id;

@@ -16,7 +16,8 @@ import { GetComment } from '@/types/definitions';
 import { z } from 'zod';
 import { assessPostText } from '@/lib/moderation/text';
 
-export async function POST(request: Request, { params }: { params: { commentId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ commentId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user) return NextResponse.json({}, { status: 401 });
   const userId = user.id;

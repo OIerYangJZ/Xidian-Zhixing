@@ -1,14 +1,15 @@
 'use client';
 
 import { Post } from '@/components/Post';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, use } from 'react';
 import Link from 'next/link';
 import { ArrowChevronBack } from '@/svg_components';
 import { useQueryClient } from '@tanstack/react-query';
 import { GetPost } from '@/types/definitions';
 import { useLanguage } from '@/hooks/useLanguage';
 
-export default function Page({ params }: { params: { postId: string } }) {
+export default function Page(props: { params: Promise<{ postId: string }> }) {
+  const params = use(props.params);
   const postId = parseInt(params.postId, 10);
   const { t } = useLanguage();
   const qc = useQueryClient();

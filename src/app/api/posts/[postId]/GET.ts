@@ -10,7 +10,8 @@ import { toGetPost } from '@/lib/prisma/toGetPost';
 import { NextResponse } from 'next/server';
 import { GetPost } from '@/types/definitions';
 
-export async function GET(request: Request, { params }: { params: { postId: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   /**
    * The [user] will only be used to check whether the
    * user requesting the Post has like it or not.
@@ -37,7 +38,8 @@ export async function GET(request: Request, { params }: { params: { postId: stri
   return NextResponse.json<GetPost>(await toGetPost(res, user?.id));
 }
 
-export async function POST(_request: Request, { params }: { params: { postId: string } }) {
+export async function POST(_request: Request, props: { params: Promise<{ postId: string }> }) {
+  const params = await props.params;
   const postId = Number.parseInt(params.postId, 10);
   if (!Number.isInteger(postId)) return NextResponse.json({ error: 'Invalid post id.' }, { status: 400 });
   const post = await prisma.post.update({

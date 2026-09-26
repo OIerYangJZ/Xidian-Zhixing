@@ -2,9 +2,10 @@ import { getKnowledgeAdmin } from '@/lib/ai/admin';
 import { apiError, apiSuccess } from '@/lib/apiResponse';
 import prisma from '@/lib/prisma/prisma';
 
-type RouteContext = { params: { caseId: string } };
+type RouteContext = { params: Promise<{ caseId: string }> };
 
-export async function PATCH(request: Request, { params }: RouteContext) {
+export async function PATCH(request: Request, props: RouteContext) {
+  const params = await props.params;
   const admin = await getKnowledgeAdmin();
   if (!admin) return apiError('需要管理员权限。', 403);
 

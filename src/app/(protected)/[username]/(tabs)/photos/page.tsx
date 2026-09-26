@@ -5,10 +5,11 @@ import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { getProfile } from '../../getProfile';
 import { Gallery } from './Gallery';
 
-export async function generateMetadata({ params }: { params: { username: string } }) {
+export async function generateMetadata(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const profile = await getProfile(params.username);
-  const title = getInterfaceLanguage() === 'en' ? 'Photos' : '照片';
-  return { title: `${title} | ${profile?.name || (getInterfaceLanguage() === 'en' ? 'Zhixing' : '西电知行')}` };
+  const title = (await getInterfaceLanguage()) === 'en' ? 'Photos' : '照片';
+  return { title: `${title} | ${profile?.name || ((await getInterfaceLanguage()) === 'en' ? 'Zhixing' : '西电知行')}` };
 }
 
 async function getVisualMedia(username: string) {
@@ -23,7 +24,8 @@ async function getVisualMedia(username: string) {
   return media.map(({ type, fileName }) => ({ type, url: fileNameToUrl(fileName)! })) as GetVisualMedia[];
 }
 
-export default async function Page({ params }: { params: { username: string } }) {
+export default async function Page(props: { params: Promise<{ username: string }> }) {
+  const params = await props.params;
   const visualMedia = await getVisualMedia(params.username);
   return <Gallery visualMedia={visualMedia} />;
 }

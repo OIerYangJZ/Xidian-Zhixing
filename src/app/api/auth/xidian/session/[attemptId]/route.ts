@@ -1,7 +1,8 @@
 import prisma from '@/lib/prisma/prisma';
 import { apiError, apiSuccess } from '@/lib/apiResponse';
 
-export async function GET(_request: Request, { params }: { params: { attemptId: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ attemptId: string }> }) {
+  const params = await props.params;
   const attempt = await prisma.xidianLoginAttempt.findUnique({
     where: { id: params.attemptId },
     select: { status: true, callbackUrl: true, expiresAt: true, consumedAt: true },

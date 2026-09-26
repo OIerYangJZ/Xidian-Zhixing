@@ -3,7 +3,8 @@ import { apiError, apiSuccess } from '@/lib/apiResponse';
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 
-export async function GET(_request: Request, { params }: { params: { conversationId: string } }) {
+export async function GET(_request: Request, props: { params: Promise<{ conversationId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user?.id) return apiError('请先登录。', 401, { code: 'unauthorized' });
 
@@ -15,7 +16,8 @@ export async function GET(_request: Request, { params }: { params: { conversatio
   return apiSuccess(conversation.messages);
 }
 
-export async function POST(request: Request, { params }: { params: { conversationId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ conversationId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user?.id) return apiError('请先登录。', 401, { code: 'unauthorized' });
 

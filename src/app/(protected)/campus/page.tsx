@@ -4,8 +4,8 @@ import { campusQuickLinks, getCampusServices } from '@/lib/campus/catalog';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { CampusDirectory } from './CampusDirectory';
 
-export function generateMetadata() {
-  return { title: getInterfaceLanguage() === 'en' ? 'Campus | Xidian Zhixing' : '校园 | 西电知行' };
+export async function generateMetadata() {
+  return { title: (await getInterfaceLanguage()) === 'en' ? 'Campus | Xidian Zhixing' : '校园 | 西电知行' };
 }
 
 export default async function CampusPage() {

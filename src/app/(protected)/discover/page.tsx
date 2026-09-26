@@ -4,8 +4,8 @@ import { DiscoverSearch } from '@/components/DiscoverSearch';
 import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { DiscoverPageHeader } from './DiscoverPageHeader';
 
-export function generateMetadata() {
-  return { title: getInterfaceLanguage() === 'en' ? 'Explore | Xidian Zhixing' : '探索 | 西电知行' };
+export async function generateMetadata() {
+  return { title: (await getInterfaceLanguage()) === 'en' ? 'Explore | Xidian Zhixing' : '探索 | 西电知行' };
 }
 
 export default async function Discover() {

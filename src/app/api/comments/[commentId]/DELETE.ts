@@ -8,7 +8,8 @@ import { NextResponse } from 'next/server';
 import { getServerUser } from '@/lib/getServerUser';
 import { verifyAccessToComment } from './verifyAccessToComment';
 
-export async function DELETE(request: Request, { params }: { params: { commentId: string } }) {
+export async function DELETE(request: Request, props: { params: Promise<{ commentId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   const commentId = parseInt(params.commentId, 10);
   if (!(await verifyAccessToComment(commentId))) {

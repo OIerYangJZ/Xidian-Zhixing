@@ -14,7 +14,8 @@ import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-export async function POST(request: Request, { params }: { params: { userId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user || user.id !== params.userId) return NextResponse.json({}, { status: 403 });
 

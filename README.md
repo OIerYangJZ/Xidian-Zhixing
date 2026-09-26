@@ -1,81 +1,47 @@
-# Munia 
+# 西电知行 Web
 
-A responsive and accessible full stack social media web app.
+西电知行校园社交产品的 Web 前端与服务端应用。当前项目基于 Munia 的既有社交业务代码继续开发，保留其 Prisma 数据模型、API、React Query hooks 和帖子、评论、关注、收藏、转发、通知、私信等业务逻辑。
 
-## Preview 🎬
+## 技术栈
 
-[![Watch the showcase](https://norcio-dot-dev-public-files.s3.us-east-1.amazonaws.com/munia/showcase-thumbnail.png)](https://norcio-dot-dev-public-files.s3.us-east-1.amazonaws.com/munia/showcase.mp4)
+- Next.js 15 App Router、React 18、TypeScript、Tailwind CSS
+- Auth.js、Prisma、PostgreSQL 兼容数据库
+- React Query、React Aria
+- 独立 Python 知识服务提供 AI/RAG 接入
 
+## 本地开发
 
-## Features ✨
+1. 安装 Node.js 与 npm，复制 `.env.local.example` 为 `.env.local` 并填写本地配置。
+2. 启动本地 PostgreSQL 兼容数据库，并将 `DATABASE_URL` 指向该实例。当前开发机使用持久化 PGlite 数据库；其数据目录位于 `%LOCALAPPDATA%\zhixing-dev-pglite`，仅供本地开发。
+3. 安装依赖并应用 Prisma migrations：
 
-- Email and OAuth 2.0 login (Github, Google and Facebook)
-- Users can update their info, profile photo and cover photo
-- Create, update and delete posts, comments and replies
-- Like and unlike posts, comments and replies
-- Images and videos can be added to posts
-- Drag and drop sorting of images and videos when creating and editing a post
-- Hashtags can be added to posts
-- Users can @ mention other users in their posts, comments and replies
-- Bidirectional infinite scrolling of posts
-- Follow and unfollow other users
-- Search users with filters
-- Display, search and filter a user's followers and following list
-- Activity logging and notifications
-- Gallery of user's uploaded photos and videos
-- Full-page image and videos slider
-- Accessible components
-- Fully responsive design
-- Dark and light themes
+   ```powershell
+   npm install
+   npm run prisma:deploy
+   ```
 
-> [!NOTE]  
-> This project is a work in progress, it still contains bugs and will constantly be updated to stay up-to-date with the latest framework changes.
+4. 启动 Web：
 
-## Tech Stack 🛠️
+   ```powershell
+   npm run dev
+   ```
 
-- [TypeScript](https://www.typescriptlang.org/)
-- [React](https://react.dev/)
-- [Next.js](https://nextjs.org/)
-- [NextAuth.js](https://next-auth.js.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [React Query](https://tanstack.com/query/latest/docs/react/overview)
-- [React Aria](https://react-spectrum.adobe.com/react-aria/getting-started.html)
-- [React Hook Form](https://react-hook-form.com/)
-- [Zod](https://zod.dev/)
-- [Prisma](https://www.prisma.io/)
-- [AWS S3](https://aws.amazon.com/s3/)
-- [AWS SES](https://aws.amazon.com/ses/)
+   开发地址为 `http://127.0.0.1:3002`。只有非生产环境可启用本地测试登录；部署环境不得开放该登录方式。
 
-## About this project
+`npm run prisma:seed` 会运行 `prisma migrate reset` 并重建演示数据，执行前会清空目标数据库；不要对含有需要保留数据的数据库运行。
 
-This project is an open source portfolio project that explores how can a social media app be built with Next.js.
+## 主题与主要页面
 
-It utilizes the following Next.js features:
+设置页可切换知行首页默认视觉、暖色参考视觉、浅色/深色显示模式和中英文。暖色参考视觉只调整颜色与字体变量，页面布局和业务行为保持共用。
 
-- routing
-- static and dynamic rendering
-- server and client components
-- nested layouts
-- route handlers
-- middleware
-- font optimizations
-- dynamic metadata
+应用包含首页信息流、帖子详情、搜索、校园、通知、私信、AI、个人主页、收藏及设置。校园正式数据、生产 IDS 登录、对象存储和 AI/RAG 部署仍需按交接文档完成配置与验收。
 
-Due to the highly dynamic nature of social media apps, most data fetching and mutations are done on the client-side using React Query.
+## 常用检查
 
-React Query simplifies the implementation of features that would have been challenging and inefficient with Next.js's server components and server actions. These features include bidirectional infinite scrolling, optimistic updates, client-side data caching, client-side loading states, and more.
+```powershell
+npx tsc --noEmit
+npm run lint
+npm run build
+```
 
-## Accessibility
-
-The UI components are built with React Aria's accessibility hooks, assuring accessibility across different platforms.
-
-## Deployment on EC2
-
-Follow these steps to deploy Munia on an EC2 instance.
-
-1. Set up a PostgreSQL database and copy its connection URL into `.env`.
-2. Set up a client application for each OAuth provider (Github, Google and Facebook) and copy the client id's and client secrets into `.env.local`.
-3. Run `npm install`
-4. Run `npm run prisma:deploy`
-5. Run `npm run prisma:seed`
-6. Run `npm run pm2` (or `npm run build` and then `npm run start` if you're not using PM2). You can modify the port specified in the `pm2` script depending on your server configuration.
+本地构建与健康检查不能替代生产数据库、IDS/CAS、校园接口、媒体存储和 RAG 服务的联调。生产部署步骤与待配置项见 [`docs/交接工作总结.md`](docs/交接工作总结.md) 和 [`docs/重建项目架构与部署缺口.md`](docs/重建项目架构与部署缺口.md)。

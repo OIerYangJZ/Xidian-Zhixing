@@ -19,7 +19,8 @@ async function verifyAccessToNotification(notificationId: number) {
   return count > 0;
 }
 
-export async function PATCH(request: Request, { params }: { params: { userId: string; notificationId: string } }) {
+export async function PATCH(request: Request, props: { params: Promise<{ userId: string; notificationId: string }> }) {
+  const params = await props.params;
   const notificationId = parseInt(params.notificationId, 10);
   if (!verifyAccessToNotification(notificationId)) return NextResponse.json({}, { status: 403 });
 

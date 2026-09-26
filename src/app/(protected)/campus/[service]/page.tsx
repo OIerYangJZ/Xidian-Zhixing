@@ -4,9 +4,10 @@ import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { CampusDataPanel } from './CampusDataPanel';
 import { CampusServiceHeader } from './CampusServiceHeader';
 
-export function generateMetadata({ params }: { params: { service: string } }) {
+export async function generateMetadata(props: { params: Promise<{ service: string }> }) {
+  const params = await props.params;
   const service = getCampusServices(false).find(({ slug }) => slug === params.service);
-  if (getInterfaceLanguage() === 'en') {
+  if ((await getInterfaceLanguage()) === 'en') {
     const title =
       service?.slug === 'network-usage'
         ? 'Campus network usage'
@@ -18,7 +19,8 @@ export function generateMetadata({ params }: { params: { service: string } }) {
   return { title: service ? `${service.name} | 西电知行` : '校园服务 | 西电知行' };
 }
 
-export default function CampusServicePage({ params }: { params: { service: string } }) {
+export default async function CampusServicePage(props: { params: Promise<{ service: string }> }) {
+  const params = await props.params;
   const service = getCampusServices(false).find(({ slug }) => slug === params.service);
   if (!service) notFound();
 

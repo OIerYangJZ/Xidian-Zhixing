@@ -12,7 +12,8 @@ import { toGetPost } from '@/lib/prisma/toGetPost';
 import { NextResponse } from 'next/server';
 import { GetPost } from '@/types/definitions';
 
-export async function GET(request: Request, { params }: { params: { userId: string } }) {
+export async function GET(request: Request, props: { params: Promise<{ userId: string }> }) {
+  const params = await props.params;
   const { filters, limitAndOrderBy } = getPostsSorter(request.url);
 
   const [user] = await getServerUser();

@@ -5,7 +5,8 @@ import { z } from 'zod';
 
 const messageSchema = z.object({ content: z.string().trim().min(1).max(4000) });
 
-export async function POST(request: Request, { params }: { params: { conversationId: string } }) {
+export async function POST(request: Request, props: { params: Promise<{ conversationId: string }> }) {
+  const params = await props.params;
   const [user] = await getServerUser();
   if (!user?.id) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   const parsed = messageSchema.safeParse(await request.json());

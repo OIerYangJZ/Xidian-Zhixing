@@ -1,6 +1,6 @@
 /* eslint-disable react-perf/jsx-no-new-object-as-prop */
 import { Swiper, SwiperSlide, SwiperClass } from 'swiper/react';
-import { Zoom, Navigation, Pagination, Keyboard } from 'swiper';
+import { Zoom, Navigation, Pagination, Keyboard } from 'swiper/modules';
 import { useCallback, useMemo, useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { motion } from 'framer-motion';
