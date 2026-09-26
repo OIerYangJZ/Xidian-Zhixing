@@ -639,3 +639,4 @@
 .detail-action.favorited { color: var(--zx-accent-ink); }
 .comment-action { color: var(--zx-text-3); }
 .comment-action.active { color: var(--zx-primary); }
+.detail-retry { margin-top: 24rpx; }

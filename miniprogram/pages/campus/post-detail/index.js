@@ -160,6 +160,11 @@ Page({
       });
       await this.hydratePostImages();
     } catch (error) {
+      // A post that is gone gets the 不存在 state; retrying cannot help.
+      if (Number(error && error.statusCode) === 404) {
+        this.setData({ loading: false, post: null, errorMessage: '' });
+        return;
+      }
       this.setData({
         loading: false,
         errorMessage: (error && error.data && error.data.message)
