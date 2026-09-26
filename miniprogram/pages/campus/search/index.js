@@ -1,40 +1,41 @@
 import { getPosts } from '../../../api/posts';
-import { searchUsers } from '../../../api/user';
+import { followUser, searchUsers, unfollowUser } from '../../../api/user';
 import { getHotTopics, getHotTopicSummary } from '../../../api/hot';
+import { attachDisplayImages, hydrateDisplayImages, applyHydratedDisplayImages } from '../../../utils/feed_images';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
-const SORT_OPTIONS = [
-  { label: '最新', value: 'latest' },
-  { label: '热度', value: 'hot' },
-  { label: '点赞', value: 'likes' }
-];
+// Offered when nothing matches (handoff S3).
+const SUGGESTED_TOPICS = ['图书馆', '组队', '二手', '考研', '失物招领'];
 
+// 搜索 (handoff S1–S3): one query fills both 帖子 and 用户; a #query is a
+// topic, headed by a card with 最新 / 最热. Before searching: recent
+// searches and the hot list.
 Page({
   data: {
     keyword: '',
-    activeType: 'hot',
-    sortOptions: SORT_OPTIONS,
-    activeSort: 'hot',
+    submitted: '',
+    isTopic: false,
+    topicName: '',
+    tab: 'posts',
+    sort: 'latest',
     posts: [],
     users: [],
+    suggestedTopics: SUGGESTED_TOPICS,
+    history: [],
     hotTopics: [],
     hotSummary: '',
-    history: [],
-    searched: false,
+    hotErrorMessage: '',
     loading: false,
-    errorMessage: '',
-    hotErrorMessage: ''
+    errorMessage: ''
   },
 
   onLoad(options) {
-    if (options.keyword) {
-      this.setData({ keyword: decodeURIComponent(options.keyword) });
-    }
     if (!requireLoginPage()) return;
     this.setData({ history: wx.getStorageSync('searchHistory') || [] });
-    if (this.data.keyword) {
-      this.setData({ activeType: 'posts' });
+    const keyword = options.keyword ? decodeURIComponent(options.keyword) : '';
+    if (keyword) {
+      this.setData({ keyword });
       this.search();
     } else {
       this.loadHotTopics();
@@ -43,20 +44,14 @@ Page({
 
   onShow() {
     applyThemeAndLanguage(this);
-    if (!requireLoginPage()) return;
-    this.setData({ history: wx.getStorageSync('searchHistory') || [] });
-    if (this.data.keyword && !this.data.searched) {
-      this.setData({ activeType: 'posts' });
-      this.search();
-    }
   },
 
   onInput(event) {
-    const keyword = event.detail.value;
-    this.setData({ keyword });
-    if (keyword.trim() && this.data.activeType === 'hot') {
-      this.setData({ activeType: 'posts' });
-    }
+    this.setData({ keyword: event.detail.value });
+  },
+
+  clearKeyword() {
+    this.setData({ keyword: '' });
   },
 
   onHistoryTap(event) {
@@ -64,61 +59,86 @@ Page({
     this.search();
   },
 
-  onSortTap(event) {
-    this.setData({ activeSort: event.currentTarget.dataset.sort });
-    if (this.data.searched || this.data.keyword.trim()) this.search();
+  onTopicTap(event) {
+    this.setData({ keyword: `#${event.currentTarget.dataset.topic}` });
+    this.search();
   },
 
-  onTypeTap(event) {
-    const type = event.currentTarget.dataset.type;
-    if (!type || type === this.data.activeType) return;
-    this.setData({ activeType: type });
-    if (type === 'hot') {
-      this.loadHotTopics();
-    } else if (this.data.searched || this.data.keyword.trim()) {
-      this.search();
-    }
+  onTabTap(event) {
+    this.setData({ tab: event.currentTarget.dataset.tab });
+  },
+
+  onSortTap(event) {
+    const sort = event.currentTarget.dataset.sort;
+    if (!sort || sort === this.data.sort) return;
+    this.setData({ sort });
+    this.search();
   },
 
   async search() {
-    const keyword = this.data.keyword.trim();
-    if (this.data.activeType === 'hot') {
-      this.loadHotTopics();
-      return;
-    }
-    if (!keyword && this.data.activeType === 'posts') {
+    const raw = this.data.keyword.trim();
+    if (!raw) {
       wx.showToast({ title: '请输入关键词', icon: 'none' });
       return;
     }
-    if (!keyword && this.data.activeType === 'users') {
-      wx.showToast({ title: '请输入用户关键词', icon: 'none' });
-      return;
-    }
+    // Tags are stored without #, so a topic searches by its name.
+    const isTopic = raw.startsWith('#') && raw.length > 1;
+    const keyword = isTopic ? raw.slice(1).trim() : raw;
     this.setData({
       loading: true,
-      searched: true,
       errorMessage: '',
-      posts: this.data.activeType === 'posts' ? [] : this.data.posts,
-      users: this.data.activeType === 'users' ? [] : this.data.users
+      submitted: raw,
+      isTopic,
+      topicName: isTopic ? keyword : ''
     });
     try {
-      let posts = this.data.posts;
-      let users = this.data.users;
-      if (this.data.activeType === 'posts') {
-        posts = await getPosts({
-          keyword,
-          sort: this.data.activeSort
-        });
-      } else {
-        users = await searchUsers(keyword);
-      }
-      const history = keyword
-        ? [keyword, ...this.data.history.filter((item) => item !== keyword)].slice(0, 8)
-        : this.data.history;
-      if (keyword) wx.setStorageSync('searchHistory', history);
-      this.setData({ posts, users, history, loading: false, errorMessage: '' });
+      const [posts, users] = await Promise.all([
+        getPosts({ keyword, sort: this.data.sort }),
+        searchUsers(keyword).catch(() => [])
+      ]);
+      const history = [raw, ...this.data.history.filter((item) => item !== raw)].slice(0, 8);
+      wx.setStorageSync('searchHistory', history);
+      const shown = posts.map(attachDisplayImages);
+      this.setData({
+        posts: shown,
+        users: users.map(this.decorateUser),
+        history,
+        loading: false
+      });
+      const hydrated = await hydrateDisplayImages(shown);
+      this.setData({ posts: applyHydratedDisplayImages(this.data.posts, hydrated) });
     } catch (error) {
       this.setData({ loading: false, errorMessage: '搜索失败，请重试' });
+    }
+  },
+
+  decorateUser(user) {
+    const mutual = Boolean(user.isFollowing && user.isFollower);
+    return {
+      ...user,
+      meta: [user.college, `${user.postCount || 0} 帖子`, `${user.followerCount || 0} 粉丝`]
+        .filter(Boolean).join(' · '),
+      followLabel: mutual ? '互相关注' : (user.isFollowing ? '已关注' : '关注')
+    };
+  },
+
+  async toggleFollow(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    const user = this.data.users[index];
+    if (!user || !user.id) return;
+    const next = !user.isFollowing;
+    try {
+      if (next) await followUser(user.id);
+      else await unfollowUser(user.id);
+      const users = this.data.users.slice();
+      users[index] = this.decorateUser({
+        ...user,
+        isFollowing: next,
+        followerCount: Math.max(0, (Number(user.followerCount) || 0) + (next ? 1 : -1))
+      });
+      this.setData({ users });
+    } catch (error) {
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     }
   },
 
@@ -128,25 +148,22 @@ Page({
   },
 
   async loadHotTopics() {
-    this.setData({
-      loading: true,
-      searched: false,
-      hotErrorMessage: ''
-    });
+    this.setData({ hotErrorMessage: '' });
     try {
       const hotTopics = await getHotTopics();
-      this.setData({ hotTopics, loading: false, hotErrorMessage: '' });
+      this.setData({ hotTopics });
     } catch (error) {
-      this.setData({
-        loading: false,
-        hotErrorMessage: '热榜加载失败，请重试'
-      });
+      this.setData({ hotErrorMessage: '热榜加载失败，请重试' });
     }
   },
 
   async summarizeHotTopics() {
-    const result = await getHotTopicSummary();
-    this.setData({ hotSummary: result.answer || '' });
+    try {
+      const result = await getHotTopicSummary();
+      this.setData({ hotSummary: result.answer || '' });
+    } catch (error) {
+      wx.showToast({ title: '总结失败，请稍后再试', icon: 'none' });
+    }
   },
 
   goHotPost(event) {
@@ -154,14 +171,21 @@ Page({
     if (postId) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${postId}` });
   },
 
-  goPostDetail(event) {
+  goToDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
 
   goTagPosts(event) {
     const tag = event.currentTarget.dataset.tag;
-    if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+    if (!tag) return;
+    this.setData({ keyword: `#${tag}` });
+    this.search();
+  },
+
+  openAuthorProfile(event) {
+    const id = event.currentTarget.dataset.userId;
+    if (id) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${id}` });
   },
 
   goUserDetail(event) {

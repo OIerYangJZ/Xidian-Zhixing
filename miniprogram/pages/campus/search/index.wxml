@@ -1,114 +1,156 @@
-<view class="page search-page {{themeClass}}">
-  <view class="search-row">
-    <input value="{{keyword}}" placeholder="输入关键词" confirm-type="search" bindinput="onInput" bindconfirm="search" focus />
-    <view class="search-button" bindtap="search">搜索</view>
-  </view>
-
-  <view class="type-row">
-    <view class="type-chip {{activeType === 'hot' ? 'active' : ''}}" data-type="hot" bindtap="onTypeTap">热榜</view>
-    <view class="type-chip {{activeType === 'posts' ? 'active' : ''}}" data-type="posts" bindtap="onTypeTap">帖子</view>
-    <view class="type-chip {{activeType === 'users' ? 'active' : ''}}" data-type="users" bindtap="onTypeTap">用户</view>
-  </view>
-
-  <view class="sort-row" wx:if="{{activeType === 'posts'}}">
-    <view
-      wx:for="{{sortOptions}}"
-      wx:key="value"
-      data-sort="{{item.value}}"
-      class="sort-chip {{activeSort === item.value ? 'active' : ''}}"
-      bindtap="onSortTap"
-    >{{item.label}}</view>
-  </view>
-
-  <view class="history" wx:if="{{history.length && !searched}}">
-    <view class="section-head">
-      <view class="section-title">最近搜索</view>
-      <view class="clear" bindtap="clearHistory">清空</view>
+<view class="zx-page search-page {{themeClass}}">
+  <view class="search-bar">
+    <view class="search-field">
+      <view class="zx-i zx-i-search zx-i--sm search-icon"></view>
+      <input class="search-input" value="{{keyword}}" placeholder="搜索帖子、用户或 #话题" confirm-type="search" bindinput="onInput" bindconfirm="search" focus="{{!submitted}}" />
+      <view wx:if="{{keyword}}" class="search-clear" bindtap="clearKeyword"><view class="zx-i zx-i-close zx-i--sm"></view></view>
     </view>
-    <view class="history-tags">
-      <view class="history-tag" wx:for="{{history}}" wx:key="*this" data-keyword="{{item}}" bindtap="onHistoryTap">{{item}}</view>
-    </view>
+    <view class="search-go" bindtap="search">搜索</view>
   </view>
 
-  <view wx:if="{{loading}}" class="empty">搜索中...</view>
-  <view wx:elif="{{activeType !== 'hot' && errorMessage}}" class="empty" bindtap="search">{{errorMessage}} · 点击重试</view>
-  <view wx:elif="{{searched && activeType === 'posts' && !posts.length}}" class="empty">没有找到相关帖子</view>
-  <view wx:elif="{{searched && activeType === 'users' && !users.length}}" class="empty">没有找到相关用户</view>
-
-  <view wx:if="{{activeType === 'hot' && !loading}}">
-    <view wx:if="{{hotErrorMessage}}" class="empty" bindtap="loadHotTopics">{{hotErrorMessage}} · 点击重试</view>
-    <block wx:else>
-    <view class="hot-tools">
-      <view class="hot-title">热榜</view>
-      <view class="hot-summary-btn" bindtap="summarizeHotTopics">AI 总结</view>
-    </view>
-    <view class="hot-summary-card" wx:if="{{hotSummary}}">{{hotSummary}}</view>
-    <view class="hot-row" wx:for="{{hotTopics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="goHotPost">
-      <view class="hot-rank">{{item.rank}}</view>
-      <view class="hot-body">
-        <view class="hot-name">{{item.title}}</view>
-        <view class="hot-summary">{{item.summary}}</view>
-        <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
+  <!-- Before searching: recent searches and the hot list. -->
+  <view wx:if="{{!submitted}}" class="idle">
+    <view wx:if="{{history.length}}" class="block">
+      <view class="zx-row block-head">
+        <view class="zx-section-title">最近搜索</view>
+        <view class="zx-spacer"></view>
+        <view class="zx-caption" bindtap="clearHistory">清空</view>
+      </view>
+      <view class="chips">
+        <view wx:for="{{history}}" wx:key="*this" class="chip" data-keyword="{{item}}" bindtap="onHistoryTap">{{item}}</view>
       </view>
     </view>
-    <view class="empty" wx:if="{{!hotTopics.length}}">暂无热榜内容</view>
-    </block>
-  </view>
-
-  <view wx:if="{{activeType === 'posts' && !loading && !errorMessage}}">
-    <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-      <view class="feed-avatar">{{item.authorInitial}}</view>
-      <view class="feed-body">
-        <view class="feed-head">
-          <text class="feed-author">{{item.authorAlias}}</text>
-          <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
-          <block wx:if="{{item.sectionName}}">
-            <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
-            <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
-          </block>
-          <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
-          <text class="feed-time">{{item.timeText}}</text>
-        </view>
-        <view class="feed-title">
-          <block wx:for="{{item.displayTitleSegments}}" wx:for-item="segment" wx:key="index">
-            <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-            <text wx:else>{{segment.text}}</text>
-          </block>
-        </view>
-        <view class="feed-summary">
-          <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
-            <text wx:if="{{segment.type === 'tag'}}" class="inline-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-            <text wx:else>{{segment.text}}</text>
-          </block>
-        </view>
-        <view class="feed-actions">
-          <view class="feed-action {{item.liked ? 'active' : ''}}">
-            <view class="feed-action-icon like-icon"></view>
-            <text>{{item.likeCount}}</text>
-          </view>
-          <view class="feed-action">
-            <view class="feed-action-icon comment-icon"></view>
-            <text>{{item.commentCount}}</text>
-          </view>
-          <view class="feed-action share">
-            <view class="feed-action-icon bookmark-icon"></view>
+    <view class="block">
+      <view class="zx-row block-head">
+        <view class="zx-section-title">试试这些话题</view>
+      </view>
+      <view class="chips">
+        <view wx:for="{{suggestedTopics}}" wx:key="*this" class="chip chip--topic" data-topic="{{item}}" bindtap="onTopicTap">#{{item}}</view>
+      </view>
+    </view>
+    <view class="block">
+      <view class="zx-row block-head">
+        <view class="zx-section-title">热榜</view>
+        <view class="zx-spacer"></view>
+        <view class="hot-ai" bindtap="summarizeHotTopics"><view class="zx-i zx-i-ai zx-i--sm"></view>AI 总结</view>
+      </view>
+      <view wx:if="{{hotSummary}}" class="hot-summary">{{hotSummary}}</view>
+      <view wx:if="{{hotErrorMessage}}" class="zx-empty">
+        <view class="zx-empty__message">{{hotErrorMessage}}</view>
+        <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadHotTopics">重试</view>
+      </view>
+      <view wx:else class="zx-list">
+        <view wx:for="{{hotTopics}}" wx:key="id" class="zx-list-item hot-row" data-post-id="{{item.postId}}" bindtap="goHotPost">
+          <view class="hot-rank {{index < 3 ? 'hot-rank--top' : ''}}">{{item.rank}}</view>
+          <view class="zx-list-item__main">
+            <view class="zx-list-item__title zx-ellipsis">{{item.title}}</view>
+            <view class="zx-list-item__subtitle zx-ellipsis">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
           </view>
         </view>
+        <view wx:if="{{!hotTopics.length}}" class="zx-empty"><view class="zx-empty__message">暂无热榜内容</view></view>
       </view>
     </view>
   </view>
 
-  <view wx:if="{{activeType === 'users' && !loading && !errorMessage}}">
-    <view class="user-card" wx:for="{{users}}" wx:key="id" data-id="{{item.id}}" bindtap="goUserDetail">
-      <view class="user-avatar {{item.avatarUrl ? 'has-image' : 'fallback'}}">
-        <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-        <text wx:else>{{item.avatarInitial}}</text>
-      </view>
-      <view class="user-main">
-        <view class="user-name">{{item.nickname || item.alias || item.name || '匿名同学'}}</view>
-        <view class="user-bio">{{item.bio || '这个同学还没有写简介'}}</view>
-      </view>
-      <view class="user-action">主页</view>
+  <block wx:else>
+    <view class="tabs">
+      <view class="tab {{tab === 'posts' ? 'tab--on' : ''}}" data-tab="posts" bindtap="onTabTap">帖子<text class="tab-count">{{posts.length}}</text></view>
+      <view class="tab {{tab === 'users' ? 'tab--on' : ''}}" data-tab="users" bindtap="onTabTap">用户<text class="tab-count">{{users.length}}</text></view>
     </view>
-  </view>
+
+    <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">搜索中…</view></view>
+    <view wx:elif="{{errorMessage}}" class="zx-empty">
+      <view class="zx-empty__title">搜索失败</view>
+      <view class="zx-empty__message">{{errorMessage}}</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="search">重试</view>
+    </view>
+    <!-- Handoff S3: nothing in either tab. -->
+    <view wx:elif="{{!posts.length && !users.length}}" class="nothing">
+      <view class="nothing-mark"><view class="zx-i zx-i-search zx-i--lg"></view></view>
+      <view class="zx-display nothing-title">没有找到「{{submitted}}」\n相关的内容</view>
+      <view class="nothing-text">换个关键词，或看看这些话题</view>
+      <view class="chips chips--center">
+        <view wx:for="{{suggestedTopics}}" wx:key="*this" class="chip chip--topic" data-topic="{{item}}" bindtap="onTopicTap">#{{item}}</view>
+      </view>
+    </view>
+
+    <view wx:elif="{{tab === 'posts'}}" class="results">
+      <!-- Handoff S1: the topic's card with its sort. -->
+      <view wx:if="{{isTopic}}" class="topic zx-hero">
+        <view class="topic-mark">#</view>
+        <view class="topic-main">
+          <view class="zx-display topic-name">{{topicName}}</view>
+          <view class="zx-caption">{{posts.length}} 条帖子</view>
+        </view>
+        <view class="sort">
+          <view class="sort-option {{sort === 'latest' ? 'sort-option--on' : ''}}" data-sort="latest" bindtap="onSortTap">最新</view>
+          <view class="sort-option {{sort === 'hot' ? 'sort-option--on' : ''}}" data-sort="hot" bindtap="onSortTap">最热</view>
+        </view>
+      </view>
+      <view wx:if="{{!posts.length}}" class="zx-empty"><view class="zx-empty__message">没有找到相关帖子</view></view>
+      <view class="sheet" wx:else>
+        <view class="post post--thread" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
+          <view class="post-rail">
+            <view wx:if="{{item.isAnonymous}}" class="zx-avatar zx-avatar--seal post-avatar">{{item.authorInitial || '匿'}}</view>
+            <view wx:else class="zx-avatar post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" catchtap="openAuthorProfile">
+              <image wx:if="{{item.authorAvatarUrl}}" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
+              <text wx:else>{{item.authorInitial}}</text>
+            </view>
+          </view>
+          <view class="post-body">
+            <view class="zx-row post-head">
+              <view class="zx-label zx-ellipsis post-author">{{item.authorAlias || '匿名用户'}}</view>
+              <view class="zx-caption post-time">· {{item.timeText}}</view>
+            </view>
+            <view class="post-badges">
+              <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
+              <view wx:if="{{item.isAnonymous}}" class="zx-badge zx-badge--outline-seal">匿名</view>
+              <view wx:if="{{item.sectionName}}" class="zx-badge zx-badge--channel zx-tone-{{item.sectionTone}}"><view class="zx-dot"></view>{{item.sectionName}}</view>
+            </view>
+            <view class="post-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
+              <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
+                <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+                <text wx:else>{{segment.text}}</text>
+              </block>
+            </view>
+            <view class="post-summary" wx:if="{{item.summarySegments && item.summarySegments.length}}">
+              <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
+                <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
+                <text wx:else>{{segment.text}}</text>
+              </block>
+            </view>
+            <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}">
+              <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
+                <image src="{{img}}" mode="aspectFill" class="post-image"></image>
+              </swiper-item>
+            </swiper>
+            <view class="post-actions">
+              <view class="action {{item.liked || item.isLiked ? 'action--liked' : ''}}"><view class="zx-i zx-i--sm {{item.liked || item.isLiked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view><text>{{item.likeCount || 0}}</text></view>
+              <view class="action"><view class="zx-i zx-i--sm zx-i-comment"></view><text>{{item.commentCount || 0}}</text></view>
+              <view class="action"><view class="zx-i zx-i--sm zx-i-star"></view><text>{{item.favoriteCount || 0}}</text></view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="results">
+      <view wx:if="{{!users.length}}" class="zx-empty">
+        <view class="zx-empty__message">没有找到相关用户\n只显示实名账号，匿名昵称不参与用户搜索</view>
+      </view>
+      <view wx:else class="users">
+        <view wx:for="{{users}}" wx:key="id" class="user" data-id="{{item.id}}" bindtap="goUserDetail">
+          <view class="zx-avatar user-avatar">
+            <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+            <text wx:else>{{item.avatarInitial}}</text>
+          </view>
+          <view class="user-main">
+            <view class="zx-label zx-ellipsis">{{item.nickname}}</view>
+            <view class="zx-caption zx-ellipsis user-meta">{{item.meta}}</view>
+          </view>
+          <view wx:if="{{item.canFollow !== false}}" class="zx-btn zx-btn--small {{item.isFollowing ? 'zx-btn--secondary' : 'zx-btn--primary'}}" data-index="{{index}}" catchtap="toggleFollow">{{item.followLabel}}</view>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

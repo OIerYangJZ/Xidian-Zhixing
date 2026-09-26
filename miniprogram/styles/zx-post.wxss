@@ -1,0 +1,53 @@
+/* A post row (handoff M1): Threads rail or card, badges, inline #tags,
+ * images and actions. Imported by the pages that list posts; not global, as
+ * the class names are plain. */
+
+.post { display: flex; gap: 20rpx; }
+.post--thread { padding: 28rpx 32rpx 24rpx 24rpx; border-bottom: 2rpx solid var(--zx-line); }
+.post--card { margin: 24rpx 24rpx 0; padding: 28rpx; }
+
+.post-rail { position: relative; display: flex; flex-direction: column; align-items: center; flex: none; }
+.post-avatar { width: 80rpx; height: 80rpx; }
+.post-follow {
+  position: absolute;
+  top: 52rpx;
+  right: -8rpx;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 16rpx;
+  background: var(--zx-primary);
+  color: var(--zx-on-primary);
+  border: 4rpx solid var(--zx-surface);
+  font-size: 24rpx;
+  line-height: 30rpx;
+  text-align: center;
+  box-sizing: border-box;
+}
+.post-line { flex: 1; width: 3rpx; margin-top: 12rpx; background: var(--zx-line); border-radius: 2rpx; }
+
+.post-body { flex: 1; min-width: 0; }
+.post-head { gap: 8rpx; }
+.post-author { flex: none; max-width: 60%; }
+.post-time { flex: none; }
+.post-more { color: var(--zx-text-3); }
+.post-badges { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 10rpx; }
+.post-title { margin-top: 14rpx; font-size: 32rpx; line-height: 46rpx; font-weight: 700; color: var(--zx-text); }
+.post-summary { margin-top: 8rpx; font-size: 28rpx; line-height: 44rpx; color: var(--zx-text-2); }
+.post-tag { color: var(--zx-primary); font-weight: 600; }
+.post-images { height: 400rpx; margin-top: 16rpx; border-radius: 24rpx; overflow: hidden; }
+.post-image { width: 100%; height: 100%; }
+
+.post-actions { display: flex; align-items: center; gap: 12rpx; margin-top: 16rpx; margin-left: -12rpx; }
+.action {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 56rpx;
+  padding: 0 16rpx;
+  border-radius: 28rpx;
+  font-size: 26rpx;
+  color: var(--zx-text-2);
+}
+.action--liked { color: var(--zx-primary); }
+.action--saved { background: var(--zx-accent-soft); color: var(--zx-accent-ink); }
+
