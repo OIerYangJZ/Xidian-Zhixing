@@ -52,7 +52,7 @@ _ALIAS_EXPANSIONS = {
     "成绩": ["成绩", "教务", "考试"],
 }
 
-# Guards the cache and every read of the structures inside it: retrieve()
+# Guards the cache and every read of the structures inside it: retrieve_lexical()
 # scores against the same dicts that an incremental update mutates.  Reentrant
 # so ensure_rag_index() can be called from inside a held section.
 _INDEX_LOCK = threading.RLock()
@@ -396,12 +396,6 @@ def retrieve_lexical(db: dict[str, Any], query: str, *, include_posts: bool = Tr
             if len(results) >= limit:
                 break
         return results
-
-
-def retrieve(db: dict[str, Any], query: str, *, include_posts: bool = True, limit: int = 8) -> list[dict[str, Any]]:
-    """Production retrieval uses the configured hybrid service, never the old baseline."""
-    from services._rag_client import search_knowledge
-    return visible_context(db, search_knowledge(query, include_community=include_posts, limit=limit)["items"])
 
 
 def visible_context(db, items):

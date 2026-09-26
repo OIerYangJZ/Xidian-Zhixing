@@ -17,11 +17,9 @@ from helpers import (
     send_rate_limit_error,
 )
 from rag_service import (
-    citations,
     forum_citations,
     index_summary as rag_index_summary,
     rebuild_rag_index,
-    retrieve,
 )
 from services import (
     add_audit_log,
@@ -785,46 +783,6 @@ def handle_rebuild_hot_topics(handler: BaseHTTPRequestHandler, db: dict[str, Any
     add_audit_log(db, str(admin.get("adminId", "")), "rebuild_hot_topics", str(len(rows)))
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": rows})
-
-
-def _search_items(db: dict[str, Any], query_text: str) -> list[dict[str, Any]]:
-    return citations(retrieve(db, query_text, include_posts=True, limit=12))
-
-
-def handle_ai_search(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    user = _require_user(handler, db)
-    if user is None:
-        return
-    body = read_json_body(handler)
-
-    ip_allowed, ip_retry_after = check_ip_rate_limit(handler, "ai_search")
-    if not ip_allowed:
-        send_rate_limit_error(
-            handler,
-            action_text="AI 检索",
-            retry_after_seconds=ip_retry_after,
-        )
-        return
-    allowed, retry_after = consume_rate_limit(
-        db,
-        user_id=str(user.get("id", "")).strip(),
-        action="ai_search",
-        setting_key="aiSearchRateLimit",
-        default_limit=int(_globals.DEFAULT_SETTINGS["aiSearchRateLimit"]),
-    )
-    if not allowed:
-        send_rate_limit_error(
-            handler,
-            action_text="AI 检索",
-            retry_after_seconds=retry_after,
-        )
-        return
-    query_text = _clean(body.get("query") or body.get("content"), 300)
-    if not query_text:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "检索内容不能为空")
-        return
-    rows = _search_items(db, query_text)
-    send_json(handler, HTTPStatus.OK, {"data": {"items": rows, "citations": rows}})
 
 
 def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:

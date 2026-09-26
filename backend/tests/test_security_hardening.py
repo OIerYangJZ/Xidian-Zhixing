@@ -762,7 +762,6 @@ def test_ai_post_selection_does_not_persist_unbounded_history(monkeypatch):
     saved: list[dict] = []
     monkeypatch.setattr(_radio_handler, "_require_user", lambda _h, _db: user)
     monkeypatch.setattr(_radio_handler, "read_json_body", lambda _h: {"selectedText": "测试"})
-    monkeypatch.setattr(_radio_handler, "_search_items", lambda _db, _q: [])
     monkeypatch.setattr(_radio_handler, "save_db", lambda value: saved.append(value))
     handler = _RecordingHandler()
     calls = []

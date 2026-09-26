@@ -240,7 +240,7 @@ def test_ai_retrieval_endpoints_are_rate_limited_and_outside_the_db_lock() -> No
     import server
     from handlers import _radio_handler
 
-    for name in ("handle_ai_search", "handle_ai_post_selection"):
+    for name in ("handle_ai_post_selection",):
         source = inspect.getsource(getattr(_radio_handler, name))
         assert 'check_ip_rate_limit(handler, "ai_search")' in source, name
         assert 'setting_key="aiSearchRateLimit"' in source, name
@@ -251,6 +251,6 @@ def test_ai_retrieval_endpoints_are_rate_limited_and_outside_the_db_lock() -> No
 
     dispatch = inspect.getsource(server.TreeholeHandler._handle_post)
     locked = dispatch.split("with _locked_response(self):", 1)[1]
-    for path in ("/api/ai/search", "/api/ai/post-selection", "/api/ai/chat"):
+    for path in ("/api/ai/post-selection", "/api/ai/chat"):
         assert path not in locked, f"{path} 不应在 DB_LOCK 覆盖的分发块内"
         assert path in dispatch, path

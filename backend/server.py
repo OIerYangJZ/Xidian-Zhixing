@@ -971,15 +971,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             _ai_handler.handle_ai_chat(self, db)
             return
 
-        # Retrieval rebuilds/patches the RAG index, which is pure-Python CPU.
-        # Running it inside the DB_LOCK dispatch block froze every other request
-        # for the duration; keep it out of the lock like /api/ai/chat.
-        if path == "/api/ai/search":
-            with DB_LOCK:
-                db = load_db()
-            _radio_handler.handle_ai_search(self, db)
-            return
-
         if path == "/api/ai/post-selection":
             with DB_LOCK:
                 db = load_db()

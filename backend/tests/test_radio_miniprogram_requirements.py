@@ -264,19 +264,6 @@ def test_calendar_schedules_hides_other_users_private_rows() -> None:
     assert [row["id"] for row in items] == ["mine", "public"]
 
 
-def test_xidian_official_guides_seed_ai_knowledge() -> None:
-    from handlers._radio_handler import handle_ai_search
-
-    db = make_db()
-    handler = FakeHandler(body={"query": "校外访问 零信任 自助打印 校园网"})
-    handle_ai_search(handler, db)
-
-    rows = handler.payload()["data"]["items"]
-    assert handler.status_code == 200
-    assert any("信息网络技术中心" in row["summary"] or "校外访问" in row["summary"] for row in rows)
-    assert any(row.get("sourceUrl") for row in rows if row["targetType"] == "knowledge")
-
-
 def test_xidian_auth_session_redirects_to_registered_official_callback(monkeypatch) -> None:
     import _globals
     import handlers._auth_handler as auth_handler
