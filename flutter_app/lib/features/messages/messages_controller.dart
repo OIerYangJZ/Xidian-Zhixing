@@ -149,24 +149,13 @@ class MessagesController extends StateNotifier<MessagesState> {
     state = state.copyWith(conversations: rows, clearError: true);
   }
 
+  /// Removes the row only once the server has deleted the conversation;
+  /// a failure is the caller's to show.
   Future<void> deleteConversation(String conversationId) async {
-    try {
-      await _ref
-          .read(messageRepositoryProvider)
-          .deleteConversation(conversationId);
-    } catch (_) {}
+    await _ref
+        .read(messageRepositoryProvider)
+        .deleteConversation(conversationId);
     removeConversation(conversationId);
-  }
-
-  Future<void> recallMessage({
-    required String conversationId,
-    required String messageId,
-  }) async {
-    try {
-      await _ref
-          .read(messageRepositoryProvider)
-          .recallMessage(conversationId: conversationId, messageId: messageId);
-    } catch (_) {}
   }
 
   void removeMessage(String conversationId, String messageId) {
@@ -196,6 +185,7 @@ class MessagesController extends StateNotifier<MessagesState> {
 }
 
 final messagesControllerProvider =
-    StateNotifierProvider<MessagesController, MessagesState>(
-      (Ref ref) => MessagesController(ref),
-    );
+    StateNotifierProvider<MessagesController, MessagesState>((Ref ref) {
+      ref.watch(accountEpochProvider);
+      return MessagesController(ref);
+    });

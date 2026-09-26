@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
 import '../../models/public_user_profile.dart';
+import '../../models/section_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../core/l10n/ui_text.dart';
 
@@ -10,8 +11,8 @@ enum SearchResultTab { posts, users }
 
 class SearchState {
   const SearchState({
-    this.channels = const <String>['全部'],
-    this.selectedChannel = '全部',
+    this.sections = const <SectionItem>[],
+    this.selectedSectionKey = '',
     this.keyword = '',
     this.sort = PostSort.latest,
     this.results = const <PostItem>[],
@@ -22,8 +23,18 @@ class SearchState {
     this.error,
   });
 
-  final List<String> channels;
-  final String selectedChannel;
+  final List<SectionItem> sections;
+
+  /// A section's key; empty for 全部.
+  final String selectedSectionKey;
+
+  SectionItem? get selectedSection {
+    for (final SectionItem section in sections) {
+      if (section.key == selectedSectionKey) return section;
+    }
+    return null;
+  }
+
   final String keyword;
   final PostSort sort;
   final List<PostItem> results;
@@ -34,8 +45,8 @@ class SearchState {
   final String? error;
 
   SearchState copyWith({
-    List<String>? channels,
-    String? selectedChannel,
+    List<SectionItem>? sections,
+    String? selectedSectionKey,
     String? keyword,
     PostSort? sort,
     List<PostItem>? results,
@@ -47,8 +58,8 @@ class SearchState {
     bool clearError = false,
   }) {
     return SearchState(
-      channels: channels ?? this.channels,
-      selectedChannel: selectedChannel ?? this.selectedChannel,
+      sections: sections ?? this.sections,
+      selectedSectionKey: selectedSectionKey ?? this.selectedSectionKey,
       keyword: keyword ?? this.keyword,
       sort: sort ?? this.sort,
       results: results ?? this.results,
@@ -71,18 +82,18 @@ class SearchController extends StateNotifier<SearchState> {
     state = state.copyWith(loading: true, searching: false, clearError: true);
     final int requestId = ++_requestSequence;
     try {
-      final List<String> channels = await _ref
+      final List<SectionItem> sections = await _ref
           .read(postRepositoryProvider)
-          .fetchChannels();
+          .fetchSections();
       if (requestId != _requestSequence) {
         return;
       }
-      final List<String> deduplicated = <String>['全部', ...channels.toSet()];
       state = state.copyWith(
-        channels: deduplicated,
-        selectedChannel: deduplicated.contains(state.selectedChannel)
-            ? state.selectedChannel
-            : deduplicated.first,
+        sections: sections,
+        selectedSectionKey:
+            sections.any((SectionItem s) => s.key == state.selectedSectionKey)
+            ? state.selectedSectionKey
+            : '',
         loading: false,
         clearError: true,
       );
@@ -95,8 +106,8 @@ class SearchController extends StateNotifier<SearchState> {
         loading: false,
         searching: false,
         error: uiTextGlobal(
-          zh: '频道加载失败：$error',
-          en: 'Could not load channels: $error',
+          zh: '分区加载失败：$error',
+          en: 'Could not load sections: $error',
         ),
       );
     }
@@ -106,8 +117,9 @@ class SearchController extends StateNotifier<SearchState> {
     state = state.copyWith(keyword: keyword);
   }
 
-  Future<void> updateChannel(String value) async {
-    state = state.copyWith(selectedChannel: value);
+  /// [key] is a section's key, or empty for 全部.
+  Future<void> updateSection(String key) async {
+    state = state.copyWith(selectedSectionKey: key);
     await search();
   }
 
@@ -130,9 +142,7 @@ class SearchController extends StateNotifier<SearchState> {
         _ref
             .read(postRepositoryProvider)
             .fetchPosts(
-              channel: state.selectedChannel == '全部'
-                  ? null
-                  : state.selectedChannel,
+              section: state.selectedSection,
               keyword: normalizedKeyword.isEmpty ? null : normalizedKeyword,
               sort: state.sort,
             ),
@@ -164,17 +174,12 @@ class SearchController extends StateNotifier<SearchState> {
   }
 
   Future<void> toggleLike(PostItem post) async {
-    final bool liked = !post.isLiked;
-    if (liked) {
-      await _ref.read(postRepositoryProvider).likePost(post.id);
-    } else {
-      await _ref.read(postRepositoryProvider).unlikePost(post.id);
-    }
+    final PostRepository posts = _ref.read(postRepositoryProvider);
+    final LikeActionResult result = post.isLiked
+        ? await posts.unlikePost(post.id)
+        : await posts.likePost(post.id);
     replaceResult(
-      post.copyWith(
-        isLiked: liked,
-        likeCount: (post.likeCount + (liked ? 1 : -1)).clamp(0, 1 << 31),
-      ),
+      post.copyWith(isLiked: result.liked, likeCount: result.likeCount),
     );
   }
 
@@ -185,9 +190,7 @@ class SearchController extends StateNotifier<SearchState> {
     replaceResult(
       post.copyWith(
         isFavorited: result.favorited,
-        favoriteCount:
-            result.favoriteCount ??
-            (post.favoriteCount + (result.favorited ? 1 : -1)).clamp(0, 1 << 31),
+        favoriteCount: result.favoriteCount,
       ),
     );
   }
@@ -230,6 +233,7 @@ class SearchController extends StateNotifier<SearchState> {
 }
 
 final searchControllerProvider =
-    StateNotifierProvider.autoDispose<SearchController, SearchState>(
-      (Ref ref) => SearchController(ref),
-    );
+    StateNotifierProvider.autoDispose<SearchController, SearchState>((Ref ref) {
+      ref.watch(accountEpochProvider);
+      return SearchController(ref);
+    });

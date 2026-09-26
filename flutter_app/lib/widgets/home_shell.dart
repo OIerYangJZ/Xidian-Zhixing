@@ -43,11 +43,17 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _restorePostFromUrlIfNeeded();
-      // Conversations feed the 会话 badge, so load them with the shell rather
-      // than on the first visit to messages.
+      // Conversations and notifications feed the 会话 / 通知 badges, so load
+      // them with the shell rather than on the first visit to either page.
       final MessagesState messages = ref.read(messagesControllerProvider);
       if (messages.loading && messages.conversations.isEmpty) {
         ref.read(messagesControllerProvider.notifier).loadInitial();
+      }
+      final NotificationsState notifications = ref.read(
+        notificationsControllerProvider,
+      );
+      if (notifications.loading && notifications.items.isEmpty) {
+        ref.read(notificationsControllerProvider.notifier).loadInitial();
       }
     });
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show FlutterView;
 
 import 'package:flutter/material.dart';
@@ -44,6 +45,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
   List<CommentItem> _comments = [];
   CommentSort _commentSort = CommentSort.hot;
   bool _isLoading = true;
+  bool _viewRecorded = false;
   String? _error;
   bool _isLiking = false;
   bool _isFavoriting = false;
@@ -82,7 +84,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     WidgetsBinding.instance.addObserver(this);
     _initialCommentId = (widget.initialCommentId ?? '').trim();
     _ensureCurrentUserLoaded();
-    _loadData(recordView: true);
+    _loadData();
   }
 
   @override
@@ -134,7 +136,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
     }
   }
 
-  Future<void> _loadData({bool recordView = false}) async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
@@ -142,9 +144,6 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      if (recordView) {
-        await postRepo.incrementView(widget.postId);
-      }
       final post = await postRepo.fetchPostDetail(widget.postId);
       final comments = await postRepo.fetchComments(
         widget.postId,
@@ -160,6 +159,13 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
           _isLoading = false;
         });
         _scrollToInitialCommentIfNeeded();
+        // Counted once the post is on screen, after the first load that
+        // succeeds: the counter is rate limited and refuses unapproved
+        // posts, neither of which should keep the post from loading.
+        if (!_viewRecorded) {
+          _viewRecorded = true;
+          unawaited(_recordView(postRepo));
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -168,6 +174,17 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _recordView(PostRepository postRepo) async {
+    try {
+      final int viewCount = await postRepo.incrementView(widget.postId);
+      if (mounted && _post != null) {
+        setState(() => _post = _post!.copyWith(viewCount: viewCount));
+      }
+    } catch (error) {
+      debugPrint('view count not recorded: $error');
     }
   }
 
@@ -261,10 +278,14 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      if (wasLiked) {
-        await postRepo.unlikePost(widget.postId);
-      } else {
-        await postRepo.likePost(widget.postId);
+      final LikeActionResult result = wasLiked
+          ? await postRepo.unlikePost(widget.postId)
+          : await postRepo.likePost(widget.postId);
+      if (mounted) {
+        setState(() {
+          _post = _post!.copyWith(likeCount: result.likeCount);
+          _postIsLiked = result.liked;
+        });
       }
     } catch (e) {
       if (mounted) {
@@ -303,10 +324,16 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
 
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      if (wasFavorited) {
-        await postRepo.unfavoritePost(widget.postId);
-      } else {
-        await postRepo.favoritePost(widget.postId);
+      final FavoriteActionResult result = wasFavorited
+          ? await postRepo.unfavoritePost(widget.postId)
+          : await postRepo.favoritePost(widget.postId);
+      if (mounted) {
+        setState(() {
+          _post = _post!.copyWith(
+            isFavorited: result.favorited,
+            favoriteCount: result.favoriteCount,
+          );
+        });
       }
     } catch (e) {
       // 回滚
@@ -482,7 +509,7 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('评论已删除')));
-      await _loadData(recordView: false);
+      await _loadData();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -845,10 +872,11 @@ class _PostDetailPageState extends ConsumerState<PostDetailPage>
                   runSpacing: 6,
                   children: [
                     if (post.isPinned) const ZxBadge.pinned('置顶'),
-                    ZxBadge.channel(
-                      post.channel,
-                      color: t.channelFor(post.channel),
-                    ),
+                    if (post.sectionName.isNotEmpty)
+                      ZxBadge.channel(
+                        post.sectionName,
+                        color: t.channelFor(post.sectionName),
+                      ),
                   ],
                 ),
               ),
@@ -1313,10 +1341,7 @@ class _CommentTileState extends State<_CommentTile> {
     }
   }
 
-  bool get _canDelete {
-    final String userId = widget.currentUserId.trim();
-    return userId.isNotEmpty && userId == widget.comment.authorUserId;
-  }
+  bool get _canDelete => widget.comment.isOwnComment;
 
   Future<void> _showActionMenu(LongPressStartDetails details) async {
     HapticFeedback.mediumImpact();

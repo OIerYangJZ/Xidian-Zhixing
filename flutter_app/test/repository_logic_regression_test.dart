@@ -11,6 +11,7 @@ import 'package:xdu_treehole_web/repositories/auth_repository.dart';
 import 'package:xdu_treehole_web/repositories/message_repository.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/repositories/user_repository.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 
 void main() {
   test('in-app APK update is available only on Android', () {
@@ -70,7 +71,12 @@ void main() {
     final CreatePostInput input = CreatePostInput(
       title: '测试',
       content: '正文',
-      channel: '综合',
+      section: const SectionItem(
+        id: 'section-general',
+        sectionType: 'general',
+        sectionId: 'general',
+        sectionName: '综合',
+      ),
       tags: const <String>[],
       allowComment: true,
       allowDm: false,

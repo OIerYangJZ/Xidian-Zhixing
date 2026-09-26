@@ -31,9 +31,9 @@ class FavoritesPage extends StatefulWidget {
 class FavoritesPageState extends State<FavoritesPage> {
   final TextEditingController _keywordController = TextEditingController();
 
-  String _selectedChannel = '全部';
+  /// A section name; 全部 shows every favorite.
+  String _selectedSection = '全部';
   FavoriteSortMode _sortMode = FavoriteSortMode.latest;
-  List<String> _channels = const <String>['全部'];
   List<PostItem> _favorites = const <PostItem>[];
   Set<String> _updatingPostIds = <String>{};
   bool _loading = true;
@@ -107,17 +107,17 @@ class FavoritesPageState extends State<FavoritesPage> {
                             scrollDirection: Axis.horizontal,
                             child: Row(
                               children: <Widget>[
-                                for (final String channel in _channels)
+                                for (final String section in _sections)
                                   Padding(
                                     padding: const EdgeInsets.only(right: 8),
                                     child: ChoiceChip(
                                       showCheckmark: false,
                                       label: Text(
-                                        localizedChannel(locale, channel),
+                                        localizedChannel(locale, section),
                                       ),
-                                      selected: _selectedChannel == channel,
+                                      selected: _selectedSection == section,
                                       onSelected: (_) => setState(
-                                        () => _selectedChannel = channel,
+                                        () => _selectedSection = section,
                                       ),
                                     ),
                                   ),
@@ -239,20 +239,29 @@ class FavoritesPageState extends State<FavoritesPage> {
     );
   }
 
+  /// 全部, then each section the favorites are filed under.
+  List<String> get _sections => <String>[
+    '全部',
+    ..._favorites
+        .map((PostItem post) => post.sectionName)
+        .where((String name) => name.isNotEmpty)
+        .toSet(),
+  ];
+
   List<PostItem> _buildFilteredFavorites() {
     final String keyword = _keywordController.text.trim().toLowerCase();
 
     final List<PostItem> rows = _favorites.where((PostItem post) {
-      final bool matchChannel =
-          _selectedChannel == '全部' || post.channel == _selectedChannel;
-      if (!matchChannel) {
+      final bool matchSection =
+          _selectedSection == '全部' || post.sectionName == _selectedSection;
+      if (!matchSection) {
         return false;
       }
       if (keyword.isEmpty) {
         return true;
       }
       final String text =
-          '${post.title} ${post.content} ${post.channel} ${post.tags.join(' ')}'
+          '${post.title} ${post.content} ${post.sectionName} ${post.tags.join(' ')}'
               .toLowerCase();
       return text.contains(keyword);
     }).toList();
@@ -338,14 +347,11 @@ class FavoritesPageState extends State<FavoritesPage> {
 
       final PostItem restored = post.copyWith(
         isFavorited: true,
-        favoriteCount: result.favoriteCount ?? post.favoriteCount,
+        favoriteCount: result.favoriteCount,
       );
 
       setState(() {
         _favorites = <PostItem>[restored, ..._favorites];
-        if (!_channels.contains(restored.channel)) {
-          _channels = <String>[..._channels, restored.channel];
-        }
       });
     } catch (_) {
       // ignore undo failure
@@ -359,7 +365,6 @@ class FavoritesPageState extends State<FavoritesPage> {
     });
 
     try {
-      final List<String> channels = await AppRepositories.posts.fetchChannels();
       final List<PostItem> posts = await AppRepositories.posts
           .fetchFavoritePosts();
 
@@ -368,8 +373,8 @@ class FavoritesPageState extends State<FavoritesPage> {
       }
 
       setState(() {
-        _channels = <String>['全部', ...channels.toSet()];
         _favorites = posts;
+        if (!_sections.contains(_selectedSection)) _selectedSection = '全部';
       });
     } catch (error) {
       if (!mounted) {

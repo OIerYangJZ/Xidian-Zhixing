@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/state/mobile_providers.dart';
 import '../../features/widgets/shimmer_loading.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/design_system/design_system.dart';
 import 'package:xdu_treehole_web/features/feed/feed_controller.dart'
@@ -166,11 +167,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     ref.read(feedControllerProvider.notifier).replacePost(optimistic);
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      if (wasLiked) {
-        await postRepo.unlikePost(post.id);
-      } else {
-        await postRepo.likePost(post.id);
-      }
+      final LikeActionResult result = wasLiked
+          ? await postRepo.unlikePost(post.id)
+          : await postRepo.likePost(post.id);
+      // The optimistic count settles on the server's.
+      ref
+          .read(feedControllerProvider.notifier)
+          .replacePost(
+            post.copyWith(isLiked: result.liked, likeCount: result.likeCount),
+          );
     } catch (_) {
       ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) {
@@ -193,31 +198,42 @@ class _HomePageState extends ConsumerState<HomePage> {
         );
     try {
       final postRepo = ref.read(postRepositoryProvider);
-      if (was) {
-        await postRepo.unfavoritePost(post.id);
-      } else {
-        await postRepo.favoritePost(post.id);
-      }
+      final FavoriteActionResult result = was
+          ? await postRepo.unfavoritePost(post.id)
+          : await postRepo.favoritePost(post.id);
+      ref
+          .read(feedControllerProvider.notifier)
+          .replacePost(
+            post.copyWith(
+              isFavorited: result.favorited,
+              favoriteCount: result.favoriteCount,
+            ),
+          );
     } catch (_) {
       ref.read(feedControllerProvider.notifier).replacePost(post);
       if (mounted) zxShowToast(context, '操作失败，请稍后重试');
     }
   }
 
-  Future<void> _pickChannel(FeedState feedState) async {
-    final String? channel = await zxShowActionSheet<String>(
+  Future<void> _pickSection(FeedState feedState) async {
+    String mark(String label, bool selected) => selected ? '$label  ✓' : label;
+    final String? key = await zxShowActionSheet<String>(
       context,
       actions: <ZxSheetAction<String>>[
-        for (final String c in feedState.channels)
+        ZxSheetAction<String>(
+          value: '',
+          label: mark('全部', feedState.selectedSectionKey.isEmpty),
+        ),
+        for (final SectionItem s in feedState.sections)
           ZxSheetAction<String>(
-            value: c,
-            label: c == feedState.selectedChannel ? '$c  ✓' : c,
+            value: s.key,
+            label: mark(s.sectionName, s.key == feedState.selectedSectionKey),
           ),
       ],
       cancelLabel: '取消',
     );
-    if (channel != null) {
-      ref.read(feedControllerProvider.notifier).switchChannel(channel);
+    if (key != null) {
+      ref.read(feedControllerProvider.notifier).switchSection(key);
     }
   }
 
@@ -285,7 +301,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: InkWell(
                           key: const Key('mobile-home-channel'),
                           customBorder: const StadiumBorder(),
-                          onTap: () => _pickChannel(feedState),
+                          onTap: () => _pickSection(feedState),
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
                             child: Row(
@@ -294,7 +310,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 const ZxAvatar.anonymous(name: '印', size: 20),
                                 const SizedBox(width: 6),
                                 Text(
-                                  feedState.selectedChannel,
+                                  feedState.selectedSection?.sectionName ??
+                                      '全部',
                                   style: ZxType.label.copyWith(color: t.text),
                                 ),
                                 Icon(
@@ -371,41 +388,25 @@ class _HomePageState extends ConsumerState<HomePage> {
                     ),
                   )
                 else
-                  SliverToBoxAdapter(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: t.surface,
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(ZxRadius.sheet),
-                        ),
-                        border: Border(top: BorderSide(color: t.line)),
+                  // Built lazily as cards scroll in; pages keep adding more.
+                  DecoratedSliver(
+                    decoration: BoxDecoration(
+                      color: t.surface,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(ZxRadius.sheet),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(0, 6, 0, 100),
-                        child: Column(
-                          children: [
-                            for (int i = 0; i < visiblePosts.length; i++) ...[
-                              if (i > 0) Divider(height: 1, color: t.line),
-                              PostCard(
-                                key: ValueKey(visiblePosts[i].id),
-                                post: visiblePosts[i],
-                                onTap: () =>
-                                    context.push('/post/${visiblePosts[i].id}'),
-                                onLike: () => _handleLike(visiblePosts[i]),
-                                onFavorite: () =>
-                                    _handleFavorite(visiblePosts[i]),
-                                onAuthorTap:
-                                    visiblePosts[i].authorUserId.isEmpty ||
-                                        visiblePosts[i].isAnonymous
-                                    ? null
-                                    : () => context.push(
-                                        '/user/${visiblePosts[i].authorUserId}',
-                                      ),
-                              ),
-                            ],
-                            if (feedState.hasMore)
-                              Padding(
-                                padding: const EdgeInsets.all(16),
+                      border: Border(top: BorderSide(color: t.line)),
+                    ),
+                    sliver: SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(0, 6, 0, 100),
+                      sliver: SliverList.builder(
+                        itemCount:
+                            visiblePosts.length + (feedState.hasMore ? 1 : 0),
+                        itemBuilder: (BuildContext context, int i) {
+                          if (i == visiblePosts.length) {
+                            return Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Center(
                                 child: SizedBox(
                                   width: 24,
                                   height: 24,
@@ -415,8 +416,31 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   ),
                                 ),
                               ),
-                          ],
-                        ),
+                            );
+                          }
+                          final PostItem post = visiblePosts[i];
+                          final Widget card = PostCard(
+                            key: ValueKey(post.id),
+                            post: post,
+                            onTap: () => context.push('/post/${post.id}'),
+                            onLike: () => _handleLike(post),
+                            onFavorite: () => _handleFavorite(post),
+                            onAuthorTap:
+                                post.authorUserId.isEmpty || post.isAnonymous
+                                ? null
+                                : () => context.push(
+                                    '/user/${post.authorUserId}',
+                                  ),
+                          );
+                          if (i == 0) return card;
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Divider(height: 1, color: t.line),
+                              card,
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),

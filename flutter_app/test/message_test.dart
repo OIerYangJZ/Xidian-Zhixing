@@ -73,9 +73,9 @@ void main() {
         if ((blockPattern.hasMatch(path) || unblockPattern.hasMatch(path)) &&
             method == 'POST') {
           return http.Response(
+            // What _message_handler.handle_block_peer / unblock send.
             jsonEncode(<String, dynamic>{
-              'message': '操作成功',
-              'blockedByMe': path.contains('/block'),
+              'data': <String, dynamic>{'blocked': !path.endsWith('/unblock')},
             }),
             200,
             headers: {'content-type': 'application/json; charset=utf-8'},
@@ -151,7 +151,7 @@ void main() {
           block: true,
         );
 
-        expect(result, isA<ConversationItem>());
+        expect(result, isTrue);
       });
 
       test('取消拉黑成功', () async {
@@ -160,7 +160,7 @@ void main() {
           block: false,
         );
 
-        expect(result, isA<ConversationItem>());
+        expect(result, isFalse);
       });
     });
 
@@ -234,6 +234,20 @@ void main() {
     });
 
     group('DirectMessageItem', () {
+      test('fromJson 读取撤回占位，撤回的消息不能再撤回', () {
+        final item = DirectMessageItem.fromJson(<String, dynamic>{
+          'id': 'm1',
+          'content': '',
+          'recalled': true,
+          'deliveryStatus': 'recalled',
+          'fromMe': true,
+          'canRecall': false,
+          'createdAt': DateTime.now().toUtc().toIso8601String(),
+        });
+        expect(item.recalled, isTrue);
+        expect(item.canRecall, isFalse);
+      });
+
       test('fromJson 正确解析', () {
         final json = <String, dynamic>{
           'id': 'msg123',

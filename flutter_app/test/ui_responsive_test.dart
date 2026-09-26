@@ -27,6 +27,7 @@ import 'package:xdu_treehole_web/models/post_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/widgets/home_shell.dart';
 import 'package:xdu_treehole_web/widgets/post_card.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 
 void main() {
   group('color theme catalog', () {
@@ -157,7 +158,9 @@ void main() {
         id: 'long-content',
         title: '这是一个用于检查手机浏览器长标题自动换行且不会撑破页面的帖子标题',
         content: '正文同样需要在很窄的屏幕里保持可读，不应触发横向滚动。',
-        channel: '一个名称非常长的校园分区',
+        sectionType: 'club',
+        sectionId: 'club-long',
+        sectionName: '一个名称非常长的校园分区',
         tags: const <String>['非常长的标签名称一', '非常长的标签名称二'],
         authorAlias: '一个非常非常长的校园社区用户名',
         createdAt: DateTime(2026, 7, 23),
@@ -350,11 +353,15 @@ void main() {
 
       // Every missing field is reported at once, with a summary on top.
       expect(find.byKey(const Key('create-post-error-summary')), findsOneWidget);
-      expect(find.text('还有 3 项需要填写'), findsOneWidget);
+      expect(find.text('还有 2 项需要填写'), findsOneWidget);
       expect(find.text('请填写标题'), findsOneWidget);
       expect(find.text('请输入正文'), findsOneWidget);
-      // No channel is picked for the user.
-      expect(find.text('请选择分区'), findsOneWidget);
+      // 分区 starts on 综合, the server's default section.
+      expect(find.text('请选择分区'), findsNothing);
+      final ChoiceChip general = tester.widget<ChoiceChip>(
+        find.byKey(const Key('create-post-section-general')),
+      );
+      expect(general.selected, isTrue);
       expect(tester.takeException(), isNull);
     });
 
@@ -446,13 +453,20 @@ ApiClient _emptyApiClient() {
 class _TestCreatePostController extends CreatePostController {
   _TestCreatePostController(Ref ref, {bool submitting = false}) : super(ref) {
     state = CreatePostState(
-      channels: const <String>['综合'],
-      loadingChannels: false,
+      sections: const <SectionItem>[
+        SectionItem(
+          id: 'section-general',
+          sectionType: 'general',
+          sectionId: 'general',
+          sectionName: '综合',
+        ),
+      ],
+      loadingSections: false,
       submitting: submitting,
       progressText: submitting ? '发布中...' : null,
     );
   }
 
   @override
-  Future<void> loadChannels() async {}
+  Future<void> loadSections() async {}
 }

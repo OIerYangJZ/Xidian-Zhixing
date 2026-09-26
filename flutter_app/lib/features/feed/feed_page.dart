@@ -5,6 +5,7 @@ import '../../core/navigation/post_detail_nav.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../design_system/design_system.dart';
 import '../../models/post_item.dart';
+import '../../models/section_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../post/create_post_page.dart';
@@ -68,8 +69,8 @@ class _FeedPageState extends ConsumerState<FeedPage> {
       onPostOpen: _openPost,
       onLike: _toggleLike,
       onFavorite: _toggleFavorite,
-      onChannelSelected: (String channel) =>
-          ref.read(feedControllerProvider.notifier).switchChannel(channel),
+      onSectionSelected: (String key) =>
+          ref.read(feedControllerProvider.notifier).switchSection(key),
       onCreate: _openCreatePost,
     );
   }
@@ -150,13 +151,23 @@ class _FeedFilterSheet extends ConsumerWidget {
           },
         ),
         const SizedBox(height: 8),
-        _FilterSectionTitle(uiText(context, zh: '分区', en: 'Channel')),
-        for (final String channel in state.channels)
+        _FilterSectionTitle(uiText(context, zh: '分区', en: 'Section')),
+        _FilterItem(
+          label: uiText(context, zh: '全部', en: 'All'),
+          selected: state.selectedSectionKey.isEmpty,
+          onTap: () {
+            ref.read(feedControllerProvider.notifier).switchSection('');
+            Navigator.of(context).pop();
+          },
+        ),
+        for (final SectionItem section in state.sections)
           _FilterItem(
-            label: localizedChannel(Localizations.localeOf(context), channel),
-            selected: state.selectedChannel == channel,
+            label: section.sectionName,
+            selected: state.selectedSectionKey == section.key,
             onTap: () {
-              ref.read(feedControllerProvider.notifier).switchChannel(channel);
+              ref
+                  .read(feedControllerProvider.notifier)
+                  .switchSection(section.key);
               Navigator.of(context).pop();
             },
           ),

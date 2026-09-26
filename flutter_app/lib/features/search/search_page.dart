@@ -8,6 +8,7 @@ import '../../core/widgets/async_page_state.dart';
 import '../../design_system/design_system.dart';
 import '../../models/post_item.dart';
 import '../../models/public_user_profile.dart';
+import '../../models/section_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/post_card.dart';
 import '../profile/public_user_profile_page.dart';
@@ -237,16 +238,21 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         PopupMenuButton<String>(
-          tooltip: uiText(context, zh: '分区', en: 'Channel'),
+          tooltip: uiText(context, zh: '分区', en: 'Section'),
           enabled: !state.searching,
-          onSelected: (String value) =>
-              ref.read(searchControllerProvider.notifier).updateChannel(value),
+          onSelected: (String key) =>
+              ref.read(searchControllerProvider.notifier).updateSection(key),
           itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            for (final String channel in state.channels)
+            CheckedPopupMenuItem<String>(
+              value: '',
+              checked: state.selectedSectionKey.isEmpty,
+              child: Text(localizedChannel(locale, '全部')),
+            ),
+            for (final SectionItem section in state.sections)
               CheckedPopupMenuItem<String>(
-                value: channel,
-                checked: channel == state.selectedChannel,
-                child: Text(localizedChannel(locale, channel)),
+                value: section.key,
+                checked: section.key == state.selectedSectionKey,
+                child: Text(section.sectionName),
               ),
           ],
           child: Padding(
@@ -254,7 +260,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
             child: Row(
               children: <Widget>[
                 Text(
-                  localizedChannel(locale, state.selectedChannel),
+                  state.selectedSection?.sectionName ??
+                      localizedChannel(locale, '全部'),
                   style: ZxType.caption.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const Icon(Icons.expand_more_rounded, size: 18),

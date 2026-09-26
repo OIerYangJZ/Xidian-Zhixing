@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../auth/auth_store.dart';
 
 import '../../repositories/app_repositories.dart';
 import '../../repositories/admin_repository.dart';
@@ -10,6 +13,17 @@ import '../../repositories/message_repository.dart';
 import '../../repositories/notification_repository.dart';
 import '../../repositories/post_repository.dart';
 import '../../repositories/user_repository.dart';
+
+/// Changes whenever the signed-in account (or its ban) changes. Providers
+/// holding one account's data watch this, so the next account never sees
+/// the previous one's feed, chats or notifications.
+final accountEpochProvider = Provider<int>((Ref ref) {
+  final ValueNotifier<int> epoch = AuthStore.instance.accountEpoch;
+  void onChange() => ref.invalidateSelf();
+  epoch.addListener(onChange);
+  ref.onDispose(() => epoch.removeListener(onChange));
+  return epoch.value;
+});
 
 final postRepositoryProvider = Provider<PostRepository>((Ref ref) {
   return AppRepositories.posts;

@@ -10,7 +10,7 @@ import '../repositories/app_repositories.dart';
 
 /// A post in a list (handoff: Components · POST CARD, discussion layout).
 ///
-/// Every marker the post carries is shown: 置顶, 匿名, channel, 进行中 /
+/// Every marker the post carries is shown: 置顶, 匿名, 分区, 进行中 /
 /// 已解决 / 已结束, 仅自己可见, and on one's own posts 待审核 / 未通过审核.
 /// The 「⋯」 menu offers 复制链接, 复制内容, 举报, and 删除 on one's own posts
 /// when [onDeleted] is given.
@@ -85,7 +85,7 @@ class PostCard extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                ' · ${_relativeTime(context, post.createdAt)}',
+                                ' · ${relativeTime(context, post.createdAt)}',
                                 style: ZxType.caption.copyWith(color: t.text3),
                               ),
                             ],
@@ -224,7 +224,9 @@ class PostCard extends StatelessWidget {
       case 'text':
         await Clipboard.setData(
           ClipboardData(
-            text: '[${post.channel}] ${post.title}\n${post.content}',
+            text:
+                '${post.sectionName.isEmpty ? '' : '[${post.sectionName}] '}'
+                '${post.title}\n${post.content}',
           ),
         );
         if (context.mounted) {
@@ -313,12 +315,15 @@ List<TextSpan> highlightSpans(String text, String? query, TextStyle match) {
     if (at > start) {
       spans.add(TextSpan(text: text.substring(start, at)));
     }
-    spans.add(TextSpan(text: text.substring(at, at + needle.length), style: match));
+    spans.add(
+      TextSpan(text: text.substring(at, at + needle.length), style: match),
+    );
     start = at + needle.length;
   }
 }
 
-String _relativeTime(BuildContext context, DateTime time) {
+/// 刚刚 / N 分钟前 / N 小时前 / N 天前, then MM-DD.
+String relativeTime(BuildContext context, DateTime time) {
   final Duration diff = DateTime.now().difference(time);
   if (diff.inMinutes < 1) {
     return uiText(context, zh: '刚刚', en: 'Just now');
@@ -344,7 +349,7 @@ String _relativeTime(BuildContext context, DateTime time) {
 }
 
 /// A post's badge row, shared by cards and post detail. Order follows the
-/// handoff: 置顶, 匿名, channel, status, then
+/// handoff: 置顶, 匿名, 分区, status, then
 /// visibility and review state.
 class PostMarkers extends StatelessWidget {
   const PostMarkers({super.key, required this.post});
@@ -355,18 +360,15 @@ class PostMarkers extends StatelessWidget {
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
     final Locale locale = Localizations.localeOf(context);
-    final String channel = post.channel.trim();
+    final String section = post.sectionName.trim();
     final List<Widget> badges = <Widget>[
       if (post.isPinned)
         ZxBadge.pinned(uiText(context, zh: '置顶', en: 'Pinned')),
       if (post.isAnonymous)
         ZxBadge.anonymous(uiText(context, zh: '匿名', en: 'Anonymous')),
-      ZxBadge.channel(
-        channel.isEmpty
-            ? uiText(context, zh: '未分类', en: 'Uncategorized')
-            : localizedChannel(locale, channel),
-        color: t.channelFor(channel),
-      ),
+      // Posts from before sections have none.
+      if (section.isNotEmpty)
+        ZxBadge.channel(section, color: t.channelFor(section)),
       switch (post.status) {
         PostStatus.ongoing => ZxBadge.inProgress(post.status.labelFor(locale)),
         PostStatus.resolved => ZxBadge.resolved(post.status.labelFor(locale)),
@@ -408,6 +410,12 @@ class _Images extends StatelessWidget {
           alignment: Alignment.center,
           child: Icon(Icons.broken_image_outlined, color: t.text3),
         );
+        // Decode at the tile's pixel size: uploads are full photos, and
+        // decoding each at full resolution for a 130 px tile is what stalls
+        // a list of cards. BoxFit.cover crops, so the short side must fill.
+        final double dpr = MediaQuery.devicePixelRatioOf(context);
+        final bool wideImage = width >= height;
+        final int decodeSide = ((wideImage ? width : height) * dpr).ceil();
         return Row(
           children: <Widget>[
             for (int i = 0; i < shown; i++) ...<Widget>[
@@ -421,6 +429,8 @@ class _Images extends StatelessWidget {
                       width: width,
                       height: height,
                       fit: BoxFit.cover,
+                      cacheWidth: wideImage ? decodeSide : null,
+                      cacheHeight: wideImage ? null : decodeSide,
                       errorBuilder: (_, _, _) => placeholder(),
                     ),
                     if (more > 0 && i == shown - 1)

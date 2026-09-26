@@ -34,6 +34,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   int _nudges = 0;
 
   @override
+  void initState() {
+    super.initState();
+    // Sent here because the server answered 401 (expired or revoked).
+    if (AuthStore.instance.takeSessionExpiredNotice()) {
+      _errorMessage = '登录已失效，请重新登录';
+    }
+  }
+
+  @override
   void dispose() {
     _loginGeneration += 1;
     super.dispose();
@@ -104,9 +113,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (!mounted) {
       return;
     }
-    ref.invalidate(feedControllerProvider);
-    ref.invalidate(notificationsControllerProvider);
-    ref.invalidate(messagesControllerProvider);
+    // Per-account state was already reset by the new token
+    // (accountEpochProvider).
     context.go(loginReturnLocation(GoRouterState.of(context).uri));
   }
 

@@ -19,6 +19,7 @@ class CommentItem {
     this.replyCount = 0,
     this.isAnonymous = false,
     this.isPostAuthor = false,
+    this.isOwnComment = false,
   });
 
   final String id;
@@ -41,6 +42,10 @@ class CommentItem {
 
   /// 洞主: written by whoever wrote the post, even when that post is anonymous.
   final bool isPostAuthor;
+
+  /// Written by the viewer. The server says so because an anonymous comment
+  /// carries no authorUserId to compare with.
+  final bool isOwnComment;
 
   /// 兼容旧字段：authorNickname = authorAlias
   String get authorNickname => authorAlias;
@@ -82,6 +87,7 @@ class CommentItem {
     int? replyCount,
     bool? isAnonymous,
     bool? isPostAuthor,
+    bool? isOwnComment,
   }) {
     return CommentItem(
       id: id ?? this.id,
@@ -98,6 +104,7 @@ class CommentItem {
       replyCount: replyCount ?? this.replyCount,
       isAnonymous: isAnonymous ?? this.isAnonymous,
       isPostAuthor: isPostAuthor ?? this.isPostAuthor,
+      isOwnComment: isOwnComment ?? this.isOwnComment,
     );
   }
 
@@ -168,6 +175,7 @@ class CommentItem {
           parsedReplies.length,
       isAnonymous: isAnonymous,
       isPostAuthor: _toBool(json['isPostAuthor']) ?? false,
+      isOwnComment: _toBool(json['isOwnComment']) ?? false,
     );
   }
 

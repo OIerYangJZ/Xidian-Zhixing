@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../app.dart' show bannedAccountPage;
+import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/navigation/share_links.dart';
@@ -53,6 +55,12 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    if (AuthStore.instance.takeSessionExpiredNotice()) {
+      _errorText = uiTextGlobal(
+        zh: '登录已失效，请重新登录',
+        en: 'Your session has ended. Please sign in again.',
+      );
+    }
     final String? attemptId = takeQueryParameterFromUrl('xidianAuthAttempt');
     if (attemptId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -175,7 +183,10 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute<void>(builder: (_) => const HomeShell()),
+        MaterialPageRoute<void>(
+          builder: (_) =>
+              session.banned ? bannedAccountPage() : const HomeShell(),
+        ),
         (Route<dynamic> route) => false,
       );
     } on ApiException catch (error) {

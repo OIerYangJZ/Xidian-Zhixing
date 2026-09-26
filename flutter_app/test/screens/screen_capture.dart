@@ -51,8 +51,8 @@ Future<void> loadScreenFonts() async {
   await _loadFont('MaterialIcons', <String>[
     '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
   ]);
-  await _loadFont('STZhongsong', <String>['assets/fonts/STZhongsong.ttf']);
-  await _loadFont('STSong', <String>['assets/fonts/STSong.ttf']);
+  await _loadFont('STZhongsong', <String>['assets/fonts/STZhongsong-Subset.ttf']);
+  await _loadFont('STSong', <String>['web/fonts/STSong-Rare.ttf']);
   // PingFang SC heads ZxFonts.bodyFallback, which is what text with no
   // family of its own resolves through (app bar titles, segmented buttons).
   for (final String family in <String>[

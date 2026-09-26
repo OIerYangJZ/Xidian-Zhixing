@@ -1,6 +1,7 @@
 import '../core/network/api_client.dart';
 import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
+import '../models/feedback_item.dart';
 import '../models/follow_user_item.dart';
 import '../models/my_comment_item.dart';
 import '../models/report_item.dart';
@@ -19,7 +20,12 @@ class UserRepository {
     if (map.isNotEmpty) {
       return UserProfile.fromJson(map);
     }
-    throw Exception(uiTextGlobal(zh: '个人资料加载失败：服务端未返回有效数据', en: 'Failed to load the profile: the server returned no valid data'));
+    throw Exception(
+      uiTextGlobal(
+        zh: '个人资料加载失败：服务端未返回有效数据',
+        en: 'Failed to load the profile: the server returned no valid data',
+      ),
+    );
   }
 
   Future<void> updatePrivacy({
@@ -114,7 +120,12 @@ class UserRepository {
     final Map<String, dynamic> map = extractMap(response);
     final String avatarUrl = (map['avatarUrl'] ?? '').toString().trim();
     if (avatarUrl.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '头像上传响应缺少 avatarUrl', en: 'The avatar upload response is missing avatarUrl'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '头像上传响应缺少 avatarUrl',
+          en: 'The avatar upload response is missing avatarUrl',
+        ),
+      );
     }
     return avatarUrl;
   }
@@ -149,7 +160,12 @@ class UserRepository {
     }
     final String url = (map['url'] ?? '').toString().trim();
     if (url.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '背景图片上传响应缺少 url', en: 'The background upload response is missing url'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '背景图片上传响应缺少 url',
+          en: 'The background upload response is missing url',
+        ),
+      );
     }
     return url;
   }
@@ -161,7 +177,12 @@ class UserRepository {
         .map((dynamic item) => MyCommentItem.fromJson(asMap(item)))
         .toList();
     if (items.any((MyCommentItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '我的评论列表包含无效记录', en: 'My comment list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '我的评论列表包含无效记录',
+          en: 'My comment list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -177,9 +198,45 @@ class UserRepository {
         .map((dynamic item) => ReportItem.fromJson(asMap(item)))
         .toList();
     if (items.any((ReportItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '举报列表包含无效记录', en: 'The report list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '举报列表包含无效记录',
+          en: 'The report list contains invalid records',
+        ),
+      );
     }
     return items;
+  }
+
+  /// 信箱: POST /api/feedback.
+  Future<void> submitFeedback({
+    required String category,
+    required String content,
+    required String contact,
+  }) async {
+    final dynamic response = await _apiClient.post(
+      ApiEndpoints.feedback,
+      body: <String, dynamic>{
+        'category': category,
+        'content': content,
+        'contact': contact,
+      },
+    );
+    if (readBool(extractMap(response), <String>['ok']) != true) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '信箱提交响应未确认成功',
+          en: 'The feedback response did not confirm success',
+        ),
+      );
+    }
+  }
+
+  Future<List<FeedbackItem>> fetchMyFeedback() async {
+    final dynamic response = await _apiClient.get(ApiEndpoints.myFeedback);
+    return extractList(
+      response,
+    ).map((dynamic item) => FeedbackItem.fromJson(asMap(item))).toList();
   }
 
   Future<ReportItem> fetchMyReportDetail(String reportId) async {
@@ -188,7 +245,12 @@ class UserRepository {
     );
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '举报详情响应缺少数据', en: 'The report detail response is missing data'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '举报详情响应缺少数据',
+          en: 'The report detail response is missing data',
+        ),
+      );
     }
     return ReportItem.fromJson(map);
   }
@@ -218,7 +280,12 @@ class UserRepository {
         .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
         .toList();
     if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '关注列表包含无效记录', en: 'The following list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '关注列表包含无效记录',
+          en: 'The following list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -230,7 +297,12 @@ class UserRepository {
         .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
         .toList();
     if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '粉丝列表包含无效记录', en: 'The follower list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '粉丝列表包含无效记录',
+          en: 'The follower list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -242,7 +314,12 @@ class UserRepository {
         .map((dynamic item) => FollowUserItem.fromJson(asMap(item)))
         .toList();
     if (items.any((FollowUserItem item) => item.userId.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '好友列表包含无效记录', en: 'The friend list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '好友列表包含无效记录',
+          en: 'The friend list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -261,7 +338,12 @@ class UserRepository {
         .map((dynamic item) => PublicUserProfile.fromJson(asMap(item)))
         .toList();
     if (items.any((PublicUserProfile item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '用户搜索结果包含无效记录', en: 'The user search results contain invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '用户搜索结果包含无效记录',
+          en: 'The user search results contain invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -288,6 +370,8 @@ class UserRepository {
     if (map.isNotEmpty) {
       return PublicUserProfile.fromJson(map);
     }
-    throw Exception(uiTextGlobal(zh: '用户资料加载失败', en: 'Failed to load the user profile'));
+    throw Exception(
+      uiTextGlobal(zh: '用户资料加载失败', en: 'Failed to load the user profile'),
+    );
   }
 }

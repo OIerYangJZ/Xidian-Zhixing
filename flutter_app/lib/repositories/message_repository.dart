@@ -77,7 +77,9 @@ class MessageRepository {
     return _apiClient.delete(ApiEndpoints.dmConversation(conversationId));
   }
 
-  Future<ConversationItem> updateConversationBlock({
+  /// Returns whether I now block the peer. The response is only
+  /// `{"blocked": bool}`; whether the peer blocks me is unchanged.
+  Future<bool> updateConversationBlock({
     required String conversationId,
     required bool block,
   }) async {
@@ -85,11 +87,16 @@ class MessageRepository {
       ApiEndpoints.dmConversationBlock(conversationId, block),
       body: const <String, dynamic>{},
     );
-    final Map<String, dynamic> data = extractMap(response);
-    return ConversationItem.fromJson(<String, dynamic>{
-      'id': conversationId,
-      ...data,
-    });
+    final bool? blocked = readBool(extractMap(response), <String>['blocked']);
+    if (blocked == null) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '屏蔽操作响应缺少 blocked 状态',
+          en: 'The block response is missing the blocked flag',
+        ),
+      );
+    }
+    return blocked;
   }
 
   Future<ConversationItem> createDirectConversation(

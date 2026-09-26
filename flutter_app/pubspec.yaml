@@ -52,13 +52,12 @@ flutter:
           weight: 400
         - asset: assets/fonts/ZxSans-SemiBold.ttf
           weight: 600
+    # Display face for the ZxSans character set; the full STZhongsong.ttf /
+    # STSong.ttf are the sources of scripts/build_songti_fonts.py, not bundled.
     - family: STZhongsong
       fonts:
-        - asset: assets/fonts/STZhongsong.ttf
+        - asset: assets/fonts/STZhongsong-Subset.ttf
           weight: 600
-    - family: STSong
-      fonts:
-        - asset: assets/fonts/STSong.ttf
     - family: STKaiti
       fonts:
         - asset: assets/fonts/STKaiti.ttf

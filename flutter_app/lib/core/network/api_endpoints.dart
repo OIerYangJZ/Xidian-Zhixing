@@ -27,7 +27,6 @@ class ApiEndpoints {
   static const String notifications = '/notifications';
   static const String notificationsReadAll = '/notifications/read-all';
 
-  static const String channels = '/channels';
   static const String posts = '/posts';
   static const String anonymousAlias = '/posts/anonymous-alias';
   static const String myPosts = '/posts/mine';
@@ -37,6 +36,8 @@ class ApiEndpoints {
 
   static const String myComments = '/comments/mine';
   static const String myReports = '/reports/mine';
+  static const String feedback = '/feedback';
+  static const String myFeedback = '/feedback/mine';
   static const String reports = '/reports';
 
   static const String conversations = '/messages/conversations';
@@ -59,9 +60,9 @@ class ApiEndpoints {
   static const String appeals = '/appeals';
   static const String myLatestAppeal = '/appeals/mine';
   static const String adminAppeals = '/admin/appeals';
+  static const String adminFeedbacks = '/admin/feedbacks';
   static const String adminExport = '/admin/export';
   static const String adminChannelsTags = '/admin/channels-tags';
-  static const String adminChannels = '/admin/channels';
   static const String adminTags = '/admin/tags';
   static const String adminConfig = '/admin/config';
   static const String adminAnnouncements = '/admin/announcements';
@@ -119,7 +120,8 @@ class ApiEndpoints {
   static String adminAppealHandle(String appealId) =>
       '/admin/appeals/$appealId/handle';
 
-  static String adminChannelByName(String name) => '/admin/channels/$name';
+  static String adminFeedbackHandle(String feedbackId) =>
+      '/admin/feedbacks/$feedbackId/handle';
 
   static String adminTagByName(String name) => '/admin/tags/$name';
 }

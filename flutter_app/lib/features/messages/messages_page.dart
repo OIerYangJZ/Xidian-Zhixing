@@ -147,13 +147,15 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
           setState(() => _selectedId = null);
         }
       },
-      onConversationFlagsChanged: ({bool? blockedByMe, bool? blockedByPeer}) {
-        controller.updateConversationFlags(
-          conversationId: session.id,
-          blockedByMe: blockedByMe,
-          blockedByPeer: blockedByPeer,
-        );
-      },
+      onConversationFlagsChanged:
+          ({bool? blockedByMe, bool? blockedByPeer, bool? awaitingReply}) {
+            controller.updateConversationFlags(
+              conversationId: session.id,
+              blockedByMe: blockedByMe,
+              blockedByPeer: blockedByPeer,
+              awaitingReply: awaitingReply,
+            );
+          },
       onMessageSent: (String content) {
         controller.updateConversationPreview(
           conversationId: session.id,
@@ -180,13 +182,25 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     );
   }
 
-  void _delete(ConversationItem session) {
-    ref
-        .read(messagesControllerProvider.notifier)
-        .deleteConversation(session.id);
-    if (_selectedId == session.id) {
+  /// True once the server deleted it; a failure is shown and the row stays.
+  Future<bool> _delete(ConversationItem session) async {
+    try {
+      await ref
+          .read(messagesControllerProvider.notifier)
+          .deleteConversation(session.id);
+    } catch (error) {
+      if (mounted) {
+        zxShowToast(
+          context,
+          uiTextGlobal(zh: '删除失败：$error', en: 'Could not delete: $error'),
+        );
+      }
+      return false;
+    }
+    if (mounted && _selectedId == session.id) {
       setState(() => _selectedId = null);
     }
+    return true;
   }
 
   Future<void> _showRowMenu(ConversationItem session, Offset position) async {
@@ -216,7 +230,7 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
       ],
     );
     if (delete == true && mounted && await _confirmDelete(session)) {
-      _delete(session);
+      await _delete(session);
     }
   }
 
@@ -381,8 +395,8 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     return Dismissible(
       key: Key(session.id),
       direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => _confirmDelete(session),
-      onDismissed: (_) => _delete(session),
+      confirmDismiss: (_) async =>
+          await _confirmDelete(session) && await _delete(session),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),

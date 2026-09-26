@@ -20,6 +20,7 @@ class _Appeals extends AppealRepository {
   Future<AppealState> fetchLatest() async =>
       AppealState.fromJson(<String, dynamic>{
         'banned': true,
+        'canSubmit': status == '',
         'supportEmail': 'support@示例.edu.cn',
         'appeal': <String, dynamic>{
           'status': status,

@@ -2,14 +2,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
+import '../../models/section_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../core/l10n/ui_text.dart';
 
 class FeedState {
   const FeedState({
-    this.selectedChannel = '全部',
+    this.selectedSectionKey = '',
     this.sort = PostSort.hot,
-    this.channels = const <String>['全部'],
+    this.sections = const <SectionItem>[],
     this.posts = const <PostItem>[],
     this.loading = true,
     this.loadingMore = false,
@@ -19,21 +20,31 @@ class FeedState {
     this.orderVersion = 0,
   });
 
-  final String selectedChannel;
+  /// A section's key; empty for 全部.
+  final String selectedSectionKey;
   final PostSort sort;
-  final List<String> channels;
+  final List<SectionItem> sections;
   final List<PostItem> posts;
   final bool loading;
   final bool loadingMore;
   final String? error;
+
+  /// The last page loaded.
   final int page;
   final bool hasMore;
   final int orderVersion;
 
+  SectionItem? get selectedSection {
+    for (final SectionItem section in sections) {
+      if (section.key == selectedSectionKey) return section;
+    }
+    return null;
+  }
+
   FeedState copyWith({
-    String? selectedChannel,
+    String? selectedSectionKey,
     PostSort? sort,
-    List<String>? channels,
+    List<SectionItem>? sections,
     List<PostItem>? posts,
     bool? loading,
     bool? loadingMore,
@@ -44,9 +55,9 @@ class FeedState {
     int? orderVersion,
   }) {
     return FeedState(
-      selectedChannel: selectedChannel ?? this.selectedChannel,
+      selectedSectionKey: selectedSectionKey ?? this.selectedSectionKey,
       sort: sort ?? this.sort,
-      channels: channels ?? this.channels,
+      sections: sections ?? this.sections,
       posts: posts ?? this.posts,
       loading: loading ?? this.loading,
       loadingMore: loadingMore ?? this.loadingMore,
@@ -63,114 +74,107 @@ class FeedController extends StateNotifier<FeedState> {
 
   final Ref _ref;
 
+  /// Bumped by every first-page load, so a slower earlier reply (another
+  /// section or sort) cannot overwrite the current one.
+  int _generation = 0;
+
+  /// A first-page load is in flight. A pull-to-refresh keeps the list (so
+  /// state.loading stays false), and a load-more started meanwhile would take
+  /// the new generation and append page N+1 after the fresh page 1.
+  bool _reloadingFirstPage = false;
+
+  Future<PostPage> _fetchPage(int page) {
+    return _ref
+        .read(postRepositoryProvider)
+        .fetchPostPage(
+          section: state.selectedSection,
+          sort: state.sort,
+          page: page,
+        );
+  }
+
   Future<void> loadInitial() async {
+    final int generation = ++_generation;
+    _reloadingFirstPage = true;
     state = state.copyWith(loading: true, clearError: true);
     try {
-      final PostRepository repository = _ref.read(postRepositoryProvider);
-      final results = await Future.wait<Object>(<Future<Object>>[
-        repository.fetchChannels(),
-        repository.fetchPosts(sort: state.sort),
-      ]);
-      final List<String> channels = results[0] as List<String>;
-      final List<PostItem> posts = results[1] as List<PostItem>;
+      final (List<SectionItem> sections, PostPage first) = await (
+        _ref.read(postRepositoryProvider).fetchSections(),
+        _fetchPage(1),
+      ).wait;
+      if (generation != _generation) return;
+      state = state.copyWith(sections: sections);
+      _showFirstPage(first);
+    } catch (error) {
+      if (generation != _generation) return;
       state = state.copyWith(
-        channels: <String>['全部', ...channels.toSet().where((c) => c != '其他')],
-        posts: sortPostsForView(posts, sort: state.sort),
         loading: false,
-        clearError: true,
-        page: 1,
-        hasMore: posts.length >= 20,
-        orderVersion: state.orderVersion + 1,
+        loadingMore: false,
+        error: uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'),
       );
-    } catch (error) {
-      state = state.copyWith(loading: false, error: uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'));
+    } finally {
+      if (generation == _generation) _reloadingFirstPage = false;
     }
   }
 
-  Future<void> refreshPosts() async {
+  Future<void> refreshPosts() => _reload(keepListWhileLoading: true);
+
+  /// [key] is a section's key, or empty for 全部.
+  Future<void> switchSection(String key) {
+    state = state.copyWith(selectedSectionKey: key);
+    return _reload();
+  }
+
+  Future<void> switchSort(PostSort sort) {
+    state = state.copyWith(sort: sort);
+    return _reload();
+  }
+
+  Future<void> _reload({bool keepListWhileLoading = false}) async {
+    final int generation = ++_generation;
+    _reloadingFirstPage = true;
+    if (!keepListWhileLoading) {
+      state = state.copyWith(loading: true, clearError: true);
+    }
     try {
-      final List<PostItem> posts = await _ref
-          .read(postRepositoryProvider)
-          .fetchPosts(
-            channel: state.selectedChannel == '全部'
-                ? null
-                : state.selectedChannel,
-            sort: state.sort,
-          );
-      state = state.copyWith(
-        posts: sortPostsForView(posts, sort: state.sort),
-        clearError: true,
-        page: 1,
-        hasMore: posts.length >= 20,
-        orderVersion: state.orderVersion + 1,
-      );
+      final PostPage first = await _fetchPage(1);
+      if (generation != _generation) return;
+      _showFirstPage(first);
     } catch (error) {
-      state = state.copyWith(error: uiTextGlobal(zh: '刷新失败：$error', en: 'Refresh failed: $error'));
+      if (generation != _generation) return;
+      state = state.copyWith(
+        loading: false,
+        // A load-more cut short by this reload never cleared its flag.
+        loadingMore: false,
+        error: keepListWhileLoading
+            ? uiTextGlobal(zh: '刷新失败：$error', en: 'Refresh failed: $error')
+            : uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'),
+      );
+    } finally {
+      if (generation == _generation) _reloadingFirstPage = false;
     }
   }
 
-  Future<void> switchChannel(String channel) async {
+  void _showFirstPage(PostPage first) {
     state = state.copyWith(
-      selectedChannel: channel,
-      loading: true,
+      posts: first.items,
+      loading: false,
+      loadingMore: false,
       clearError: true,
+      page: 1,
+      hasMore: first.hasMore,
+      orderVersion: state.orderVersion + 1,
     );
-    try {
-      final List<PostItem> posts = await _ref
-          .read(postRepositoryProvider)
-          .fetchPosts(
-            channel: channel == '全部' ? null : channel,
-            sort: state.sort,
-          );
-      state = state.copyWith(
-        posts: sortPostsForView(posts, sort: state.sort),
-        loading: false,
-        clearError: true,
-        page: 1,
-        hasMore: posts.length >= 20,
-        orderVersion: state.orderVersion + 1,
-      );
-    } catch (error) {
-      state = state.copyWith(loading: false, error: uiTextGlobal(zh: '加载失败：$error', en: 'Load failed: $error'));
-    }
-  }
-
-  Future<void> switchSort(PostSort sort) async {
-    state = state.copyWith(sort: sort, loading: true, clearError: true);
-    try {
-      final List<PostItem> posts = await _ref
-          .read(postRepositoryProvider)
-          .fetchPosts(
-            channel: state.selectedChannel == '全部'
-                ? null
-                : state.selectedChannel,
-            sort: sort,
-          );
-      state = state.copyWith(
-        posts: sortPostsForView(posts, sort: sort),
-        loading: false,
-        clearError: true,
-        page: 1,
-        hasMore: posts.length >= 20,
-        orderVersion: state.orderVersion + 1,
-      );
-    } catch (error) {
-      state = state.copyWith(loading: false, error: uiTextGlobal(
-        zh: '排序切换失败：$error',
-        en: 'Could not change sorting: $error',
-      ));
-    }
   }
 
   Future<void> toggleLike(PostItem post) async {
-    final bool nextLiked = !post.isLiked;
-    if (nextLiked) {
-      await _ref.read(postRepositoryProvider).likePost(post.id);
-    } else {
-      await _ref.read(postRepositoryProvider).unlikePost(post.id);
-    }
-    final int nextCount = (post.likeCount + (nextLiked ? 1 : -1)).clamp(0, 1 << 31);
-    replacePost(post.copyWith(isLiked: nextLiked, likeCount: nextCount));
+    final PostRepository posts = _ref.read(postRepositoryProvider);
+    final LikeActionResult result = post.isLiked
+        ? await posts.unlikePost(post.id)
+        : await posts.likePost(post.id);
+    replacePost(
+      post.copyWith(isLiked: result.liked, likeCount: result.likeCount),
+    );
   }
 
   Future<void> toggleFavorite(PostItem post) async {
@@ -180,43 +184,44 @@ class FeedController extends StateNotifier<FeedState> {
     replacePost(
       post.copyWith(
         isFavorited: result.favorited,
-        favoriteCount:
-            result.favoriteCount ??
-            (post.favoriteCount + (result.favorited ? 1 : -1)).clamp(0, 1 << 31),
+        favoriteCount: result.favoriteCount,
       ),
     );
   }
 
   Future<void> loadMoreIfNeeded() async {
-    if (state.loadingMore || !state.hasMore || state.loading) return;
+    if (state.loadingMore ||
+        !state.hasMore ||
+        state.loading ||
+        _reloadingFirstPage) {
+      return;
+    }
+    final int generation = _generation;
     state = state.copyWith(loadingMore: true);
     try {
-      final nextPage = state.page + 1;
-      final List<PostItem> morePosts = await _ref
-          .read(postRepositoryProvider)
-          .fetchPosts(
-            channel: state.selectedChannel == '全部'
-                ? null
-                : state.selectedChannel,
-            sort: state.sort,
-          );
-      final Set<String> existingIds = state.posts
-          .map((PostItem item) => item.id)
-          .toSet();
-      final List<PostItem> uniqueMorePosts = morePosts
-          .where((PostItem item) => existingIds.add(item.id))
-          .toList(growable: false);
+      final int nextPage = state.page + 1;
+      final PostPage more = await _fetchPage(nextPage);
+      if (generation != _generation) return;
+      // A post published meanwhile shifts the pages by one; skip repeats.
+      final Set<String> seen = state.posts.map((PostItem p) => p.id).toSet();
       state = state.copyWith(
-        posts: sortPostsForView(<PostItem>[
+        posts: <PostItem>[
           ...state.posts,
-          ...uniqueMorePosts,
-        ], sort: state.sort),
+          ...more.items.where((PostItem p) => seen.add(p.id)),
+        ],
         loadingMore: false,
         page: nextPage,
-        hasMore: morePosts.length >= 20 && uniqueMorePosts.isNotEmpty,
+        hasMore: more.hasMore,
       );
-    } catch (_) {
-      state = state.copyWith(loadingMore: false);
+    } catch (error) {
+      if (generation != _generation) return;
+      state = state.copyWith(
+        loadingMore: false,
+        error: uiTextGlobal(
+          zh: '加载更多失败：$error',
+          en: 'Could not load more: $error',
+        ),
+      );
     }
   }
 
@@ -239,5 +244,8 @@ class FeedController extends StateNotifier<FeedState> {
 }
 
 final feedControllerProvider = StateNotifierProvider<FeedController, FeedState>(
-  (Ref ref) => FeedController(ref),
+  (Ref ref) {
+    ref.watch(accountEpochProvider);
+    return FeedController(ref);
+  },
 );

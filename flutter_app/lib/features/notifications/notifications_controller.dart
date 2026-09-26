@@ -26,11 +26,15 @@ class NotificationsState {
 
   List<NotificationItem> get visibleItems => category == null
       ? items
-      : items.where((NotificationItem item) => item.category == category).toList();
+      : items
+            .where((NotificationItem item) => item.category == category)
+            .toList();
 
   int unreadIn(String? category) => items
-      .where((NotificationItem item) =>
-          !item.isRead && (category == null || item.category == category))
+      .where(
+        (NotificationItem item) =>
+            !item.isRead && (category == null || item.category == category),
+      )
       .length;
 
   NotificationsState copyWith({
@@ -65,11 +69,12 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   Future<void> refresh() => _reload(showLoading: false);
 
   Future<void> markRead(String notificationId) async {
-    final NotificationItem? existing =
-        state.items.cast<NotificationItem?>().firstWhere(
-              (NotificationItem? item) => item?.id == notificationId,
-              orElse: () => null,
-            );
+    final NotificationItem? existing = state.items
+        .cast<NotificationItem?>()
+        .firstWhere(
+          (NotificationItem? item) => item?.id == notificationId,
+          orElse: () => null,
+        );
     if (existing == null || existing.isRead) {
       return;
     }
@@ -77,7 +82,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
         .map(
           (NotificationItem item) => item.id == notificationId
               ? item.copyWith(
-                  isRead: true, readAt: DateTime.now().toIso8601String())
+                  isRead: true,
+                  readAt: DateTime.now().toIso8601String(),
+                )
               : item,
         )
         .toList();
@@ -110,13 +117,18 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     state = state.copyWith(actionBusy: true, clearError: true);
     final String now = DateTime.now().toIso8601String();
     final List<NotificationItem> optimistic = state.items
-        .map((NotificationItem item) =>
-            item.isRead || (category != null && item.category != category)
-                ? item
-                : item.copyWith(isRead: true, readAt: now))
+        .map(
+          (NotificationItem item) =>
+              item.isRead || (category != null && item.category != category)
+              ? item
+              : item.copyWith(isRead: true, readAt: now),
+        )
         .toList();
-    state =
-        state.copyWith(items: optimistic, actionBusy: true, clearError: true);
+    state = state.copyWith(
+      items: optimistic,
+      actionBusy: true,
+      clearError: true,
+    );
     try {
       await _ref
           .read(notificationRepositoryProvider)
@@ -139,8 +151,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
       state = state.copyWith(loading: true, clearError: true);
     }
     try {
-      final List<NotificationItem> items =
-          await _ref.read(notificationRepositoryProvider).fetchNotifications();
+      final List<NotificationItem> items = await _ref
+          .read(notificationRepositoryProvider)
+          .fetchNotifications();
       state = state.copyWith(
         items: items,
         loading: false,
@@ -161,6 +174,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
 }
 
 final notificationsControllerProvider =
-    StateNotifierProvider<NotificationsController, NotificationsState>(
-  (Ref ref) => NotificationsController(ref),
-);
+    StateNotifierProvider<NotificationsController, NotificationsState>((
+      Ref ref,
+    ) {
+      ref.watch(accountEpochProvider);
+      return NotificationsController(ref);
+    });

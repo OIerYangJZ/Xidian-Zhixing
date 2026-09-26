@@ -7,6 +7,7 @@ import '../core/network/api_endpoints.dart';
 import '../core/network/json_utils.dart';
 import '../models/comment_item.dart';
 import '../models/post_item.dart';
+import '../models/section_item.dart';
 import '../models/uploaded_image_item.dart';
 import '../core/l10n/ui_text.dart';
 
@@ -201,7 +202,8 @@ class CreatePostInput {
     required this.content,
     this.contentFormat = 'plain',
     this.markdownSource,
-    required this.channel,
+    required this.section,
+    this.publisherClub,
     required this.tags,
     required this.allowComment,
     required this.allowDm,
@@ -218,7 +220,10 @@ class CreatePostInput {
   final String content;
   final String contentFormat;
   final String? markdownSource;
-  final String channel;
+  final SectionItem section;
+
+  /// Posts to a club section are published as that club.
+  final ClubItem? publisherClub;
   final List<String> tags;
   final bool allowComment;
   final bool allowDm;
@@ -239,7 +244,13 @@ class CreatePostInput {
           : 'plain',
       if ((markdownSource ?? '').trim().isNotEmpty)
         'markdownSource': markdownSource!.trim(),
-      'channel': channel,
+      'sectionType': section.sectionType,
+      'sectionId': section.key,
+      'sectionName': section.sectionName,
+      if (publisherClub != null) ...<String, dynamic>{
+        'publisherType': 'club',
+        'publisherClubId': publisherClub!.id,
+      },
       'tags': tags,
       'allowComment': allowComment,
       'allowDm': allowDm,
@@ -256,11 +267,93 @@ class CreatePostInput {
   }
 }
 
+/// Posts per feed page.
+const int postPageSize = 20;
+
+/// What the server accepts for a post (backend/handlers/_post_handler.py).
+abstract final class PostLimits {
+  static const int title = 200;
+
+  /// Plain-text body; for Markdown the server checks the rendered text too.
+  static const int plainContent = 10000;
+  static const int markdownSource = 20000;
+
+  /// Explicit tags plus the #tags written in the title and body.
+  static const int tags = 10;
+  static const int tagLength = 40;
+
+  /// The server's inline-tag pattern: # then 1–30 letters, digits, _ or -.
+  // The server's _extract_inline_tags: Python's Unicode \w (letters, digits,
+  // marks, underscore) plus '-'.
+  static final RegExp _inlineTag = RegExp(
+    r'#([\p{L}\p{N}\p{M}_-]{1,30})',
+    unicode: true,
+  );
+
+  /// The tags the server will store: [explicit] first, then each new inline
+  /// #tag from [title] and [content], as _post_handler.handle_create_post
+  /// merges them.
+  static List<String> mergedTags(
+    List<String> explicit,
+    String title,
+    String content,
+  ) {
+    final List<String> merged = <String>[...explicit];
+    for (final String text in <String>[title, content]) {
+      for (final RegExpMatch match in _inlineTag.allMatches(text)) {
+        final String tag = match.group(1)!.trim();
+        if (tag.isNotEmpty && !merged.contains(tag)) merged.add(tag);
+      }
+    }
+    return merged;
+  }
+
+  /// Why the server would refuse these tags, or null.
+  static String? tagProblem(
+    List<String> explicit,
+    String title,
+    String content,
+  ) {
+    final List<String> merged = mergedTags(explicit, title, content);
+    final String? tooLong = merged
+        .where((String tag) => tag.runes.length > tagLength)
+        .firstOrNull;
+    if (tooLong != null) {
+      return uiTextGlobal(
+        zh: '标签「$tooLong」超过 $tagLength 个字',
+        en: 'The tag "$tooLong" is longer than $tagLength characters',
+      );
+    }
+    if (merged.length > tags) {
+      return uiTextGlobal(
+        zh: '标签最多 $tags 个（含标题和正文里的 #话题），当前 ${merged.length} 个',
+        en: 'At most $tags tags, counting #topics in the title and body; this post has ${merged.length}',
+      );
+    }
+    return null;
+  }
+}
+
+class PostPage {
+  const PostPage({required this.items, required this.hasMore});
+
+  final List<PostItem> items;
+  final bool hasMore;
+}
+
 class FavoriteActionResult {
-  FavoriteActionResult({required this.favorited, this.favoriteCount});
+  FavoriteActionResult({required this.favorited, required this.favoriteCount});
 
   final bool favorited;
-  final int? favoriteCount;
+  final int favoriteCount;
+}
+
+/// POST /posts/<id>/like answers the state and the post's like count.
+class LikeActionResult {
+  LikeActionResult({required this.liked, required this.likeCount});
+
+  final bool liked;
+  final int likeCount;
 }
 
 class PinPostActionResult {
@@ -277,52 +370,108 @@ class PostRepository {
 
   final ApiClient _apiClient;
 
-  Future<List<String>> fetchChannels() async {
-    final dynamic response = await _apiClient.get(ApiEndpoints.channels);
-    final List<dynamic> list = extractList(response);
-    final List<String> channels = list.map((dynamic item) {
-      if (item is String) {
-        return item.trim();
-      }
-      final Map<String, dynamic> map = asMap(item);
-      return readString(map, <String>['name', 'title', 'channelName']) ?? '';
-    }).toList();
-    if (channels.any((String name) => name.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '频道列表包含无效记录', en: 'The channel list contains invalid records'));
+  /// Every enabled 分区 (综合, colleges, clubs), in the server's order.
+  Future<List<SectionItem>> fetchSections() async {
+    final dynamic response = await _apiClient.get('/sections/tree');
+    final Map<String, dynamic> tree = extractMap(response);
+    final dynamic rows = tree['sections'];
+    if (rows is! List) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '分区响应缺少 sections',
+          en: 'The section response is missing sections',
+        ),
+      );
     }
-    return channels.toSet().toList();
+    return rows
+        .map((dynamic row) => SectionItem.fromJson(asMap(row)))
+        .toSet()
+        .toList(growable: false);
   }
 
+  /// Active clubs, each saying whether the viewer may post as it.
+  Future<List<ClubItem>> fetchClubs() async {
+    final dynamic response = await _apiClient.get('/clubs');
+    return extractList(response)
+        .map((dynamic row) => ClubItem.fromJson(asMap(row)))
+        .toList(growable: false);
+  }
+
+  /// One page of the feed, in the server's order (pinned first, then [sort]).
+  Future<PostPage> fetchPostPage({
+    SectionItem? section,
+    PostSort sort = PostSort.latest,
+    required int page,
+    int limit = postPageSize,
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.posts,
+      queryParameters: <String, dynamic>{
+        ..._postQuery(section: section, sort: sort),
+        'page': page,
+        'limit': limit,
+      },
+    );
+    final Map<String, dynamic> data = extractMap(response);
+    final dynamic rows = data['items'];
+    final bool? hasMore = readBool(data, <String>['hasMore']);
+    if (rows is! List || hasMore == null) {
+      throw FormatException(
+        uiTextGlobal(zh: '帖子分页响应格式无效', en: 'The post page response is invalid'),
+      );
+    }
+    return PostPage(items: _parsePosts(rows), hasMore: hasMore);
+  }
+
+  /// Every matching post (search filters and sorts the whole result).
   Future<List<PostItem>> fetchPosts({
-    String? channel,
+    SectionItem? section,
     String? keyword,
     bool? hasImage,
     bool? allowDm,
     PostStatus? status,
     PostSort sort = PostSort.latest,
   }) async {
-    final Map<String, dynamic> query = <String, dynamic>{
-      if (channel != null && channel != '全部') 'channel': channel,
-      if (keyword != null && keyword.trim().isNotEmpty)
-        'keyword': keyword.trim(),
-      if (hasImage != null) 'hasImage': hasImage,
-      if (allowDm != null) 'allowDm': allowDm,
-      if (status != null) 'status': status.apiValue,
-      'sort': sort.apiValue,
-    };
-
     final dynamic response = await _apiClient.get(
       ApiEndpoints.posts,
-      queryParameters: query,
+      queryParameters: <String, dynamic>{
+        ..._postQuery(section: section, sort: sort),
+        if (keyword != null && keyword.trim().isNotEmpty)
+          'keyword': keyword.trim(),
+        if (hasImage != null) 'hasImage': hasImage,
+        if (allowDm != null) 'allowDm': allowDm,
+        if (status != null) 'status': status.apiValue,
+      },
     );
-    final List<dynamic> list = extractList(response);
-    final List<PostItem> posts = list
+    return sortPostsForView(_parsePosts(extractList(response)), sort: sort);
+  }
+
+  Map<String, dynamic> _postQuery({
+    SectionItem? section,
+    required PostSort sort,
+  }) {
+    return <String, dynamic>{
+      if (section != null) ...<String, dynamic>{
+        'sectionType': section.sectionType,
+        'sectionId': section.key,
+      },
+      'sort': sort.apiValue,
+    };
+  }
+
+  List<PostItem> _parsePosts(List<dynamic> rows) {
+    final List<PostItem> posts = rows
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '帖子列表包含无效记录', en: 'The post list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '帖子列表包含无效记录',
+          en: 'The post list contains invalid records',
+        ),
+      );
     }
-    return sortPostsForView(posts, sort: sort);
+    return posts;
   }
 
   Future<PostItem> fetchPostDetail(String postId) async {
@@ -336,7 +485,12 @@ class PostRepository {
         return post;
       }
     }
-    throw FormatException(uiTextGlobal(zh: '帖子详情响应缺少有效帖子数据', en: 'The post detail response is missing valid post data'));
+    throw FormatException(
+      uiTextGlobal(
+        zh: '帖子详情响应缺少有效帖子数据',
+        en: 'The post detail response is missing valid post data',
+      ),
+    );
   }
 
   Future<PostItem> createPost(CreatePostInput input) async {
@@ -353,7 +507,12 @@ class PostRepository {
       }
     }
 
-    throw FormatException(uiTextGlobal(zh: '创建帖子响应缺少帖子数据', en: 'The create-post response is missing post data'));
+    throw FormatException(
+      uiTextGlobal(
+        zh: '创建帖子响应缺少帖子数据',
+        en: 'The create-post response is missing post data',
+      ),
+    );
   }
 
   Future<UploadedImageItem> uploadImage({
@@ -376,7 +535,12 @@ class PostRepository {
         return item;
       }
     }
-    throw FormatException(uiTextGlobal(zh: '图片上传响应缺少有效图片数据', en: 'The image upload response is missing valid image data'));
+    throw FormatException(
+      uiTextGlobal(
+        zh: '图片上传响应缺少有效图片数据',
+        en: 'The image upload response is missing valid image data',
+      ),
+    );
   }
 
   Future<List<UploadedImageItem>> fetchMyUploads() async {
@@ -386,7 +550,12 @@ class PostRepository {
         .map((dynamic item) => UploadedImageItem.fromJson(asMap(item)))
         .toList();
     if (items.any((UploadedImageItem item) => item.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '上传图片列表包含无效记录', en: 'The uploaded image list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '上传图片列表包含无效记录',
+          en: 'The uploaded image list contains invalid records',
+        ),
+      );
     }
     return items;
   }
@@ -406,7 +575,12 @@ class PostRepository {
     if (comments.any(
       (CommentItem comment) => comment.id.isEmpty || comment.content.isEmpty,
     )) {
-      throw FormatException(uiTextGlobal(zh: '评论列表包含无效记录', en: 'The comment list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '评论列表包含无效记录',
+          en: 'The comment list contains invalid records',
+        ),
+      );
     }
     return sortCommentsForView(comments, sort: sort);
   }
@@ -425,24 +599,37 @@ class PostRepository {
     );
   }
 
-  Future<void> likePost(String postId) {
-    return _apiClient.post(
-      ApiEndpoints.postLike(postId),
-      body: const <String, dynamic>{},
-    );
-  }
+  // Like and favorite send the state wanted: without it the server toggles,
+  // which undoes the action whenever this client's copy of the state is stale.
+  Future<LikeActionResult> likePost(String postId) =>
+      _setPostLiked(postId, true);
 
-  Future<void> unlikePost(String postId) {
-    return _apiClient.post(
+  Future<LikeActionResult> unlikePost(String postId) =>
+      _setPostLiked(postId, false);
+
+  Future<LikeActionResult> _setPostLiked(String postId, bool liked) async {
+    final dynamic response = await _apiClient.post(
       ApiEndpoints.postLike(postId),
-      body: const <String, dynamic>{},
+      body: <String, dynamic>{'liked': liked},
     );
+    final Map<String, dynamic> map = extractMap(response);
+    final bool? resultLiked = readBool(map, <String>['liked']);
+    final int? likeCount = readInt(map, <String>['likeCount']);
+    if (resultLiked == null || likeCount == null) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '点赞响应缺少 liked / likeCount',
+          en: 'The like response is missing liked / likeCount',
+        ),
+      );
+    }
+    return LikeActionResult(liked: resultLiked, likeCount: likeCount);
   }
 
   Future<void> likeComment(String commentId) {
     return _apiClient.post(
       ApiEndpoints.commentLike(commentId),
-      body: const <String, dynamic>{},
+      body: const <String, dynamic>{'liked': true},
     );
   }
 
@@ -456,7 +643,7 @@ class PostRepository {
   Future<FavoriteActionResult> favoritePost(String postId) async {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.postFavorite(postId),
-      body: const <String, dynamic>{},
+      body: const <String, dynamic>{'favorited': true},
     );
     return _parseFavoriteActionResult(response);
   }
@@ -494,7 +681,12 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '收藏帖子列表包含无效记录', en: 'The saved post list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '收藏帖子列表包含无效记录',
+          en: 'The saved post list contains invalid records',
+        ),
+      );
     }
     return posts;
   }
@@ -510,7 +702,12 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '用户帖子列表包含无效记录', en: 'The user post list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '用户帖子列表包含无效记录',
+          en: 'The user post list contains invalid records',
+        ),
+      );
     }
     return posts;
   }
@@ -518,7 +715,9 @@ class PostRepository {
   /// A random anonymous nickname for 随机, from the server's word list.
   Future<String> fetchRandomAnonymousAlias() async {
     final dynamic response = await _apiClient.get(ApiEndpoints.anonymousAlias);
-    final String alias = (extractMap(response)['alias'] ?? '').toString().trim();
+    final String alias = (extractMap(response)['alias'] ?? '')
+        .toString()
+        .trim();
     if (alias.isEmpty) {
       throw FormatException(
         uiTextGlobal(zh: '没有取到随机昵称', en: 'No random nickname was returned'),
@@ -534,7 +733,12 @@ class PostRepository {
         .map((dynamic item) => PostItem.fromJson(asMap(item)))
         .toList();
     if (posts.any((PostItem post) => post.id.isEmpty)) {
-      throw FormatException(uiTextGlobal(zh: '我的帖子列表包含无效记录', en: 'My post list contains invalid records'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '我的帖子列表包含无效记录',
+          en: 'My post list contains invalid records',
+        ),
+      );
     }
     return posts;
   }
@@ -553,7 +757,7 @@ class PostRepository {
     return _apiClient.delete(ApiEndpoints.postById(postId));
   }
 
-  Future<int?> incrementView(String postId) async {
+  Future<int> incrementView(String postId) async {
     final dynamic response = await _apiClient.post(
       ApiEndpoints.postView(postId),
       body: const <String, dynamic>{},
@@ -561,7 +765,12 @@ class PostRepository {
     final Map<String, dynamic> map = extractMap(response);
     final int? viewCount = readInt(map, <String>['viewCount']);
     if (viewCount == null) {
-      throw FormatException(uiTextGlobal(zh: '阅读量响应缺少 viewCount', en: 'The view-count response is missing viewCount'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '阅读量响应缺少 viewCount',
+          en: 'The view-count response is missing viewCount',
+        ),
+      );
     }
     return viewCount;
   }
@@ -581,11 +790,21 @@ class PostRepository {
     final Map<String, dynamic> map = extractMap(response);
     final String mode = (readString(map, <String>['mode']) ?? '').trim();
     if (mode != 'direct' && mode != 'pending') {
-      throw FormatException(uiTextGlobal(zh: '置顶申请响应包含无效 mode', en: 'The pin request response contains an invalid mode'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '置顶申请响应包含无效 mode',
+          en: 'The pin request response contains an invalid mode',
+        ),
+      );
     }
     final Map<String, dynamic> postMap = asMap(map['post']);
     if (mode == 'direct' && postMap.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '直接置顶响应缺少帖子数据', en: 'The direct pin response is missing post data'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '直接置顶响应缺少帖子数据',
+          en: 'The direct pin response is missing post data',
+        ),
+      );
     }
     return PinPostActionResult(
       mode: mode,
@@ -596,15 +815,34 @@ class PostRepository {
   FavoriteActionResult _parseFavoriteActionResult(dynamic response) {
     final Map<String, dynamic> map = extractMap(response);
     if (map.isEmpty) {
-      throw FormatException(uiTextGlobal(zh: '收藏操作响应缺少数据', en: 'The favorite response is missing data'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '收藏操作响应缺少数据',
+          en: 'The favorite response is missing data',
+        ),
+      );
     }
     final bool? favorited = readBool(map, <String>['favorited', 'isFavorited']);
     if (favorited == null) {
-      throw FormatException(uiTextGlobal(zh: '收藏操作响应缺少 favorited 状态', en: 'The favorite response is missing the favorited flag'));
+      throw FormatException(
+        uiTextGlobal(
+          zh: '收藏操作响应缺少 favorited 状态',
+          en: 'The favorite response is missing the favorited flag',
+        ),
+      );
+    }
+    final int? favoriteCount = readInt(map, <String>['favoriteCount']);
+    if (favoriteCount == null) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '收藏操作响应缺少 favoriteCount',
+          en: 'The favorite response is missing favoriteCount',
+        ),
+      );
     }
     return FavoriteActionResult(
       favorited: favorited,
-      favoriteCount: readInt(map, <String>['favoriteCount', 'collectCount']),
+      favoriteCount: favoriteCount,
     );
   }
 }

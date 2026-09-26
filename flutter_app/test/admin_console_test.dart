@@ -12,10 +12,13 @@ import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/repositories/admin_repository.dart';
 
+final List<http.Request> _posts = <http.Request>[];
+
 AdminRepository _repo({bool primary = true}) => AdminRepository(
   ApiClient(
     httpClient: MockClient((http.Request request) async {
       final String path = request.url.path.replaceFirst('/api', '');
+      if (request.method == 'POST') _posts.add(request);
       // Like the backend: everything but pin requests is primary-only.
       if (!primary &&
           path != '/admin/auth/me' &&
@@ -51,6 +54,43 @@ AdminRepository _repo({bool primary = true}) => AdminRepository(
             'result': '已删除内容',
           },
         ],
+        '/admin/feedbacks' => <Object>[
+          <String, Object>{
+            'id': 'fb1',
+            'userNickname': '小西',
+            'userEmail': '2500400@stu.xidian.edu.cn',
+            'category': '校园建议',
+            'content': '食堂太挤',
+            'contact': '',
+            'status': 'pending',
+            'schoolReply': '',
+            'createdAt': '2026-09-26T00:00:00+00:00',
+            'handledAt': '',
+          },
+        ],
+        '/admin/feedbacks/fb1/handle' => <String, Object>{'id': 'fb1'},
+        '/admin/overview' => <String, Object>{
+          'todayNewUsers': 0,
+          'todayPosts': 0,
+          'todayComments': 0,
+          'todayReports': 0,
+          'pendingReviews': 0,
+          'pendingCancellationRequests': 0,
+          'pendingFeedbacks': 0,
+          'activeUsers': 0,
+          'bannedUsers': 0,
+          'mutedUsers': 0,
+        },
+        '/admin/channels-tags' => <String, Object>{'tags': <String>['食堂']},
+        '/admin/config' => <String, Object>{
+          'sensitiveWords': <String>[],
+          'settings': <String, int>{
+            'postRateLimit': 5,
+            'commentRateLimit': 20,
+            'messageRateLimit': 30,
+            'imageMaxMB': 5,
+          },
+        },
         _ => <String, Object>{},
       };
       return http.Response(
@@ -116,5 +156,33 @@ void main() {
     expect(find.text('标记误报'), findsOneWidget);
     expect(find.text('封禁用户'), findsOneWidget);
     expect(find.text('处理结果：已删除内容'), findsOneWidget);
+  });
+
+  testWidgets('a pending feedback can be answered from 用户反馈', (
+    WidgetTester tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1440, 1400);
+    addTearDown(tester.view.reset);
+    _posts.clear();
+    await tester.pumpWidget(_console(_repo()));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('admin-section-用户反馈')));
+    await tester.pumpAndSettle();
+    expect(find.text('食堂太挤'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('admin-feedback-reply-fb1')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('admin-note-input')), '已错峰开放');
+    await tester.tap(find.byKey(const Key('admin-note-confirm')));
+    await tester.pumpAndSettle();
+
+    final http.Request sent = _posts.single;
+    expect(sent.url.path, '/api/admin/feedbacks/fb1/handle');
+    expect(jsonDecode(sent.body), <String, Object>{
+      'action': 'reply',
+      'reply': '已错峰开放',
+    });
   });
 }

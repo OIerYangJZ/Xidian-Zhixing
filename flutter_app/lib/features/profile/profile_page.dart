@@ -20,6 +20,7 @@ import 'settings_page.dart';
 import '../me/my_comments_page.dart';
 import '../me/my_favorites_page.dart';
 import '../me/my_posts_page.dart';
+import '../me/feedback_mailbox_page.dart';
 import '../me/my_reports_page.dart';
 
 /// 个人资料与设置 (handoff W6): the profile card with counts, the four
@@ -260,6 +261,17 @@ class ProfilePageState extends State<ProfilePage> {
                           'Language, color theme, appearance, emoji',
                         ),
                         onTap: () => _open(const SettingsPage()),
+                      ),
+                      ZxListItem(
+                        key: const Key('profile-feedback-mailbox'),
+                        icon: Icons.mark_email_unread_outlined,
+                        iconColor: t.info,
+                        title: text('信箱', 'Mailbox'),
+                        subtitle: text(
+                          '给西电知行提意见，查看回复',
+                          'Write to 西电知行 and read replies',
+                        ),
+                        onTap: () => _open(const FeedbackMailboxPage()),
                       ),
                     ],
                   ),

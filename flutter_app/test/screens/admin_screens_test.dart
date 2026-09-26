@@ -22,9 +22,20 @@ AdminRepository _repo() => AdminRepository(
       'todayReports': 5,
       'pendingReviews': 3,
       'pendingCancellationRequests': 1,
+      'pendingFeedbacks': 2,
       'activeUsers': 2310,
       'bannedUsers': 4,
       'mutedUsers': 2,
+    },
+    '/admin/channels-tags': <String, Object>{'tags': <String>['食堂', '二手']},
+    '/admin/config': <String, Object>{
+      'sensitiveWords': <String>[],
+      'settings': <String, int>{
+        'postRateLimit': 5,
+        'commentRateLimit': 20,
+        'messageRateLimit': 30,
+        'imageMaxMB': 5,
+      },
     },
     '/admin/reviews': <Object>[
       for (int i = 0; i < 3; i++)

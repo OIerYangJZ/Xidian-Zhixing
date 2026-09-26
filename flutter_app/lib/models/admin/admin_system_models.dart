@@ -2,20 +2,19 @@
 
 part of '../admin_models.dart';
 
-class AdminChannelTagData {
-  AdminChannelTagData({
-    required this.channels,
-    required this.tags,
-  });
+/// GET /admin/channels-tags. Sections replaced channels, so only tags are
+/// managed here.
+class AdminTagData {
+  AdminTagData({required this.tags});
 
-  final List<String> channels;
   final List<String> tags;
 
-  factory AdminChannelTagData.fromJson(Map<String, dynamic> json) {
-    return AdminChannelTagData(
-      channels: _toStringList(json['channels']),
-      tags: _toStringList(json['tags']),
-    );
+  factory AdminTagData.fromJson(Map<String, dynamic> json) {
+    final dynamic tags = json['tags'];
+    if (tags is! List) {
+      throw const FormatException('标签列表响应缺少 tags');
+    }
+    return AdminTagData(tags: _toStringList(tags));
   }
 }
 
@@ -35,29 +34,27 @@ class AdminSystemConfig {
   final int imageMaxMb;
 
   factory AdminSystemConfig.fromJson(Map<String, dynamic> json) {
-    final Map<String, dynamic> settings =
-        (json['settings'] is Map<String, dynamic>)
-            ? json['settings'] as Map<String, dynamic>
-            : ((json['settings'] is Map)
-                ? (json['settings'] as Map<dynamic, dynamic>).map(
-                    (dynamic key, dynamic value) =>
-                        MapEntry(key.toString(), value),
-                  )
-                : <String, dynamic>{});
+    final dynamic rawSettings = json['settings'];
+    if (rawSettings is! Map) {
+      throw const FormatException('系统配置响应缺少 settings');
+    }
+    final Map<String, dynamic> settings = rawSettings.map(
+      (dynamic key, dynamic value) => MapEntry(key.toString(), value),
+    );
+    int requireInt(String key) {
+      final int? value = _toInt(settings[key]);
+      if (value == null) {
+        throw FormatException('系统配置响应缺少 $key');
+      }
+      return value;
+    }
 
     return AdminSystemConfig(
       sensitiveWords: _toStringList(json['sensitiveWords']),
-      postRateLimit: _toInt(settings['postRateLimit']) ??
-          _toInt(json['postRateLimit']) ??
-          10,
-      commentRateLimit: _toInt(settings['commentRateLimit']) ??
-          _toInt(json['commentRateLimit']) ??
-          30,
-      messageRateLimit: _toInt(settings['messageRateLimit']) ??
-          _toInt(json['messageRateLimit']) ??
-          40,
-      imageMaxMb:
-          _toInt(settings['imageMaxMB']) ?? _toInt(json['imageMaxMB']) ?? 5,
+      postRateLimit: requireInt('postRateLimit'),
+      commentRateLimit: requireInt('commentRateLimit'),
+      messageRateLimit: requireInt('messageRateLimit'),
+      imageMaxMb: requireInt('imageMaxMB'),
     );
   }
 

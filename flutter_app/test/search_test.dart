@@ -5,6 +5,7 @@ import 'package:http/testing.dart';
 
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'api_mocks.dart';
 
@@ -22,7 +23,7 @@ void main() {
         // 帖子列表（支持筛选参数）
         if (path.endsWith('/posts') && method == 'GET') {
           final keyword = queryParams['keyword'];
-          final channel = queryParams['channel'];
+          final sectionId = queryParams['sectionId'];
           final sort = queryParams['sort'];
 
           // 模拟搜索结果
@@ -34,8 +35,8 @@ void main() {
             );
           }
 
-          // 模拟频道筛选结果
-          if (channel != null && channel.isNotEmpty) {
+          // 模拟分区筛选结果
+          if (sectionId != null && sectionId.isNotEmpty) {
             return http.Response(
               jsonEncode(MockApiResponses.postsSuccess()),
               200,
@@ -54,15 +55,6 @@ void main() {
 
           return http.Response(
             jsonEncode(MockApiResponses.postsSuccess()),
-            200,
-            headers: {'content-type': 'application/json; charset=utf-8'},
-          );
-        }
-
-        // 频道列表
-        if (path.endsWith('/channels') && method == 'GET') {
-          return http.Response(
-            jsonEncode(MockApiResponses.channelsSuccess()),
             200,
             headers: {'content-type': 'application/json; charset=utf-8'},
           );
@@ -108,21 +100,9 @@ void main() {
       });
     });
 
-    group('频道筛选', () {
-      test('按频道筛选帖子', () async {
-        final posts = await postRepository.fetchPosts(channel: '吐槽日常');
-
-        expect(posts, isA<List<PostItem>>());
-      });
-
-      test('筛选不存在的频道返回空列表或全部', () async {
-        final posts = await postRepository.fetchPosts(channel: '不存在的频道');
-
-        expect(posts, isA<List<PostItem>>());
-      });
-
-      test('全部频道显示所有帖子', () async {
-        final posts = await postRepository.fetchPosts(channel: '全部');
+    group('分区筛选', () {
+      test('按分区筛选帖子', () async {
+        final posts = await postRepository.fetchPosts(section: _general);
 
         expect(posts, isA<List<PostItem>>());
       });
@@ -157,7 +137,7 @@ void main() {
       test('同时按关键词和频道筛选', () async {
         final posts = await postRepository.fetchPosts(
           keyword: '测试',
-          channel: '吐槽日常',
+          section: _general,
         );
 
         expect(posts, isA<List<PostItem>>());
@@ -166,7 +146,7 @@ void main() {
       test('同时按关键词、频道和排序筛选', () async {
         final posts = await postRepository.fetchPosts(
           keyword: 'Flutter',
-          channel: '学习交流',
+          section: _general,
           sort: PostSort.likes,
         );
 
@@ -194,39 +174,13 @@ void main() {
 
       test('多个筛选条件组合', () async {
         final posts = await postRepository.fetchPosts(
-          channel: '吐槽日常',
+          section: _general,
           keyword: '测试',
           hasImage: false,
           sort: PostSort.latest,
         );
 
         expect(posts, isA<List<PostItem>>());
-      });
-    });
-
-    group('频道列表', () {
-      test('获取所有可用频道', () async {
-        final channels = await postRepository.fetchChannels();
-
-        expect(channels, isNotEmpty);
-        expect(channels, contains('吐槽日常'));
-        expect(channels, contains('求助问答'));
-      });
-
-      test('频道列表包含所有预期分类', () async {
-        final channels = await postRepository.fetchChannels();
-
-        expect(channels, contains('找对象'));
-        expect(channels, contains('找搭子'));
-        expect(channels, contains('交友扩列'));
-        expect(channels, contains('吐槽日常'));
-        expect(channels, contains('八卦吃瓜'));
-        expect(channels, contains('求助问答'));
-        expect(channels, contains('失物招领'));
-        expect(channels, contains('二手交易'));
-        expect(channels, contains('学习交流'));
-        expect(channels, contains('活动拼车'));
-        expect(channels, contains('其他'));
       });
     });
 
@@ -260,3 +214,10 @@ void main() {
     });
   });
 }
+
+const SectionItem _general = SectionItem(
+  id: 'section-general',
+  sectionType: 'general',
+  sectionId: 'general',
+  sectionName: '综合',
+);

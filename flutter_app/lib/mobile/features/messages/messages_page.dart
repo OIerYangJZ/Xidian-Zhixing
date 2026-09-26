@@ -71,6 +71,19 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
     danger: true,
   );
 
+  Future<bool> _confirmAndDelete(ConversationItem c) async {
+    if (!await _confirmDelete(c)) return false;
+    try {
+      await ref
+          .read(messagesControllerProvider.notifier)
+          .deleteConversation(c.id);
+      return true;
+    } catch (error) {
+      if (mounted) zxShowToast(context, '删除失败：$error');
+      return false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
@@ -193,10 +206,8 @@ class _MessagesPageState extends ConsumerState<MessagesPage> {
                           Dismissible(
                             key: Key(c.id),
                             direction: DismissDirection.endToStart,
-                            confirmDismiss: (_) => _confirmDelete(c),
-                            onDismissed: (_) => ref
-                                .read(messagesControllerProvider.notifier)
-                                .deleteConversation(c.id),
+                            // Deleted before the row goes: a failure keeps it.
+                            confirmDismiss: (_) => _confirmAndDelete(c),
                             background: Container(
                               alignment: Alignment.centerRight,
                               padding: const EdgeInsets.only(right: 20),

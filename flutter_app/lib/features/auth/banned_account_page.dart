@@ -6,6 +6,7 @@ import '../../core/auth/auth_store.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
+import '../../core/utils/code_point_limit.dart';
 import '../../design_system/design_system.dart';
 import '../../repositories/appeal_repository.dart';
 
@@ -15,11 +16,16 @@ String _messageOf(Object error) => switch (error) {
   _ => '$error',
 };
 
-/// Where a banned session lands (handoff W9). The account is signed in, but the server
-/// refuses everything except this screen's two endpoints, so there is no shell
-/// to show and no point offering navigation.
+/// Where a banned session lands (handoff W9), on the web and on Android. The
+/// account is signed in, but the server refuses everything except this
+/// screen's endpoints and the profile, so there is no shell to show and no
+/// point offering navigation.
 class BannedAccountPage extends ConsumerStatefulWidget {
-  const BannedAccountPage({super.key});
+  const BannedAccountPage({super.key, this.onSignedOut});
+
+  /// The web has no router guard and moves to the login page here; on
+  /// Android the guard does it when the session clears.
+  final VoidCallback? onSignedOut;
 
   @override
   ConsumerState<BannedAccountPage> createState() => _BannedAccountPageState();
@@ -55,9 +61,9 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
           .fetchLatest();
       if (!mounted) return;
       // An approved appeal means the ban is already lifted server side; drop
-      // the local flag so the next build routes into the app.
+      // the local flag so the app routes back in.
       if (!state.banned) {
-        AuthStore.instance.setBanned(false);
+        AuthStore.instance.liftBan();
       }
       setState(() {
         _state = state;
@@ -80,16 +86,28 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
       _error = '';
     });
     try {
+      // The appeal is filed under the campus address signed in with; after
+      // a restart the profile has not been read yet.
+      if (AuthStore.instance.currentUser == null) {
+        final profile = await ref.read(userRepositoryProvider).fetchProfile();
+        AuthStore.instance.setCurrentUser(profile);
+      }
       await ref
           .read(appealRepositoryProvider)
           .submitUnbanAppeal(
-            email: AuthStore.instance.currentUser?.email ?? '',
+            email: AuthStore.instance.currentUser!.email,
             content: _content.text,
           );
       _content.clear();
       await _load();
     } catch (error) {
       if (!mounted) return;
+      // 409: this ban's in-app appeal is used up (or one is pending). The
+      // state reloads so the page shows the mailbox route; the reason stays.
+      if (error is ApiException && error.statusCode == 409) {
+        await _load();
+        if (!mounted) return;
+      }
       setState(() {
         _error = _messageOf(error);
         _submitting = false;
@@ -102,7 +120,18 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
   }
 
   Future<void> _signOut() async {
-    await ref.read(authRepositoryProvider).clearLocalAuth();
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } catch (error) {
+      if (mounted) {
+        zxShowToast(
+          context,
+          uiTextGlobal(zh: '退出失败：$error', en: 'Sign-out failed: $error'),
+        );
+      }
+      return;
+    }
+    widget.onSignedOut?.call();
   }
 
   @override
@@ -353,6 +382,11 @@ class _BannedAccountPageState extends ConsumerState<BannedAccountPage> {
             maxLines: 8,
             minLines: 6,
             maxLength: 4000,
+            maxLengthEnforcement: MaxLengthEnforcement.none,
+            inputFormatters: <TextInputFormatter>[
+              CodePointLimitFormatter(4000),
+            ],
+            buildCounter: codePointCounter(_content),
             enabled: !_submitting,
             decoration: InputDecoration(
               hintText: text(

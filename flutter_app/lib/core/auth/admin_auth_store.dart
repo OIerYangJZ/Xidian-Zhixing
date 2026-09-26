@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +21,20 @@ class AdminAuthStore {
 
   SharedPreferences? _prefs;
   String? _token;
+  final StreamController<void> _expired = StreamController<void>.broadcast();
+
+  /// Admin sessions live in the backend's memory, so a restart or deploy ends
+  /// them; the console returns to sign-in when that happens.
+  Stream<void> get sessionExpired => _expired.stream;
+
+  /// The server answered 401 to a request carrying this admin session.
+  Future<void> expireSession() async {
+    if (!isAuthenticated) {
+      return;
+    }
+    await clear();
+    _expired.add(null);
+  }
 
   String? get token => _token;
 

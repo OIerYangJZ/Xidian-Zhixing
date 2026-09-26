@@ -10,6 +10,7 @@ class AdminOverview {
     required this.todayReports,
     required this.pendingReviews,
     required this.pendingCancellationRequests,
+    required this.pendingFeedbacks,
     required this.activeUsers,
     required this.bannedUsers,
     required this.mutedUsers,
@@ -21,22 +22,31 @@ class AdminOverview {
   final int todayReports;
   final int pendingReviews;
   final int pendingCancellationRequests;
+  final int pendingFeedbacks;
   final int activeUsers;
   final int bannedUsers;
   final int mutedUsers;
 
   factory AdminOverview.fromJson(Map<String, dynamic> json) {
+    int requireInt(String key) {
+      final int? value = _toInt(json[key]);
+      if (value == null) {
+        throw FormatException('概览响应缺少 $key');
+      }
+      return value;
+    }
+
     return AdminOverview(
-      todayNewUsers: _toInt(json['todayNewUsers']) ?? 0,
-      todayPosts: _toInt(json['todayPosts']) ?? 0,
-      todayComments: _toInt(json['todayComments']) ?? 0,
-      todayReports: _toInt(json['todayReports']) ?? 0,
-      pendingReviews: _toInt(json['pendingReviews']) ?? 0,
-      pendingCancellationRequests:
-          _toInt(json['pendingCancellationRequests']) ?? 0,
-      activeUsers: _toInt(json['activeUsers']) ?? 0,
-      bannedUsers: _toInt(json['bannedUsers']) ?? 0,
-      mutedUsers: _toInt(json['mutedUsers']) ?? 0,
+      todayNewUsers: requireInt('todayNewUsers'),
+      todayPosts: requireInt('todayPosts'),
+      todayComments: requireInt('todayComments'),
+      todayReports: requireInt('todayReports'),
+      pendingReviews: requireInt('pendingReviews'),
+      pendingCancellationRequests: requireInt('pendingCancellationRequests'),
+      pendingFeedbacks: requireInt('pendingFeedbacks'),
+      activeUsers: requireInt('activeUsers'),
+      bannedUsers: requireInt('bannedUsers'),
+      mutedUsers: requireInt('mutedUsers'),
     );
   }
 }

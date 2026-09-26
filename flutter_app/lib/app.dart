@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -18,8 +20,48 @@ import 'features/legal/terms_of_service_page.dart';
 import 'l10n/generated/app_localizations.dart';
 import 'widgets/home_shell.dart';
 
-class XduTreeholeApp extends StatelessWidget {
+class XduTreeholeApp extends StatefulWidget {
   const XduTreeholeApp({super.key});
+
+  @override
+  State<XduTreeholeApp> createState() => _XduTreeholeAppState();
+}
+
+class _XduTreeholeAppState extends State<XduTreeholeApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+  late final StreamSubscription<SessionChange> _sessionChanges;
+
+  @override
+  void initState() {
+    super.initState();
+    _sessionChanges = AuthStore.instance.sessionChanges.listen(
+      _onSessionChange,
+    );
+  }
+
+  @override
+  void dispose() {
+    _sessionChanges.cancel();
+    super.dispose();
+  }
+
+  /// No router guard here, so what the server does to the session moves the
+  /// whole stack: a dead session to sign-in, a ban to the appeal screen.
+  void _onSessionChange(SessionChange change) {
+    final NavigatorState? navigator = _navigatorKey.currentState;
+    if (navigator == null) {
+      return;
+    }
+    final Widget page = switch (change) {
+      SessionChange.expired => const LoginPage(),
+      SessionChange.banned => bannedAccountPage(),
+      SessionChange.unbanned => const HomeShell(),
+    };
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => page),
+      (Route<dynamic> route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +74,7 @@ class XduTreeholeApp extends StatelessWidget {
         final Locale locale = AppLocaleStore.instance.locale;
         final String themeKey = AppThemeStore.instance.themeKey;
         return MaterialApp(
+          navigatorKey: _navigatorKey,
           onGenerateTitle: (BuildContext context) =>
               AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
@@ -104,7 +147,7 @@ class XduTreeholeApp extends StatelessWidget {
       // A banned session can reach only the appeal endpoints, so building the
       // shell would render a screen whose every request comes back 403.
       if (AuthStore.instance.isBanned) {
-        return const BannedAccountPage();
+        return bannedAccountPage();
       }
       return const HomeShell();
     }
@@ -115,3 +158,13 @@ class XduTreeholeApp extends StatelessWidget {
     return const LoginPage();
   }
 }
+
+/// The ban screen on the web: signing out goes back to the login page.
+Widget bannedAccountPage() => Builder(
+  builder: (BuildContext context) => BannedAccountPage(
+    onSignedOut: () => Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute<void>(builder: (_) => const LoginPage()),
+      (Route<dynamic> route) => false,
+    ),
+  ),
+);

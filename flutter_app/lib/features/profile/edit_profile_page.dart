@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../core/utils/code_point_limit.dart';
 
 import '../../core/auth/auth_store.dart';
 import '../../core/config/app_config.dart';
@@ -158,6 +160,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             controller: _nicknameController,
                             enabled: !busy,
                             maxLength: 24,
+                            maxLengthEnforcement: MaxLengthEnforcement.none,
+                            inputFormatters: <TextInputFormatter>[
+                              CodePointLimitFormatter(24),
+                            ],
+                            buildCounter: codePointCounter(_nicknameController),
                             onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
                               labelText: text('昵称', 'Nickname'),
@@ -170,6 +177,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             minLines: 2,
                             maxLines: 4,
                             maxLength: 100,
+                            maxLengthEnforcement: MaxLengthEnforcement.none,
+                            inputFormatters: <TextInputFormatter>[
+                              CodePointLimitFormatter(100),
+                            ],
+                            buildCounter: codePointCounter(_bioController),
                             decoration: InputDecoration(
                               labelText: text('个性签名', 'Bio'),
                               hintText: text(

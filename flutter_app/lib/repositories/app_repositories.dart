@@ -18,6 +18,7 @@ class AppRepositories {
   static final ApiClient apiClient = ApiClient();
   static final ApiClient adminApiClient = ApiClient(
     tokenResolver: () => AdminAuthStore.instance.token,
+    onUnauthorized: AdminAuthStore.instance.expireSession,
   );
 
   static final AuthRepository auth = AuthRepository(apiClient);

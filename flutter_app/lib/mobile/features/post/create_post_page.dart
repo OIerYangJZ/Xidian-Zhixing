@@ -7,10 +7,12 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/utils/code_point_limit.dart';
 import '../../../design_system/design_system.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/square_icon_button.dart';
 import 'package:xdu_treehole_web/models/post_item.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 import 'package:xdu_treehole_web/repositories/post_repository.dart';
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
 
@@ -28,16 +30,9 @@ class CreatePostPage extends ConsumerStatefulWidget {
 }
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
-  static const int _titleMax = 60;
-  static const int _contentMax = 2000;
+  static const int _titleMax = PostLimits.title;
+  static const int _contentMax = PostLimits.plainContent;
   static const int _imageMax = 9;
-  static const List<String> _fallbackChannels = <String>[
-    '综合',
-    '学习交流',
-    '求助问答',
-    '二手交易',
-    '吐槽日常',
-  ];
 
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
@@ -46,9 +41,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   final GlobalKey _titleKey = GlobalKey();
   final GlobalKey _contentKey = GlobalKey();
-  final GlobalKey _channelKey = GlobalKey();
+  final GlobalKey _sectionKey = GlobalKey();
+  final GlobalKey _tagsKey = GlobalKey();
 
-  String? _channel;
+  SectionItem? _section;
   List<String> _tags = <String>[];
   PostStatus _status = PostStatus.ongoing;
   bool _privateOnly = false;
@@ -58,7 +54,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       AuthStore.instance.currentUser?.isLevelOneUser ?? false;
 
   final List<XFile> _images = <XFile>[];
-  List<String> _channels = <String>[];
+  List<SectionItem> _sections = <SectionItem>[];
+  List<ClubItem> _clubs = <ClubItem>[];
+  String? _sectionsLoadError;
 
   /// Set after the first 发布, so errors only show once asked for.
   bool _showErrors = false;
@@ -71,7 +69,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   @override
   void initState() {
     super.initState();
-    _loadChannels();
+    _loadSections();
     _loadUserLevel();
     _titleController.addListener(_refresh);
     _contentController.addListener(_refresh);
@@ -87,19 +85,27 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
 
   void _refresh() => setState(() {});
 
-  Future<void> _loadChannels() async {
-    List<String> channels;
+  Future<void> _loadSections() async {
+    setState(() => _sectionsLoadError = null);
     try {
-      channels = (await ref.read(postRepositoryProvider).fetchChannels())
-          .where((String c) => c != '全部')
-          .toList();
-    } catch (_) {
-      channels = const <String>[];
+      final PostRepository repo = ref.read(postRepositoryProvider);
+      final (List<SectionItem> sections, List<ClubItem> clubs) = await (
+        repo.fetchSections(),
+        repo.fetchClubs(),
+      ).wait;
+      if (!mounted) return;
+      setState(() {
+        _clubs = clubs;
+        _sections = postableSections(sections, clubs);
+        // 综合 unless the user picks another.
+        _section ??= _sections
+            .where((SectionItem s) => s.isGeneral)
+            .firstOrNull;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _sectionsLoadError = '分区加载失败：$error');
     }
-    if (!mounted) return;
-    setState(() {
-      _channels = channels.isEmpty ? _fallbackChannels : channels;
-    });
   }
 
   Future<void> _loadUserLevel() async {
@@ -118,26 +124,34 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   String? get _titleError {
     final String title = _titleController.text.trim();
     if (title.isEmpty) return '请填写标题';
-    if (title.characters.length > _titleMax) return '标题最多 $_titleMax 字';
+    if (title.runes.length > _titleMax) return '标题最多 $_titleMax 字';
     return null;
   }
 
   String? get _contentError {
     final String content = _contentController.text.trim();
     if (content.isEmpty) return '请填写正文';
-    if (content.characters.length > _contentMax) {
+    if (content.runes.length > _contentMax) {
       return '正文最多 $_contentMax 字';
     }
     return null;
   }
 
-  String? get _channelError => _channel == null ? '请选择分区' : null;
+  String? get _sectionError => _section == null ? '请选择分区' : null;
+
+  /// The server merges the #topics in the title and body into the tags.
+  String? get _tagError => PostLimits.tagProblem(
+    _tags,
+    _titleController.text.trim(),
+    _contentController.text.trim(),
+  );
 
   /// Missing or invalid fields, in page order.
   List<GlobalKey> get _missing => <GlobalKey>[
     if (_titleError != null) _titleKey,
     if (_contentError != null) _contentKey,
-    if (_channelError != null) _channelKey,
+    if (_sectionError != null) _sectionKey,
+    if (_tagError != null) _tagsKey,
   ];
 
   void _scrollTo(GlobalKey key) {
@@ -248,7 +262,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         CreatePostInput(
           title: _titleController.text.trim(),
           content: _contentController.text.trim(),
-          channel: _channel!,
+          section: _section!,
+          publisherClub: publisherClubFor(_section!, _clubs),
           tags: _tags,
           allowComment: true,
           allowDm: !_isAnonymous,
@@ -391,8 +406,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   Widget _buildEditorCard(ZxTokens t) {
     final String? titleError = _showErrors ? _titleError : null;
     final String? contentError = _showErrors ? _contentError : null;
-    final int titleLength = _titleController.text.trim().characters.length;
-    final int contentLength = _contentController.text.characters.length;
+    final int titleLength = _titleController.text.trim().runes.length;
+    final int contentLength = _contentController.text.trim().runes.length;
     return ZxCard(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -580,7 +595,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   Widget _buildSettingsCard(ZxTokens t) {
-    final String? channelError = _showErrors ? _channelError : null;
+    final String? sectionError = _showErrors ? _sectionError : null;
+    final String? tagError = _showErrors ? _tagError : null;
     Widget heading(String label, {bool required = false, Widget? trailing}) =>
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
@@ -607,48 +623,63 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         children: [
           section(
             Column(
-              key: _channelKey,
+              key: _sectionKey,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 heading('分区', required: true),
-                Container(
-                  padding: channelError != null
-                      ? const EdgeInsets.all(8)
-                      : EdgeInsets.zero,
-                  decoration: channelError != null
-                      ? BoxDecoration(
-                          borderRadius: ZxRadius.buttonAll,
-                          border: Border.all(color: t.danger, width: 1.5),
-                        )
-                      : null,
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                if (_sectionsLoadError != null)
+                  Row(
                     children: [
-                      for (final String channel in _channels)
-                        _ChannelChip(
-                          key: Key('mobile-create-channel-$channel'),
-                          label: channel,
-                          dot: t.channelFor(channel),
-                          selected: _channel == channel,
-                          onTap: () => setState(() => _channel = channel),
-                        ),
+                      Expanded(child: _FieldError(_sectionsLoadError!)),
+                      ZxButton(
+                        label: '重试',
+                        small: true,
+                        variant: ZxButtonVariant.ghost,
+                        onPressed: _loadSections,
+                      ),
                     ],
+                  )
+                else
+                  Container(
+                    padding: sectionError != null
+                        ? const EdgeInsets.all(8)
+                        : EdgeInsets.zero,
+                    decoration: sectionError != null
+                        ? BoxDecoration(
+                            borderRadius: ZxRadius.buttonAll,
+                            border: Border.all(color: t.danger, width: 1.5),
+                          )
+                        : null,
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final SectionItem section in _sections)
+                          _ChannelChip(
+                            key: Key('mobile-create-section-${section.key}'),
+                            label: section.sectionName,
+                            dot: t.channelFor(section.sectionName),
+                            selected: _section == section,
+                            onTap: () => setState(() => _section = section),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                if (channelError != null) _FieldError(channelError),
+                if (sectionError != null && _sectionsLoadError == null)
+                  _FieldError(sectionError),
               ],
             ),
           ),
           divider(),
           section(
             Column(
+              key: _tagsKey,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 heading(
                   '标签',
                   trailing: Text(
-                    '${_tags.length}/5',
+                    '${_tags.length}/${PostLimits.tags}',
                     style: ZxType.caption.copyWith(color: t.text3),
                   ),
                 ),
@@ -677,6 +708,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     ),
                   ],
                 ),
+                if (tagError != null) _FieldError(tagError),
               ],
             ),
           ),
@@ -767,8 +799,10 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                         Expanded(
                           child: TextField(
                             controller: _aliasController,
-                            // Same limit as the server's sanitize_alias.
-                            maxLength: 24,
+                            // sanitize_alias keeps 24 code points.
+                            inputFormatters: const [
+                              CodePointLimitFormatter(24),
+                            ],
                             onChanged: (_) => setState(() {}),
                             style: ZxType.body.copyWith(color: t.text),
                             decoration: InputDecoration(
@@ -1025,7 +1059,7 @@ class _TagSheet extends StatefulWidget {
 }
 
 class _TagSheetState extends State<_TagSheet> {
-  static const int _max = 5;
+  static const int _max = PostLimits.tags;
   static const List<String> _common = <String>[
     '求助',
     '学习',

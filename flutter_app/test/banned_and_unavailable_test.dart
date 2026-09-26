@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:xdu_treehole_web/core/auth/auth_store.dart';
+import 'package:xdu_treehole_web/core/network/api_exception.dart';
 import 'package:xdu_treehole_web/core/navigation/share_links.dart';
 import 'package:xdu_treehole_web/core/network/api_client.dart';
 import 'package:xdu_treehole_web/core/state/app_providers.dart';
@@ -11,6 +12,7 @@ import 'package:xdu_treehole_web/core/theme/app_theme.dart';
 import 'package:xdu_treehole_web/features/auth/banned_account_page.dart';
 import 'package:xdu_treehole_web/features/post/post_unavailable_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
+import 'package:xdu_treehole_web/models/user_profile.dart';
 import 'package:xdu_treehole_web/repositories/appeal_repository.dart';
 
 class _FakeAppeals extends AppealRepository {
@@ -33,14 +35,39 @@ class _FakeAppeals extends AppealRepository {
     submitted.add(content.trim());
     state = AppealState.fromJson(<String, dynamic>{
       'banned': true,
+      'canSubmit': false,
       'appeal': <String, dynamic>{'status': 'pending', 'content': content},
     });
   }
 }
 
-AppealState _state(String status, {bool banned = true}) =>
+/// What GET /appeals/mine answers: [canSubmit] is the server's call, true
+/// while banned with no pending appeal and this ban's appeal not turned down.
+/// The form was open, but the server already counts this ban's appeal as
+/// turned down (another device, say) and answers 409.
+class _UsedUpAppeals extends _FakeAppeals {
+  _UsedUpAppeals() : super(_state(''));
+
+  @override
+  Future<void> submitUnbanAppeal({
+    required String email,
+    required String content,
+  }) async {
+    state = _state('rejected');
+    throw ApiException(
+      message: '本次封禁的站内申诉已用完，请用本人校园邮箱发送至 support@example.edu.cn',
+      statusCode: 409,
+    );
+  }
+}
+
+AppealState _state(String status, {bool banned = true, bool? canSubmit}) =>
     AppealState.fromJson(<String, dynamic>{
       'banned': banned,
+      'canSubmit':
+          canSubmit ??
+          (banned &&
+              !<String>{'pending', 'rejected', 'closed'}.contains(status)),
       'supportEmail': 'support@example.edu.cn',
       'appeal': <String, dynamic>{
         'status': status,
@@ -73,6 +100,13 @@ void main() {
     WidgetTester tester,
   ) async {
     final _FakeAppeals appeals = _FakeAppeals(_state(''));
+    // The appeal goes out under the signed-in campus address.
+    AuthStore.instance.setCurrentUser(
+      UserProfile.fromJson(<String, dynamic>{
+        'email': '2500100@stu.xidian.edu.cn',
+      }),
+    );
+    addTearDown(() => AuthStore.instance.setCurrentUser(null));
     await tester.pumpWidget(
       _app(
         const BannedAccountPage(),
@@ -119,6 +153,55 @@ void main() {
     expect(find.byKey(const Key('banned-email-only')), findsOneWidget);
     expect(find.text('support@example.edu.cn'), findsOneWidget);
     expect(find.textContaining('证据不足'), findsOneWidget);
+    expect(find.byKey(const Key('banned-appeal-form')), findsNothing);
+  });
+
+  testWidgets('an appeal turned down during an earlier ban leaves the form', (
+    WidgetTester tester,
+  ) async {
+    // The server's canSubmit, not the latest status, decides.
+    await tester.pumpWidget(
+      _app(
+        const BannedAccountPage(),
+        overrides: <Override>[
+          appealRepositoryProvider.overrideWithValue(
+            _FakeAppeals(_state('rejected', canSubmit: true)),
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('banned-appeal-form')), findsOneWidget);
+    expect(find.byKey(const Key('banned-email-only')), findsNothing);
+  });
+
+  testWidgets('a used-up appeal says why and turns to the mailbox', (
+    WidgetTester tester,
+  ) async {
+    final _UsedUpAppeals appeals = _UsedUpAppeals();
+    AuthStore.instance.setCurrentUser(
+      UserProfile.fromJson(<String, dynamic>{
+        'email': '2500100@stu.xidian.edu.cn',
+      }),
+    );
+    addTearDown(() => AuthStore.instance.setCurrentUser(null));
+    await tester.pumpWidget(
+      _app(
+        const BannedAccountPage(),
+        overrides: <Override>[
+          appealRepositoryProvider.overrideWithValue(appeals),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('banned-appeal-input')),
+      '请再看一次',
+    );
+    await tester.tap(find.byKey(const Key('banned-appeal-submit')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('本次封禁的站内申诉已用完'), findsOneWidget);
+    expect(find.byKey(const Key('banned-email-only')), findsOneWidget);
     expect(find.byKey(const Key('banned-appeal-form')), findsNothing);
   });
 

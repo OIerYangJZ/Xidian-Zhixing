@@ -7,9 +7,9 @@ import '../../core/widgets/async_page_state.dart';
 import '../../design_system/design_system.dart';
 import '../../models/notification_item.dart';
 import '../../models/post_item.dart';
-import '../../models/report_item.dart';
 import '../../repositories/app_repositories.dart';
-import '../me/report_detail_page.dart';
+import '../me/feedback_mailbox_page.dart';
+import '../../widgets/post_card.dart' show relativeTime;
 import 'notifications_controller.dart';
 
 class NotificationCenterPage extends ConsumerStatefulWidget {
@@ -301,7 +301,7 @@ class _NotificationCenterPageState
                           const SizedBox(width: 4),
                         ],
                         Text(
-                          item.timeText,
+                          _timeText(context, item),
                           style: ZxType.caption.copyWith(color: t.text3),
                         ),
                       ],
@@ -377,8 +377,11 @@ class _NotificationCenterPageState
       await _openPost(item.postId);
       return;
     }
-    if (item.relatedType == 'report' && item.relatedId.trim().isNotEmpty) {
-      await _openReport(item.relatedId);
+    // An admin replied to or closed a 信箱 message.
+    if (item.relatedType == 'feedback') {
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => const FeedbackMailboxPage()),
+      );
       return;
     }
     await showDialog<void>(
@@ -416,37 +419,6 @@ class _NotificationCenterPageState
               context,
               zh: '打开帖子失败：$error',
               en: 'Could not open post: $error',
-            ),
-          ),
-        ),
-      );
-    }
-  }
-
-  Future<void> _openReport(String reportId) async {
-    try {
-      final ReportItem detail = await AppRepositories.users.fetchMyReportDetail(
-        reportId,
-      );
-      if (!mounted) {
-        return;
-      }
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ReportDetailPage(report: detail),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            uiText(
-              context,
-              zh: '打开举报详情失败：$error',
-              en: 'Could not open report details: $error',
             ),
           ),
         ),
@@ -594,4 +566,13 @@ class _CategoryList extends ConsumerWidget {
       ),
     );
   }
+}
+
+// The server sends only createdAt (ISO 8601, UTC).
+String _timeText(BuildContext context, NotificationItem item) {
+  final DateTime? created = DateTime.tryParse(item.createdAt);
+  if (created == null) {
+    return item.createdAt;
+  }
+  return relativeTime(context, created.toLocal());
 }

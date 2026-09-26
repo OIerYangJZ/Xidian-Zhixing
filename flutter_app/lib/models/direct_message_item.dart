@@ -13,6 +13,7 @@ class DirectMessageItem {
     this.isRead = false,
     this.readAt = '',
     this.deliveryStatus = 'sent',
+    this.recalled = false,
     this.serverCanRecall,
     this.replyToId,
     this.replyToSender,
@@ -28,6 +29,10 @@ class DirectMessageItem {
   final bool isRead;
   final String readAt;
   final String deliveryStatus;
+
+  /// Recalled: kept in the thread as 你撤回了一条消息 / 对方撤回了一条消息,
+  /// with no content.
+  final bool recalled;
   final bool? serverCanRecall;
 
   /// 回复引用字段（可选）
@@ -39,8 +44,10 @@ class DirectMessageItem {
       replyToId != null && replyToContent != null && replyToContent!.isNotEmpty;
 
   bool get canRecall {
-    if (!fromMe || deliveryStatus == 'failed') return false;
-    if (serverCanRecall != null) return serverCanRecall!;
+    if (!fromMe || recalled || deliveryStatus == 'failed') return false;
+    // The server's canRecall is a snapshot from when the list loaded; the
+    // two-minute window keeps closing while the chat stays open.
+    if (serverCanRecall == false) return false;
     final created = DateTime.tryParse(createdAt)?.toUtc();
     if (created == null) return false;
     return DateTime.now().toUtc().difference(created).inSeconds <= 120;
@@ -56,6 +63,7 @@ class DirectMessageItem {
     bool? isRead,
     String? readAt,
     String? deliveryStatus,
+    bool? recalled,
     bool? serverCanRecall,
     String? replyToId,
     String? replyToSender,
@@ -71,6 +79,7 @@ class DirectMessageItem {
       isRead: isRead ?? this.isRead,
       readAt: readAt ?? this.readAt,
       deliveryStatus: deliveryStatus ?? this.deliveryStatus,
+      recalled: recalled ?? this.recalled,
       serverCanRecall: serverCanRecall ?? this.serverCanRecall,
       replyToId: replyToId ?? this.replyToId,
       replyToSender: replyToSender ?? this.replyToSender,
@@ -94,6 +103,7 @@ class DirectMessageItem {
       readAt: readAt,
       deliveryStatus: (json['deliveryStatus'] ?? (isRead ? 'read' : 'sent'))
           .toString(),
+      recalled: _toBool(json['recalled']) ?? false,
       serverCanRecall: _toBool(json['canRecall']),
       replyToId: json['replyToId'] as String?,
       replyToSender: json['replyToSender'] as String?,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../core/utils/code_point_limit.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,8 @@ import '../../core/media/picked_image_data.dart';
 import '../../core/state/app_providers.dart';
 import '../../core/widgets/async_page_state.dart';
 import '../../models/post_item.dart';
+import '../../models/section_item.dart';
+import '../../repositories/post_repository.dart' show PostLimits;
 import '../../models/uploaded_image_item.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 import '../../widgets/post_content_body.dart';
@@ -27,7 +30,7 @@ class CreatePostPage extends ConsumerStatefulWidget {
 }
 
 class _CreatePostPageState extends ConsumerState<CreatePostPage> {
-  static const int _plainTextMaxLength = 3000;
+  static const int _plainTextMaxLength = PostLimits.plainContent;
   static const String _draftKey = 'xiaodian_create_post_draft';
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -37,7 +40,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       TextEditingController();
   final FocusNode _contentFocusNode = FocusNode();
 
-  String? _selectedChannel;
+  /// A section's key; the draft keeps it across visits.
+  String? _selectedSectionKey;
   PostStatus _status = PostStatus.ongoing;
   bool _useAnonymousAlias = false;
   bool _useMarkdown = false;
@@ -52,7 +56,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   final List<String> _tags = <String>[];
   final GlobalKey _titleFieldKey = GlobalKey();
   final GlobalKey _contentFieldKey = GlobalKey();
-  final GlobalKey _channelFieldKey = GlobalKey();
+  final GlobalKey _sectionFieldKey = GlobalKey();
+  final GlobalKey _tagsFieldKey = GlobalKey();
   Timer? _draftTimer;
   DateTime? _draftSavedAt;
 
@@ -62,7 +67,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   /// Narrow Markdown layout: 编辑 or 预览.
   bool _showPreview = false;
 
-  static const int _maxTags = 10;
+  static const int _maxTags = PostLimits.tags;
 
   /// Must match the server's PIN_DURATION_OPTIONS; it rejects anything else.
   static const List<(int?, String, String)> _pinOptions =
@@ -76,6 +81,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         (4320, '3 天', '3 days'),
       ];
   final Map<String, String> _markdownImageUploadIdsByUrl = <String, String>{};
+
+  /// Every image the post will carry: the picked ones, plus in Markdown mode
+  /// those uploaded into the text. The server takes at most 9 in all.
+  int get _imageCount =>
+      _pickedImages.length +
+      (_useMarkdown ? _markdownImageUploadIdsByUrl.length : 0);
 
   @override
   void initState() {
@@ -94,7 +105,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       controller.addListener(_scheduleDraftSave);
     }
     Future<void>.microtask(
-      () => ref.read(createPostControllerProvider.notifier).loadChannels(),
+      () => ref.read(createPostControllerProvider.notifier).loadSections(),
     );
   }
 
@@ -138,8 +149,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     final CreatePostState state = ref.watch(createPostControllerProvider);
     final bool isBusy =
         state.submitting || _pickingImages || _pastingMarkdownImages;
-    final List<String> channels = state.channels;
-    final String? selectedChannel = _validSelectedChannel(channels);
+    final List<SectionItem> sections = state.sections;
+    final SectionItem? selectedSection = _validSelectedSection(sections);
     final bool wide = MediaQuery.sizeOf(context).width >= 1200;
 
     final Widget editor = _buildEditor(context, t, isBusy, wide);
@@ -148,8 +159,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       t,
       state,
       isBusy,
-      channels,
-      selectedChannel,
+      sections,
+      selectedSection,
     );
 
     return PopScope<Object?>(
@@ -188,9 +199,9 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 icon: Icons.send_rounded,
                 small: true,
                 loading: state.submitting,
-                onPressed: isBusy || state.loadingChannels
+                onPressed: isBusy || state.loadingSections
                     ? null
-                    : () => _trySubmit(channels),
+                    : () => _trySubmit(sections),
               ),
             ),
             const SizedBox(width: 12),
@@ -198,7 +209,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         ),
         body: ZxPaper(
           child: AsyncPageState(
-            loading: state.loadingChannels,
+            loading: state.loadingSections,
             loadingLabel: uiText(
               context,
               zh: '正在准备发布表单',
@@ -206,7 +217,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             ),
             error: state.error,
             onRetry: () =>
-                ref.read(createPostControllerProvider.notifier).loadChannels(),
+                ref.read(createPostControllerProvider.notifier).loadSections(),
             child: Form(
               key: _formKey,
               child: ListView(
@@ -321,8 +332,15 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       textInputAction: TextInputAction.newline,
       minLines: 10,
       maxLines: 22,
+      // The server counts code points (Python len), not grapheme clusters.
       maxLength: _useMarkdown ? null : _plainTextMaxLength,
-      maxLengthEnforcement: _useMarkdown ? null : MaxLengthEnforcement.enforced,
+      maxLengthEnforcement: MaxLengthEnforcement.none,
+      inputFormatters: _useMarkdown
+          ? null
+          : <TextInputFormatter>[
+              const CodePointLimitFormatter(_plainTextMaxLength),
+            ],
+      buildCounter: _useMarkdown ? null : codePointCounter(_contentController),
       autocorrect: !_useMarkdown,
       enableSuggestions: !_useMarkdown,
       enableIMEPersonalizedLearning: !_useMarkdown,
@@ -367,11 +385,18 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         if (value == null || value.trim().isEmpty) {
           return uiTextFor(locale, zh: '请输入正文', en: 'Please enter the body');
         }
-        if (!_useMarkdown && value.length > _plainTextMaxLength) {
+        if (!_useMarkdown && value.runes.length > _plainTextMaxLength) {
           return uiTextFor(
             locale,
             zh: '纯文本正文最多 $_plainTextMaxLength 字',
             en: 'Plain text is limited to $_plainTextMaxLength characters',
+          );
+        }
+        if (_useMarkdown && value.runes.length > PostLimits.markdownSource) {
+          return uiTextFor(
+            locale,
+            zh: 'Markdown 最多 ${PostLimits.markdownSource} 字',
+            en: 'Markdown is limited to ${PostLimits.markdownSource} characters',
           );
         }
         return null;
@@ -475,7 +500,12 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
             child: TextFormField(
               key: _titleFieldKey,
               controller: _titleController,
-              maxLength: 60,
+              maxLength: PostLimits.title,
+              maxLengthEnforcement: MaxLengthEnforcement.none,
+              inputFormatters: <TextInputFormatter>[
+                CodePointLimitFormatter(PostLimits.title),
+              ],
+              buildCounter: codePointCounter(_titleController),
               style: ZxType.titleLarge.copyWith(color: t.text),
               decoration: InputDecoration(
                 border: InputBorder.none,
@@ -530,7 +560,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 ? null
                 : () => setState(() => _pickedImages.removeAt(i)),
           ),
-        if (_pickedImages.length < 9)
+        if (_imageCount < 9)
           Material(
             color: t.bgSunk,
             borderRadius: ZxRadius.buttonAll,
@@ -547,7 +577,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                     Icon(Icons.add_photo_alternate_outlined, color: t.text3),
                     const SizedBox(height: 4),
                     Text(
-                      '${_pickedImages.length}/9',
+                      '$_imageCount/9',
                       style: ZxType.caption.copyWith(color: t.text3),
                     ),
                   ],
@@ -572,8 +602,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     ZxTokens t,
     CreatePostState state,
     bool isBusy,
-    List<String> channels,
-    String? selectedChannel,
+    List<SectionItem> sections,
+    SectionItem? selectedSection,
   ) {
     final Locale locale = Localizations.localeOf(context);
     Widget label(
@@ -599,7 +629,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         ],
       ),
     );
-    final bool channelMissing = _showErrors && selectedChannel == null;
+    final bool sectionMissing = _showErrors && selectedSection == null;
+    final String? tagProblem = _showErrors ? _tagProblem() : null;
 
     return ZxCard(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
@@ -607,48 +638,49 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           KeyedSubtree(
-            key: _channelFieldKey,
-            child: label('分区', 'Channel', required: true),
+            key: _sectionFieldKey,
+            child: label('分区', 'Section', required: true),
           ),
-          if (channels.isEmpty)
-            const _EmptyChannelCard()
+          if (sections.isEmpty)
+            const _EmptySectionCard()
           else
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: <Widget>[
-                for (final String channel in channels)
+                for (final SectionItem section in sections)
                   ChoiceChip(
-                    label: Text(localizedChannel(locale, channel)),
+                    key: Key('create-post-section-${section.key}'),
+                    label: Text(section.sectionName),
                     avatar: Container(
                       width: 7,
                       height: 7,
                       decoration: BoxDecoration(
-                        color: t.channelFor(channel),
+                        color: t.channelFor(section.sectionName),
                         shape: BoxShape.circle,
                       ),
                     ),
                     showCheckmark: false,
-                    selected: selectedChannel == channel,
+                    selected: selectedSection == section,
                     onSelected: isBusy
                         ? null
                         : (_) {
-                            setState(() => _selectedChannel = channel);
+                            setState(() => _selectedSectionKey = section.key);
                             _scheduleDraftSave();
                           },
                   ),
               ],
             ),
-          if (channelMissing)
+          if (sectionMissing)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                uiText(context, zh: '请选择分区', en: 'Please choose a channel'),
+                uiText(context, zh: '请选择分区', en: 'Please choose a section'),
                 style: ZxType.caption.copyWith(color: t.danger),
               ),
             ),
           const SizedBox(height: 18),
-          label('标签', 'Tags'),
+          KeyedSubtree(key: _tagsFieldKey, child: label('标签', 'Tags')),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -671,6 +703,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                 ),
             ],
           ),
+          if (tagProblem != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                tagProblem,
+                style: ZxType.caption.copyWith(color: t.danger),
+              ),
+            ),
           const SizedBox(height: 18),
           label('状态', 'Status'),
           SegmentedButton<PostStatus>(
@@ -787,6 +827,11 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
                   child: TextFormField(
                     controller: _anonymousAliasController,
                     maxLength: 24,
+                    maxLengthEnforcement: MaxLengthEnforcement.none,
+                    inputFormatters: <TextInputFormatter>[
+                      CodePointLimitFormatter(24),
+                    ],
+                    buildCounter: codePointCounter(_anonymousAliasController),
                     decoration: InputDecoration(
                       isDense: true,
                       hintText: uiText(
@@ -843,12 +888,20 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     return <GlobalKey>[
       if (_titleController.text.trim().isEmpty) _titleFieldKey,
       if (_contentController.text.trim().isEmpty ||
-          (!_useMarkdown &&
-              _contentController.text.length > _plainTextMaxLength))
+          _contentController.text.length >
+              (_useMarkdown ? PostLimits.markdownSource : _plainTextMaxLength))
         _contentFieldKey,
-      if (_validSelectedChannel(state.channels) == null) _channelFieldKey,
+      if (_validSelectedSection(state.sections) == null) _sectionFieldKey,
+      if (_tagProblem() != null) _tagsFieldKey,
     ];
   }
+
+  /// The server merges the #topics in the title and body into the tags.
+  String? _tagProblem() => PostLimits.tagProblem(
+    _tags,
+    _titleController.text.trim(),
+    _contentController.text,
+  );
 
   void _scrollTo(GlobalKey key) {
     final BuildContext? target = key.currentContext;
@@ -862,16 +915,16 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 
   /// Validates everything at once (P2); submits only when nothing is missing.
-  Future<void> _trySubmit(List<String> channels) async {
+  Future<void> _trySubmit(List<SectionItem> sections) async {
     final bool formValid = _formKey.currentState!.validate();
-    final String? channel = _validSelectedChannel(channels);
-    if (!formValid || channel == null) {
+    final SectionItem? section = _validSelectedSection(sections);
+    if (!formValid || section == null || _tagProblem() != null) {
       setState(() => _showErrors = true);
       final List<GlobalKey> missing = _missingFields();
       if (missing.isNotEmpty) _scrollTo(missing.first);
       return;
     }
-    await _submit(channel);
+    await _submit(section);
   }
 
   Future<void> _addTag() async {
@@ -908,7 +961,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       _markdownDraft = '';
       _tags.clear();
       _pickedImages.clear();
-      _selectedChannel = null;
+      _selectedSectionKey = null;
       _selectedPinDurationMinutes = null;
       _status = PostStatus.ongoing;
       _privateOnly = false;
@@ -952,7 +1005,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       _plainDraft = markdown ? '' : content;
       _markdownDraft = markdown ? content : '';
       _contentController.text = content;
-      _selectedChannel = draft['channel']?.toString();
+      _selectedSectionKey = draft['sectionKey']?.toString();
       _privateOnly = draft['privateOnly'] == true;
       _useAnonymousAlias = draft['anonymous'] == true;
       _anonymousAliasController.text =
@@ -990,7 +1043,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
         'title': title,
         'content': content,
         'markdown': _useMarkdown,
-        'channel': _selectedChannel,
+        'sectionKey': _selectedSectionKey,
         'status': _status.name,
         'privateOnly': _privateOnly,
         'anonymous': _useAnonymousAlias,
@@ -1009,12 +1062,14 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     await prefs.remove(_draftKey);
   }
 
-  /// The chosen channel if it still exists. There is no default: posting to
-  /// a channel nobody picked is how posts end up in the wrong place.
-  String? _validSelectedChannel(List<String> channels) =>
-      _selectedChannel != null && channels.contains(_selectedChannel)
-      ? _selectedChannel
-      : null;
+  /// The chosen section if one may still post to it, else 综合 (the
+  /// server's default section).
+  SectionItem? _validSelectedSection(List<SectionItem> sections) {
+    for (final SectionItem section in sections) {
+      if (section.key == _selectedSectionKey) return section;
+    }
+    return sections.where((SectionItem s) => s.isGeneral).firstOrNull;
+  }
 
   Future<void> _pickImages() async {
     if (_pickingImages) {
@@ -1033,7 +1088,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
       }
 
       const int maxImages = 9;
-      final int remaining = maxImages - _pickedImages.length;
+      final int remaining = maxImages - _imageCount;
       if (remaining <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1110,7 +1165,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
     }
   }
 
-  Future<void> _submit(String selectedChannel) async {
+  Future<void> _submit(SectionItem section) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -1138,7 +1193,7 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
           title: _titleController.text.trim(),
           content: submittedContent,
           useMarkdown: _useMarkdown,
-          channel: selectedChannel,
+          section: section,
           tags: List<String>.of(_tags),
           privateOnly: _privateOnly,
           status: _status,
@@ -1350,8 +1405,8 @@ class _CreatePostPageState extends ConsumerState<CreatePostPage> {
   }
 }
 
-class _EmptyChannelCard extends StatelessWidget {
-  const _EmptyChannelCard();
+class _EmptySectionCard extends StatelessWidget {
+  const _EmptySectionCard();
 
   @override
   Widget build(BuildContext context) {
@@ -1374,7 +1429,7 @@ class _EmptyChannelCard extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              uiText(context, zh: '暂无可用频道', en: 'No channels available'),
+              uiText(context, zh: '暂无可用分区', en: 'No sections available'),
             ),
           ),
         ],
@@ -1519,7 +1574,12 @@ class _AddTagDialog extends StatefulWidget {
 }
 
 class _AddTagDialogState extends State<_AddTagDialog> {
-  static final RegExp _allowed = RegExp(r'^[\w\u4e00-\u9fff-]{1,30}$');
+  // Letters of any script, digits, marks, '_' and '-': what Python's
+  // Unicode \w (plus '-') accepts, counted in code points like the server.
+  static final RegExp _allowed = RegExp(
+    '^[\\p{L}\\p{N}\\p{M}_-]{1,${PostLimits.tagLength}}\$',
+    unicode: true,
+  );
   final TextEditingController _controller = TextEditingController();
   String? _error;
 
@@ -1535,8 +1595,8 @@ class _AddTagDialogState extends State<_AddTagDialog> {
       setState(
         () => _error = uiText(
           context,
-          zh: '标签为 1–30 个字，只能用文字、数字、下划线或 -',
-          en: '1–30 letters, digits, _ or -',
+          zh: '标签为 1–${PostLimits.tagLength} 个字，只能用文字、数字、下划线或 -',
+          en: '1–${PostLimits.tagLength} letters, digits, _ or -',
         ),
       );
       return;
@@ -1551,7 +1611,12 @@ class _AddTagDialogState extends State<_AddTagDialog> {
       content: TextField(
         controller: _controller,
         autofocus: true,
-        maxLength: 30,
+        maxLength: PostLimits.tagLength,
+        maxLengthEnforcement: MaxLengthEnforcement.none,
+        inputFormatters: <TextInputFormatter>[
+          CodePointLimitFormatter(PostLimits.tagLength),
+        ],
+        buildCounter: codePointCounter(_controller),
         decoration: InputDecoration(prefixText: '#', errorText: _error),
         onSubmitted: (_) => _submit(),
       ),

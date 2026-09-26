@@ -7,6 +7,7 @@ part 'admin/admin_shared_helpers.dart';
 part 'admin/admin_account_models.dart';
 part 'admin/admin_appeal_models.dart';
 part 'admin/admin_export_models.dart';
+part 'admin/admin_feedback_models.dart';
 part 'admin/admin_overview_models.dart';
 part 'admin/admin_report_models.dart';
 part 'admin/admin_review_models.dart';

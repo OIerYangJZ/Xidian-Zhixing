@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/state/app_providers.dart';
 import '../../models/post_item.dart';
+import '../../models/section_item.dart';
 import '../../models/uploaded_image_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../core/l10n/ui_text.dart';
 
 class CreatePostState {
   const CreatePostState({
-    this.channels = const <String>[],
-    this.loadingChannels = true,
+    this.sections = const <SectionItem>[],
+    this.clubs = const <ClubItem>[],
+    this.loadingSections = true,
     this.userLevel = 2,
     this.userLevelLabel = '二级用户',
     this.isLevelOneUser = false,
@@ -19,8 +21,10 @@ class CreatePostState {
     this.error,
   });
 
-  final List<String> channels;
-  final bool loadingChannels;
+  /// Sections one may post to (postableSections).
+  final List<SectionItem> sections;
+  final List<ClubItem> clubs;
+  final bool loadingSections;
   final int userLevel;
   final String userLevelLabel;
   final bool isLevelOneUser;
@@ -29,8 +33,9 @@ class CreatePostState {
   final String? error;
 
   CreatePostState copyWith({
-    List<String>? channels,
-    bool? loadingChannels,
+    List<SectionItem>? sections,
+    List<ClubItem>? clubs,
+    bool? loadingSections,
     int? userLevel,
     String? userLevelLabel,
     bool? isLevelOneUser,
@@ -41,8 +46,9 @@ class CreatePostState {
     bool clearProgress = false,
   }) {
     return CreatePostState(
-      channels: channels ?? this.channels,
-      loadingChannels: loadingChannels ?? this.loadingChannels,
+      sections: sections ?? this.sections,
+      clubs: clubs ?? this.clubs,
+      loadingSections: loadingSections ?? this.loadingSections,
       userLevel: userLevel ?? this.userLevel,
       userLevelLabel: userLevelLabel ?? this.userLevelLabel,
       isLevelOneUser: isLevelOneUser ?? this.isLevelOneUser,
@@ -72,26 +78,32 @@ class CreatePostController extends StateNotifier<CreatePostState> {
 
   final Ref _ref;
 
-  Future<void> loadChannels() async {
-    state = state.copyWith(loadingChannels: true, clearError: true);
+  Future<void> loadSections() async {
+    state = state.copyWith(loadingSections: true, clearError: true);
     try {
-      final List<String> channels = await _ref
-          .read(postRepositoryProvider)
-          .fetchChannels();
+      final PostRepository repository = _ref.read(postRepositoryProvider);
+      final (List<SectionItem> sections, List<ClubItem> clubs) = await (
+        repository.fetchSections(),
+        repository.fetchClubs(),
+      ).wait;
       final profile = await _ref.read(userRepositoryProvider).fetchProfile();
       state = state.copyWith(
-        channels: channels,
-        loadingChannels: false,
+        sections: postableSections(sections, clubs),
+        clubs: clubs,
+        loadingSections: false,
         userLevel: profile.userLevel,
         userLevelLabel: profile.userLevelLabel,
         isLevelOneUser: profile.isLevelOneUser,
         clearError: true,
       );
     } catch (error) {
-      state = state.copyWith(loadingChannels: false, error: uiTextGlobal(
-        zh: '加载频道失败：$error',
-        en: 'Could not load channels: $error',
-      ));
+      state = state.copyWith(
+        loadingSections: false,
+        error: uiTextGlobal(
+          zh: '加载分区失败：$error',
+          en: 'Could not load sections: $error',
+        ),
+      );
     }
   }
 
@@ -99,7 +111,7 @@ class CreatePostController extends StateNotifier<CreatePostState> {
     required String title,
     required String content,
     required bool useMarkdown,
-    required String channel,
+    required SectionItem section,
     required List<String> tags,
     required bool privateOnly,
     required PostStatus status,
@@ -111,7 +123,9 @@ class CreatePostController extends StateNotifier<CreatePostState> {
   }) async {
     state = state.copyWith(
       submitting: true,
-      progressText: uploadPayloads.isEmpty ? uiTextGlobal(zh: '发布帖子中...', en: 'Publishing...') : uiTextGlobal(zh: '上传图片中...', en: 'Uploading images...'),
+      progressText: uploadPayloads.isEmpty
+          ? uiTextGlobal(zh: '发布帖子中...', en: 'Publishing...')
+          : uiTextGlobal(zh: '上传图片中...', en: 'Uploading images...'),
       clearError: true,
     );
 
@@ -121,9 +135,9 @@ class CreatePostController extends StateNotifier<CreatePostState> {
       for (int i = 0; i < uploadPayloads.length; i += 1) {
         state = state.copyWith(
           progressText: uiTextGlobal(
-          zh: '上传图片 ${i + 1}/${uploadPayloads.length}...',
-          en: 'Uploading image ${i + 1}/${uploadPayloads.length}...',
-        ),
+            zh: '上传图片 ${i + 1}/${uploadPayloads.length}...',
+            en: 'Uploading image ${i + 1}/${uploadPayloads.length}...',
+          ),
         );
         final UploadPayload payload = uploadPayloads[i];
         final UploadedImageItem uploaded = await _ref
@@ -137,7 +151,9 @@ class CreatePostController extends StateNotifier<CreatePostState> {
         uploadedUrls.add(uploaded.url);
       }
 
-      state = state.copyWith(progressText: uiTextGlobal(zh: '提交帖子中...', en: 'Submitting post...'));
+      state = state.copyWith(
+        progressText: uiTextGlobal(zh: '提交帖子中...', en: 'Submitting post...'),
+      );
       final PostItem created = await _ref
           .read(postRepositoryProvider)
           .createPost(
@@ -146,7 +162,8 @@ class CreatePostController extends StateNotifier<CreatePostState> {
               content: content,
               contentFormat: useMarkdown ? 'markdown' : 'plain',
               markdownSource: useMarkdown ? content : null,
-              channel: channel,
+              section: section,
+              publisherClub: publisherClubFor(section, state.clubs),
               tags: tags,
               allowComment: true,
               allowDm: !useAnonymousAlias,

@@ -25,11 +25,13 @@ import '../../features/profile/acknowledgements_page.dart';
 // posts, chats and profiles go through AppNavigation (mobile_app_entry).
 import 'package:xdu_treehole_web/core/theme/app_theme.dart';
 import 'package:xdu_treehole_web/features/admin/admin_console_page.dart' as web;
+import 'package:xdu_treehole_web/features/auth/banned_account_page.dart' as web;
 import 'package:xdu_treehole_web/features/admin/admin_login_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_comments_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_favorites_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_posts_page.dart' as web;
 import 'package:xdu_treehole_web/features/me/my_reports_page.dart' as web;
+import 'package:xdu_treehole_web/features/me/feedback_mailbox_page.dart' as web;
 import 'package:xdu_treehole_web/features/profile/blocked_accounts_page.dart'
     as web;
 import 'package:xdu_treehole_web/features/profile/edit_profile_page.dart'
@@ -69,6 +71,16 @@ String? _authGuard(BuildContext context, GoRouterState state) {
     return null;
   }
 
+  // A banned session reaches only the appeal endpoints, so every other page
+  // would be a screen of refused requests.
+  final bool isBannedRoute = state.matchedLocation == '/banned';
+  if (isLoggedIn && AuthStore.instance.isBanned) {
+    return isBannedRoute || isPublicRoute ? null : '/banned';
+  }
+  if (isBannedRoute) {
+    return isLoggedIn ? '/' : '/auth/login';
+  }
+
   // 如果是认证路由
   if (isAuthRoute) {
     if (isLoggedIn) {
@@ -102,6 +114,11 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/auth/login',
       builder: (context, state) => const LoginPage(),
+    ),
+    // The web's ban screen: appeal, its status, and signing out.
+    GoRoute(
+      path: '/banned',
+      builder: (context, state) => const web.BannedAccountPage(),
     ),
     // 主页面（底部 Tab 导航）— 3 tabs: 首页 / 消息 / 我的
     StatefulShellRoute.indexedStack(
@@ -262,6 +279,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/profile/reports',
       builder: (context, state) => const web.MyReportsPage(),
+    ),
+    GoRoute(
+      path: '/profile/feedback',
+      builder: (context, state) => const web.FeedbackMailboxPage(),
     ),
     GoRoute(
       path: '/profile/help-feedback',

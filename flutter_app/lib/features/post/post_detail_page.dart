@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -42,13 +44,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
   String? _replyToAlias;
   bool _loading = true;
   bool _actionBusy = false;
+  bool _viewRecorded = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
     _post = widget.post;
-    _loadDetail(recordView: true);
+    _loadDetail();
   }
 
   @override
@@ -507,23 +510,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
-  Future<void> _loadDetail({bool recordView = false}) async {
+  Future<void> _loadDetail() async {
     setState(() {
       _loading = true;
       _error = null;
     });
 
     try {
-      if (recordView) {
-        final int? nextViewCount = await AppRepositories.posts.incrementView(
-          widget.post.id,
-        );
-        if (mounted && nextViewCount != null) {
-          setState(() {
-            _post = _post.copyWith(viewCount: nextViewCount);
-          });
-        }
-      }
       final PostItem detail = await AppRepositories.posts.fetchPostDetail(
         widget.post.id,
       );
@@ -536,6 +529,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         _post = detail;
         _comments = _buildCommentTree(comments);
       });
+      // Once per opening, after the first load that succeeds (a failed
+      // first load retried from the error panel still counts the view).
+      if (!_viewRecorded) {
+        _viewRecorded = true;
+        unawaited(_recordView());
+      }
     } catch (error) {
       if (!mounted) {
         return;
@@ -549,6 +548,24 @@ class _PostDetailPageState extends State<PostDetailPage> {
           _loading = false;
         });
       }
+    }
+  }
+
+  // Counted after the post is on screen: the counter is rate limited and
+  // refuses unapproved posts, neither of which should keep the post from
+  // loading.
+  Future<void> _recordView() async {
+    try {
+      final int nextViewCount = await AppRepositories.posts.incrementView(
+        widget.post.id,
+      );
+      if (mounted) {
+        setState(() {
+          _post = _post.copyWith(viewCount: nextViewCount);
+        });
+      }
+    } catch (error) {
+      debugPrint('view count not recorded: $error');
     }
   }
 
@@ -621,9 +638,25 @@ class _PostDetailPageState extends State<PostDetailPage> {
   }
 
   Future<void> _like() async {
+    final bool wasLiked = _post.isLiked;
     await _runAction(
-      action: () => AppRepositories.posts.likePost(_post.id),
-      success: uiTextGlobal(zh: '已点赞', en: 'Liked'),
+      action: () async {
+        final LikeActionResult result = wasLiked
+            ? await AppRepositories.posts.unlikePost(_post.id)
+            : await AppRepositories.posts.likePost(_post.id);
+        if (!mounted) {
+          return;
+        }
+        setState(() {
+          _post = _post.copyWith(
+            isLiked: result.liked,
+            likeCount: result.likeCount,
+          );
+        });
+      },
+      success: wasLiked
+          ? uiTextGlobal(zh: '已取消点赞', en: 'Like removed')
+          : uiTextGlobal(zh: '已点赞', en: 'Liked'),
     );
   }
 
@@ -641,15 +674,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         return;
       }
 
-      final int nextCount =
-          result.favoriteCount ??
-          (result.favorited
-              ? (currentFavorited
-                    ? _post.favoriteCount
-                    : _post.favoriteCount + 1)
-              : (currentFavorited
-                    ? (_post.favoriteCount > 0 ? _post.favoriteCount - 1 : 0)
-                    : _post.favoriteCount));
+      final int nextCount = result.favoriteCount;
 
       setState(() {
         _post = _post.copyWith(
@@ -714,7 +739,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
       return;
     }
     final String body = _post.isMarkdown ? _post.markdownSource : _post.content;
-    final String text = '[${_post.channel}] ${_post.title}\n$body';
+    final String section = _post.sectionName.isEmpty
+        ? ''
+        : '[${_post.sectionName}] ';
+    final String text = '$section${_post.title}\n$body';
     await Clipboard.setData(ClipboardData(text: text));
     _feedback(uiTextGlobal(zh: '已复制帖子内容', en: 'Post content copied'));
   }

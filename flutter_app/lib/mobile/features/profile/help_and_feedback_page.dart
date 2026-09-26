@@ -8,39 +8,27 @@ import 'package:xdu_treehole_web/design_system/design_system.dart';
 class HelpAndFeedbackPage extends StatelessWidget {
   const HelpAndFeedbackPage({super.key});
 
-  static const List<(IconData, String, String)> _faq =
-      <(IconData, String, String)>[
-        (
-          Icons.lock_outline_rounded,
-          '登录失败怎么办？',
-          '请在西电官方统一身份认证页面按提示处理；忘记密码请用官方页面的找回密码功能。',
-        ),
-        (
-          Icons.verified_user_outlined,
-          '需要单独注册吗？',
-          '不需要。首次通过西电统一身份认证后，平台会自动创建账号。',
-        ),
-        (
-          Icons.visibility_off_outlined,
-          '如何匿名发帖？',
-          '发帖时打开「匿名发布」，可以自定义匿名昵称，也可以点「随机」生成一个。',
-        ),
-        (
-          Icons.mail_outline_rounded,
-          '私信是怎么开始的？',
-          '第一条消息会直接发给对方；对方回复之前只能发这一条，回复之后就可以自由聊天。',
-        ),
-        (
-          Icons.block_rounded,
-          '如何屏蔽某个用户？',
-          '在对方主页或聊天页右上角选择「屏蔽」。屏蔽名单在「设置 · 隐私」里管理。',
-        ),
-        (
-          Icons.flag_outlined,
-          '举报后多久处理？',
-          '管理员会在 24 小时内审核，处理结果可以在「我的举报」里查看。',
-        ),
-      ];
+  static const List<(IconData, String, String)>
+  _faq = <(IconData, String, String)>[
+    (
+      Icons.lock_outline_rounded,
+      '登录失败怎么办？',
+      '请在西电官方统一身份认证页面按提示处理；忘记密码请用官方页面的找回密码功能。',
+    ),
+    (Icons.verified_user_outlined, '需要单独注册吗？', '不需要。首次通过西电统一身份认证后，平台会自动创建账号。'),
+    (
+      Icons.visibility_off_outlined,
+      '如何匿名发帖？',
+      '发帖时打开「匿名发布」，可以自定义匿名昵称，也可以点「随机」生成一个。',
+    ),
+    (
+      Icons.mail_outline_rounded,
+      '私信是怎么开始的？',
+      '第一条消息会直接发给对方；对方回复之前只能发这一条，回复之后就可以自由聊天。',
+    ),
+    (Icons.block_rounded, '如何屏蔽某个用户？', '在对方主页或聊天页右上角选择「屏蔽」。屏蔽名单在「设置 · 隐私」里管理。'),
+    (Icons.flag_outlined, '举报后多久处理？', '管理员会在 24 小时内审核，处理结果可以在「我的举报」里查看。'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -102,6 +90,19 @@ class HelpAndFeedbackPage extends StatelessWidget {
                   ],
                 ],
               ),
+            ),
+            const SizedBox(height: 20),
+            ZxListSection(
+              title: '信箱',
+              children: [
+                ZxListItem(
+                  key: const Key('mobile-help-feedback-mailbox'),
+                  icon: Icons.mark_email_unread_outlined,
+                  title: '写给西电知行信箱',
+                  subtitle: '提意见或建议，查看回复',
+                  onTap: () => context.push('/profile/feedback'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             ZxListSection(

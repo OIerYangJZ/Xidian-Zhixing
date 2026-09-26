@@ -1,5 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
+import 'package:flutter/services.dart' show FontLoader;
 import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
 
 /// Corner radii from the design system (§05). Everything is one step rounder
 /// than the previous UI.
@@ -38,7 +42,8 @@ abstract final class ZxSize {
 /// fonts, and production cannot fetch fallbacks from Google Fonts, so web
 /// bundles its own: ZxSans, a Noto Sans SC subset (scripts/build_web_font.py).
 abstract final class ZxFonts {
-  /// Brand, page titles, empty states and quotes (a Songti subset).
+  /// Brand, page titles, empty states, quotes and avatar initials: a Songti
+  /// subset with ZxSans's characters (scripts/build_songti_fonts.py).
   static const String display = 'STZhongsong';
   static const List<String> displayFallback = <String>[
     'STSong',
@@ -64,9 +69,54 @@ abstract final class ZxFonts {
   ];
 
   /// On web, characters outside the ZxSans subset (rare hanzi in names and
-  /// user content) fall back to the full bundled STSong, never to a download.
+  /// user content) fall back to STSong, never to a download from Google.
   static List<String> get bodyFallback =>
       debugWebFonts || kIsWeb ? const <String>['STSong'] : _platformSans;
+
+  static Future<void>? _deferred;
+
+  /// Where the web build serves the font. From the origin root, not the
+  /// page: a share link opens on /p/<id>, where 'fonts/…' would resolve to
+  /// /p/fonts/…. The web build uses the default base href '/'.
+  static const String webRareFontPath = '/fonts/STSong-Rare.ttf';
+
+  @visibleForTesting
+  static Future<ByteData> Function(Uri url) debugFetchFont = _fetchWebFont;
+
+  @visibleForTesting
+  static void debugResetDeferred() => _deferred = null;
+
+  /// Registers STSong (only the characters ZxSans lacks) on web. It is not a
+  /// manifest font because the engine downloads those before the first
+  /// frame; text laid out before it arrives is laid out again once it does.
+  /// Nor is it an asset: it is served from web/fonts/, so the APK does not
+  /// carry it. Android draws rare characters with the system fonts instead.
+  ///
+  /// A failed download is not remembered, so the next theme build tries
+  /// again instead of leaving rare characters as tofu for the session.
+  static Future<void> loadDeferred() =>
+      kIsWeb ? loadRareFont() : Future<void>.value();
+
+  /// [loadDeferred] without the platform check, for tests.
+  @visibleForTesting
+  static Future<void> loadRareFont() {
+    return _deferred ??=
+        (FontLoader('STSong')
+              ..addFont(debugFetchFont(Uri.base.resolve(webRareFontPath))))
+            .load()
+            .catchError((Object error) {
+              _deferred = null;
+              debugPrint('STSong-Rare not loaded: $error');
+            });
+  }
+
+  static Future<ByteData> _fetchWebFont(Uri url) async {
+    final http.Response response = await http.get(url);
+    if (response.statusCode != 200) {
+      throw StateError('$url: HTTP ${response.statusCode}');
+    }
+    return ByteData.sublistView(response.bodyBytes);
+  }
 }
 
 /// Type scale (§05): size / line height / weight. The design's 650 weight

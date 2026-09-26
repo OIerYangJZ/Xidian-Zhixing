@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/l10n/ui_text.dart';
 import '../../design_system/design_system.dart';
 import '../../models/post_item.dart';
+import '../../models/section_item.dart';
 import '../../repositories/post_repository.dart';
 import '../../widgets/discussion_home_scaffold.dart';
 import '../../widgets/post_card.dart';
@@ -13,10 +14,14 @@ import 'feed_controller.dart';
 /// 树洞 feed (handoff W1 / W4 / W5).
 ///
 /// With the sidebar (≥ 960): hero header with 推荐 / 最新 and 选择分区,
-/// channel chips, the posts in one panel, and from 1200 an aside with
+/// section chips, the posts in one panel, and from 1200 an aside with
 /// 正在讨论, the community principles and the Android download. Narrower,
 /// the top bar carries the title, so the feed starts with the sort switch
-/// and the active channel.
+/// and the active section.
+///
+/// Posts are built lazily as they scroll into view: the feed pages in 20 at
+/// a time, but a long session accumulates many, and building every card
+/// (text layout, images) up front is what made the old home slow.
 class DiscussionFeedView extends StatelessWidget {
   const DiscussionFeedView({
     super.key,
@@ -29,7 +34,7 @@ class DiscussionFeedView extends StatelessWidget {
     required this.onPostOpen,
     required this.onLike,
     required this.onFavorite,
-    this.onChannelSelected,
+    this.onSectionSelected,
     this.onCreate,
   });
 
@@ -42,12 +47,12 @@ class DiscussionFeedView extends StatelessWidget {
   final ValueChanged<PostItem> onPostOpen;
   final ValueChanged<PostItem> onLike;
   final ValueChanged<PostItem> onFavorite;
-  final ValueChanged<String>? onChannelSelected;
+
+  /// A section's key, or empty for 全部.
+  final ValueChanged<String>? onSectionSelected;
 
   /// 发布帖子 on the empty state.
   final VoidCallback? onCreate;
-
-  static const String _allChannels = '全部';
 
   @override
   Widget build(BuildContext context) {
@@ -64,43 +69,55 @@ class DiscussionFeedView extends StatelessWidget {
           }
           return false;
         },
-        child: ListView(
+        child: CustomScrollView(
           key: const Key('discussion-feed-list'),
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(0, wide ? 24 : 8, 0, 120),
-          children: <Widget>[
-            if (wide) ...<Widget>[
-              _Hero(
-                sort: state.sort,
-                onSortChanged: onSortChanged,
-                onFilter: onFilter,
+          slivers: <Widget>[
+            SliverPadding(
+              padding: EdgeInsets.only(top: wide ? 24 : 8),
+              sliver: SliverToBoxAdapter(
+                child: wide
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          _Hero(
+                            sort: state.sort,
+                            onSortChanged: onSortChanged,
+                            onFilter: onFilter,
+                          ),
+                          const SizedBox(height: 14),
+                          _SectionChips(
+                            sections: state.sections,
+                            selectedKey: state.selectedSectionKey,
+                            onSelected: onSectionSelected,
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: _CompactHeader(
+                          sort: state.sort,
+                          section: state.selectedSection,
+                          onSortChanged: onSortChanged,
+                          onClearSection: onSectionSelected == null
+                              ? null
+                              : () => onSectionSelected!(''),
+                        ),
+                      ),
               ),
-              const SizedBox(height: 14),
-              _ChannelChips(
-                channels: state.channels,
-                selected: state.selectedChannel,
-                onSelected: onChannelSelected,
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 120),
+              sliver: _PostsPanel(
+                wide: wide,
+                state: state,
+                onRetry: onRetry,
+                onCreate: onCreate,
+                onPostOpen: onPostOpen,
+                onLike: onLike,
+                onFavorite: onFavorite,
               ),
-              const SizedBox(height: 14),
-            ] else ...<Widget>[
-              _CompactHeader(
-                sort: state.sort,
-                channel: state.selectedChannel,
-                onSortChanged: onSortChanged,
-                onClearChannel: onChannelSelected == null
-                    ? null
-                    : () => onChannelSelected!(_allChannels),
-              ),
-              const SizedBox(height: 8),
-            ],
-            _PostsPanel(
-              wide: wide,
-              state: state,
-              onRetry: onRetry,
-              onCreate: onCreate,
-              onPostOpen: onPostOpen,
-              onLike: onLike,
-              onFavorite: onFavorite,
             ),
           ],
         ),
@@ -246,40 +263,38 @@ class _Hero extends StatelessWidget {
 class _CompactHeader extends StatelessWidget {
   const _CompactHeader({
     required this.sort,
-    required this.channel,
+    required this.section,
     required this.onSortChanged,
-    required this.onClearChannel,
+    required this.onClearSection,
   });
 
   final PostSort sort;
-  final String channel;
+  final SectionItem? section;
   final ValueChanged<PostSort> onSortChanged;
-  final VoidCallback? onClearChannel;
+  final VoidCallback? onClearSection;
 
   @override
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
-    final bool filtered = channel.isNotEmpty && channel != '全部';
+    final SectionItem? filter = section;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         children: <Widget>[
           _SortSwitch(sort: sort, onChanged: onSortChanged),
           const Spacer(),
-          if (filtered)
+          if (filter != null)
             InputChip(
               avatar: Container(
                 width: 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: t.channelFor(channel),
+                  color: t.channelFor(filter.sectionName),
                   shape: BoxShape.circle,
                 ),
               ),
-              label: Text(
-                localizedChannel(Localizations.localeOf(context), channel),
-              ),
-              onDeleted: onClearChannel,
+              label: Text(filter.sectionName),
+              onDeleted: onClearSection,
               deleteButtonTooltipMessage: uiText(
                 context,
                 zh: '清除筛选',
@@ -292,39 +307,36 @@ class _CompactHeader extends StatelessWidget {
   }
 }
 
-class _ChannelChips extends StatelessWidget {
-  const _ChannelChips({
-    required this.channels,
-    required this.selected,
+class _SectionChips extends StatelessWidget {
+  const _SectionChips({
+    required this.sections,
+    required this.selectedKey,
     required this.onSelected,
   });
 
-  final List<String> channels;
-  final String selected;
+  final List<SectionItem> sections;
+  final String selectedKey;
   final ValueChanged<String>? onSelected;
 
   @override
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
-    final Locale locale = Localizations.localeOf(context);
-    final List<String> all = <String>[
-      DiscussionFeedView._allChannels,
-      ...channels.where((String c) => c != DiscussionFeedView._allChannels),
-    ];
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: <Widget>[
-        for (final String channel in all)
+        _ChannelChip(
+          label: uiText(context, zh: '全部', en: 'All'),
+          dot: null,
+          selected: selectedKey.isEmpty,
+          onTap: onSelected == null ? null : () => onSelected!(''),
+        ),
+        for (final SectionItem section in sections)
           _ChannelChip(
-            label: channel == DiscussionFeedView._allChannels
-                ? uiText(context, zh: '全部', en: 'All')
-                : localizedChannel(locale, channel),
-            dot: channel == DiscussionFeedView._allChannels
-                ? null
-                : t.channelFor(channel),
-            selected: selected == channel,
-            onTap: onSelected == null ? null : () => onSelected!(channel),
+            label: section.sectionName,
+            dot: t.channelFor(section.sectionName),
+            selected: selectedKey == section.key,
+            onTap: onSelected == null ? null : () => onSelected!(section.key),
           ),
       ],
     );
@@ -403,9 +415,9 @@ class _PostsPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ZxTokens t = ZxTokens.of(context);
-    final Widget body;
+    final Widget? message;
     if (state.loading) {
-      body = Column(
+      message = Column(
         children: <Widget>[
           for (int i = 0; i < 3; i++) ...<Widget>[
             if (i > 0) Divider(height: 1, color: t.line),
@@ -414,7 +426,7 @@ class _PostsPanel extends StatelessWidget {
         ],
       );
     } else if (state.error != null && state.posts.isEmpty) {
-      body = Padding(
+      message = Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: ZxStatePanel(
           icon: Icons.cloud_off_rounded,
@@ -426,7 +438,7 @@ class _PostsPanel extends StatelessWidget {
         ),
       );
     } else if (state.posts.isEmpty) {
-      body = Padding(
+      message = Padding(
         padding: const EdgeInsets.symmetric(vertical: 32),
         child: ZxStatePanel(
           title: uiText(context, zh: '这里还没有帖子', en: 'No posts yet'),
@@ -442,36 +454,71 @@ class _PostsPanel extends StatelessWidget {
         ),
       );
     } else {
-      body = Column(
-        children: <Widget>[
-          for (int i = 0; i < state.posts.length; i++) ...<Widget>[
-            if (i > 0) Divider(height: 1, color: t.line),
-            PostCard(
-              post: state.posts[i],
-              onTap: () => onPostOpen(state.posts[i]),
-              onLike: () => onLike(state.posts[i]),
-              onFavorite: () => onFavorite(state.posts[i]),
-            ),
-          ],
-          if (state.loadingMore)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-        ],
+      message = null;
+    }
+
+    final int count = state.posts.length;
+    // The footer row: a spinner while the next page loads.
+    final bool footer = message == null && state.loadingMore;
+    final Widget list = message != null
+        ? SliverToBoxAdapter(child: message)
+        : SliverList.builder(
+            itemCount: count + (footer ? 1 : 0),
+            itemBuilder: (BuildContext context, int i) {
+              if (i == count) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              final PostItem post = state.posts[i];
+              final Widget card = PostCard(
+                key: ValueKey<String>(post.id),
+                post: post,
+                onTap: () => onPostOpen(post),
+                onLike: () => onLike(post),
+                onFavorite: () => onFavorite(post),
+              );
+              final Widget row = i == 0
+                  ? card
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Divider(height: 1, color: t.line),
+                        card,
+                      ],
+                    );
+              if (!wide) return row;
+              // Keep the hover ink inside the panel's rounded corners.
+              final bool first = i == 0;
+              final bool last = i == count - 1 && !footer;
+              if (!first && !last) return row;
+              return ClipRRect(
+                borderRadius: BorderRadius.vertical(
+                  top: first ? ZxRadius.sheetAll.topLeft : Radius.zero,
+                  bottom: last ? ZxRadius.sheetAll.bottomLeft : Radius.zero,
+                ),
+                child: row,
+              );
+            },
+          );
+    if (!wide) {
+      return DecoratedSliver(
+        decoration: BoxDecoration(color: t.surface),
+        sliver: list,
       );
     }
-    if (!wide) {
-      return ColoredBox(color: t.surface, child: body);
-    }
-    return DecoratedBox(
+    return DecoratedSliver(
       decoration: BoxDecoration(
         color: t.surface,
         borderRadius: ZxRadius.sheetAll,
         border: Border.all(color: t.line),
         boxShadow: t.shadow1,
       ),
-      child: ClipRRect(borderRadius: ZxRadius.sheetAll, child: body),
+      sliver: SliverPadding(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        sliver: list,
+      ),
     );
   }
 }
@@ -486,7 +533,11 @@ class _PostSkeleton extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          ZxSkeleton(width: 40, height: 40, borderRadius: ZxRadius.smallButtonAll),
+          ZxSkeleton(
+            width: 40,
+            height: 40,
+            borderRadius: ZxRadius.smallButtonAll,
+          ),
           SizedBox(width: 12),
           Expanded(
             child: Column(

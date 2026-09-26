@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/auth/admin_auth_store.dart';
 import '../../core/config/app_config.dart';
 import '../../core/utils/file_download.dart';
 import '../../core/utils/release_file_picker.dart';
@@ -35,10 +38,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   List<AdminAccountCancellationRequest> _accountCancellationRequests =
       const <AdminAccountCancellationRequest>[];
   List<AdminAppealEntry> _appeals = const <AdminAppealEntry>[];
-  AdminChannelTagData _channelTagData = AdminChannelTagData(
-    channels: const <String>[],
-    tags: const <String>[],
-  );
+  List<AdminFeedbackEntry> _feedbacks = const <AdminFeedbackEntry>[];
+  AdminTagData _tagData = AdminTagData(tags: const <String>[]);
   List<AdminSystemAnnouncement> _announcements =
       const <AdminSystemAnnouncement>[];
   AdminAndroidRelease? _androidRelease;
@@ -50,7 +51,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     imageMaxMb: 5,
   );
 
-  final TextEditingController _newChannelController = TextEditingController();
   final TextEditingController _newTagController = TextEditingController();
   final TextEditingController _sensitiveController = TextEditingController();
   final TextEditingController _postLimitController = TextEditingController();
@@ -98,6 +98,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   String _userLevelStatus = 'all';
   String _cancellationStatus = 'all';
   String _appealStatus = 'all';
+  String _feedbackStatus = 'pending';
   String _exportScope = 'users';
   String _exportFormat = 'csv';
   bool _androidForceUpdate = false;
@@ -114,12 +115,24 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   @override
   void initState() {
     super.initState();
+    _adminSessionExpired = AdminAuthStore.instance.sessionExpired.listen(
+      (_) => _onAdminSessionExpired(),
+    );
     _loadAll();
+  }
+
+  late final StreamSubscription<void> _adminSessionExpired;
+
+  /// The admin token is already cleared; back to sign-in.
+  Future<void> _onAdminSessionExpired() async {
+    if (!mounted) return;
+    _toast('管理员会话已失效，请重新登录');
+    await widget.onLogout?.call();
   }
 
   @override
   void dispose() {
-    _newChannelController.dispose();
+    _adminSessionExpired.cancel();
     _newTagController.dispose();
     _sensitiveController.dispose();
     _postLimitController.dispose();
@@ -207,8 +220,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _buildAppealTab,
         pending: _pending(_appeals.map((AdminAppealEntry r) => r.status)),
       ),
+      _AdminSection(
+        '用户反馈',
+        Icons.mark_email_unread_outlined,
+        _buildFeedbackTab,
+        pending: _pending(_feedbacks.map((AdminFeedbackEntry r) => r.status)),
+      ),
       _AdminSection('用户管理', Icons.group_outlined, _buildUserTab),
-      _AdminSection('分类标签', Icons.sell_outlined, _buildChannelTagTab),
+      _AdminSection('分类标签', Icons.sell_outlined, _buildTagTab),
       _AdminSection(
         '版本发布',
         Icons.system_update_alt_outlined,
@@ -427,6 +446,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           todayReports: 0,
           pendingReviews: 0,
           pendingCancellationRequests: 0,
+          pendingFeedbacks: 0,
           activeUsers: 0,
           bannedUsers: 0,
           mutedUsers: 0,
@@ -480,7 +500,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   color: ZxTokens.of(context).warning,
                 ),
                 _metricCard(
-                  title: '活跃账号数',
+                  title: '待处理反馈',
+                  value: overview.pendingFeedbacks,
+                  icon: Icons.mark_email_unread_outlined,
+                  color: ZxTokens.of(context).warning,
+                ),
+                _metricCard(
+                  title: '正常账号数',
                   value: overview.activeUsers,
                   icon: Icons.groups_rounded,
                   color: ZxTokens.of(context).primary,
@@ -895,7 +921,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       DropdownMenuItem(value: 'all', child: Text('全部')),
                       DropdownMenuItem(value: 'pending', child: Text('待处理')),
                       DropdownMenuItem(value: 'resolved', child: Text('已处理')),
-                      DropdownMenuItem(value: 'closed', child: Text('已关闭')),
+                      DropdownMenuItem(value: 'misreport', child: Text('误报')),
                     ],
                     onChanged: (String? value) {
                       if (value == null) {
@@ -982,17 +1008,20 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                       // A handled report answers 409 to any action.
                       if (report.status.trim().toLowerCase() ==
                           'pending') ...<Widget>[
-                        OutlinedButton(
-                          onPressed: _actionBusy
-                              ? null
-                              : () => _promptAndHandleReport(
-                                  reportId: report.id,
-                                  action: 'delete',
-                                  actionLabel: '删除内容',
-                                  defaultResult: '内容已删除',
-                                ),
-                          child: const Text('删除内容'),
-                        ),
+                        // A reported user has no content to delete; the
+                        // server refuses it.
+                        if (report.targetType != 'user')
+                          OutlinedButton(
+                            onPressed: _actionBusy
+                                ? null
+                                : () => _promptAndHandleReport(
+                                    reportId: report.id,
+                                    action: 'delete',
+                                    actionLabel: '删除内容',
+                                    defaultResult: '内容已删除',
+                                  ),
+                            child: const Text('删除内容'),
+                          ),
                         OutlinedButton(
                           onPressed: _actionBusy
                               ? null
@@ -1145,50 +1174,55 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                               icon: const Icon(Icons.open_in_full_outlined),
                               label: const Text('查看大图'),
                             ),
-                            OutlinedButton(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _promptAndHandleImageReview(
-                                      uploadId: item.id,
-                                      action: 'approve',
-                                      actionLabel: '通过图片',
-                                      defaultNote: '已通过',
-                                    ),
-                              child: const Text('通过'),
-                            ),
-                            OutlinedButton(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _promptAndHandleImageReview(
-                                      uploadId: item.id,
-                                      action: 'risk',
-                                      actionLabel: '标记风险',
-                                      defaultNote: '已标记风险',
-                                    ),
-                              child: const Text('风险'),
-                            ),
-                            OutlinedButton(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _promptAndHandleImageReview(
-                                      uploadId: item.id,
-                                      action: 'reject',
-                                      actionLabel: '拒绝图片',
-                                      defaultNote: '已拒绝',
-                                    ),
-                              child: const Text('拒绝'),
-                            ),
-                            FilledButton.tonal(
-                              onPressed: _actionBusy
-                                  ? null
-                                  : () => _promptAndHandleImageReview(
-                                      uploadId: item.id,
-                                      action: 'delete',
-                                      actionLabel: '删除图片',
-                                      defaultNote: '已删除图片',
-                                    ),
-                              child: const Text('删除'),
-                            ),
+                            // A rejected or deleted image answers 409 to
+                            // every action.
+                            if (item.status != 'rejected' &&
+                                item.status != 'deleted') ...<Widget>[
+                              OutlinedButton(
+                                onPressed: _actionBusy
+                                    ? null
+                                    : () => _promptAndHandleImageReview(
+                                        uploadId: item.id,
+                                        action: 'approve',
+                                        actionLabel: '通过图片',
+                                        defaultNote: '已通过',
+                                      ),
+                                child: const Text('通过'),
+                              ),
+                              OutlinedButton(
+                                onPressed: _actionBusy
+                                    ? null
+                                    : () => _promptAndHandleImageReview(
+                                        uploadId: item.id,
+                                        action: 'risk',
+                                        actionLabel: '标记风险',
+                                        defaultNote: '已标记风险',
+                                      ),
+                                child: const Text('风险'),
+                              ),
+                              OutlinedButton(
+                                onPressed: _actionBusy
+                                    ? null
+                                    : () => _promptAndHandleImageReview(
+                                        uploadId: item.id,
+                                        action: 'reject',
+                                        actionLabel: '拒绝图片',
+                                        defaultNote: '已拒绝',
+                                      ),
+                                child: const Text('拒绝'),
+                              ),
+                              FilledButton.tonal(
+                                onPressed: _actionBusy
+                                    ? null
+                                    : () => _promptAndHandleImageReview(
+                                        uploadId: item.id,
+                                        action: 'delete',
+                                        actionLabel: '删除图片',
+                                        defaultNote: '已删除图片',
+                                      ),
+                                child: const Text('删除'),
+                              ),
+                            ],
                           ],
                         ),
                       ],
@@ -1979,7 +2013,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                                 ),
                           child: const Text('通过'),
                         ),
-                      if (appeal.status == 'pending' && appeal.userDeleted)
+                      // Only an account_restore appeal may restore; the
+                      // server refuses the rest.
+                      if (appeal.status == 'pending' &&
+                          appeal.appealType == 'account_restore')
                         FilledButton(
                           onPressed: _actionBusy
                               ? null
@@ -2030,6 +2067,134 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       ],
     );
   }
+
+  Widget _buildFeedbackTab() {
+    final TextStyle? muted = Theme.of(context).textTheme.bodySmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.58),
+    );
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: <Widget>[
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: <Widget>[
+                SizedBox(
+                  width: 160,
+                  child: DropdownButtonFormField<String>(
+                    key: const Key('admin-feedback-status'),
+                    initialValue: _feedbackStatus,
+                    decoration: const InputDecoration(labelText: '反馈状态'),
+                    items: const <DropdownMenuItem<String>>[
+                      DropdownMenuItem(value: 'all', child: Text('全部')),
+                      DropdownMenuItem(value: 'pending', child: Text('待处理')),
+                      DropdownMenuItem(value: 'resolved', child: Text('已回复')),
+                      DropdownMenuItem(value: 'closed', child: Text('已关闭')),
+                    ],
+                    onChanged: (String? value) {
+                      if (value == null) {
+                        return;
+                      }
+                      setState(() {
+                        _feedbackStatus = value;
+                      });
+                      _loadFeedbacks();
+                    },
+                  ),
+                ),
+                FilledButton.tonalIcon(
+                  onPressed: _actionBusy ? null : _loadFeedbacks,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('刷新反馈列表'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+          child: Text('共 ${_feedbacks.length} 条', style: muted),
+        ),
+        ..._feedbacks.map(
+          (AdminFeedbackEntry feedback) => Card(
+            key: Key('admin-feedback-${feedback.id}'),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          feedback.category,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                      _feedbackStatusChip(feedback.status),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '${feedback.userNickname} · ${feedback.userEmail}'
+                    '${feedback.studentId.isEmpty ? '' : ' · 学号 ${feedback.studentId}'}'
+                    '${feedback.userDeleted ? ' · 账号已注销' : ''}',
+                  ),
+                  if (feedback.contact.isNotEmpty)
+                    Text('联系方式：${feedback.contact}'),
+                  Text('提交时间：${feedback.createdAt}'),
+                  const SizedBox(height: 8),
+                  SelectableText(feedback.content),
+                  if (feedback.schoolReply.isNotEmpty) ...<Widget>[
+                    const SizedBox(height: 8),
+                    Text('回复：${feedback.schoolReply}'),
+                  ],
+                  if (feedback.handledAt.isNotEmpty)
+                    Text('处理时间：${feedback.handledAt}', style: muted),
+                  if (feedback.status == 'pending') ...<Widget>[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: <Widget>[
+                        FilledButton.tonal(
+                          key: Key('admin-feedback-reply-${feedback.id}'),
+                          onPressed: _actionBusy
+                              ? null
+                              : () =>
+                                    _promptAndHandleFeedback(feedback, 'reply'),
+                          child: const Text('回复'),
+                        ),
+                        OutlinedButton(
+                          onPressed: _actionBusy
+                              ? null
+                              : () =>
+                                    _promptAndHandleFeedback(feedback, 'close'),
+                          child: const Text('关闭'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (_feedbacks.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: Text('暂无反馈。')),
+          ),
+      ],
+    );
+  }
+
+  // Feedback reads 已回复 where reports read 已处理.
+  Widget _feedbackStatusChip(String status) =>
+      _statusChip(status, label: status == 'resolved' ? '已回复' : null);
 
   Widget _buildUserTab() {
     final String keyword = _userKeywordController.text.trim().toLowerCase();
@@ -2358,70 +2523,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Widget _buildChannelTagTab() {
+  Widget _buildTagTab() {
     return ListView(
       padding: const EdgeInsets.all(12),
       children: <Widget>[
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  '频道管理',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 220,
-                      child: TextField(
-                        controller: _newChannelController,
-                        decoration: const InputDecoration(labelText: '新增频道名'),
-                      ),
-                    ),
-                    FilledButton(
-                      onPressed: _actionBusy ? null : _addChannel,
-                      child: const Text('新增频道'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ..._channelTagData.channels.map(
-                  (String channel) => ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(channel),
-                    trailing: Wrap(
-                      spacing: 4,
-                      children: <Widget>[
-                        IconButton(
-                          onPressed: _actionBusy
-                              ? null
-                              : () => _renameChannel(channel),
-                          icon: const Icon(Icons.edit_outlined),
-                        ),
-                        IconButton(
-                          onPressed: _actionBusy
-                              ? null
-                              : () => _deleteChannel(channel),
-                          icon: const Icon(Icons.delete_outline),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -2454,7 +2559,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                ..._channelTagData.tags.map(
+                ..._tagData.tags.map(
                   (String tag) => ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
@@ -3153,7 +3258,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Widget _statusChip(String status) {
+  Widget _statusChip(String status, {String? label}) {
     final String normalized = status.trim().toLowerCase();
     final Map<String, Color> colors = <String, Color>{
       'pending': ZxTokens.of(context).warning,
@@ -3161,6 +3266,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       'resolved': ZxTokens.of(context).success,
       'rejected': ZxTokens.of(context).danger,
       'closed': ZxTokens.of(context).text2,
+      'misreport': ZxTokens.of(context).text2,
       'risk': ZxTokens.of(context).warning,
     };
     final Map<String, String> labels = <String, String>{
@@ -3169,6 +3275,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       'resolved': '已处理',
       'rejected': '已拒绝',
       'closed': '已关闭',
+      'misreport': '误报',
       'risk': '风险',
     };
     final Color color =
@@ -3181,7 +3288,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        labels[normalized] ?? status,
+        label ?? labels[normalized] ?? status,
         style: TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
@@ -3243,10 +3350,8 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
           _accountCancellationRequests =
               const <AdminAccountCancellationRequest>[];
           _appeals = const <AdminAppealEntry>[];
-          _channelTagData = AdminChannelTagData(
-            channels: const <String>[],
-            tags: const <String>[],
-          );
+          _feedbacks = const <AdminFeedbackEntry>[];
+          _tagData = AdminTagData(tags: const <String>[]);
           _announcements = const <AdminSystemAnnouncement>[];
           _adminAccounts = const <AdminAccountEntry>[];
           _androidRelease = null;
@@ -3282,8 +3387,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         status: _appealStatus,
         keyword: _appealKeywordController.text.trim(),
       );
-      final AdminChannelTagData channelTagData = await _repo
-          .fetchChannelTagData();
+      final List<AdminFeedbackEntry> feedbacks = await _repo.fetchFeedbacks(
+        status: _feedbackStatus,
+      );
+      final AdminTagData tagData = await _repo.fetchTags();
       final AdminSystemConfig config = await _repo.fetchConfig();
       final List<AdminSystemAnnouncement> announcements = await _repo
           .fetchAnnouncements();
@@ -3306,8 +3413,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
         _userLevelRequests = userLevelRequests;
         _accountCancellationRequests = accountCancellationRequests;
         _appeals = appeals;
+        _feedbacks = feedbacks;
         _users = users;
-        _channelTagData = channelTagData;
+        _tagData = tagData;
         _config = config;
         _announcements = announcements;
         _adminAccounts = adminAccounts;
@@ -3333,14 +3441,24 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
+  /// Each list's latest request. Changing a filter while an earlier load is
+  /// in flight must not let the slower, older answer overwrite the list.
+  final Map<String, int> _loadGenerations = <String, int>{};
+
+  int _beginLoad(String list) =>
+      _loadGenerations[list] = (_loadGenerations[list] ?? 0) + 1;
+
+  bool _isLatestLoad(String list, int load) => _loadGenerations[list] == load;
+
   Future<void> _loadReviews() async {
+    final int load = _beginLoad('_loadReviews');
     try {
       final List<AdminReviewItem> reviews = await _repo.fetchReviews(
         type: _reviewType,
         status: _reviewStatus,
         keyword: _reviewKeywordController.text.trim(),
       );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadReviews', load)) {
         return;
       }
       setState(() {
@@ -3353,12 +3471,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadReports() async {
+    final int load = _beginLoad('_loadReports');
     try {
       final List<AdminReportEntry> reports = await _repo.fetchReports(
         status: _reportStatus,
         keyword: _reportKeywordController.text.trim(),
       );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadReports', load)) {
         return;
       }
       setState(() {
@@ -3370,12 +3489,13 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadImageReviews() async {
+    final int load = _beginLoad('_loadImageReviews');
     try {
       final List<AdminImageReviewItem> rows = await _repo.fetchImageReviews(
         status: _imageStatus,
         keyword: _imageKeywordController.text.trim(),
       );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadImageReviews', load)) {
         return;
       }
       setState(() {
@@ -3387,13 +3507,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadPostPinRequests() async {
+    final int load = _beginLoad('_loadPostPinRequests');
     try {
       final List<AdminPostPinRequestEntry> rows = await _repo
           .fetchPostPinRequests(
             status: _postPinStatus,
             keyword: _postPinKeywordController.text.trim(),
           );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadPostPinRequests', load)) {
         return;
       }
       setState(() {
@@ -3405,13 +3526,15 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadAccountCancellationRequests() async {
+    final int load = _beginLoad('_loadAccountCancellationRequests');
     try {
       final List<AdminAccountCancellationRequest> rows = await _repo
           .fetchAccountCancellationRequests(
             status: _cancellationStatus,
             keyword: _cancellationKeywordController.text.trim(),
           );
-      if (!mounted) {
+      if (!mounted ||
+          !_isLatestLoad('_loadAccountCancellationRequests', load)) {
         return;
       }
       setState(() {
@@ -3423,9 +3546,10 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
   }
 
   Future<void> _loadUsers() async {
+    final int load = _beginLoad('_loadUsers');
     try {
       final List<AdminUserEntry> users = await _repo.fetchUsers();
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadUsers', load)) {
         return;
       }
       setState(() {
@@ -3436,13 +3560,63 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
+  Future<void> _loadFeedbacks() async {
+    final int load = _beginLoad('_loadFeedbacks');
+    try {
+      final List<AdminFeedbackEntry> rows = await _repo.fetchFeedbacks(
+        status: _feedbackStatus,
+      );
+      if (!mounted || !_isLatestLoad('_loadFeedbacks', load)) {
+        return;
+      }
+      setState(() {
+        _feedbacks = rows;
+      });
+    } catch (error) {
+      _toast('加载反馈列表失败：$error');
+    }
+  }
+
+  /// 回复 answers the user (已回复); 关闭 ends it, the reply optional.
+  Future<void> _promptAndHandleFeedback(
+    AdminFeedbackEntry feedback,
+    String action,
+  ) async {
+    final bool reply = action == 'reply';
+    final String? value = await showDialog<String>(
+      context: context,
+      builder: (_) => _NoteDialog(
+        title: reply ? '回复反馈' : '关闭反馈',
+        label: reply ? '回复内容（必填，用户可见）' : '说明（可选，用户可见）',
+        hint: reply ? '最多 1000 字' : '',
+        confirmLabel: reply ? '发送回复' : '确认关闭',
+      ),
+    );
+    if (value == null) {
+      return;
+    }
+    await _runAction(
+      () => _repo.handleFeedback(
+        feedbackId: feedback.id,
+        action: action,
+        reply: value,
+      ),
+      successText: reply ? '已回复，用户会收到通知' : '反馈已关闭',
+      onSuccess: () async {
+        await _loadFeedbacks();
+        await _loadOverview();
+      },
+    );
+  }
+
   Future<void> _loadAppeals() async {
+    final int load = _beginLoad('_loadAppeals');
     try {
       final List<AdminAppealEntry> rows = await _repo.fetchAppeals(
         status: _appealStatus,
         keyword: _appealKeywordController.text.trim(),
       );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadAppeals', load)) {
         return;
       }
       setState(() {
@@ -3457,13 +3631,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     if (!_isPrimaryAdmin) {
       return;
     }
+    final int load = _beginLoad('_loadUserLevelRequests');
     try {
       final List<AdminUserLevelRequestEntry> rows = await _repo
           .fetchUserLevelRequests(
             status: _userLevelStatus,
             keyword: _userLevelKeywordController.text.trim(),
           );
-      if (!mounted) {
+      if (!mounted || !_isLatestLoad('_loadUserLevelRequests', load)) {
         return;
       }
       setState(() {
@@ -3474,14 +3649,14 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     }
   }
 
-  Future<void> _loadChannelTag() async {
+  Future<void> _loadTags() async {
     try {
-      final AdminChannelTagData data = await _repo.fetchChannelTagData();
+      final AdminTagData data = await _repo.fetchTags();
       if (!mounted) {
         return;
       }
       setState(() {
-        _channelTagData = data;
+        _tagData = data;
       });
     } catch (error) {
       _toast('加载分类标签失败：$error');
@@ -3649,23 +3824,37 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       _toast('请先选择要处理的内容');
       return;
     }
-    await _runAction(
-      () => _repo.handleReviewBatch(
+    setState(() {
+      _actionBusy = true;
+    });
+    try {
+      final List<String> failures = await _repo.handleReviewBatch(
         targetType: _reviewType,
         targetIds: targetIds,
         action: action,
-      ),
-      successText: '批量审核成功',
-      onSuccess: () async {
-        if (mounted) {
-          setState(() {
-            _selectedReviewIds.clear();
-          });
-        }
-        await _loadReviews();
-        await _loadOverview();
-      },
-    );
+      );
+      if (mounted) {
+        setState(() {
+          _selectedReviewIds.clear();
+        });
+      }
+      // Items are applied one by one: the rest are saved even when some fail.
+      await _loadReviews();
+      await _loadOverview();
+      _toast(
+        failures.isEmpty
+            ? '批量审核成功'
+            : '${targetIds.length - failures.length} 项成功，${failures.length} 项失败：${failures.join('；')}',
+      );
+    } catch (error) {
+      _toast('操作失败：$error');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _actionBusy = false;
+        });
+      }
+    }
   }
 
   Future<void> _handleReport(
@@ -3864,42 +4053,6 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     );
   }
 
-  Future<void> _addChannel() async {
-    final String value = _newChannelController.text.trim();
-    if (value.isEmpty) {
-      _toast('请输入频道名');
-      return;
-    }
-    await _runAction(
-      () => _repo.addChannel(value),
-      successText: '频道已新增',
-      onSuccess: () async {
-        _newChannelController.clear();
-        await _loadChannelTag();
-      },
-    );
-  }
-
-  Future<void> _renameChannel(String oldName) async {
-    final String? next = await _askNewName(title: '重命名频道', initial: oldName);
-    if (next == null || next.trim().isEmpty || next.trim() == oldName) {
-      return;
-    }
-    await _runAction(
-      () => _repo.renameChannel(oldName: oldName, newName: next.trim()),
-      successText: '频道已更新',
-      onSuccess: _loadChannelTag,
-    );
-  }
-
-  Future<void> _deleteChannel(String name) async {
-    await _runAction(
-      () => _repo.deleteChannel(name),
-      successText: '频道已删除',
-      onSuccess: _loadChannelTag,
-    );
-  }
-
   Future<void> _addTag() async {
     final String value = _newTagController.text.trim();
     if (value.isEmpty) {
@@ -3911,7 +4064,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       successText: '标签已新增',
       onSuccess: () async {
         _newTagController.clear();
-        await _loadChannelTag();
+        await _loadTags();
       },
     );
   }
@@ -3924,7 +4077,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     await _runAction(
       () => _repo.renameTag(oldName: oldName, newName: next.trim()),
       successText: '标签已更新',
-      onSuccess: _loadChannelTag,
+      onSuccess: _loadTags,
     );
   }
 
@@ -3932,7 +4085,7 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
     await _runAction(
       () => _repo.deleteTag(name),
       successText: '标签已删除',
-      onSuccess: _loadChannelTag,
+      onSuccess: _loadTags,
     );
   }
 

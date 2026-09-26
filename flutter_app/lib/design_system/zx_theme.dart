@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'zx_metrics.dart';
@@ -11,6 +13,9 @@ abstract final class ZxTheme {
     required String themeKey,
     required Brightness brightness,
   }) {
+    // Every entry point (web app, admin portal, Android) is themed here, so
+    // this is where the web fallback font starts loading.
+    unawaited(ZxFonts.loadDeferred());
     final ZxPalette p = zxPaletteFor(themeKey, brightness);
     final bool dark = brightness == Brightness.dark;
 

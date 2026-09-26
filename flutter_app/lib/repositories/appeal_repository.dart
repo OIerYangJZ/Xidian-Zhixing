@@ -5,8 +5,9 @@ import '../core/network/json_utils.dart';
 
 /// State of the account's most recent appeal, as the server reports it.
 ///
-/// `rejected` is the case the ban screen exists to handle: there is nothing
-/// left to submit in the app, so the holder is pointed at the support mailbox.
+/// A ban gets one in-app appeal; once it is turned down the holder is pointed
+/// at the support mailbox. The server decides that ([AppealState.canSubmit]):
+/// an appeal rejected during an earlier ban does not use up this one.
 enum AppealStatus { none, pending, approved, rejected, closed }
 
 class AppealState {
@@ -14,6 +15,7 @@ class AppealState {
     required this.status,
     required this.banned,
     required this.supportEmail,
+    required this.canSubmit,
     this.content = '',
     this.adminNote = '',
     this.createdAt = '',
@@ -30,16 +32,26 @@ class AppealState {
   final String createdAt;
   final String handledAt;
 
+  /// Whether the appeal form applies: banned, nothing pending, and this
+  /// ban's one in-app appeal not yet turned down.
+  final bool canSubmit;
+
   bool get hasPending => status == AppealStatus.pending;
 
   /// Whether the in-app route is exhausted and only email remains.
-  bool get mustUseEmail =>
-      banned && (status == AppealStatus.rejected || status == AppealStatus.closed);
-
-  bool get canSubmit => banned && !hasPending && !mustUseEmail;
+  bool get mustUseEmail => banned && !hasPending && !canSubmit;
 
   factory AppealState.fromJson(Map<String, dynamic> json) {
     final Map<String, dynamic> appeal = asMap(json['appeal']);
+    final bool? canSubmit = readBool(json, <String>['canSubmit']);
+    if (canSubmit == null) {
+      throw FormatException(
+        uiTextGlobal(
+          zh: '申诉状态缺少 canSubmit',
+          en: 'The appeal state is missing canSubmit',
+        ),
+      );
+    }
     final String raw = (readString(appeal, <String>['status']) ?? '').trim();
     return AppealState(
       status: switch (raw) {
@@ -51,6 +63,7 @@ class AppealState {
       },
       banned: readBool(json, <String>['banned']) == true,
       supportEmail: readString(json, <String>['supportEmail']) ?? '',
+      canSubmit: canSubmit,
       content: readString(appeal, <String>['content']) ?? '',
       adminNote: readString(appeal, <String>['adminNote']) ?? '',
       createdAt: readString(appeal, <String>['createdAt']) ?? '',

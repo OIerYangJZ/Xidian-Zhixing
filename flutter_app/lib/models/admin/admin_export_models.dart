@@ -16,12 +16,21 @@ class AdminExportFile {
   final int rowCount;
 
   factory AdminExportFile.fromJson(Map<String, dynamic> json) {
+    final String fileName = (json['fileName'] ?? '').toString();
+    final String contentType = (json['contentType'] ?? '').toString();
+    final Object? content = json['data'];
+    final int? rowCount = _toInt(json['rowCount']);
+    if (fileName.isEmpty ||
+        contentType.isEmpty ||
+        content is! String ||
+        rowCount == null) {
+      throw const FormatException('导出响应格式无效');
+    }
     return AdminExportFile(
-      fileName: (json['fileName'] ?? 'admin-export.txt').toString(),
-      contentType:
-          (json['contentType'] ?? 'text/plain; charset=utf-8').toString(),
-      content: (json['content'] ?? '').toString(),
-      rowCount: _toInt(json['rowCount']) ?? 0,
+      fileName: fileName,
+      contentType: contentType,
+      content: content,
+      rowCount: rowCount,
     );
   }
 }

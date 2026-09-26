@@ -54,21 +54,35 @@ class AdminRepository {
     );
   }
 
-  Future<void> handleReviewBatch({
+  /// Returns the items the server could not apply, as "id: reason".
+  Future<List<String>> handleReviewBatch({
     required String targetType,
     required List<String> targetIds,
     required String action,
-  }) {
-    return _apiClient.post(
+  }) async {
+    final dynamic response = await _apiClient.post(
       ApiEndpoints.adminReviewBatch,
       body: <String, dynamic>{
-        'items': targetIds.map((String id) => <String, String>{
-          'type': targetType,
-          'id': id,
-          'action': action,
-        }).toList(),
+        'items': targetIds
+            .map(
+              (String id) => <String, String>{
+                'type': targetType,
+                'id': id,
+                'action': action,
+              },
+            )
+            .toList(),
       },
     );
+    final dynamic results = extractMap(response)['results'];
+    if (results is! List) {
+      throw const FormatException('批量审核响应缺少 results');
+    }
+    return results
+        .map((dynamic item) => asMap(item))
+        .where((Map<String, dynamic> item) => item['ok'] != true)
+        .map((Map<String, dynamic> item) => '${item['id']}: ${item['error']}')
+        .toList();
   }
 
   Future<List<AdminReportEntry>> fetchReports({
@@ -315,6 +329,30 @@ class AdminRepository {
     );
   }
 
+  Future<List<AdminFeedbackEntry>> fetchFeedbacks({
+    String status = 'all',
+  }) async {
+    final dynamic response = await _apiClient.get(
+      ApiEndpoints.adminFeedbacks,
+      queryParameters: <String, dynamic>{'status': status},
+    );
+    return extractList(
+      response,
+    ).map((dynamic item) => AdminFeedbackEntry.fromJson(asMap(item))).toList();
+  }
+
+  /// [action] is `reply` (reply required, 已回复) or `close`.
+  Future<void> handleFeedback({
+    required String feedbackId,
+    required String action,
+    required String reply,
+  }) {
+    return _apiClient.post(
+      ApiEndpoints.adminFeedbackHandle(feedbackId),
+      body: <String, dynamic>{'action': action, 'reply': reply},
+    );
+  }
+
   Future<void> handleImageReview({
     required String uploadId,
     required String action,
@@ -329,48 +367,25 @@ class AdminRepository {
     );
   }
 
-  Future<AdminChannelTagData> fetchChannelTagData() async {
+  Future<AdminTagData> fetchTags() async {
     final dynamic response = await _apiClient.get(
       ApiEndpoints.adminChannelsTags,
     );
     final Map<String, dynamic> data = extractMap(response);
-    return AdminChannelTagData.fromJson(data);
-  }
-
-  Future<void> addChannel(String name) {
-    return _apiClient.post(
-      ApiEndpoints.adminChannels,
-      body: <String, dynamic>{'name': name},
-    );
-  }
-
-  Future<void> renameChannel({
-    required String oldName,
-    required String newName,
-  }) {
-    return _apiClient.patch(
-      ApiEndpoints.adminChannelByName(_encodePath(oldName)),
-      body: <String, dynamic>{'newName': newName},
-    );
-  }
-
-  Future<void> deleteChannel(String name) {
-    return _apiClient.delete(
-      ApiEndpoints.adminChannelByName(_encodePath(name)),
-    );
+    return AdminTagData.fromJson(data);
   }
 
   Future<void> addTag(String name) {
     return _apiClient.post(
       ApiEndpoints.adminTags,
-      body: <String, dynamic>{'name': name},
+      body: <String, dynamic>{'tag': name},
     );
   }
 
   Future<void> renameTag({required String oldName, required String newName}) {
     return _apiClient.patch(
       ApiEndpoints.adminTagByName(_encodePath(oldName)),
-      body: <String, dynamic>{'newName': newName},
+      body: <String, dynamic>{'tag': newName},
     );
   }
 

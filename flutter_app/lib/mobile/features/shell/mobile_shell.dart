@@ -122,7 +122,11 @@ class _MobileShellState extends ConsumerState<MobileShell>
       return;
     }
     _didPrefetchUnread = true;
-    await ref.read(messagesControllerProvider.notifier).loadInitial();
+    // Both badges: 消息 counts chats and notifications.
+    await Future.wait(<Future<void>>[
+      ref.read(messagesControllerProvider.notifier).loadInitial(),
+      ref.read(notificationsControllerProvider.notifier).loadInitial(),
+    ]);
   }
 
   void _onNavVisibilityChanged() {

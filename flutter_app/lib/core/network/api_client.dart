@@ -10,12 +10,24 @@ import '../l10n/ui_text.dart';
 import 'api_exception.dart';
 
 class ApiClient {
-  ApiClient({http.Client? httpClient, String? Function()? tokenResolver})
-    : _http = httpClient ?? http.Client(),
-      _tokenResolver = tokenResolver ?? (() => AuthStore.instance.token);
+  ApiClient({
+    http.Client? httpClient,
+    String? Function()? tokenResolver,
+    this.onUnauthorized,
+  }) : _http = httpClient ?? http.Client(),
+       _tokenResolver = tokenResolver ?? (() => AuthStore.instance.token),
+       _tracksUserSession = tokenResolver == null;
+
+  /// For a client with its own [tokenResolver] (the admin one): what a 401
+  /// to the token still in use does.
+  final Future<void> Function()? onUnauthorized;
 
   final http.Client _http;
   final String? Function() _tokenResolver;
+
+  /// Whether this client carries the student session (not the admin one), so
+  /// that a 401 or a banned 403 changes [AuthStore].
+  final bool _tracksUserSession;
 
   Future<dynamic> get(
     String path, {
@@ -93,11 +105,9 @@ class ApiClient {
     final http.MultipartRequest request = http.MultipartRequest('POST', uri)
       ..headers['Accept'] = 'application/json';
 
-    if (auth) {
-      final String? token = _tokenResolver();
-      if (token != null && token.isNotEmpty) {
-        request.headers['Authorization'] = 'Bearer $token';
-      }
+    final String? sentToken = auth ? _tokenResolver() : null;
+    if (sentToken != null && sentToken.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $sentToken';
     }
 
     request.fields.addAll(fields);
@@ -136,6 +146,7 @@ class ApiClient {
       return decoded;
     }
 
+    _reportSessionState(response.statusCode, decoded, sentToken);
     final String message =
         _extractMessage(decoded) ??
         uiTextGlobal(
@@ -164,20 +175,16 @@ class ApiClient {
       'Content-Type': 'application/json; charset=utf-8',
     };
 
-    if (auth) {
-      final String? token = _tokenResolver();
-      if (token != null && token.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $token';
-      }
+    final String? sentToken = auth ? _tokenResolver() : null;
+    if (sentToken != null && sentToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $sentToken';
     }
 
     late http.Response response;
     try {
       switch (method) {
         case 'GET':
-          response = await _http
-              .get(uri, headers: headers)
-              .timeout(deadline);
+          response = await _http.get(uri, headers: headers).timeout(deadline);
           break;
         case 'POST':
           response = await _http
@@ -233,6 +240,7 @@ class ApiClient {
       return decoded;
     }
 
+    _reportSessionState(response.statusCode, decoded, sentToken);
     final String message =
         _extractMessage(decoded) ??
         uiTextGlobal(
@@ -244,6 +252,31 @@ class ApiClient {
       statusCode: response.statusCode,
       data: decoded,
     );
+  }
+
+  /// 401 means the session is dead; 403 with accountState "banned" means the
+  /// account is. Only answers to the session still in use count: a reply to
+  /// a request sent before signing in again says nothing about the new one.
+  void _reportSessionState(int status, dynamic decoded, String? sentToken) {
+    if (sentToken == null ||
+        sentToken.isEmpty ||
+        sentToken != _tokenResolver()) {
+      return;
+    }
+    if (!_tracksUserSession) {
+      if (status == 401) unawaited(onUnauthorized?.call());
+      return;
+    }
+    if (status == 401) {
+      unawaited(AuthStore.instance.expireSession());
+      return;
+    }
+    if (status == 403 &&
+        decoded is Map &&
+        decoded['data'] is Map &&
+        (decoded['data'] as Map)['accountState'] == 'banned') {
+      AuthStore.instance.banFromServer();
+    }
   }
 
   Uri _buildUri(String path, {Map<String, dynamic>? queryParameters}) {

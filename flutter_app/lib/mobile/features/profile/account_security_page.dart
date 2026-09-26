@@ -326,8 +326,9 @@ class _AccountSecurityPageState extends ConsumerState<AccountSecurityPage> {
           ],
         ),
       );
-    } catch (_) {
-      _showToast('申请提交失败，请稍后重试');
+    } catch (error) {
+      // e.g. 409 已有待处理的注销申请
+      _showToast('申请提交失败：$error');
     }
   }
 

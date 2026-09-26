@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/utils/code_point_limit.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/l10n/ui_text.dart';
@@ -11,7 +12,11 @@ import '../../repositories/app_repositories.dart';
 import '../../widgets/emoji/emoji_assistant_bar.dart';
 
 typedef ConversationFlagsChanged =
-    void Function({bool? blockedByMe, bool? blockedByPeer});
+    void Function({
+      bool? blockedByMe,
+      bool? blockedByPeer,
+      bool? awaitingReply,
+    });
 
 enum _MessageAction { copy, reply, recall }
 
@@ -64,21 +69,25 @@ class _ChatPageState extends State<ChatPage> {
   DirectMessageItem? _lastFailedReplyTarget;
   DirectMessageItem? _replyingTo;
 
-  /// Messages recalled in this session, shown as 你撤回了一条消息 until the
-  /// next load.
-  final Set<String> _recalledIds = <String>{};
-
-  /// The peer has written here (even a message since recalled). Until then,
-  /// one first message is all I can send (handoff H4).
-  bool _openedByPeer = false;
-
-  /// The server refused a send with 对方回复前只能发送一条消息.
+  /// The server refused a send with 对方回复前只能发送一条消息. It knows
+  /// best, so this wins until the next load.
   bool _serverSaysWait = false;
 
+  /// The peer has written here. Recalled messages come back as placeholders,
+  /// so a reply the peer took back still counts — the server's rule too.
+  bool get _openedByPeer => _messages.any((m) => !m.fromMe);
+
+  /// Before the peer writes, one first message is all I can send (handoff
+  /// H4); a recalled one frees the slot.
   bool get _awaitingReply {
-    if (_openedByPeer || _messages.any((m) => !m.fromMe)) return false;
-    return _serverSaysWait ||
-        _messages.any((m) => m.fromMe && !_recalledIds.contains(m.id));
+    if (_serverSaysWait) return true;
+    if (_openedByPeer) return false;
+    return _messages.any((m) => m.fromMe && !m.recalled);
+  }
+
+  /// Keeps the list row (wide web shows both) in step with this chat.
+  void _reportAwaitingReply() {
+    widget.onConversationFlagsChanged?.call(awaitingReply: _awaitingReply);
   }
 
   String? get _peerId {
@@ -323,8 +332,7 @@ class _ChatPageState extends State<ChatPage> {
       return const Center(child: CircularProgressIndicator());
     }
     final bool hasFailed = _lastFailedContent != null;
-    final bool beforeReply =
-        _error == null && !_openedByPeer && !_messages.any((m) => !m.fromMe);
+    final bool beforeReply = _error == null && !_openedByPeer;
     if (_messages.isEmpty && !hasFailed && !beforeReply) {
       return ZxStatePanel(
         icon: Icons.waving_hand_outlined,
@@ -352,13 +360,19 @@ class _ChatPageState extends State<ChatPage> {
       }
       if (at != null) previous = at;
       rows.add(
-        _recalledIds.contains(message.id)
+        message.recalled
             ? _SystemLine(
-                text: uiText(
-                  context,
-                  zh: '你撤回了一条消息',
-                  en: 'You recalled a message',
-                ),
+                text: message.fromMe
+                    ? uiText(
+                        context,
+                        zh: '你撤回了一条消息',
+                        en: 'You recalled a message',
+                      )
+                    : uiText(
+                        context,
+                        zh: '对方撤回了一条消息',
+                        en: 'They recalled a message',
+                      ),
               )
             : _buildBubble(message),
       );
@@ -595,6 +609,19 @@ class _ChatPageState extends State<ChatPage> {
                           focusNode: _inputFocusNode,
                           minLines: 1,
                           maxLines: 4,
+                          // The server's limit; no counter in the bar.
+                          maxLength: 1000,
+                          maxLengthEnforcement: MaxLengthEnforcement.none,
+                          inputFormatters: <TextInputFormatter>[
+                            CodePointLimitFormatter(1000),
+                          ],
+                          buildCounter:
+                              (
+                                _, {
+                                required int currentLength,
+                                required bool isFocused,
+                                int? maxLength,
+                              }) => null,
                           enabled: !_sending,
                           textInputAction: TextInputAction.send,
                           style: ZxType.body.copyWith(color: t.text),
@@ -831,7 +858,12 @@ class _ChatPageState extends State<ChatPage> {
       );
       if (!mounted) return;
       setState(() {
-        _recalledIds.add(message.id);
+        _messages = <DirectMessageItem>[
+          for (final DirectMessageItem m in _messages)
+            m.id == message.id ? m.copyWith(recalled: true, content: '') : m,
+        ];
+        // A recalled first message frees the slot on the server.
+        _serverSaysWait = false;
         if (_replyingTo?.id == message.id) {
           _replyingTo = null;
         }
@@ -839,13 +871,11 @@ class _ChatPageState extends State<ChatPage> {
           _lastFailedReplyTarget = null;
         }
       });
+      _reportAwaitingReply();
       if (recalledLastMessage) {
+        // What the server now has as this chat's lastMessage.
         widget.onMessageSent?.call(
-          _conversationPreviewText(
-            _messages
-                .where((DirectMessageItem m) => !_recalledIds.contains(m.id))
-                .toList(),
-          ),
+          uiTextGlobal(zh: '你撤回了一条消息', en: 'You recalled a message'),
         );
       }
       zxShowToast(
@@ -871,15 +901,6 @@ class _ChatPageState extends State<ChatPage> {
         : message.senderAliasFor(locale);
   }
 
-  String _conversationPreviewText(List<DirectMessageItem> messages) {
-    if (messages.isEmpty) {
-      return uiTextGlobal(zh: '开始聊天吧', en: 'Start the conversation');
-    }
-    return messages.last.content.trim().isEmpty
-        ? uiTextGlobal(zh: '开始聊天吧', en: 'Start the conversation')
-        : messages.last.content;
-  }
-
   Future<void> _loadMessages() async {
     setState(() {
       _loading = true;
@@ -891,19 +912,14 @@ class _ChatPageState extends State<ChatPage> {
       if (!mounted) return;
       setState(() {
         _messages = messages;
-        _recalledIds.clear();
-        // The server also counts recalled replies, so trust it when it says
-        // the chat is open although only my messages are visible.
-        _openedByPeer =
-            messages.any((m) => !m.fromMe) ||
-            (!_conversation.awaitingReply && messages.isNotEmpty);
-        _serverSaysWait = _conversation.awaitingReply;
+        _serverSaysWait = false;
         _conversation = _conversation.copyWith(
           unreadCount: 0,
           hasUnread: false,
         );
       });
       widget.onConversationRead?.call();
+      _reportAwaitingReply();
       _scrollToBottom();
     } catch (error) {
       if (!mounted) return;
@@ -955,6 +971,7 @@ class _ChatPageState extends State<ChatPage> {
         if (retryContent == null) _inputController.clear();
       });
       widget.onMessageSent?.call(finalCreated.content);
+      _reportAwaitingReply();
       _scrollToBottom();
     } on ApiException catch (error) {
       if (!mounted) return;
@@ -964,6 +981,7 @@ class _ChatPageState extends State<ChatPage> {
           _serverSaysWait = true;
           _lastFailedContent = null;
         });
+        _reportAwaitingReply();
         zxShowToast(context, error.message);
         return;
       }
@@ -1045,23 +1063,17 @@ class _ChatPageState extends State<ChatPage> {
       _error = null;
     });
     try {
-      final ConversationItem updated = await AppRepositories.messages
+      final bool blockedByMe = await AppRepositories.messages
           .updateConversationBlock(
             conversationId: _conversation.id,
             block: block,
           );
       if (!mounted) return;
       setState(() {
-        _conversation = _conversation.copyWith(
-          blockedByMe: updated.blockedByMe,
-          blockedByPeer: updated.blockedByPeer,
-        );
+        _conversation = _conversation.copyWith(blockedByMe: blockedByMe);
         if (_conversation.isBlocked) _replyingTo = null;
       });
-      widget.onConversationFlagsChanged?.call(
-        blockedByMe: updated.blockedByMe,
-        blockedByPeer: updated.blockedByPeer,
-      );
+      widget.onConversationFlagsChanged?.call(blockedByMe: blockedByMe);
       zxShowToast(
         context,
         block

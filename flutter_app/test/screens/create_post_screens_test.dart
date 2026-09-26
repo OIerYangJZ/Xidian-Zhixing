@@ -7,20 +7,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:xdu_treehole_web/features/post/create_post_controller.dart';
 import 'package:xdu_treehole_web/features/post/create_post_page.dart';
+import 'package:xdu_treehole_web/models/section_item.dart';
 
 import 'screen_capture.dart';
 
 class _ReadyController extends CreatePostController {
   _ReadyController(super.ref) {
     state = const CreatePostState(
-      channels: <String>['学习交流', '求助问答', '二手交易', '吐槽日常', '综合'],
-      loadingChannels: false,
+      sections: <SectionItem>[
+        SectionItem(
+          id: 'section-general',
+          sectionType: 'general',
+          sectionId: 'general',
+          sectionName: '综合',
+        ),
+        SectionItem(
+          id: 'section-cs',
+          sectionType: 'college',
+          sectionId: 'cs',
+          sectionName: '计算机科学与技术学院',
+        ),
+      ],
+      loadingSections: false,
       isLevelOneUser: true,
     );
   }
 
   @override
-  Future<void> loadChannels() async {}
+  Future<void> loadSections() async {}
 }
 
 const Map<String, Object> _draft = <String, Object>{
@@ -28,7 +42,7 @@ const Map<String, Object> _draft = <String, Object>{
   'content':
       '我们队目前**两个人**，一个负责建模、一个负责编程，还缺一位擅长写作和排版的同学。\n\n## 安排\n- 时间：十月中旬\n- 地点：图书馆研讨间',
   'markdown': true,
-  'channel': '学习交流',
+  'sectionKey': 'general',
   'status': 'ongoing',
   'anonymous': true,
   'anonymousAlias': '晨跑的鹿',

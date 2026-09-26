@@ -129,11 +129,7 @@ void main() {
   ) async {
     _handler = (http.Request request) async {
       if (request.url.path.endsWith('/unblock')) {
-        return _json(<String, Object>{
-          'id': 'c1',
-          'blockedByMe': false,
-          'blockedByPeer': false,
-        });
+        return _json(<String, Object>{'blocked': false});
       }
       return _json(<Object>[]);
     };
@@ -225,6 +221,69 @@ void main() {
       );
       expect(find.byKey(const Key('chat-waiting-panel')), findsOneWidget);
       expect(find.text('暂时不能发送'), findsOneWidget);
+    }, () => _client);
+  });
+
+  testWidgets('a peer reply opens the chat though the list said awaiting', (
+    WidgetTester tester,
+  ) async {
+    // The list row was loaded before the peer replied.
+    _handler = (http.Request request) async => _json(<Object>[
+      <String, Object>{
+        'id': 'm1',
+        'content': '你好',
+        'fromMe': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      },
+      <String, Object>{
+        'id': 'm2',
+        'content': '',
+        'fromMe': false,
+        'recalled': true,
+        'createdAt': DateTime.now().toIso8601String(),
+      },
+    ]);
+    await http.runWithClient(() async {
+      await _pump(
+        tester,
+        ChatPage(conversation: _conversation(awaitingReply: true)),
+      );
+      // A reply the peer recalled still opened the chat for good.
+      expect(find.byKey(const Key('chat-waiting-panel')), findsNothing);
+      expect(find.byKey(const Key('chat-input')), findsOneWidget);
+    }, () => _client);
+  });
+
+  testWidgets('the server holding a message wins over an open-looking chat', (
+    WidgetTester tester,
+  ) async {
+    // Only my own recalled message: nothing says the peer ever wrote, but
+    // the server refuses anyway; that answer must lock the input.
+    _handler = (http.Request request) async {
+      if (request.method == 'POST') {
+        return _json(<String, Object>{'message': '对方回复前只能发送一条消息'}, 403);
+      }
+      return _json(<Object>[
+        <String, Object>{
+          'id': 'm1',
+          'content': '',
+          'fromMe': true,
+          'recalled': true,
+          'createdAt': DateTime.now().toIso8601String(),
+        },
+      ]);
+    };
+    await http.runWithClient(() async {
+      await _pump(tester, ChatPage(conversation: _conversation()));
+      expect(find.byKey(const Key('chat-input')), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('chat-input')), '在吗');
+      await tester.tap(find.byKey(const Key('chat-send')));
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(find.byKey(const Key('chat-waiting-panel')), findsOneWidget);
+      expect(find.byKey(const Key('chat-input')), findsNothing);
+      await tester.pump(const Duration(seconds: 5));
     }, () => _client);
   });
 }

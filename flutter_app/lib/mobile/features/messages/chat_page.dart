@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:xdu_treehole_web/core/utils/code_point_limit.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -8,6 +9,11 @@ import '../../../core/network/api_exception.dart';
 import '../../core/state/mobile_providers.dart';
 import '../widgets/avatar_widget.dart';
 import 'package:xdu_treehole_web/models/direct_message_item.dart';
+
+// The server refuses a message over 1000 characters; a forward adds its
+// prefix.
+const int _messageMaxChars = 1000;
+const String _forwardPrefix = '[转发] ';
 
 /// 聊天 (handoff H1–H4). Bubbles carry their time and read state; a failed
 /// send stays in place with a red retry button. Long-press dims the page
@@ -42,11 +48,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   String? _error;
   bool _isSending = false;
 
-  /// The peer has written in this chat (even a message since recalled).
-  /// Until then, one first message is all I can send.
-  bool _openedByPeer = false;
-
-  /// The server refused a send with 对方回复前只能发送一条消息.
+  /// The server refused a send with 对方回复前只能发送一条消息. It knows
+  /// best, so this wins until the next load.
   bool _serverSaysWait = false;
   bool _blockedByMe = false;
   bool _blockedByPeer = false;
@@ -58,17 +61,22 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// 当前正在回复的消息
   DirectMessageItem? _replyingTo;
 
+  /// The peer has written in this chat. Recalled messages come back as
+  /// placeholders, so a reply the peer took back still counts — the
+  /// server's rule too. Until then, one first message is all I can send.
+  bool get _openedByPeer => _messages.any((m) => !m.fromMe);
+
   /// Handoff H4: my first message is out and the peer has not replied.
   bool get _awaitingReply {
-    if (_openedByPeer || _messages.any((m) => !m.fromMe)) return false;
-    return _serverSaysWait ||
-        _messages.any(
-          (m) =>
-              m.fromMe &&
-              !_isRecalled(m) &&
-              m.deliveryStatus != 'failed' &&
-              m.deliveryStatus != 'sending',
-        );
+    if (_serverSaysWait) return true;
+    if (_openedByPeer) return false;
+    return _messages.any(
+      (m) =>
+          m.fromMe &&
+          !_isRecalled(m) &&
+          m.deliveryStatus != 'failed' &&
+          m.deliveryStatus != 'sending',
+    );
   }
 
   String get _peerName =>
@@ -117,14 +125,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _messages = messages;
           _blockedByMe = conversation?.blockedByMe ?? false;
           _blockedByPeer = conversation?.blockedByPeer ?? false;
-          // The server counts recalled replies too; it knows best when it
-          // says the chat is open although only my messages are visible.
-          _openedByPeer =
-              messages.any((m) => !m.fromMe) ||
-              (conversation != null &&
-                  !conversation.awaitingReply &&
-                  messages.isNotEmpty);
-          _serverSaysWait = conversation?.awaitingReply ?? false;
+          _serverSaysWait = false;
           _isLoading = false;
         });
         _scrollToBottom();
@@ -160,7 +161,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       isRead: false,
       readAt: '',
       deliveryStatus: 'sending',
-      serverCanRecall: true,
+      // Not on the server yet: nothing to recall until the send returns.
+      serverCanRecall: false,
       replyToId: replyTarget?.id,
       replyToSender: replyTarget?.senderAlias,
       replyToContent: replyTarget?.content,
@@ -217,8 +219,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         _messageController.text = content;
         zxShowToast(context, e.message);
       } else {
+        // 对方已关闭私信 / 屏蔽 / 超长 / 频率限制: say why, a retry won't help.
         _markFailed(tempMessage);
-        debugPrint('私信发送失败: ${e.message}');
+        zxShowToast(context, e.message);
       }
     } catch (e) {
       // 发送失败：留在原位，点左侧按钮重发
@@ -429,8 +432,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         children: [
-          if (!_openedByPeer && !_messages.any((m) => !m.fromMe))
-            _buildFirstMessageNote(t),
+          if (!_openedByPeer) _buildFirstMessageNote(t),
           for (final Object row in rows)
             if (row is String)
               _buildTimeLabel(t, row)
@@ -586,11 +588,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 
   bool _isRecalled(DirectMessageItem message) =>
-      message.deliveryStatus == 'recalled';
+      message.recalled || message.deliveryStatus == 'recalled';
+
+  String _recalledText(DirectMessageItem message) =>
+      message.fromMe ? '你撤回了一条消息' : '对方撤回了一条消息';
 
   DirectMessageItem _toRecalledMessage(DirectMessageItem message) {
     return message.copyWith(
-      content: message.fromMe ? '你撤回了一条消息' : '对方撤回了一条消息',
+      content: _recalledText(message),
+      recalled: true,
       deliveryStatus: 'recalled',
       serverCanRecall: false,
     );
@@ -607,8 +613,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Center(
+          // The server sends a recalled message without its content.
           child: Text(
-            message.content,
+            _recalledText(message),
             style: ZxType.caption.copyWith(color: t.text3),
           ),
         ),
@@ -906,13 +913,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (_replyingTo != null && done.contains(_replyingTo!.id)) {
         _replyingTo = null;
       }
+      if (done.isNotEmpty) _serverSaysWait = false;
     });
-    ref
-        .read(messagesControllerProvider.notifier)
-        .updateConversationPreview(
-          conversationId: widget.conversationId,
-          message: _conversationPreviewText(_messages),
-        );
+    final notifier = ref.read(messagesControllerProvider.notifier);
+    notifier.updateConversationPreview(
+      conversationId: widget.conversationId,
+      message: _conversationPreviewText(_messages),
+    );
+    notifier.updateConversationFlags(
+      conversationId: widget.conversationId,
+      awaitingReply: _awaitingReply,
+    );
     if (done.isNotEmpty) zxShowToast(context, '已撤回 ${done.length} 条消息');
   }
 
@@ -938,7 +949,15 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           _messages[index] = _toRecalledMessage(_messages[index]);
         _selectedMessages.remove(message.id);
         if (_replyingTo?.id == message.id) _replyingTo = null;
+        // A recalled first message frees the slot on the server.
+        _serverSaysWait = false;
       });
+      ref
+          .read(messagesControllerProvider.notifier)
+          .updateConversationFlags(
+            conversationId: widget.conversationId,
+            awaitingReply: _awaitingReply,
+          );
       if (recalledLastMessage) {
         ref
             .read(messagesControllerProvider.notifier)
@@ -1011,10 +1030,21 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// 转发 one message, or 逐条转发 several in order, to another chat.
   void _openForwardPicker(List<DirectMessageItem> messages) {
     _hideOverlay();
+    // The server counts characters as code points.
+    if (messages.any(
+      (m) => '$_forwardPrefix${m.content}'.runes.length > _messageMaxChars,
+    )) {
+      zxShowToast(context, '加上转发标记后超过 $_messageMaxChars 字，无法转发');
+      return;
+    }
     final available = ref
         .read(messagesControllerProvider)
         .conversations
-        .where((c) => !c.isBlocked && c.id != widget.conversationId)
+        // awaitingReply: the server takes one first message, then refuses.
+        .where(
+          (c) =>
+              !c.isBlocked && !c.awaitingReply && c.id != widget.conversationId,
+        )
         .toList();
 
     showModalBottomSheet<void>(
@@ -1053,14 +1083,37 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   onTap: () async {
                     Navigator.pop(ctx);
                     try {
+                      // Until the peer writes, the server takes one message
+                      // and refuses the rest; the list does not say whether
+                      // they have, the chat's own messages do.
+                      if (messages.length > 1) {
+                        final List<DirectMessageItem> thread = await ref
+                            .read(messageRepositoryProvider)
+                            .fetchConversationMessages(c.id);
+                        if (!thread.any((m) => !m.fromMe)) {
+                          if (mounted) {
+                            zxShowToast(
+                              context,
+                              '${c.name} 还没回复过你，对方回复前只能发送一条消息',
+                            );
+                          }
+                          return;
+                        }
+                      }
                       for (final DirectMessageItem m in messages) {
                         await ref
                             .read(messageRepositoryProvider)
                             .sendConversationMessage(
                               conversationId: c.id,
-                              content: '[转发] ${m.content}',
+                              content: '$_forwardPrefix${m.content}',
                             );
                       }
+                      if (!mounted) return;
+                      // The target row's preview and first-message state
+                      // come from the server.
+                      await ref
+                          .read(messagesControllerProvider.notifier)
+                          .refresh();
                       if (!mounted) return;
                       if (_selectMode) _exitSelectMode();
                       zxShowToast(context, '已转发');
@@ -1131,6 +1184,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         controller: _messageController,
                         focusNode: _focusNode,
                         maxLines: null,
+                        maxLength: _messageMaxChars,
+                        maxLengthEnforcement: MaxLengthEnforcement.none,
+                        inputFormatters: <TextInputFormatter>[
+                          CodePointLimitFormatter(_messageMaxChars),
+                        ],
+                        // The server's limit; no counter in the bar.
+                        buildCounter:
+                            (
+                              _, {
+                              required int currentLength,
+                              required bool isFocused,
+                              int? maxLength,
+                            }) => null,
                         textInputAction: TextInputAction.newline,
                         style: ZxType.body.copyWith(color: t.text),
                         decoration: InputDecoration(
@@ -1355,19 +1421,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   Future<void> _setBlocked(bool block) async {
     setState(() => _unblocking = true);
     try {
-      await ref
+      final bool blockedByMe = await ref
           .read(messageRepositoryProvider)
           .updateConversationBlock(
             conversationId: widget.conversationId,
             block: block,
           );
       if (!mounted) return;
-      setState(() => _blockedByMe = block);
+      setState(() => _blockedByMe = blockedByMe);
       ref
           .read(messagesControllerProvider.notifier)
           .updateConversationFlags(
             conversationId: widget.conversationId,
-            blockedByMe: block,
+            blockedByMe: blockedByMe,
           );
       zxShowToast(context, block ? '已屏蔽对方' : '已解除屏蔽');
     } catch (e) {

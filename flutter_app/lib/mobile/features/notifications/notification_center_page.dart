@@ -356,8 +356,11 @@ class _NotificationCenterPageState
       );
       return;
     }
-    if (item.category == 'report_result') {
-      context.push('/profile/reports');
+    // 举报结果 goes to whoever owned the reported content (a reporter gets
+    // none): it opens the post while there is one, else reads here.
+    // An admin replied to or closed a 信箱 message.
+    if (item.relatedType == 'feedback') {
+      context.push('/profile/feedback');
       return;
     }
     if (item.content.trim().isNotEmpty) {

@@ -35,8 +35,8 @@ void main() {
     await _loadFont('MaterialIcons', <String>[
       '$sdk/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
     ]);
-    await _loadFont('STZhongsong', <String>['assets/fonts/STZhongsong.ttf']);
-    await _loadFont('STSong', <String>['assets/fonts/STSong.ttf']);
+    await _loadFont('STZhongsong', <String>['assets/fonts/STZhongsong-Subset.ttf']);
+    await _loadFont('STSong', <String>['web/fonts/STSong-Rare.ttf']);
     // Stand-in for the platform sans the app uses on Android, registered over
     // the test harness's default family too, whose placeholder glyphs would
     // otherwise draw Latin text and digits as boxes.

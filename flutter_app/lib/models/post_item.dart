@@ -3,11 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../core/config/app_config.dart';
 import '../core/l10n/ui_text.dart';
 
-enum PostStatus {
-  ongoing,
-  resolved,
-  closed,
-}
+enum PostStatus { ongoing, resolved, closed }
 
 extension PostStatusLabel on PostStatus {
   String get label {
@@ -67,7 +63,9 @@ class PostItem {
     required this.content,
     this.contentFormat = 'plain',
     this.markdownSource = '',
-    required this.channel,
+    this.sectionType = '',
+    this.sectionId = '',
+    this.sectionName = '',
     required this.tags,
     required this.authorAlias,
     this.authorUserId = '',
@@ -105,7 +103,12 @@ class PostItem {
   final String content;
   final String contentFormat;
   final String markdownSource;
-  final String channel;
+
+  /// The 分区 the post was filed under (general / college / club). Posts from
+  /// before sections carry none and show no section badge.
+  final String sectionType;
+  final String sectionId;
+  final String sectionName;
   final List<String> tags;
   final String authorAlias;
   final String authorUserId;
@@ -144,10 +147,6 @@ class PostItem {
       contentFormat.trim().toLowerCase() == 'markdown' &&
       markdownSource.trim().isNotEmpty;
 
-  /// The server sends these two placeholders in Chinese, so mapping them here
-  /// keeps English mode consistent without touching real user content.
-  String channelFor(Locale locale) => localizedChannel(locale, channel);
-
   String authorAliasFor(Locale locale) => localizedAlias(locale, authorAlias);
 
   factory PostItem.fromJson(Map<String, dynamic> json) {
@@ -164,23 +163,26 @@ class PostItem {
       content: _str(json, <String>['content', 'body']) ?? '',
       contentFormat:
           _str(json, <String>['contentFormat'])?.trim().toLowerCase() ==
-                  'markdown'
-              ? 'markdown'
-              : 'plain',
+              'markdown'
+          ? 'markdown'
+          : 'plain',
       markdownSource: _str(json, <String>['markdownSource']) ?? '',
-      channel: _str(json, <String>['channel', 'channelName']) ?? '未分类',
+      sectionType: _str(json, <String>['sectionType']) ?? '',
+      sectionId: _str(json, <String>['sectionId']) ?? '',
+      sectionName: _str(json, <String>['sectionName']) ?? '',
       tags: _toStringList(tagsValue),
       authorAlias:
           _str(json, <String>['authorAlias', 'anonymousName', 'alias']) ??
-              '匿名同学',
+          '匿名同学',
       authorUserId: _str(json, <String>['authorUserId', 'authorId']) ?? '',
       authorAvatarUrl: AppConfig.resolveUrl(
         _str(json, <String>['authorAvatarUrl', 'avatarUrl']) ?? '',
       ),
       createdAt:
           _date(json, <String>['createdAt', 'createTime', 'publishTime']) ??
-              DateTime.now(),
-      hasImage: _bool(json, <String>['hasImage']) ??
+          DateTime.now(),
+      hasImage:
+          _bool(json, <String>['hasImage']) ??
           (imagesValue is List ? imagesValue.isNotEmpty : false) ||
               (imageUrlsValue is List ? imageUrlsValue.isNotEmpty : false),
       commentCount: _int(json, <String>['commentCount', 'commentsCount']) ?? 0,
@@ -191,7 +193,8 @@ class PostItem {
       allowComment: _bool(json, <String>['allowComment']) ?? true,
       allowDm: _bool(json, <String>['allowDm', 'allowDirectMessage']) ?? false,
       isAnonymous: _bool(json, <String>['isAnonymous']) ?? false,
-      isPrivate: _bool(json, <String>['isPrivate']) ??
+      isPrivate:
+          _bool(json, <String>['isPrivate']) ??
           ((_str(json, <String>['visibility']) ?? 'public') == 'private'),
       isPinned: _bool(json, <String>['isPinned']) ?? false,
       pinStartedAt: _date(json, <String>['pinStartedAt']),
@@ -200,7 +203,7 @@ class PostItem {
       pinDurationLabel: _str(json, <String>['pinDurationLabel']) ?? '',
       canMessageAuthor:
           _bool(json, <String>['canMessageAuthor', 'canContactAuthor']) ??
-              false,
+          false,
       canViewAuthorProfile:
           _bool(json, <String>['canViewAuthorProfile']) ?? false,
       canFollowAuthor: _bool(json, <String>['canFollowAuthor']) ?? false,
@@ -219,30 +222,15 @@ class PostItem {
     );
   }
 
-  Map<String, dynamic> toCreateJson() {
-    return <String, dynamic>{
-      'title': title,
-      'content': content,
-      'contentFormat': contentFormat,
-      if (markdownSource.trim().isNotEmpty) 'markdownSource': markdownSource,
-      'channel': channel,
-      'tags': tags,
-      'status': status.apiValue,
-      'allowComment': allowComment,
-      'allowDm': allowDm,
-      'visibility': isPrivate ? 'private' : 'public',
-      'hasImage': hasImage,
-      if (pinDurationMinutes > 0) 'pinDurationMinutes': pinDurationMinutes,
-    };
-  }
-
   PostItem copyWith({
     String? id,
     String? title,
     String? content,
     String? contentFormat,
     String? markdownSource,
-    String? channel,
+    String? sectionType,
+    String? sectionId,
+    String? sectionName,
     List<String>? tags,
     String? authorAlias,
     String? authorUserId,
@@ -280,7 +268,9 @@ class PostItem {
       content: content ?? this.content,
       contentFormat: contentFormat ?? this.contentFormat,
       markdownSource: markdownSource ?? this.markdownSource,
-      channel: channel ?? this.channel,
+      sectionType: sectionType ?? this.sectionType,
+      sectionId: sectionId ?? this.sectionId,
+      sectionName: sectionName ?? this.sectionName,
       tags: tags ?? this.tags,
       authorAlias: authorAlias ?? this.authorAlias,
       authorUserId: authorUserId ?? this.authorUserId,

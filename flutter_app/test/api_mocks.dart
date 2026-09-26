@@ -142,24 +142,6 @@ class MockApiResponses {
     };
   }
 
-  static Map<String, dynamic> channelsSuccess() {
-    return <String, dynamic>{
-      'data': <String>[
-        '找对象',
-        '找搭子',
-        '交友扩列',
-        '吐槽日常',
-        '八卦吃瓜',
-        '求助问答',
-        '失物招领',
-        '二手交易',
-        '学习交流',
-        '活动拼车',
-        '其他',
-      ],
-    };
-  }
-
   static Map<String, dynamic> commentsSuccess() {
     return <String, dynamic>{
       'data': <Map<String, dynamic>>[
