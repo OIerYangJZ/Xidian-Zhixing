@@ -25,9 +25,9 @@ export function SuggestedFollows() {
       <h2 className="px-4 py-3 text-base font-semibold">{t('推荐关注', 'Who to follow')}</h2>
       {users.map((user) => (
         <div key={user.id} className="flex items-center gap-3 border-t border-border/70 px-4 py-3">
-          <Link href={`/${user.username}`} className="h-10 w-10 shrink-0">
+          <div className="h-10 w-10 shrink-0">
             <ProfilePhoto name={user.name} username={user.username} photoUrl={user.profilePhoto} />
-          </Link>
+          </div>
           <div className="min-w-0 flex-1">
             <Link href={`/${user.username}`} className="block truncate text-sm font-semibold hover:underline">
               {user.name}
