@@ -3,7 +3,7 @@
   <view style="height: {{navTop + navHeight + 8}}px;"></view>
 
   <view wx:if="{{sharedKind}}" class="share-card">
-    <view class="share-icon"><view class="zx-i zx-i-link zx-i--sm"></view></view>
+    <view class="share-tile"><view class="zx-i zx-i-link zx-i--sm"></view></view>
     <view class="zx-label">{{sharedKind === 'post' ? '登录后将打开分享的帖子' : '登录后将打开分享的主页'}}</view>
   </view>
 

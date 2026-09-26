@@ -30,7 +30,8 @@
   background: var(--zx-surface);
   border: 2rpx solid var(--zx-line);
 }
-.share-icon {
+/* Not .share-icon: app.wxss masks that class into the legacy share glyph. */
+.share-tile {
   flex: none;
   width: 64rpx;
   height: 64rpx;
