@@ -6,7 +6,6 @@ import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 import { openAppTarget } from '../../../utils/navigation';
 
 const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
-const WEEKDAY_NAMES = ['Mon.', 'Tue.', 'Wed.', 'Thu.', 'Fri.', 'Sat.', 'Sun.'];
 const SECTION_ROWS = [
   { section: 1, start: '08:30', end: '09:15' },
   { section: 2, start: '09:20', end: '10:05' },
@@ -19,7 +18,8 @@ const SECTION_ROWS = [
   { section: 9, start: '19:00', end: '19:45' },
   { section: 10, start: '19:50', end: '20:35' }
 ];
-const COURSE_COLORS = ['cyan', 'purple', 'indigo', 'pink', 'green', 'blue', 'rose'];
+// Course tints, one per channel colour (--zx-channel-1 … 6).
+const COURSE_COLORS = ['c1', 'c2', 'c3', 'c4', 'c5', 'c6'];
 const EXAM_LIST_DAYS = 31;
 const SCHEDULE_TIME_COL_RPX = 84;
 const SCHEDULE_HEADER_RPX = 78;
@@ -57,19 +57,6 @@ const minutesOf = (value = '') => {
   return hour * 60 + minute;
 };
 
-const SCHEDULE_START_MINUTE = minutesOf(SECTION_ROWS[0].start);
-const SCHEDULE_END_MINUTE = minutesOf(SECTION_ROWS[SECTION_ROWS.length - 1].end);
-const SCHEDULE_TIME_ANCHORS = [
-  ...SECTION_ROWS.map((row, index) => ({
-    minute: minutesOf(row.start),
-    y: SCHEDULE_HEADER_RPX + index * SCHEDULE_ROW_RPX
-  })),
-  {
-    minute: SCHEDULE_END_MINUTE,
-    y: SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX
-  }
-];
-
 const sectionForTime = (value = '') => {
   const target = minutesOf(value);
   let best = SECTION_ROWS[0].section;
@@ -80,20 +67,6 @@ const sectionForTime = (value = '') => {
 };
 
 const fixed = (value) => Number(value).toFixed(3).replace(/\.?0+$/, '');
-
-const scheduleYForTime = (value = '') => {
-  const target = minutesOf(value);
-  if (target <= SCHEDULE_START_MINUTE) return SCHEDULE_HEADER_RPX;
-  for (let index = 0; index < SCHEDULE_TIME_ANCHORS.length - 1; index += 1) {
-    const current = SCHEDULE_TIME_ANCHORS[index];
-    const next = SCHEDULE_TIME_ANCHORS[index + 1];
-    if (target <= next.minute) {
-      const ratio = (target - current.minute) / Math.max(1, next.minute - current.minute);
-      return current.y + (next.y - current.y) * ratio;
-    }
-  }
-  return SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX;
-};
 
 const scheduleYForVisualTime = (value = '') => {
   const target = minutesOf(value);
@@ -122,42 +95,13 @@ const dayColumnStyle = (dayIndex, insetRpx = 0) => {
   ].join(';');
 };
 
-const scheduleRows = () => SECTION_ROWS.map((row) => {
-  const topRpx = scheduleYForTime(row.start);
-  const heightRpx = SCHEDULE_ROW_RPX;
-  return {
-    ...row,
-    isInnerLine: row.section % 2 === 0,
-    topRpx: fixed(topRpx),
-    heightRpx: fixed(heightRpx)
-  };
-});
-
 const schedulePeriods = () => Array.from({ length: SECTION_ROWS.length / 2 }).map((_, index) => ({
   section: index + 1,
+  label: `${index * 2 + 1}-${index * 2 + 2}`,
+  start: SECTION_ROWS[index * 2].start,
+  end: SECTION_ROWS[index * 2 + 1].end,
   gridRow: `${index * 2 + 2} / span 2`
 }));
-
-const uniqueLabels = (labels = []) => Array.from(new Set(labels.filter(Boolean)));
-
-const scheduleTimeLabels = () => {
-  const groups = Array.from({ length: SECTION_ROWS.length / 2 }).map((_, index) => {
-    const rowIndex = index * 2;
-    const labels = rowIndex === 0
-      ? [SECTION_ROWS[rowIndex].start]
-      : [SECTION_ROWS[rowIndex - 1].end, SECTION_ROWS[rowIndex].start];
-    const topRpx = SCHEDULE_HEADER_RPX + rowIndex * SCHEDULE_ROW_RPX;
-    return {
-      labels: uniqueLabels(labels),
-      style: `top: ${fixed(topRpx)}rpx;`
-    };
-  });
-  groups.push({
-    labels: [SECTION_ROWS[SECTION_ROWS.length - 1].end],
-    style: `top: ${fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX)}rpx;`
-  });
-  return groups;
-};
 
 const isAcademicSource = (source = '') => source === 'courseSchedules' || source === 'examSchedules';
 
@@ -236,11 +180,14 @@ const activeWeekState = (weekOptions = [], selectedStartDate = '') => {
 };
 
 const buildScheduleGrid = (days = []) => {
+  const today = dateToYmd(new Date());
   const columns = days.map((day, index) => ({
     date: day.date,
-    name: WEEKDAY_NAMES[index] || '',
-    dayNumber: String(day.date || '').slice(8),
+    name: `周${WEEKDAY_LABELS[index] || ''}`,
+    dayNumber: String(day.date || '').slice(5),
     label: WEEKDAY_LABELS[index] || '',
+    isToday: day.date === today,
+    isWeekend: index >= 5,
     blockColumnStyle: dayColumnStyle(index, 3)
   }));
   const colorMap = {};
@@ -267,7 +214,7 @@ const buildScheduleGrid = (days = []) => {
         : 0;
       blocks.push({
         ...item,
-        color: isExam ? 'rose' : colorMap[key],
+        color: isExam ? 'exam' : colorMap[key],
         isExam,
         blockStyle: isExam
           ? `${columns[dayIndex].blockColumnStyle}; top: ${fixed(topRpx)}rpx; height: ${fixed(heightRpx)}rpx;`
@@ -279,24 +226,48 @@ const buildScheduleGrid = (days = []) => {
   });
   return {
     columns,
-    rows: scheduleRows(),
     periods: schedulePeriods(),
-    timeLabels: scheduleTimeLabels(),
     blocks,
     heightRpx: fixed(SCHEDULE_HEADER_RPX + SECTION_ROWS.length * SCHEDULE_ROW_RPX + SCHEDULE_BOTTOM_RPX)
   };
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// 今天 / N 天 until the exam; the next two weeks stand out.
+const examCountdown = (date = '') => {
+  const target = new Date(`${date}T00:00:00`).getTime();
+  if (!Number.isFinite(target)) return { text: '', tone: 'neutral' };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.round((target - today.getTime()) / DAY_MS);
+  if (days < 0) return { text: '已结束', tone: 'neutral' };
+  if (days === 0) return { text: '今天', tone: 'danger' };
+  return { text: `${days} 天`, tone: days <= 14 ? 'accent' : 'neutral' };
 };
 
 const buildExamItems = (days = []) => {
   const rows = [];
   days.forEach((day) => {
     (day.items || []).forEach((item) => {
+      const [, month = '', dayOfMonth = ''] = String(day.date || '').match(/^\d{4}-(\d{2})-(\d{2})$/) || [];
+      const timeLabel = item.timeRange || `${item.startTime || ''}-${item.endTime || ''}`.replace(/^-|-$/g, '');
+      const locationText = item.location || '';
+      const seatText = item.seatNo || item.section || '';
+      const countdown = examCountdown(day.date);
       rows.push({
         ...item,
+        date: item.date || day.date,
         dateLabel: `${day.shortDate} 周${day.label || day.weekday || ''}`,
-        timeLabel: item.timeRange || `${item.startTime || ''}-${item.endTime || ''}`.replace(/^-|-$/g, ''),
-        locationText: item.location || '',
-        seatText: item.seatNo || item.section || ''
+        examDay: dayOfMonth,
+        examMonth: month ? `${Number(month)} 月` : '',
+        weekdayText: `周${day.label || day.weekday || ''}`,
+        timeLabel,
+        locationText,
+        seatText,
+        metaText: [timeLabel, locationText, seatText ? `座位 ${seatText}` : ''].filter(Boolean).join(' · '),
+        countdownText: countdown.text,
+        countdownTone: countdown.tone
       });
     });
   });
@@ -306,7 +277,37 @@ const buildExamItems = (days = []) => {
 
 const businessActions = (service = {}) => {
   const actions = Array.isArray(service.actions) ? service.actions : [];
-  return actions.filter((action) => action && !['calendar', 'notice'].includes(action.type));
+  return actions
+    .filter((action) => action && !['calendar', 'notice'].includes(action.type))
+    .map((action) => ({ ...action, icon: action.type === 'map' ? 'map' : 'external' }));
+};
+
+const hasCalendar = (service = {}) => service.kind === 'schedule' || Boolean(service.calendarSource);
+
+const thisWeekStart = () => dateToYmd(mondayOf(new Date()));
+
+// Everything the page shows for one fetched calendar window.
+const calendarState = (service = {}, calendar = null, fallbackStartDate = '') => {
+  const calendarDays = calendar ? buildCalendarDays(calendar) : [];
+  const selectedWeekStartDate = (calendar && calendar.startDate) || fallbackStartDate;
+  const isExamList = isExamService(service);
+  const weekOptions = isExamList ? [] : buildWeekOptions(selectedWeekStartDate, calendarDays);
+  return {
+    calendar,
+    calendarDays,
+    calendarGrid: buildScheduleGrid(calendarDays),
+    examItems: buildExamItems(calendarDays),
+    isExamList,
+    weekOptions,
+    ...activeWeekState(weekOptions, selectedWeekStartDate),
+    weekScrollIntoView: activeWeekViewId(selectedWeekStartDate),
+    selectedWeekStartDate,
+    selectedDate: selectedWeekStartDate,
+    rangeText: calendar && calendar.startDate
+      ? `${shortDate(calendar.startDate)} – ${shortDate(calendar.endDate)}`
+      : '',
+    isThisWeek: !selectedWeekStartDate || selectedWeekStartDate === thisWeekStart()
+  };
 };
 
 Page({
@@ -317,7 +318,7 @@ Page({
     actions: [],
     calendar: null,
     calendarDays: [],
-    calendarGrid: { columns: [], rows: scheduleRows(), periods: schedulePeriods(), timeLabels: scheduleTimeLabels(), blocks: [], heightRpx: 0 },
+    calendarGrid: { columns: [], periods: schedulePeriods(), blocks: [], heightRpx: 0 },
     examItems: [],
     isExamList: false,
     weekOptions: [],
@@ -327,6 +328,9 @@ Page({
     weekScrollIntoView: '',
     selectedWeekStartDate: '',
     selectedDate: '',
+    rangeText: '',
+    isThisWeek: true,
+    calendarError: '',
     maps: [],
     navTop: 44,
     navHeight: 32,
@@ -356,32 +360,17 @@ Page({
     try {
       const detailResponse = await getCampusServiceDetail(this.data.id);
       const service = detailResponse.data || detailResponse || {};
-      const source = service.calendarSource || '';
-      const isExamList = isExamService(service);
       let calendar = null;
-      let calendarDays = [];
-      if (service.kind === 'schedule' || source) {
-        const startDate = this.data.selectedWeekStartDate || '';
-        const calendarData = await getCalendarSchedules(calendarQueryForService(service, startDate));
+      if (hasCalendar(service)) {
+        const calendarData = await getCalendarSchedules(calendarQueryForService(service, this.data.selectedWeekStartDate || ''));
         calendar = calendarData.data || calendarData || {};
-        calendarDays = buildCalendarDays(calendar);
       }
-      const selectedWeekStartDate = (calendar && calendar.startDate) || this.data.selectedWeekStartDate;
-      const weekOptions = isExamList ? [] : buildWeekOptions(selectedWeekStartDate, calendarDays);
       this.setData({
         service,
         actions: businessActions(service),
         name: service.name || this.data.name,
-        calendar,
-        calendarDays,
-        calendarGrid: buildScheduleGrid(calendarDays),
-        examItems: buildExamItems(calendarDays),
-        isExamList,
-        weekOptions,
-        ...activeWeekState(weekOptions, selectedWeekStartDate),
-        weekScrollIntoView: activeWeekViewId(selectedWeekStartDate),
-        selectedWeekStartDate,
-        selectedDate: selectedWeekStartDate,
+        ...calendarState(service, calendar, this.data.selectedWeekStartDate),
+        calendarError: '',
         maps: service.maps || [],
         loading: false
       });
@@ -399,28 +388,33 @@ Page({
     this.loadData();
   },
 
+  // Week changes fire one request each; only the latest one may land.
   async reloadCalendar() {
     const service = this.data.service || {};
-    const source = service.calendarSource || '';
-    if (!(service.kind === 'schedule' || source)) return;
-    const calendarData = await getCalendarSchedules(calendarQueryForService(service, this.data.selectedWeekStartDate));
-    const calendar = calendarData.data || calendarData || {};
-    const calendarDays = buildCalendarDays(calendar);
-    const selectedWeekStartDate = calendar.startDate || this.data.selectedWeekStartDate;
-    const isExamList = isExamService(service);
-    const weekOptions = isExamList ? [] : buildWeekOptions(selectedWeekStartDate, calendarDays);
-    this.setData({
-      calendar,
-      calendarDays,
-      calendarGrid: buildScheduleGrid(calendarDays),
-      examItems: buildExamItems(calendarDays),
-      isExamList,
-      weekOptions,
-      ...activeWeekState(weekOptions, selectedWeekStartDate),
-      weekScrollIntoView: activeWeekViewId(selectedWeekStartDate),
-      selectedWeekStartDate,
-      selectedDate: selectedWeekStartDate
-    });
+    if (!hasCalendar(service)) return;
+    const requestId = (this.calendarRequestId || 0) + 1;
+    this.calendarRequestId = requestId;
+    const startDate = this.data.selectedWeekStartDate;
+    try {
+      const calendarData = await getCalendarSchedules(calendarQueryForService(service, startDate));
+      if (requestId !== this.calendarRequestId) return;
+      const calendar = calendarData.data || calendarData || {};
+      this.setData({ ...calendarState(service, calendar, startDate), calendarError: '' });
+    } catch (error) {
+      if (requestId !== this.calendarRequestId) return;
+      this.setData({
+        calendarError: (error && error.data && error.data.message)
+          || (error && error.message)
+          || '日程加载失败，请重试'
+      });
+    }
+  },
+
+  goThisWeek() {
+    const startDate = thisWeekStart();
+    if (startDate === this.data.selectedWeekStartDate) return;
+    this.setData({ selectedWeekStartDate: startDate, weekScrollIntoView: activeWeekViewId(startDate) });
+    this.reloadCalendar();
   },
 
   switchWeek(event) {
@@ -430,7 +424,7 @@ Page({
       selectedWeekStartDate: startDate,
       weekScrollIntoView: activeWeekViewId(startDate)
     });
-    this.reloadCalendar().catch((error) => console.error(error));
+    this.reloadCalendar();
   },
 
   pickWeek(event) {
@@ -443,7 +437,7 @@ Page({
       selectedWeekText: option.fullRange || option.range || '',
       weekScrollIntoView: activeWeekViewId(option.startDate)
     });
-    this.reloadCalendar().catch((error) => console.error(error));
+    this.reloadCalendar();
   },
 
   goBack() {
@@ -465,7 +459,7 @@ Page({
       selectedWeekStartDate: next,
       weekScrollIntoView: activeWeekViewId(next)
     });
-    this.reloadCalendar().catch((error) => console.error(error));
+    this.reloadCalendar();
   },
 
   pickDate(event) {
@@ -477,7 +471,7 @@ Page({
       selectedWeekStartDate: weekStart,
       weekScrollIntoView: activeWeekViewId(weekStart)
     });
-    this.reloadCalendar().catch((error) => console.error(error));
+    this.reloadCalendar();
   },
 
   runAction(event) {

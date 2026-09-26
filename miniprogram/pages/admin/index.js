@@ -88,6 +88,13 @@ const SYSTEM_TYPES = [
   { key: 'knowledge', label: '知识库' }
 ];
 
+// Mini program admins sign in with their student account, which the backend
+// treats as a secondary admin: only pin and club requests and the knowledge
+// base are open to them. Everything else answers 403.
+const SECONDARY_TABS = ['requests', 'system'];
+const SECONDARY_REQUEST_TYPES = ['pin', 'club'];
+const SECONDARY_SYSTEM_TYPES = ['knowledge'];
+
 const STATUS_TEXT = {
   pending: '待处理',
   approved: '已通过',
@@ -172,10 +179,25 @@ Page({
     });
     try {
       const admin = await getCurrentAdmin();
-      this.setData({ admin });
+      if (admin.isPrimary) {
+        this.setData({ admin });
+      } else {
+        const keep = (list, keys) => list.filter((item) => keys.includes(item.key));
+        this.setData({
+          admin,
+          tabs: keep(TABS, SECONDARY_TABS),
+          requestTypes: keep(REQUEST_TYPES, SECONDARY_REQUEST_TYPES),
+          systemTypes: keep(SYSTEM_TYPES, SECONDARY_SYSTEM_TYPES),
+          activeTab: SECONDARY_TABS.includes(this.data.activeTab) ? this.data.activeTab : 'requests',
+          requestType: SECONDARY_REQUEST_TYPES.includes(this.data.requestType) ? this.data.requestType : 'pin',
+          systemType: SECONDARY_SYSTEM_TYPES.includes(this.data.systemType) ? this.data.systemType : 'knowledge'
+        });
+      }
       await this.loadActiveTab();
     } catch (error) {
-      const forbidden = Number(error && error.statusCode) === 403;
+      // Signed in but not an admin: the backend answers 401 for a plain
+      // user token and 403 for a missing role.
+      const forbidden = [401, 403].includes(Number(error && error.statusCode));
       this.setData({
         loading: false,
         noPermission: forbidden,
@@ -185,6 +207,8 @@ Page({
   },
 
   async loadActiveTab() {
+    // Retrying after the admin check itself failed runs the check again.
+    if (!this.data.admin) return this.bootstrap();
     const { activeTab } = this.data;
     if (activeTab === 'overview') return this.loadOverview();
     if (activeTab === 'reviews') return this.loadReviews();

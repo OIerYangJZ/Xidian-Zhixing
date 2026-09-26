@@ -1,10 +1,13 @@
-.club-detail { padding: 32rpx 0; background: var(--app-background); }
-.club-title { color: var(--app-text-primary); font-size: 42rpx; font-weight: 750; line-height: 1.25; }
-.club-title,
-.club-owner,
-.club-text,
-.section-title { margin-left: 32rpx; margin-right: 32rpx; }
-.club-owner { margin-top: 12rpx; color: var(--app-primary); font-size: 25rpx; font-weight: 650; }
-.club-text { margin-top: 24rpx; color: var(--app-text-primary); font-size: 29rpx; line-height: 1.6; }
-.section-title { margin-top: 36rpx; color: var(--app-text-secondary); font-size: 25rpx; font-weight: 650; }
-.empty-posts { padding: 28rpx 0; color: var(--app-text-secondary); font-size: 26rpx; text-align: center; }
+/* 社团详情: the club header, then its posts as shared post rows. */
+@import "../../../styles/zx-post.wxss";
+
+.club-detail { background: var(--zx-bg); padding-bottom: 64rpx; }
+.head { padding: 48rpx 40rpx 40rpx; text-align: center; }
+.head-avatar { margin: 0 auto; }
+.head-name { margin-top: 20rpx; }
+.head-meta { justify-content: center; gap: 12rpx; margin-top: 12rpx; }
+.head-desc { margin-top: 20rpx; color: var(--zx-text-2); white-space: pre-wrap; text-align: left; }
+.posts-title { padding: 40rpx 40rpx 16rpx; }
+.posts-empty { padding: 48rpx; }
+.sheet { background: var(--zx-surface); border-top: 2rpx solid var(--zx-line); }
+.empty-action { margin-top: 24rpx; }

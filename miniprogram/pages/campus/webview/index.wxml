@@ -1,1 +1,12 @@
-<web-view src="{{url}}"></web-view>
+<web-view wx:if="{{url}}" src="{{url}}" binderror="onLoadError"></web-view>
+<view wx:else class="zx-page webview-page {{themeClass}}">
+  <view class="zx-empty">
+    <view class="zx-i zx-i-globe empty-icon"></view>
+    <view class="zx-empty__title">{{errorTitle || '正在打开…'}}</view>
+    <view wx:if="{{errorMessage}}" class="zx-empty__message">{{errorMessage}}</view>
+    <view wx:if="{{errorTitle}}" class="empty-actions">
+      <view class="zx-btn zx-btn--secondary zx-btn--small" bindtap="goBack">返回</view>
+      <view wx:if="{{failedUrl}}" class="zx-btn zx-btn--primary zx-btn--small" bindtap="retryOpen">重试</view>
+    </view>
+  </view>
+</view>

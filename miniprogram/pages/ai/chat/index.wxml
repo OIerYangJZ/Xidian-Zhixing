@@ -1,47 +1,68 @@
-<view class="page ai-chat-page {{themeClass}}">
-  <view class="config-bar" wx:if="{{configLoading}}">正在读取服务器 AI 状态</view>
-  <view class="config-bar" wx:elif="{{configError}}" bindtap="refreshConfigState">{{configError}} ></view>
-  <view class="config-bar" wx:elif="{{!configured}}" bindtap="goSettings">服务器 AI 尚未配置 ></view>
-  <view class="model-bar" wx:else>当前模型：{{currentModel}}</view>
+<!-- 校园 AI 对话 (handoff AI1 / AI3): questions on the right, 小电's answers
+     with numbered sources on the left, a pill composer at the bottom. -->
+<view class="zx-page ai-chat-page {{themeClass}}">
+  <view class="toolbar">
+    <view class="toolbar-main">
+      <view class="zx-caption zx-ellipsis">小电<block wx:if="{{configured && currentModel}}"> · {{currentModel}}</block></view>
+    </view>
+    <view class="tool" bindtap="goHistory"><view class="zx-i zx-i-history"></view></view>
+    <view class="tool {{isSending ? 'tool--off' : ''}}" bindtap="startNewChat"><view class="zx-i zx-i-edit"></view></view>
+  </view>
+
+  <view wx:if="{{configLoading}}" class="zx-caption config-loading">正在读取服务器 AI 状态…</view>
+  <view wx:elif="{{configError || !configured}}" class="config-banner">
+    <view class="config-icon"><view class="zx-i zx-i-server"></view></view>
+    <view class="config-text">
+      <view class="config-title">{{configError ? 'AI 状态加载失败' : '服务器 AI 尚未配置'}}</view>
+      <view class="config-sub">暂时不能提问，历史对话可以正常查看。</view>
+    </view>
+    <view class="config-retry" bindtap="refreshConfigState"><view class="zx-i zx-i-refresh zx-i--sm"></view>重新检查</view>
+  </view>
+
   <scroll-view class="chat-scroll" scroll-y scroll-top="{{scrollTop}}" scroll-with-animation>
     <view class="chat-list">
-      <view wx:for="{{messages}}" wx:for-index="messageIndex" wx:key="id" class="message-item {{item.role === 'user' ? 'message-user' : 'message-assistant'}}">
-        <view class="avatar {{item.role === 'user' ? 'avatar-user' : 'avatar-assistant'}}">
-          {{item.role === 'user' ? '我' : '印'}}
-        </view>
-        <view class="message-bubble">
-          <text class="message-text">{{item.content}}</text>
-          <view class="references" wx:if="{{item.references && item.references.length}}">
-            <view class="reference-title">
-              <text class="seal-badge-hollow" style="font-size: 16rpx; height: 32rpx; line-height: 28rpx; padding: 0 6rpx; margin-right: 8rpx; display: inline-block; vertical-align: middle;">来源</text>
-              <text style="vertical-align: middle;">相关原帖</text>
-            </view>
-            <view class="reference-item" wx:for="{{item.references}}" wx:for-item="ref" wx:for-index="referenceIndex" wx:key="key">
-              <view class="reference-link" data-message-index="{{messageIndex}}" data-reference-index="{{referenceIndex}}" bindtap="openReference">
-                {{ref.type === 'post' ? '帖子' : '资料'}} · {{ref.title}}
+      <block wx:for="{{messages}}" wx:for-index="messageIndex" wx:key="id">
+        <view wx:if="{{item.role === 'user'}}" class="question"><text user-select>{{item.content}}</text></view>
+        <view wx:else class="answer">
+          <view class="ai-tile"><view class="zx-i zx-i-ai zx-i--sm"></view></view>
+          <view class="answer-body">
+            <view wx:if="{{item.failed}}" class="zx-inline-message zx-inline-message--danger">{{item.content}}</view>
+            <text wx:else class="answer-text" user-select>{{item.content}}</text>
+            <view wx:if="{{item.references && item.references.length}}" class="sources">
+              <view class="sources-title"><view class="zx-i zx-i-doc zx-i--sm"></view>引用来源 · {{item.references.length}}</view>
+              <view wx:for="{{item.references}}" wx:for-item="ref" wx:for-index="referenceIndex" wx:key="key" class="source" data-message-index="{{messageIndex}}" data-reference-index="{{referenceIndex}}" bindtap="openReference">
+                <view class="source-index">{{referenceIndex + 1}}</view>
+                <view class="source-main">
+                  <view class="source-title zx-ellipsis">{{ref.title}}</view>
+                  <view class="zx-caption">{{ref.type === 'post' || ref.targetType === 'post' ? '论坛帖子' : '校园资料'}}</view>
+                </view>
+                <view class="zx-i zx-i-external zx-i--sm source-go"></view>
               </view>
             </view>
+            <view wx:if="{{!item.local && !item.failed}}" class="answer-foot">
+              <view class="answer-tool" data-index="{{messageIndex}}" bindtap="copyMessage"><view class="zx-i zx-i-copy zx-i--sm"></view></view>
+              <view class="zx-spacer"></view>
+              <view class="zx-caption">内容由 AI 生成，请以学校通知为准</view>
+            </view>
           </view>
         </view>
-      </view>
-      
-      <!-- Loading indicator for assistant -->
-      <view class="message-item message-assistant" wx:if="{{isSending}}">
-        <view class="avatar avatar-assistant">印</view>
-        <view class="message-bubble">
-          <view class="typing-indicator">
-            <view class="dot"></view>
-            <view class="dot"></view>
-            <view class="dot"></view>
-          </view>
+      </block>
+
+      <view wx:if="{{isSending}}" class="answer answer--pending">
+        <view class="ai-tile"><view class="zx-i zx-i-ai zx-i--sm"></view></view>
+        <view class="typing">
+          <view class="dot"></view><view class="dot"></view><view class="dot"></view>
+          <text>小电正在查找资料…</text>
         </view>
       </view>
     </view>
   </scroll-view>
 
-  <view class="input-bar">
-    <input class="input" placeholder="输入问题..." value="{{inputVal}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" cursor-spacing="20" />
-    <button wx:if="{{isSending}}" class="send-btn send-btn-stop" bindtap="stopMessage">停止</button>
-    <button wx:else class="send-btn" bindtap="sendMessage" disabled="{{!inputVal || !configured || configLoading}}">发送</button>
+  <view class="composer">
+    <view class="composer-pill">
+      <input class="composer-input" placeholder="{{messages.length > 1 ? '继续提问' : '问问校园里的事'}}" value="{{inputVal}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" cursor-spacing="20" disabled="{{!configured || configLoading}}" />
+      <view wx:if="{{isSending}}" class="send send--stop" bindtap="stopMessage"><view class="stop-square"></view></view>
+      <view wx:else class="send {{inputVal && configured && !configLoading ? 'send--on' : ''}}" bindtap="sendMessage"><view class="zx-i zx-i-send"></view></view>
+    </view>
   </view>
 </view>

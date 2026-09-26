@@ -1,25 +1,45 @@
-<view class="page ai-settings-page {{themeClass}}">
-  <view class="section">
-    <view class="section-title">AI 服务</view>
-    <view class="switch-row">
-      <text>运行状态</text>
-      <text>{{statusText}}</text>
+<!-- AI 设置: the server's AI status (read-only; the server owns the model). -->
+<view class="zx-page settings-page {{themeClass}}">
+  <view class="zx-section-title">AI 服务</view>
+  <view class="zx-list">
+    <view class="zx-list-item">
+      <view class="zx-icon-tile tile--{{statusTone}}"><view class="zx-i zx-i-server zx-i--sm"></view></view>
+      <view class="zx-list-item__main">
+        <view class="zx-list-item__title">运行状态</view>
+        <view class="zx-list-item__subtitle">{{statusText}}</view>
+      </view>
     </view>
-    <view class="field" wx:if="{{configured}}">
-      <view class="label">当前模型</view>
-      <view class="picker-value">{{model}}</view>
+    <view wx:if="{{configured}}" class="zx-list-item">
+      <view class="zx-icon-tile"><view class="zx-i zx-i-ai zx-i--sm"></view></view>
+      <view class="zx-list-item__main">
+        <view class="zx-list-item__title">当前模型</view>
+        <view class="zx-list-item__subtitle">{{model}}</view>
+      </view>
     </view>
-    <view class="field" wx:if="{{configured && models.length}}">
-      <view class="label">服务器可用模型</view>
-      <view class="picker-value">{{modelsText}}</view>
+    <view wx:if="{{configured && models.length}}" class="zx-list-item">
+      <view class="zx-icon-tile"><view class="zx-i zx-i-list zx-i--sm"></view></view>
+      <view class="zx-list-item__main">
+        <view class="zx-list-item__title">服务器可用模型</view>
+        <view class="zx-list-item__subtitle models">{{modelsText}}</view>
+      </view>
     </view>
   </view>
 
-  <view class="section">
-    <view class="section-title">知识检索</view>
-    <view class="switch-row"><text>校园知识库</text><text>服务器统一维护</text></view>
-    <view class="switch-row"><text>论坛公开帖子</text><text>自动检索</text></view>
+  <view class="zx-section-title section-gap">知识检索</view>
+  <view class="zx-list">
+    <view class="zx-list-item">
+      <view class="zx-icon-tile"><view class="zx-i zx-i-book zx-i--sm"></view></view>
+      <view class="zx-list-item__main"><view class="zx-list-item__title">校园知识库</view></view>
+      <view class="zx-caption">服务器统一维护</view>
+    </view>
+    <view class="zx-list-item">
+      <view class="zx-icon-tile"><view class="zx-i zx-i-treehole zx-i--sm"></view></view>
+      <view class="zx-list-item__main"><view class="zx-list-item__title">论坛公开帖子</view></view>
+      <view class="zx-caption">自动检索</view>
+    </view>
   </view>
 
-  <button class="save-button" loading="{{loading}}" bindtap="refresh">刷新状态</button>
+  <view class="zx-btn zx-btn--secondary zx-btn--block refresh {{loading ? 'zx-btn--disabled' : ''}}" bindtap="refresh">
+    <view class="zx-i zx-i-refresh zx-i--sm"></view>{{loading ? '正在读取…' : '刷新状态'}}
+  </view>
 </view>

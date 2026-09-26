@@ -1,4 +1,5 @@
 import { baseUrl } from '../../../config/env';
+import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
 // Only these hosts may be rendered inside <web-view>.  The page is reachable
 // with an attacker-influenced `url` query (announcements/banners carry server
@@ -37,7 +38,14 @@ const isAllowedUrl = (value) => {
 
 Page({
   data: {
-    url: ''
+    url: '',
+    failedUrl: '',
+    errorTitle: '',
+    errorMessage: ''
+  },
+
+  onShow() {
+    applyThemeAndLanguage(this);
   },
 
   onLoad(options) {
@@ -49,12 +57,39 @@ Page({
       // will reject it anyway.
     }
 
+    // Refused links stay on a page that says so: opened from a share card
+    // there is no page to go back to, and the old auto-back left a blank page.
     if (!isAllowedUrl(raw)) {
-      wx.showToast({ title: '该链接不被允许打开', icon: 'none' });
-      setTimeout(() => wx.navigateBack({ delta: 1 }), 800);
+      this.setData({
+        errorTitle: '该链接不被允许打开',
+        errorMessage: '这里只能打开西电官方网站。'
+      });
       return;
     }
 
     this.setData({ url: raw });
+  },
+
+  onLoadError() {
+    this.setData({
+      failedUrl: this.data.url,
+      url: '',
+      errorTitle: '页面加载失败',
+      errorMessage: '请检查网络，或确认已连接校园网后重试。'
+    });
+  },
+
+  retryOpen() {
+    const url = this.data.failedUrl;
+    if (!url) return;
+    this.setData({ url, failedUrl: '', errorTitle: '', errorMessage: '' });
+  },
+
+  goBack() {
+    if (getCurrentPages().length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.switchTab({ url: '/pages/campus/index' });
   }
 });

@@ -15,6 +15,7 @@ const SYSTEMS = [
     name: '校园网自服务',
     desc: '校园网账号、查询密码和图形验证码',
     tag: '网络',
+    icon: 'wifi',
     type: 'schoolnet',
     passwordPlaceholder: '校园网查询密码'
   },
@@ -23,9 +24,12 @@ const SYSTEMS = [
     name: '宿舍水机',
     desc: '手机号、图形验证码和短信验证码',
     tag: '水机',
+    icon: 'building',
     type: 'phone'
   }
 ];
+
+const SMS_COOLDOWN_SECONDS = 60;
 
 const SYSTEM_MAP = SYSTEMS.reduce((map, item) => {
   map[item.id] = item;
@@ -75,6 +79,8 @@ Page({
     submitting: false,
     captchaLoading: false,
     smsSending: false,
+    smsCountdown: 0,
+    formError: '',
     authStates: {},
     activeState: null,
     resultMessage: '',
@@ -92,13 +98,22 @@ Page({
     applyThemeAndLanguage(this);
   },
 
+  onUnload() {
+    this.stopSmsCountdown();
+  },
+
   async loadStudentId() {
     if (!wx.getStorageSync('token')) return;
     try {
       const response = await getUserInfo();
       const user = response.data || {};
       const studentId = user.studentId || String(user.email || '').split('@')[0] || '';
-      if (studentId) this.setData({ studentId });
+      if (!studentId || this.data.studentId) return;
+      this.setData({ studentId });
+      // The captcha needs the account, which only just arrived.
+      if (this.data.activeSystem === 'schoolnet' && !this.data.schoolnetAttemptId) {
+        this.refreshSchoolnetCaptcha();
+      }
     } catch (error) {
       console.error(error);
     }
@@ -143,7 +158,8 @@ Page({
       schoolnetCaptcha: '',
       dormWaterImageCode: '',
       dormWaterSmsCode: '',
-      resultMessage: ''
+      resultMessage: '',
+      formError: ''
     });
     wx.setNavigationBarTitle({ title: info.name });
     if (info.id === 'schoolnet' && this.data.studentId && !this.data.schoolnetAttemptId) {
@@ -201,8 +217,8 @@ Page({
   },
 
   showError(error, fallback) {
-    const message = errorMessage(error, fallback);
-    wx.showToast({ title: message, icon: 'none' });
+    // Inline, not a toast: upstream messages are often longer than a toast shows.
+    this.setData({ formError: errorMessage(error, fallback) });
   },
 
   async refreshSchoolnetCaptcha() {
@@ -236,7 +252,7 @@ Page({
       return;
     }
 
-    this.setData({ submitting: true, resultMessage: '' });
+    this.setData({ submitting: true, resultMessage: '', formError: '' });
     wx.showLoading({ title: '正在登录' });
     try {
       const response = await loginCampusSchoolnet(schoolnetAttemptId, studentId, password, schoolnetCaptcha);
@@ -271,6 +287,7 @@ Page({
   },
 
   async sendDormWaterCode() {
+    if (this.data.smsSending || this.data.smsCountdown) return;
     const { dormWaterSessionId, dormWaterPhone, dormWaterImageCode } = this.data;
     if (!dormWaterPhone) {
       wx.showToast({ title: '请输入手机号', icon: 'none' });
@@ -280,10 +297,11 @@ Page({
       wx.showToast({ title: '请先填写图形验证码', icon: 'none' });
       return;
     }
-    this.setData({ smsSending: true, resultMessage: '' });
+    this.setData({ smsSending: true, resultMessage: '', formError: '' });
     try {
       await sendDormWaterSms(dormWaterSessionId, dormWaterPhone, dormWaterImageCode);
       wx.showToast({ title: '短信已发送', icon: 'success' });
+      this.startSmsCountdown();
     } catch (error) {
       console.error(error);
       this.showError(error, '短信验证码发送失败');
@@ -300,7 +318,7 @@ Page({
       wx.showToast({ title: '请输入手机号和短信验证码', icon: 'none' });
       return;
     }
-    this.setData({ submitting: true, resultMessage: '' });
+    this.setData({ submitting: true, resultMessage: '', formError: '' });
     wx.showLoading({ title: '正在登录' });
     try {
       const response = await loginDormWater(dormWaterSessionId, dormWaterPhone, dormWaterSmsCode);
@@ -313,6 +331,22 @@ Page({
     } finally {
       this.setData({ submitting: false, dormWaterSmsCode: '' });
     }
+  },
+
+  startSmsCountdown() {
+    this.stopSmsCountdown();
+    this.setData({ smsCountdown: SMS_COOLDOWN_SECONDS });
+    this.smsTimer = setInterval(() => {
+      const next = this.data.smsCountdown - 1;
+      if (next <= 0) this.stopSmsCountdown();
+      else this.setData({ smsCountdown: next });
+    }, 1000);
+  },
+
+  stopSmsCountdown() {
+    if (this.smsTimer) clearInterval(this.smsTimer);
+    this.smsTimer = null;
+    if (this.data.smsCountdown) this.setData({ smsCountdown: 0 });
   },
 
   clearCurrentState() {

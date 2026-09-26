@@ -1,33 +1,53 @@
-<view class="map-page {{themeClass}}">
+<!-- 校园地图: a schematic plate of the chosen index, its places, and the
+     official navigation (the school's GIS does the real routing). -->
+<view class="zx-page map-page {{themeClass}}">
   <view class="map-head">
-    <view class="map-kicker">Xidian GIS</view>
-    <view class="map-title">校园地图</view>
-    <view class="map-subtitle">南校区常用地点索引，导航由学校官方系统提供。</view>
-    <button class="map-button" bindtap="openOfficialMap">打开学校导航系统</button>
+    <view class="zx-caption">导航由学校官方系统提供，这里是常用地点索引</view>
+    <view class="zx-btn zx-btn--primary zx-btn--block map-button" bindtap="openOfficialMap"><view class="zx-i zx-i-map zx-i--sm"></view>打开学校导航系统</view>
   </view>
 
-  <view wx:if="{{loading}}" class="loading-state">正在加载地图索引</view>
-  <view wx:elif="{{errorMessage}}" class="loading-state">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">正在加载地图索引…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!maps.length}}" class="zx-empty">
+    <view class="zx-i zx-i-map empty-icon"></view>
+    <view class="zx-empty__title">还没有地点索引</view>
   </view>
 
   <block wx:else>
-    <view class="map-group" wx:for="{{maps}}" wx:key="id">
-      <view class="group-head">
-        <view>
-          <view class="group-title">{{item.name}}</view>
-          <view class="group-subtitle">{{item.description}}</view>
-        </view>
-        <view class="group-status">{{item.status}}</view>
+    <scroll-view wx:if="{{maps.length > 1}}" class="group-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="segment">
+        <view wx:for="{{maps}}" wx:key="id" class="segment-option {{activeIndex === index ? 'segment-option--on' : ''}}" data-index="{{index}}" bindtap="selectGroup">{{item.name}}</view>
       </view>
-      <view class="place-list">
-        <view class="place-row" wx:for="{{item.items}}" wx:for-item="place" wx:key="name">
+    </scroll-view>
+
+    <view class="zx-card group-card">
+      <view class="zx-row group-head">
+        <view class="group-main">
+          <view class="zx-label">{{activeGroup.name}}</view>
+          <view wx:if="{{activeGroup.description}}" class="zx-caption group-desc">{{activeGroup.description}}</view>
+        </view>
+        <view wx:if="{{activeGroup.status}}" class="zx-badge zx-badge--success">{{activeGroup.status}}</view>
+      </view>
+
+      <view wx:if="{{activePins.length}}" class="plate">
+        <view class="plate-label">示意位置 · 以官方导航为准</view>
+        <view wx:for="{{activePins}}" wx:key="name" class="pin {{item.below ? 'pin--below' : ''}} {{activePlace === item.index ? 'pin--on' : ''}}" style="left: {{item.x}}%; top: {{item.y}}%;" data-index="{{item.index}}" bindtap="selectPlace">
+          <view class="pin-icon"></view>
+          <view wx:if="{{activePlace === item.index}}" class="pin-name">{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="places">
+        <view wx:for="{{activeGroup.items}}" wx:for-item="place" wx:key="name" class="place {{activePlace === index ? 'place--on' : ''}}" data-index="{{index}}" bindtap="selectPlace">
           <view class="place-main">
             <view class="place-name">{{place.name}}</view>
-            <view class="place-location">{{place.location}}</view>
+            <view class="zx-caption">{{place.location}}</view>
           </view>
-          <view class="place-category">{{place.category}}</view>
+          <view wx:if="{{place.category}}" class="zx-badge zx-badge--neutral">{{place.category}}</view>
         </view>
       </view>
     </view>

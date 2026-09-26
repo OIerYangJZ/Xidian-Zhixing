@@ -56,6 +56,7 @@ Page({
       id: item.createdAt || item.question,
       title: truncate(item.title || item.question, 28),
       date: formatTime(item.createdAt),
+      createdAt: item.createdAt || '',
       question: item.question
     }));
     this.setData({
@@ -122,10 +123,13 @@ Page({
 
   continueChat(e) {
     if (!requireLoginPage()) return;
-    const id = e.currentTarget.dataset.id;
-    const question = e.currentTarget.dataset.question || '';
+    const { createdAt, question } = e.currentTarget.dataset;
+    // A saved chat opens with its answer, the same as from 问答历史;
+    // an entry without a timestamp has nothing to restore and asks again.
     wx.navigateTo({
-      url: `/pages/ai/chat/index?id=${encodeURIComponent(id)}&q=${encodeURIComponent(question)}`
+      url: createdAt
+        ? `/pages/ai/chat/index?historyAt=${encodeURIComponent(createdAt)}`
+        : `/pages/ai/chat/index?q=${encodeURIComponent(question || '')}`
     });
   },
 

@@ -24,13 +24,23 @@ Page({
     },
     avatarPreview: '',
     backgroundPreview: '',
-    avatarInitial: '匿'
+    avatarInitial: '匿',
+    genderOptions: [
+      { value: '', label: '不显示' },
+      { value: '男', label: '男' },
+      { value: '女', label: '女' }
+    ]
+  },
+
+  // Loaded once: wx.chooseImage leaves the page, and reloading on the way
+  // back would throw away the new avatar / background and unsaved edits.
+  onLoad() {
+    if (!requireLoginPage()) return;
+    this.loadProfile();
   },
 
   onShow() {
     applyThemeAndLanguage(this);
-    if (!requireLoginPage()) return;
-    this.loadProfile();
   },
 
   async loadProfile() {
@@ -75,10 +85,8 @@ Page({
     }
   },
 
-  onGenderChange(event) {
-    const values = ['', '男', '女'];
-    const index = Number(event.detail.value);
-    this.setData({ 'form.gender': values[index] || '' });
+  onGenderTap(event) {
+    this.setData({ 'form.gender': event.currentTarget.dataset.value || '' });
   },
 
   chooseAvatar() {
@@ -94,7 +102,12 @@ Page({
         wx.showLoading({ title: '上传中' });
         try {
           const uploadRes = await uploadAvatarImage(tempPath);
-          this.setData({ avatarPreview: uploadRes.avatarUrl || '' });
+          this.setData({ avatarPreview: uploadRes.avatarUrl || this.data.avatarPreview });
+        } catch (error) {
+          wx.showToast({
+            title: (error && error.data && error.data.message) || '头像上传失败',
+            icon: 'none'
+          });
         } finally {
           wx.hideLoading();
           this.setData({ uploadingAvatar: false });
@@ -138,6 +151,10 @@ Page({
     if (this.data.saving) return;
     const nickname = this.data.form.nickname.trim();
     const bio = this.data.form.bio.trim();
+    if (!nickname) {
+      wx.showToast({ title: '昵称不能为空', icon: 'none' });
+      return;
+    }
     if (bio.length > 100) {
       wx.showToast({ title: '个性签名不能超过100个字符', icon: 'none' });
       return;

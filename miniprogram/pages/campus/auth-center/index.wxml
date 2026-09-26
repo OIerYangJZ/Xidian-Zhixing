@@ -1,88 +1,81 @@
-<view class="auth-center-page safe-bottom {{themeClass}}">
-  <view class="hero-block">
-    <view class="hero-kicker">校园服务</view>
-    <view class="hero-title">登录管理</view>
-    <view class="hero-desc">统一认证、缴费/水电、物理实验、体育、校园网和宿舍水机集中在这里验证。</view>
-  </view>
+<view class="zx-page auth-center-page safe-bottom {{themeClass}}">
+  <view class="zx-caption intro">本机只记住登录时间和打码后的账号，密码不会保存。</view>
 
   <view class="system-grid">
     <view
-      class="system-card {{activeSystem === item.id ? 'active' : ''}}"
       wx:for="{{systems}}"
       wx:key="id"
+      class="system-card {{activeSystem === item.id ? 'system-card--on' : ''}}"
       data-system="{{item.id}}"
       bindtap="switchSystem"
     >
-      <view class="system-top">
-        <view class="system-tag">{{item.tag}}</view>
-        <view wx:if="{{item.verified}}" class="system-state">已验证</view>
+      <view class="zx-row">
+        <view class="zx-i zx-i-{{item.icon}} system-icon"></view>
+        <view class="zx-spacer"></view>
+        <view wx:if="{{item.verified}}" class="zx-badge zx-badge--success"><view class="zx-i zx-i-check zx-i--sm"></view>已验证</view>
       </view>
-      <view class="system-name">{{item.name}}</view>
-      <view class="system-desc">{{item.desc}}</view>
+      <view class="zx-label zx-ellipsis system-name">{{item.name}}</view>
+      <view class="zx-caption system-desc">{{item.desc}}</view>
     </view>
   </view>
 
-  <view class="section-card current-card">
-    <view class="section-head">
-      <view>
-        <view class="section-title">{{activeInfo.name}}</view>
-      </view>
-      <view wx:if="{{activeState}}" class="clear-link" bindtap="clearCurrentState">清除</view>
+  <view class="zx-card form-card">
+    <view class="zx-row">
+      <view class="zx-title zx-ellipsis form-title">{{activeInfo.name}}</view>
+      <view wx:if="{{activeState}}" class="zx-btn zx-btn--ghost zx-btn--small" bindtap="clearCurrentState">清除</view>
     </view>
 
-    <view wx:if="{{activeState}}" class="saved-state">
-      <view class="saved-title">已保存账号</view>
-      <view class="saved-meta">{{activeState.updatedAt}} · {{activeState.studentId}}</view>
+    <view wx:if="{{activeState}}" class="zx-inline-message saved-state">
+      <view class="zx-i zx-i-check zx-i--sm"></view>
+      <view>已登录{{activeState.studentId ? ' · ' + activeState.studentId : ''}} · {{activeState.updatedAt}}</view>
     </view>
+    <view wx:if="{{formError}}" class="zx-inline-message zx-inline-message--danger form-error">{{formError}}</view>
 
     <block wx:if="{{activeInfo.type === 'schoolnet'}}">
-      <view class="form-box">
-        <view class="form-row">
+      <view class="fields">
+        <view class="field">
           <view class="field-label">账号</view>
           <input class="field-input" value="{{studentId}}" placeholder="学号或校园网账号" placeholder-class="field-placeholder" bindinput="onStudentIdInput" />
         </view>
-        <view class="form-row">
+        <view class="field">
           <view class="field-label">密码</view>
-          <input class="field-input" type="password" value="{{password}}" placeholder="校园网查询密码" placeholder-class="field-placeholder" bindinput="onPasswordInput" />
+          <input class="field-input" password="{{true}}" value="{{password}}" placeholder="校园网查询密码" placeholder-class="field-placeholder" bindinput="onPasswordInput" />
         </view>
-        <view class="captcha-row">
-          <view class="captcha-input">
-            <view class="field-label">验证码</view>
-            <input class="field-input" value="{{schoolnetCaptcha}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onSchoolnetCaptchaInput" />
-          </view>
-          <view class="captcha-box" bindtap="refreshSchoolnetCaptcha">
-            <image wx:if="{{schoolnetImageSrc}}" class="captcha-image" src="{{schoolnetImageSrc}}" mode="aspectFit"></image>
-            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中' : '获取'}}</view>
+        <view class="field">
+          <view class="field-label">验证码</view>
+          <input class="field-input" value="{{schoolnetCaptcha}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onSchoolnetCaptchaInput" />
+          <view class="captcha" bindtap="refreshSchoolnetCaptcha">
+            <image wx:if="{{schoolnetImageSrc && !captchaLoading}}" class="captcha-image" src="{{schoolnetImageSrc}}" mode="aspectFit"></image>
+            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中…' : '获取'}}</view>
           </view>
         </view>
       </view>
-      <button class="secondary-action" loading="{{captchaLoading}}" disabled="{{captchaLoading}}" bindtap="refreshSchoolnetCaptcha">刷新验证码</button>
-      <button class="primary-action" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitSchoolnetAuth">登录校园网自服务</button>
+      <view class="zx-caption hint">看不清？点验证码图片换一张。</view>
+      <view class="zx-btn zx-btn--primary zx-btn--block submit {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submitSchoolnetAuth">{{submitting ? '正在登录…' : '登录校园网自服务'}}</view>
     </block>
 
     <block wx:elif="{{activeInfo.type === 'phone'}}">
-      <view class="form-box">
-        <view class="form-row">
+      <view class="fields">
+        <view class="field">
           <view class="field-label">手机号</view>
-          <input class="field-input" type="digit" value="{{dormWaterPhone}}" placeholder="请输入手机号" placeholder-class="field-placeholder" bindinput="onDormWaterPhoneInput" />
+          <input class="field-input" type="number" maxlength="11" value="{{dormWaterPhone}}" placeholder="请输入手机号" placeholder-class="field-placeholder" bindinput="onDormWaterPhoneInput" />
         </view>
-        <view class="captcha-row">
-          <view class="captcha-input">
-            <view class="field-label">图形码</view>
-            <input class="field-input" value="{{dormWaterImageCode}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onDormWaterImageCodeInput" />
-          </view>
-          <view class="captcha-box" bindtap="refreshDormWaterCaptcha">
-            <image wx:if="{{dormWaterImageSrc}}" class="captcha-image" src="{{dormWaterImageSrc}}" mode="aspectFit"></image>
-            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中' : '获取'}}</view>
+        <view class="field">
+          <view class="field-label">图形码</view>
+          <input class="field-input" value="{{dormWaterImageCode}}" placeholder="图形验证码" placeholder-class="field-placeholder" bindinput="onDormWaterImageCodeInput" />
+          <view class="captcha" bindtap="refreshDormWaterCaptcha">
+            <image wx:if="{{dormWaterImageSrc && !captchaLoading}}" class="captcha-image" src="{{dormWaterImageSrc}}" mode="aspectFit"></image>
+            <view wx:else class="captcha-empty">{{captchaLoading ? '加载中…' : '获取'}}</view>
           </view>
         </view>
-        <view class="form-row">
+        <view class="field">
           <view class="field-label">短信码</view>
-          <input class="field-input" type="digit" value="{{dormWaterSmsCode}}" placeholder="短信验证码" placeholder-class="field-placeholder" bindinput="onDormWaterSmsCodeInput" />
+          <input class="field-input" type="number" value="{{dormWaterSmsCode}}" placeholder="短信验证码" placeholder-class="field-placeholder" bindinput="onDormWaterSmsCodeInput" />
+          <view class="sms-send {{smsSending || smsCountdown ? 'sms-send--off' : ''}}" bindtap="sendDormWaterCode">{{smsSending ? '发送中…' : (smsCountdown ? smsCountdown + ' 秒后重发' : '发送验证码')}}</view>
         </view>
       </view>
-      <button class="secondary-action" loading="{{smsSending}}" disabled="{{smsSending}}" bindtap="sendDormWaterCode">发送短信验证码</button>
-      <button class="primary-action" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submitDormWaterAuth">登录宿舍水机</button>
+      <view class="zx-caption hint">先填图形码再发送短信；看不清就点图片换一张。</view>
+      <view class="zx-btn zx-btn--primary zx-btn--block submit {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submitDormWaterAuth">{{submitting ? '正在登录…' : '登录宿舍水机'}}</view>
     </block>
   </view>
 </view>

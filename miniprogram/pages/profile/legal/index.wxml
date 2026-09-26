@@ -1,7 +1,10 @@
-<view class="page legal-page {{themeClass}}">
-  <view class="legal-title">{{title}}</view>
-  <view class="section" wx:for="{{sections}}" wx:key="heading">
-    <view class="section-heading">{{item.heading}}</view>
-    <view class="section-body">{{item.body}}</view>
+<view class="zx-page legal-page {{themeClass}}">
+  <view class="zx-display legal-title">{{title}}</view>
+  <view class="zx-caption legal-sub">西电知行</view>
+  <view class="zx-card legal-card">
+    <view wx:for="{{sections}}" wx:key="heading" class="section">
+      <view class="zx-title section-heading"><text class="section-no">{{index + 1}}</text>{{item.heading}}</view>
+      <view class="zx-body section-body">{{item.body}}</view>
+    </view>
   </view>
 </view>

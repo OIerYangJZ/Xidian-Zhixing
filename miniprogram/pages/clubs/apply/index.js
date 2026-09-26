@@ -1,11 +1,17 @@
 import { getMyClubApplications, submitClubApplication } from '../../../api/clubs';
+import { requireLoginPage } from '../../../utils/auth_guard';
+import { formatTime } from '../../../utils/format';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
-const statusText = (status) => {
-  if (status === 'approved') return '已通过';
-  if (status === 'rejected') return '未通过';
-  return '待审核';
+const STATUS = {
+  approved: ['已通过', 'success'],
+  rejected: ['未通过', 'neutral'],
+  pending: ['待审核', 'accent']
 };
+
+const messageOf = (error, fallback) => (error && error.data && error.data.message)
+  || (error && error.message)
+  || fallback;
 
 Page({
   data: {
@@ -17,9 +23,11 @@ Page({
     themeClass: '',
     loading: true,
     errorMessage: '',
+    submitError: '',
     submitting: false
   },
   async onLoad() {
+    if (!requireLoginPage()) return;
     await this.loadApplications();
   },
   onShow() {
@@ -30,46 +38,43 @@ Page({
     try {
       const applications = await getMyClubApplications();
       this.setData({
-        applications: applications.map((item) => ({
-          ...item,
-          statusText: statusText(item.status)
-        })),
+        applications: applications.map((item) => {
+          const [statusText, statusTone] = STATUS[item.status] || STATUS.pending;
+          return { ...item, statusText, statusTone, timeText: formatTime(item.createdAt) };
+        }),
         loading: false
       });
     } catch (error) {
-      this.setData({
-        loading: false,
-        errorMessage: (error && error.data && error.data.message)
-          || (error && error.message)
-          || '申请记录加载失败，请重试'
-      });
+      this.setData({ loading: false, errorMessage: messageOf(error, '申请记录加载失败，请重试') });
     }
   },
   retryLoad() {
     this.loadApplications();
   },
   onInput(event) {
-    this.setData({ [event.currentTarget.dataset.field]: event.detail.value });
+    this.setData({ [event.currentTarget.dataset.field]: event.detail.value, submitError: '' });
   },
   async submit() {
     if (this.data.submitting) return;
-    this.setData({ submitting: true });
+    const name = this.data.name.trim();
+    const description = this.data.description.trim();
+    if (!name || !description) {
+      this.setData({ submitError: '请填写社团名称和申请说明' });
+      return;
+    }
+    this.setData({ submitting: true, submitError: '' });
     try {
       await submitClubApplication({
-        name: this.data.name,
-        category: this.data.category,
-        description: this.data.description,
-        contact: this.data.contact
+        name,
+        category: this.data.category.trim(),
+        description,
+        contact: this.data.contact.trim()
       });
       wx.showToast({ title: '已提交', icon: 'success' });
       this.setData({ name: '', category: '', description: '', contact: '' });
       await this.loadApplications();
     } catch (error) {
-      this.setData({
-        errorMessage: (error && error.data && error.data.message)
-          || (error && error.message)
-          || '社团申请提交失败，请重试'
-      });
+      this.setData({ submitError: messageOf(error, '社团申请提交失败，请重试') });
     } finally {
       this.setData({ submitting: false });
     }

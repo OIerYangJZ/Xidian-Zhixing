@@ -1,14 +1,30 @@
-<view class="page history-page {{themeClass}}">
-  <view class="head" wx:if="{{rows.length}}">
-    <view class="count">{{rows.length}} 条记录 · 长按可重命名或删除</view>
-    <view class="clear" bindtap="clearHistory">清空</view>
+<!-- 问答历史 (handoff AI2): today / last 7 days / earlier, newest first. -->
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{!rows.length}}" class="zx-empty">
+    <view class="zx-i zx-i-chat empty-icon"></view>
+    <view class="zx-empty__title">还没有问答记录</view>
+    <view class="zx-empty__message">问答只保存在这台设备上</view>
+    <view class="zx-btn zx-btn--primary zx-btn--small empty-action" bindtap="startNewChat">开始提问</view>
   </view>
-  <view wx:if="{{!rows.length}}" class="empty">暂无历史</view>
-  <view wx:else>
-    <view class="history-card" wx:for="{{rows}}" wx:key="createdAt" data-question="{{item.question}}" data-created-at="{{item.createdAt}}" bindtap="openChat" bindlongpress="openActions">
-      <view class="question">{{item.questionText}}</view>
-      <view class="answer">{{item.answerText}}</view>
-      <view class="time">{{item.timeText}}</view>
+  <block wx:else>
+    <view class="head">
+      <view class="zx-caption head-count">{{rows.length}} 条记录</view>
+      <view class="zx-btn zx-btn--ghost zx-btn--small" bindtap="clearHistory">清空</view>
+      <view class="zx-btn zx-btn--primary zx-btn--small new-chat" bindtap="startNewChat"><view class="zx-i zx-i-plus zx-i--sm"></view>新对话</view>
     </view>
-  </view>
+    <view wx:for="{{groups}}" wx:for-item="group" wx:key="title" class="group">
+      <view class="zx-section-title group-title">{{group.title}}</view>
+      <view class="zx-list">
+        <view wx:for="{{group.rows}}" wx:key="createdAt" class="zx-list-item entry" data-question="{{item.question}}" data-created-at="{{item.createdAt}}" bindtap="openChat" bindlongpress="openActions">
+          <view class="zx-icon-tile"><view class="zx-i zx-i-chat zx-i--sm"></view></view>
+          <view class="zx-list-item__main">
+            <view class="zx-list-item__title zx-ellipsis">{{item.questionText}}</view>
+            <view class="zx-list-item__subtitle zx-ellipsis">{{item.answerText}}</view>
+          </view>
+          <view class="zx-caption entry-time">{{item.timeText}}</view>
+        </view>
+      </view>
+    </view>
+    <view class="zx-caption tip">长按可重命名或删除 · 记录只保存在这台设备上</view>
+  </block>
 </view>

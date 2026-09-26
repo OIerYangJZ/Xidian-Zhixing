@@ -1,5 +1,9 @@
-<view class="page admin-page {{themeClass}}">
-  <view wx:if="{{noPermission}}" class="empty">当前账号没有管理权限</view>
+<view class="zx-page admin-page {{themeClass}}">
+  <view wx:if="{{noPermission}}" class="zx-empty">
+    <view class="zx-i zx-i-shield empty-icon"></view>
+    <view class="zx-empty__title">没有管理权限</view>
+    <view class="zx-empty__message">当前账号不是管理员</view>
+  </view>
 
   <view wx:else>
     <scroll-view class="admin-tabs" scroll-x enable-flex>
@@ -11,11 +15,16 @@
         bindtap="switchTab"
       >{{item.label}}</view>
     </scroll-view>
+    <view wx:if="{{admin && !admin.isPrimary}}" class="zx-caption scope-note">二级管理员可处理置顶和社团申请、维护知识库；其他管理请用网页版管理后台。</view>
 
-    <view wx:if="{{errorMessage}}" class="empty" bindtap="loadActiveTab">{{errorMessage}} · 点击重试</view>
+    <view wx:if="{{errorMessage}}" class="zx-empty">
+      <view class="zx-empty__title">加载失败</view>
+      <view class="zx-empty__message">{{errorMessage}}</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadActiveTab">重试</view>
+    </view>
 
     <view wx:if="{{!errorMessage && activeTab === 'overview'}}" class="admin-body">
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
       <view wx:else class="metric-grid">
         <view wx:for="{{overviewCards}}" wx:key="label" class="metric-card">
           <view class="metric-value">{{item.value}}</view>
@@ -32,22 +41,22 @@
         <view wx:for="{{reviewStatuses}}" wx:key="key" class="filter-chip {{reviewStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setReviewStatus">{{item.label}}</view>
       </scroll-view>
 
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-      <view wx:elif="{{!reviews.length}}" class="empty compact">暂无内容</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!reviews.length}}" class="zx-empty compact">暂无内容</view>
       <view wx:else>
         <view wx:for="{{reviews}}" wx:key="id" class="admin-card">
           <view class="card-head">
             <view class="card-title">{{item.title || item.id}}</view>
-            <view class="status-pill">{{item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.authorNickname || item.authorAlias || item.authorEmail || item.authorStudentId}}</view>
           <view class="card-content">{{item.content}}</view>
           <view class="card-time">{{item.createdAt}}</view>
           <view class="action-row">
-            <button class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actReview">通过</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="risk" bindtap="actReview">风险</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actReview">驳回</button>
-            <button class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actReview">删除</button>
+            <view class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actReview">通过</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="risk" bindtap="actReview">风险</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actReview">驳回</view>
+            <view class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actReview">删除</view>
           </view>
         </view>
       </view>
@@ -57,59 +66,59 @@
       <scroll-view class="filter-row" scroll-x enable-flex>
         <view wx:for="{{reportStatuses}}" wx:key="key" class="filter-chip {{reportStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setReportStatus">{{item.label}}</view>
       </scroll-view>
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-      <view wx:elif="{{!reports.length}}" class="empty compact">暂无举报</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!reports.length}}" class="zx-empty compact">暂无举报</view>
       <view wx:else>
         <view wx:for="{{reports}}" wx:key="id" class="admin-card">
           <view class="card-head">
             <view class="card-title">{{item.reason || item.displayTitle}}</view>
-            <view class="status-pill">{{item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.displayTitle}}</view>
           <view class="card-content" wx:if="{{item.description}}">{{item.description}}</view>
           <view class="card-content" wx:if="{{item.result}}">{{item.result}}</view>
           <view class="card-time">{{item.createdAt}}</view>
           <view class="action-row">
-            <button class="action-button primary" data-id="{{item.id}}" data-action="resolve" bindtap="actReport">处理</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="warn" bindtap="actReport">警告</button>
-            <button class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actReport">删除</button>
-            <button class="action-button danger" data-id="{{item.id}}" data-action="ban" bindtap="actReport">封禁</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="misreport" bindtap="actReport">恶意举报</button>
+            <view class="action-button primary" data-id="{{item.id}}" data-action="resolve" bindtap="actReport">处理</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="warn" bindtap="actReport">警告</view>
+            <view class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actReport">删除</view>
+            <view class="action-button danger" data-id="{{item.id}}" data-action="ban" bindtap="actReport">封禁</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="misreport" bindtap="actReport">恶意举报</view>
           </view>
         </view>
       </view>
     </view>
 
     <view wx:if="{{!errorMessage && activeTab === 'images'}}" class="admin-body">
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-      <view wx:elif="{{!images.length}}" class="empty compact">暂无图片</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!images.length}}" class="zx-empty compact">暂无图片</view>
       <view wx:else>
         <view wx:for="{{images}}" wx:key="id" class="admin-card">
           <image class="review-image" src="{{item.url}}" mode="aspectFill"></image>
           <view class="card-head image-head">
             <view class="card-title">{{item.fileName || item.id}}</view>
-            <view class="status-pill">{{item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.uploaderAlias}} · {{item.createdAt}}</view>
           <view class="card-content" wx:if="{{item.moderationReason}}">{{item.moderationReason}}</view>
           <view class="action-row">
-            <button class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actImage">通过</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="risk" bindtap="actImage">风险</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actImage">驳回</button>
-            <button class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actImage">删除</button>
+            <view class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actImage">通过</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="risk" bindtap="actImage">风险</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actImage">驳回</view>
+            <view class="action-button danger" data-id="{{item.id}}" data-action="delete" bindtap="actImage">删除</view>
           </view>
         </view>
       </view>
     </view>
 
     <view wx:if="{{!errorMessage && activeTab === 'users'}}" class="admin-body">
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-      <view wx:elif="{{!users.length}}" class="empty compact">暂无用户</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!users.length}}" class="zx-empty compact">暂无用户</view>
       <view wx:else>
         <view wx:for="{{users}}" wx:key="id" class="admin-card user-card">
           <view class="card-head">
             <view class="card-title">{{item.displayName}}</view>
-            <view class="status-pill">{{item.isAdmin ? '管理员' : item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.isAdmin ? '管理员' : item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.email || item.studentId || item.id}}</view>
           <view class="user-stats">
@@ -119,14 +128,14 @@
             <text>{{item.userLevelLabel}}</text>
           </view>
           <view class="action-row">
-            <button wx:if="{{!item.muted}}" class="action-button" data-id="{{item.id}}" data-action="mute" bindtap="actUser">禁言</button>
-            <button wx:else class="action-button" data-id="{{item.id}}" data-action="unmute" bindtap="actUser">解禁言</button>
-            <button wx:if="{{!item.banned}}" class="action-button danger" data-id="{{item.id}}" data-action="ban" bindtap="actUser">封禁</button>
-            <button wx:else class="action-button" data-id="{{item.id}}" data-action="unban" bindtap="actUser">解封</button>
-            <button wx:if="{{!item.deleted}}" class="action-button danger" data-id="{{item.id}}" data-action="cancel" bindtap="actUser">注销</button>
-            <button wx:else class="action-button" data-id="{{item.id}}" data-action="restore" bindtap="actUser">恢复</button>
-            <button wx:if="{{!item.isAdmin}}" class="action-button primary" data-id="{{item.id}}" data-action="grant_admin" bindtap="actUser">设管理员</button>
-            <button wx:else class="action-button" data-id="{{item.id}}" data-action="revoke_admin" bindtap="actUser">移除管理</button>
+            <view wx:if="{{!item.muted}}" class="action-button" data-id="{{item.id}}" data-action="mute" bindtap="actUser">禁言</view>
+            <view wx:else class="action-button" data-id="{{item.id}}" data-action="unmute" bindtap="actUser">解禁言</view>
+            <view wx:if="{{!item.banned}}" class="action-button danger" data-id="{{item.id}}" data-action="ban" bindtap="actUser">封禁</view>
+            <view wx:else class="action-button" data-id="{{item.id}}" data-action="unban" bindtap="actUser">解封</view>
+            <view wx:if="{{!item.deleted}}" class="action-button danger" data-id="{{item.id}}" data-action="cancel" bindtap="actUser">注销</view>
+            <view wx:else class="action-button" data-id="{{item.id}}" data-action="restore" bindtap="actUser">恢复</view>
+            <view wx:if="{{!item.isAdmin}}" class="action-button primary" data-id="{{item.id}}" data-action="grant_admin" bindtap="actUser">设管理员</view>
+            <view wx:else class="action-button" data-id="{{item.id}}" data-action="revoke_admin" bindtap="actUser">移除管理</view>
           </view>
         </view>
       </view>
@@ -140,20 +149,20 @@
         <view wx:for="{{requestStatuses}}" wx:key="key" class="filter-chip {{requestStatus === item.key ? 'active' : ''}}" data-key="{{item.key}}" bindtap="setRequestStatus">{{item.label}}</view>
       </scroll-view>
 
-      <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-      <view wx:elif="{{!requestRows.length}}" class="empty compact">暂无申请</view>
+      <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+      <view wx:elif="{{!requestRows.length}}" class="zx-empty compact">暂无申请</view>
       <view wx:else>
         <view wx:for="{{requestRows}}" wx:key="id" class="admin-card">
           <view class="card-head">
             <view class="card-title">{{item.displayTitle}}</view>
-            <view class="status-pill">{{item.statusText}}</view>
+            <view class="zx-badge zx-badge--neutral status-pill">{{item.statusText}}</view>
           </view>
           <view class="card-meta">{{item.displayUser}}</view>
           <view class="card-content" wx:if="{{item.displayContent}}">{{item.displayContent}}</view>
           <view class="card-time">{{item.createdAt}}</view>
           <view class="action-row">
-            <button class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actRequest">通过</button>
-            <button class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actRequest">驳回</button>
+            <view class="action-button primary" data-id="{{item.id}}" data-action="approve" bindtap="actRequest">通过</view>
+            <view class="action-button" data-id="{{item.id}}" data-action="reject" bindtap="actRequest">驳回</view>
           </view>
         </view>
       </view>
@@ -169,30 +178,30 @@
         <textarea class="form-textarea" value="{{sensitiveWordsText}}" bindinput="onSensitiveInput" maxlength="-1"></textarea>
         <view class="form-label">频控配置</view>
         <textarea class="form-textarea code" value="{{rateRulesText}}" bindinput="onRateRulesInput" maxlength="-1"></textarea>
-        <button class="full-button" bindtap="saveConfig">保存配置</button>
+        <view class="full-button" bindtap="saveConfig">保存配置</view>
       </view>
 
       <view wx:if="{{systemType === 'channels'}}" class="admin-card">
         <view class="section-head">
           <view class="section-title">频道</view>
-          <button class="small-button" bindtap="addChannel">新增</button>
+          <view class="small-button" bindtap="addChannel">新增</view>
         </view>
         <view wx:for="{{channels}}" wx:key="*this" class="simple-row">
           <view class="simple-name">{{item}}</view>
-          <button class="text-button" data-name="{{item}}" bindtap="editChannel">重命名</button>
-          <button class="text-button danger-text" data-name="{{item}}" bindtap="removeChannel">删除</button>
+          <view class="text-button" data-name="{{item}}" bindtap="editChannel">重命名</view>
+          <view class="text-button danger-text" data-name="{{item}}" bindtap="removeChannel">删除</view>
         </view>
       </view>
 
       <view wx:if="{{systemType === 'tags'}}" class="admin-card">
         <view class="section-head">
           <view class="section-title">标签</view>
-          <button class="small-button" bindtap="addTag">新增</button>
+          <view class="small-button" bindtap="addTag">新增</view>
         </view>
         <view wx:for="{{tags}}" wx:key="*this" class="simple-row">
           <view class="simple-name">{{item}}</view>
-          <button class="text-button" data-name="{{item}}" bindtap="editTag">重命名</button>
-          <button class="text-button danger-text" data-name="{{item}}" bindtap="removeTag">删除</button>
+          <view class="text-button" data-name="{{item}}" bindtap="editTag">重命名</view>
+          <view class="text-button danger-text" data-name="{{item}}" bindtap="removeTag">删除</view>
         </view>
       </view>
 
@@ -204,26 +213,26 @@
         <input class="form-input" value="{{knowledgeForm.sourceUrl}}" data-key="sourceUrl" bindinput="onKnowledgeInput" />
         <view class="form-label">内容</view>
         <textarea class="form-textarea large" value="{{knowledgeForm.content}}" data-key="content" bindinput="onKnowledgeInput" maxlength="-1"></textarea>
-        <button class="full-button" bindtap="saveKnowledgeSource">保存知识</button>
-        <button class="full-button secondary" bindtap="reindexKnowledge">重建索引</button>
+        <view class="full-button" bindtap="saveKnowledgeSource">保存知识</view>
+        <view class="full-button secondary" bindtap="reindexKnowledge">重建索引</view>
       </view>
       <view wx:if="{{systemType === 'knowledge'}}" class="admin-card">
         <view class="section-head">
           <view class="section-title">现有来源</view>
           <view class="card-meta">知识 {{knowledgeIndex.knowledgeCount || 0}} · 帖子 {{knowledgeIndex.postCount || 0}}</view>
         </view>
-        <view wx:if="{{loading}}" class="empty compact">加载中...</view>
-        <view wx:elif="{{!knowledgeSources.length}}" class="empty compact">暂无知识来源</view>
+        <view wx:if="{{loading}}" class="zx-empty compact">加载中...</view>
+        <view wx:elif="{{!knowledgeSources.length}}" class="zx-empty compact">暂无知识来源</view>
         <view wx:else>
           <view wx:for="{{knowledgeSources}}" wx:key="id" class="knowledge-source-row">
             <view class="card-head">
               <view class="card-title knowledge-source-title">{{item.name}}</view>
-              <view class="status-pill">{{item.authority || item.sourceType}}</view>
+              <view class="zx-badge zx-badge--neutral status-pill">{{item.authority || item.sourceType}}</view>
             </view>
             <view class="card-meta">文档 {{item.documentCount}} · 切片 {{item.chunkCount}} · {{item.sourceUrl}}</view>
             <view class="action-row">
-              <button class="action-button" data-id="{{item.id}}" bindtap="editKnowledgeSource">改名</button>
-              <button class="action-button danger" data-id="{{item.id}}" bindtap="removeKnowledgeSource">删除</button>
+              <view class="action-button" data-id="{{item.id}}" bindtap="editKnowledgeSource">改名</view>
+              <view class="action-button danger" data-id="{{item.id}}" bindtap="removeKnowledgeSource">删除</view>
             </view>
           </view>
         </view>

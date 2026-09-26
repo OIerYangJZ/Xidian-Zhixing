@@ -1,31 +1,43 @@
-<view class="page feedback-page safe-bottom {{themeClass}}">
-  <view class="form-panel">
-    <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
-      <view class="category-picker">
-        <text>类型</text>
-        <text>{{categories[categoryIndex]}}</text>
+<view class="zx-page feedback-page safe-bottom {{themeClass}}">
+  <view class="zx-section-title">写给西电知行信箱</view>
+  <view class="zx-card form">
+    <view class="field">
+      <view class="field-label">类型</view>
+      <view class="chips">
+        <view wx:for="{{categories}}" wx:key="*this" class="chip {{categoryIndex === index ? 'chip--on' : ''}}" data-index="{{index}}" bindtap="onCategoryTap">{{item}}</view>
       </view>
-    </picker>
-    <textarea class="content-input" maxlength="800" value="{{content}}" placeholder="写给西电知行信箱" bindinput="onContentInput" auto-height />
-    <input class="contact-input" maxlength="80" value="{{contact}}" placeholder="联系方式（可选）" bindinput="onContactInput" />
+    </view>
+    <view class="field">
+      <view class="field-label">内容<text class="required">*</text></view>
+      <textarea class="field-textarea" maxlength="800" value="{{content}}" placeholder="具体说说遇到的问题或建议" placeholder-class="field-placeholder" bindinput="onContentInput" />
+      <view class="zx-caption field-count">{{content.length}}/800</view>
+    </view>
+    <view class="field">
+      <view class="field-label">联系方式 · 可选</view>
+      <input class="field-input" maxlength="80" value="{{contact}}" placeholder="邮箱或微信，方便回复你" placeholder-class="field-placeholder" bindinput="onContactInput" />
+    </view>
   </view>
-  <button class="primary-button submit" loading="{{submitting}}" bindtap="submitFeedback">提交</button>
+  <view class="zx-btn zx-btn--primary zx-btn--block submit {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submitFeedback">{{submitting ? '提交中…' : '提交'}}</view>
 
-  <view class="record-section">
-    <view class="record-title">我的信箱记录</view>
-    <view wx:if="{{loadingRecords}}" class="record-empty">正在加载...</view>
-    <view wx:elif="{{recordsError}}" class="record-empty" bindtap="loadRecords">{{recordsError}} · 点击重试</view>
-    <view wx:elif="{{!records.length}}" class="record-empty">暂无提交记录</view>
-    <view wx:else>
-      <view class="record-card" wx:for="{{records}}" wx:key="id">
-        <view class="record-head">
-          <view class="record-category">{{item.category}}</view>
-          <view class="record-status {{item.status}}">{{item.statusText}}</view>
-        </view>
-        <view class="record-content">{{item.content}}</view>
-        <view wx:if="{{item.schoolReply}}" class="record-reply">回复：{{item.schoolReply}}</view>
-        <view class="record-time">{{item.timeText}}</view>
+  <view class="zx-section-title records-title">我的信箱记录</view>
+  <view wx:if="{{loadingRecords}}" class="zx-empty records-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{recordsError}}" class="zx-empty records-empty">
+    <view class="zx-empty__message">{{recordsError}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadRecords">重试</view>
+  </view>
+  <view wx:elif="{{!records.length}}" class="zx-empty records-empty"><view class="zx-empty__message">还没有提交记录</view></view>
+  <view wx:else class="records">
+    <view wx:for="{{records}}" wx:key="id" class="zx-card record">
+      <view class="zx-row">
+        <view class="zx-label zx-ellipsis record-category">{{item.category}}</view>
+        <view class="zx-badge zx-badge--{{item.statusTone}}">{{item.statusText}}</view>
       </view>
+      <view class="zx-body record-content">{{item.content}}</view>
+      <view wx:if="{{item.schoolReply}}" class="record-reply">
+        <view class="record-reply-label">回复</view>
+        <view>{{item.schoolReply}}</view>
+      </view>
+      <view class="zx-caption record-time">{{item.timeText}}</view>
     </view>
   </view>
 </view>

@@ -29,7 +29,8 @@ Page({
         records: records.map((item) => ({
           ...item,
           timeText: formatTime(item.createdAt),
-          statusText: item.status === 'resolved' ? '已回复' : (item.status === 'closed' ? '已关闭' : '待处理')
+          statusText: item.status === 'resolved' ? '已回复' : (item.status === 'closed' ? '已关闭' : '待处理'),
+          statusTone: item.status === 'resolved' ? 'success' : (item.status === 'closed' ? 'neutral' : 'accent')
         })),
         loadingRecords: false,
         recordsError: ''
@@ -50,8 +51,8 @@ Page({
     this.setData({ contact: event.detail.value });
   },
 
-  onCategoryChange(event) {
-    this.setData({ categoryIndex: Number(event.detail.value || 0) });
+  onCategoryTap(event) {
+    this.setData({ categoryIndex: Number(event.currentTarget.dataset.index || 0) });
   },
 
   async submitFeedback() {

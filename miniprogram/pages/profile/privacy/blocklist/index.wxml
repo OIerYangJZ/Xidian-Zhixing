@@ -1,20 +1,29 @@
-<view class="page blocklist-page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadBlocks">{{errorMessage}} · 点击重试</view>
-  <view wx:elif="{{!blocks.length}}" class="empty-state">
-    <view class="empty-icon">🚫</view>
-    <view class="empty-text">你的黑名单是空的</view>
+<view class="zx-page blocklist-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadBlocks">重试</view>
   </view>
-  <view wx:else>
-    <view class="user-row" wx:for="{{blocks}}" wx:key="id">
-      <image wx:if="{{item.avatarUrl}}" class="avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-      <view wx:else class="avatar avatar-initial">{{item.nickname ? item.nickname[0] : '匿'}}</view>
-      <view class="user-body">
-        <view class="name">{{item.nickname}}</view>
-        <view class="bio" wx:if="{{item.bio}}">{{item.bio}}</view>
-        <view class="time">屏蔽于 {{item.timeText || '最近'}}</view>
+  <view wx:elif="{{!blocks.length}}" class="zx-empty">
+    <view class="zx-i zx-i-block empty-icon"></view>
+    <view class="zx-empty__title">没有屏蔽任何人</view>
+    <view class="zx-empty__message">在对方主页或聊天页选择「屏蔽」后会出现在这里</view>
+  </view>
+  <block wx:else>
+    <view class="zx-caption intro">屏蔽后不再显示对方的帖子，对方也不能给你发消息。</view>
+    <view class="zx-list">
+      <view wx:for="{{blocks}}" wx:key="id" class="zx-list-item">
+        <view class="zx-avatar user-avatar" data-id="{{item.id}}" bindtap="openUser">
+          <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+          <text wx:else>{{item.avatarInitial}}</text>
+        </view>
+        <view class="zx-list-item__main" data-id="{{item.id}}" bindtap="openUser">
+          <view class="zx-list-item__title zx-ellipsis">{{item.nickname}}</view>
+          <view class="zx-list-item__subtitle zx-ellipsis">{{item.bio || ('屏蔽于 ' + (item.timeText || '最近'))}}</view>
+        </view>
+        <view class="zx-btn zx-btn--secondary zx-btn--small" data-id="{{item.id}}" data-nickname="{{item.nickname}}" bindtap="onUnblockTap">解除屏蔽</view>
       </view>
-      <button class="unblock-button" data-id="{{item.id}}" data-nickname="{{item.nickname}}" bindtap="onUnblockTap">解除</button>
     </view>
-  </view>
+  </block>
 </view>

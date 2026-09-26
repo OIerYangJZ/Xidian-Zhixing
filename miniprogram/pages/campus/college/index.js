@@ -30,20 +30,28 @@ Page({
     }
   },
 
+  // The college list is fetched once; switching colleges only reloads posts.
   async loadCollege() {
+    const requested = this.data.activeCollege;
     this.setData({ loading: true, errorMessage: '' });
     try {
-      const collegesRes = await getColleges();
-      const colleges = ((collegesRes && collegesRes.data) || []).map((item) => item.name || item);
+      let { colleges } = this.data;
+      if (!colleges.length) {
+        const collegesRes = await getColleges();
+        colleges = ((collegesRes && collegesRes.data) || []).map((item) => item.name || item);
+        this.setData({ colleges });
+      }
       const activeCollege = this.data.activeCollege || colleges[0] || '';
       const posts = activeCollege ? await getPosts({ keyword: activeCollege, sort: 'latest' }) : [];
+      // A reply for a college the user already switched away from.
+      if (this.data.activeCollege !== requested && this.data.activeCollege !== activeCollege) return;
       this.setData({
-        colleges,
         activeCollege,
         posts,
         loading: false
       });
     } catch (error) {
+      if (this.data.activeCollege !== requested) return;
       this.setData({
         loading: false,
         errorMessage: (error && error.data && error.data.message)
@@ -58,7 +66,9 @@ Page({
   },
 
   onCollegeTap(event) {
-    this.setData({ activeCollege: event.currentTarget.dataset.name });
+    const name = event.currentTarget.dataset.name;
+    if (!name || name === this.data.activeCollege) return;
+    this.setData({ activeCollege: name, posts: [] });
     this.loadCollege();
   },
 
@@ -72,6 +82,16 @@ Page({
     wx.navigateTo({
       url: `/pages/campus/search/index?keyword=${encodeURIComponent(this.data.activeCollege)}`
     });
+  },
+
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (tag) wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
+  },
+
+  openAuthorProfile(event) {
+    const id = event.currentTarget.dataset.userId;
+    if (id) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${id}` });
   },
 
   goPostDetail(event) {

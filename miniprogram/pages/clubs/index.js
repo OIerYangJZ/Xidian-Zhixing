@@ -9,7 +9,10 @@ Page({
   async loadClubs() {
     this.setData({ loading: true, errorMessage: '' });
     try {
-      this.setData({ clubs: await getClubs(), loading: false });
+      const clubs = (await getClubs()).map((club) => Object.assign({}, club, {
+        initial: String(club.name || '社').trim().charAt(0) || '社'
+      }));
+      this.setData({ clubs, loading: false });
     } catch (error) {
       this.setData({
         loading: false,
@@ -26,6 +29,7 @@ Page({
     applyThemeAndLanguage(this);
   },
   openDetail(event) {
+    if (!event.currentTarget.dataset.id) return;
     wx.navigateTo({ url: `/pages/clubs/detail/index?id=${event.currentTarget.dataset.id}` });
   },
   apply() {

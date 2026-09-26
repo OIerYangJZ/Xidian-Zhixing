@@ -1,59 +1,19 @@
-.college-scroll {
-  padding: 18rpx 0;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
-  white-space: nowrap;
-}
+/* 学院专区: college chips, a hero card with its actions, shared post rows. */
+@import "../../../styles/zx-post.wxss";
+@import "../../../styles/zx-list-page.wxss";
 
-.college-row {
-  display: flex;
-  gap: 14rpx;
-  padding: 0 24rpx;
+.college-scroll { width: 100%; white-space: nowrap; }
+.college-row { display: inline-flex; gap: 16rpx; padding: 24rpx 32rpx 8rpx; }
+.chip {
+  flex: none; padding: 14rpx 28rpx; border-radius: 999rpx;
+  border: 2rpx solid var(--zx-line-strong); background: var(--zx-surface);
+  font-size: 26rpx; color: var(--zx-text);
 }
+.chip--on { border-color: var(--zx-primary); background: var(--zx-primary-soft); color: var(--zx-primary); font-weight: 600; }
 
-.college-chip {
-  flex: 0 0 auto;
-  height: 62rpx;
-  padding: 0 24rpx;
-  border-radius: 31rpx;
-  background: var(--app-control);
-  color: var(--app-text-primary);
-  font-size: 26rpx;
-  line-height: 62rpx;
-}
-
-.college-chip.active {
-  background: var(--app-primary);
-  color: #ffffff;
-  font-weight: 600;
-}
-
-.college-card {
-  margin-top: 0;
-  padding: 28rpx 24rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
-}
-
-.college-name {
-  color: var(--app-text-primary);
-  font-size: 36rpx;
-  font-weight: 700;
-}
-
-.college-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16rpx;
-  margin-top: 24rpx;
-}
-
-.section-title {
-  margin: 0;
-  padding: 24rpx 24rpx 12rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
-  color: var(--app-text-primary);
-  font-size: 31rpx;
-  font-weight: 700;
-}
+.college-card { display: flex; flex-wrap: wrap; align-items: center; gap: 24rpx; margin: 24rpx 32rpx 0; padding: 32rpx; }
+.college-mark { flex: none; width: 88rpx; height: 88rpx; border-radius: 28rpx; background: var(--zx-surface); color: var(--zx-channel-3); display: flex; align-items: center; justify-content: center; }
+.college-main { flex: 1; min-width: 0; }
+.college-actions { display: flex; gap: 16rpx; width: 100%; }
+.college-actions .zx-btn { flex: 1; }
+.list-title { padding: 40rpx 40rpx 16rpx; }

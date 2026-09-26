@@ -31,12 +31,21 @@ const saveAiHistory = (question, answer, references = []) => {
   wx.setStorageSync('aiHistory', rows);
 };
 
+// The greeting is local: never sent to the model as a turn.
+const greeting = () => ({
+  id: 'greeting',
+  role: 'assistant',
+  local: true,
+  content: '你好，我是小电，西电知行平台智能助手。你可以问校园信息，也可以让我整理资料、检索论坛里的公开讨论。'
+});
+
+const storedHistory = (createdAt) => (wx.getStorageSync('aiHistory') || [])
+  .find((item) => item && item.createdAt === createdAt);
+
 Page({
   data: {
     chatId: '',
-    messages: [
-      { id: '1', role: 'assistant', content: '你好，我是小电，西电知行平台智能助手。你可以问校园信息，也可以让我整理资料、检索电台里的公开讨论。' }
-    ],
+    messages: [greeting()],
     inputVal: '',
     isSending: false,
     scrollTop: 0,
@@ -50,6 +59,17 @@ Page({
     applyThemeAndLanguage(this);
     if (options.id) {
       this.setData({ chatId: options.id });
+    }
+    // Opened from 问答历史: show the saved answer instead of asking again.
+    const saved = options.historyAt ? storedHistory(decodeURIComponent(options.historyAt)) : null;
+    if (saved) {
+      this.setData({
+        messages: [
+          greeting(),
+          { id: `q-${saved.createdAt}`, role: 'user', content: saved.question },
+          { id: `a-${saved.createdAt}`, role: 'assistant', content: saved.answer, references: saved.references || [] }
+        ]
+      }, this.scrollToBottom);
     }
     if (options.q || options.prefill) {
       this.setData({ inputVal: decodeURIComponent(options.q || options.prefill) });
@@ -155,7 +175,7 @@ Page({
 
     try {
       const historyMessages = this.data.messages
-        .filter((item) => item.role === 'user' || item.role === 'assistant')
+        .filter((item) => (item.role === 'user' || item.role === 'assistant') && !item.local && !item.failed)
         .slice(-8)
         .map((item) => ({ role: item.role, content: item.content }));
       const res = await sendAiMessage(text, { messages: historyMessages, requestId });
@@ -185,6 +205,7 @@ Page({
           {
             id: `error-${Date.now()}`,
             role: 'assistant',
+            failed: true,
             content: '本次请求失败，请稍后重试。'
           }
         ]
@@ -210,6 +231,31 @@ Page({
     } catch (err) {
       wx.showToast({ title: '停止请求未送达，回答可能仍在生成', icon: 'none' });
     }
+  },
+
+  startNewChat() {
+    if (this.data.isSending) {
+      wx.showToast({ title: '回答生成中，请先停止', icon: 'none' });
+      return;
+    }
+    this.setData({ chatId: '', messages: [greeting()], inputVal: '', scrollTop: 0 });
+  },
+
+  // Back to 问答历史 when that is where this chat was opened from.
+  goHistory() {
+    const pages = getCurrentPages();
+    const previous = pages[pages.length - 2];
+    if (previous && previous.route === 'pages/ai/history/index') {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/ai/history/index' });
+  },
+
+  copyMessage(event) {
+    const message = this.data.messages[Number(event.currentTarget.dataset.index)];
+    if (!message || !message.content) return;
+    wx.setClipboardData({ data: message.content });
   },
 
   scrollToBottom() {

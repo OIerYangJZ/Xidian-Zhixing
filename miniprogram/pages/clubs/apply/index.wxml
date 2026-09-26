@@ -1,21 +1,42 @@
-<view class="page apply-page {{themeClass}}">
-  <view class="field-label">社团名称</view>
-  <input class="app-input" value="{{name}}" data-field="name" bindinput="onInput" placeholder="输入社团名称" />
-  <view class="field-label">类型</view>
-  <input class="app-input" value="{{category}}" data-field="category" bindinput="onInput" placeholder="学术 / 文体 / 志愿等" />
-  <view class="field-label">申请说明</view>
-  <textarea class="app-textarea" value="{{description}}" data-field="description" bindinput="onInput" placeholder="说明社团情况、负责人身份和分区用途" />
-  <view class="field-label">联系方式</view>
-  <input class="app-input" value="{{contact}}" data-field="contact" bindinput="onInput" placeholder="邮箱或微信" />
-  <button class="submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">提交申请</button>
-  <view class="history-title">我的申请</view>
-  <view wx:if="{{loading}}">加载中...</view>
-  <view wx:elif="{{errorMessage}}">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+<view class="zx-page apply-page {{themeClass}}">
+  <view class="zx-section-title">申请开通社团分区</view>
+  <view class="zx-card form">
+    <view class="field">
+      <view class="field-label">社团名称<text class="required">*</text></view>
+      <input class="field-input" value="{{name}}" data-field="name" bindinput="onInput" maxlength="80" placeholder="输入社团名称" placeholder-class="field-placeholder" />
+    </view>
+    <view class="field">
+      <view class="field-label">类型</view>
+      <input class="field-input" value="{{category}}" data-field="category" bindinput="onInput" maxlength="60" placeholder="学术 / 文体 / 志愿等" placeholder-class="field-placeholder" />
+    </view>
+    <view class="field">
+      <view class="field-label">申请说明<text class="required">*</text></view>
+      <textarea class="field-textarea" value="{{description}}" data-field="description" bindinput="onInput" maxlength="600" placeholder="说明社团情况、负责人身份和分区用途" placeholder-class="field-placeholder" />
+      <view class="zx-caption field-count">{{description.length}}/600</view>
+    </view>
+    <view class="field">
+      <view class="field-label">联系方式</view>
+      <input class="field-input" value="{{contact}}" data-field="contact" bindinput="onInput" maxlength="120" placeholder="邮箱或微信，方便管理员联系" placeholder-class="field-placeholder" />
+    </view>
   </view>
-  <view class="history-row" wx:for="{{applications}}" wx:key="id">
-    <view class="history-name">{{item.name}}</view>
-    <view class="history-status {{item.status}}">{{item.statusText}}</view>
+  <view wx:if="{{submitError}}" class="zx-inline-message zx-inline-message--danger submit-error">{{submitError}}</view>
+  <view class="zx-btn zx-btn--primary zx-btn--block submit {{submitting ? 'zx-btn--disabled' : ''}}" bindtap="submit">{{submitting ? '提交中…' : '提交申请'}}</view>
+
+  <view class="zx-section-title history-title">我的申请</view>
+  <view wx:if="{{loading}}" class="zx-empty history-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty history-empty">
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!applications.length}}" class="zx-empty history-empty"><view class="zx-empty__message">还没有提交过申请</view></view>
+  <view wx:else class="zx-list">
+    <view wx:for="{{applications}}" wx:key="id" class="zx-list-item">
+      <view class="zx-list-item__main">
+        <view class="zx-list-item__title zx-ellipsis">{{item.name}}</view>
+        <view class="zx-list-item__subtitle">{{item.timeText}}<block wx:if="{{item.category}}"> · {{item.category}}</block></view>
+        <view wx:if="{{item.reviewNote}}" class="review-note">审核意见：{{item.reviewNote}}</view>
+      </view>
+      <view class="zx-badge zx-badge--{{item.statusTone}}">{{item.statusText}}</view>
+    </view>
   </view>
 </view>

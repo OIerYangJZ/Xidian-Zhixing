@@ -1,126 +1,39 @@
-.map-page {
-  min-height: 100vh;
-  padding: 32rpx 0 80rpx;
-  background: var(--app-background);
-}
+/* 校园地图: index switcher, schematic plate with pins, place list. */
+@import "../../../styles/zx-list-page.wxss";
 
-.map-head {
-  padding: 0 32rpx 24rpx;
-}
+.map-page { min-height: 100vh; padding-bottom: 80rpx; background: var(--zx-bg); }
+.map-head { padding: 32rpx 32rpx 8rpx; }
+.map-button { margin-top: 20rpx; }
 
-.map-kicker {
-  color: var(--app-primary);
-  font-size: 24rpx;
-  font-weight: 650;
-  line-height: 1.35;
-}
+.group-scroll { width: 100%; white-space: nowrap; margin-top: 24rpx; }
+.segment { display: inline-flex; margin: 0 32rpx; padding: 6rpx; border-radius: 24rpx; background: var(--zx-bg-sunk); }
+.segment-option { flex: none; padding: 14rpx 28rpx; border-radius: 18rpx; font-size: 26rpx; color: var(--zx-text-2); }
+.segment-option--on { background: var(--zx-surface); color: var(--zx-primary); font-weight: 600; box-shadow: var(--zx-shadow-1); }
 
-.map-title {
-  margin-top: 8rpx;
-  color: var(--app-text-primary);
-  font-size: 44rpx;
-  font-weight: 700;
-  line-height: 1.2;
-}
+.group-card { margin: 24rpx 32rpx 0; padding: 32rpx; }
+.group-head { align-items: flex-start; gap: 16rpx; }
+.group-main { flex: 1; min-width: 0; }
+.group-desc { margin-top: 6rpx; }
 
-.map-subtitle {
-  margin-top: 10rpx;
-  color: var(--app-text-secondary);
-  font-size: 28rpx;
-  line-height: 1.5;
+.plate {
+  position: relative; height: 400rpx; margin-top: 24rpx; border-radius: 28rpx; overflow: hidden;
+  background: repeating-linear-gradient(135deg, var(--zx-bg-sunk) 0 16rpx, var(--zx-bg) 16rpx 32rpx);
 }
+.plate-label { position: absolute; left: 20rpx; top: 20rpx; padding: 6rpx 14rpx; border-radius: 10rpx; background: var(--zx-glass); font-size: 20rpx; color: var(--zx-text-3); }
+.pin { position: absolute; padding: 12rpx; transform: translate(-50%, -100%); display: flex; flex-direction: column-reverse; align-items: center; color: var(--zx-text-3); }
+.pin-icon { width: 24rpx; height: 24rpx; margin-bottom: -12rpx; border-radius: 50%; background: currentColor; border: 4rpx solid var(--zx-surface); box-shadow: var(--zx-shadow-1); }
+.pin--on { z-index: 2; color: var(--zx-primary); }
+.pin--on .pin-icon { width: 32rpx; height: 32rpx; margin-bottom: -16rpx; box-shadow: 0 0 0 8rpx var(--zx-primary-soft); }
+.pin-name { margin-bottom: 4rpx; padding: 6rpx 14rpx; border-radius: 12rpx; background: var(--zx-surface); box-shadow: var(--zx-shadow-1); font-size: 22rpx; font-weight: 600; color: var(--zx-text); white-space: nowrap; }
+/* Near the top edge: name under the pin, the pin's tip still on the spot. */
+.pin--below { flex-direction: column; transform: translate(-50%, -24rpx); }
+.pin--below.pin--on { transform: translate(-50%, -28rpx); }
+.pin--below .pin-name { margin: 4rpx 0 0; }
 
-.map-button {
-  height: 88rpx;
-  margin-top: 26rpx;
-  border-radius: 18rpx;
-  background: var(--app-primary);
-  color: #ffffff;
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 88rpx;
-}
-
-.map-group {
-  margin-top: 24rpx;
-}
-
-.group-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 20rpx;
-  padding: 0 32rpx 12rpx;
-}
-
-.group-title {
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-  line-height: 1.35;
-}
-
-.group-subtitle {
-  margin-top: 4rpx;
-  color: var(--app-text-secondary);
-  font-size: 24rpx;
-  line-height: 1.35;
-}
-
-.group-status {
-  flex: 0 0 auto;
-  color: var(--app-primary);
-  font-size: 24rpx;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.place-list {
-  overflow: hidden;
-  background: var(--app-surface);
-  border-top: 1rpx solid var(--app-divider);
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.place-row {
-  display: flex;
-  align-items: center;
-  gap: 18rpx;
-  min-height: 96rpx;
-  padding: 18rpx 32rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-}
-
-.place-row:last-child {
-  border-bottom: none;
-}
-
-.place-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.place-name {
-  color: var(--app-text-primary);
-  font-size: 28rpx;
-  font-weight: 650;
-  line-height: 1.35;
-}
-
-.place-location {
-  margin-top: 6rpx;
-  color: var(--app-text-secondary);
-  font-size: 24rpx;
-  line-height: 1.35;
-}
-
-.place-category {
-  flex: 0 0 auto;
-  min-width: 64rpx;
-  padding: 8rpx 14rpx;
-  border-radius: 999rpx;
-  background: var(--app-primary-soft);
-  color: var(--app-text-secondary);
-  font-size: 22rpx;
-  line-height: 1.25;
-  text-align: center;
-}
+.places { margin-top: 16rpx; }
+.place { display: flex; align-items: center; gap: 16rpx; padding: 22rpx 16rpx; border-radius: 20rpx; }
+.place + .place { border-top: 2rpx solid var(--zx-line); }
+.place--on { background: var(--zx-primary-soft); }
+.place--on .place-name { color: var(--zx-primary); }
+.place-main { flex: 1; min-width: 0; }
+.place-name { font-size: 28rpx; font-weight: 600; color: var(--zx-text); }

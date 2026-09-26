@@ -46,7 +46,7 @@
       <view wx:if="{{history.length}}" class="history-more" bindtap="goToHistory">查看全部</view>
     </view>
     <view wx:if="{{history.length}}" class="zx-list">
-      <view class="zx-list-item" wx:for="{{history}}" wx:key="id" data-id="{{item.id}}" data-question="{{item.question}}" bindtap="continueChat" hover-class="history-item--pressed">
+      <view class="zx-list-item" wx:for="{{history}}" wx:key="id" data-created-at="{{item.createdAt}}" data-question="{{item.question}}" bindtap="continueChat" hover-class="history-item--pressed">
         <view class="zx-icon-tile history-icon"><view class="zx-i zx-i--sm zx-i-chat"></view></view>
         <view class="zx-list-item__main zx-list-item__title zx-ellipsis">{{item.title}}</view>
         <view class="zx-caption">{{item.date}}</view>

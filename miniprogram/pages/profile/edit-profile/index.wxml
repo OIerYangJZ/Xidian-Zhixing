@@ -1,62 +1,72 @@
-<view class="page edit-profile-page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadProfile">{{errorMessage}} · 点击重试</view>
-  <view wx:else>
-    <view class="section">
-      <view class="section-title">头像与背景</view>
-      <view class="avatar-panel">
-        <view class="avatar-preview" bindtap="chooseAvatar">
+<view class="zx-page edit-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadProfile">重试</view>
+  </view>
+  <block wx:else>
+    <view class="zx-card identity">
+      <view class="cover" bindtap="chooseBackground">
+        <image wx:if="{{backgroundPreview}}" class="cover-image" src="{{backgroundPreview}}" mode="aspectFill"></image>
+        <view wx:else class="zx-hero cover-wash"></view>
+        <view class="cover-actions">
+          <view wx:if="{{backgroundPreview}}" class="cover-chip" catchtap="clearBackground"><view class="zx-i zx-i-trash zx-i--sm"></view>移除</view>
+          <view class="cover-chip"><view class="zx-i zx-i-image zx-i--sm"></view>{{uploadingBackground ? '上传中…' : '更换主页背景图'}}</view>
+        </view>
+      </view>
+      <view class="avatar-row">
+        <view class="zx-avatar avatar" bindtap="chooseAvatar">
           <image wx:if="{{avatarPreview}}" src="{{avatarPreview}}" mode="aspectFill"></image>
           <text wx:else>{{avatarInitial}}</text>
         </view>
-        <view class="panel-actions">
-          <button class="avatar-button" loading="{{uploadingAvatar}}" bindtap="chooseAvatar">更换头像</button>
-          <button class="avatar-button ghost" loading="{{uploadingBackground}}" bindtap="chooseBackground">更换背景</button>
-          <button class="avatar-button ghost" wx:if="{{backgroundPreview}}" bindtap="clearBackground">移除背景</button>
+        <view class="avatar-text">
+          <view class="zx-label">头像</view>
+          <view class="zx-caption">上传后记得保存</view>
         </view>
-      </view>
-      <view class="background-preview-wrap">
-        <view class="background-preview {{backgroundPreview ? 'has-image' : 'empty'}}" bindtap="chooseBackground">
-          <image wx:if="{{backgroundPreview}}" src="{{backgroundPreview}}" mode="aspectFill"></image>
-          <text wx:else>个人主页背景图</text>
-        </view>
+        <view class="zx-btn zx-btn--secondary zx-btn--small {{uploadingAvatar ? 'zx-btn--disabled' : ''}}" bindtap="chooseAvatar">{{uploadingAvatar ? '上传中…' : '更换'}}</view>
       </view>
     </view>
 
-    <view class="section">
-      <view class="section-title">基础信息</view>
-      <view class="info-row">
-        <text>昵称</text>
-        <input class="row-input" value="{{form.nickname}}" data-key="nickname" bindinput="onFieldInput" placeholder="昵称" />
+    <view class="zx-section-title">基础信息</view>
+    <view class="zx-card form">
+      <view class="field">
+        <view class="field-label">昵称</view>
+        <input class="field-input" value="{{form.nickname}}" data-key="nickname" bindinput="onFieldInput" maxlength="24" placeholder="昵称" placeholder-class="field-placeholder" />
       </view>
-      <view class="info-row">
-        <text>学号</text>
-        <text>{{form.studentId || '-'}}</text>
+      <view class="field">
+        <view class="field-label">个性签名</view>
+        <textarea class="field-textarea" value="{{form.bio}}" data-key="bio" bindinput="onFieldInput" maxlength="100" placeholder="介绍一下自己" placeholder-class="field-placeholder" />
+        <view class="zx-caption field-count">{{form.bio.length}}/100</view>
       </view>
-      <view class="info-row">
-        <text>学院</text>
-        <input class="row-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" placeholder="例如：计算机科学与技术学院" />
+      <view class="field">
+        <view class="field-label">性别</view>
+        <view class="segment">
+          <view wx:for="{{genderOptions}}" wx:key="value" class="segment-option {{form.gender === item.value ? 'segment-option--on' : ''}}" data-value="{{item.value}}" bindtap="onGenderTap">{{item.label}}</view>
+        </view>
       </view>
-      <view class="info-row">
-        <text>专业</text>
-        <input class="row-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" placeholder="例如：软件工程" />
+      <view class="field">
+        <view class="field-label">学院</view>
+        <input class="field-input" value="{{form.college}}" data-key="college" bindinput="onFieldInput" placeholder="例如：计算机科学与技术学院" placeholder-class="field-placeholder" />
       </view>
-      <view class="info-row">
-        <text>邮箱</text>
-        <text>{{form.email || '-'}}</text>
-      </view>
-      <view class="info-row">
-        <text>性别</text>
-        <picker mode="selector" range="{{['未设置', '男', '女']}}" bindchange="onGenderChange">
-          <view class="picker-value">{{form.gender || '未设置'}}</view>
-        </picker>
-      </view>
-      <view class="bio-field">
-        <view class="bio-label">个性签名</view>
-        <textarea class="bio-input" value="{{form.bio}}" data-key="bio" bindinput="onFieldInput" maxlength="100" placeholder="介绍一下自己" />
+      <view class="field">
+        <view class="field-label">专业</view>
+        <input class="field-input" value="{{form.major}}" data-key="major" bindinput="onFieldInput" placeholder="例如：软件工程" placeholder-class="field-placeholder" />
       </view>
     </view>
 
-    <button class="save-button" loading="{{saving}}" bindtap="saveProfile">保存资料</button>
-  </view>
+    <view class="zx-section-title">认证信息 · 不可修改</view>
+    <view class="zx-list">
+      <view class="zx-list-item">
+        <view class="zx-list-item__main zx-list-item__title">学号</view>
+        <view class="zx-caption">{{form.studentId || '—'}}</view>
+      </view>
+      <view class="zx-list-item">
+        <view class="zx-list-item__main zx-list-item__title">邮箱</view>
+        <view class="zx-caption zx-ellipsis readonly-value">{{form.email || '—'}}</view>
+      </view>
+    </view>
+
+    <view class="zx-btn zx-btn--primary zx-btn--block save {{saving ? 'zx-btn--disabled' : ''}}" bindtap="saveProfile">{{saving ? '保存中…' : '保存资料'}}</view>
+  </block>
 </view>

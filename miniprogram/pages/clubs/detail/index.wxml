@@ -1,23 +1,28 @@
-<view class="page club-detail {{themeClass}}" wx:if="{{club}}">
-  <view class="club-title">{{club.name}}</view>
-  <view class="club-owner">负责人：{{club.ownerName}}</view>
-  <view class="club-text">{{club.description}}</view>
-  <view class="section-title">社团发布</view>
-  <view class="feed-card" wx:for="{{club.posts}}" wx:key="id" data-id="{{item.id}}" bindtap="openPost">
-    <view class="feed-avatar">{{item.authorInitial || club.name[0]}}</view>
-    <view class="feed-body">
-      <view class="feed-head">
-        <text class="feed-author">{{item.authorAlias || club.name}}</text>
-        <text class="feed-time">{{item.timeText || item.createdAt}}</text>
-      </view>
-      <view class="feed-title">{{item.displayTitle || item.title}}</view>
-      <view class="feed-summary">{{item.summary}}</view>
-      <view class="feed-actions">
-        <view class="feed-action"><view class="feed-action-icon like-icon"></view><text>{{item.likeCount || 0}}</text></view>
-        <view class="feed-action"><view class="feed-action-icon comment-icon"></view><text>{{item.commentCount || 0}}</text></view>
-        <view class="feed-action"><view class="feed-action-icon bookmark-icon"></view><text>{{item.favoriteCount || 0}}</text></view>
-      </view>
-    </view>
+<import src="/templates/post-row.wxml" />
+<view class="zx-page club-detail {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadDetail">重试</view>
   </view>
-  <view wx:if="{{!club.posts.length}}" class="empty-posts">暂无发布</view>
+  <block wx:elif="{{club}}">
+    <view class="zx-hero head">
+      <view class="zx-avatar zx-avatar--lg head-avatar">{{club.initial}}</view>
+      <view class="zx-title head-name">{{club.name}}</view>
+      <view class="zx-row head-meta">
+        <view wx:if="{{club.category}}" class="zx-badge zx-badge--neutral">{{club.category}}</view>
+        <view class="zx-caption">负责人 {{club.ownerName || '—'}}<block wx:if="{{club.memberCount}}"> · {{club.memberCount}} 位成员</block></view>
+      </view>
+      <view wx:if="{{club.description}}" class="zx-body head-desc">{{club.description}}</view>
+    </view>
+
+    <view class="zx-section-title posts-title">社团发布</view>
+    <view wx:if="{{!club.posts.length}}" class="zx-empty posts-empty">
+      <view class="zx-empty__message">还没有发布</view>
+    </view>
+    <view wx:else class="sheet">
+      <block wx:for="{{club.posts}}" wx:key="id"><template is="post-row" data="{{item, index}}" /></block>
+    </view>
+  </block>
 </view>

@@ -2,9 +2,37 @@ import { formatTime, truncate } from '../../../utils/format';
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
+const DAY = 24 * 60 * 60 * 1000;
+
+// 今天 / 近 7 天 / 更早, by the entry's local date.
+const groupTitle = (createdAt) => {
+  const time = new Date(createdAt).getTime();
+  if (!time) return '更早';
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (time >= today.getTime()) return '今天';
+  if (time >= today.getTime() - 6 * DAY) return '近 7 天';
+  return '更早';
+};
+
+const groupRows = (rows) => {
+  const groups = [];
+  rows.forEach((row) => {
+    const title = groupTitle(row.createdAt);
+    let group = groups.find((item) => item.title === title);
+    if (!group) {
+      group = { title, rows: [] };
+      groups.push(group);
+    }
+    group.rows.push(row);
+  });
+  return groups;
+};
+
 Page({
   data: {
-    rows: []
+    rows: [],
+    groups: []
   },
 
   onShow() {
@@ -21,7 +49,7 @@ Page({
       answerText: truncate(item.answer, 80),
       timeText: formatTime(item.createdAt)
     }));
-    this.setData({ rows });
+    this.setData({ rows, groups: groupRows(rows) });
   },
 
   // Entries are keyed by createdAt, as in the list's wx:key.
@@ -74,12 +102,27 @@ Page({
   },
 
   clearHistory() {
-    wx.removeStorageSync('aiHistory');
-    this.setData({ rows: [] });
+    wx.showModal({
+      title: '清空问答历史？',
+      content: '会从本机删除全部问答记录。',
+      confirmText: '清空',
+      confirmColor: '#97382F',
+      success: (res) => {
+        if (!res.confirm) return;
+        wx.removeStorageSync('aiHistory');
+        this.setData({ rows: [], groups: [] });
+      }
+    });
   },
 
+  startNewChat() {
+    wx.navigateTo({ url: '/pages/ai/chat/index' });
+  },
+
+  // Opens the saved answer; asking the question again is up to the user.
   openChat(event) {
-    const question = event.currentTarget.dataset.question;
-    wx.navigateTo({ url: `/pages/ai/chat/index?q=${encodeURIComponent(question)}` });
+    const { createdAt } = event.currentTarget.dataset;
+    if (!createdAt) return;
+    wx.navigateTo({ url: `/pages/ai/chat/index?historyAt=${encodeURIComponent(createdAt)}` });
   }
 });
