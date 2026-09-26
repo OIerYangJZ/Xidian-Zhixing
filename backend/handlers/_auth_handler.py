@@ -773,9 +773,12 @@ def handle_xidian_auth_get_session(
         json_error(handler, HTTPStatus.NOT_FOUND, "登录请求不存在或已过期")
         return
 
+    status = attempt.get("status", "pending")
     payload: dict[str, Any] = {
         "attemptId": attempt["id"],
-        "status": attempt.get("status", "pending"),
+        # "validating" is internal (the CAS ticket is being checked); to the
+        # polling client the attempt is still pending.
+        "status": "pending" if status == "validating" else status,
         "platform": attempt.get("platform", "web"),
     }
     if attempt.get("status") == "authenticated":
@@ -788,6 +791,8 @@ def handle_xidian_auth_get_session(
                     "verified": True,
                     "email": attempt.get("email", ""),
                     "studentId": attempt.get("studentId", ""),
+                    # The client goes straight to the appeal screen.
+                    "banned": bool(attempt.get("banned")),
                 }
             )
     elif attempt.get("status") == "failed":
@@ -889,6 +894,7 @@ def handle_xidian_auth_callback(
         token=auth_payload["token"],
         email=auth_payload["email"],
         studentId=auth_payload["studentId"],
+        banned=auth_payload["banned"],
         consumed=False,
         message="",
         expiresAtTs=time.time() + _ATTEMPT_TTL_SECONDS,

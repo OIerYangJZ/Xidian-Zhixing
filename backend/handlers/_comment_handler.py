@@ -54,7 +54,7 @@ def handle_cancel_account_request(
     if user is None:
         return
 
-    existing = latest_account_cancellation_request_for_user(db, user["id"])
+    existing = latest_account_cancellation_request_for_user(db, user["id"], status="pending")
     if existing is not None:
         json_error(handler, HTTPStatus.CONFLICT, "已有待处理的注销申请")
         return
@@ -96,7 +96,7 @@ def handle_level_upgrade_request(
         json_error(handler, HTTPStatus.CONFLICT, "您已是一级用户，无需申请")
         return
 
-    existing = latest_user_level_request_for_user(db, user["id"])
+    existing = latest_user_level_request_for_user(db, user["id"], status="pending")
     if existing is not None:
         json_error(handler, HTTPStatus.CONFLICT, "已有待处理的升级申请")
         return

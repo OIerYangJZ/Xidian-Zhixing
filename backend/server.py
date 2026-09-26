@@ -233,6 +233,9 @@ _BANNED_ALLOWED_PATHS = frozenset({
     "/api/appeals",
     "/api/appeals/mine",
 })
+# Of those, the ones a banned session may only read: its profile stays
+# readable for the ban screen, but not editable.
+_BANNED_READ_ONLY_PATHS = frozenset({"/api/users/me"})
 
 _SESSION_EXEMPT_PATHS = frozenset({
     "/api/health",
@@ -241,6 +244,9 @@ _SESSION_EXEMPT_PATHS = frozenset({
     "/api/auth/xidian/session",
     "/api/auth/xidian/start",
     "/api/auth/xidian/callback",
+    # Signing out must work with a session that already died (expired,
+    # revoked); the handler drops whatever token it is given.
+    "/api/auth/logout",
     # Public release manifest (version + download url only, no user data).
     "/api/releases/android/latest",
 })
@@ -291,7 +297,10 @@ def _require_api_session(
     if user is None or user.get("deleted"):
         json_error(handler, HTTPStatus.UNAUTHORIZED, "请先登录")
         return False
-    if user.get("banned") and path not in _BANNED_ALLOWED_PATHS:
+    banned_may_reach = path in _BANNED_ALLOWED_PATHS and (
+        path not in _BANNED_READ_ONLY_PATHS or handler.command == "GET"
+    )
+    if user.get("banned") and not banned_may_reach:
         json_error(
             handler,
             HTTPStatus.FORBIDDEN,
@@ -755,6 +764,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             if path == "/api/admin/appeals":
                 _admin_handler.handle_admin_appeals(self, db, query)
                 return
+            if path == "/api/admin/feedbacks":
+                _admin_handler.handle_admin_feedbacks(self, db, query)
+                return
             if path == "/api/admin/export":
                 _admin_handler.handle_admin_export(self, db, query)
                 return
@@ -786,7 +798,12 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 json_error(self, HTTPStatus.UNAUTHORIZED, "请先登录")
                 return None
             if user.get("banned"):
-                json_error(self, HTTPStatus.FORBIDDEN, "账号已被封禁")
+                json_error(
+                    self,
+                    HTTPStatus.FORBIDDEN,
+                    "账号已被封禁，仅可提交解封申诉",
+                    data={"accountState": "banned"},
+                )
                 return None
             ip_allowed, ip_retry_after = check_ip_rate_limit(self, "campus_auth")
             if not ip_allowed:
@@ -1247,6 +1264,11 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _admin_handler.handle_admin_user_action(self, db, match_user_action.group(1))
                 return
 
+            match_feedback_handle = re.fullmatch(r"/api/admin/feedbacks/([^/]+)/handle", path)
+            if match_feedback_handle:
+                _admin_handler.handle_admin_feedback_action(self, db, match_feedback_handle.group(1))
+                return
+
             match_appeal_handle = re.fullmatch(r"/api/admin/appeals/([^/]+)/handle", path)
             if match_appeal_handle:
                 _admin_handler.handle_admin_appeal_action(self, db, match_appeal_handle.group(1))
@@ -1263,10 +1285,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_image_review = re.fullmatch(r"/api/admin/images/([^/]+)/review", path)
             if match_image_review:
                 _admin_handler.handle_admin_image_review(self, db, match_image_review.group(1))
-                return
-
-            if path == "/api/admin/channels":
-                _admin_handler.handle_admin_add_channel(self, db)
                 return
 
             if path == "/api/admin/tags":
@@ -1313,11 +1331,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _post_handler.handle_update_post(self, db, match_post.group(1))
                 return
 
-            match_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
-            if match_channel:
-                _admin_handler.handle_admin_rename_channel(self, db, unquote(match_channel.group(1)))
-                return
-
             match_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)
             if match_tag:
                 _admin_handler.handle_admin_rename_tag(self, db, unquote(match_tag.group(1)))
@@ -1359,7 +1372,9 @@ class TreeholeHandler(BaseHTTPRequestHandler):
 
             match_comment_unlike = re.fullmatch(r"/api/comments/([^/]+)/like", path)
             if match_comment_unlike:
-                _post_handler.handle_toggle_comment_like(self, db, match_comment_unlike.group(1))
+                _post_handler.handle_toggle_comment_like(
+                    self, db, match_comment_unlike.group(1), requested=False,
+                )
                 return
 
             match_post = re.fullmatch(r"/api/posts/([^/]+)", path)
@@ -1388,11 +1403,6 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             match_block = re.fullmatch(r"/api/users/me/blocks/([^/]+)", path)
             if match_block:
                 _user_handler.handle_unblock_user_globally(self, db, match_block.group(1))
-                return
-
-            match_del_channel = re.fullmatch(r"/api/admin/channels/(.+)", path)
-            if match_del_channel:
-                _admin_handler.handle_admin_delete_channel(self, db, unquote(match_del_channel.group(1)))
                 return
 
             match_del_tag = re.fullmatch(r"/api/admin/tags/(.+)", path)

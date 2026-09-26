@@ -81,7 +81,12 @@ def handle_upload_image(
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
     if user.get("banned"):
-        json_error(handler, HTTPStatus.FORBIDDEN, "账号已被封禁")
+        json_error(
+            handler,
+            HTTPStatus.FORBIDDEN,
+            "账号已被封禁，仅可提交解封申诉",
+            data={"accountState": "banned"},
+        )
         return
 
     body = read_json_body(handler)

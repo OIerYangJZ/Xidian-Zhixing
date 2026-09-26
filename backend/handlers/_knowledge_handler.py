@@ -15,7 +15,8 @@ def list_sources(handler,db):
     if _require_admin(handler,db) is None:
         return
     try:
-        docs=knowledge_request("/documents")["items"]
+        # Deleting archives a document; it no longer belongs in the list.
+        docs=[d for d in knowledge_request("/documents")["items"] if d.get("status")!="archived"]
         status=knowledge_request("/status")
         send_json(handler,HTTPStatus.OK,{"data":{"items":[_source(d) for d in docs],"index":status}})
     except RuntimeError as error:
@@ -40,6 +41,11 @@ def write_source(handler,db,source_id=None):
             result=knowledge_request("/documents/status",{"id":source_id,"status":body["status"]})
         else:
             previous=knowledge_request("/documents/"+source_id) if source_id else {}
+            # An upsert publishes, so editing a deleted document would bring it
+            # back into retrieval without anyone asking for that.
+            if previous.get("status")=="archived":
+                json_error(handler,HTTPStatus.CONFLICT,"该知识条目已删除，不能编辑")
+                return
             payload={"title":body.get("name",previous.get("title","")),
                 "content":body.get("content",previous.get("content","")),
                 "sourceUrl":body.get("sourceUrl",previous.get("sourceUrl","")),

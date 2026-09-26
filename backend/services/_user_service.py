@@ -704,17 +704,23 @@ def refresh_conversation_pair_metadata(
         return
 
     conversation_key = conversation_key_for_users(left_user_id, right_user_id)
-    messages = [
+    thread = [
         row
         for row in db.get("directMessages", [])
         if str(row.get("conversationKey", "")).strip() == conversation_key
-        and not row.get("deleted")
     ]
-    messages.sort(key=lambda row: (str(row.get("createdAt", "")), str(row.get("id", ""))))
+    thread.sort(key=lambda row: (str(row.get("createdAt", "")), str(row.get("id", ""))))
+    # A recalled message ("deleted") stays in the thread as a placeholder.
+    messages = [row for row in thread if not row.get("deleted")]
 
-    preview = "开始聊天吧"
-    if messages:
-        preview = str(messages[-1].get("content", "")).strip() or preview
+    def preview_for(user_id: str) -> str:
+        if not thread:
+            return "开始聊天吧"
+        last = thread[-1]
+        if last.get("deleted"):
+            sender = str(last.get("senderUserId", "")).strip()
+            return "你撤回了一条消息" if sender == user_id else "对方撤回了一条消息"
+        return str(last.get("content", "")).strip() or "开始聊天吧"
 
     effective_updated_at = (
         (str(messages[-1].get("createdAt", "")).strip() if messages else "")
@@ -745,7 +751,7 @@ def refresh_conversation_pair_metadata(
         )
         if row is None:
             continue
-        row["lastMessage"] = preview
+        row["lastMessage"] = preview_for(user_id)
         row["updatedAt"] = effective_updated_at
         row["unreadCount"] = unread_count_for(user_id)
         row["deleted"] = False
@@ -799,6 +805,26 @@ def serialize_direct_message(
     reply_to_sender = str(row.get("replyToSender", "")).strip()
     reply_to_content = str(row.get("replyToContent", "")).strip()
     from_me = viewer_user_id == sender_user_id
+    # Recalling is the only way a direct message becomes "deleted". The
+    # placeholder carries no content, quote or recall option.
+    if row.get("deleted"):
+        return {
+            "id": str(row.get("id", "")),
+            "content": "",
+            "recalled": True,
+            "createdAt": created_at,
+            "timeText": iso_to_time_text(created_at),
+            "fromMe": from_me,
+            "senderUserId": sender_user_id,
+            "senderAlias": user_nickname(sender_user),
+            "readAt": read_at,
+            "isRead": bool(read_at),
+            "deliveryStatus": "recalled",
+            "canRecall": False,
+            "replyToId": None,
+            "replyToSender": None,
+            "replyToContent": None,
+        }
 
     can_recall = False
     created_dt = parse_iso(created_at)
@@ -807,7 +833,7 @@ def serialize_direct_message(
             created_dt = created_dt.replace(tzinfo=timezone.utc)
         can_recall = (now_utc() - created_dt).total_seconds() <= 120
 
-    if reply_to_id and (not reply_to_sender or not reply_to_content):
+    if reply_to_id:
         reply_message = next(
             (
                 item
@@ -816,7 +842,10 @@ def serialize_direct_message(
             ),
             None,
         )
-        if reply_message is not None:
+        if reply_message is not None and reply_message.get("deleted"):
+            # The quote is a copy; a recall must take it back too.
+            reply_to_content = "该消息已撤回"
+        elif reply_message is not None and (not reply_to_sender or not reply_to_content):
             reply_to_content = reply_to_content or str(reply_message.get("content", "")).strip()
             reply_sender_user = find_user_by_id(
                 db,
@@ -837,6 +866,7 @@ def serialize_direct_message(
         "isRead": bool(read_at),
         "deliveryStatus": "read" if read_at else "sent",
         "canRecall": can_recall,
+        "recalled": False,
         "replyToId": reply_to_id or None,
         "replyToSender": reply_to_sender or None,
         "replyToContent": reply_to_content or None,
@@ -875,6 +905,9 @@ def create_notification(
     if target_user is None or target_user.get("deleted"):
         return None
     if not user_accepts_notification(target_user, notification_type):
+        return None
+    # Blocking someone also silences their likes, comments and replies.
+    if is_user_blocked(db, user_id, actor_id):
         return None
     normalized_actor_id = actor_id.strip()
     if normalized_actor_id and find_user_by_id(
@@ -1074,6 +1107,9 @@ def appeal_type_label(appeal_type: str) -> str:
     normalized = appeal_type.strip().lower() or "other"
     return {
         "account_restore": "账号恢复申诉",
+        "ban_revoke": "解除封禁申诉",
+        "wrong_punishment": "处罚异议申诉",
+        "account_cancel_reject": "注销处理异议",
         "account_status": "账号状态申诉",
         "content_review": "内容审核申诉",
         "other": "其他申诉",
@@ -1160,6 +1196,7 @@ def serialize_admin_post_pin_request(
         str(row.get("userId", "")).strip(),
         include_deleted=True,
     )
+    user_level = normalize_user_level(user.get("userLevel") if user else None)
     # Deliberately no userEmail: unlike the other request queues this list is
     # readable by secondary admins (handle_admin_post_pin_requests only calls
     # _require_admin), and approving a pin needs the post and the reason, not
@@ -1170,7 +1207,12 @@ def serialize_admin_post_pin_request(
         "postTitle": str(post.get("title", "")) if post else "",
         "userId": str(row.get("userId", "")),
         "userNickname": user_nickname(user),
+        "userLevel": user_level,
+        "userLevelLabel": user_level_label(user_level),
         "durationMinutes": int(row.get("durationMinutes", 0) or 0),
+        "durationLabel": pin_duration_label(row.get("durationMinutes")),
+        "postDeleted": post is None or bool(post.get("deleted")),
+        "postPinned": bool(post) and is_post_pin_active(post),
         "reason": str(row.get("reason", "")),
         "status": status,
         "statusLabel": appeal_status_label(status),
@@ -1193,6 +1235,7 @@ def serialize_admin_user_level_request(
     )
     current_level = normalize_user_level(row.get("currentLevel"))
     target_level = normalize_user_level(row.get("targetLevel"))
+    user_current_level = normalize_user_level(user.get("userLevel")) if user else current_level
     return {
         "id": str(row.get("id", "")),
         "userId": str(row.get("userId", "")),
@@ -1210,6 +1253,9 @@ def serialize_admin_user_level_request(
         "createdAt": str(row.get("createdAt", "")),
         "handledAt": str(row.get("handledAt", "")),
         "handledBy": str(row.get("handledBy", "")),
+        "userDeleted": user is None or bool(user.get("deleted")),
+        "userCurrentLevel": user_current_level,
+        "userCurrentLevelLabel": user_level_label(user_current_level),
     }
 
 
@@ -1226,6 +1272,26 @@ def latest_pending_appeal_for_user(db: dict[str, Any], user_id: str) -> dict[str
     return rows[0]
 
 
+BAN_APPEAL_TYPES = frozenset({"ban_revoke", "wrong_punishment"})
+
+
+def ban_appeal_used(db: dict[str, Any], user: dict[str, Any]) -> bool:
+    """Whether this ban's one in-app appeal has been turned down already.
+
+    After that the appeal page sends the user to the support mailbox.  A ban
+    from before bannedAt was recorded counts every turned-down ban appeal.
+    """
+    user_id = str(user.get("id", "")).strip()
+    banned_at = str(user.get("bannedAt", "")).strip()
+    return any(
+        str(row.get("userId", "")).strip() == user_id
+        and str(row.get("appealType", "")).strip() in BAN_APPEAL_TYPES
+        and str(row.get("status", "")).strip().lower() in {"rejected", "closed"}
+        and str(row.get("createdAt", "")) >= banned_at
+        for row in db.get("appeals", [])
+    )
+
+
 def restore_user_account(
     db: dict[str, Any],
     user: dict[str, Any],
@@ -1240,6 +1306,9 @@ def ban_user_account(
     user: dict[str, Any],
 ) -> None:
     user_id = str(user.get("id", "")).strip()
+    if not user.get("banned"):
+        # The start of this ban: an appeal filed before it is about another one.
+        user["bannedAt"] = now_iso()
     user["banned"] = True
     for token, session_user_id in list(db.get("sessions", {}).items()):
         if session_user_id == user_id:

@@ -16,7 +16,7 @@ Admin & moderation endpoints:
   GET  /api/admin/account-cancellation-requests    — account cancellation list
   GET  /api/admin/appeals                          — appeal list
   GET  /api/admin/export                           — data export
-  GET  /api/admin/channels-tags                   — channel and tag lists
+  GET  /api/admin/channels-tags                   — tag list
   GET  /api/admin/config                          — sensitive words & system settings
   GET  /api/admin/announcements                   — published announcements
   POST /api/admin/auth/password                   — change own admin password
@@ -32,12 +32,9 @@ Admin & moderation endpoints:
   POST /api/admin/appeals/<id>/handle            — handle appeal
   POST /api/admin/account-cancellation-requests/<id>/handle — handle cancellation
   POST /api/admin/images/<id>/review             — approve/reject/delete/risk image
-  POST /api/admin/channels                       — add channel
   POST /api/admin/tags                           — add tag
-  PATCH /api/admin/channels/<name>               — rename channel
   PATCH /api/admin/tags/<name>                  — rename tag
   PATCH /api/admin/config                        — update config (sensitive words, rate limits)
-  DELETE /api/admin/channels/<name>              — delete channel
   DELETE /api/admin/tags/<name>                  — delete tag
 """
 from __future__ import annotations
@@ -65,6 +62,7 @@ from helpers import (
     check_ip_rate_limit,
     consume_rate_limit,
     get_client_ip,
+    get_setting_int,
     hash_password,
     is_today_iso,
     is_password_hashed,
@@ -356,6 +354,9 @@ def handle_admin_auth_logout(
     """POST /api/admin/auth/logout"""
     admin, token = auth_admin(handler, db)
     if admin is None:
+        # Already signed out (expired, or dropped by a restart): logging out is
+        # done, and the client still needs a reply to clear its token.
+        send_json(handler, HTTPStatus.OK, {"message": "管理员会话已失效", "data": {"ok": True}})
         return
     if token:
         with _globals.ADMIN_SESSION_LOCK:
@@ -440,13 +441,28 @@ def handle_admin_images_reviews(
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return
+    # No status means the review queue (pending + risk), which is what the
+    # mini program asks for; the web console filters by one status or all.
+    requested_status = (query.get("status", [""])[0] or "").strip().lower()
+    status_filters: dict[str, set[str] | None] = {
+        "": {"pending", "risk"},
+        "all": None,
+        "pending": {"pending"},
+        "approved": {"approved"},
+        "rejected": {"rejected"},
+        "risk": {"risk"},
+    }
+    if requested_status not in status_filters:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的图片状态")
+        return
+    wanted_statuses = status_filters[requested_status]
     rows = []
     keyword = (query.get("keyword", [""])[0] or "").strip().lower()
     for upload in db.get("mediaUploads", []):
         if upload.get("deleted"):
             continue
         status = str(upload.get("status", "pending")).lower()
-        if status not in {"pending", "risk"}:
+        if wanted_statuses is not None and status not in wanted_statuses:
             continue
         uploader = find_user_by_id(db, str(upload.get("uploaderId", "")))
         item = {
@@ -457,6 +473,7 @@ def handle_admin_images_reviews(
             "sizeBytes": int(upload.get("sizeBytes", 0)),
             "status": status,
             "moderationReason": upload.get("moderationReason", ""),
+            "reviewNote": upload.get("reviewNote", ""),
             "createdAt": upload.get("createdAt", ""),
             "postId": upload.get("postId", ""),
             "uploaderId": upload.get("uploaderId", ""),
@@ -585,7 +602,7 @@ def handle_admin_channels_tags(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
 ) -> None:
-    """GET /api/admin/channels-tags"""
+    """GET /api/admin/channels-tags — the tag list (channels became tags)."""
     admin = _require_primary_admin(handler, db)
     if admin is None:
         return
@@ -594,7 +611,6 @@ def handle_admin_channels_tags(
         HTTPStatus.OK,
         {
             "data": {
-                "channels": db.get("channels", []),
                 "tags": db.get("tags", []),
             }
         },
@@ -615,10 +631,19 @@ def handle_admin_config(
         {
             "data": {
                 "sensitiveWords": db.get("sensitiveWords", []),
-                "rateLimitRules": _globals.public_system_settings().get("rateLimitRules", {}),
+                "settings": _admin_editable_settings(db),
             }
         },
     )
+
+
+def _admin_editable_settings(db: dict[str, Any]) -> dict[str, int]:
+    """The enforced numeric limits (rate limits, imageMaxMB), as currently in effect."""
+    return {
+        key: get_setting_int(db, key, int(default), minimum=1)
+        for key, default in _globals.DEFAULT_SETTINGS.items()
+        if isinstance(default, int) and not isinstance(default, bool)
+    }
 
 
 def _serialize_announcement(row: dict[str, Any]) -> dict[str, Any]:
@@ -1153,6 +1178,13 @@ def handle_admin_report_action(
             comment = next((c for c in db.get("comments", []) if c.get("id") == target_id), None)
             if comment:
                 notif_post_id = str(comment.get("postId", "")).strip()
+        notif_related_type, notif_related_id = target_type, target_id
+        # Deleted content is not there to open: a deleted post links nowhere,
+        # a deleted comment links to its post.
+        if action == "delete" and target_type == "post":
+            notif_related_type, notif_related_id, notif_post_id = "", "", ""
+        elif action == "delete" and target_type == "comment":
+            notif_related_type, notif_related_id = ("post", notif_post_id) if notif_post_id else ("", "")
 
         create_notification(
             db,
@@ -1160,8 +1192,8 @@ def handle_admin_report_action(
             notification_type="report_result",
             title=notif_title,
             content=notif_content,
-            related_type=target_type,
-            related_id=target_id,
+            related_type=notif_related_type,
+            related_id=notif_related_id,
             post_id=notif_post_id,
             actor_id=str(admin.get("adminId", "")),
             actor_alias="管理员",
@@ -1215,7 +1247,7 @@ def handle_admin_post_pin_request_action(
     req["status"] = action == "approve" and "approved" or "rejected"
     req["handledAt"] = now_iso()
     req["handledBy"] = str(admin.get("adminId", "")).strip()
-    req["reviewNote"] = review_note or ""
+    req["adminNote"] = review_note or ""
 
     if post and action == "approve":
         from services import apply_post_pin
@@ -1281,7 +1313,7 @@ def handle_admin_user_level_request_action(
     req["status"] = action == "approve" and "approved" or "rejected"
     req["handledAt"] = now_iso()
     req["handledBy"] = str(admin.get("adminId", "")).strip()
-    req["reviewNote"] = review_note or ""
+    req["adminNote"] = review_note or ""
 
     if target_user and action == "approve":
         target_user["userLevel"] = _globals.USER_LEVEL_ONE
@@ -1545,6 +1577,7 @@ def handle_admin_cancellation_action(
 
     body = read_json_body(handler)
     action = str(body.get("action", "")).strip().lower()
+    note = str(body.get("note", "")).strip()
     if action not in {"approve", "reject"}:
         json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
         return
@@ -1581,7 +1614,10 @@ def handle_admin_cancellation_action(
     req["status"] = action == "approve" and "approved" or "rejected"
     req["handledAt"] = now_iso()
     req["handledBy"] = str(admin.get("adminId", "")).strip()
+    req["reviewNote"] = note or ("账号注销申请通过" if action == "approve" else "")
 
+    if action == "reject":
+        add_audit_log(db, admin.get("adminId", "-"), "reject_cancellation", f"驳回账号注销申请 {user_id}: {note}")
     if action == "approve" and target_user:
         sync_cancellation_requests_after_admin_cancel(
             db,
@@ -1669,30 +1705,6 @@ def handle_admin_image_review(
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
-def handle_admin_add_channel(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-) -> None:
-    """POST /api/admin/channels"""
-    admin = _require_primary_admin(handler, db)
-    if admin is None:
-        return
-
-    body = read_json_body(handler)
-    channel = str(body.get("channel", "")).strip()
-    if not channel:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "频道名称不能为空")
-        return
-    if channel in db.get("channels", []):
-        json_error(handler, HTTPStatus.CONFLICT, "频道已存在")
-        return
-
-    db["channels"].append(channel)
-    add_audit_log(db, admin.get("adminId", "-"), "add_channel", f"添加频道 {channel}")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
-
-
 def handle_admin_add_tag(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
@@ -1720,41 +1732,6 @@ def handle_admin_add_tag(
 # ===========================================================================
 # PATCH handlers
 # ===========================================================================
-
-
-def handle_admin_rename_channel(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    old_name: str,
-) -> None:
-    """PATCH /api/admin/channels/<name>"""
-    admin = _require_primary_admin(handler, db)
-    if admin is None:
-        return
-
-    body = read_json_body(handler)
-    new_name = str(body.get("channel", "")).strip()
-    if not new_name or new_name == old_name:
-        json_error(handler, HTTPStatus.BAD_REQUEST, "频道名称不能为空或与原名称相同")
-        return
-    if new_name in db.get("channels", []):
-        json_error(handler, HTTPStatus.CONFLICT, "新频道名称已存在")
-        return
-
-    channels = db.get("channels", [])
-    idx = next((i for i, c in enumerate(channels) if c == old_name), -1)
-    if idx < 0:
-        json_error(handler, HTTPStatus.NOT_FOUND, "频道不存在")
-        return
-
-    channels[idx] = new_name
-    for post in db.get("posts", []):
-        if str(post.get("channel", "")).strip() == old_name:
-            post["channel"] = new_name
-
-    add_audit_log(db, admin.get("adminId", "-"), "rename_channel", f"重命名频道 {old_name} -> {new_name}")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
 def handle_admin_rename_tag(
@@ -1808,13 +1785,24 @@ def handle_admin_update_config(
     if isinstance(words, list):
         db["sensitiveWords"] = [str(w).strip() for w in words if str(w).strip()]
 
-    rules = body.get("rateLimitRules")
-    if isinstance(rules, dict):
-        rate_rules = db.get("settings", {}).get("rateLimitRules", {})
-        if isinstance(rate_rules, dict):
-            rate_rules.update(rules)
-        else:
-            db["settings"]["rateLimitRules"] = rules
+    requested_settings = body.get("settings")
+    if requested_settings is not None:
+        if not isinstance(requested_settings, dict):
+            json_error(handler, HTTPStatus.BAD_REQUEST, "settings 必须是对象")
+            return
+        editable = _admin_editable_settings(db)
+        updates: dict[str, int] = {}
+        for key, value in requested_settings.items():
+            if key not in editable:
+                json_error(handler, HTTPStatus.BAD_REQUEST, f"不支持的配置项：{key}")
+                return
+            if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+                json_error(handler, HTTPStatus.BAD_REQUEST, f"{key} 必须是正整数")
+                return
+            updates[key] = value
+        if not isinstance(db.get("settings"), dict):
+            db["settings"] = {}
+        db["settings"].update(updates)
 
     add_audit_log(db, admin.get("adminId", "-"), "update_config", "更新系统配置")
     save_db(db)
@@ -1824,32 +1812,6 @@ def handle_admin_update_config(
 # ===========================================================================
 # DELETE handlers
 # ===========================================================================
-
-
-def handle_admin_delete_channel(
-    handler: BaseHTTPRequestHandler,
-    db: dict[str, Any],
-    name: str,
-) -> None:
-    """DELETE /api/admin/channels/<name>"""
-    admin = _require_primary_admin(handler, db)
-    if admin is None:
-        return
-
-    channels = db.get("channels", [])
-    if name not in channels:
-        json_error(handler, HTTPStatus.NOT_FOUND, "频道不存在")
-        return
-
-    post_with_channel = next((p for p in db.get("posts", []) if not p.get("deleted") and p.get("channel") == name), None)
-    if post_with_channel is not None:
-        json_error(handler, HTTPStatus.CONFLICT, "该频道下仍有帖子，无法删除")
-        return
-
-    channels.remove(name)
-    add_audit_log(db, admin.get("adminId", "-"), "delete_channel", f"删除频道 {name}")
-    save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
 
 
 def handle_admin_delete_tag(
@@ -1876,3 +1838,113 @@ def handle_admin_delete_tag(
     add_audit_log(db, admin.get("adminId", "-"), "delete_tag", f"删除标签 {name}")
     save_db(db)
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True}})
+
+
+# ---------------------------------------------------------------------------
+# Feedback (信箱)
+# ---------------------------------------------------------------------------
+
+_FEEDBACK_STATUSES = {"pending", "resolved", "closed"}
+_MAX_FEEDBACK_REPLY_CHARS = 1000
+
+
+def _serialize_admin_feedback(db: dict[str, Any], row: dict[str, Any]) -> dict[str, Any]:
+    user = find_user_by_id(db, str(row.get("userId", "")), include_deleted=True)
+    return {
+        "id": str(row.get("id", "")),
+        "userId": str(row.get("userId", "")),
+        "userEmail": str(row.get("userEmail", "")),
+        "userNickname": str(row.get("userNickname", "")),
+        "studentId": str(user.get("studentId", "")) if user else "",
+        "userDeleted": user is None or bool(user.get("deleted")),
+        "category": str(row.get("category", "其他反馈")),
+        "content": str(row.get("content", "")),
+        "contact": str(row.get("contact", "")),
+        "status": str(row.get("status", "pending")),
+        "schoolReply": str(row.get("schoolReply", "")),
+        "createdAt": str(row.get("createdAt", "")),
+        "handledAt": str(row.get("handledAt", "")),
+    }
+
+
+def handle_admin_feedbacks(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    query: dict[str, list[str]],
+) -> None:
+    """GET /api/admin/feedbacks?status=pending|resolved|closed|all"""
+    admin = _require_primary_admin(handler, db)
+    if admin is None:
+        return
+    status = (query.get("status", ["all"])[0] or "all").strip().lower()
+    if status != "all" and status not in _FEEDBACK_STATUSES:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的反馈状态")
+        return
+    rows = [
+        _serialize_admin_feedback(db, row)
+        for row in db.get("feedbacks", [])
+        if status == "all" or str(row.get("status", "pending")) == status
+    ]
+    rows.sort(key=lambda item: (item["createdAt"], item["id"]), reverse=True)
+    send_json(handler, HTTPStatus.OK, {"data": rows})
+
+
+def handle_admin_feedback_action(
+    handler: BaseHTTPRequestHandler,
+    db: dict[str, Any],
+    feedback_id: str,
+) -> None:
+    """POST /api/admin/feedbacks/<id>/handle  body: {action: reply|close, reply}
+
+    reply answers the user (status resolved, 已回复); close ends it without an
+    answer being required (status closed). Either way the user is notified.
+    """
+    admin = _require_primary_admin(handler, db)
+    if admin is None:
+        return
+    body = read_json_body(handler)
+    action = str(body.get("action", "")).strip().lower()
+    reply = str(body.get("reply", "")).strip()
+    if action not in {"reply", "close"}:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "无效的处理动作")
+        return
+    if action == "reply" and not reply:
+        json_error(handler, HTTPStatus.BAD_REQUEST, "回复内容不能为空")
+        return
+    if len(reply) > _MAX_FEEDBACK_REPLY_CHARS:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"回复不能超过 {_MAX_FEEDBACK_REPLY_CHARS} 字")
+        return
+
+    feedback = next((row for row in db.get("feedbacks", []) if row.get("id") == feedback_id), None)
+    if feedback is None:
+        json_error(handler, HTTPStatus.NOT_FOUND, "反馈不存在")
+        return
+    if str(feedback.get("status", "pending")) != "pending":
+        json_error(handler, HTTPStatus.CONFLICT, "反馈已处理，不能重复操作")
+        return
+
+    feedback["status"] = "resolved" if action == "reply" else "closed"
+    feedback["schoolReply"] = reply
+    feedback["handledAt"] = now_iso()
+    # feedbacks.handled_by references users, like reports.handled_by: only a
+    # user-admin id fits; the audit log records which admin account it was.
+    feedback["handledBy"] = str(admin.get("id", "")).strip()
+
+    create_notification(
+        db,
+        user_id=str(feedback.get("userId", "")),
+        notification_type="system",
+        title="反馈已回复" if action == "reply" else "反馈已处理",
+        content=reply or "你的反馈已处理完毕，感谢你的意见。",
+        related_type="feedback",
+        related_id=feedback_id,
+        actor_alias="管理员",
+    )
+    add_audit_log(
+        db,
+        str(admin.get("adminId", "")),
+        f"feedback_{action}",
+        f"{feedback_id}: {reply}" if reply else feedback_id,
+    )
+    save_db(db)
+    send_json(handler, HTTPStatus.OK, {"data": _serialize_admin_feedback(db, feedback)})

@@ -62,9 +62,12 @@ from services import (
     iso_to_time_text,
     is_level_one_user,
     is_post_anonymous,
+    is_user_blocked,
     is_post_private,
     is_user_following,
     latest_pending_appeal_for_user,
+    ban_appeal_used,
+    BAN_APPEAL_TYPES,
     latest_pending_post_pin_request_for_post,
     latest_user_level_request_for_user,
     list_comments,
@@ -94,6 +97,7 @@ logger = logging.getLogger("treehole.posts")
 _MAX_MARKDOWN_SOURCE_CHARS = 20_000
 _MAX_COMMENT_CHARS = 2_000
 _MAX_TAGS = 10
+_MAX_POST_IMAGES = 9
 _MAX_TAG_CHARS = 40
 _MARKDOWN_IMAGE_RE = re.compile(
     r"!\[[^\]]*\]\(([^)\s]+)(?:\s+['\"][^'\"]*['\"])?\)",
@@ -178,6 +182,18 @@ def _enforce_interaction_rate_limit(
     return True
 
 
+def _requested_state(handler: BaseHTTPRequestHandler, key: str) -> bool | None:
+    """The target state a like / favorite request asks for, or None to toggle.
+
+    Toggling from the client's idea of the current state goes wrong whenever
+    that idea is stale (a list not refreshed after the detail page changed it),
+    so current clients send the state they want. Older released clients send
+    an empty body and keep the toggle.
+    """
+    value = read_json_body(handler).get(key)
+    return value if isinstance(value, bool) else None
+
+
 def _can_view_post(post: dict[str, Any], viewer_user_id: str) -> bool:
     author_id = str(post.get("authorId", "")).strip()
     is_owner = bool(viewer_user_id and viewer_user_id == author_id)
@@ -243,10 +259,39 @@ def _extract_inline_tags(*values: Any) -> list[str]:
     return tags
 
 
-def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_id: str) -> dict[str, Any]:
+def _comments_as_anonymous_author(db: dict[str, Any], post: dict[str, Any], user_id: str) -> bool:
+    """The author of an anonymous post comments under the post's alias.
+
+    Otherwise their comment (and its 洞主 mark) would name them as the author.
+    """
+    return bool(
+        user_id
+        and str(post.get("authorId", "")).strip() == user_id
+        and is_post_anonymous(db, post)
+    )
+
+
+def _serialize_comment(
+    db: dict[str, Any],
+    comment: dict[str, Any],
+    viewer_user_id: str,
+    post: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     author_id = str(comment.get("userId", "")).strip()
     author_user = find_user_by_id(db, author_id)
-    is_anonymous = bool(comment.get("isAnonymous", False))
+    if post is None:
+        post_id = str(comment.get("postId", "")).strip()
+        post = next((p for p in db["posts"] if str(p.get("id", "")).strip() == post_id), None)
+    is_post_author = bool(
+        post is not None and author_id and str(post.get("authorId", "")).strip() == author_id
+    )
+    # Comments stored before comment anonymity existed are covered here too.
+    as_anonymous_author = post is not None and _comments_as_anonymous_author(db, post, author_id)
+    is_anonymous = bool(comment.get("isAnonymous", False)) or as_anonymous_author
+    author_alias = (
+        str(post.get("authorAlias", "")) if as_anonymous_author and post is not None
+        else str(comment.get("authorAlias", ""))
+    )
     liked = bool(
         viewer_user_id
         and any(
@@ -265,12 +310,15 @@ def _serialize_comment(db: dict[str, Any], comment: dict[str, Any], viewer_user_
         "id": comment.get("id", ""),
         "postId": comment.get("postId", ""),
         "content": comment.get("content", ""),
-        "authorAlias": _globals.sanitize_alias(str(comment.get("authorAlias", "")), fallback="匿名同学"),
+        "authorAlias": _globals.sanitize_alias(author_alias, fallback="匿名同学"),
         "authorId": public_author_id,
         "authorAvatarUrl": author_avatar_url,
         "authorAvatar": author_avatar_url,
         "authorUserId": public_author_id,
         "isOwnComment": bool(viewer_user_id and viewer_user_id == author_id),
+        # 洞主. Only the flag is exposed; on an anonymous post the comment is
+        # anonymous too, so it names no one.
+        "isPostAuthor": is_post_author,
         "likeCount": like_count,
         "liked": liked,
         "createdAt": comment.get("createdAt", ""),
@@ -360,9 +408,14 @@ def handle_get_posts(
             # anyone but their own author.
             if is_post_anonymous(db, post) and author_id != viewer_user_id:
                 continue
-        if section_id and str(post.get("sectionId", "")).strip() != section_id:
+        # Seed / legacy posts predate sections and belong to 综合 (general).
+        post_section_type = str(post.get("sectionType", "")).strip() or "general"
+        post_section_id = str(post.get("sectionId", "")).strip() or (
+            "general" if post_section_type == "general" else ""
+        )
+        if section_id and post_section_id != section_id:
             continue
-        if section_type and str(post.get("sectionType", "")).strip() != section_type:
+        if section_type and post_section_type != section_type:
             continue
         if channel and channel != "全部":
             post_channel = str(post.get("channel", "")).strip()
@@ -384,13 +437,16 @@ def handle_get_posts(
         filtered_posts.append(post)
 
     filtered_posts = _globals.sort_posts_for_view(db, filtered_posts, sort_by=sort_by)
-    rows = [serialize_post(db, post, viewer_user_id=viewer_user_id) for post in filtered_posts]
     has_pagination = "page" in query or "limit" in query
     if has_pagination:
         page = _positive_int((query.get("page") or [1])[0], 1)
         limit = _positive_int((query.get("limit") or [20])[0], 20, 100)
         start = (page - 1) * limit
-        page_rows = rows[start:start + limit]
+        # serialize_post scans whole tables per post: only the page is built.
+        page_rows = [
+            serialize_post(db, post, viewer_user_id=viewer_user_id)
+            for post in filtered_posts[start:start + limit]
+        ]
         send_json(
             handler,
             HTTPStatus.OK,
@@ -399,13 +455,14 @@ def handle_get_posts(
                     "items": page_rows,
                     "page": page,
                     "limit": limit,
-                    "total": len(rows),
-                    "hasMore": start + limit < len(rows),
+                    "total": len(filtered_posts),
+                    "hasMore": start + limit < len(filtered_posts),
                 }
             },
         )
         return
 
+    rows = [serialize_post(db, post, viewer_user_id=viewer_user_id) for post in filtered_posts]
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
 
@@ -665,7 +722,7 @@ def handle_get_post_comments(
         return
 
     rows = [
-        _serialize_comment(db, comment, viewer_user_id)
+        _serialize_comment(db, comment, viewer_user_id, post)
         for comment in list_comments(
             db,
             post_id=post_id,
@@ -776,6 +833,9 @@ def handle_create_post(
         return
     if len(tags) > _MAX_TAGS or any(len(tag) > _MAX_TAG_CHARS for tag in tags):
         json_error(handler, HTTPStatus.BAD_REQUEST, "标签数量或长度超出限制")
+        return
+    if len(image_ids) > _MAX_POST_IMAGES:
+        json_error(handler, HTTPStatus.BAD_REQUEST, f"每条帖子最多 {_MAX_POST_IMAGES} 张图片")
         return
     if content_format == "markdown":
         unsafe_images = [
@@ -1122,7 +1182,11 @@ def handle_create_comment(
         save_db(db)
         return
 
-    author_alias = _globals.sanitize_alias(user_nickname(user), fallback="匿名同学")
+    comment_anonymous = _comments_as_anonymous_author(db, post, user["id"])
+    author_alias = _globals.sanitize_alias(
+        str(post.get("authorAlias", "")) if comment_anonymous else user_nickname(user),
+        fallback="匿名同学",
+    )
     comment = {
         "id": next_id(db, "comment", "cm"),
         "postId": post_id,
@@ -1134,7 +1198,7 @@ def handle_create_comment(
         "deleted": False,
         "reviewStatus": "pending" if risk_marked else "approved",
         "riskMarked": risk_marked,
-        "isAnonymous": False,
+        "isAnonymous": comment_anonymous,
         "parentId": parent_id,
     }
     if risk_marked:
@@ -1154,10 +1218,13 @@ def handle_create_comment(
     parent_author_id = (
         str(parent_comment.get("userId", "")).strip() if parent_id else ""
     )
+    # An anonymous comment carries no actor id (it would name the author), so
+    # create_notification cannot see a block; check it with the real sender.
     if (
         not risk_marked
         and parent_author_id
         and parent_author_id != user["id"]
+        and not is_user_blocked(db, parent_author_id, user["id"])
     ):
         create_notification(
             db,
@@ -1168,7 +1235,7 @@ def handle_create_comment(
             related_type="comment",
             related_id=comment["id"],
             post_id=post_id,
-            actor_id=user["id"],
+            actor_id="" if comment_anonymous else user["id"],
             actor_alias=author_alias,
         )
     # A post author replied to in their own thread already has the reply
@@ -1178,6 +1245,7 @@ def handle_create_comment(
         and post_author_id
         and post_author_id != user["id"]
         and post_author_id != parent_author_id
+        and not is_user_blocked(db, post_author_id, user["id"])
     ):
         create_notification(
             db,
@@ -1188,13 +1256,13 @@ def handle_create_comment(
             related_type="post",
             related_id=post_id,
             post_id=post_id,
-            actor_id=user["id"],
+            actor_id="" if comment_anonymous else user["id"],
             actor_alias=author_alias,
         )
 
     add_audit_log(db, user["id"], "create_comment", f"在帖子 {post_id} 下发表评论 {comment['id']}")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"])})
+    send_json(handler, HTTPStatus.OK, {"data": _serialize_comment(db, comment, viewer_user_id=user["id"], post=post)})
 
 
 def handle_toggle_like(
@@ -1202,7 +1270,7 @@ def handle_toggle_like(
     db: dict[str, Any],
     post_id: str,
 ) -> None:
-    """POST /api/posts/<id>/like"""
+    """POST /api/posts/<id>/like  body: {"liked": bool} (omitted: toggle)"""
     user = _require_auth(handler, db)
     if user is None:
         return
@@ -1224,10 +1292,10 @@ def handle_toggle_like(
         (x for x in db["likes"] if x.get("userId") == user["id"] and x.get("postId") == post_id and not x.get("commentId")),
         None,
     )
-    liked = False
-    if existing is None:
+    requested = _requested_state(handler, "liked")
+    liked = existing is None if requested is None else requested
+    if liked and existing is None:
         db["likes"].append({"userId": user["id"], "postId": post_id, "createdAt": now_iso()})
-        liked = True
         post_author_id = str(post.get("authorId", "")).strip()
         if post_author_id and post_author_id != user["id"]:
             create_notification(
@@ -1243,7 +1311,7 @@ def handle_toggle_like(
                 actor_alias=_globals.sanitize_alias(user_nickname(user), fallback="匿名同学"),
             )
         add_audit_log(db, user["id"], "like_post", f"点赞帖子 {post_id}")
-    else:
+    elif not liked and existing is not None:
         db["likes"] = [x for x in db["likes"] if not (
             x.get("userId") == user["id"]
             and x.get("postId") == post_id
@@ -1251,16 +1319,25 @@ def handle_toggle_like(
         )]
         add_audit_log(db, user["id"], "unlike_post", f"取消点赞帖子 {post_id}")
 
+    like_count = sum(
+        1
+        for like in db["likes"]
+        if like.get("postId") == post_id and not like.get("commentId")
+    )
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"liked": liked}})
+    send_json(handler, HTTPStatus.OK, {"data": {"liked": liked, "likeCount": like_count}})
 
 
 def handle_toggle_comment_like(
     handler: BaseHTTPRequestHandler,
     db: dict[str, Any],
     comment_id: str,
+    requested: bool | None = None,
 ) -> None:
-    """POST /api/comments/<id>/like"""
+    """POST /api/comments/<id>/like  body: {"liked": bool} (omitted: toggle)
+
+    DELETE /api/comments/<id>/like passes requested=False.
+    """
     user = _require_auth(handler, db)
     if user is None:
         return
@@ -1304,10 +1381,11 @@ def handle_toggle_comment_like(
          and x.get("commentId") == comment_id),
         None,
     )
-    liked = False
-    if existing is None:
+    if requested is None:
+        requested = _requested_state(handler, "liked")
+    liked = existing is None if requested is None else requested
+    if liked and existing is None:
         db["likes"].append({"userId": user["id"], "commentId": comment_id, "createdAt": now_iso()})
-        liked = True
         comment_author_id = str(comment.get("userId", "")).strip()
         if comment_author_id and comment_author_id != user["id"]:
             post_id = str(comment.get("postId", "")).strip()
@@ -1324,7 +1402,7 @@ def handle_toggle_comment_like(
                 actor_alias=_globals.sanitize_alias(user_nickname(user), fallback="匿名同学"),
             )
         add_audit_log(db, user["id"], "like_comment", f"点赞评论 {comment_id}")
-    else:
+    elif not liked and existing is not None:
         db["likes"] = [x for x in db["likes"] if x is not existing]
         add_audit_log(db, user["id"], "unlike_comment", f"取消点赞评论 {comment_id}")
 
@@ -1337,7 +1415,7 @@ def handle_toggle_favorite(
     db: dict[str, Any],
     post_id: str,
 ) -> None:
-    """POST /api/posts/<id>/favorite"""
+    """POST /api/posts/<id>/favorite  body: {"favorited": bool} (omitted: toggle)"""
     user = _require_auth(handler, db)
     if user is None:
         return
@@ -1359,10 +1437,10 @@ def handle_toggle_favorite(
         (f for f in db["favorites"] if f.get("userId") == user["id"] and f.get("postId") == post_id),
         None,
     )
-    favorited = False
-    if existing is None:
+    requested = _requested_state(handler, "favorited")
+    favorited = existing is None if requested is None else requested
+    if favorited and existing is None:
         db["favorites"].append({"userId": user["id"], "postId": post_id, "createdAt": now_iso()})
-        favorited = True
         post_author_id = str(post.get("authorId", "")).strip()
         if post_author_id and post_author_id != user["id"]:
             create_notification(
@@ -1378,7 +1456,7 @@ def handle_toggle_favorite(
                 actor_alias=_globals.sanitize_alias(user_nickname(user), fallback="匿名同学"),
             )
         add_audit_log(db, user["id"], "favorite_post", f"收藏帖子 {post_id}")
-    else:
+    elif not favorited and existing is not None:
         db["favorites"] = [f for f in db["favorites"] if not (f.get("userId") == user["id"] and f.get("postId") == post_id)]
         add_audit_log(db, user["id"], "unfavorite_post", f"取消收藏帖子 {post_id}")
 
@@ -1496,12 +1574,14 @@ def handle_increment_view(
     if post is None:
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
-    if not _can_interact_with_post(post, viewer_user_id):
+    if not _can_view_post(post, viewer_user_id):
         json_error(handler, HTTPStatus.NOT_FOUND, "帖子不存在或已被删除")
         return
 
-    post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0)) + 1
-    save_db(db)
+    # The author may open their own pending / rejected post; that is not a view.
+    if _can_interact_with_post(post, viewer_user_id):
+        post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0)) + 1
+        save_db(db)
 
     send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "viewCount": max(0, int(post.get("viewCount", 0) or 0))}})
 
@@ -1774,6 +1854,11 @@ def handle_my_latest_appeal(
                     "handledAt": str(latest.get("handledAt", "")),
                 },
                 "banned": bool(user.get("banned")),
+                # One in-app appeal per ban; clients show the form only when
+                # this is true (handle_submit_appeal enforces the same rule).
+                "canSubmit": bool(user.get("banned"))
+                and latest_pending_appeal_for_user(db, user_id) is None
+                and not ban_appeal_used(db, user),
                 "supportEmail": _globals.SUPPORT_CONTACT_EMAIL,
             }
         },
@@ -1840,7 +1925,12 @@ def handle_submit_appeal(
         and verify_password(str(user.get("password", "")), password)
     )
     if user is None or not (session_matches or password_matches):
-        json_error(handler, HTTPStatus.UNAUTHORIZED, "账号凭证无效")
+        # Signed in as someone else: a 401 would tell the client its own
+        # (valid) session is dead and sign it out.
+        if session_user is not None:
+            json_error(handler, HTTPStatus.FORBIDDEN, "只能为当前登录的账号申诉")
+        else:
+            json_error(handler, HTTPStatus.UNAUTHORIZED, "账号凭证无效")
         return
     if appeal_type == "account_restore" and not user.get("deleted"):
         json_error(handler, HTTPStatus.CONFLICT, "账号当前未注销，无需恢复")
@@ -1850,6 +1940,13 @@ def handle_submit_appeal(
         return
     if latest_pending_appeal_for_user(db, str(user.get("id", ""))) is not None:
         json_error(handler, HTTPStatus.CONFLICT, "该账号已有待处理的申诉")
+        return
+    if appeal_type in BAN_APPEAL_TYPES and user.get("banned") and ban_appeal_used(db, user):
+        json_error(
+            handler,
+            HTTPStatus.CONFLICT,
+            f"本次封禁的站内申诉已用完，请用本人校园邮箱发送至 {_globals.SUPPORT_CONTACT_EMAIL}",
+        )
         return
 
     appeal_titles = {
@@ -2042,4 +2139,4 @@ def handle_remove_favorite(
     )
     add_audit_log(db, user["id"], "unfavorite_post", f"取消收藏帖子 {post_id}")
     save_db(db)
-    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "likeCount": like_count, "favoriteCount": favorite_count}})
+    send_json(handler, HTTPStatus.OK, {"data": {"ok": True, "favorited": False, "likeCount": like_count, "favoriteCount": favorite_count}})

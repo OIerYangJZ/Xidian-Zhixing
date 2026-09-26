@@ -19,7 +19,7 @@ from helpers._auth_helpers import (
     sanitize_alias,
     student_id_from_email,
 )
-from helpers._datetime_helpers import now_iso, now_utc, parse_iso
+from helpers._datetime_helpers import is_today_iso, now_iso, now_utc, parse_iso
 
 logger = logging.getLogger(__name__)
 
@@ -811,7 +811,24 @@ def build_overview(db: dict[str, Any]) -> dict[str, Any]:
         for u in db.get("mediaUploads", [])
         if not u.get("deleted") and str(u.get("status", "approved")).lower() in {"pending", "risk"}
     ]
+    comments = [c for c in db.get("comments", []) if not c.get("deleted")]
+    pending_cancellations = [
+        r
+        for r in db.get("accountCancellationRequests", [])
+        if str(r.get("status", "pending")).strip().lower() == "pending"
+    ]
     return {
+        "todayNewUsers": sum(1 for u in users if is_today_iso(u.get("createdAt"))),
+        "todayPosts": sum(1 for p in posts if is_today_iso(p.get("createdAt"))),
+        "todayComments": sum(1 for c in comments if is_today_iso(c.get("createdAt"))),
+        "todayReports": sum(1 for r in db.get("reports", []) if is_today_iso(r.get("createdAt"))),
+        "pendingCancellationRequests": len(pending_cancellations),
+        "pendingFeedbacks": sum(
+            1 for f in db.get("feedbacks", []) if str(f.get("status", "pending")) == "pending"
+        ),
+        "activeUsers": sum(1 for u in users if not u.get("banned")),
+        "bannedUsers": sum(1 for u in users if u.get("banned")),
+        "mutedUsers": sum(1 for u in users if u.get("muted")),
         "totalUsers": len(users),
         "totalPosts": len(posts),
         "totalReports": len(db.get("reports", [])),
@@ -821,7 +838,7 @@ def build_overview(db: dict[str, Any]) -> dict[str, Any]:
         "pendingReviewCount": len(pending_reviews),
         "pendingImages": len(pending_images),
         "pendingImageCount": len(pending_images),
-        "totalComments": len([c for c in db.get("comments", []) if not c.get("deleted")]),
+        "totalComments": len(comments),
         "channels": list(db.get("channels", [])),
         "tags": list(db.get("tags", [])),
     }
@@ -941,9 +958,44 @@ def list_posts(
     include_rejected: bool = False,
 ) -> list[dict[str, Any]]:
     """Return filtered post rows."""
+    viewer = str(viewer_user_id).strip()
+    # 屏蔽: whoever the viewer blocked disappears from every list, anonymous
+    # posts included (filtered here, so nothing says who wrote them).
+    blocked_author_ids = {
+        str(row.get("blockedUserId", "")).strip()
+        for row in db.get("userBlocks", [])
+        if viewer and str(row.get("blockerUserId", "")).strip() == viewer
+    }
+    # Counted once for the whole list: per post, this was a scan of every
+    # like, comment and favorite.
+    like_counts: dict[str, int] = {}
+    for like in db.get("likes", []):
+        key = str(like.get("postId", "")).strip()
+        if key:
+            like_counts[key] = like_counts.get(key, 0) + 1
+    comment_counts: dict[str, int] = {}
+    for comment in db.get("comments", []):
+        if comment.get("deleted"):
+            continue
+        visible = (
+            (str(comment.get("reviewStatus", "approved")).strip().lower() or "approved")
+            in {"approved", "resolved"}
+            or str(comment.get("userId", "")).strip() == viewer
+        )
+        if not visible:
+            continue
+        key = str(comment.get("postId", "")).strip()
+        comment_counts[key] = comment_counts.get(key, 0) + 1
+    favorite_counts: dict[str, int] = {}
+    for favorite_row in db.get("favorites", []):
+        key = str(favorite_row.get("postId", "")).strip()
+        favorite_counts[key] = favorite_counts.get(key, 0) + 1
+
     posts = []
     for post in db.get("posts", []):
         if post.get("deleted"):
+            continue
+        if blocked_author_ids and str(post.get("authorId", "")).strip() in blocked_author_ids:
             continue
         if (
             str(post.get("visibility", "public")).strip().lower() == "private"
@@ -967,31 +1019,9 @@ def list_posts(
             if keyword not in title and keyword not in content:
                 continue
         post_id = str(post.get("id", "")).strip()
-        post["likeCount"] = sum(
-            1
-            for like in db.get("likes", [])
-            if str(like.get("postId", "")).strip() == post_id
-        )
-        post["commentCount"] = sum(
-            1
-            for comment in db.get("comments", [])
-            if not comment.get("deleted")
-            and str(comment.get("postId", "")).strip() == post_id
-            and (
-                (
-                    str(comment.get("reviewStatus", "approved")).strip().lower()
-                    or "approved"
-                )
-                in {"approved", "resolved"}
-                or str(comment.get("userId", "")).strip()
-                == str(viewer_user_id).strip()
-            )
-        )
-        post["favoriteCount"] = sum(
-            1
-            for favorite_row in db.get("favorites", [])
-            if str(favorite_row.get("postId", "")).strip() == post_id
-        )
+        post["likeCount"] = like_counts.get(post_id, 0)
+        post["commentCount"] = comment_counts.get(post_id, 0)
+        post["favoriteCount"] = favorite_counts.get(post_id, 0)
         post["viewCount"] = max(0, int(post.get("viewCount", 0) or 0))
         posts.append(post)
     if sort_by != "hot":
@@ -1005,11 +1035,20 @@ def list_comments(
     viewer_user_id: str = "",
 ) -> list[dict[str, Any]]:
     """Return comments for a post."""
+    viewer = str(viewer_user_id).strip()
+    # 屏蔽 hides the blocked user's comments too.
+    blocked_user_ids = {
+        str(row.get("blockedUserId", "")).strip()
+        for row in db.get("userBlocks", [])
+        if viewer and str(row.get("blockerUserId", "")).strip() == viewer
+    }
     comments = []
     for comment in db.get("comments", []):
         if comment.get("postId") != post_id:
             continue
         if comment.get("deleted"):
+            continue
+        if blocked_user_ids and str(comment.get("userId", "")).strip() in blocked_user_ids:
             continue
         status = (
             str(comment.get("reviewStatus", "approved")).strip().lower()
@@ -1196,7 +1235,14 @@ def build_export_payload(
     else:
         output = json.dumps({"headers": headers, "rows": rows}, ensure_ascii=False)
 
-    return {"format": export_format, "data": output}
+    is_csv = export_format == "csv"
+    return {
+        "format": "csv" if is_csv else "json",
+        "fileName": f"{normalized_scope}-{now_utc().strftime('%Y%m%d-%H%M%S')}.{'csv' if is_csv else 'json'}",
+        "contentType": "text/csv; charset=utf-8" if is_csv else "application/json; charset=utf-8",
+        "rowCount": len(rows),
+        "data": output,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1403,11 +1449,19 @@ def serialize_post(
             author_user = user
             break
 
+    # Matches list_comments: a blocked user's comments are not shown, so they
+    # are not counted either.
+    blocked_by_viewer = {
+        str(row.get("blockedUserId", "")).strip()
+        for row in db.get("userBlocks", [])
+        if viewer_user_id and str(row.get("blockerUserId", "")).strip() == viewer_user_id
+    }
     comment_count = sum(
         1
         for comment in db.get("comments", [])
         if not comment.get("deleted")
         and str(comment.get("postId", "")).strip() == post_id
+        and str(comment.get("userId", "")).strip() not in blocked_by_viewer
         and (
             (
                 str(comment.get("reviewStatus", "approved")).strip().lower()
@@ -3391,14 +3445,11 @@ def migrate_db(db: dict[str, Any]) -> bool:
             db["channels"] = []
             changed = True
 
-    if "tags" not in db:
+    # Seed the defaults once. Re-adding any missing on every load undid an
+    # admin deleting or renaming a default tag.
+    if not db.get("tags"):
         db["tags"] = list(_globals.DEFAULT_TAGS)
         changed = True
-    else:
-        for default_tag in _globals.DEFAULT_TAGS:
-            if default_tag not in db["tags"]:
-                db["tags"].append(default_tag)
-                changed = True
     if "sensitiveWords" not in db:
         db["sensitiveWords"] = list(_globals.DEFAULT_SENSITIVE_WORDS)
         changed = True

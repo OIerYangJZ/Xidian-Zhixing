@@ -18,6 +18,7 @@ from helpers import json_error, read_json_body, send_json
 from services import (
     auth_user as auth_user_helper,
     find_user_by_id,
+    is_user_blocked,
     load_db,
     save_db,
     serialize_notification,
@@ -55,11 +56,14 @@ def handle_get_notifications(
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return
 
+    user_id = str(user.get("id", "")).strip()
+    # Blocking also hides what the blocked user sent before the block.
     rows = [
         _serialize_notification_with_actor_avatar(db, row)
         for row in db.get("notifications", [])
-        if str(row.get("userId", "")).strip() == str(user.get("id", "")).strip()
+        if str(row.get("userId", "")).strip() == user_id
         and not row.get("deleted")
+        and not is_user_blocked(db, user_id, str(row.get("actorId", "")))
     ]
     rows.sort(
         key=lambda item: (str(item.get("createdAt", "")), str(item.get("id", ""))),

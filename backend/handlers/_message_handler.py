@@ -364,11 +364,9 @@ def handle_get_messages(
         json_error(handler, HTTPStatus.NOT_FOUND, "会话不存在")
         return
 
+    # Being blocked stops sending, not reading: the history stays (every
+    # client says 对方已屏蔽你，只能查看历史消息).
     peer_user_id = str(conv.get("peerUserId", "")).strip()
-    if is_user_blocked(db, peer_user_id, user["id"]):
-        json_error(handler, HTTPStatus.FORBIDDEN, "对方已将你屏蔽，无法查看消息")
-        return
-
     conv_key = _globals.conversation_key_for_users(str(user.get("id", "")), peer_user_id)
     messages = [
         serialize_direct_message(
@@ -376,8 +374,9 @@ def handle_get_messages(
             msg,
             viewer_user_id=str(user.get("id", "")),
         )
+        # Recalled messages come back as placeholders (serialize_direct_message).
         for msg in db.get("directMessages", [])
-        if msg.get("conversationKey") == conv_key and not msg.get("deleted")
+        if msg.get("conversationKey") == conv_key
     ]
     messages.sort(key=lambda m: (m.get("createdAt", ""), m.get("id", "")))
 

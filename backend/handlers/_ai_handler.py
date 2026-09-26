@@ -95,7 +95,16 @@ def _require_auth(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> dict[s
     if user is None:
         json_error(handler, HTTPStatus.UNAUTHORIZED, "Unauthorized")
         return None
-    if user.get("deleted") or user.get("banned"):
+    if user.get("banned"):
+        # Clients route on accountState, as for every other banned refusal.
+        json_error(
+            handler,
+            HTTPStatus.FORBIDDEN,
+            "账号已被封禁，仅可提交解封申诉",
+            data={"accountState": "banned"},
+        )
+        return None
+    if user.get("deleted"):
         json_error(handler, HTTPStatus.FORBIDDEN, "账号状态异常，无法使用 AI 助手")
         return None
     return user

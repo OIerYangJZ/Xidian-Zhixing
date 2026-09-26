@@ -423,9 +423,10 @@ def test_cross_post_parent_comment_is_rejected(
     assert len(db["comments"]) == 1
 
 
-def test_message_history_checks_peer_block_direction(
+def test_blocked_by_peer_can_still_read_history(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """Every client says 对方已屏蔽你，只能查看历史消息; the block stops sending."""
     from handlers import _message_handler
     from services._db_service import default_db
 
@@ -445,12 +446,12 @@ def test_message_history_checks_peer_block_direction(
         {"blockerUserId": peer["id"], "blockedUserId": viewer["id"]}
     ]
     monkeypatch.setattr(_message_handler, "_require_auth", lambda _h, _db: viewer)
+    monkeypatch.setattr(_message_handler, "save_db", lambda _db: None)
 
     handler = FakeJsonHandler()
     _message_handler.handle_get_messages(handler, db, "conversation")
 
-    assert handler.status_code == HTTPStatus.FORBIDDEN
-    assert "对方已将你屏蔽" in handler.payload()["message"]
+    assert handler.status_code == HTTPStatus.OK
 
 
 def test_partial_user_updates_preserve_omitted_fields(
@@ -2036,9 +2037,11 @@ def test_banned_session_is_refused_everywhere_but_the_appeal_surface() -> None:
     # Submitting an appeal is public by design: the original route was email
     # plus password for someone who could not sign in at all.
     assert server._is_session_exempt("/api/appeals")
+    # Signing out returns no data and must work with a dead session too.
+    assert server._is_session_exempt("/api/auth/logout")
     # The rest carry account data and must stay behind a session; they are
     # reachable while banned only because of the allowlist above.
-    for path in ["/api/appeals/mine", "/api/users/me", "/api/auth/logout"]:
+    for path in ["/api/appeals/mine", "/api/users/me"]:
         assert not server._is_session_exempt(path), path
 
 

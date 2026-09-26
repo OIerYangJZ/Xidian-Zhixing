@@ -351,6 +351,7 @@ class SqliteTreeholeRepository:
               deleted INTEGER NOT NULL DEFAULT 0,
               is_admin INTEGER NOT NULL DEFAULT 0,
               banned INTEGER NOT NULL DEFAULT 0,
+              banned_at TEXT NOT NULL DEFAULT '',
               muted INTEGER NOT NULL DEFAULT 0
             );
 
@@ -777,6 +778,7 @@ class SqliteTreeholeRepository:
             """
         conn.executescript(f"BEGIN;\n{schema_sql}" if begin_transaction else schema_sql)
         self._ensure_column(conn, "users", "user_level", "INTEGER NOT NULL DEFAULT 2")
+        self._ensure_column(conn, "users", "banned_at", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "nickname", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "student_id", "TEXT NOT NULL DEFAULT ''")
         self._ensure_column(conn, "users", "avatar_url", "TEXT NOT NULL DEFAULT ''")
@@ -945,7 +947,7 @@ class SqliteTreeholeRepository:
                    user_level, verified, verified_at,
                    allow_stranger_dm, show_contactable,
                    notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
-                   created_at, deleted, is_admin, banned, muted
+                   created_at, deleted, is_admin, banned, banned_at, muted
             FROM users
             ORDER BY created_at, id
             """
@@ -980,6 +982,7 @@ class SqliteTreeholeRepository:
                     "deleted": _to_bool(row["deleted"]),
                     "isAdmin": _to_bool(row["is_admin"]),
                     "banned": _to_bool(row["banned"]),
+                    "bannedAt": _to_str(row["banned_at"]),
                     "muted": _to_bool(row["muted"]),
                 }
             )
@@ -1618,8 +1621,8 @@ class SqliteTreeholeRepository:
                       user_level, verified, verified_at,
                       allow_stranger_dm, show_contactable,
                       notify_comment, notify_reply, notify_like, notify_favorite, notify_report_result, notify_system,
-                      created_at, deleted, is_admin, banned, muted
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                      created_at, deleted, is_admin, banned, banned_at, muted
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         user_id,
@@ -1649,6 +1652,7 @@ class SqliteTreeholeRepository:
                         _to_bool_int(row.get("deleted")),
                         _to_bool_int(row.get("isAdmin")),
                         _to_bool_int(row.get("banned")),
+                        _to_str(row.get("bannedAt")),
                         _to_bool_int(row.get("muted")),
                     ),
                 )
@@ -1834,7 +1838,7 @@ class SqliteTreeholeRepository:
                         _to_str(post.get("content")),
                         "markdown" if _to_str(post.get("contentFormat")).strip().lower() == "markdown" else "plain",
                         _to_str(post.get("markdownSource")),
-                        _to_str(post.get("channel"), "未分类"),
+                        _to_str(post.get("channel")),
                         _to_bool_int(post.get("hasImage")),
                         _to_str(post.get("status"), "ongoing"),
                         _to_bool_int(post.get("allowComment", True)),

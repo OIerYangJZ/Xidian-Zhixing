@@ -40,7 +40,9 @@ class CampusAuthInputError(CampusAuthError):
 
 
 class CampusAuthCredentialError(CampusAuthError):
-    status_code = 401
+    # Not 401: that status means "this app's session is dead" to every client,
+    # and a wrong campus-system password must not sign the user out.
+    status_code = 400
 
 
 class CampusAuthExpiredError(CampusAuthError):
@@ -563,7 +565,7 @@ def map_campus_auth_error(error: Exception) -> tuple[int, str]:
     if isinstance(error, CampusAuthError):
         return error.status_code, str(error)
     if isinstance(error, XidianAuthPasswordError):
-        return 401, str(error)
+        return 400, str(error)
     if isinstance(error, (XidianAuthUnavailableError, XidianAuthDependencyError)):
         return 503, str(error)
     return 503, str(error) or "校园服务认证失败"

@@ -228,6 +228,8 @@ def handle_get_sections_tree(handler: BaseHTTPRequestHandler, db: dict[str, Any]
         for row in db.get("sections", [])
         if bool(row.get("enabled", True)) and str(row.get("sectionType", "")).strip().lower() != "school"
     ]
+    # Same order as GET /api/sections, so admin reordering reaches the chips.
+    rows.sort(key=lambda item: (item.get("sortOrder", 0), item.get("name", "")))
     sections = [row for row in rows if row["sectionType"] in {"general", "college", "club"}]
     tree = {
         "sections": sections,
@@ -311,7 +313,21 @@ def handle_update_section(handler: BaseHTTPRequestHandler, db: dict[str, Any], s
 
 def handle_get_clubs(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     ensure_radio_schema(db)
-    rows = [_serialize_club(row) for row in db.get("clubs", []) if str(row.get("status", "active")) == "active"]
+    viewer, _ = auth_user_helper(handler, db)
+    viewer_user_id = str(viewer.get("id", "")).strip() if viewer else ""
+    # Clubs the viewer may post as (handle_create_post: owner or manager).
+    publishable = {
+        str(row.get("clubId", ""))
+        for row in db.get("clubMembers", [])
+        if viewer_user_id
+        and str(row.get("userId", "")) == viewer_user_id
+        and str(row.get("role", "")) in {"owner", "manager"}
+    }
+    rows = [
+        {**_serialize_club(row), "canPublishAs": str(row.get("id", "")) in publishable}
+        for row in db.get("clubs", [])
+        if str(row.get("status", "active")) == "active"
+    ]
     rows.sort(key=lambda item: (item.get("name", ""), item.get("id", "")))
     send_json(handler, HTTPStatus.OK, {"data": rows})
 
@@ -743,6 +759,12 @@ def rebuild_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def _public_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
+    """The latest rebuild's list, ranked 1..n after hidden posts drop out.
+
+    Each rebuild replaces only its own day, so older days stay in hotTopics;
+    mixing them showed repeated posts and duplicate rank numbers.
+    """
+    latest_day = max((str(row.get("date", "")) for row in db.get("hotTopics", [])), default="")
     posts_by_id = {
         str(post.get("id", "")).strip(): post
         for post in db.get("posts", [])
@@ -750,6 +772,8 @@ def _public_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
     }
     rows: list[dict[str, Any]] = []
     for row in db.get("hotTopics", []):
+        if str(row.get("date", "")) != latest_day:
+            continue
         post = posts_by_id.get(str(row.get("postId", "")).strip())
         if (
             post is None
@@ -762,16 +786,15 @@ def _public_hot_topics(db: dict[str, Any]) -> list[dict[str, Any]]:
         if row.get("reviewStatus") not in {"approved", "pending", "resolved"}:
             continue
         rows.append(row)
-    return rows
+    rows.sort(key=lambda item: _safe_int(item.get("rank"), 0))
+    return [{**row, "rank": rank} for rank, row in enumerate(rows, start=1)]
 
 
 def handle_get_hot_topics(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
     if not db.get("hotTopics"):
         rebuild_hot_topics(db)
         save_db(db)
-    rows = _public_hot_topics(db)
-    rows.sort(key=lambda item: (_safe_int(item.get("rank"), 0), str(item.get("createdAt", ""))))
-    send_json(handler, HTTPStatus.OK, {"data": rows[:50]})
+    send_json(handler, HTTPStatus.OK, {"data": _public_hot_topics(db)[:50]})
 
 
 def handle_rebuild_hot_topics(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
@@ -830,10 +853,7 @@ def handle_ai_post_selection(handler: BaseHTTPRequestHandler, db: dict[str, Any]
 
 
 def handle_ai_hot_summary(handler: BaseHTTPRequestHandler, db: dict[str, Any]) -> None:
-    topics = sorted(
-        _public_hot_topics(db),
-        key=lambda item: _safe_int(item.get("rank"), 0),
-    )[:8]
+    topics = _public_hot_topics(db)[:8]
     answer = "热榜总结：" + "；".join(f"{item.get('rank')}. {item.get('title')}" for item in topics) if topics else "暂无热榜内容。"
     send_json(handler, HTTPStatus.OK, {"data": {"answer": answer, "citations": topics, "reviewStatus": "approved"}})
 
