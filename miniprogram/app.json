@@ -18,7 +18,6 @@
     "pages/campus/post-detail/index",
     "pages/campus/create-post/index",
     "pages/campus/search/index",
-    "pages/campus/tag-posts/index",
     "pages/ai/chat/index",
     "pages/ai/history/index",
     "pages/profile/auth/index",

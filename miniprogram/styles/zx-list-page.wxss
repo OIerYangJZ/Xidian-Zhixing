@@ -1,0 +1,6 @@
+/* A page listing rows on a sheet (我的帖子, 收藏, 我的评论, …). */
+.list-page { background: var(--zx-bg); padding-bottom: 64rpx; }
+.list-count { padding: 24rpx 40rpx 16rpx; }
+.sheet { background: var(--zx-surface); border-top: 2rpx solid var(--zx-line); }
+.empty-action { margin-top: 24rpx; }
+.empty-icon { width: 72rpx; height: 72rpx; margin: 0 auto 20rpx; color: var(--zx-text-3); }

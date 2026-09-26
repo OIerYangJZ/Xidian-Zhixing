@@ -359,7 +359,7 @@ Page({
 
   goTagPosts(event) {
     const tag = event.currentTarget.dataset.tag;
-    if (tag) wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+    if (tag) wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
   },
 
   showPostOptions() {

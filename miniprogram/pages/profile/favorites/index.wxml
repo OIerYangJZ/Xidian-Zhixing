@@ -1,43 +1,26 @@
-<view class="page favorite-page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+<import src="/templates/post-row.wxml" />
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
   </view>
-  <view wx:elif="{{!posts.length}}" class="empty">暂无收藏</view>
-  <view wx:else>
-    <view class="feed-card" wx:for="{{posts}}" wx:key="id" data-id="{{item.id}}" bindtap="goPostDetail">
-      <view class="feed-avatar">{{item.authorInitial}}</view>
-      <view class="feed-body">
-        <view class="feed-head">
-          <text class="feed-author">{{item.authorAlias}}</text>
-          <text wx:if="{{item.isAnonymous}}" class="anonymous-badge">匿名</text>
-          <block wx:if="{{item.sectionName}}">
-            <text class="feed-dot" style="background: {{item.sectionColor}}"></text>
-            <text class="feed-channel" style="color: {{item.sectionColor}}">{{item.sectionName}}</text>
-          </block>
-          <text wx:if="{{item.isPinned}}" class="pin-icon"></text>
-          <text class="feed-time">{{item.timeText}}</text>
-        </view>
-        <view class="feed-title">{{item.displayTitle}}</view>
-        <view class="feed-summary">{{item.summary}}</view>
-        <view class="feed-actions">
-          <view class="feed-action {{item.liked ? 'active' : ''}}">
-            <view class="feed-action-icon like-icon"></view>
-            <text>{{item.likeCount}}</text>
-          </view>
-          <view class="feed-action">
-            <view class="feed-action-icon comment-icon"></view>
-            <text>{{item.commentCount}}</text>
-          </view>
-          <view class="feed-action share">
-            <view class="feed-action-icon bookmark-icon"></view>
-          </view>
-        </view>
-        <view class="post-tools">
-          <text class="remove" data-index="{{index}}" catchtap="removeFavorite">取消收藏</text>
+  <view wx:elif="{{!posts.length}}" class="zx-empty">
+    <view class="zx-i zx-i-star empty-icon"></view>
+    <view class="zx-empty__title">还没有收藏</view>
+    <view class="zx-empty__message">在帖子里点「收藏」，之后可以在这里找到</view>
+  </view>
+  <block wx:else>
+    <view class="zx-caption list-count">共 {{posts.length}} 篇收藏</view>
+    <view class="sheet">
+      <view wx:for="{{posts}}" wx:key="id" class="row">
+        <template is="post-row" data="{{item, index}}" />
+        <view class="tools">
+          <view class="zx-spacer"></view>
+          <view class="tool-remove" data-index="{{index}}" bindtap="removeFavorite"><view class="zx-i zx-i-star zx-i--sm"></view>取消收藏</view>
         </view>
       </view>
     </view>
-  </view>
+  </block>
 </view>

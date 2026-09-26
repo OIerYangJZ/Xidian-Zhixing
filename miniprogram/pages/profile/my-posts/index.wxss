@@ -1,3 +1,11 @@
-.danger {
-  color: var(--app-error);
-}
+/* 我的帖子: shared post rows, each with its status and 删除. */
+@import "../../../styles/zx-post.wxss";
+@import "../../../styles/zx-list-page.wxss";
+
+.row { border-bottom: 2rpx solid var(--zx-line); }
+.row .post--thread { border-bottom: none; padding-bottom: 8rpx; }
+.tools { display: flex; align-items: center; gap: 16rpx; padding: 0 32rpx 24rpx 124rpx; }
+.segment { display: flex; padding: 4rpx; border-radius: 20rpx; background: var(--zx-bg-sunk); }
+.segment-option { padding: 10rpx 20rpx; border-radius: 16rpx; font-size: 24rpx; color: var(--zx-text-2); }
+.segment-option--on { background: var(--zx-surface); color: var(--zx-primary); font-weight: 600; box-shadow: var(--zx-shadow-1); }
+.tool-delete { display: flex; align-items: center; gap: 6rpx; font-size: 24rpx; color: var(--zx-danger); }

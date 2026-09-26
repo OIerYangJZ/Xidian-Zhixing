@@ -39,6 +39,16 @@ Page({
     this.loadData();
   },
 
+  goTagPosts(event) {
+    const tag = event.currentTarget.dataset.tag;
+    if (tag) wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
+  },
+
+  openAuthorProfile(event) {
+    const id = event.currentTarget.dataset.userId;
+    if (id) wx.navigateTo({ url: `/pages/profile/public-user/index?id=${id}` });
+  },
+
   goPostDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });

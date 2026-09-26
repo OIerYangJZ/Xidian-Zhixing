@@ -258,7 +258,7 @@ Page({
   goTagPosts(event) {
     const tag = event.currentTarget.dataset.tag;
     if (!tag) return;
-    wx.navigateTo({ url: `/pages/campus/tag-posts/index?tag=${encodeURIComponent(tag)}` });
+    wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
   },
 
   async togglePostLike(event) {

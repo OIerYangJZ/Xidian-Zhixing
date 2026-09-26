@@ -1,4 +1,8 @@
-.remove {
-  color: var(--app-error);
-  font-size: 26rpx;
-}
+/* 收藏: shared post rows, each with 取消收藏. */
+@import "../../../styles/zx-post.wxss";
+@import "../../../styles/zx-list-page.wxss";
+
+.row { border-bottom: 2rpx solid var(--zx-line); }
+.row .post--thread { border-bottom: none; padding-bottom: 8rpx; }
+.tools { display: flex; align-items: center; padding: 0 32rpx 24rpx 124rpx; }
+.tool-remove { display: flex; align-items: center; gap: 6rpx; font-size: 24rpx; color: var(--zx-text-2); }
