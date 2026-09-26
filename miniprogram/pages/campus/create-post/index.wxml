@@ -37,7 +37,7 @@
         <view class="zx-spacer"></view>
         <view class="md-switch" bindtap="toggleMarkdown">
           <view class="zx-i zx-i-markdown zx-i--sm"></view><text>Markdown</text>
-          <switch checked="{{markdown}}" color="#A43B32" style="transform: scale(0.72);" />
+          <switch checked="{{markdown}}" color="{{themePrimary}}" style="transform: scale(0.72);" />
         </view>
       </view>
 
@@ -126,7 +126,7 @@
           <view class="setting-title setting-title--flat">匿名发布</view>
           <view class="zx-caption">以朱印头像和匿名昵称显示</view>
         </view>
-        <switch checked="{{useAnonymousAlias}}" color="#A43B32" catchtap="toggleAnonymous" />
+        <switch checked="{{useAnonymousAlias}}" color="{{themePrimary}}" catchtap="toggleAnonymous" />
       </view>
       <view wx:if="{{useAnonymousAlias}}" class="alias-row">
         <view class="zx-avatar zx-avatar--seal zx-avatar--sm">{{anonymousAlias ? anonymousAlias[0] : '匿'}}</view>

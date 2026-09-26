@@ -8,10 +8,10 @@ Page({
   data: {
     version: '',
     items: [
-      { label: '用户协议', type: 'user-agreement', subtitle: '查看平台服务条款', icon: '□' },
-      { label: '隐私政策', type: 'privacy-policy', subtitle: '查看个人信息与数据处理说明', icon: '◈' },
-      { label: '社区规范', type: 'community-guidelines', subtitle: '了解发帖与互动规则', icon: '◇' },
-      { label: '举报说明', type: 'report-guidelines', subtitle: '了解举报受理与处理流程', icon: '!' }
+      { label: '用户协议', type: 'user-agreement', subtitle: '查看平台服务条款', icon: 'doc' },
+      { label: '隐私政策', type: 'privacy-policy', subtitle: '查看个人信息与数据处理说明', icon: 'shield' },
+      { label: '社区规范', type: 'community-guidelines', subtitle: '了解发帖与互动规则', icon: 'book' },
+      { label: '举报说明', type: 'report-guidelines', subtitle: '了解举报受理与处理流程', icon: 'flag' }
     ]
   },
 

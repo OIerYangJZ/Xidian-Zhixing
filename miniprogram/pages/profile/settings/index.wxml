@@ -14,7 +14,7 @@
     <view class="mobile-section-title">通用设置</view>
     <view class="mobile-tile-card">
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/account-security/index">
-        <text class="mobile-tile-icon">⌕</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-lock"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">账号与安全</view>
           <view class="mobile-tile-subtitle">统一认证、用户等级、注销账号</view>
@@ -22,7 +22,7 @@
         <text class="mobile-tile-arrow">›</text>
       </view>
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/privacy/index">
-        <text class="mobile-tile-icon">◈</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-shield"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">隐私设置</view>
           <view class="mobile-tile-subtitle">私信权限、可见性管理</view>
@@ -30,7 +30,7 @@
         <text class="mobile-tile-arrow">›</text>
       </view>
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/notification-settings/index">
-        <text class="mobile-tile-icon">○</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-bell"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">通知设置</view>
           <view class="mobile-tile-subtitle">推送消息、提醒项管理</view>
@@ -42,7 +42,7 @@
     <view class="mobile-section-title">偏好设置</view>
     <view class="mobile-tile-card">
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/display-settings/index">
-        <text class="mobile-tile-icon">◐</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-swatch"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">界面外观</view>
           <view class="mobile-tile-subtitle">深色模式、多语言</view>
@@ -54,7 +54,7 @@
     <view class="mobile-section-title">其他</view>
     <view class="mobile-tile-card">
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/about/index">
-        <text class="mobile-tile-icon">ⓘ</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-info"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">关于与支持</view>
           <view class="mobile-tile-subtitle">版本更新、法律协议、帮助反馈</view>
@@ -64,6 +64,6 @@
     </view>
 
     <button class="logout-button" loading="{{loggingOut}}" bindtap="handleLogout">退出登录</button>
-    <view class="settings-brand">电台</view>
+    <view class="settings-brand">西电知行</view>
   </view>
 </view>

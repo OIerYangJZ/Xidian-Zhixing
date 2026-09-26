@@ -1,5 +1,5 @@
 .settings-list-page {
-  background: var(--app-background);
+  background: var(--zx-bg);
 }
 
 .empty {
@@ -10,20 +10,22 @@
 }
 
 .logout-button {
-  height: 100rpx;
-  margin: 16rpx 8rpx 0;
-  border: 1rpx solid var(--app-divider);
-  border-radius: 24rpx;
-  background: transparent;
-  color: var(--app-error);
+  width: 100% !important;
+  height: 96rpx;
+  margin: 16rpx 0 0;
+  border: none;
+  border-radius: 28rpx;
+  background: var(--zx-bg-sunk);
+  color: var(--zx-danger);
   font-size: 30rpx;
   font-weight: 600;
-  line-height: 100rpx;
+  line-height: 96rpx;
 }
+.logout-button::after { border: none; }
 
 .settings-brand {
   padding: 40rpx 0 0;
-  color: rgba(199, 199, 204, .6);
+  color: var(--zx-text-3);
   font-size: 24rpx;
   text-align: center;
 }

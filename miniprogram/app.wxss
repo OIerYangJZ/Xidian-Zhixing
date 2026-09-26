@@ -645,25 +645,26 @@ button::after {
   border-top: 1rpx solid var(--app-divider);
 }
 
+/* Settings-style lists, in the design system's ZxListSection look. */
 .mobile-list-page {
   min-height: 100vh;
   padding: 16rpx 32rpx 64rpx;
-  background: var(--app-background);
+  background: var(--zx-bg);
 }
 
 .mobile-tile-card {
-  margin-bottom: 32rpx;
+  margin-bottom: 40rpx;
   overflow: hidden;
-  border: 1rpx solid rgba(232, 232, 232, .5);
-  border-radius: 24rpx;
-  background: var(--app-card);
+  border: 2rpx solid var(--zx-line);
+  border-radius: 36rpx;
+  background: var(--zx-surface);
+  box-shadow: var(--zx-shadow-1);
 }
-
 
 .mobile-section-title {
   padding: 0 8rpx 16rpx;
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
+  color: var(--zx-text-3);
+  font-size: 24rpx;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -671,23 +672,28 @@ button::after {
 .mobile-tile {
   display: flex;
   align-items: center;
-  min-height: 112rpx;
-  padding: 8rpx 32rpx;
-  background: var(--app-card);
+  min-height: 116rpx;
+  padding: 16rpx 28rpx;
+  background: var(--zx-surface);
+  box-sizing: border-box;
 }
 
 .mobile-tile + .mobile-tile {
-  border-top: 1rpx solid var(--app-divider);
+  border-top: 2rpx solid var(--zx-line);
 }
 
 .mobile-tile-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40rpx;
-  margin-right: 28rpx;
-  color: var(--app-text-secondary);
-  font-size: 36rpx;
+  flex: none;
+  width: 64rpx;
+  height: 64rpx;
+  margin-right: 24rpx;
+  border-radius: 20rpx;
+  background: var(--zx-primary-soft);
+  color: var(--zx-primary);
+  font-size: 30rpx;
   line-height: 1;
 }
 
@@ -697,23 +703,23 @@ button::after {
 }
 
 .mobile-tile-title {
-  color: var(--app-text-primary);
-  font-size: 28rpx;
-  font-weight: 600;
-  line-height: 1.35;
+  color: var(--zx-text);
+  font-size: 30rpx;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .mobile-tile-subtitle {
   margin-top: 4rpx;
-  color: var(--app-text-tertiary);
+  color: var(--zx-text-3);
   font-size: 24rpx;
   line-height: 1.35;
 }
 
 .mobile-tile-arrow {
   margin-left: 16rpx;
-  color: var(--app-text-tertiary);
-  font-size: 36rpx;
+  color: var(--zx-text-3);
+  font-size: 32rpx;
   line-height: 1;
 }
 

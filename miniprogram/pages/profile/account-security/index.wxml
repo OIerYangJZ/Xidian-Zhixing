@@ -4,7 +4,7 @@
   <view wx:else>
     <view class="mobile-tile-card">
       <view wx:if="{{!profile.isLevelOneUser}}" class="mobile-tile" bindtap="requestLevelUpgrade">
-        <text class="mobile-tile-icon">◇</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-idcard"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">申请成为一级用户</view>
           <view class="mobile-tile-subtitle">{{levelUpgradeSubtitle}}</view>
@@ -15,7 +15,7 @@
 
     <view class="mobile-tile-card danger-card">
       <view class="mobile-tile" bindtap="requestCancellation">
-        <text class="mobile-tile-icon">⊘</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-logout"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title danger-title">注销账号</view>
           <view class="mobile-tile-subtitle">{{cancellationSubtitle}}</view>

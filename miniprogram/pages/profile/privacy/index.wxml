@@ -4,23 +4,23 @@
   <view wx:else>
     <view class="mobile-tile-card">
       <view class="switch-row">
-        <text class="mobile-tile-icon">◌</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-mail"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">允许陌生人私信</view>
           <view class="mobile-tile-subtitle">关闭后，对方仍可进入对话页，但消息发送后会失败提示</view>
         </view>
-        <switch checked="{{form.allowStrangerDm}}" data-key="allowStrangerDm" bindchange="onPrivacySwitchChange" color="#155E75" />
+        <switch checked="{{form.allowStrangerDm}}" data-key="allowStrangerDm" bindchange="onPrivacySwitchChange" color="{{themePrimary}}" />
       </view>
       <view class="switch-row">
-        <text class="mobile-tile-icon">◇</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-user"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">显示“可联系”状态</view>
           <view class="mobile-tile-subtitle">开启后，其他用户可以看到你的联系方式</view>
         </view>
-        <switch checked="{{form.showContactable}}" data-key="showContactable" bindchange="onPrivacySwitchChange" color="#155E75" />
+        <switch checked="{{form.showContactable}}" data-key="showContactable" bindchange="onPrivacySwitchChange" color="{{themePrimary}}" />
       </view>
       <view class="mobile-tile" bindtap="navigateTo" data-url="/pages/profile/privacy/blocklist/index" style="border-top: 1rpx solid var(--app-divider);">
-        <text class="mobile-tile-icon">🚫</text>
+        <view class="mobile-tile-icon"><view class="zx-i zx-i-block"></view></view>
         <view class="mobile-tile-body">
           <view class="mobile-tile-title">黑名单管理</view>
           <view class="mobile-tile-subtitle">查看或解除已被屏蔽的账户</view>

@@ -93,6 +93,8 @@ export const applyThemeAndLanguage = (page) => {
     currentDisplayMode: displayMode,
     resolvedDisplayMode,
     currentLanguage: lang,
+    // Native components (switch) take a colour, not a CSS variable.
+    themePrimary: colors.selected,
     t
   });
   wx.setNavigationBarColor({
