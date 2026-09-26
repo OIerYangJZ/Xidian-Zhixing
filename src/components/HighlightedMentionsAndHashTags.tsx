@@ -15,7 +15,7 @@ export function HighlightedMentionsAndHashTags({ text, shouldAddLinks }: { text:
 
   // Use replace() method to surround the matches' word with the <span> tag
   const html = cleanText.replace(pattern, (match, space: string, char: string, word: string) => {
-    const coloredWord = `<span class="text-blue-600 dark:text-blue-400">${char}${word}</span>`;
+    const coloredWord = `<span class="text-primary">${char}${word}</span>`;
 
     if (!shouldAddLinks) return `${space}${coloredWord}`;
 

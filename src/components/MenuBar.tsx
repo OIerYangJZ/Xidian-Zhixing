@@ -15,6 +15,7 @@ import { useSession } from 'next-auth/react';
 import { useNotificationsCountQuery } from '@/hooks/queries/useNotificationsCountQuery';
 import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useLanguage } from '@/hooks/useLanguage';
+import { usePathname } from 'next/navigation';
 import { LogoText } from './LogoText';
 import { MenuBarItem } from './MenuBarItem';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
@@ -39,6 +40,8 @@ function DesktopComposeButton() {
 function MobileComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
   const { t } = useLanguage();
+  const pathname = usePathname();
+  if (pathname === '/ai' || pathname === '/messages') return null;
   return (
     <button
       type="button"

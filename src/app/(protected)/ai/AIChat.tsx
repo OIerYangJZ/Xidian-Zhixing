@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
 
@@ -34,10 +34,15 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId),
     [activeId, conversations],
   );
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ block: 'end' });
+  }, [activeId, activeConversation?.messages.length, sending]);
 
   async function createConversation() {
     setError('');
@@ -124,7 +129,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
   }
 
   return (
-    <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:min-h-dvh">
+    <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
       <PageHeader
         title={t('知行 AI', 'Zhixing AI')}
         sticky
@@ -154,7 +159,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
         ))}
       </div>
 
-      <section className="flex-1 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
+      <section className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6" aria-live="polite">
         {activeConversation?.messages.length ? (
           <div className="mx-auto flex max-w-2xl flex-col gap-5">
             {activeConversation.messages.map((message) => (
@@ -188,6 +193,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
                 {t('正在整理校园资料…', 'Looking through campus information…')}
               </p>
             )}
+            <div ref={messagesEndRef} />
           </div>
         ) : (
           <div className="mx-auto flex h-full min-h-64 max-w-xl flex-col items-center justify-center text-center">

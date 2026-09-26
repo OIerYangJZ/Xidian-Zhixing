@@ -134,10 +134,10 @@ export function MessagesInbox() {
   }, [openConversation, t]);
 
   return (
-    <main className="flex min-h-[calc(100dvh-3.5rem)] flex-col md:min-h-dvh">
+    <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
       <PageHeader title={t('消息', 'Messages')} />
 
-      <div className="grid min-h-[65dvh] flex-1 overflow-hidden border-y border-border/80 bg-card md:my-4 md:min-h-[65dvh] md:rounded-md md:border">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden border-y border-border/80 bg-card md:my-4 md:min-h-[65dvh] md:grid-cols-[minmax(220px,260px)_minmax(0,1fr)] md:rounded-md md:border">
         <aside
           className={cn(
             'border-b border-border p-3 md:border-b-0 md:border-r',
@@ -195,7 +195,7 @@ export function MessagesInbox() {
           </div>
         </aside>
 
-        <section className={cn('min-h-[52dvh] flex-col', activeId ? 'flex' : 'hidden md:flex')}>
+        <section className={cn('min-h-0 min-w-0 flex-col', activeId ? 'flex' : 'hidden md:flex')}>
           <div className="flex min-h-[62px] items-center gap-3 border-b border-border px-4 py-2.5">
             {activeId && (
               <button
@@ -214,7 +214,7 @@ export function MessagesInbox() {
               {peer?.username && <p className="mt-0.5 text-xs text-muted-foreground">@{peer.username}</p>}
             </div>
           </div>
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
             {loading ? (
               <p className="m-auto text-sm text-muted-foreground">{t('正在加载消息…', 'Loading messages…')}</p>
             ) : messages.length ? (

@@ -20,13 +20,17 @@ export function MobileTopBar() {
     '/ai': t('知行 AI', 'Zhixing AI'),
     '/notifications': t('通知', 'Notifications'),
   };
-  const title = titles[pathname] || (pathname.startsWith('/campus/') ? t('校园', 'Campus') : 'Zhixing');
+  const title = titles[pathname] || (pathname.startsWith('/campus/') ? t('校园', 'Campus') : t('知行', 'Zhixing'));
+  const showTitle = pathname !== '/ai' && pathname !== '/messages';
+  if (pathname.startsWith('/posts/')) return null;
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl md:hidden">
       <Link href="/" className="flex h-10 items-center gap-2 rounded-full pr-2" aria-label="西电知行首页">
         <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-8 w-8 rounded-md object-cover" />
       </Link>
-      <span className="absolute left-1/2 -translate-x-1/2 text-[15px] font-semibold">{title}</span>
+      {showTitle && (
+        <span className="absolute left-14 right-[196px] truncate text-center text-[15px] font-semibold">{title}</span>
+      )}
       <div className="flex items-center gap-1">
         <Link
           href="/discover"
