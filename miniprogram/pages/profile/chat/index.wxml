@@ -1,117 +1,121 @@
-<view class="chat-page {{themeClass}}">
-  <view class="chat-header">
-    <view wx:if="{{selectMode}}" class="chat-header-select">
-      <view class="header-action" bindtap="exitSelectMode">关闭</view>
-      <view class="header-title">已选择 {{selectedMessageIds.length}} 条</view>
-      <view class="header-action danger" bindtap="batchRecall">删除</view>
-    </view>
-    <view wx:else class="chat-header-normal">
-      <view class="peer-entry" bindtap="openPeerProfile">
-        <image wx:if="{{peerAvatar}}" class="peer-avatar" src="{{peerAvatar}}" mode="aspectFill"></image>
-        <view wx:else class="peer-avatar">{{peerInitial}}</view>
-        <view class="peer-meta">
-          <view class="peer-name">{{peerName || '聊天'}}</view>
+<view class="zx-page chat-page {{themeClass}}">
+  <!-- Custom bar: back, the peer, clear of the capsule (handoff H3 / H4). -->
+  <view class="chat-bar" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
+    <block wx:if="{{selectMode}}">
+      <view class="bar-text" bindtap="exitSelectMode">取消</view>
+      <view class="zx-label bar-title">已选择 {{selectedMessageIds.length}} 条</view>
+      <view class="bar-text bar-text--primary" bindtap="selectAll">全选</view>
+    </block>
+    <block wx:else>
+      <view class="bar-back" bindtap="goBack"><view class="zx-i zx-i-back"></view></view>
+      <view class="bar-peer" bindtap="openPeerProfile">
+        <view class="zx-avatar zx-avatar--sm">
+          <image wx:if="{{peerAvatar}}" src="{{peerAvatar}}" mode="aspectFill"></image>
+          <text wx:else>{{peerInitial}}</text>
         </view>
+        <view class="zx-label zx-ellipsis bar-name">{{peerName || '聊天'}}</view>
+        <view wx:if="{{blockedByMe}}" class="zx-badge zx-badge--danger">已屏蔽</view>
       </view>
-      <view class="header-more" bindtap="showOptionsSheet">···</view>
-    </view>
+      <view class="bar-more" bindtap="showOptionsSheet"><view class="zx-i zx-i-more"></view></view>
+    </block>
   </view>
-
-  <view wx:if="{{!loading && showFirstNote}}" class="first-note zx-hero">
-    <view class="first-note-icon"><view class="zx-i zx-i-mail"></view></view>
-    <view class="zx-label first-note-title">{{awaitingReply ? '消息已发送' : '和 ' + peerName + ' 打个招呼'}}</view>
-    <view class="zx-caption first-note-text">{{awaitingReply ? peerName + ' 回复之前，你只能发送 1 条消息' : '第一条消息会直接发给对方；对方回复之前只能发这一条，请说清来意'}}</view>
-  </view>
+  <view style="height: {{navTop + navHeight}}px;"></view>
 
   <view class="message-list">
-    <view wx:if="{{loading}}" class="empty">加载中...</view>
-    <view wx:elif="{{errorMessage}}" class="empty">
-      <view>{{errorMessage}}</view>
-      <button bindtap="retryLoadMessages">重新加载</button>
+    <!-- Handoff H4: before the peer has written. -->
+    <view wx:if="{{!loading && showFirstNote && !blockedByMe && !blockedByPeer}}" class="first-note zx-hero">
+      <view class="first-note-icon"><view class="zx-i zx-i-mail"></view></view>
+      <view class="zx-label first-note-title">{{awaitingReply ? '消息已发送' : '和 ' + peerName + ' 打个招呼'}}</view>
+      <view class="zx-caption first-note-text">{{awaitingReply ? peerName + ' 回复之前，你只能发送 1 条消息' : '第一条消息会直接发给对方；对方回复之前只能发这一条，请说清来意'}}</view>
     </view>
-    <view wx:elif="{{!messageItems.length}}" class="empty">暂无消息，开始聊天吧~</view>
-    <view wx:else>
+
+    <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+    <view wx:elif="{{errorMessage}}" class="zx-empty">
+      <view class="zx-empty__title">消息加载失败</view>
+      <view class="zx-empty__message">{{errorMessage}}</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoadMessages">重试</view>
+    </view>
+    <block wx:else>
       <view wx:for="{{messageItems}}" wx:key="id">
-        <view wx:if="{{item.type === 'time'}}" class="time-label">{{item.label}}</view>
-        <view
-          wx:else
-          class="message-row {{item.message.fromMe ? 'mine' : ''}}"
-          data-index="{{item.message.index}}"
-          bindtap="onMessageTap"
-          bindlongpress="onMessageLongPress"
-          >
-          <view wx:if="{{!item.message.fromMe}}" class="avatar-wrap" catchtap="openPeerProfile">
-            <image wx:if="{{peerAvatar}}" class="avatar" src="{{peerAvatar}}" mode="aspectFill"></image>
-            <view wx:else class="avatar">{{peerInitial}}</view>
+        <view wx:if="{{item.type === 'time'}}" class="time-label"><text>{{item.label}}</text></view>
+        <view wx:elif="{{item.message.isRecalled}}" class="recalled">{{item.message.content}}</view>
+        <view wx:else class="row {{item.message.fromMe ? 'row--mine' : ''}} {{selectMode && item.message.selected ? 'row--selected' : ''}}"
+          data-index="{{item.message.index}}" bindtap="onMessageTap" bindlongpress="onMessageLongPress">
+          <view wx:if="{{selectMode}}" class="select-dot {{item.message.selected ? 'select-dot--on' : ''}}" data-message-id="{{item.message.id}}" catchtap="toggleSelect">
+            <view wx:if="{{item.message.selected}}" class="zx-i zx-i-check zx-i--sm"></view>
           </view>
-
-          <view class="bubble-column {{item.message.fromMe ? 'mine-column' : ''}}">
-            <view class="bubble {{item.message.fromMe ? 'mine' : ''}} {{item.message.selected ? 'selected' : ''}}">
-              <view wx:if="{{item.message.hasReplyContent}}" class="reply-block">
-                <view class="reply-sender">{{item.message.replyToSender || (item.message.fromMe ? '我' : '对方')}}</view>
-                <view class="reply-content">{{item.message.replyToContent}}</view>
-              </view>
-              <view wx:if="{{item.message.isRecalled}}" class="recalled-placeholder">{{item.message.content}}</view>
-              <view wx:else class="bubble-content">{{item.message.content}}</view>
-              <view class="bubble-meta">
-                <text class="bubble-time">{{item.message.displayTime}}</text>
-                <view wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="failed-actions">
-                  <text class="failed-indicator">!</text>
-                  <text class="retry-link" data-index="{{item.message.index}}" catchtap="retrySend">点击重试</text>
-                </view>
-              </view>
+          <view wx:if="{{!item.message.fromMe}}" class="zx-avatar zx-avatar--sm row-avatar" catchtap="openPeerProfile">
+            <image wx:if="{{peerAvatar}}" src="{{peerAvatar}}" mode="aspectFill"></image>
+            <text wx:else>{{peerInitial}}</text>
+          </view>
+          <view wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="retry" data-index="{{item.message.index}}" catchtap="retrySend">
+            <view class="zx-i zx-i-refresh zx-i--sm"></view>
+          </view>
+          <view class="bubble-col">
+            <view class="bubble {{item.message.fromMe ? 'bubble--mine' : ''}} {{item.message.deliveryStatus === 'failed' || item.message.dimmed ? 'bubble--faded' : ''}}">
+              <view wx:if="{{item.message.hasReplyContent}}" class="quote">回复 {{item.message.replyToSender || '对方'}}：{{item.message.replyToContent}}</view>
+              <view class="bubble-text">{{item.message.content}}</view>
+              <view class="bubble-time">{{item.message.displayTime}}</view>
             </view>
+            <view wx:if="{{item.message.fromMe && item.message.deliveryStatus === 'failed'}}" class="failed-note">发送失败，点左侧按钮重发</view>
           </view>
-
-          <view wx:if="{{item.message.fromMe}}" class="avatar-wrap mine-avatar" catchtap="openMyProfile">
-            <image wx:if="{{myAvatar}}" class="avatar" src="{{myAvatar}}" mode="aspectFill"></image>
-            <view wx:else class="avatar">{{myInitial}}</view>
-          </view>
-
-          <view wx:if="{{selectMode}}" class="select-circle {{item.message.selected ? 'active' : ''}}" data-message-id="{{item.message.id}}" catchtap="toggleSelect"></view>
         </view>
       </view>
       <view id="bottom-anchor"></view>
-    </view>
+    </block>
   </view>
 
   <view wx:if="{{showForwardPicker}}" class="picker-mask" bindtap="closeForwardPicker">
     <view class="picker-sheet" catchtap="noop">
-      <view class="picker-title">转发给</view>
-      <view wx:if="{{forwardTargets.length}}" class="picker-list">
-        <view wx:for="{{forwardTargets}}" wx:key="id" class="picker-item" data-index="{{index}}" bindtap="chooseForwardTarget">
-          <image wx:if="{{item.avatarUrl}}" class="picker-avatar" src="{{item.avatarUrl}}" mode="aspectFill"></image>
-          <view wx:else class="picker-avatar">{{item.avatarInitial}}</view>
-          <view class="picker-body">
-            <view class="picker-name">{{item.name}}</view>
-            <view class="picker-subtitle">{{item.lastMessage || '开始聊天吧'}}</view>
+      <view class="zx-title picker-title">转发给</view>
+      <view class="zx-list">
+        <view wx:for="{{forwardTargets}}" wx:key="id" class="zx-list-item" data-index="{{index}}" bindtap="chooseForwardTarget">
+          <view class="zx-avatar zx-avatar--sm">
+            <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
+            <text wx:else>{{item.avatarInitial}}</text>
+          </view>
+          <view class="zx-list-item__main">
+            <view class="zx-list-item__title">{{item.name}}</view>
+            <view class="zx-list-item__subtitle zx-ellipsis">{{item.lastMessage || '开始聊天吧'}}</view>
           </view>
         </view>
       </view>
-      <view wx:else class="empty picker-empty">暂无可转发会话</view>
-      <view class="picker-cancel" bindtap="closeForwardPicker">取消</view>
+      <view class="zx-btn zx-btn--secondary zx-btn--block picker-cancel" bindtap="closeForwardPicker">取消</view>
     </view>
   </view>
 
-  <view wx:if="{{!selectMode}}" class="chat-actions">
-    <view wx:if="{{replyToId}}" class="reply-preview" bindtap="clearReply">
-      <view class="reply-preview-head">
-        <text class="reply-preview-title">回复 {{replyToSender}}</text>
-        <text class="reply-preview-close">×</text>
+  <view class="chat-actions">
+    <!-- Handoff H2 -->
+    <block wx:if="{{selectMode}}">
+      <view class="zx-caption action-note">只能撤回自己 2 分钟内发送的消息，其余已置灰</view>
+      <view class="zx-row action-buttons">
+        <view class="zx-btn zx-btn--secondary action-btn {{selectedMessageIds.length ? '' : 'zx-btn--disabled'}}" bindtap="forwardSelected"><view class="zx-i zx-i-forward zx-i--sm"></view>逐条转发</view>
+        <view class="zx-btn zx-btn--primary action-btn {{recallableCount ? '' : 'zx-btn--disabled'}}" bindtap="batchRecall"><view class="zx-i zx-i-undo zx-i--sm"></view>{{recallableCount ? '撤回 ' + recallableCount + ' 条' : '撤回'}}</view>
       </view>
-      <view class="reply-preview-text">{{replyToContent}}</view>
-    </view>
-    <view wx:if="{{blockedByMe || blockedByPeer}}" class="blocked-bar">
-      <view class="zx-caption blocked-text">{{blockedByMe ? '你已屏蔽对方，不能收发消息' : '对方已屏蔽你，只能查看历史消息'}}</view>
+    </block>
+    <!-- Handoff H3 -->
+    <view wx:elif="{{blockedByMe || blockedByPeer}}" class="state-bar">
+      <view class="state-text"><view class="zx-i zx-i-block zx-i--sm state-icon"></view><text>{{blockedByMe ? '你已屏蔽对方，不能收发消息' : '对方已屏蔽你，只能查看历史消息'}}</text></view>
       <view wx:if="{{blockedByMe}}" class="zx-btn zx-btn--secondary zx-btn--block" bindtap="confirmToggleBlock">解除屏蔽</view>
     </view>
-    <view wx:elif="{{awaitingReply}}" class="waiting-bar">
-      <view class="waiting-text"><view class="zx-i zx-i-clock zx-i--sm"></view><text>等待对方回复后可继续发送</text></view>
-      <view class="waiting-input">暂时不能发送</view>
+    <!-- Handoff H4 -->
+    <view wx:elif="{{awaitingReply}}" class="state-bar">
+      <view class="state-text state-text--wait"><view class="zx-i zx-i-clock zx-i--sm"></view><text>等待对方回复后可继续发送</text></view>
+      <view class="input-locked">暂时不能发送</view>
     </view>
-    <view wx:else class="input-row">
-      <input class="chat-input" value="{{content}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
-      <button class="send-button" loading="{{sending}}" bindtap="sendMessage">发送</button>
-    </view>
+    <block wx:else>
+      <view wx:if="{{replyToId}}" class="reply-preview">
+        <view class="reply-bar"></view>
+        <view class="reply-main">
+          <view class="reply-title">回复 {{replyToSender}}</view>
+          <view class="zx-ellipsis reply-text">{{replyToContent}}</view>
+        </view>
+        <view class="reply-close" bindtap="clearReply"><view class="zx-i zx-i-close zx-i--sm"></view></view>
+      </view>
+      <view class="input-row">
+        <input class="chat-input" value="{{content}}" bindinput="onInput" confirm-type="send" bindconfirm="sendMessage" placeholder="输入消息" />
+        <view class="send {{content ? 'send--on' : ''}}" bindtap="sendMessage"><view class="zx-i zx-i-send"></view></view>
+      </view>
+    </block>
   </view>
 </view>

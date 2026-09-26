@@ -44,6 +44,9 @@ Page({
     selectedMessageIds: [],
     selectMode: false,
     showForwardPicker: false,
+    navTop: 44,
+    navHeight: 32,
+    recallableCount: 0,
     forwardTargets: []
   },
 
@@ -70,6 +73,8 @@ Page({
   },
 
   onShow() {
+    const app = getApp();
+    this.setData({ navTop: app.globalData.navTop || 44, navHeight: app.globalData.navHeight || 32 });
     applyThemeAndLanguage(this);
   },
 
@@ -157,7 +162,13 @@ Page({
       isRecalled,
       hasReplyContent: Boolean(message.hasReply || message.replyToContent),
       canRecall: this.canRecallMessage(message),
-      displayTime: message.timeText || this.formatShortTime(createdAt),
+      // Mine carry 已读 / 未读 (handoff H1, H4).
+      displayTime: deliveryStatus === 'failed'
+        ? this.formatShortTime(createdAt)
+        : deliveryStatus === 'sending'
+          ? '发送中'
+          : `${this.formatShortTime(createdAt)}${message.fromMe && !isRecalled ? ` · ${message.isRead ? '已读' : '未读'}` : ''}`,
+      dimmed: this.data.selectMode && !this.canRecallMessage(message),
       selected: this.data.selectedMessageIds.includes(message.id)
     };
   },
@@ -202,9 +213,30 @@ Page({
   },
 
   rebuildMessageItems() {
+    const selected = this.data.messages.filter((m) => this.data.selectedMessageIds.includes(m.id));
     this.setData({
-      messageItems: this.buildMessageItems(this.data.messages)
+      messageItems: this.buildMessageItems(this.data.messages),
+      recallableCount: selected.filter((m) => this.canRecallMessage(m)).length
     });
+  },
+
+  goBack() {
+    if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.switchTab({ url: '/pages/messages/index' });
+  },
+
+  selectAll() {
+    const ids = this.data.messages
+      .filter((m) => !m.isRecalled && m.deliveryStatus !== 'recalled' && m.deliveryStatus !== 'failed')
+      .map((m) => m.id);
+    const all = ids.length > 0 && ids.every((id) => this.data.selectedMessageIds.includes(id));
+    this.setData({ selectedMessageIds: all ? [] : ids });
+    this.rebuildMessageItems();
+  },
+
+  forwardSelected() {
+    const messages = this.data.messages.filter((m) => this.data.selectedMessageIds.includes(m.id));
+    if (messages.length) this.openForwardPicker(messages);
   },
 
   setMessages(nextMessages) {
@@ -285,7 +317,7 @@ Page({
       items.push('撤回');
     }
     items.push('转发');
-    items.push('选择');
+    items.push('多选');
 
     wx.showActionSheet({
       itemList: items,
@@ -309,7 +341,7 @@ Page({
           await this.recallSingleMessage(message.id);
         } else if (action === '转发') {
           await this.openForwardPicker(message);
-        } else if (action === '选择') {
+        } else if (action === '多选') {
           this.enterSelectMode(message.id);
         }
       }
@@ -543,10 +575,8 @@ Page({
       selected.add(messageId);
     }
     const selectedMessageIds = Array.from(selected);
-    this.setData({
-      selectedMessageIds,
-      selectMode: selectedMessageIds.length > 0
-    });
+    // 多选 stays until 取消, as in handoff H2.
+    this.setData({ selectedMessageIds });
     this.rebuildMessageItems();
   },
 
@@ -571,7 +601,7 @@ Page({
         wx.showToast({ title: '暂无可转发会话', icon: 'none' });
         return;
       }
-      this._forwardMessage = message;
+      this._forwardMessages = Array.isArray(message) ? message : [message];
       this.setData({
         showForwardPicker: true,
         forwardTargets
@@ -582,7 +612,7 @@ Page({
   },
 
   closeForwardPicker() {
-    this._forwardMessage = null;
+    this._forwardMessages = null;
     this.setData({
       showForwardPicker: false,
       forwardTargets: []
@@ -592,14 +622,18 @@ Page({
   async chooseForwardTarget(event) {
     const index = Number(event.currentTarget.dataset.index);
     const target = this.data.forwardTargets[index];
-    const message = this._forwardMessage;
-    if (!target || !message) return;
+    const messages = this._forwardMessages;
+    if (!target || !messages || !messages.length) return;
     try {
-      await sendConversationMessage(target.id, {
-        content: `[转发] ${message.content || ''}`
-      });
+      // 逐条转发: one message after another, in order.
+      for (const message of messages) {
+        await sendConversationMessage(target.id, {
+          content: `[转发] ${message.content || ''}`
+        });
+      }
       wx.showToast({ title: '已转发', icon: 'success' });
       this.closeForwardPicker();
+      if (this.data.selectMode) this.exitSelectMode();
     } catch (error) {
       wx.showToast({ title: `转发失败：${error}`, icon: 'none' });
     }
@@ -608,11 +642,12 @@ Page({
   noop() {},
 
   async showOptionsSheet() {
-    const action = this.data.blockedByMe ? '解除屏蔽' : '屏蔽对方';
+    const actions = ['查看对方主页', this.data.blockedByMe ? '解除屏蔽' : '屏蔽对方'];
     wx.showActionSheet({
-      itemList: [action],
-      success: async () => {
-        await this.confirmToggleBlock();
+      itemList: actions,
+      success: async (res) => {
+        if (actions[res.tapIndex] === '查看对方主页') this.openPeerProfile();
+        else await this.confirmToggleBlock();
       }
     });
   },
