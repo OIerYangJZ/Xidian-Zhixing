@@ -22,6 +22,8 @@ Usage (needs fonttools; the source font is not kept in the repo):
 
 Rerun when new UI text adds characters; the output is deterministic for a
 given source font and character set.
+Then rerun scripts/build_songti_fonts.py, which splits the Songti fonts along
+ZxSans's character set.
 """
 
 from __future__ import annotations
