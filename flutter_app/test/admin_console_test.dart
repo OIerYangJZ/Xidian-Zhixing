@@ -12,15 +12,27 @@ import 'package:xdu_treehole_web/features/admin/admin_console_page.dart';
 import 'package:xdu_treehole_web/l10n/generated/app_localizations.dart';
 import 'package:xdu_treehole_web/repositories/admin_repository.dart';
 
-AdminRepository _repo() => AdminRepository(
+AdminRepository _repo({bool primary = true}) => AdminRepository(
   ApiClient(
     httpClient: MockClient((http.Request request) async {
       final String path = request.url.path.replaceFirst('/api', '');
+      // Like the backend: everything but pin requests is primary-only.
+      if (!primary &&
+          path != '/admin/auth/me' &&
+          path != '/admin/post-pin-requests') {
+        return http.Response(
+          jsonEncode(<String, Object>{'message': '需要一级管理员权限'}),
+          403,
+          headers: const <String, String>{
+            'content-type': 'application/json; charset=utf-8',
+          },
+        );
+      }
       final Object body = switch (path) {
         '/admin/auth/me' => <String, Object>{
           'username': 'admin',
-          'roleLabel': '一级管理员',
-          'isPrimary': true,
+          'roleLabel': primary ? '一级管理员' : '二级管理员',
+          'isPrimary': primary,
         },
         '/admin/reports' => <Object>[
           <String, Object>{
@@ -52,30 +64,44 @@ AdminRepository _repo() => AdminRepository(
   ),
 );
 
+Widget _console(AdminRepository repository) => MaterialApp(
+  theme: AppTheme.designSystemFor(
+    themeKey: 'zhuqing',
+    brightness: Brightness.light,
+  ),
+  localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
+  supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
+  locale: const Locale('zh', 'CN'),
+  home: AdminConsolePage(repository: repository),
+);
+
 void main() {
+  testWidgets('a secondary admin gets the pin requests, not a 403 page', (
+    WidgetTester tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(1440, 1400);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_console(_repo(primary: false)));
+    await tester.pumpAndSettle();
+    expect(find.text('需要一级管理员权限'), findsNothing);
+    expect(find.byKey(const Key('admin-section-帖子置顶')), findsOneWidget);
+    expect(find.byKey(const Key('admin-section-用户管理')), findsNothing);
+    expect(find.byKey(const Key('admin-section-举报处理')), findsNothing);
+  });
+
   testWidgets('only pending reports offer actions; the sidebar counts them', (
     WidgetTester tester,
   ) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(1440, 1400);
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.designSystemFor(
-          themeKey: 'zhuqing',
-          brightness: Brightness.light,
-        ),
-        localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const <Locale>[Locale('zh', 'CN'), Locale('en')],
-        locale: const Locale('zh', 'CN'),
-        home: AdminConsolePage(repository: _repo()),
-      ),
-    );
+    await tester.pumpWidget(_console(_repo()));
     await tester.pumpAndSettle();
 
     final Finder reportsEntry = find.byKey(const Key('admin-section-举报处理'));

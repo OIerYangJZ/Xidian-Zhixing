@@ -217,10 +217,9 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
       _AdminSection('系统配置', Icons.tune_rounded, _buildConfigTab),
     ];
     if (_isPrimaryAdmin) return all;
-    // Secondary admins handle pin requests and users only.
-    return all
-        .where((_AdminSection s) => s.label == '帖子置顶' || s.label == '用户管理')
-        .toList();
+    // Secondary admins handle pin requests only; the backend keeps users,
+    // reviews and settings to primary admins.
+    return all.where((_AdminSection s) => s.label == '帖子置顶').toList();
   }
 
   @override
@@ -3216,7 +3215,11 @@ class _AdminConsolePageState extends State<AdminConsolePage> {
 
     try {
       final AdminCurrentUser currentAdmin = await _repo.fetchCurrentAdmin();
-      final List<AdminUserEntry> users = await _repo.fetchUsers();
+      // The user roster is primary-only on the backend (it carries every
+      // email and student id), so a secondary admin never asks for it.
+      final List<AdminUserEntry> users = currentAdmin.isPrimary
+          ? await _repo.fetchUsers()
+          : const <AdminUserEntry>[];
       final List<AdminPostPinRequestEntry> postPinRequests = await _repo
           .fetchPostPinRequests(
             status: _postPinStatus,
