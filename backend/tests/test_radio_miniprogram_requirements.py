@@ -701,7 +701,7 @@ def test_miniprogram_failed_lists_offer_retry_instead_of_empty_state() -> None:
         ("pages/campus/post-detail/index.wxml", "retryLoadDetail"),
         ("pages/campus/tag-posts/index.wxml", "retryLoad"),
         ("pages/profile/notifications/index.wxml", "retryLoad"),
-        ("pages/profile/conversations/index.wxml", "retryLoad"),
+        ("pages/messages/index.wxml", "retryLoad"),
         ("pages/profile/chat/index.wxml", "retryLoadMessages"),
         ("pages/profile/my-comments/index.wxml", "retryLoad"),
         ("pages/profile/my-posts/index.wxml", "retryLoad"),

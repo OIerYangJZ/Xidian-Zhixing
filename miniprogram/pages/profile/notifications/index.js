@@ -8,32 +8,55 @@ import {
 import { requireLoginPage } from '../../../utils/auth_guard';
 import { applyThemeAndLanguage } from '../../../utils/theme_i18n';
 
+// Handoff N1: each category's icon and tile tone.
+const CATEGORY_LOOK = {
+  comment: { icon: 'comment', tone: 'info' },
+  reply: { icon: 'reply', tone: 'success' },
+  like: { icon: 'heart', tone: 'danger' },
+  favorite: { icon: 'star', tone: 'accent' },
+  report_result: { icon: 'shield', tone: 'success' },
+  system: { icon: 'bell', tone: 'neutral' }
+};
+
 Page({
   data: {
     loading: true,
     items: [],
-    // items filtered to the selected category ('' is all)
-    visibleItems: [],
+    // the selected category ('' is all), grouped 今天 / 更早
+    groups: [],
+    visibleCount: 0,
     category: '',
     tabs: [],
     unreadCount: 0,
     errorMessage: ''
   },
 
-  // Rebuilds the tab counts and the filtered list from items.
+  // Rebuilds the tab counts and the list, grouped 今天 / 更早, from items.
   applyFilter(items = this.data.items, category = this.data.category) {
     const unread = (key) => items.filter((item) => !item.isRead
       && (!key || notificationCategory(item.type) === key)).length;
     const tabs = [{ key: '', label: '全部' }, ...NOTIFICATION_CATEGORIES]
       .map((tab) => ({ ...tab, unread: unread(tab.key) }));
+    const now = new Date();
+    const isToday = (value) => {
+      const d = new Date(String(value || ''));
+      return !Number.isNaN(d.getTime()) && d.getFullYear() === now.getFullYear()
+        && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+    };
+    const rows = items
+      .map((item, index) => ({ ...item, sourceIndex: index, ...CATEGORY_LOOK[notificationCategory(item.type)] }))
+      .filter((item) => !category || notificationCategory(item.type) === category);
+    const groups = [
+      { key: 'today', label: '今天', rows: rows.filter((item) => isToday(item.createdAt)) },
+      { key: 'earlier', label: '更早', rows: rows.filter((item) => !isToday(item.createdAt)) }
+    ].filter((group) => group.rows.length);
     this.setData({
       items,
       category,
       tabs,
       unreadCount: unread(category),
-      visibleItems: items
-        .map((item, index) => ({ ...item, sourceIndex: index }))
-        .filter((item) => !category || notificationCategory(item.type) === category)
+      visibleCount: rows.length,
+      groups
     });
   },
 
@@ -116,7 +139,7 @@ Page({
       return;
     }
     if (item.relatedType === 'conversation' || item.type === 'message') {
-      wx.navigateTo({ url: '/pages/profile/conversations/index' });
+      wx.switchTab({ url: '/pages/messages/index' });
       return;
     }
     if (item.relatedType === 'user') {

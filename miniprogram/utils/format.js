@@ -223,6 +223,32 @@ export const normalizeComment = (raw = {}) => {
   };
 };
 
+// What happened, as the Flutter client words it (NotificationItem.displayTitle):
+// the server title is kept for report results and system notices.
+const notificationAction = (type, relatedType, title) => {
+  const t = String(type || '').trim().toLowerCase();
+  const r = String(relatedType || '').trim().toLowerCase();
+  const own = String(title || '').trim();
+  switch (t) {
+    case 'like':
+      return r === 'comment' ? '喜欢了你的评论' : (r === 'post' ? '喜欢了你的帖子' : '喜欢了你的内容');
+    case 'favorite':
+      return (r === 'post' || !r) ? '收藏了你的帖子' : '收藏了你的内容';
+    case 'reply':
+      return (r === 'comment' || !r) ? '回复了你的评论' : '回复了你的内容';
+    case 'comment':
+      if (r === 'comment') return '评论了你的评论';
+      return (r === 'post' || !r) ? '评论了你的帖子' : '评论了你的内容';
+    case 'report_result':
+      return own || '举报结果';
+    case 'system':
+    case 'system_announcement':
+      return own || '系统公告';
+    default:
+      return own || '通知';
+  }
+};
+
 export const normalizeNotification = (raw = {}) => {
   if (!isRecord(raw)) {
     throw responseContractError('通知数据格式错误');
@@ -235,6 +261,8 @@ export const normalizeNotification = (raw = {}) => {
     ...raw,
     id,
     title: String(raw.title || '通知'),
+    headline: [String(raw.actorAlias || '').trim(), notificationAction(raw.type || raw.notificationType, raw.relatedType, raw.title)]
+      .filter(Boolean).join(' '),
     content: String(raw.content || ''),
     type: String(raw.type || raw.notificationType || ''),
     timeText: formatTime(raw.createdAt),

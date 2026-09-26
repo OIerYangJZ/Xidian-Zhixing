@@ -1,28 +1,42 @@
-<view class="page notification-page {{themeClass}}">
-  <scroll-view class="tabs" scroll-x wx:if="{{items.length}}">
-    <view class="tab {{category === item.key ? 'tab-active' : ''}}" wx:for="{{tabs}}" wx:key="key" data-key="{{item.key}}" bindtap="selectCategory">
-      {{item.label}}<text class="tab-count" wx:if="{{item.unread}}">{{item.unread > 99 ? '99+' : item.unread}}</text>
+<view class="zx-page notification-page {{themeClass}}">
+  <view class="toolbar" wx:if="{{items.length}}">
+    <scroll-view class="tabs" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="tabs-row">
+        <view wx:for="{{tabs}}" wx:key="key" class="chip {{category === item.key ? 'chip--on' : ''}}" data-key="{{item.key}}" bindtap="selectCategory">
+          <text>{{item.label}}</text>
+          <text wx:if="{{item.unread}}" class="chip-count">{{item.unread > 99 ? '99+' : item.unread}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view wx:if="{{unreadCount}}" class="read-all" bindtap="markAllRead" hover-class="zx-btn-hover">
+      <view class="zx-i zx-i-check zx-i--sm"></view><text>全部已读</text>
     </view>
-  </scroll-view>
-  <view class="head" wx:if="{{items.length}}">
-    <view class="count">{{unreadCount}} 条未读</view>
-    <view class="read-all" bindtap="markAllRead">全部已读</view>
   </view>
 
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">通知加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
   </view>
-  <view wx:elif="{{!items.length}}" class="empty">暂无通知</view>
-  <view wx:elif="{{!visibleItems.length}}" class="empty">这一类还没有通知</view>
+  <view wx:elif="{{!items.length}}" class="zx-empty">
+    <view class="zx-empty__title">暂无通知</view>
+    <view class="zx-empty__message">有人评论、回复或点赞时会出现在这里</view>
+  </view>
+  <view wx:elif="{{!visibleCount}}" class="zx-empty"><view class="zx-empty__message">这一类还没有通知</view></view>
   <view wx:else>
-    <view class="notice {{item.isRead ? 'read' : ''}}" wx:for="{{visibleItems}}" wx:key="id" data-index="{{item.sourceIndex}}" bindtap="openItem">
-      <view class="dot" wx:if="{{!item.isRead}}"></view>
-      <view class="notice-body">
-        <view class="notice-title">{{item.title}}</view>
-        <view class="notice-content">{{item.content}}</view>
-        <view class="notice-time">{{item.timeText}}</view>
+    <view wx:for="{{groups}}" wx:for-item="group" wx:key="key">
+      <view class="group-title">{{group.label}}</view>
+      <view wx:for="{{group.rows}}" wx:key="id" class="notice {{item.isRead ? '' : 'notice--unread'}}" data-index="{{item.sourceIndex}}" bindtap="openItem" hover-class="notice--pressed">
+        <view class="notice-dot"><view wx:if="{{!item.isRead}}" class="dot"></view></view>
+        <view class="notice-tile notice-tile--{{item.tone}}"><view class="zx-i zx-i-{{item.icon}}"></view></view>
+        <view class="notice-body">
+          <view class="zx-row">
+            <view class="notice-title">{{item.headline}}</view>
+            <view class="zx-caption notice-time">{{item.timeText}}</view>
+          </view>
+          <view wx:if="{{item.content}}" class="notice-quote">{{item.content}}</view>
+        </view>
       </view>
     </view>
   </view>

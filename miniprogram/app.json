@@ -27,7 +27,6 @@
     "pages/profile/my-comments/index",
     "pages/profile/my-reports/index",
     "pages/profile/report-detail/index",
-    "pages/profile/conversations/index",
     "pages/profile/chat/index",
     "pages/profile/social-list/index",
     "pages/profile/public-user/index",
@@ -50,9 +49,7 @@
     "navigationBarTitleText": "西电知行",
     "navigationBarTextStyle": "black"
   },
-  "usingComponents": {
-    "radio-drawer": "/components/radio-drawer/index"
-  },
+  "usingComponents": {},
   "tabBar": {
     "color": "#5D5D5A",
     "selectedColor": "#A43B32",
