@@ -1,18 +1,30 @@
-<view class="page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
   </view>
-  <view wx:elif="{{!comments.length}}" class="empty">暂无评论</view>
-  <view wx:else>
-    <view class="comment-card" wx:for="{{comments}}" wx:key="id">
-      <view class="comment-post" data-post-id="{{item.postId}}" data-comment-id="{{item.id}}" bindtap="openPost">{{item.postTitle || '原帖'}}</view>
-      <view class="comment-content">{{item.content}}</view>
-      <view class="comment-meta">
-        <text>{{item.timeText}}</text>
-        <text class="danger" data-index="{{index}}" bindtap="deleteOwnComment">删除</text>
+  <view wx:elif="{{!comments.length}}" class="zx-empty">
+    <view class="zx-i zx-i-comment empty-icon"></view>
+    <view class="zx-empty__title">还没有评论</view>
+    <view class="zx-empty__message">你在帖子下的评论和回复会出现在这里</view>
+  </view>
+  <block wx:else>
+    <view class="zx-caption list-count">共 {{comments.length}} 条评论</view>
+    <view class="sheet">
+      <view wx:for="{{comments}}" wx:key="id" class="comment" data-post-id="{{item.postId}}" data-comment-id="{{item.id}}" bindtap="openPost">
+        <view class="comment-post">
+          <view class="zx-i zx-i-doc zx-i--sm"></view>
+          <view class="zx-ellipsis">{{item.postTitle || '原帖'}}</view>
+        </view>
+        <view class="zx-body comment-content">{{item.content}}</view>
+        <view class="zx-row comment-meta">
+          <view class="zx-caption">{{item.timeText}}</view>
+          <view class="zx-spacer"></view>
+          <view class="tool-delete" data-index="{{index}}" catchtap="deleteOwnComment"><view class="zx-i zx-i-trash zx-i--sm"></view>删除</view>
+        </view>
       </view>
     </view>
-  </view>
+  </block>
 </view>

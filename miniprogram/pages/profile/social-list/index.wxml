@@ -1,21 +1,29 @@
-<view class="page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+<view class="zx-page list-page {{themeClass}}">
+  <view class="tabs">
+    <view wx:for="{{tabs}}" wx:key="key" class="tab {{type === item.key ? 'tab--on' : ''}}" data-type="{{item.key}}" bindtap="switchType">{{item.label}}</view>
   </view>
-  <view wx:elif="{{!users.length}}" class="empty">暂无数据</view>
-  <view wx:else>
-    <view class="user-row" wx:for="{{users}}" wx:key="id">
-      <view class="avatar {{item.avatarUrl ? 'has-image' : 'fallback'}}" data-id="{{item.id || item.userId}}" bindtap="openUser">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!users.length}}" class="zx-empty">
+    <view class="zx-i zx-i-users empty-icon"></view>
+    <view class="zx-empty__title">{{emptyTitle}}</view>
+    <view class="zx-empty__message">{{emptyMessage}}</view>
+  </view>
+  <view wx:else class="sheet">
+    <view wx:for="{{users}}" wx:key="id" class="user">
+      <view class="zx-avatar user-avatar" data-id="{{item.id || item.userId}}" bindtap="openUser">
         <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill"></image>
         <text wx:else>{{item.avatarInitial}}</text>
       </view>
       <view class="user-body" data-id="{{item.id || item.userId}}" bindtap="openUser">
-        <view class="name">{{item.nickname || item.alias || item.name || '西电同学'}}</view>
-        <view class="bio">{{item.bio || item.userLevelLabel || '校园用户'}}</view>
+        <view class="zx-label zx-ellipsis">{{item.nickname || item.alias || item.name || '西电同学'}}</view>
+        <view class="zx-caption zx-ellipsis user-bio">{{item.bio || item.userLevelLabel || '校园用户'}}</view>
       </view>
-      <button class="message-button" data-id="{{item.id || item.userId}}" data-avatar="{{item.avatarUrl || ''}}" bindtap="messageUser">私信</button>
+      <view class="zx-btn zx-btn--secondary zx-btn--small" data-id="{{item.id || item.userId}}" data-avatar="{{item.avatarUrl || ''}}" bindtap="messageUser">私信</view>
     </view>
   </view>
 </view>

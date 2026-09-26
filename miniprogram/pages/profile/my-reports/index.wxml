@@ -1,17 +1,31 @@
-<view class="page {{themeClass}}">
-  <view wx:if="{{loading}}" class="empty">加载中...</view>
-  <view wx:elif="{{errorMessage}}" class="empty" bindtap="loadData">{{errorMessage}} · 点击重试</view>
-  <view wx:elif="{{!reports.length}}" class="empty">暂无举报记录</view>
-  <view wx:else>
-    <view class="report-card" wx:for="{{reports}}" wx:key="id" data-index="{{index}}" bindtap="openTarget">
-      <view class="report-head">
-        <text>{{item.reason}}</text>
-        <text class="status">{{item.statusText}}</text>
-      </view>
-      <view class="report-target">{{item.targetTitle || item.target}}</view>
-      <view class="report-desc" wx:if="{{item.description}}">{{item.description}}</view>
-      <view class="report-result" wx:if="{{item.result}}">处理结果：{{item.result}}</view>
-      <view class="report-time">{{item.createdAt}}</view>
-    </view>
+<view class="zx-page list-page {{themeClass}}">
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="loadData">重试</view>
   </view>
+  <view wx:elif="{{!reports.length}}" class="zx-empty">
+    <view class="zx-i zx-i-flag empty-icon"></view>
+    <view class="zx-empty__title">没有举报记录</view>
+    <view class="zx-empty__message">举报帖子、评论或用户后，可以在这里查看处理进度</view>
+  </view>
+  <block wx:else>
+    <view class="zx-caption list-count">共 {{reports.length}} 条举报</view>
+    <view class="sheet">
+      <view wx:for="{{reports}}" wx:key="id" class="report" data-index="{{index}}" bindtap="openTarget">
+        <view class="zx-row">
+          <view class="zx-label zx-ellipsis report-reason">{{item.reason || '举报'}}</view>
+          <view class="zx-badge zx-badge--{{item.statusTone}}">{{item.statusText}}</view>
+        </view>
+        <view class="zx-caption zx-ellipsis report-target">{{item.targetTitle || item.target}}</view>
+        <view wx:if="{{item.result}}" class="report-result">处理结果：{{item.result}}</view>
+        <view class="zx-row report-meta">
+          <view class="zx-caption">{{item.createdAt}}</view>
+          <view class="zx-spacer"></view>
+          <view class="zx-i zx-i-chevron zx-i--sm report-chevron"></view>
+        </view>
+      </view>
+    </view>
+  </block>
 </view>

@@ -1,30 +1,42 @@
-<view class="page hot-page">
-  <view class="hot-header-container">
-    <view class="hot-header">
-      <view class="hot-title-group">
-        <view class="hot-title" style="color: var(--brand-deep);">热榜</view>
-        <view class="hot-subtitle" style="color: var(--text-secondary); font-size: 24rpx; margin-top: 4rpx;">正在被大家悄悄讨论</view>
-      </view>
-      <button class="summary-btn" bindtap="summarize">AI 总结</button>
+<view class="zx-page hot-page {{themeClass}}">
+  <view class="intro">
+    <view class="intro-text">
+      <view class="zx-title">正在被大家讨论</view>
+      <view class="zx-caption intro-sub">按浏览、点赞、评论、收藏和发布时间综合排序</view>
+    </view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small {{summarizing ? 'zx-btn--disabled' : ''}}" bindtap="summarize">
+      <view class="zx-i zx-i-ai zx-i--sm"></view>{{summarizing ? '总结中…' : 'AI 总结'}}
     </view>
   </view>
-  <view class="summary-card" wx:if="{{summary}}">{{summary}}</view>
-  <view class="empty-state" wx:if="{{loading}}">加载中...</view>
-  <view class="empty-state" wx:elif="{{errorMessage}}">
-    <view>{{errorMessage}}</view>
-    <button bindtap="retryLoad">重新加载</button>
+
+  <view wx:if="{{summary}}" class="zx-card summary">
+    <view class="zx-row summary-head"><view class="zx-i zx-i-ai zx-i--sm"></view>AI 总结 · 仅供参考</view>
+    <view class="zx-body summary-text">{{summary}}</view>
   </view>
-  
-  <view class="hot-row" wx:if="{{!loading && !errorMessage}}" wx:for="{{topics}}" wx:key="id" data-post-id="{{item.postId}}" bindtap="openPost">
-    <view class="hot-rank {{item.rank <= 3 ? 'rank-seal-solid' : 'rank-seal-empty'}}">{{item.rank}}</view>
-    <view class="hot-body">
-      <view class="hot-name">
-        <text wx:if="{{item.rank <= 3}}" class="seal-badge-solid" style="margin-right: 8rpx; display: inline-block; vertical-align: middle; height: 32rpx; line-height: 32rpx; padding: 0 8rpx; font-size: 18rpx;">热</text>
-        <text style="vertical-align: middle;">{{item.title}}</text>
+  <view wx:if="{{summaryError}}" class="zx-inline-message zx-inline-message--danger summary-error">{{summaryError}}</view>
+
+  <view wx:if="{{loading}}" class="zx-empty"><view class="zx-empty__message">加载中…</view></view>
+  <view wx:elif="{{errorMessage}}" class="zx-empty">
+    <view class="zx-empty__title">加载失败</view>
+    <view class="zx-empty__message">{{errorMessage}}</view>
+    <view class="zx-btn zx-btn--secondary zx-btn--small empty-action" bindtap="retryLoad">重试</view>
+  </view>
+  <view wx:elif="{{!topics.length}}" class="zx-empty">
+    <view class="zx-i zx-i-fire empty-icon"></view>
+    <view class="zx-empty__title">暂无热榜内容</view>
+  </view>
+  <view wx:else class="sheet">
+    <view wx:for="{{topics}}" wx:key="id" class="topic" data-post-id="{{item.postId}}" bindtap="openPost">
+      <view class="rank {{item.rank <= 3 ? 'rank--top' : ''}}">{{item.rank}}</view>
+      <view class="topic-body">
+        <view class="zx-label topic-title">{{item.title}}</view>
+        <view wx:if="{{item.summary}}" class="zx-caption topic-summary">{{item.summary}}</view>
+        <view class="zx-row topic-meta">
+          <view wx:if="{{item.sectionName}}" class="zx-caption">{{item.sectionName}} · </view>
+          <view class="zx-i zx-i-fire zx-i--sm topic-fire"></view>
+          <view class="zx-caption">{{item.hotScore}}</view>
+        </view>
       </view>
-      <view class="hot-summary">{{item.summary}}</view>
-      <view class="hot-meta">{{item.sectionName}} · 热度 {{item.hotScore}}</view>
     </view>
   </view>
-  <view class="empty-state" wx:if="{{!loading && !errorMessage && topics.length === 0}}">暂无热榜内容</view>
 </view>

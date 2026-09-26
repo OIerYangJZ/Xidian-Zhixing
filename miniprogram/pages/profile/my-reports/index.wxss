@@ -1,33 +1,12 @@
-.report-card {
-  padding: 28rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
-}
+/* 我的举报: reason, status badge, target and the admins' reply. */
+@import "../../../styles/zx-list-page.wxss";
 
-.report-head {
-  display: flex;
-  justify-content: space-between;
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-}
-
-.status {
-  color: var(--app-primary);
-  font-size: 25rpx;
-  font-weight: 650;
-}
-
-.report-target,
-.report-desc,
-.report-result,
-.report-time {
-  margin-top: 12rpx;
-  color: var(--app-text-secondary);
-  font-size: 26rpx;
-  line-height: 1.5;
-}
-
+.report { padding: 28rpx 32rpx 24rpx; border-bottom: 2rpx solid var(--zx-line); }
+.report-reason { flex: 1; min-width: 0; margin-right: 16rpx; }
+.report-target { margin-top: 8rpx; }
 .report-result {
-  color: var(--app-text-primary);
+  margin-top: 16rpx; padding: 16rpx 20rpx; border-radius: 20rpx;
+  background: var(--zx-bg-sunk); font-size: 26rpx; line-height: 38rpx; color: var(--zx-text-2);
 }
+.report-meta { margin-top: 16rpx; }
+.report-chevron { color: var(--zx-text-3); }

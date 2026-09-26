@@ -6,7 +6,16 @@ const STATUS_TEXT = {
   pending: '待处理',
   resolved: '已处理',
   rejected: '已驳回',
-  closed: '已关闭'
+  closed: '已关闭',
+  misreport: '恶意举报'
+};
+
+const STATUS_TONE = {
+  pending: 'accent',
+  resolved: 'success',
+  rejected: 'neutral',
+  closed: 'neutral',
+  misreport: 'danger'
 };
 
 Page({
@@ -31,7 +40,8 @@ Page({
     try {
       const reports = (await getMyReports()).map((item) => ({
         ...item,
-        statusText: STATUS_TEXT[item.status] || item.status || '待处理'
+        statusText: STATUS_TEXT[item.status] || item.status || '待处理',
+        statusTone: STATUS_TONE[item.status] || 'accent'
       }));
       this.setData({ reports, loading: false, errorMessage: '' });
     } catch (error) {

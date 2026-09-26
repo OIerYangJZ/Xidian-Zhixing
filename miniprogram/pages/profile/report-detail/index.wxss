@@ -1,54 +1,9 @@
-.report-page {
-  padding: 24rpx;
-}
-
-.section {
-  margin-bottom: 22rpx;
-  border-radius: 16rpx;
-  background: var(--app-surface);
-  overflow: hidden;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: 24rpx;
-  min-height: 88rpx;
-  padding: 0 24rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  color: var(--app-text-primary);
-  font-size: 28rpx;
-  align-items: center;
-}
-
-.row:last-child {
-  border-bottom: none;
-}
-
-.row text:last-child {
-  color: var(--app-text-secondary);
-  text-align: right;
-}
-
-.block-title {
-  padding: 24rpx 24rpx 8rpx;
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  font-weight: 700;
-}
-
-.block-text {
-  padding: 0 24rpx 24rpx;
-  color: var(--app-text-secondary);
-  font-size: 27rpx;
-  line-height: 1.6;
-}
-
-.primary-button {
-  height: 82rpx;
-  border-radius: 14rpx;
-  background: var(--app-primary);
-  color: #ffffff;
-  font-size: 29rpx;
-  line-height: 82rpx;
-}
+/* 举报详情: status card, then the description and the admins' reply. */
+.detail-page { padding: 24rpx 32rpx 64rpx; background: var(--zx-bg); }
+.summary { padding: 32rpx; margin-bottom: 40rpx; }
+.summary-reason { flex: 1; min-width: 0; margin-right: 16rpx; }
+.summary-time { margin-top: 12rpx; }
+.block { padding: 28rpx 32rpx; margin-bottom: 40rpx; }
+.block .zx-body { white-space: pre-wrap; word-break: break-all; color: var(--zx-text); }
+.block .block-empty { color: var(--zx-text-3); }
+.empty-action { margin-top: 24rpx; }

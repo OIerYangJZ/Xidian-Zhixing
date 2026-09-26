@@ -1,30 +1,13 @@
-.comment-card {
-  padding: 28rpx;
-  border-bottom: 1rpx solid var(--app-divider);
-  background: var(--app-surface);
-}
+/* 我的评论: each comment under the post it was left on. */
+@import "../../../styles/zx-list-page.wxss";
 
+.comment { padding: 28rpx 32rpx 24rpx; border-bottom: 2rpx solid var(--zx-line); }
 .comment-post {
-  color: var(--app-primary);
-  font-size: 27rpx;
-  font-weight: 650;
+  display: inline-flex; align-items: center; gap: 8rpx; vertical-align: top;
+  max-width: 100%; box-sizing: border-box; padding: 8rpx 16rpx; border-radius: 16rpx;
+  background: var(--zx-bg-sunk); font-size: 24rpx; color: var(--zx-text-2);
 }
-
-.comment-content {
-  margin-top: 12rpx;
-  color: var(--app-text-primary);
-  font-size: 30rpx;
-  line-height: 1.55;
-}
-
-.comment-meta {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 18rpx;
-  color: var(--app-text-secondary);
-  font-size: 25rpx;
-}
-
-.danger {
-  color: var(--app-error);
-}
+.comment-post .zx-i { flex: none; color: var(--zx-text-3); }
+.comment-content { margin-top: 16rpx; color: var(--zx-text); white-space: pre-wrap; word-break: break-all; }
+.comment-meta { margin-top: 16rpx; }
+.tool-delete { display: flex; align-items: center; gap: 6rpx; font-size: 24rpx; color: var(--zx-danger); }

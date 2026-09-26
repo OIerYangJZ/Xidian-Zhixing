@@ -10,6 +10,14 @@ const STATUS_TEXT = {
   misreport: '恶意举报'
 };
 
+const STATUS_TONE = {
+  pending: 'accent',
+  resolved: 'success',
+  rejected: 'neutral',
+  closed: 'neutral',
+  misreport: 'danger'
+};
+
 Page({
   onShow() {
     applyThemeAndLanguage(this);
@@ -41,7 +49,8 @@ Page({
       this.setData({
         report: {
           ...report,
-          statusText: STATUS_TEXT[report.status] || report.status || '待处理'
+          statusText: STATUS_TEXT[report.status] || report.status || '待处理',
+          statusTone: STATUS_TONE[report.status] || 'accent'
         },
         loading: false,
         errorMessage: ''
