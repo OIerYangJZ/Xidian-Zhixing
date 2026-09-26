@@ -6,6 +6,7 @@ import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
 import { useSearchParams } from 'next/navigation';
 import { Item, Section } from 'react-stately';
+import { useLanguage } from '@/hooks/useLanguage';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { CommentContent } from './CommentContent';
 import { DropdownMenuButton } from './ui/DropdownMenuButton';
@@ -32,6 +33,7 @@ export const CommentReply = memo(
     unLikeComment: (params: { commentId: number }) => void;
   }) => {
     const numberOfLikes = _count.commentLikes;
+    const { t } = useLanguage();
     const handleLikeClick = useCallback(
       () => (!isLiked ? likeComment({ commentId }) : unLikeComment({ commentId })),
       [isLiked, likeComment, unLikeComment, commentId],
@@ -69,10 +71,13 @@ export const CommentReply = memo(
           <div className="flex origin-left">
             <ToggleStepper isSelected={isLiked} onPress={handleLikeClick} Icon={SvgHeart} quantity={numberOfLikes} />
             {isOwnReply && (
-              <DropdownMenuButton key={`replies-${commentId}-options`} label="回复选项" onAction={onDropdownAction}>
+              <DropdownMenuButton
+                key={`replies-${commentId}-options`}
+                label={t('回复选项', 'Reply options')}
+                onAction={onDropdownAction}>
                 <Section>
-                  <Item key="edit">编辑回复</Item>
-                  <Item key="delete">删除回复</Item>
+                  <Item key="edit">{t('编辑回复', 'Edit reply')}</Item>
+                  <Item key="delete">{t('删除回复', 'Delete reply')}</Item>
                 </Section>
               </DropdownMenuButton>
             )}

@@ -1,9 +1,12 @@
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
 import { campusQuickLinks, getCampusServices } from '@/lib/campus/catalog';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { CampusDirectory } from './CampusDirectory';
 
-export const metadata = { title: '校园 | 西电知行' };
+export function generateMetadata() {
+  return { title: getInterfaceLanguage() === 'en' ? 'Campus | Xidian Zhixing' : '校园 | 西电知行' };
+}
 
 export default async function CampusPage() {
   const [user] = await getServerUser();

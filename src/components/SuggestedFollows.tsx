@@ -13,7 +13,7 @@ export function SuggestedFollows() {
     queryKey: ['suggested-follows'],
     queryFn: async () => {
       const response = await fetch('/api/users?recommendations=true&limit=3');
-      if (!response.ok) throw new Error('推荐关注加载失败');
+      if (!response.ok) throw new Error(t('推荐关注加载失败。', 'Could not load suggested accounts.'));
       return response.json() as Promise<GetUser[]>;
     },
     staleTime: 60000 * 5,

@@ -1,7 +1,10 @@
-import { notFound } from 'next/navigation';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { CampusSchedulePage } from '../CampusSchedulePage';
 
-export const metadata = { title: '校园日历 | 西电知行' };
+export function generateMetadata() {
+  return { title: getInterfaceLanguage() === 'en' ? 'Campus calendar | Xidian Zhixing' : '校园日历 | 西电知行' };
+}
 
 export default function CalendarPage() {
-  notFound();
+  return <CampusSchedulePage mode="calendar" />;
 }

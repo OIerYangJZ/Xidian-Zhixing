@@ -1,8 +1,11 @@
 import { getServerUser } from '@/lib/getServerUser';
 import prisma from '@/lib/prisma/prisma';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { AIChat, type AIConversationData } from './AIChat';
 
-export const metadata = { title: '知行 AI' };
+export function generateMetadata() {
+  return { title: getInterfaceLanguage() === 'en' ? 'Zhixing AI' : '知行 AI' };
+}
 
 export default async function Page() {
   const [user] = await getServerUser();

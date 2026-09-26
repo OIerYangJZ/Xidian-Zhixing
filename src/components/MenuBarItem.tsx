@@ -6,6 +6,7 @@ import { cn } from '@/lib/cn';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import React, { SVGProps, useCallback, useEffect } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Badge } from './ui/Badge';
 import { ButtonNaked } from './ui/ButtonNaked';
 
@@ -25,11 +26,16 @@ export function MenuBarItem({
   const router = useRouter();
   const [isActive] = useActiveRouteChecker(route);
   const { confirm } = useDialogs();
+  const { t } = useLanguage();
   const onItemClick = useCallback(() => {
     if (route === '/api/auth/signout')
-      confirm({ title: '退出登录', message: '确定退出西电知行吗？', onConfirm: () => signOut({ callbackUrl: '/' }) });
+      confirm({
+        title: t('退出登录', 'Log out'),
+        message: t('确定退出西电知行吗？', 'Are you sure you want to log out of Zhixing?'),
+        onConfirm: () => signOut({ callbackUrl: '/' }),
+      });
     else router.push(route);
-  }, [route, router, confirm]);
+  }, [route, router, confirm, t]);
   useEffect(() => {
     if (route !== '/api/auth/signout') router.prefetch(route);
   }, [route, router]);

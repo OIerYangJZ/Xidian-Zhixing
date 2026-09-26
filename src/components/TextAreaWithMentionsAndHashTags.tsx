@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ChangeEventHandler,
   Dispatch,
@@ -16,6 +18,7 @@ import { AriaTextFieldProps, mergeProps, useKeyboard, useTextField } from 'react
 import { useOverlayTriggerState } from 'react-stately';
 import { useClickOutside } from '@/hooks/useClickOutside';
 import { getUsers } from '@/lib/client_data_fetching/getUsers';
+import { useLanguage } from '@/hooks/useLanguage';
 import { Popover } from './ui/Popover';
 import { TextAreaMentionItem } from './TextAreaMentionItem';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
@@ -33,6 +36,7 @@ export function TextAreaWithMentionsAndHashTags({
   shouldFocusOnMount = true,
   ...rest
 }: TextAreaWithMentionsAndHashTagsProps) {
+  const { t } = useLanguage();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [focused, setFocused] = useState<string>('');
 
@@ -191,9 +195,11 @@ export function TextAreaWithMentionsAndHashTags({
           className="min-w-[200px]">
           <ul className="max-h-[242px] w-full overflow-auto border border-border bg-popover outline-none">
             {isPending ? (
-              <li className="px-3 py-2 text-sm text-muted-foreground">正在查找同学…</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">{t('正在查找同学…', 'Finding people…')}</li>
             ) : isError ? (
-              <li className="px-3 py-2 text-sm text-muted-foreground">暂时无法加载同学。</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">
+                {t('暂时无法加载同学。', 'Could not load people.')}
+              </li>
             ) : data.length > 0 ? (
               data.map((user) => (
                 <TextAreaMentionItem
@@ -204,7 +210,7 @@ export function TextAreaWithMentionsAndHashTags({
                 />
               ))
             ) : (
-              <li className="px-3 py-2 text-sm text-muted-foreground">没有找到同学。</li>
+              <li className="px-3 py-2 text-sm text-muted-foreground">{t('没有找到同学。', 'No people found.')}</li>
             )}
           </ul>
         </Popover>

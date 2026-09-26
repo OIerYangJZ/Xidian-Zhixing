@@ -1,14 +1,14 @@
 import { GetVisualMedia } from '@/types/definitions';
 import prisma from '@/lib/prisma/prisma';
 import { fileNameToUrl } from '@/lib/s3/fileNameToUrl';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { getProfile } from '../../getProfile';
 import { Gallery } from './Gallery';
 
 export async function generateMetadata({ params }: { params: { username: string } }) {
   const profile = await getProfile(params.username);
-  return {
-    title: `Photos | ${profile?.name}` || 'Photos',
-  };
+  const title = getInterfaceLanguage() === 'en' ? 'Photos' : '照片';
+  return { title: `${title} | ${profile?.name || (getInterfaceLanguage() === 'en' ? 'Zhixing' : '西电知行')}` };
 }
 
 async function getVisualMedia(username: string) {

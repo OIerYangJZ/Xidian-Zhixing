@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma/prisma';
 import { redirect } from 'next/navigation';
+import { CommentMissing } from './CommentMissing';
 
 /**
  * Use this page to redirect the user to the respective /posts/:postId
@@ -16,7 +17,7 @@ export default async function Page({ params }: { params: { commentId: string } }
       parentId: true,
     },
   });
-  if (!comment) return <p className="px-4 py-6 text-sm text-muted-foreground">这条评论或回复已不存在。</p>;
+  if (!comment) return <CommentMissing />;
   const { id: commentId, parentId, postId } = comment;
 
   const searchParams = new URLSearchParams('');

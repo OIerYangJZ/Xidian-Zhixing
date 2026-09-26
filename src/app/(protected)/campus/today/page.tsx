@@ -1,7 +1,10 @@
-import { notFound } from 'next/navigation';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { CampusSchedulePage } from '../CampusSchedulePage';
 
-export const metadata = { title: '今日校园 | 西电知行' };
+export function generateMetadata() {
+  return { title: getInterfaceLanguage() === 'en' ? 'Today | Xidian Zhixing' : '今日校园 | 西电知行' };
+}
 
 export default function TodayPage() {
-  notFound();
+  return <CampusSchedulePage mode="today" />;
 }

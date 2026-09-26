@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma/prisma';
 import { parseCasSuccess, publicOrigin, serviceUrl, xidianCasIssuer } from '@/lib/auth/xidianCas';
+import { getAdminStudentNumbers } from '@/lib/auth/adminStudentNumbers';
 
 function loginError(origin: string, code: string) {
   const target = new URL('/login', origin);
@@ -65,21 +66,19 @@ export async function GET(request: Request) {
     return loginError(origin, 'identity');
   }
   if (identity.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity.email)) identity.email = null;
-  const adminStudentNumbers = new Set(
-    (process.env.ADMIN_STUDENT_NUMBERS || '')
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean),
-  );
+  const adminStudentNumbers = getAdminStudentNumbers();
 
   const approved = await prisma.$transaction(async (tx) => {
     const linked = await tx.institutionIdentity.findUnique({
       where: { issuer_subject: { issuer: xidianCasIssuer(), subject: identity!.studentId } },
-      include: { user: { select: { id: true, status: true } } },
+      include: { user: { select: { id: true, status: true, role: true } } },
     });
     let user = linked?.user || null;
     if (!user && identity!.email) {
-      user = await tx.user.findUnique({ where: { email: identity!.email }, select: { id: true, status: true } });
+      user = await tx.user.findUnique({
+        where: { email: identity!.email },
+        select: { id: true, status: true, role: true },
+      });
     }
     if (!user) {
       user = await tx.user.create({
@@ -88,7 +87,7 @@ export async function GET(request: Request) {
           name: '西电同学',
           email: identity!.email,
         },
-        select: { id: true, status: true },
+        select: { id: true, status: true, role: true },
       });
     }
     if (user.status !== 'ACTIVE') return false;
@@ -98,8 +97,9 @@ export async function GET(request: Request) {
         data: { issuer: xidianCasIssuer(), subject: identity!.studentId, userId: user.id },
       });
     }
-    if (adminStudentNumbers.has(identity!.studentId)) {
-      await tx.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
+    const shouldBeAdmin = adminStudentNumbers.has(identity!.studentId.toUpperCase());
+    if ((shouldBeAdmin && user.role !== 'ADMIN') || (!shouldBeAdmin && user.role === 'ADMIN')) {
+      await tx.user.update({ where: { id: user.id }, data: { role: shouldBeAdmin ? 'ADMIN' : 'USER' } });
     }
     const result = await tx.xidianLoginAttempt.updateMany({
       where: { id: attempt.id, state, status: 'PENDING', consumedAt: null, expiresAt: { gt: new Date() } },

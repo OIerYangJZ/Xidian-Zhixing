@@ -7,6 +7,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { cn } from '@/lib/cn';
 import { Providers } from '@/components/Providers';
 import { auth } from '@/auth';
+import { cookies } from 'next/headers';
 import React from 'react';
 
 export const metadata = {
@@ -15,14 +16,17 @@ export const metadata = {
 };
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
+  const [session, cookieStore] = await Promise.all([auth(), Promise.resolve(cookies())]);
+  const initialLanguage = cookieStore.get('zhixing-language')?.value === 'en' ? 'en' : 'zh';
   return (
-    <html lang="zh-CN" className="overflow-y-scroll">
+    <html lang={initialLanguage === 'zh' ? 'zh-CN' : 'en'} className="overflow-y-scroll">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
       </head>
       <body className={cn('bg-background text-foreground')}>
-        <Providers session={session}>{children}</Providers>
+        <Providers session={session} initialLanguage={initialLanguage}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

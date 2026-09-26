@@ -8,6 +8,7 @@ import { useSessionUserData } from '@/hooks/useSessionUserData';
 import { useSessionUserDataMutation } from '@/hooks/mutations/useSessionUserDataMutation';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 import { GenericLoading } from './GenericLoading';
 import { Textarea } from './ui/Textarea';
 import Button from './ui/Button';
@@ -30,6 +31,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
   });
   const { updateSessionUserDataMutation } = useSessionUserDataMutation();
   const router = useRouter();
+  const { t } = useLanguage();
 
   const onValid: SubmitHandler<UserAboutSchema> = (data) => {
     updateSessionUserDataMutation.mutate(
@@ -51,7 +53,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
   const resetForm = useCallback(() => reset(defaultValues), [reset, defaultValues]);
   useEffect(() => reset(defaultValues), [reset, defaultValues]);
 
-  if (!userData) return <GenericLoading>正在加载资料…</GenericLoading>;
+  if (!userData) return <GenericLoading>{t('正在加载资料…', 'Loading profile…')}</GenericLoading>;
 
   return (
     <form onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
@@ -60,7 +62,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
         name="username"
         render={({ field, fieldState: { error } }) => (
           <TextInput
-            label="用户名"
+            label={t('用户名', 'Username')}
             value={field.value}
             onChange={field.onChange}
             errorMessage={error?.message}
@@ -74,7 +76,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
         name="name"
         render={({ field, fieldState: { error } }) => (
           <TextInput
-            label="昵称"
+            label={t('昵称', 'Name')}
             value={field.value}
             onChange={field.onChange}
             errorMessage={error?.message}
@@ -88,7 +90,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
         name="bio"
         render={({ field, fieldState: { error } }) => (
           <Textarea
-            label="个人介绍"
+            label={t('个人介绍', 'Bio')}
             value={field.value || ''}
             onChange={(value) => field.onChange(value || null)}
             errorMessage={error?.message}
@@ -102,7 +104,7 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
         name="website"
         render={({ field, fieldState: { error } }) => (
           <TextInput
-            label="个人网站"
+            label={t('个人网站', 'Website')}
             value={field.value || ''}
             onChange={(value) => field.onChange(value || null)}
             errorMessage={error?.message}
@@ -113,10 +115,10 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
       />
       <div className="flex justify-end gap-4">
         <Button mode="secondary" type="button" loading={updateSessionUserDataMutation.isPending} onPress={resetForm}>
-          重置
+          {t('重置', 'Reset')}
         </Button>
         <Button type="submit" loading={updateSessionUserDataMutation.isPending}>
-          保存资料
+          {t('保存资料', 'Save profile')}
         </Button>
       </div>
     </form>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type ScheduleItem = {
   title: string;
@@ -49,6 +50,7 @@ function ScheduleCard({ item }: { item: ScheduleItem }) {
 }
 
 export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
+  const { t } = useLanguage();
   const [date, setDate] = useState('');
   const [days, setDays] = useState(7);
   const [source, setSource] = useState('all');
@@ -73,7 +75,8 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
     fetch(url, { cache: 'no-store' })
       .then(async (response) => {
         const payload = await response.json();
-        if (!response.ok) throw new Error(payload.message || '校园日程暂时不可用。');
+        if (!response.ok)
+          throw new Error(payload.message || t('校园日程暂时不可用。', 'Campus schedules are unavailable.'));
         return payload.data;
       })
       .then((data) => {
@@ -83,7 +86,12 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
         setSourceStatus(data.sourceStatus || 'connected');
       })
       .catch((requestError: unknown) => {
-        if (active) setError(requestError instanceof Error ? requestError.message : '校园日程暂时不可用。');
+        if (active)
+          setError(
+            requestError instanceof Error
+              ? requestError.message
+              : t('校园日程暂时不可用。', 'Campus schedules are unavailable.'),
+          );
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -91,13 +99,13 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
     return () => {
       active = false;
     };
-  }, [date, days, mode, source]);
+  }, [date, days, mode, source, t]);
 
   return (
     <section className="mt-6 rounded-lg border border-border bg-card p-5">
       <div className="flex flex-wrap items-end gap-3">
         <label className="grid gap-1 text-sm">
-          开始日期
+          {t('开始日期', 'Start date')}
           <input
             type="date"
             value={date}
@@ -108,7 +116,7 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
         {mode === 'calendar' ? (
           <>
             <label className="grid gap-1 text-sm">
-              天数
+              {t('天数', 'Number of days')}
               <input
                 type="number"
                 min={1}
@@ -119,15 +127,15 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
               />
             </label>
             <label className="grid gap-1 text-sm">
-              日程类型
+              {t('日程类型', 'Schedule type')}
               <select
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
                 className="rounded-lg border border-border bg-background px-3 py-2">
-                <option value="all">全部</option>
-                <option value="course">课程</option>
-                <option value="exam">考试</option>
-                <option value="experiment">实验</option>
+                <option value="all">{t('全部', 'All')}</option>
+                <option value="course">{t('课程', 'Courses')}</option>
+                <option value="exam">{t('考试', 'Exams')}</option>
+                <option value="experiment">{t('实验', 'Labs')}</option>
               </select>
             </label>
           </>
@@ -138,10 +146,13 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
           {error}
         </p>
       ) : loading ? (
-        <p className="mt-5 text-sm text-muted-foreground">正在读取日程…</p>
+        <p className="mt-5 text-sm text-muted-foreground">{t('正在读取日程…', 'Loading schedule…')}</p>
       ) : sourceStatus === 'not_connected' ? (
         <p className="mt-5 rounded-md bg-secondary p-4 text-sm leading-6 text-muted-foreground">
-          学校尚未提供课表、考试和实验日程的正式数据接口，当前没有可展示的实时日程。
+          {t(
+            '学校尚未提供课表、考试和实验日程的正式数据接口，当前没有可展示的实时日程。',
+            'The university has not provided official course, exam, or lab schedule data yet.',
+          )}
         </p>
       ) : null}
       {!loading && !error && sourceStatus !== 'not_connected' ? (
@@ -153,7 +164,7 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
               ))}
             </div>
           ) : (
-            <p className="mt-5 text-sm text-muted-foreground">当天没有日程。</p>
+            <p className="mt-5 text-sm text-muted-foreground">{t('当天没有日程。', 'No events today.')}</p>
           )
         ) : (
           <div className="mt-5 space-y-3">
@@ -167,7 +178,7 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
                     ))}
                   </div>
                 ) : (
-                  <p className="mt-2 text-sm text-muted-foreground">暂无日程</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{t('暂无日程', 'No events scheduled')}</p>
                 )}
               </div>
             ))}

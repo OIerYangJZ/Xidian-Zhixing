@@ -1,8 +1,11 @@
 import { CreatePostModalLauncher } from '@/components/CreatePostModalLauncher';
 import { Posts } from '@/components/Posts';
 import { getServerUser } from '@/lib/getServerUser';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 
-export const metadata = { title: '西电知行 · 首页' };
+export function generateMetadata() {
+  return { title: getInterfaceLanguage() === 'en' ? 'Home | Xidian Zhixing' : '西电知行 · 首页' };
+}
 
 export default async function Page() {
   const [user] = await getServerUser();

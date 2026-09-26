@@ -1,12 +1,13 @@
 import { Posts } from '@/components/Posts';
 import { CreatePostModalLauncher } from '@/components/CreatePostModalLauncher';
 import { getServerUser } from '@/lib/getServerUser';
+import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
 import { getProfile } from '../getProfile';
 
 export async function generateMetadata({ params }: { params: { username: string } }) {
   const profile = await getProfile(params.username);
   return {
-    title: profile?.name || '西电知行',
+    title: profile?.name || (getInterfaceLanguage() === 'en' ? 'Xidian Zhixing' : '西电知行'),
   };
 }
 

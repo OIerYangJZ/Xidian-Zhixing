@@ -1,3 +1,5 @@
+'use client';
+
 import { getReplies } from '@/lib/client_data_fetching/getReplies';
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
@@ -6,9 +8,11 @@ import { useLikeUnlikeComments } from '@/hooks/useLikeUnlikeComments';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
 import { commentFramerVariants } from '@/lib/framerVariants';
+import { useLanguage } from '@/hooks/useLanguage';
 import { CommentReply } from './CommentReply';
 
 export function CommentReplies({ parentId }: { parentId: number }) {
+  const { t } = useLanguage();
   const { data: session } = useSession();
   const queryKey = ['comments', parentId, 'replies'];
   const {
@@ -24,8 +28,8 @@ export function CommentReplies({ parentId }: { parentId: number }) {
   const { likeComment, unLikeComment } = useLikeUnlikeComments({ queryKey });
   const { shouldAnimate } = useShouldAnimate();
 
-  if (isPending) return <p className="text-sm text-muted-foreground">正在加载回复…</p>;
-  if (isError) return <p className="text-sm text-muted-foreground">回复加载失败。</p>;
+  if (isPending) return <p className="text-sm text-muted-foreground">{t('正在加载回复…', 'Loading replies…')}</p>;
+  if (isError) return <p className="text-sm text-muted-foreground">{t('回复加载失败。', 'Could not load replies.')}</p>;
 
   return (
     <div>

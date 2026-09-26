@@ -1,10 +1,11 @@
 /* eslint-disable import/no-duplicates */
 import { formatDistanceToNowStrict } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { enUS, zhCN } from 'date-fns/locale';
 
 import { cn } from '@/lib/cn';
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/hooks/useLanguage';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 
 export function CommentContent({
@@ -20,6 +21,7 @@ export function CommentContent({
   createdAt: string | Date;
   shouldHighlight?: boolean;
 }) {
+  const { language } = useLanguage();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!shouldHighlight) return;
@@ -39,7 +41,7 @@ export function CommentContent({
           ·
         </span>
         <span className="text-xs text-muted-foreground">
-          {formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true, locale: zhCN })}
+          {formatDistanceToNowStrict(new Date(createdAt), { addSuffix: true, locale: language === 'zh' ? zhCN : enUS })}
         </span>
       </div>
       <div className={cn('mt-1 rounded-lg', shouldHighlight && 'ring-2 ring-primary ring-offset-2')}>

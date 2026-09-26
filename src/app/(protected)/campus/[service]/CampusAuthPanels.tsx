@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { useLanguage } from '@/hooks/useLanguage';
 
 type Captcha = { imageBase64: string; imageContentType: string };
 
@@ -27,6 +28,7 @@ function CampusFormMessage({ message, error }: { message: string; error: boolean
 }
 
 function SchoolnetPanel({ authReady }: { authReady: boolean }) {
+  const { t } = useLanguage();
   const [attemptId, setAttemptId] = useState('');
   const [captcha, setCaptcha] = useState<Captcha | null>(null);
   const [password, setPassword] = useState('');
@@ -49,7 +51,7 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
       setCaptcha(data);
     } catch (error) {
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : '验证码获取失败。');
+      setMessage(error instanceof Error ? error.message : t('验证码获取失败。', 'Could not load the captcha.'));
     } finally {
       setBusy(false);
     }
@@ -64,16 +66,27 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
       const data = await requestData('/api/campus/auth/schoolnet/login', { attemptId, password, captcha: code });
       setResult(data);
       setPassword('');
-      setMessage('校园网登录成功，以下是本次返回的状态。');
+      setMessage(
+        t('校园网登录成功，以下是本次返回的状态。', 'Signed in to campus network service. Returned account status:'),
+      );
     } catch (error) {
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : '校园网登录失败。');
+      setMessage(error instanceof Error ? error.message : t('校园网登录失败。', 'Campus network sign-in failed.'));
     } finally {
       setBusy(false);
     }
   }
 
-  if (!authReady) return <CampusFormMessage message="请先完成西电统一身份认证，再使用校园网自服务。" error />;
+  if (!authReady)
+    return (
+      <CampusFormMessage
+        message={t(
+          '请先完成西电统一身份认证，再使用校园网自服务。',
+          'Complete Xidian unified sign-in before using campus network self-service.',
+        )}
+        error
+      />
+    );
   return (
     <div className="mt-5 max-w-xl">
       <button
@@ -81,13 +94,15 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
         onClick={getCaptcha}
         disabled={busy}
         className="rounded-full border border-border px-4 py-2 text-sm hover:bg-secondary disabled:opacity-60">
-        {busy && !captcha ? '正在获取验证码…' : '获取校园网验证码'}
+        {busy && !captcha
+          ? t('正在获取验证码…', 'Loading captcha…')
+          : t('获取校园网验证码', 'Get campus network captcha')}
       </button>
       {captcha ? (
         <form onSubmit={login} className="mt-4 space-y-3">
           <img
             src={`data:${captcha.imageContentType};base64,${captcha.imageBase64}`}
-            alt="校园网图形验证码"
+            alt={t('校园网图形验证码', 'Campus network captcha')}
             className="h-12 rounded border border-border"
           />
           <input
@@ -95,14 +110,14 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
             autoComplete="current-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="校园网自服务密码"
+            placeholder={t('校园网自服务密码', 'Campus network password')}
             className="w-full rounded-md border border-border bg-background px-3 py-2"
             required
           />
           <input
             value={code}
             onChange={(event) => setCode(event.target.value)}
-            placeholder="图形验证码"
+            placeholder={t('图形验证码', 'Captcha')}
             className="w-full rounded-md border border-border bg-background px-3 py-2"
             required
           />
@@ -110,7 +125,7 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
             type="submit"
             disabled={busy}
             className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
-            {busy ? '正在登录…' : '登录并查询'}
+            {busy ? t('正在登录…', 'Signing in…') : t('登录并查询', 'Sign in and check usage')}
           </button>
         </form>
       ) : null}
@@ -121,14 +136,18 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
             {Object.entries(result.usage.summary || {}).map(([name, value]) => (
               <p key={name} className="rounded-md bg-secondary p-3">
                 <span className="block text-muted-foreground">
-                  {{ used: '已用流量', rest: '剩余流量', charged: '套餐余额' }[name] || name}
+                  {{
+                    used: t('已用流量', 'Used'),
+                    rest: t('剩余流量', 'Remaining'),
+                    charged: t('套餐余额', 'Plan balance'),
+                  }[name] || name}
                 </span>
                 <strong className="mt-1 block">{value || '—'}</strong>
               </p>
             ))}
           </div>
           <div>
-            <h3 className="font-medium">在线设备</h3>
+            <h3 className="font-medium">{t('在线设备', 'Online devices')}</h3>
             {result.usage.onlineDevices?.length ? (
               result.usage.onlineDevices.map((device) => (
                 <p key={device.ip} className="mt-2 rounded-md border border-border p-3">
@@ -136,7 +155,9 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
                 </p>
               ))
             ) : (
-              <p className="mt-2 text-muted-foreground">当前没有返回在线设备。</p>
+              <p className="mt-2 text-muted-foreground">
+                {t('当前没有返回在线设备。', 'No online devices were returned.')}
+              </p>
             )}
           </div>
         </div>
@@ -146,6 +167,7 @@ function SchoolnetPanel({ authReady }: { authReady: boolean }) {
 }
 
 function DormWaterPanel() {
+  const { t } = useLanguage();
   const [captcha, setCaptcha] = useState<(Captcha & { sessionId: string }) | null>(null);
   const [phone, setPhone] = useState('');
   const [imageCode, setImageCode] = useState('');
@@ -166,7 +188,7 @@ function DormWaterPanel() {
       setCaptcha(await requestData('/api/campus/auth/dorm-water/captcha'));
     } catch (error) {
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : '验证码获取失败。');
+      setMessage(error instanceof Error ? error.message : t('验证码获取失败。', 'Could not load the captcha.'));
     } finally {
       setBusy(false);
     }
@@ -181,10 +203,10 @@ function DormWaterPanel() {
     try {
       await requestData('/api/campus/auth/dorm-water/sms', { sessionId: captcha.sessionId, phone, imageCode });
       setSmsSent(true);
-      setMessage('短信验证码已发送。');
+      setMessage(t('短信验证码已发送。', 'SMS verification code sent.'));
     } catch (error) {
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : '短信发送失败。');
+      setMessage(error instanceof Error ? error.message : t('短信发送失败。', 'Could not send the SMS code.'));
     } finally {
       setBusy(false);
     }
@@ -200,10 +222,10 @@ function DormWaterPanel() {
       setResult(
         await requestData('/api/campus/auth/dorm-water/login', { sessionId: captcha.sessionId, phone, smsCode }),
       );
-      setMessage('宿舍水机服务登录成功。');
+      setMessage(t('宿舍水机服务登录成功。', 'Signed in to the dorm water service.'));
     } catch (error) {
       setIsError(true);
-      setMessage(error instanceof Error ? error.message : '登录失败。');
+      setMessage(error instanceof Error ? error.message : t('登录失败。', 'Sign-in failed.'));
     } finally {
       setBusy(false);
     }
@@ -216,13 +238,13 @@ function DormWaterPanel() {
         onClick={getCaptcha}
         disabled={busy}
         className="rounded-full border border-border px-4 py-2 text-sm hover:bg-secondary disabled:opacity-60">
-        {busy && !captcha ? '正在获取验证码…' : '获取图形验证码'}
+        {busy && !captcha ? t('正在获取验证码…', 'Loading captcha…') : t('获取图形验证码', 'Get captcha')}
       </button>
       {captcha ? (
         <form onSubmit={sendSms} className="mt-4 space-y-3">
           <img
             src={`data:${captcha.imageContentType};base64,${captcha.imageBase64}`}
-            alt="宿舍水机图形验证码"
+            alt={t('宿舍水机图形验证码', 'Dorm water service captcha')}
             className="h-12 rounded border border-border"
           />
           <input
@@ -230,14 +252,14 @@ function DormWaterPanel() {
             autoComplete="tel"
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder="手机号"
+            placeholder={t('手机号', 'Phone number')}
             className="w-full rounded-md border border-border bg-background px-3 py-2"
             required
           />
           <input
             value={imageCode}
             onChange={(event) => setImageCode(event.target.value)}
-            placeholder="图形验证码"
+            placeholder={t('图形验证码', 'Captcha')}
             className="w-full rounded-md border border-border bg-background px-3 py-2"
             required
           />
@@ -245,7 +267,7 @@ function DormWaterPanel() {
             type="submit"
             disabled={busy}
             className="rounded-full border border-border px-4 py-2 text-sm disabled:opacity-60">
-            {busy ? '正在发送…' : '发送短信验证码'}
+            {busy ? t('正在发送…', 'Sending…') : t('发送短信验证码', 'Send SMS code')}
           </button>
         </form>
       ) : null}
@@ -254,7 +276,7 @@ function DormWaterPanel() {
           <input
             value={smsCode}
             onChange={(event) => setSmsCode(event.target.value)}
-            placeholder="短信验证码"
+            placeholder={t('短信验证码', 'SMS verification code')}
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2"
             required
           />
@@ -262,14 +284,15 @@ function DormWaterPanel() {
             type="submit"
             disabled={busy}
             className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-60">
-            {busy ? '正在登录…' : '登录'}
+            {busy ? t('正在登录…', 'Signing in…') : t('登录', 'Sign in')}
           </button>
         </form>
       ) : null}
       <CampusFormMessage message={message} error={isError} />
       {result ? (
         <p className="mt-3 rounded-md bg-secondary p-3 text-sm">
-          UID：{result.uid || '—'} · EID：{result.eid || '—'} · 登录凭证：{result.hasToken ? '已取得' : '无'}
+          UID: {result.uid || '—'} · EID: {result.eid || '—'} · {t('登录凭证', 'Token')}:{' '}
+          {result.hasToken ? t('已取得', 'received') : t('无', 'none')}
         </p>
       ) : null}
     </div>
