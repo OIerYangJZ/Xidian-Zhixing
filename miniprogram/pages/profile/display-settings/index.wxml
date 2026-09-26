@@ -1,80 +1,42 @@
-<view class="page display-page mobile-list-page {{themeClass}}">
-  <view class="mobile-section-title">深浅模式</view>
-  <view class="mobile-tile-card">
-    <view
-      wx:for="{{modeOptions}}"
-      wx:key="value"
-      class="mobile-tile option-row {{currentModeOption === item.value ? 'active' : ''}}"
-      data-mode="{{item.value}}"
-      bindtap="onModeTap"
-    >
-      <text class="mobile-tile-icon">◑</text>
-      <view class="mobile-tile-body">
-        <view class="mobile-tile-title">{{item.label}}</view>
-        <view class="mobile-tile-subtitle">显示模式</view>
+<view class="zx-page display-page {{themeClass}}">
+  <view class="zx-section-title">深浅模式</view>
+  <view class="modes">
+    <view wx:for="{{modeOptions}}" wx:key="value" class="mode {{currentModeOption === item.value ? 'mode--on' : ''}}" data-mode="{{item.value}}" bindtap="onModeTap">
+      <view class="mode-preview">
+        <view wx:if="{{item.value !== 'dark'}}" class="half half--light"><view class="bar"></view><view class="bar bar--short"></view></view>
+        <view wx:if="{{item.value !== 'light'}}" class="half half--dark"><view class="bar"></view><view class="bar bar--short"></view></view>
       </view>
-      <text wx:if="{{currentModeOption === item.value}}" class="check-mark">✓</text>
+      <view class="mode-label">{{item.label}}</view>
     </view>
   </view>
 
-  <view class="mobile-section-title">主题配色</view>
-  <view class="mobile-tile-card">
-    <picker
-      mode="selector"
-      range="{{themeOptions}}"
-      range-key="label"
-      value="{{currentThemeIndex}}"
-      bindchange="onThemeChange"
-    >
-      <view class="mobile-tile theme-picker-row">
-        <text class="mobile-tile-icon">◐</text>
-        <view class="mobile-tile-body">
-          <view class="mobile-tile-title">{{currentThemeLabel}}</view>
-          <view class="mobile-tile-subtitle">{{t.theme_select_hint}}</view>
-        </view>
-        <view class="theme-swatches theme-swatches-{{currentThemeOption}}">
-          <text></text>
-          <text></text>
-          <text></text>
-        </view>
-        <text class="picker-chevron">⌄</text>
+  <view class="zx-section-title">主题配色</view>
+  <view class="zx-list">
+    <view wx:for="{{themeOptions}}" wx:key="value" class="zx-list-item" data-index="{{index}}" bindtap="onThemeTap">
+      <view class="swatches">
+        <view class="swatch" style="background: {{item.swatches[0]}};"></view>
+        <view class="swatch" style="background: {{item.swatches[1]}};"></view>
+        <view class="swatch swatch--round" style="background: {{item.swatches[2]}};"></view>
       </view>
-    </picker>
-  </view>
-
-  <view class="mobile-section-title">帖子布局</view>
-  <view class="mobile-tile-card">
-    <view
-      wx:for="{{layoutOptions}}"
-      wx:key="value"
-      class="mobile-tile option-row {{currentPostLayout === item.value ? 'active' : ''}}"
-      data-layout="{{item.value}}"
-      bindtap="onLayoutTap"
-    >
-      <text class="mobile-tile-icon">☰</text>
-      <view class="mobile-tile-body">
-        <view class="mobile-tile-title">{{item.label}}</view>
-        <view class="mobile-tile-subtitle">树洞帖子样式</view>
+      <view class="zx-list-item__main">
+        <view class="zx-list-item__title">{{item.label}}</view>
+        <view class="zx-list-item__subtitle">{{item.desc}}</view>
       </view>
-      <text wx:if="{{currentPostLayout === item.value}}" class="check-mark">✓</text>
+      <view wx:if="{{currentThemeOption === item.value}}" class="check"><view class="zx-i zx-i-check zx-i--sm"></view></view>
     </view>
   </view>
 
-  <view class="mobile-section-title">语言</view>
-  <view class="mobile-tile-card">
-    <view
-      wx:for="{{langOptions}}"
-      wx:key="value"
-      class="mobile-tile option-row {{currentLanguage === item.value ? 'active' : ''}}"
-      data-lang="{{item.value}}"
-      bindtap="onLangTap"
-    >
-      <text class="mobile-tile-icon">◎</text>
-      <view class="mobile-tile-body">
-        <view class="mobile-tile-title">{{item.label}}</view>
-        <view class="mobile-tile-subtitle">多语言</view>
-      </view>
-      <text wx:if="{{currentLanguage === item.value}}" class="check-mark">✓</text>
+  <view class="zx-section-title">帖子布局 · 只影响树洞首页</view>
+  <view class="layouts">
+    <view wx:for="{{layoutOptions}}" wx:key="value" class="layout {{currentPostLayout === item.value ? 'layout--on' : ''}}" data-layout="{{item.value}}" bindtap="onLayoutTap">
+      <view wx:if="{{item.value === 'threads'}}" class="layout-preview"><view class="lp-seal"></view><view class="lp-lines"><view class="bar"></view><view class="bar bar--short"></view></view></view>
+      <view wx:else class="layout-preview layout-preview--card"><view class="lp-card"><view class="bar"></view><view class="bar bar--short"></view></view></view>
+      <view class="layout-label">{{item.label}}</view>
     </view>
+  </view>
+
+  <view class="zx-section-title">语言</view>
+  <view class="segment">
+    <view wx:for="{{langOptions}}" wx:key="value" class="segment-option {{currentLanguage === item.value ? 'segment-option--on' : ''}}" data-lang="{{item.value}}" bindtap="onLangTap">{{item.label}}</view>
   </view>
 </view>

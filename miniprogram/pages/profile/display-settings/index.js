@@ -25,10 +25,13 @@ Page({
     const currentThemeOption = getDisplayTheme();
     const currentModeOption = getDisplayMode();
     const currentPostLayout = wx.getStorageSync('treeholePostLayout') || 'threads';
+    // The four themes every client offers; swatches are bg, primary, accent
+    // from styles/zx-tokens.wxss.
     const themeOptions = [
-      { label: t.theme_humanist_founding || '人本·初创', value: 'zhushachi' },
-      { label: t.theme_academy_teal || '书院·青绿', value: 'zhuqing' },
-      { label: t.theme_apricot_paper || '杏黄·纸韵', value: 'xingrenhuang' }
+      { label: t.theme_humanist_founding || '人本·初创', value: 'zhushachi', desc: '朱赤、暖白与杏黄', swatches: ['#F7F6F2', '#A43B32', '#E8B65D'] },
+      { label: t.theme_academy_teal || '书院·青绿', value: 'zhuqing', desc: '沉静青绿与纸白', swatches: ['#F3F7F2', '#426F52', '#D4A955'] },
+      { label: t.theme_apricot_paper || '杏黄·纸韵', value: 'xingrenhuang', desc: '古朴杏黄与墨褐', swatches: ['#FBF6EA', '#94631F', '#E3B660'] },
+      { label: t.theme_ink_page || '墨朱·新页', value: 'mozhuxinye', desc: '连续讨论流与墨朱金', swatches: ['#FFFFFF', '#AB3E36', '#E6B75D'] }
     ];
     const currentThemeIndex = themeOptions.findIndex((option) => option.value === currentThemeOption);
     if (currentThemeIndex < 0) {
@@ -41,6 +44,7 @@ Page({
       currentThemeLabel: themeOptions[currentThemeIndex].label,
       currentModeOption,
       currentPostLayout,
+      currentLanguage: getLanguage(),
       themeOptions,
       modeOptions: [
         { label: t.theme_system || '跟随系统', value: 'system' },
@@ -48,7 +52,7 @@ Page({
         { label: t.theme_dark || '深色', value: 'dark' }
       ],
       langOptions: [
-        { label: t.lang_cn || '中文', value: 'zh-CN' },
+        { label: '简体中文', value: 'zh-CN' },
         { label: t.lang_en || 'English', value: 'en' }
       ],
       layoutOptions: [
@@ -58,15 +62,14 @@ Page({
     });
   },
 
-  onThemeChange(event) {
-    const index = Number(event.detail.value);
+  onThemeTap(event) {
+    const index = Number(event.currentTarget.dataset.index);
     const option = this.data.themeOptions[index];
     if (!option) {
       throw new Error(`Invalid theme option index: ${event.detail.value}`);
     }
     wx.setStorageSync('colorTheme', option.value);
     this.updateOptionsAndApply();
-    wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   },
 
   onModeTap(event) {
@@ -74,7 +77,6 @@ Page({
     if (!mode) return;
     wx.setStorageSync('displayMode', mode);
     this.updateOptionsAndApply();
-    wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   },
 
   onLangTap(event) {
@@ -82,7 +84,6 @@ Page({
     if (!lang) return;
     setLanguage(lang);
     this.updateOptionsAndApply();
-    wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   },
 
   onLayoutTap(event) {
@@ -90,6 +91,5 @@ Page({
     if (!layout) return;
     wx.setStorageSync('treeholePostLayout', layout);
     this.updateOptionsAndApply();
-    wx.showToast({ title: this.data.t.save_success || '已保存', icon: 'success' });
   }
 });
