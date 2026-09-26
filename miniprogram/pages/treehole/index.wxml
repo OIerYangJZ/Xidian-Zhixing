@@ -1,3 +1,4 @@
+<import src="/templates/post-row.wxml" />
 <view class="zx-page treehole {{themeClass}} treehole-layout-{{postLayout}}" bindtouchstart="onTouchStart" bindtouchend="onTouchEnd">
   <!-- M1: the top-left avatar and the side drawer are gone; their entries live in 我的 and 消息. -->
   <view class="appbar" style="padding-top: {{navTop}}px; height: {{navHeight}}px;">
@@ -41,60 +42,9 @@
     <view class="section-rule" wx:if="{{activeSection && activeSection.ruleText}}">{{activeSection.ruleText}}</view>
 
     <view class="sheet">
-      <view class="post {{postLayout === 'threads' ? 'post--thread' : 'post--card zx-card'}}" wx:for="{{posts}}" wx:key="id" bindtap="goToDetail" data-id="{{item.id}}">
-        <view class="post-rail">
-          <view wx:if="{{item.isAnonymous}}" class="zx-avatar zx-avatar--seal post-avatar">{{item.authorInitial || '匿'}}</view>
-          <view wx:else class="zx-avatar post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" data-anonymous="0" catchtap="openAuthorProfile">
-            <image wx:if="{{item.authorAvatarUrl}}" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
-            <text wx:else>{{item.authorInitial}}</text>
-          </view>
-          <view wx:if="{{item.canShowFollowDot}}" class="post-follow">+</view>
-          <view wx:if="{{postLayout === 'threads'}}" class="post-line"></view>
-        </view>
-
-        <view class="post-body">
-          <view class="zx-row post-head">
-            <view class="zx-label zx-ellipsis post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
-            <view class="zx-caption post-time">· {{item.timeText}}</view>
-            <view class="zx-spacer"></view>
-            <view class="zx-i zx-i-more post-more"></view>
-          </view>
-          <view class="post-badges">
-            <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
-            <view wx:if="{{item.isAnonymous}}" class="zx-badge zx-badge--outline-seal">匿名</view>
-            <view wx:if="{{item.sectionName}}" class="zx-badge zx-badge--channel zx-tone-{{item.sectionTone}}"><view class="zx-dot"></view>{{item.sectionName}}</view>
-            <view class="zx-badge {{item.statusKey === 'resolved' ? 'zx-badge--success' : item.statusKey === 'closed' ? 'zx-badge--neutral' : 'zx-badge--info'}}">
-              <view class="zx-i zx-i--sm {{item.statusKey === 'resolved' ? 'zx-i-check' : 'zx-i-clock'}}"></view>{{item.statusLabel}}
-            </view>
-          </view>
-          <view class="post-title" wx:if="{{item.titleSegments && item.titleSegments.length}}">
-            <block wx:for="{{item.titleSegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-              <text wx:else>{{segment.text}}</text>
-            </block>
-          </view>
-          <view class="post-summary" wx:if="{{item.summarySegments && item.summarySegments.length}}">
-            <block wx:for="{{item.summarySegments}}" wx:for-item="segment" wx:key="index">
-              <text wx:if="{{segment.type === 'tag'}}" class="post-tag" data-tag="{{segment.tag}}" catchtap="goTagPosts">{{segment.text}}</text>
-              <text wx:else>{{segment.text}}</text>
-            </block>
-          </view>
-          <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
-            <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
-              <image src="{{img}}" mode="aspectFill" class="post-image"></image>
-            </swiper-item>
-          </swiper>
-          <view class="post-actions">
-            <view class="action {{item.liked || item.isLiked ? 'action--liked' : ''}}" data-index="{{index}}" catchtap="togglePostLike">
-              <view class="zx-i zx-i--sm {{item.liked || item.isLiked ? 'zx-i-heart-fill' : 'zx-i-heart'}}"></view><text>{{item.likeCount || 0}}</text>
-            </view>
-            <view class="action"><view class="zx-i zx-i--sm zx-i-comment"></view><text>{{item.commentCount || 0}}</text></view>
-            <view class="action {{item.favorited || item.isFavorited ? 'action--saved' : ''}}" data-index="{{index}}" catchtap="togglePostFavorite">
-              <view class="zx-i zx-i--sm {{item.favorited || item.isFavorited ? 'zx-i-star-fill' : 'zx-i-star'}}"></view><text>{{item.favoriteCount || 0}}</text>
-            </view>
-          </view>
-        </view>
-      </view>
+      <block wx:for="{{posts}}" wx:key="id">
+        <template is="post-row" data="{{item, index, interactive: true, card: postLayout !== 'threads', line: true, more: true}}" />
+      </block>
 
       <view class="zx-empty" wx:if="{{loading}}"><view class="zx-empty__message">正在寻找声音…</view></view>
       <view class="zx-empty" wx:if="{{!loading && errorMessage && posts.length === 0}}">

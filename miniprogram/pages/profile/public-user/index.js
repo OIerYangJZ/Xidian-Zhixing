@@ -54,9 +54,17 @@ Page({
         getPublicUser(this.data.userId),
         getPosts({ authorId: this.data.userId, page: 1, limit: 20 })
       ]);
+      const decorated = this.decorate(profile);
+      // Rows show this page's owner, not a stale alias or 匿名 from the feed.
+      const byOwner = (post) => Object.assign(attachDisplayImages(post), {
+        authorAlias: decorated.name,
+        authorAvatarUrl: decorated.avatarUrl || '',
+        authorInitial: decorated.avatarInitial,
+        isAnonymous: false
+      });
       this.setData({
-        profile: this.decorate(profile),
-        posts: posts.map(attachDisplayImages),
+        profile: decorated,
+        posts: posts.map(byOwner),
         loading: false
       });
     } catch (error) {
@@ -196,7 +204,7 @@ Page({
     }
   },
 
-  goToDetail(event) {
+  goPostDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },
@@ -206,5 +214,6 @@ Page({
     if (tag) wx.navigateTo({ url: `/pages/campus/search/index?keyword=${encodeURIComponent(`#${tag}`)}` });
   },
 
+  // Already on the author's page.
   openAuthorProfile() {}
 });

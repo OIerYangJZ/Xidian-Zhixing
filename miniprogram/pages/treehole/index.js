@@ -251,7 +251,7 @@ Page({
     this._lastScrollTop = scrollTop;
   },
 
-  goToDetail(event) {
+  goPostDetail(event) {
     wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${event.currentTarget.dataset.id}` });
   },
 

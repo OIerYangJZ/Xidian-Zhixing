@@ -171,7 +171,7 @@ Page({
     if (postId) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${postId}` });
   },
 
-  goToDetail(event) {
+  goPostDetail(event) {
     const id = event.currentTarget.dataset.id;
     if (id) wx.navigateTo({ url: `/pages/campus/post-detail/index?id=${id}` });
   },

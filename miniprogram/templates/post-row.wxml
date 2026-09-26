@@ -1,20 +1,30 @@
-<!-- A post row (handoff M1, Threads layout) shared by the pages that list
-     posts. Pass {{item, index}}; interactive: true wires like and favorite to
-     the page's togglePostLike / togglePostFavorite. Styles: styles/zx-post.wxss.
-     The page handles goPostDetail, goTagPosts and openAuthorProfile. -->
+<!-- A post row (handoff M1) shared by the pages that list posts.
+     Pass {{item, index}} plus, optionally:
+       interactive  like and favorite call the page's togglePostLike / togglePostFavorite
+       card         the card layout instead of the Threads rail
+       line         the Threads rail line under the avatar
+       more         the ••• mark in the head
+     Styles: styles/zx-post.wxss. The page handles goPostDetail, goTagPosts
+     and openAuthorProfile. -->
 <template name="post-row">
-  <view class="post post--thread" bindtap="goPostDetail" data-id="{{item.id}}">
+  <view class="post {{card ? 'post--card zx-card' : 'post--thread'}}" bindtap="goPostDetail" data-id="{{item.id}}">
     <view class="post-rail">
       <view wx:if="{{item.isAnonymous}}" class="zx-avatar zx-avatar--seal post-avatar">{{item.authorInitial || '匿'}}</view>
       <view wx:else class="zx-avatar post-avatar" data-user-id="{{item.authorUserId || item.authorId || ''}}" catchtap="openAuthorProfile">
         <image wx:if="{{item.authorAvatarUrl}}" src="{{item.authorAvatarUrl}}" mode="aspectFill"></image>
         <text wx:else>{{item.authorInitial}}</text>
       </view>
+      <view wx:if="{{item.canShowFollowDot}}" class="post-follow">+</view>
+      <view wx:if="{{line && !card}}" class="post-line"></view>
     </view>
     <view class="post-body">
       <view class="zx-row post-head">
         <view class="zx-label zx-ellipsis post-author">{{item.authorAlias || item.authorName || '匿名用户'}}</view>
         <view class="zx-caption post-time">· {{item.timeText}}</view>
+        <block wx:if="{{more}}">
+          <view class="zx-spacer"></view>
+          <view class="zx-i zx-i-more post-more"></view>
+        </block>
       </view>
       <view class="post-badges">
         <view wx:if="{{item.isPinned}}" class="zx-badge zx-badge--accent"><view class="zx-i zx-i--sm zx-i-pin"></view>置顶</view>
@@ -37,7 +47,7 @@
           <text wx:else>{{segment.text}}</text>
         </block>
       </view>
-      <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}">
+      <swiper class="post-images" wx:if="{{item.displayImages && item.displayImages.length > 0}}" indicator-dots="{{item.displayImages.length > 1}}" indicator-color="rgba(255,255,255,.5)" indicator-active-color="#ffffff">
         <swiper-item wx:for="{{item.displayImages}}" wx:for-item="img" wx:key="*this">
           <image src="{{img}}" mode="aspectFill" class="post-image"></image>
         </swiper-item>
