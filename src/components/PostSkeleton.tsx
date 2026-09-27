@@ -1,8 +1,15 @@
+'use client';
+
+import { useLanguage } from '@/hooks/useLanguage';
 import { Skeleton } from './ui/Skeleton';
 
 export function PostSkeleton() {
+  const { t } = useLanguage();
   return (
-    <div role="status" aria-label="正在加载动态" className="feed-separator flex gap-3 border-b px-4 py-4 sm:px-5">
+    <div
+      role="status"
+      aria-label={t('正在加载动态', 'Loading posts')}
+      className="feed-separator flex gap-3 border-b px-4 py-4 sm:px-5">
       <Skeleton className="h-10 w-10 shrink-0" />
       <div className="min-w-0 flex-1 space-y-3 pt-1">
         <Skeleton className="h-4 w-2/5" />

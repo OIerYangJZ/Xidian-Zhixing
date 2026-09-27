@@ -1,6 +1,6 @@
 const translations = {
   zh: {
-    'nav.home': 'Home',
+    'nav.home': '首页',
     'nav.login': '知行登录',
     'nav.xidian': '西电主页 ↗',
     'nav.common': '常用网站',
@@ -11,6 +11,20 @@ const translations = {
     'action.search': '搜索',
     'action.menu': '菜单',
     'action.close': '关闭',
+    'a11y.home': '西电知行首页',
+    'a11y.primaryNav': '主导航',
+    'a11y.switchLanguage': '切换到英文',
+    'a11y.openSearch': '打开搜索',
+    'a11y.campusImages': '西电校园影像',
+    'a11y.pauseMotion': '暂停图片动效',
+    'a11y.resumeMotion': '播放图片动效',
+    'alt.heroMain': '西电长安校区教学区俯瞰',
+    'alt.heroSmall': '西电长安校区校名石',
+    'alt.identity': '西电长安校区教学楼与校园绿地',
+    'alt.question': '西电长安校区校名石与教学楼',
+    'alt.campusMain': '西电长安校区教学区与中央步道',
+    'alt.campusLibrary': '西电图书馆及周边校园建筑航拍',
+    'alt.campusBuildings': '西电长安校区教学楼与绿地',
     'search.label': '搜索西电站内内容',
     'search.placeholder': '输入关键词',
     'search.submit': '搜索 ↗',
@@ -106,6 +120,20 @@ const translations = {
     'action.search': 'Search',
     'action.menu': 'Menu',
     'action.close': 'Close',
+    'a11y.home': 'Xidian Zhixing home',
+    'a11y.primaryNav': 'Main navigation',
+    'a11y.switchLanguage': 'Switch to Chinese',
+    'a11y.openSearch': 'Open search',
+    'a11y.campusImages': 'Xidian campus photos',
+    'a11y.pauseMotion': 'Pause image animation',
+    'a11y.resumeMotion': 'Play image animation',
+    'alt.heroMain': 'Aerial view of the academic district at Chang’an Campus',
+    'alt.heroSmall': 'Xidian name stone at Chang’an Campus',
+    'alt.identity': 'Academic buildings and green space at Chang’an Campus',
+    'alt.question': 'Xidian name stone and teaching buildings at Chang’an Campus',
+    'alt.campusMain': 'Academic district and central walkway at Chang’an Campus',
+    'alt.campusLibrary': 'Aerial view of Xidian library and nearby campus buildings',
+    'alt.campusBuildings': 'Teaching buildings and greenery at Chang’an Campus',
     'search.label': 'Search across Xidian',
     'search.placeholder': 'Enter a keyword',
     'search.submit': 'Search ↗',
@@ -215,7 +243,10 @@ const navLinks = [...document.querySelectorAll('.nav-link')];
 const sections = [...document.querySelectorAll('main section[id]')];
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-let language = localStorage.getItem('xidian-language') || 'zh';
+const languageCookie = document.cookie.split('; ').find((entry) => entry.startsWith('zhixing-language='));
+const languageFromCookie = languageCookie?.split('=')[1];
+const languageFromUrl = new URLSearchParams(window.location.search).get('lang');
+let language = languageFromUrl || languageFromCookie || localStorage.getItem('xidian-language') || 'zh';
 let ticking = false;
 
 function applyLanguage(nextLanguage) {
@@ -223,6 +254,11 @@ function applyLanguage(nextLanguage) {
   body.dataset.lang = language;
   root.lang = language === 'zh' ? 'zh-CN' : 'en';
   localStorage.setItem('xidian-language', language);
+  document.cookie = `zhixing-language=${language}; Path=/; Max-Age=31536000; SameSite=Lax`;
+  window.history.replaceState(null, '', `${window.location.pathname}?lang=${language}${window.location.hash}`);
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'zhixing-language-change', language }, window.location.origin);
+  }
   document.querySelectorAll('[data-i18n]').forEach((element) => {
     const value = translations[language][element.dataset.i18n];
     if (value !== undefined) element.innerHTML = value;
@@ -231,8 +267,21 @@ function applyLanguage(nextLanguage) {
     const value = translations[language][element.dataset.i18nPlaceholder];
     if (value !== undefined) element.placeholder = value;
   });
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((element) => {
+    const value = translations[language][element.dataset.i18nAriaLabel];
+    if (value !== undefined) element.setAttribute('aria-label', value);
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach((element) => {
+    const value = translations[language][element.dataset.i18nAlt];
+    if (value !== undefined) element.alt = value;
+  });
   languageSwitch.textContent = language === 'zh' ? 'EN' : '中';
-  languageSwitch.setAttribute('aria-label', language === 'zh' ? 'Switch to English' : '切换到中文');
+  languageSwitch.setAttribute('aria-label', translations[language]['a11y.switchLanguage']);
+  const motionPaused = questionPhoto.classList.contains('is-paused');
+  pauseMotion.setAttribute(
+    'aria-label',
+    translations[language][motionPaused ? 'a11y.resumeMotion' : 'a11y.pauseMotion'],
+  );
 }
 
 function setPanel(panel, open) {
@@ -338,7 +387,7 @@ pauseMotion.addEventListener('click', () => {
   const paused = questionPhoto.classList.toggle('is-paused');
   body.classList.toggle('is-motion-paused', paused);
   pauseMotion.textContent = paused ? '▶' : 'Ⅱ';
-  pauseMotion.setAttribute('aria-label', paused ? '播放图片动效' : '暂停图片动效');
+  pauseMotion.setAttribute('aria-label', translations[language][paused ? 'a11y.resumeMotion' : 'a11y.pauseMotion']);
 });
 
 const revealObserver = new IntersectionObserver(

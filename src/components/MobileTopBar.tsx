@@ -25,7 +25,10 @@ export function MobileTopBar() {
   if (pathname.startsWith('/posts/')) return null;
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/80 bg-background/85 px-4 backdrop-blur-xl md:hidden">
-      <Link href="/" className="flex h-10 items-center gap-2 rounded-full pr-2" aria-label="西电知行首页">
+      <Link
+        href="/"
+        className="flex h-10 items-center gap-2 rounded-full pr-2"
+        aria-label={t('西电知行首页', 'Xidian Zhixing home')}>
         <img src="/campus-login/zhixing-logo.jpg" alt="" className="h-8 w-8 rounded-md object-cover" />
       </Link>
       {showTitle && (
@@ -57,7 +60,7 @@ export function MobileTopBar() {
         </Link>
         <Link
           href={user?.username ? `/${user.username}` : '/feed'}
-          aria-label="个人主页"
+          aria-label={t('个人主页', 'Profile')}
           className="grid h-9 w-9 place-items-center overflow-hidden rounded-full bg-secondary">
           {user?.profilePhoto ? (
             <img src={user.profilePhoto} alt="" className="h-full w-full object-cover" />

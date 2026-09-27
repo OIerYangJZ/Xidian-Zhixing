@@ -107,7 +107,7 @@ export function MenuBar() {
       </aside>
       <nav
         className="fixed inset-x-0 bottom-0 z-40 flex h-[calc(64px+env(safe-area-inset-bottom))] items-center border-t border-border bg-background/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
-        aria-label="移动端主导航">
+        aria-label={t('移动端主导航', 'Mobile navigation')}>
         {mobileItems.map((item) => (
           <MenuBarItem key={item.route} {...item} mobileTab />
         ))}

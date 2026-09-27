@@ -156,7 +156,7 @@ export function SettingsPanel() {
                   value={language}
                   onChange={(event) => setLanguage(event.target.value as 'zh' | 'en')}
                   className="min-h-11 border border-border bg-background px-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-primary">
-                  <option value="zh">简体中文</option>
+                  <option value="zh">{t('简体中文', 'Simplified Chinese')}</option>
                   <option value="en">English</option>
                 </select>
               </label>

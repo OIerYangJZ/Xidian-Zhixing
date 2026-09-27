@@ -10,10 +10,11 @@ export async function generateMetadata() {
 
 export default async function ModerationPage() {
   if (!(await getKnowledgeAdmin())) notFound();
+  const language = await getInterfaceLanguage();
 
   return (
     <main>
-      <PageHeader title="内容审核" />
+      <PageHeader title={language === 'en' ? 'Moderation' : '内容审核'} />
       <ModerationQueue />
     </main>
   );

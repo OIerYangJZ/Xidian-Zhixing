@@ -34,6 +34,15 @@ export function LanguageContextProvider({
     if (!hasCookie && (savedLanguage === 'zh' || savedLanguage === 'en')) persistLanguage(savedLanguage);
   }, [language, persistLanguage]);
 
+  useEffect(() => {
+    const handleLanguageMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.data?.type !== 'zhixing-language-change') return;
+      if (event.data.language === 'zh' || event.data.language === 'en') persistLanguage(event.data.language);
+    };
+    window.addEventListener('message', handleLanguageMessage);
+    return () => window.removeEventListener('message', handleLanguageMessage);
+  }, [persistLanguage]);
+
   const value = useMemo(() => ({ language, setLanguage: persistLanguage }), [language, persistLanguage]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }

@@ -223,15 +223,18 @@ export function CampusLoginExperience() {
               <p>{t(activeImage.title[0], activeImage.title[1])}</p>
               <span>{t(activeImage.place[0], activeImage.place[1])}</span>
             </div>
-            <div className="campus-login__gallery-controls" aria-label="校园照片切换">
-              <button type="button" onClick={() => moveSlide(-1)} aria-label="上一张校园照片">
+            <div className="campus-login__gallery-controls" aria-label={t('校园照片切换', 'Campus photo controls')}>
+              <button
+                type="button"
+                onClick={() => moveSlide(-1)}
+                aria-label={t('上一张校园照片', 'Previous campus photo')}>
                 ←
               </button>
               <div aria-live="polite">
                 <strong>{String(activeIndex + 1).padStart(2, '0')}</strong>
                 <span>/ 04</span>
               </div>
-              <button type="button" onClick={() => moveSlide(1)} aria-label="下一张校园照片">
+              <button type="button" onClick={() => moveSlide(1)} aria-label={t('下一张校园照片', 'Next campus photo')}>
                 →
               </button>
             </div>
