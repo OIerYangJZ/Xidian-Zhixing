@@ -101,7 +101,20 @@ export const Post = memo(
           });
         return { previous };
       },
-      onError: (_error, _nextReposted, context) => qc.setQueryData(['posts', postId], context?.previous),
+      onSuccess: (_data, nextReposted) =>
+        showToast({
+          title: nextReposted ? t('转发成功', 'Reposted') : t('已取消转发', 'Repost removed'),
+          type: 'success',
+        }),
+      onError: (_error, nextReposted, context) => {
+        qc.setQueryData(['posts', postId], context?.previous);
+        showToast({
+          title: nextReposted
+            ? t('转发失败，请重试。', 'Could not repost. Please try again.')
+            : t('取消转发失败，请重试。', 'Could not undo repost. Please try again.'),
+          type: 'error',
+        });
+      },
       onSettled: () => qc.invalidateQueries({ queryKey: ['posts', postId] }),
     });
 
@@ -266,6 +279,7 @@ export const Post = memo(
             <ToggleStepper
               isSelected={isReposted}
               aria-label={isReposted ? t('取消转发', 'Undo repost') : t('转发', 'Repost')}
+              isDisabled={repostMutation.isPending}
               onChange={(nextIsReposted) => repostMutation.mutate(nextIsReposted)}
               Icon={RepostIcon}
               quantity={postCounts.reposts}
