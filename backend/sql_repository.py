@@ -299,6 +299,36 @@ class SqliteTreeholeRepository:
         self._persisted_fingerprints = table_fingerprints(db)
         return db
 
+    def lookup_session_user(self, token: str) -> dict[str, Any] | None:
+        """Resolve one bearer token without materialising the whole state.
+
+        load_state reads every table, which is fine behind a request that is
+        about to use them but far too heavy for the page-gate check Nginx makes
+        on every navigation.  Applies the same age cutoff as load_state, so a
+        token is valid here exactly when auth_user would accept it.
+        """
+        token = str(token or "").strip()
+        if not token:
+            return None
+        session_cutoff = (
+            datetime.now(timezone.utc) - timedelta(days=SESSION_MAX_AGE_DAYS)
+        ).isoformat()
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT u.id, u.student_id, u.deleted, u.banned"
+                " FROM sessions s JOIN users u ON u.id = s.user_id"
+                " WHERE s.token = ? AND s.created_at >= ?",
+                (token, session_cutoff),
+            ).fetchone()
+        if row is None:
+            return None
+        return {
+            "id": row["id"],
+            "studentId": row["student_id"],
+            "deleted": bool(row["deleted"]),
+            "banned": bool(row["banned"]),
+        }
+
     def save_state(self, db: dict[str, Any]) -> None:
         with self._connect() as conn:
             self._save_state_tx(conn, db)

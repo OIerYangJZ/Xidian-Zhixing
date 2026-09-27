@@ -34,6 +34,7 @@ import handlers._message_handler as _message_handler
 import handlers._notification_handler as _notification_handler
 import handlers._post_handler as _post_handler
 import handlers._radio_handler as _radio_handler
+import handlers._web_session_handler as _web_session_handler
 import handlers._static_handler as _static_handler
 import handlers._upload_handler as _upload_handler
 import handlers._user_handler as _user_handler
@@ -229,6 +230,9 @@ def _get_version_info() -> dict[str, Any]:
 # A path joins this set deliberately; the default is refusal.
 _BANNED_ALLOWED_PATHS = frozenset({
     "/api/auth/logout",
+    # The ban notice and the appeal form are pages; without the page-gate
+    # cookie a banned account could not load them.
+    "/api/auth/web-session",
     "/api/users/me",
     "/api/appeals",
     "/api/appeals/mine",
@@ -488,6 +492,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             send_json(self, HTTPStatus.OK, _get_version_info())
             return
 
+        if path == "/api/auth/check":
+            _web_session_handler.handle_auth_check(self)
+            return
+
         if path == "/api/auth/xidian/start":
             _auth_handler.handle_xidian_auth_start(self, {}, query)
             return
@@ -496,7 +504,7 @@ class TreeholeHandler(BaseHTTPRequestHandler):
         if path.startswith("/api/storage/"):
             with DB_LOCK:
                 storage_db = load_db()
-            if _static_handler.handle_storage_get(self, path, storage_db):
+            if _static_handler.handle_storage_get(self, path, storage_db, query):
                 return
             json_error(self, HTTPStatus.NOT_FOUND, "存储对象不存在")
             return
@@ -1042,6 +1050,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
                 _auth_handler.handle_logout(self, db)
                 return
 
+            if path == "/api/auth/web-session":
+                _web_session_handler.handle_web_session_create(self, db)
+                return
+
             if path == "/api/notifications/read-all":
                 _notification_handler.handle_mark_all_notifications_read(self, db)
                 return
@@ -1349,6 +1361,10 @@ class TreeholeHandler(BaseHTTPRequestHandler):
             json_error(self, HTTPStatus.NOT_FOUND, "Not Found")
 
     def _handle_delete(self, path: str) -> None:
+        # Clearing the page-gate cookie must work after the session is gone.
+        if path == "/api/auth/web-session":
+            _web_session_handler.handle_web_session_delete(self)
+            return
         match_knowledge_source = re.fullmatch(r"/api/admin/ai/knowledge-sources/([^/]+)", path)
         if match_knowledge_source:
             with DB_LOCK:

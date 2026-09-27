@@ -2,12 +2,14 @@
 handlers/_static_handler.py
 
 Static file / asset serving:
-  GET /api/storage/<object_key>   — object storage (avatars, post images)
+  GET /api/storage/<object_key>   — object storage (avatars, post images);
+                                   ?w=<width> returns a resized WebP
   GET /<fallback>                — SPA index.html for unmatched GET paths
 """
 from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any
 
 from http import HTTPStatus
@@ -21,6 +23,7 @@ from helpers import (
     send_static_file,
     should_fallback_to_spa,
 )
+from helpers._image_variants import cached_variant, snap_width
 from services import auth_user as auth_user_helper, is_post_private
 
 
@@ -28,10 +31,14 @@ def handle_storage_get(
     handler: BaseHTTPRequestHandler,
     path: str,
     db: dict[str, Any],
+    query: dict[str, list[str]] | None = None,
 ) -> bool:
     """
     Handle GET /api/storage/<object_key>.
     Returns True if this path was handled, False otherwise.
+
+    With ?w=<width> an image is served as a WebP no wider than the nearest
+    step in VARIANT_WIDTHS.  The visibility checks below run first either way.
     """
     prefix = "/api/storage/"
     if not path.startswith(prefix):
@@ -127,6 +134,18 @@ def handle_storage_get(
         return False
 
     data, content_type = result
+    requested_width = ((query or {}).get("w") or [""])[0]
+    width = snap_width(requested_width) if requested_width else None
+    if width is not None:
+        storage = _globals.OBJECT_STORAGE
+        root_dir = (
+            Path(getattr(storage, "root_dir"))
+            if getattr(storage, "backend_name", "") == "local"
+            else None
+        )
+        variant = cached_variant(root_dir, object_key, data, content_type, width)
+        if variant is not None:
+            data, content_type = variant, "image/webp"
     # Images are meant to render in-page; anything else is forced to download so
     # it can never be interpreted as a document on our origin.
     is_image = str(content_type or "").lower().startswith("image/")

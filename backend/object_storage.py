@@ -75,6 +75,12 @@ class LocalObjectStorage:
         if path.exists():
             path.unlink()
             self._cleanup_empty_parents(path.parent)
+        # Resized renditions of a removed image must go with it, or moderation
+        # deletes would leave viewable copies on disk.  Imported here because
+        # helpers pulls in services, which import this module.
+        from helpers._image_variants import delete_variants
+
+        delete_variants(self.root_dir, key.strip().replace("\\", "/"))
 
     def restore_bytes(self, *, key: str, data: bytes, content_type: str) -> None:
         path = self._safe_path_from_key(key)

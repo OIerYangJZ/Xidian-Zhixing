@@ -2020,6 +2020,8 @@ def test_banned_session_is_refused_everywhere_but_the_appeal_surface() -> None:
     allowed = server._BANNED_ALLOWED_PATHS
     assert allowed == frozenset({
         "/api/auth/logout",
+        # Sets only the page-gate cookie, so the ban notice page can load.
+        "/api/auth/web-session",
         "/api/users/me",
         "/api/appeals",
         "/api/appeals/mine",
