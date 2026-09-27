@@ -89,7 +89,10 @@ export const Comment = memo(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ commentId, reason: 'OTHER', details }),
           });
-          showToast({ title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'), type: response.ok ? 'success' : 'error' });
+          showToast({
+            title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'),
+            type: response.ok ? 'success' : 'error',
+          });
         },
       });
     };
@@ -142,9 +145,14 @@ export const Comment = memo(
               loading={createReplyMutation.isPending}
               mode="ghost"
             />
-            {!isOwnComment && <button type="button" onClick={reportComment} className="px-2 text-xs text-muted-foreground hover:text-destructive">
-              {t('举报', 'Report')}
-            </button>}
+            {!isOwnComment && (
+              <button
+                type="button"
+                onClick={reportComment}
+                className="px-2 text-xs text-muted-foreground hover:text-destructive">
+                {t('举报', 'Report')}
+              </button>
+            )}
 
             {isOwnComment && (
               <DropdownMenuButton

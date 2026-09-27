@@ -20,6 +20,7 @@ import { usePostBookmarkMutations } from '@/hooks/mutations/usePostBookmarkMutat
 import { useToast } from '@/hooks/useToast';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useDialogs } from '@/hooks/useDialogs';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
@@ -27,7 +28,6 @@ import ProfileBlock from './ProfileBlock';
 import { ProfilePhoto } from './ui/ProfilePhoto';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
 import { PostOptions } from './PostOptions';
-import { useDialogs } from '@/hooks/useDialogs';
 
 function formatCount(count: number) {
   return count >= 10000 ? `${(count / 10000).toFixed(1).replace(/\.0$/, '')}万` : count.toLocaleString();
@@ -187,7 +187,10 @@ export const Post = memo(
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ postId, reason: 'OTHER', details }),
           });
-          showToast({ title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'), type: response.ok ? 'success' : 'error' });
+          showToast({
+            title: response.ok ? t('举报已提交', 'Report submitted') : t('举报失败', 'Could not report'),
+            type: response.ok ? 'success' : 'error',
+          });
         },
       });
     };
@@ -240,10 +243,12 @@ export const Post = memo(
     });
 
     return (
+      // The replies control below provides keyboard access; clicking other card space is a pointer shortcut.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions
       <article
         className="feed-separator cursor-pointer border-b px-[12px] py-0 transition-colors hover:bg-foreground/[0.012] sm:px-[16px]"
         onClick={(event) => {
-          const target = event.target;
+          const { target } = event;
           if (
             target instanceof Element &&
             target.closest(
@@ -388,9 +393,15 @@ export const Post = memo(
               className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary">
               <ShareIcon className="h-5 w-5" />
             </button>
-            {!isOwnPost && <button type="button" onClick={reportPost} className="px-2 py-1 text-xs hover:text-destructive" aria-label={t('举报动态', 'Report post')}>
-              {t('举报', 'Report')}
-            </button>}
+            {!isOwnPost && (
+              <button
+                type="button"
+                onClick={reportPost}
+                className="px-2 py-1 text-xs hover:text-destructive"
+                aria-label={t('举报动态', 'Report post')}>
+                {t('举报', 'Report')}
+              </button>
+            )}
           </div>
         </div>
 

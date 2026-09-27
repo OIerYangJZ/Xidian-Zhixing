@@ -48,7 +48,11 @@ export async function GET() {
       return {
         id: conversation.id,
         updatedAt: conversation.updatedAt,
-        unread: Boolean(conversation.messages[0] && conversation.messages[0].senderId !== user.id && (!lastReadAt || conversation.messages[0].createdAt > lastReadAt)),
+        unread: Boolean(
+          conversation.messages[0] &&
+            conversation.messages[0].senderId !== user.id &&
+            (!lastReadAt || conversation.messages[0].createdAt > lastReadAt),
+        ),
         participant: {
           id: participant.user.id,
           username: participant.user.username,

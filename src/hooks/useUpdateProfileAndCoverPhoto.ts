@@ -38,7 +38,7 @@ export async function useUpdateProfileAndCoverPhoto({
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}-${uuid()}.${fileExtension}`;
-    await uploadObject(buffer, fileName, file.type);
+    await uploadObject(buffer, fileName);
 
     await prisma.user.update({
       where: {

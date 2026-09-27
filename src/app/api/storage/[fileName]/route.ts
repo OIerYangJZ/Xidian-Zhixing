@@ -20,7 +20,10 @@ export async function GET(request: Request, props: { params: Promise<{ fileName:
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(fileName)) return new Response(null, { status: 400 });
   const media = await prisma.visualMedia.findFirst({
     where: { fileName },
-    select: { userId: true, post: { select: { status: true, moderationCases: { where: { status: 'OPEN' }, select: { id: true } } } } },
+    select: {
+      userId: true,
+      post: { select: { status: true, moderationCases: { where: { status: 'OPEN' }, select: { id: true } } } },
+    },
   });
   if (!media) return new Response(null, { status: 404 });
   const isPublic = media.post.status === 'PUBLISHED' && media.post.moderationCases.length === 0;
@@ -53,7 +56,7 @@ export async function GET(request: Request, props: { params: Promise<{ fileName:
       },
     });
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return new Response(null, { status: 404 });
+    if ((error as { code?: string }).code === 'ENOENT') return new Response(null, { status: 404 });
     throw error;
   }
 }

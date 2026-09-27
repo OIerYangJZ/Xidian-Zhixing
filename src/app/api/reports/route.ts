@@ -3,12 +3,14 @@ import prisma from '@/lib/prisma/prisma';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const schema = z.object({
-  postId: z.number().int().positive().optional(),
-  commentId: z.number().int().positive().optional(),
-  reason: z.enum(['SPAM', 'HARASSMENT', 'MISINFORMATION', 'INAPPROPRIATE_CONTENT', 'OTHER']),
-  details: z.string().trim().max(1000).optional(),
-}).refine(({ postId, commentId }) => Number(!!postId) + Number(!!commentId) === 1);
+const schema = z
+  .object({
+    postId: z.number().int().positive().optional(),
+    commentId: z.number().int().positive().optional(),
+    reason: z.enum(['SPAM', 'HARASSMENT', 'MISINFORMATION', 'INAPPROPRIATE_CONTENT', 'OTHER']),
+    details: z.string().trim().max(1000).optional(),
+  })
+  .refine(({ postId, commentId }) => Number(!!postId) + Number(!!commentId) === 1);
 
 export async function POST(request: Request) {
   const [user] = await getServerUser();

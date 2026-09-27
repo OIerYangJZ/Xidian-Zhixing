@@ -18,7 +18,11 @@ type ModerationCaseItem = {
     user: { id: string; username: string | null; name: string | null; status: string };
     visualMedia: Array<{ type: 'PHOTO' | 'VIDEO'; url: string | null }>;
   } | null;
-  comment: { id: number; content: string; user: { id: string; username: string | null; name: string | null; status: string } } | null;
+  comment: {
+    id: number;
+    content: string;
+    user: { id: string; username: string | null; name: string | null; status: string };
+  } | null;
 };
 
 export function ModerationQueue() {
@@ -81,11 +85,15 @@ export function ModerationQueue() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold">
-                {item.post?.user.name || item.post?.user.username || item.comment?.user.name || item.comment?.user.username || t('用户', 'User')}
+                {item.post?.user.name ||
+                  item.post?.user.username ||
+                  item.comment?.user.name ||
+                  item.comment?.user.username ||
+                  t('用户', 'User')}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')} · {item.post ? t('帖子', 'Post') : t('评论', 'Comment')} #
-                {item.post?.id || item.comment?.id}
+                {new Date(item.createdAt).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US')} ·{' '}
+                {item.post ? t('帖子', 'Post') : t('评论', 'Comment')} #{item.post?.id || item.comment?.id}
               </p>
             </div>
             <span className="rounded-full bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -122,29 +130,55 @@ export function ModerationQueue() {
             {item.report && <span className="mr-2 font-semibold">{item.report.reason}</span>}
             {item.report?.details || item.notes || t('没有附加审核说明。', 'No additional review notes.')}
           </p>
-          {item.appeal && <p className="mt-2 rounded-md bg-primary/10 px-3 py-2 text-xs leading-5">{t('申诉理由：', 'Appeal: ')}{item.appeal.reason}</p>}
+          {item.appeal && (
+            <p className="mt-2 rounded-md bg-primary/10 px-3 py-2 text-xs leading-5">
+              {t('申诉理由：', 'Appeal: ')}
+              {item.appeal.reason}
+            </p>
+          )}
           <div className="mt-4 flex gap-2">
-            {item.status === 'OPEN' ? <><button
-              type="button"
-              disabled={workingId === item.id}
-              onClick={() => decide(item.id, 'approve')}
-              className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-              {t('通过并公开', 'Approve and publish')}
-            </button>
-            <button
-              type="button"
-              disabled={workingId === item.id}
-              onClick={() => decide(item.id, 'remove')}
-              className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground disabled:opacity-50">
-              {t('移除内容', 'Remove content')}
-            </button>
-            <button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'suspend')} className="rounded-full border border-destructive px-4 py-2 text-sm text-destructive disabled:opacity-50">
-              {t('移除并停用账号', 'Remove and suspend account')}
-            </button></> : <><button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'restore')} className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
-              {t('接受申诉并恢复', 'Accept appeal and restore')}
-            </button><button type="button" disabled={workingId === item.id} onClick={() => decide(item.id, 'reject_appeal')} className="rounded-full border border-border px-4 py-2 text-sm disabled:opacity-50">
-              {t('驳回申诉', 'Reject appeal')}
-            </button></>}
+            {item.status === 'OPEN' ? (
+              <>
+                <button
+                  type="button"
+                  disabled={workingId === item.id}
+                  onClick={() => decide(item.id, 'approve')}
+                  className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50">
+                  {t('通过并公开', 'Approve and publish')}
+                </button>
+                <button
+                  type="button"
+                  disabled={workingId === item.id}
+                  onClick={() => decide(item.id, 'remove')}
+                  className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-foreground disabled:opacity-50">
+                  {t('移除内容', 'Remove content')}
+                </button>
+                <button
+                  type="button"
+                  disabled={workingId === item.id}
+                  onClick={() => decide(item.id, 'suspend')}
+                  className="rounded-full border border-destructive px-4 py-2 text-sm text-destructive disabled:opacity-50">
+                  {t('移除并停用账号', 'Remove and suspend account')}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={workingId === item.id}
+                  onClick={() => decide(item.id, 'restore')}
+                  className="rounded-full bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">
+                  {t('接受申诉并恢复', 'Accept appeal and restore')}
+                </button>
+                <button
+                  type="button"
+                  disabled={workingId === item.id}
+                  onClick={() => decide(item.id, 'reject_appeal')}
+                  className="rounded-full border border-border px-4 py-2 text-sm disabled:opacity-50">
+                  {t('驳回申诉', 'Reject appeal')}
+                </button>
+              </>
+            )}
           </div>
         </article>
       ))}

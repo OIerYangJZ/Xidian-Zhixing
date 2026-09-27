@@ -14,7 +14,15 @@ export async function GET() {
       OR: [{ post: { is: { userId: session.user.id } } }, { comment: { is: { userId: session.user.id } } }],
       action: { in: ['REMOVE_CONTENT', 'SUSPEND_USER'] },
     },
-    select: { id: true, action: true, status: true, notes: true, postId: true, commentId: true, appeals: { select: { id: true, resolvedAt: true }, where: { userId: session.user.id } } },
+    select: {
+      id: true,
+      action: true,
+      status: true,
+      notes: true,
+      postId: true,
+      commentId: true,
+      appeals: { select: { id: true, resolvedAt: true }, where: { userId: session.user.id } },
+    },
     orderBy: { createdAt: 'desc' },
   });
   return NextResponse.json(cases);

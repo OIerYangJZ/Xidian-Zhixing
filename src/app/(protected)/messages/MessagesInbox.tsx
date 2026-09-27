@@ -200,7 +200,12 @@ export function MessagesInbox() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-semibold">
                     {conversation.participant.name || conversation.participant.username}
-                    {conversation.unread && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-primary" aria-label={t('未读', 'Unread')} />}
+                    {conversation.unread && (
+                      <span
+                        className="ml-2 inline-block h-2 w-2 rounded-full bg-primary"
+                        aria-label={t('未读', 'Unread')}
+                      />
+                    )}
                   </span>
                   <span className="mt-1 block truncate text-xs text-muted-foreground">
                     {conversation.lastMessage?.content || t('开始一段新对话', 'Start a new conversation')}
@@ -234,9 +239,14 @@ export function MessagesInbox() {
               </h2>
               {peer?.username && <p className="mt-0.5 text-xs text-muted-foreground">@{peer.username}</p>}
             </div>
-            {activeId && <button type="button" onClick={archiveConversation} className="ml-auto text-xs text-muted-foreground hover:text-foreground">
-              {t('归档', 'Archive')}
-            </button>}
+            {activeId && (
+              <button
+                type="button"
+                onClick={archiveConversation}
+                className="ml-auto text-xs text-muted-foreground hover:text-foreground">
+                {t('归档', 'Archive')}
+              </button>
+            )}
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4" aria-live="polite">
             {loading ? (

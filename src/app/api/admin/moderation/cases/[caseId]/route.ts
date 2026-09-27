@@ -32,11 +32,14 @@ export async function PATCH(request: Request, props: RouteContext) {
     if (item.status === 'OPEN') {
       if (decision === 'remove' || decision === 'suspend') {
         if (item.postId) await tx.post.update({ where: { id: item.postId }, data: { status: 'REMOVED' } });
-        if (item.commentId) await tx.comment.update({ where: { id: item.commentId }, data: { content: '[此评论已被移除]' } });
+        if (item.commentId)
+          await tx.comment.update({ where: { id: item.commentId }, data: { content: '[此评论已被移除]' } });
       }
       if (decision === 'suspend') await tx.user.update({ where: { id: authorId }, data: { status: 'SUSPENDED' } });
       if (decision === 'approve' && item.postId) {
-        const otherOpen = await tx.moderationCase.count({ where: { postId: item.postId, status: 'OPEN', id: { not: item.id } } });
+        const otherOpen = await tx.moderationCase.count({
+          where: { postId: item.postId, status: 'OPEN', id: { not: item.id } },
+        });
         if (otherOpen === 0 && item.post?.status === 'HIDDEN') {
           await tx.post.update({ where: { id: item.postId }, data: { status: 'PUBLISHED' } });
         }
@@ -56,7 +59,8 @@ export async function PATCH(request: Request, props: RouteContext) {
       if (decision === 'restore') {
         const otherOpen = await tx.moderationCase.count({
           where: {
-            id: { not: item.id }, status: 'OPEN',
+            id: { not: item.id },
+            status: 'OPEN',
             ...(item.postId ? { postId: item.postId } : { commentId: item.commentId }),
           },
         });
@@ -65,9 +69,13 @@ export async function PATCH(request: Request, props: RouteContext) {
         if (item.commentId && item.removedCommentContent) {
           await tx.comment.update({ where: { id: item.commentId }, data: { content: item.removedCommentContent } });
         }
-        if (item.action === 'SUSPEND_USER') await tx.user.update({ where: { id: authorId }, data: { status: 'ACTIVE' } });
+        if (item.action === 'SUSPEND_USER')
+          await tx.user.update({ where: { id: authorId }, data: { status: 'ACTIVE' } });
       }
-      await tx.appeal.updateMany({ where: { id: { in: item.appeals.map(({ id }) => id) } }, data: { resolvedAt: now } });
+      await tx.appeal.updateMany({
+        where: { id: { in: item.appeals.map(({ id }) => id) } },
+        data: { resolvedAt: now },
+      });
       await tx.moderationCase.update({
         where: { id: item.id },
         data: {
@@ -79,7 +87,13 @@ export async function PATCH(request: Request, props: RouteContext) {
       });
     }
     await tx.auditLog.create({
-      data: { actorUserId: admin.id, action: `moderation.${decision}`, subjectType: 'ModerationCase', subjectId: item.id, details: { note } },
+      data: {
+        actorUserId: admin.id,
+        action: `moderation.${decision}`,
+        subjectType: 'ModerationCase',
+        subjectId: item.id,
+        details: { note },
+      },
     });
     return { caseId: item.id, postId: item.postId, commentId: item.commentId };
   });

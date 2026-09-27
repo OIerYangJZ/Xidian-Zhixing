@@ -40,7 +40,7 @@ export async function savePostFiles(files: (Blob | string)[]) {
     const type: VisualMediaType = contentType.startsWith('image/') ? 'PHOTO' : 'VIDEO';
     const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = `${Date.now()}-${uuid()}.${fileExtension}`;
-    await uploadObject(buffer, fileName, contentType);
+    await uploadObject(buffer, fileName);
     uploadedFileNames.push(fileName);
 
     return { type, fileName };

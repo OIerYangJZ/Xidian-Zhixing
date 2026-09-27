@@ -14,7 +14,9 @@ export async function GET() {
       appeals: { where: { resolvedAt: null }, select: { id: true, reason: true, createdAt: true } },
       post: {
         select: {
-          id: true, content: true, createdAt: true,
+          id: true,
+          content: true,
+          createdAt: true,
           visualMedia: { select: { type: true, fileName: true } },
           user: { select: { id: true, username: true, name: true, status: true } },
         },
