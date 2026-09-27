@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { api } from '@/lib/backend/client';
 
 type ScheduleItem = {
   title: string;
@@ -72,13 +73,8 @@ export function CampusScheduleView({ mode }: { mode: 'today' | 'calendar' }) {
       mode === 'today'
         ? '/api/campus/schedules/today'
         : `/api/campus/schedules/calendar?startDate=${encodeURIComponent(date)}&days=${days}&source=${source}`;
-    fetch(url, { cache: 'no-store' })
-      .then(async (response) => {
-        const payload = await response.json();
-        if (!response.ok)
-          throw new Error(payload.message || t('校园日程暂时不可用。', 'Campus schedules are unavailable.'));
-        return payload.data;
-      })
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    api<any>(url)
       .then((data) => {
         if (!active) return;
         setItems(data.items || []);

@@ -1,157 +1,204 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/cn';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
+import { ApiError } from '@/lib/backend/client';
+import { avatarSrc } from '@/lib/backend/image';
+import {
+  deleteConversation,
+  listConversations,
+  listMessages,
+  openDirectConversation,
+  recallMessage,
+  searchUsers,
+  sendMessage as sendDirectMessage,
+} from '@/lib/backend/endpoints';
+import type { ApiConversation, ApiDirectMessage } from '@/lib/backend/types';
+import type { GetUser } from '@/types/definitions';
 
-type Peer = { id: string; username: string | null; name: string | null; profilePhoto: string | null };
-type Message = { id: string; conversationId: string; senderId: string; content: string; createdAt: string };
-type ConversationSummary = {
-  id: string;
-  updatedAt: string;
-  participant: Peer;
-  lastMessage: Message | null;
-  unread: boolean;
-};
-type ConversationDetail = { id: string; participants: Peer[]; messages: Message[] };
+function Avatar({ name, url, className }: { name: string; url: string; className?: string }) {
+  return (
+    <span
+      className={cn(
+        'grid shrink-0 place-items-center overflow-hidden rounded-full bg-secondary text-sm font-semibold',
+        className,
+      )}>
+      {url ? <img src={avatarSrc(url)} alt="" className="h-full w-full object-cover" /> : (name || '知').slice(0, 1)}
+    </span>
+  );
+}
 
 export function MessagesInbox() {
   const { t } = useLanguage();
-  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const requestedId = useSearchParams().get('c') || '';
+  const [conversations, setConversations] = useState<ApiConversation[]>([]);
   const [activeId, setActiveId] = useState('');
-  const [peer, setPeer] = useState<Peer | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ApiDirectMessage[]>([]);
   const [draft, setDraft] = useState('');
-  const [username, setUsername] = useState('');
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<GetUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
-  const archiveConversation = async () => {
-    if (!activeId) return;
-    const response = await fetch(`/api/messages/${activeId}`, { method: 'PATCH' });
-    if (!response.ok) {
-      setError(t('对话归档失败。', 'Could not archive conversation.'));
-      return;
-    }
-    setConversations((items) => items.filter((item) => item.id !== activeId));
-    setActiveId('');
-    setPeer(null);
-    setMessages([]);
-  };
+  const activeIdRef = useRef('');
+  activeIdRef.current = activeId;
+  const active = conversations.find((item) => item.id === activeId) || null;
+  const locked = !!active && (active.awaitingReply || active.blockedByMe || active.blockedByPeer);
+
+  const loadConversations = useCallback(async () => {
+    const items = await listConversations();
+    setConversations(items);
+    return items;
+  }, []);
 
   const openConversation = useCallback(
-    async (id: string, summaryPeer?: Peer) => {
+    async (id: string) => {
       setError('');
       try {
-        const response = await fetch(`/api/messages/${id}`);
-        if (!response.ok) {
-          setError(t('无法打开这段对话。', 'Could not open this conversation.'));
-          return;
-        }
-        const detail = (await response.json()) as ConversationDetail;
+        // Reading also marks the conversation read on the server.
+        const items = await listMessages(id);
         setActiveId(id);
-        setMessages(detail.messages);
-        setPeer(summaryPeer || detail.participants[0] || null);
-      } catch {
-        setError(t('无法打开这段对话。', 'Could not open this conversation.'));
+        setMessages(items);
+        setConversations((list) =>
+          list.map((item) => (item.id === id ? { ...item, unreadCount: 0, hasUnread: false } : item)),
+        );
+      } catch (cause) {
+        setError(
+          cause instanceof ApiError ? cause.message : t('无法打开这段对话。', 'Could not open this conversation.'),
+        );
       }
     },
     [t],
   );
 
-  const loadConversations = useCallback(
-    async (selectId?: string) => {
-      const response = await fetch('/api/messages');
-      if (!response.ok) return;
-      const items = (await response.json()) as ConversationSummary[];
-      setConversations(items);
-      const next = items.find((item) => item.id === (selectId || activeId)) || items[0];
-      if (next) await openConversation(next.id, next.participant);
-    },
-    [activeId, openConversation],
-  );
+  const archiveConversation = async () => {
+    if (!activeId) return;
+    try {
+      // Hidden for this side only; a new message brings it back.
+      await deleteConversation(activeId);
+      setConversations((items) => items.filter((item) => item.id !== activeId));
+      setActiveId('');
+      setMessages([]);
+    } catch {
+      setError(t('对话归档失败。', 'Could not archive conversation.'));
+    }
+  };
+
+  useEffect(() => {
+    const keyword = search.trim();
+    if (!keyword) {
+      setSearchResults([]);
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      searchUsers(keyword)
+        .then((users) => setSearchResults(users.filter((user) => !user.isOwnProfile).slice(0, 6)))
+        .catch(() => setSearchResults([]));
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
   const startConversation = useCallback(
-    async (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      const cleanUsername = username.trim();
-      if (!cleanUsername) return;
+    async (user: GetUser) => {
       setError('');
-      const response = await fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: cleanUsername }),
-      });
-      const result = (await response.json().catch(() => ({}))) as { id?: string; error?: string };
-      if (!response.ok || !result.id) {
+      try {
+        const conversation = await openDirectConversation(user.id);
+        setSearch('');
+        setSearchResults([]);
+        await loadConversations();
+        await openConversation(conversation.id);
+      } catch (cause) {
         setError(
-          result.error === 'user_not_found'
-            ? t('没有找到这位同学。', 'Student not found.')
-            : result.error === 'direct_messages_not_allowed'
-            ? t('对方暂不接受陌生人私信。', 'This person is not accepting messages from people they do not follow.')
-            : t('暂时无法开始对话。', 'Could not start this conversation.'),
+          cause instanceof ApiError ? cause.message : t('暂时无法开始对话。', 'Could not start this conversation.'),
         );
-        return;
       }
-      setUsername('');
-      await loadConversations(result.id);
     },
-    [loadConversations, username, t],
+    [loadConversations, openConversation, t],
   );
 
   const sendMessage = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       const content = draft.trim();
-      if (!activeId || !content || sending) return;
+      if (!activeId || !content || sending || locked) return;
       setSending(true);
       setError('');
-      const response = await fetch(`/api/messages/${activeId}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
-      });
-      setSending(false);
-      if (!response.ok) {
-        setError(t('消息没有发送成功，请稍后再试。', 'Message not sent. Please try again.'));
-        return;
+      try {
+        const message = await sendDirectMessage(activeId, content);
+        setMessages((items) => [...items, message]);
+        setDraft('');
+        await loadConversations();
+      } catch (cause) {
+        if (cause instanceof ApiError && (cause.data as { awaitingReply?: boolean } | undefined)?.awaitingReply) {
+          setConversations((items) =>
+            items.map((item) => (item.id === activeId ? { ...item, awaitingReply: true } : item)),
+          );
+        }
+        setError(
+          cause instanceof ApiError
+            ? cause.message
+            : t('消息没有发送成功，请稍后再试。', 'Message not sent. Please try again.'),
+        );
+      } finally {
+        setSending(false);
       }
-      const message = (await response.json()) as Message;
-      setMessages((items) => [...items, message]);
-      setDraft('');
-      await loadConversations(activeId);
     },
-    [activeId, draft, loadConversations, sending, t],
+    [activeId, draft, loadConversations, locked, sending, t],
+  );
+
+  const recall = useCallback(
+    async (message: ApiDirectMessage) => {
+      if (!activeId) return;
+      try {
+        await recallMessage(activeId, message.id);
+        await Promise.all([openConversation(activeId), loadConversations()]);
+      } catch (cause) {
+        setError(cause instanceof ApiError ? cause.message : t('撤回失败。', 'Could not recall.'));
+      }
+    },
+    [activeId, loadConversations, openConversation, t],
   );
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/messages')
-      .then(async (response) => {
-        if (!response.ok) throw new Error(t('消息列表暂时无法加载。', 'Could not load messages.'));
-        return (await response.json()) as ConversationSummary[];
-      })
+    loadConversations()
       .then((items) => {
         if (cancelled) return;
-        setConversations(items);
-        if (items[0]) openConversation(items[0].id, items[0].participant);
+        const first = items.find((item) => item.id === requestedId) || (requestedId ? undefined : items[0]);
+        if (first) openConversation(first.id);
       })
-      .catch((cause) =>
-        setError(cause instanceof Error ? cause.message : t('消息列表暂时无法加载。', 'Could not load messages.')),
-      )
+      .catch(() => setError(t('消息列表暂时无法加载。', 'Could not load messages.')))
       .finally(() => setLoading(false));
     return () => {
       cancelled = true;
     };
-  }, [openConversation, t]);
+  }, [loadConversations, openConversation, requestedId, t]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      loadConversations().catch(() => setError(t('消息刷新失败。', 'Could not refresh messages.')));
+    const timer = window.setInterval(async () => {
+      try {
+        await loadConversations();
+        const id = activeIdRef.current;
+        if (id) setMessages(await listMessages(id));
+      } catch {
+        // Polling is best-effort; the next tick retries.
+      }
     }, 10000);
     return () => window.clearInterval(timer);
-  }, [loadConversations, t]);
+  }, [loadConversations]);
+
+  const lockHint = !active
+    ? ''
+    : active.blockedByMe
+    ? t('你已屏蔽对方，解除屏蔽后才能发送消息。', 'You blocked this person. Unblock to send messages.')
+    : active.blockedByPeer
+    ? t('对方已将你屏蔽，无法发送消息。', 'You cannot message this person.')
+    : active.awaitingReply
+    ? t('对方回复前只能发送一条消息。', 'You can send one message until they reply.')
+    : '';
 
   return (
     <main className="flex h-[calc(100dvh-7.5rem-env(safe-area-inset-bottom))] min-h-0 flex-col md:h-dvh">
@@ -163,59 +210,64 @@ export function MessagesInbox() {
             'border-b border-border p-3 md:border-b-0 md:border-r',
             activeId ? 'hidden md:block' : 'block',
           )}>
-          <form onSubmit={startConversation} className="mb-3 flex gap-1.5">
-            <label className="sr-only" htmlFor="message-username">
-              {t('输入同学用户名', 'Enter a student username')}
+          <div className="relative mb-3">
+            <label className="sr-only" htmlFor="message-search">
+              {t('搜索同学开始对话', 'Search for someone to message')}
             </label>
             <input
-              id="message-username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              placeholder={t('输入用户名', 'Enter username')}
-              className="min-w-0 flex-1 rounded-full bg-secondary/80 px-4 py-2.5 text-sm outline-none transition placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
+              id="message-search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder={t('搜索昵称，开始新对话', 'Search a name to start a chat')}
+              className="w-full rounded-full bg-secondary/80 px-4 py-2.5 text-sm outline-none transition placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30"
             />
-            <button
-              type="submit"
-              aria-label={t('开始新对话', 'Start a conversation')}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary text-xl font-light text-primary-foreground transition hover:brightness-95">
-              ＋
-            </button>
-          </form>
+            {searchResults.length > 0 && (
+              <div className="absolute inset-x-0 top-full z-10 mt-1 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
+                {searchResults.map((user) => (
+                  <button
+                    key={user.id}
+                    type="button"
+                    onClick={() => startConversation(user)}
+                    className="flex w-full items-center gap-3 px-3 py-2 text-left text-sm hover:bg-secondary/70">
+                    <Avatar name={user.name} url={user.profilePhoto || ''} className="h-8 w-8" />
+                    <span className="min-w-0 flex-1 truncate">{user.name}</span>
+                    {!user.canDirectMessage && (
+                      <span className="text-xs text-muted-foreground">{t('未开放私信', 'Closed')}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="flex gap-2 overflow-x-auto md:flex-col">
             {conversations.map((conversation) => (
               <button
                 key={conversation.id}
                 type="button"
-                onClick={() => openConversation(conversation.id, conversation.participant)}
+                onClick={() => openConversation(conversation.id)}
                 className={`flex min-w-40 flex-1 items-center gap-3 rounded-lg p-3 text-left transition md:min-w-0 ${
                   activeId === conversation.id ? 'bg-primary/10' : 'hover:bg-secondary/70'
                 }`}>
-                <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary text-sm font-semibold">
-                  {conversation.participant.profilePhoto ? (
-                    <img src={conversation.participant.profilePhoto} alt="" className="h-full w-full object-cover" />
-                  ) : (
-                    (conversation.participant.name || conversation.participant.username || t('知', 'Z')).slice(0, 1)
-                  )}
-                </span>
+                <Avatar name={conversation.name} url={conversation.avatarUrl} className="h-10 w-10" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-semibold">
-                    {conversation.participant.name || conversation.participant.username}
-                    {conversation.unread && (
-                      <span
-                        className="ml-2 inline-block h-2 w-2 rounded-full bg-primary"
-                        aria-label={t('未读', 'Unread')}
-                      />
+                  <span className="flex items-center gap-2 text-sm font-semibold">
+                    <span className="truncate">{conversation.name}</span>
+                    {conversation.unreadCount > 0 && (
+                      <span className="rounded-full bg-primary px-1.5 text-[11px] leading-4 text-primary-foreground">
+                        {conversation.unreadCount}
+                      </span>
                     )}
+                    <span className="ml-auto shrink-0 text-[11px] font-normal text-muted-foreground">
+                      {conversation.timeText}
+                    </span>
                   </span>
-                  <span className="mt-1 block truncate text-xs text-muted-foreground">
-                    {conversation.lastMessage?.content || t('开始一段新对话', 'Start a new conversation')}
-                  </span>
+                  <span className="mt-1 block truncate text-xs text-muted-foreground">{conversation.lastMessage}</span>
                 </span>
               </button>
             ))}
             {!loading && conversations.length === 0 && (
               <p className="px-2 py-3 text-xs text-muted-foreground">
-                {t('还没有消息。输入用户名，开始认识一位同学。', 'No messages yet. Enter a username to meet someone.')}
+                {t('还没有消息。搜索昵称，开始认识一位同学。', 'No messages yet. Search a name to meet someone.')}
               </p>
             )}
           </div>
@@ -232,10 +284,10 @@ export function MessagesInbox() {
                 ‹
               </button>
             )}
-            {peer?.profilePhoto && <img src={peer.profilePhoto} alt="" className="h-9 w-9 rounded-full object-cover" />}
+            {active && <Avatar name={active.name} url={active.avatarUrl} className="h-9 w-9" />}
             <div className="min-w-0">
               <h2 className="truncate text-sm font-semibold">
-                {peer?.name || peer?.username || t('选择一段对话', 'Select a conversation')}
+                {active?.name || t('选择一段对话', 'Select a conversation')}
               </h2>
             </div>
             {activeId && (
@@ -254,12 +306,39 @@ export function MessagesInbox() {
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`max-w-[82%] break-words rounded-lg px-3.5 py-2.5 text-sm leading-6 ${
-                    message.senderId === peer?.id
-                      ? 'self-start bg-secondary/80'
-                      : 'self-end bg-primary text-primary-foreground'
-                  }`}>
-                  {message.content}
+                  className={cn(
+                    'flex max-w-[82%] flex-col gap-1',
+                    message.fromMe ? 'items-end self-end' : 'self-start',
+                  )}>
+                  {message.recalled ? (
+                    <p className="text-xs text-muted-foreground">
+                      {message.fromMe
+                        ? t('你撤回了一条消息', 'You recalled a message')
+                        : t('对方撤回了一条消息', 'They recalled a message')}
+                    </p>
+                  ) : (
+                    <div
+                      className={cn(
+                        'break-words rounded-lg px-3.5 py-2.5 text-sm leading-6',
+                        message.fromMe ? 'bg-primary text-primary-foreground' : 'bg-secondary/80',
+                      )}>
+                      {message.replyToContent && (
+                        <p className="border-current/40 mb-1 border-l-2 pl-2 text-xs opacity-75">
+                          {message.replyToSender}: {message.replyToContent}
+                        </p>
+                      )}
+                      {message.content}
+                    </div>
+                  )}
+                  <span className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    {message.timeText}
+                    {message.fromMe && !message.recalled && message.isRead && <span>{t('已读', 'Read')}</span>}
+                    {message.canRecall && (
+                      <button type="button" onClick={() => recall(message)} className="hover:text-foreground">
+                        {t('撤回', 'Recall')}
+                      </button>
+                    )}
+                  </span>
                 </div>
               ))
             ) : (
@@ -271,6 +350,7 @@ export function MessagesInbox() {
               </p>
             )}
           </div>
+          {lockHint && <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground">{lockHint}</p>}
           <form onSubmit={sendMessage} className="flex items-end gap-2 border-t border-border p-3">
             <label className="sr-only" htmlFor="message-draft">
               {t('输入消息', 'Enter a message')}
@@ -286,14 +366,14 @@ export function MessagesInbox() {
                 }
               }}
               rows={1}
-              maxLength={4000}
-              disabled={!activeId}
+              maxLength={1000}
+              disabled={!activeId || locked}
               placeholder={t('写一条消息…', 'Write a message…')}
               className="min-h-11 flex-1 resize-y rounded-lg bg-secondary/80 px-4 py-3 text-sm outline-none transition placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/30 disabled:opacity-50"
             />
             <button
               type="submit"
-              disabled={!activeId || sending || !draft.trim()}
+              disabled={!activeId || sending || locked || !draft.trim()}
               className="rounded-md bg-primary px-4 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50">
               {t('发送', 'Send')}
             </button>

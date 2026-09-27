@@ -2,18 +2,13 @@
 
 import { FormEvent, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { api } from '@/lib/backend/client';
 
 type Captcha = { imageBase64: string; imageContentType: string };
 
-async function requestData(url: string, body?: Record<string, string>) {
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const result = await response.json();
-  if (!response.ok) throw new Error(result.message || '请求失败。');
-  return result.data;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function requestData(url: string, body?: Record<string, string>): Promise<any> {
+  return api(url, { method: 'POST', body: body ?? {} });
 }
 
 function CampusFormMessage({ message, error }: { message: string; error: boolean }) {

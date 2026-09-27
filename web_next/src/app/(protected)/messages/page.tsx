@@ -1,10 +1,12 @@
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { Suspense } from 'react';
 import { MessagesInbox } from './MessagesInbox';
 
-export async function generateMetadata() {
-  return { title: (await getInterfaceLanguage()) === 'en' ? 'Messages | Xidian Zhixing' : '消息' };
-}
+export const metadata = { title: '消息 | 西电知行' };
 
 export default function Page() {
-  return <MessagesInbox />;
+  return (
+    <Suspense>
+      <MessagesInbox />
+    </Suspense>
+  );
 }

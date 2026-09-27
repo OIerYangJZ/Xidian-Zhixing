@@ -65,6 +65,15 @@ export function MenuBarItem({
     </>
   );
 
+  // The admin console is a separate (Flutter) app: a full page load, not a client route.
+  if (route.startsWith('/admin/')) {
+    return (
+      <a href={route} aria-label={children as string} className={className}>
+        {contents}
+      </a>
+    );
+  }
+
   if (route === '/api/auth/signout') {
     return (
       <ButtonNaked aria-label={children as string} className={className} onPress={onItemClick}>

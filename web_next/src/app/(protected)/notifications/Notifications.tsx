@@ -34,18 +34,20 @@ export function Notifications() {
     !data
       ? 0
       : key === 'all'
-        ? data.unreadCount
-        : key === 'system'
-          ? (data.unreadByType.system || 0) + (data.unreadByType.report_result || 0)
-          : data.unreadByType[key] || 0;
+      ? data.unreadCount
+      : key === 'system'
+      ? (data.unreadByType.system || 0) + (data.unreadByType.report_result || 0)
+      : data.unreadByType[key] || 0;
   const items = useMemo(
     () =>
       (data?.items ?? []).filter(
-        (item) =>
-          tab === 'all' || item.category === tab || (tab === 'system' && item.category === 'report_result'),
+        (item) => tab === 'all' || item.category === tab || (tab === 'system' && item.category === 'report_result'),
       ),
     [data, tab],
   );
+
+  const nothingUnread = unreadOf(tab) === 0;
+  const disabledKeys = useMemo(() => (nothingUnread ? ['mark-all'] : []), [nothingUnread]);
 
   const markAllAsRead = useCallback(
     (key: Key) => {
@@ -70,7 +72,7 @@ export function Notifications() {
             key="notifications-option"
             label={t('通知选项', 'Notification options')}
             onAction={markAllAsRead}
-            disabledKeys={unreadOf(tab) === 0 ? ['mark-all'] : []}>
+            disabledKeys={disabledKeys}>
             <Section>
               <Item key="mark-all">{t('全部标为已读', 'Mark all as read')}</Item>
             </Section>
@@ -85,7 +87,8 @@ export function Notifications() {
             onClick={() => setTab(key)}
             className={cn(
               'relative shrink-0 px-3 py-3 text-sm font-medium text-muted-foreground',
-              tab === key && 'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary',
+              tab === key &&
+                'text-foreground after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary',
             )}>
             {label}
             {unreadOf(key) > 0 && <span className="ml-1 text-xs text-primary">{unreadOf(key)}</span>}

@@ -7,7 +7,17 @@ import { postHref } from '@/lib/profileHref';
 import { ActivityCard } from './ActivityCard';
 
 /** One notification.  The backend already writes its title and quote. */
-export function Activity({ id, type, sourceUser, targetId, postId, createdAt, isNotificationRead, title, content }: GetActivity) {
+export function Activity({
+  id,
+  type,
+  sourceUser,
+  targetId,
+  postId,
+  createdAt,
+  isNotificationRead,
+  title,
+  content,
+}: GetActivity) {
   const { t } = useLanguage();
   const router = useRouter();
   const { markAsReadMutation } = useNotificationsReadStatusMutations();

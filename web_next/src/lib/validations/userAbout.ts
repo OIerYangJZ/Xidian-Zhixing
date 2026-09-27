@@ -1,18 +1,12 @@
 import { z } from 'zod';
 
-const nonEmptyString = z.string().trim().min(3, { message: 'At least three characters are required' });
-
+/** Mirrors PATCH /api/users/me: nickname, bio ≤100, gender ""|男|女, college/major ≤80. */
 export const userAboutSchema = z.object({
-  username: nonEmptyString.regex(/^[a-zA-Z0-9_]+$/, {
-    message: 'Use only letters, numbers, and underscores',
-  }),
-  name: nonEmptyString,
-  bio: nonEmptyString.nullable(),
-  website: nonEmptyString
-    .regex(/^(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,})(?:\/[^\s]*)?$/, {
-      message: 'Enter a valid website URL',
-    })
-    .nullable(),
+  nickname: z.string().trim().min(1, { message: '请填写昵称' }).max(24, { message: '昵称最多 24 个字' }),
+  bio: z.string().trim().max(100, { message: '个人介绍最多 100 个字' }),
+  gender: z.enum(['', '男', '女']),
+  college: z.string().trim().max(80, { message: '最多 80 个字' }),
+  major: z.string().trim().max(80, { message: '最多 80 个字' }),
 });
 
 export type UserAboutSchema = z.infer<typeof userAboutSchema>;

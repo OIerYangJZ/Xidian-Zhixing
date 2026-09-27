@@ -1,5 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getServerUser } from '@/lib/getServerUser';
 import { CampusLoginExperience } from './CampusLoginExperience';
 import './login.css';
 
@@ -8,9 +6,6 @@ export const metadata = {
   description: '使用学校统一身份认证进入西电知行。',
 };
 
-export default async function Page() {
-  const [user] = await getServerUser();
-  if (user) redirect('/feed');
-
+export default function Page() {
   return <CampusLoginExperience />;
 }

@@ -1,60 +1,130 @@
 'use client';
 
-import { useSession } from '@/lib/backend/session';
 import Link from 'next/link';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
-import { useSessionUserData } from '@/hooks/useSessionUserData';
 import { useDialogs } from '@/hooks/useDialogs';
 import { useToast } from '@/hooks/useToast';
-import { useEffect, useState } from 'react';
+import { useAuthActions, useMe } from '@/lib/backend/session';
+import { ApiError } from '@/lib/backend/client';
+import { getMyAppeal, requestAccountCancellation, submitBanAppeal } from '@/lib/backend/endpoints';
 
-type AppealCase = {
-  id: string;
-  action: string;
-  postId: string | null;
-  commentId: string | null;
-  appeals: Array<{ id: string; resolvedAt: string | null }>;
+const APPEAL_STATUS: Record<string, [string, string]> = {
+  pending: ['处理中', 'Pending'],
+  approved: ['已通过', 'Approved'],
+  rejected: ['未通过', 'Rejected'],
+  closed: ['已关闭', 'Closed'],
 };
 
 export default function AccountSettingsPage() {
-  const { data: session } = useSession();
-  const [profile] = useSessionUserData();
+  const { me } = useMe();
+  const { signOut } = useAuthActions();
   const { t } = useLanguage();
-  const { prompt } = useDialogs();
+  const { prompt, confirm } = useDialogs();
   const { showToast } = useToast();
-  const [cases, setCases] = useState<AppealCase[]>([]);
-  useEffect(() => {
-    fetch('/api/appeals')
-      .then((response) => (response.ok ? response.json() : []))
-      .then(setCases);
-  }, []);
-  const submitAppeal = (caseId: string) => {
+  const qc = useQueryClient();
+  const [appealing, setAppealing] = useState(false);
+  const { data: appealState } = useQuery({ queryKey: ['appeals', 'mine'], queryFn: getMyAppeal });
+
+  const submitAppeal = () => {
+    if (!me) return;
     prompt({
-      title: t('提交申诉', 'Submit appeal'),
-      message: t('说明你认为处理需要复核的原因。', 'Explain why this decision needs review.'),
+      title: t('申请解封', 'Appeal the ban'),
+      message: t(
+        '说明你认为处理需要复核的原因，每次封禁可在站内申诉一次。',
+        'Explain why the ban should be reviewed. One in-app appeal per ban.',
+      ),
       promptType: 'textarea',
-      onSubmit: async (reason) => {
-        const response = await fetch('/api/appeals', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ caseId, reason }),
-        });
-        if (response.ok)
-          setCases((items) =>
-            items.map((item) => (item.id === caseId ? { ...item, appeals: [{ id: caseId, resolvedAt: null }] } : item)),
-          );
-        showToast({
-          title: response.ok ? t('申诉已提交', 'Appeal submitted') : t('申诉提交失败', 'Could not submit appeal'),
-          type: response.ok ? 'success' : 'error',
-        });
+      onSubmit: async (content) => {
+        setAppealing(true);
+        try {
+          await submitBanAppeal(me.email, content);
+          await qc.invalidateQueries({ queryKey: ['appeals', 'mine'] });
+          showToast({ title: t('申诉已提交', 'Appeal submitted'), type: 'success' });
+        } catch (error) {
+          showToast({
+            title: t('申诉提交失败', 'Could not submit appeal'),
+            message: error instanceof ApiError ? error.message : undefined,
+            type: 'error',
+          });
+        } finally {
+          setAppealing(false);
+        }
       },
     });
   };
+
+  const cancelAccount = () => {
+    prompt({
+      title: t('申请注销账号', 'Request account deletion'),
+      message: t(
+        '注销申请由管理员审核，通过后账号和公开内容将不再显示。可以说明原因（选填）。',
+        'An admin reviews the request; once approved your account and public content are removed. Reason (optional):',
+      ),
+      promptType: 'textarea',
+      onSubmit: async (reason) => {
+        try {
+          await requestAccountCancellation(reason.trim() || undefined);
+          showToast({ title: t('注销申请已提交', 'Deletion requested'), type: 'success' });
+        } catch (error) {
+          showToast({
+            title: t('申请失败', 'Request failed'),
+            message: error instanceof ApiError ? error.message : undefined,
+            type: 'error',
+          });
+        }
+      },
+    });
+  };
+
+  const appeal = appealState?.appeal;
+  const rows: [string, string][] = [
+    [t('昵称', 'Name'), me?.nickname || '—'],
+    [t('学号', 'Student ID'), me?.studentId || '—'],
+    [t('学院', 'College'), me?.college || '—'],
+    [t('用户等级', 'Level'), me?.userLevelLabel || '—'],
+    [t('登录方式', 'Sign-in method'), t('西电统一身份认证', 'Xidian single sign-on')],
+  ];
+
   return (
     <div>
       <PageHeader title={t('账号信息和安全', 'Account information and security')} sticky />
       <section className="space-y-4 px-4 py-5">
+        {me?.banned && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
+            <h2 className="font-semibold text-destructive">{t('账号已被封禁', 'This account is banned')}</h2>
+            <p className="mt-1 text-muted-foreground">
+              {t('封禁期间只能查看本页并提交解封申诉。', 'While banned you can only view this page and appeal.')}
+            </p>
+            {appeal && (
+              <p className="mt-2">
+                {t('申诉状态：', 'Appeal: ')}
+                {t(...(APPEAL_STATUS[appeal.status] || [appeal.status, appeal.status]))}
+                {appeal.adminNote && <span className="block text-muted-foreground">{appeal.adminNote}</span>}
+              </p>
+            )}
+            {appealState?.canSubmit ? (
+              <button
+                type="button"
+                disabled={appealing}
+                onClick={submitAppeal}
+                className="mt-3 inline-flex min-h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50">
+                {t('申请解封', 'Appeal')}
+              </button>
+            ) : (
+              appealState?.supportEmail && (
+                <p className="mt-2 text-muted-foreground">
+                  {t('如需进一步申诉，请发送邮件至 ', 'For further appeals, email ')}
+                  <a className="text-primary underline" href={`mailto:${appealState.supportEmail}`}>
+                    {appealState.supportEmail}
+                  </a>
+                </p>
+              )
+            )}
+          </div>
+        )}
         <div>
           <h2 className="text-base font-semibold">{t('账号信息', 'Account information')}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -62,57 +132,47 @@ export default function AccountSettingsPage() {
           </p>
         </div>
         <dl className="divide-y divide-border border-y border-border text-sm">
-          <div className="flex justify-between gap-4 py-3">
-            <dt className="text-muted-foreground">{t('姓名', 'Name')}</dt>
-            <dd>{session?.user.name || '—'}</dd>
-          </div>
-          <div className="flex justify-between gap-4 py-3">
-            <dt className="text-muted-foreground">{t('用户名', 'Username')}</dt>
-            <dd>@{profile?.username || '—'}</dd>
-          </div>
-          <div className="flex justify-between gap-4 py-3">
-            <dt className="text-muted-foreground">{t('登录方式', 'Sign-in method')}</dt>
-            <dd>{t('西电统一身份认证', 'Xidian single sign-on')}</dd>
-          </div>
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex justify-between gap-4 py-3">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
         </dl>
-        {cases.length > 0 && (
-          <div className="space-y-2 border-y border-border py-4">
-            <h2 className="text-sm font-semibold">{t('内容处理与申诉', 'Moderation and appeals')}</h2>
-            {cases.map((item) => (
-              <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
-                <span>
-                  {item.postId ? `${t('帖子', 'Post')} #${item.postId}` : `${t('评论', 'Comment')} #${item.commentId}`}{' '}
-                  ·{' '}
-                  {item.action === 'SUSPEND_USER'
-                    ? t('账号停用', 'Account suspended')
-                    : t('内容移除', 'Content removed')}
-                </span>
-                {item.appeals.length === 0 ? (
-                  <button type="button" onClick={() => submitAppeal(item.id)} className="text-primary underline">
-                    {t('申诉', 'Appeal')}
-                  </button>
-                ) : (
-                  <span className="text-muted-foreground">
-                    {item.appeals[0].resolvedAt
-                      ? t('申诉已处理', 'Appeal reviewed')
-                      : t('申诉处理中', 'Appeal pending')}
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+        {!me?.banned && (
+          <Link
+            href="/edit-profile"
+            className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary">
+            {t('编辑个人资料', 'Edit profile')}
+          </Link>
         )}
-        <Link
-          href="/edit-profile"
-          className="inline-flex min-h-11 items-center rounded-full border border-border px-4 text-sm font-medium hover:bg-secondary">
-          {t('编辑个人资料', 'Edit profile')}
-        </Link>
         <p className="text-xs leading-5 text-muted-foreground">
           {t(
             '密码和认证信息由西电统一身份认证管理。',
             'Passwords and authentication details are managed by Xidian single sign-on.',
           )}
         </p>
+        <div className="flex flex-wrap gap-3 border-t border-border pt-4">
+          {me?.banned && (
+            <button
+              type="button"
+              onClick={() =>
+                confirm({
+                  title: t('退出登录', 'Log out'),
+                  message: t('确定退出西电知行吗？', 'Log out of Zhixing?'),
+                  onConfirm: () => signOut(),
+                })
+              }
+              className="text-sm text-muted-foreground hover:text-foreground">
+              {t('退出登录', 'Log out')}
+            </button>
+          )}
+          {!me?.banned && (
+            <button type="button" onClick={cancelAccount} className="text-sm text-destructive hover:underline">
+              {t('申请注销账号', 'Request account deletion')}
+            </button>
+          )}
+        </div>
       </section>
     </div>
   );

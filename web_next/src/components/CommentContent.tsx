@@ -50,7 +50,9 @@ export function CommentContent({
           )}
         </h3>
         {isPostAuthor && (
-          <span className="rounded bg-primary/10 px-1 text-[11px] font-medium leading-4 text-primary">{t('洞主', 'OP')}</span>
+          <span className="rounded bg-primary/10 px-1 text-[11px] font-medium leading-4 text-primary">
+            {t('洞主', 'OP')}
+          </span>
         )}
         <span className="text-muted-foreground" aria-hidden="true">
           ·

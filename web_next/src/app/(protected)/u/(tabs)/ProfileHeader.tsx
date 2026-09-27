@@ -6,10 +6,10 @@ import Link from 'next/link';
 import { Ellipse } from '@/svg_components';
 import { ButtonLink } from '@/components/ui/ButtonLink';
 import { useLanguage } from '@/hooks/useLanguage';
+import { profileHref } from '@/lib/profileHref';
 import Tabs from './Tabs';
 import CoverPhoto from './CoverPhoto';
 import ProfilePhoto from './ProfilePhoto';
-import { profileHref } from '@/lib/profileHref';
 
 export function ProfileHeader({ profile }: { profile: GetUser }) {
   const { t } = useLanguage();

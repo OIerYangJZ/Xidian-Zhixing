@@ -1,15 +1,17 @@
+'use client';
+
 import { LogoText } from '@/components/LogoText';
 import Link from 'next/link';
 import React from 'react';
-import { getServerUser } from '@/lib/getServerUser';
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { useSession } from '@/lib/backend/session';
+import { useLanguage } from '@/hooks/useLanguage';
 import { HomeMobileDropdownMenu } from './HomeMobileDropdownMenu';
 import { HomeNavigationLinks } from './HomeNavigationLinks';
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
-  const [user] = await getServerUser();
-  const isLoggedIn = !!user;
-  const language = await getInterfaceLanguage();
+export default function Layout({ children }: { children: React.ReactNode }) {
+  const { status } = useSession();
+  const isLoggedIn = status === 'authenticated';
+  const { language } = useLanguage();
 
   return (
     <div className="flex min-h-screen w-full justify-center">

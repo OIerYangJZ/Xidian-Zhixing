@@ -2,35 +2,38 @@
 
 import { Controller, SubmitHandler, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { AtSign, Bullhorn, Profile, WorldNet } from '@/svg_components';
+import { Bullhorn, Profile } from '@/svg_components';
 import { UserAboutSchema, userAboutSchema } from '@/lib/validations/userAbout';
-import { useSessionUserData } from '@/hooks/useSessionUserData';
+import { useMe } from '@/lib/backend/session';
+import { useErrorNotifier } from '@/hooks/useErrorNotifier';
 import { useSessionUserDataMutation } from '@/hooks/mutations/useSessionUserDataMutation';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
+import { profileHref } from '@/lib/profileHref';
 import { GenericLoading } from './GenericLoading';
 import { Textarea } from './ui/Textarea';
 import Button from './ui/Button';
 import { TextInput } from './ui/TextInput';
-import { profileHref } from '@/lib/profileHref';
 
 export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
-  const [userData] = useSessionUserData();
-  const defaultValues = useMemo(
+  const { me } = useMe();
+  const defaultValues = useMemo<UserAboutSchema>(
     () => ({
-      username: userData?.username || userData?.id || '',
-      name: userData?.name || '',
-      bio: userData?.bio || null,
-      website: userData?.website || null,
+      nickname: me?.nickname || '',
+      bio: me?.bio || '',
+      gender: me?.gender === '男' || me?.gender === '女' ? me.gender : '',
+      college: me?.college || '',
+      major: me?.major || '',
     }),
-    [userData],
+    [me],
   );
-  const { control, handleSubmit, reset, setError, setFocus } = useForm<UserAboutSchema>({
+  const { control, handleSubmit, reset } = useForm<UserAboutSchema>({
     resolver: zodResolver(userAboutSchema),
     defaultValues,
   });
   const { updateSessionUserDataMutation } = useSessionUserDataMutation();
+  const { notifyError } = useErrorNotifier();
   const router = useRouter();
   const { t } = useLanguage();
 
@@ -38,15 +41,8 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
     updateSessionUserDataMutation.mutate(
       { data },
       {
-        onError: (error) => {
-          const { field, message } = JSON.parse(error.message) as {
-            field: keyof UserAboutSchema;
-            message: string;
-          };
-          setError(field, { message });
-          setFocus(field);
-        },
-        onSuccess: () => router.push(redirectTo || profileHref(data.username)!),
+        onError: (error) => notifyError(error, t('保存失败', 'Could not save')),
+        onSuccess: () => router.push(redirectTo || profileHref(me?.id) || '/feed'),
       },
     );
   };
@@ -54,46 +50,36 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
   const resetForm = useCallback(() => reset(defaultValues), [reset, defaultValues]);
   useEffect(() => reset(defaultValues), [reset, defaultValues]);
 
-  if (!userData) return <GenericLoading>{t('正在加载资料…', 'Loading profile…')}</GenericLoading>;
+  if (!me) return <GenericLoading>{t('正在加载资料…', 'Loading profile…')}</GenericLoading>;
+
+  const textField = (name: 'nickname' | 'college' | 'major', label: string, Icon?: typeof Profile) => (
+    <Controller
+      control={control}
+      name={name}
+      render={({ field, fieldState: { error } }) => (
+        <TextInput
+          label={label}
+          value={field.value}
+          onChange={field.onChange}
+          errorMessage={error?.message}
+          ref={field.ref}
+          Icon={Icon}
+        />
+      )}
+    />
+  );
 
   return (
     <form onSubmit={handleSubmit(onValid)} className="flex flex-col gap-4">
-      <Controller
-        control={control}
-        name="username"
-        render={({ field, fieldState: { error } }) => (
-          <TextInput
-            label={t('用户名', 'Username')}
-            value={field.value}
-            onChange={field.onChange}
-            errorMessage={error?.message}
-            ref={field.ref}
-            Icon={AtSign}
-          />
-        )}
-      />
-      <Controller
-        control={control}
-        name="name"
-        render={({ field, fieldState: { error } }) => (
-          <TextInput
-            label={t('昵称', 'Name')}
-            value={field.value}
-            onChange={field.onChange}
-            errorMessage={error?.message}
-            ref={field.ref}
-            Icon={Profile}
-          />
-        )}
-      />
+      {textField('nickname', t('昵称', 'Name'), Profile)}
       <Controller
         control={control}
         name="bio"
         render={({ field, fieldState: { error } }) => (
           <Textarea
             label={t('个人介绍', 'Bio')}
-            value={field.value || ''}
-            onChange={(value) => field.onChange(value || null)}
+            value={field.value}
+            onChange={field.onChange}
             errorMessage={error?.message}
             ref={field.ref}
             Icon={Bullhorn}
@@ -102,18 +88,23 @@ export function EditProfileForm({ redirectTo }: { redirectTo?: string }) {
       />
       <Controller
         control={control}
-        name="website"
-        render={({ field, fieldState: { error } }) => (
-          <TextInput
-            label={t('个人网站', 'Website')}
-            value={field.value || ''}
-            onChange={(value) => field.onChange(value || null)}
-            errorMessage={error?.message}
-            ref={field.ref}
-            Icon={WorldNet}
-          />
+        name="gender"
+        render={({ field }) => (
+          <label className="flex items-center justify-between gap-3 text-sm">
+            <span>{t('性别', 'Gender')}</span>
+            <select
+              value={field.value}
+              onChange={(event) => field.onChange(event.target.value)}
+              className="min-h-10 border border-border bg-background px-3 text-foreground">
+              <option value="">{t('不展示', 'Not shown')}</option>
+              <option value="男">{t('男', 'Male')}</option>
+              <option value="女">{t('女', 'Female')}</option>
+            </select>
+          </label>
         )}
       />
+      {textField('college', t('学院', 'College'))}
+      {textField('major', t('专业', 'Major'))}
       <div className="flex justify-end gap-4">
         <Button mode="secondary" type="button" loading={updateSessionUserDataMutation.isPending} onPress={resetForm}>
           {t('重置', 'Reset')}

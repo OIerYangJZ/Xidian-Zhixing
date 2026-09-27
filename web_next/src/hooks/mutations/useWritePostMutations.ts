@@ -24,24 +24,31 @@ const isTimeline = (query: Query) => {
  * Creating is the only write: the backend does not edit a post's text or
  * images after publishing (PATCH only changes its 进行中/已解决 status).
  */
-export function useWritePostMutations({ draft, exitCreatePostModal }: { draft: PostDraft; exitCreatePostModal: () => void }) {
+export function useWritePostMutations({
+  draft,
+  exitCreatePostModal,
+}: {
+  draft: PostDraft;
+  exitCreatePostModal: () => void;
+}) {
   const qc = useQueryClient();
   const { showToast } = useToast();
   const { notifyError } = useErrorNotifier();
 
   const createPostMutation = useMutation({
     mutationFn: async () => {
-      // Images upload one by one (base64 JSON), then attach by id.
+      // Images upload one by one (base64 JSON, rate limited), then attach by id.
+      /* eslint-disable no-await-in-loop */
       const imageUploadIds: string[] = [];
       for (const [index, { url }] of draft.visualMedia.entries()) {
         const file = await fetch(url).then((r) => r.blob());
-        // eslint-disable-next-line no-await-in-loop
         const upload = await uploadImage(file, `image-${index + 1}`);
         if (upload.status === 'rejected') {
           throw new Error(upload.moderationReason || '有图片未通过审核，请更换后再发布');
         }
         imageUploadIds.push(upload.id);
       }
+      /* eslint-enable no-await-in-loop */
       const anonymous = draft.displayIdentity === 'ANONYMOUS';
       return createPost({
         title: draft.title.trim(),

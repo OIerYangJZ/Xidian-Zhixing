@@ -1,18 +1,14 @@
+'use client';
+
 import { PageHeader } from '@/components/ui/PageHeader';
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { useLanguage } from '@/hooks/useLanguage';
 import { BlockedUsersManager } from '../BlockedUsersManager';
 
-export async function generateMetadata() {
-  return {
-    title: (await getInterfaceLanguage()) === 'en' ? 'Blocked accounts | Xidian Zhixing' : '屏蔽账号 | 西电知行',
-  };
-}
-
-export default async function BlockedUsersSettingsPage() {
-  const title = (await getInterfaceLanguage()) === 'en' ? 'Blocked accounts' : '屏蔽账号';
+export default function BlockedUsersSettingsPage() {
+  const { t } = useLanguage();
   return (
     <div>
-      <PageHeader title={title} sticky />
+      <PageHeader title={t('屏蔽账号', 'Blocked accounts')} sticky />
       <BlockedUsersManager />
     </div>
   );

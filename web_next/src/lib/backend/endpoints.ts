@@ -175,13 +175,18 @@ export const unfollowUser = (userId: string) => api(`/api/users/${userId}/unfoll
 export const listMyFollowing = () => api<ApiFollowUser[]>('/api/users/me/following');
 export const listMyFollowers = () => api<ApiFollowUser[]>('/api/users/me/followers');
 
-export const updateMe = (patch: Partial<Pick<ApiMe, 'nickname' | 'bio' | 'gender' | 'college' | 'major' | 'backgroundImageUrl'>>) =>
-  api('/api/users/me', { method: 'PATCH', body: patch });
+export const updateMe = (
+  patch: Partial<Pick<ApiMe, 'nickname' | 'bio' | 'gender' | 'college' | 'major' | 'backgroundImageUrl'>>,
+) => api('/api/users/me', { method: 'PATCH', body: patch });
 
 export async function uploadAvatar(file: Blob, fileName: string): Promise<{ avatarUrl: string }> {
   const dataBase64 = await readAsDataUrl(file);
   return api('/api/users/avatar', { method: 'POST', body: { dataBase64, fileName, contentType: file.type } });
 }
+
+/** Cancellation is reviewed by an admin; DELETE /api/users/me is refused on purpose. */
+export const requestAccountCancellation = (reason?: string) =>
+  api<{ id: string; status: string }>('/api/users/me/cancellation-request', { method: 'POST', body: { reason } });
 
 export const listBlocks = () => api<ApiBlockedUser[]>('/api/users/me/blocks');
 export const blockUser = (targetUserId: string) =>
@@ -230,9 +235,94 @@ export const recallMessage = (conversationId: string, messageId: string) =>
 export const deleteConversation = (conversationId: string) =>
   api(`/api/messages/conversations/${conversationId}`, { method: 'DELETE' });
 
+export interface HotTopic {
+  id: string;
+  rank: number;
+  postId: string;
+  title: string;
+  summary: string;
+  hotScore: number;
+  sectionName: string;
+}
+
+/** Today's ranking, rebuilt on the server. */
+export const listHotTopics = () => api<HotTopic[]>('/api/hot-topics');
+
+// ---------------------------------------------------------------- campus
+
+/** Admin-configured catalogue; `status` is display text such as "待接入". */
+export interface ApiCampusService {
+  id: string;
+  slug: string;
+  name: string;
+  groupId: string;
+  groupName: string;
+  kind: string;
+  iconKey: string;
+  authType: string;
+  authReady: boolean;
+  status: string;
+  description: string;
+  requiredAccess: string[];
+  features: string[];
+  dataFields: string[];
+  calendarSource: string;
+  emptyText: string;
+  mapIds: string[];
+  actions: { label: string; type: string; url: string; path: string }[];
+  enabled: boolean;
+  sortOrder: number;
+}
+
+export const listCampusServices = () => api<ApiCampusService[]>('/api/campus/services');
+export const getCampusService = (idOrSlug: string) =>
+  api<ApiCampusService>(`/api/campus/services/${encodeURIComponent(idOrSlug)}`);
+
+// ---------------------------------------------------------------- AI
+
+export interface AiCitation {
+  sourceType: string;
+  targetType: 'post' | 'knowledge';
+  targetId: string;
+  title: string;
+  summary: string;
+  sourceUrl: string;
+  jumpUrl: string;
+}
+
+export interface AiAnswer {
+  answer: string;
+  traceId: string;
+  citations: AiCitation[];
+}
+
+/**
+ * Not streamed: one JSON body, possibly after a long wait (the Flutter client
+ * allows 165 s).  History lives on the client; the server keeps the last 8
+ * turns of what is sent.  Cancelling makes this reject with 409 {cancelled}.
+ */
+export const askAi = (
+  content: string,
+  history: { role: 'user' | 'assistant'; content: string }[],
+  requestId: string,
+  signal?: AbortSignal,
+) => api<AiAnswer>('/api/ai/chat', { method: 'POST', body: { content, messages: history, requestId }, signal });
+
+export const cancelAi = (requestId: string) =>
+  api<{ cancelled: boolean }>('/api/ai/chat/cancel', { method: 'POST', body: { requestId } });
+
 // ---------------------------------------------------------------- reports, appeals
 
-export const REPORT_REASONS = ['广告引流', '人身攻击', '违规内容', '垃圾信息', '色情低俗', '虚假信息', '侵犯隐私', '其他'] as const;
+export const REPORT_REASONS = [
+  '广告引流',
+  '人身攻击',
+  '违规内容',
+  '垃圾信息',
+  '色情低俗',
+  '虚假信息',
+  '侵犯隐私',
+  '其他',
+] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
 
 export const createReport = (input: {

@@ -12,7 +12,11 @@ function ProfileLayout({ children }: { children: React.ReactNode }) {
   const { data: profile, isPending, isError } = useUserQuery(profileId);
 
   if (!profileId || isError)
-    return <p className="px-4 py-6 text-sm text-muted-foreground">{t('这个用户不存在或已注销。', 'This user does not exist.')}</p>;
+    return (
+      <p className="px-4 py-6 text-sm text-muted-foreground">
+        {t('这个用户不存在或已注销。', 'This user does not exist.')}
+      </p>
+    );
   if (isPending || !profile) return null;
 
   return (

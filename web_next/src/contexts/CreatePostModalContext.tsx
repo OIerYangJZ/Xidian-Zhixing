@@ -45,10 +45,7 @@ export function CreatePostModalContextProvider({ children }: { children: React.R
           {state.isOpen && (
             // Set `isKeyboardDismissDisabled`, clicking the `Escape` key must be handled by <CreatePostDialog> instead.
             <Modal state={state} isKeyboardDismissDisabled>
-              <CreatePostDialog
-                shouldOpenFileInputOnMount={shouldOpenFileInputOnMount}
-                setShown={state.setOpen}
-              />
+              <CreatePostDialog shouldOpenFileInputOnMount={shouldOpenFileInputOnMount} setShown={state.setOpen} />
             </Modal>
           )}
         </AnimatePresence>

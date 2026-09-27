@@ -26,5 +26,6 @@ export function RequireSession({ children }: { children: React.ReactNode }) {
   }, [me?.banned, pathname, router]);
 
   if (status !== 'authenticated') return null;
+  // eslint-disable-next-line react/jsx-no-useless-fragment -- children may be a single string/array
   return <>{children}</>;
 }

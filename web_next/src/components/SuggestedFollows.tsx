@@ -3,39 +3,40 @@
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useLanguage } from '@/hooks/useLanguage';
-import { GetUser } from '@/types/definitions';
-import { ProfilePhoto } from './ui/ProfilePhoto';
-import { ProfileActionButtons } from './ProfileActionButtons';
-import { profileHref } from '@/lib/profileHref';
+import { listHotTopics } from '@/lib/backend/endpoints';
+import { postHref } from '@/lib/profileHref';
 
+const SHOWN = 5;
+
+/**
+ * Right-rail module.  The backend has no follow recommendations, so this slot
+ * shows today's hot list (热榜) instead.
+ */
 export function SuggestedFollows() {
   const { t } = useLanguage();
-  const { data: users = [] } = useQuery<GetUser[]>({
-    queryKey: ['suggested-follows'],
-    queryFn: async () => {
-      const response = await fetch('/api/users?recommendations=true&limit=3');
-      if (!response.ok) throw new Error(t('推荐关注加载失败。', 'Could not load suggested accounts.'));
-      return response.json() as Promise<GetUser[]>;
-    },
+  const { data: topics = [] } = useQuery({
+    queryKey: ['hot-topics'],
+    queryFn: listHotTopics,
     staleTime: 60000 * 5,
   });
 
-  if (!users.length) return null;
+  if (!topics.length) return null;
   return (
     <section className="quiet-surface overflow-hidden rounded-lg">
-      <h2 className="px-4 py-3 text-base font-semibold">{t('推荐关注', 'Who to follow')}</h2>
-      {users.map((user) => (
-        <div key={user.id} className="flex items-center gap-3 border-t border-border/70 px-4 py-3">
-          <div className="h-10 w-10 shrink-0">
-            <ProfilePhoto name={user.name} username={user.username} photoUrl={user.profilePhoto} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <Link href={profileHref(user.username)!} className="block truncate text-sm font-semibold hover:underline">
-              {user.name}
-            </Link>
-          </div>
-          <ProfileActionButtons targetUserId={user.id} />
-        </div>
+      <h2 className="px-4 py-3 text-base font-semibold">{t('今日热榜', 'Trending today')}</h2>
+      {topics.slice(0, SHOWN).map((topic) => (
+        <Link
+          key={topic.id}
+          href={postHref(topic.postId)}
+          className="flex items-start gap-3 border-t border-border/70 px-4 py-3 hover:bg-secondary/40">
+          <span className="w-4 shrink-0 text-sm font-semibold text-primary">{topic.rank}</span>
+          <span className="min-w-0">
+            <span className="line-clamp-2 text-sm font-medium">{topic.title}</span>
+            {topic.sectionName && (
+              <span className="mt-0.5 block text-xs text-muted-foreground">{topic.sectionName}</span>
+            )}
+          </span>
+        </Link>
       ))}
     </section>
   );

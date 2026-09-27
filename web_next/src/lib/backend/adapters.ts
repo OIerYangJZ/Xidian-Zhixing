@@ -13,7 +13,7 @@ import type {
 } from '@/types/definitions';
 import type { ApiComment, ApiMe, ApiNotification, ApiPost, ApiPublicProfile } from './types';
 
-const orNull = (value: string | null | undefined) => (value ? value : null);
+const orNull = (value: string | null | undefined) => value || null;
 
 function postStatus(reviewStatus: ApiPost['reviewStatus']): PostStatus {
   if (reviewStatus === 'pending') return 'PENDING_REVIEW';
@@ -39,7 +39,12 @@ export function toGetPost(post: ApiPost): GetPost {
     sectionName: post.sectionName,
     tags: post.tags || [],
     publishedAsClub: isClub
-      ? { id: post.publisherClubId, name: post.authorAlias, slug: post.publisherClubId, avatar: orNull(post.authorAvatarUrl) }
+      ? {
+          id: post.publisherClubId,
+          name: post.authorAlias,
+          slug: post.publisherClubId,
+          avatar: orNull(post.authorAvatarUrl),
+        }
       : null,
     isOwnPost: post.isOwnPost,
     isLiked: post.liked,

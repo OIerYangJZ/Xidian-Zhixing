@@ -18,8 +18,9 @@ export function useUpdateDeleteComments({ postId }: { postId: string }) {
     onMutate: async ({ commentId }) => {
       await qc.cancelQueries({ queryKey });
       const previous = qc.getQueriesData<GetComment[]>({ queryKey });
-      qc.setQueriesData<GetComment[]>({ queryKey }, (oldComments) =>
-        oldComments?.filter((comment) => comment.id !== commentId),
+      qc.setQueriesData<GetComment[]>(
+        { queryKey },
+        (oldComments) => oldComments?.filter((comment) => comment.id !== commentId),
       );
       return { previous };
     },

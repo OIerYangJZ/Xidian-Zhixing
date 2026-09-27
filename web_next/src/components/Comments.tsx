@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetComment } from '@/types/definitions';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { listComments } from '@/lib/backend/endpoints';
 import { buildCommentThreads } from '@/lib/commentThreads';
 import { useShouldAnimate } from '@/hooks/useShouldAnimate';
@@ -14,7 +14,6 @@ import { Comment } from './Comment';
 
 export function Comments({ postId }: { postId: string }) {
   const { t } = useLanguage();
-  const qc = useQueryClient();
   const [sort, setSort] = useState<'hot' | 'time'>('hot');
   const queryKey = useMemo(() => ['posts', postId, 'comments', sort], [postId, sort]);
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());

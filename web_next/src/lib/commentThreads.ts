@@ -31,7 +31,8 @@ export function buildCommentThreads(comments: GetComment[]): CommentThread[] {
   const threads = new Map<string, CommentThread>();
   comments.forEach((comment) => {
     const root = rootOf(comment);
-    if (root.id === comment.id) threads.set(comment.id, { root: comment, replies: threads.get(comment.id)?.replies ?? [] });
+    if (root.id === comment.id)
+      threads.set(comment.id, { root: comment, replies: threads.get(comment.id)?.replies ?? [] });
   });
   comments.forEach((comment) => {
     const root = rootOf(comment);

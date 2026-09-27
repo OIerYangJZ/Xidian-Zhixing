@@ -31,12 +31,13 @@ export function CreatePostDialog({
   const [displayIdentity, setDisplayIdentity] = useState<DisplayIdentity>('USER');
   const [anonymousAlias, setAnonymousAlias] = useState('');
   const [sectionId, setSectionId] = useState(GENERAL_SECTION.sectionId);
-  const { data: sectionTree } = useQuery({ queryKey: ['sections', 'tree'], queryFn: getSectionTree, staleTime: 300000 });
+  const { data: sectionTree } = useQuery({
+    queryKey: ['sections', 'tree'],
+    queryFn: getSectionTree,
+    staleTime: 300000,
+  });
   // Clubs publish through their managers only, so they are not offered here.
-  const sections = useMemo(
-    () => [...(sectionTree?.general ?? []), ...(sectionTree?.colleges ?? [])],
-    [sectionTree],
-  );
+  const sections = useMemo(() => [...(sectionTree?.general ?? []), ...(sectionTree?.colleges ?? [])], [sectionTree]);
   const section = useMemo(() => {
     const picked = sections.find((item) => item.sectionId === sectionId);
     return picked
@@ -131,9 +132,7 @@ export function CreatePostDialog({
   }, []);
 
   return (
-    <GenericDialog
-      title={t('发布动态', 'Create post')}
-      handleClose={handleClose}>
+    <GenericDialog title={t('发布动态', 'Create post')} handleClose={handleClose}>
       <div className="mb-[18px] flex flex-row gap-3 px-4">
         <div className="h-11 w-11">
           <ProfilePhotoOwn />

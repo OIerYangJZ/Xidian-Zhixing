@@ -6,6 +6,12 @@ import { useSession } from '@/lib/backend/session';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/useLanguage';
 import { profileHref } from '@/lib/profileHref';
+import {
+  blockUser as blockAccount,
+  listBlocks,
+  searchUsers as findUsers,
+  unblockUser as unblockAccount,
+} from '@/lib/backend/endpoints';
 
 type UserSummary = { id: string; username: string; name: string; profilePhoto: string | null };
 type BlockedUser = UserSummary & { createdAt: string };
@@ -26,11 +32,14 @@ export function BlockedUsersManager() {
   } = useQuery<BlockedUser[]>({
     queryKey: ['blocked-users', userId],
     enabled: Boolean(userId),
-    queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}/blocks`);
-      if (!response.ok) throw new Error('Could not load blocked users.');
-      return response.json() as Promise<BlockedUser[]>;
-    },
+    queryFn: async () =>
+      (await listBlocks()).map((row) => ({
+        id: row.id,
+        username: row.id,
+        name: row.nickname,
+        profilePhoto: row.avatarUrl || null,
+        createdAt: row.blockedAt,
+      })),
   });
 
   const searchUsers = async (event: FormEvent<HTMLFormElement>) => {
@@ -42,12 +51,13 @@ export function BlockedUsersManager() {
       return;
     }
     setResults([]);
-    const response = await fetch(`/api/users-basic?search=${encodeURIComponent(keyword)}`);
-    if (!response.ok) {
+    let found: UserSummary[];
+    try {
+      found = (await findUsers(keyword)).filter((user) => !user.isOwnProfile);
+    } catch {
       setError(t('搜索同学失败，请重试。', 'Could not search for users. Try again.'));
       return;
     }
-    const found = (await response.json()) as UserSummary[];
     const blockedIds = new Set(blockedUsers.map((blocked) => blocked.id));
     setResults(found.filter((candidate) => !blockedIds.has(candidate.id)));
   };
@@ -56,12 +66,11 @@ export function BlockedUsersManager() {
     if (!userId) return;
     setBusyId(target.id);
     setError('');
-    const response = await fetch(`/api/users/${userId}/blocks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ blockedId: target.id }),
-    });
-    if (!response.ok) {
+    const ok = await blockAccount(target.id).then(
+      () => true,
+      () => false,
+    );
+    if (!ok) {
       setError(t('屏蔽失败，请重试。', 'Could not block this account. Try again.'));
       setBusyId(null);
       return;
@@ -82,8 +91,11 @@ export function BlockedUsersManager() {
     if (!userId) return;
     setBusyId(target.id);
     setError('');
-    const response = await fetch(`/api/users/${userId}/blocks/${target.id}`, { method: 'DELETE' });
-    if (!response.ok) {
+    const ok = await unblockAccount(target.id).then(
+      () => true,
+      () => false,
+    );
+    if (!ok) {
       setError(t('解除屏蔽失败，请重试。', 'Could not unblock this account. Try again.'));
       setBusyId(null);
       return;

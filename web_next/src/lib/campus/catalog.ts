@@ -1,3 +1,6 @@
+import type { ApiCampusService } from '@/lib/backend/endpoints';
+import { campusServiceHref } from '@/lib/profileHref';
+
 export type CampusService = {
   id: string;
   slug: string;
@@ -21,48 +24,24 @@ export type CampusService = {
   sortOrder: number;
 };
 
-const serviceDefinitions = [
-  {
-    slug: 'network-usage',
-    name: '校园网用量',
-    groupId: 'life',
-    groupName: '校园生活',
-    kind: 'network',
-    iconKey: 'network',
-    authType: 'schoolnet',
-    dataFields: ['used', 'remaining', 'period'],
-    calendarSource: null,
-  },
-  {
-    slug: 'online-devices',
-    name: '在线设备',
-    groupId: 'life',
-    groupName: '校园生活',
-    kind: 'network',
-    iconKey: 'device',
-    authType: 'schoolnet',
-    dataFields: ['deviceName', 'ipAddress', 'connectedAt'],
-    calendarSource: null,
-  },
-] as const;
+/** Services that talk to a school system from this site, rather than linking out. */
+export const AUTH_PANEL_SLUGS = new Set(['network-usage', 'online-devices', 'dorm-water']);
 
-export function getCampusServices(authReady: boolean): CampusService[] {
-  return serviceDefinitions.map((service, index) => {
-    return {
-      ...service,
-      id: `campus-${service.slug}`,
-      authReady,
-      status: 'available' as const,
-      requiredAccess: ['本人校园网账号、密码和图形验证码'],
-      features: ['本人授权登录'],
-      emptyText: '使用学校校园网自服务登录，查询本人流量摘要与当前在线设备。密码只在本次请求中使用。',
-      mapIds: [],
-      actions: ['登录并查询'],
-      path: `/campus/${service.slug}`,
-      enabled: true,
-      sortOrder: index,
-    };
-  });
+/** Backend catalogue row → the shape the directory renders. */
+export function toCampusService(service: ApiCampusService): CampusService {
+  const pending = !service.status || service.status.includes('待');
+  return {
+    ...service,
+    authType: (['campus-sso', 'schoolnet', 'official-api', 'public'].includes(service.authType)
+      ? service.authType
+      : 'public') as CampusService['authType'],
+    status: pending ? 'pending' : 'available',
+    calendarSource: (['course', 'exam', 'experiment'].includes(service.calendarSource)
+      ? service.calendarSource
+      : null) as CampusService['calendarSource'],
+    actions: service.actions.map((action) => action.label),
+    path: campusServiceHref(service.slug || service.id),
+  };
 }
 
 export const campusQuickLinks = [

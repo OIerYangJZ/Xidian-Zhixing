@@ -3,13 +3,16 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useLanguage } from '@/hooks/useLanguage';
+import { useSession } from '@/lib/backend/session';
+import { ApiError } from '@/lib/backend/client';
+import { askAi, cancelAi, type AiCitation } from '@/lib/backend/endpoints';
+import { postHref } from '@/lib/profileHref';
 
-type AISource = { citation: number; title: string; source: string | null; documentId: string };
 type AIMessageData = {
   id: string;
-  role: 'USER' | 'ASSISTANT' | 'SYSTEM';
+  role: 'user' | 'assistant';
   content: string;
-  sources: AISource[];
+  sources: AiCitation[];
   createdAt: string;
 };
 export type AIConversationData = {
@@ -19,8 +22,33 @@ export type AIConversationData = {
   messages: AIMessageData[];
 };
 
-export function AIChat({ initialConversations }: { initialConversations: AIConversationData[] }) {
+/** The server keeps no chat history, so conversations stay in this browser. */
+const MAX_STORED_CONVERSATIONS = 30;
+const HISTORY_TURNS = 8;
+const storageKey = (userId: string) => `zhixing-ai-conversations:${userId}`;
+
+function loadConversations(userId: string): AIConversationData[] {
+  try {
+    const raw = window.localStorage.getItem(storageKey(userId));
+    return raw ? (JSON.parse(raw) as AIConversationData[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function newId() {
+  return Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+function citationHref(source: AiCitation): string | null {
+  if (source.targetType === 'post' && source.targetId) return postHref(source.targetId);
+  return source.sourceUrl || source.jumpUrl || null;
+}
+
+export function AIChat() {
   const { t, language } = useLanguage();
+  const { data: session } = useSession();
+  const userId = session?.user.id || '';
   const starterQuestions =
     language === 'zh'
       ? ['本周有哪些校园活动？', '如何申请加入一个社团？', '图书馆借阅规则是什么？']
@@ -29,11 +57,12 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
           'How can I join a student club?',
           'What are the library borrowing rules?',
         ];
-  const [conversations, setConversations] = useState(initialConversations);
-  const [activeId, setActiveId] = useState(initialConversations[0]?.id || '');
+  const [conversations, setConversations] = useState<AIConversationData[]>([]);
+  const [activeId, setActiveId] = useState('');
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const requestIdRef = useRef('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeId),
@@ -41,20 +70,41 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
   );
 
   useEffect(() => {
+    if (!userId) return;
+    const stored = loadConversations(userId);
+    setConversations(stored);
+    setActiveId(stored[0]?.id || '');
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      window.localStorage.setItem(storageKey(userId), JSON.stringify(conversations.slice(0, MAX_STORED_CONVERSATIONS)));
+    } catch {
+      // Storage full or disabled: the chat still works for this visit.
+    }
+  }, [conversations, userId]);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ block: 'end' });
   }, [activeId, activeConversation?.messages.length, sending]);
 
-  async function createConversation() {
+  function createConversation() {
     setError('');
-    const response = await fetch('/api/ai/conversations', { method: 'POST' });
-    if (!response.ok) {
-      setError(t('暂时无法创建新对话。', 'Could not start a new conversation.'));
-      return;
-    }
-    const conversation = (await response.json()) as Omit<AIConversationData, 'messages'>;
-    const nextConversation = { ...conversation, messages: [] };
-    setConversations((items) => [nextConversation, ...items]);
-    setActiveId(nextConversation.id);
+    setActiveId('');
+  }
+
+  const appendMessages = (conversationId: string, title: string, messages: AIMessageData[]) =>
+    setConversations((items) => {
+      const existing = items.find((item) => item.id === conversationId);
+      const updated: AIConversationData = existing
+        ? { ...existing, updatedAt: new Date().toISOString(), messages: [...existing.messages, ...messages] }
+        : { id: conversationId, title, updatedAt: new Date().toISOString(), messages };
+      return [updated, ...items.filter((item) => item.id !== conversationId)];
+    });
+
+  async function stop() {
+    if (requestIdRef.current) await cancelAi(requestIdRef.current).catch(() => undefined);
   }
 
   async function sendMessage(event?: FormEvent<HTMLFormElement>, prompt = draft) {
@@ -64,68 +114,48 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
     setError('');
     setSending(true);
 
-    let conversationId = activeId;
-    if (!conversationId) {
-      const response = await fetch('/api/ai/conversations', { method: 'POST' });
-      if (!response.ok) {
-        setSending(false);
-        setError(t('暂时无法创建新对话。', 'Could not start a new conversation.'));
-        return;
-      }
-      const conversation = (await response.json()) as Omit<AIConversationData, 'messages'>;
-      conversationId = conversation.id;
-      setActiveId(conversationId);
-      setConversations((items) => [{ ...conversation, messages: [] }, ...items]);
-    }
-
-    setDraft('');
-    const response = await fetch('/api/ai/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, conversationId: conversationId || undefined, language }),
-    });
-    setSending(false);
-
-    if (!response.ok) {
-      const result = (await response.json().catch(() => ({}))) as { data?: { code?: string }; message?: string };
-      setError(
-        result.data?.code === 'rag_not_configured'
-          ? t('校园知识服务尚未配置。', 'Campus knowledge service is not configured.')
-          : result.data?.code === 'ai_not_configured'
-          ? t('AI 模型服务尚未配置。', 'AI model service is not configured.')
-          : result.message || t('回答暂时没有生成，请稍后再试。', 'No answer was generated. Please try again.'),
-      );
-      setDraft(content);
-      return;
-    }
-
-    const envelope = (await response.json()) as {
-      data: { conversationId: string; userMessage: AIMessageData; message: AIMessageData };
+    const conversationId = activeId || newId();
+    const history = (conversations.find((item) => item.id === conversationId)?.messages ?? [])
+      .slice(-HISTORY_TURNS * 2)
+      .map(({ role, content: text }) => ({ role, content: text }));
+    const userMessage: AIMessageData = {
+      id: newId(),
+      role: 'user',
+      content,
+      sources: [],
+      createdAt: new Date().toISOString(),
     };
-    const result = envelope.data;
-    setConversations((items) =>
-      items.some((conversation) => conversation.id === result.conversationId)
-        ? items.map((conversation) =>
-            conversation.id === result.conversationId
-              ? {
-                  ...conversation,
-                  title: conversation.title === '新对话' ? content.slice(0, 32) : conversation.title,
-                  updatedAt: result.message.createdAt,
-                  messages: [...conversation.messages, result.userMessage, result.message],
-                }
-              : conversation,
-          )
-        : [
-            {
-              id: result.conversationId,
-              title: content.slice(0, 32),
-              updatedAt: result.message.createdAt,
-              messages: [result.userMessage, result.message],
-            },
-            ...items,
-          ],
-    );
-    setActiveId(result.conversationId);
+    appendMessages(conversationId, content.slice(0, 32), [userMessage]);
+    setActiveId(conversationId);
+    setDraft('');
+
+    const requestId = newId();
+    requestIdRef.current = requestId;
+    try {
+      const result = await askAi(content, history, requestId);
+      appendMessages(conversationId, content.slice(0, 32), [
+        {
+          id: result.traceId || newId(),
+          role: 'assistant',
+          content: result.answer,
+          sources: result.citations || [],
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    } catch (cause) {
+      const cancelled = cause instanceof ApiError && (cause.data as { cancelled?: boolean } | undefined)?.cancelled;
+      if (!cancelled)
+        setError(
+          cause instanceof ApiError && cause.status === 503
+            ? t('AI 服务暂未开放。', 'The AI service is not available yet.')
+            : cause instanceof ApiError
+            ? cause.message
+            : t('回答暂时没有生成，请稍后再试。', 'No answer was generated. Please try again.'),
+        );
+    } finally {
+      requestIdRef.current = '';
+      setSending(false);
+    }
   }
 
   return (
@@ -165,32 +195,48 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
             {activeConversation.messages.map((message) => (
               <article
                 key={message.id}
-                className={message.role === 'USER' ? 'ml-auto max-w-[88%]' : 'mr-auto max-w-[92%]'}>
+                className={message.role === 'user' ? 'ml-auto max-w-[88%]' : 'mr-auto max-w-[92%]'}>
                 <p className="mb-1 text-xs text-muted-foreground">
-                  {message.role === 'USER' ? t('你', 'You') : t('知行助手', 'Zhixing assistant')}
+                  {message.role === 'user' ? t('你', 'You') : t('知行助手', 'Zhixing assistant')}
                 </p>
                 <div
                   className={`whitespace-pre-wrap break-words rounded-lg px-4 py-3 text-sm leading-7 ${
-                    message.role === 'USER' ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-foreground'
+                    message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-secondary/70 text-foreground'
                   }`}>
                   {message.content}
                 </div>
                 {message.sources.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {message.sources.map((source) => (
-                      <span
-                        key={`${message.id}-${source.citation}`}
-                        className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-                        [{source.citation}] {source.title}
-                      </span>
-                    ))}
+                    {message.sources.map((source, index) => {
+                      const href = citationHref(source);
+                      const label = `[${index + 1}] ${source.title}`;
+                      const className = 'rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground';
+                      return href ? (
+                        <a
+                          key={`${message.id}-${source.targetType}-${source.targetId || source.title}`}
+                          href={href}
+                          {...(href.startsWith('/') ? {} : { target: '_blank', rel: 'noreferrer' })}
+                          className={`${className} hover:border-primary/50 hover:text-foreground`}>
+                          {label}
+                        </a>
+                      ) : (
+                        <span
+                          key={`${message.id}-${source.targetType}-${source.targetId || source.title}`}
+                          className={className}>
+                          {label}
+                        </span>
+                      );
+                    })}
                   </div>
                 )}
               </article>
             ))}
             {sending && (
-              <p className="text-sm text-muted-foreground">
+              <p className="flex items-center gap-3 text-sm text-muted-foreground">
                 {t('正在整理校园资料…', 'Looking through campus information…')}
+                <button type="button" onClick={stop} className="text-xs text-primary hover:underline">
+                  {t('停止生成', 'Stop')}
+                </button>
               </p>
             )}
             <div ref={messagesEndRef} />
@@ -236,7 +282,7 @@ export function AIChat({ initialConversations }: { initialConversations: AIConve
             }
           }}
           rows={1}
-          maxLength={4000}
+          maxLength={12000}
           placeholder={t('问问校园里的事…', 'Ask about campus life…')}
           className="max-h-32 min-h-11 flex-1 resize-y bg-transparent px-3 py-3 text-sm outline-none placeholder:text-muted-foreground"
         />

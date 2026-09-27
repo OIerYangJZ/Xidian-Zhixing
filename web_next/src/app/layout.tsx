@@ -18,7 +18,8 @@ export const metadata = {
  * applied without a flash of the default look.  The static HTML cannot know
  * these on the server.  Keys match ThemeContext and LanguageContext.
  */
-const bootScript = `(function(){try{
+const bootScript = {
+  __html: `(function(){try{
 var d=document.documentElement,s=localStorage;
 var t=s.getItem('theme')||'system';
 if(t==='dark'||(t==='system'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches))d.classList.add('dark');
@@ -27,7 +28,8 @@ var c=s.getItem('zhixing-accent-color');
 if(c&&/^#[0-9a-f]{6}$/i.test(c)){var v=parseInt(c.slice(1,3),16)+' '+parseInt(c.slice(3,5),16)+' '+parseInt(c.slice(5,7),16);
 ['--accent-brand','--primary-accent','--ring'].forEach(function(k){d.style.setProperty(k,v)});}
 if(s.getItem('zhixing-language')==='en')d.lang='en';
-}catch(e){}})();`;
+}catch(e){}})();`,
+};
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -35,7 +37,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
         {/* eslint-disable-next-line react/no-danger */}
-        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
+        <script dangerouslySetInnerHTML={bootScript} />
       </head>
       <body className={cn('bg-background text-foreground')}>
         <Providers>{children}</Providers>

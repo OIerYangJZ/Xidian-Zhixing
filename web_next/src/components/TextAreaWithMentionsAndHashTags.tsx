@@ -17,11 +17,17 @@ import { cn } from '@/lib/cn';
 import { AriaTextFieldProps, mergeProps, useKeyboard, useTextField } from 'react-aria';
 import { useOverlayTriggerState } from 'react-stately';
 import { useClickOutside } from '@/hooks/useClickOutside';
-import { getUsers } from '@/lib/client_data_fetching/getUsers';
+import { searchUsers } from '@/lib/backend/endpoints';
 import { useLanguage } from '@/hooks/useLanguage';
 import { Popover } from './ui/Popover';
 import { TextAreaMentionItem } from './TextAreaMentionItem';
 import { HighlightedMentionsAndHashTags } from './HighlightedMentionsAndHashTags';
+
+/**
+ * @-mention autocomplete.  Off: the backend neither resolves nor notifies
+ * mentions, so picking a user would only insert text.
+ */
+const MENTIONS_ENABLED = false;
 
 interface TextAreaWithMentionsAndHashTagsProps extends AriaTextFieldProps {
   content: string;
@@ -56,7 +62,7 @@ export function TextAreaWithMentionsAndHashTags({
   // This query will refetch every time the `searchKeyword` state changess
   const { data, isPending, isError } = useQuery({
     queryKey: ['mentions', 'search', { keyword: searchKeyword }],
-    queryFn: async () => getUsers({ searchKeyword }),
+    queryFn: async () => searchUsers(searchKeyword),
     staleTime: 60000 * 10,
     enabled: !!searchKeyword,
   });
@@ -120,7 +126,7 @@ export function TextAreaWithMentionsAndHashTags({
      * username validation i.e. alphanumeric and underscore characters only, then
      * show the mentions section, otherwise hide it
      */
-    if (currentWord.startsWith('@')) {
+    if (MENTIONS_ENABLED && currentWord.startsWith('@')) {
       const keyword = currentWord.slice(1);
       if (/^\w+$/.test(keyword)) {
         setSearchKeyword(keyword);

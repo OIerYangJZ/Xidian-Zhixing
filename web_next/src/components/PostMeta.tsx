@@ -18,18 +18,24 @@ export function PostMeta({ post }: { post: GetPost }) {
       {post.isPinned && <span className={cn(chip, 'bg-primary/10 text-primary')}>{t('置顶', 'Pinned')}</span>}
       {showSection && <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{post.sectionName}</span>}
       {post.progress === 'resolved' && (
-        <span className={cn(chip, 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400')}>{t('已解决', 'Resolved')}</span>
+        <span className={cn(chip, 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400')}>
+          {t('已解决', 'Resolved')}
+        </span>
       )}
       {post.progress === 'closed' && (
         <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{t('已关闭', 'Closed')}</span>
       )}
       {post.status === 'PENDING_REVIEW' && (
-        <span className={cn(chip, 'bg-amber-500/10 text-amber-600 dark:text-amber-400')}>{t('审核中，仅自己可见', 'In review · only you')}</span>
+        <span className={cn(chip, 'bg-amber-500/10 text-amber-600 dark:text-amber-400')}>
+          {t('审核中，仅自己可见', 'In review · only you')}
+        </span>
       )}
       {post.status === 'REMOVED' && (
         <span className={cn(chip, 'bg-destructive/10 text-destructive')}>{t('未通过审核', 'Rejected')}</span>
       )}
-      {post.isPrivate && <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{t('仅自己可见', 'Only you')}</span>}
+      {post.isPrivate && (
+        <span className={cn(chip, 'bg-secondary text-muted-foreground')}>{t('仅自己可见', 'Only you')}</span>
+      )}
     </div>
   );
 }

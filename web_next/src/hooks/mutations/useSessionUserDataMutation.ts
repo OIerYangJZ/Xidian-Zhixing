@@ -1,76 +1,40 @@
 import { UserAboutSchema } from '@/lib/validations/userAbout';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSession } from '@/lib/backend/session';
-import { GetUser } from '@/types/definitions';
+import { useMe, useSession } from '@/lib/backend/session';
+import { updateMe, uploadAvatar, uploadImage } from '@/lib/backend/endpoints';
 import { useToast } from '../useToast';
 
 /**
- * This hook is only used by the profile's profile/cover photo
- * and the profile's About page.
+ * The signed-in user's own profile: text fields, avatar and cover.  Avatars
+ * have a dedicated route; covers are an ordinary upload then a PATCH.
  */
 export function useSessionUserDataMutation() {
   const { data: session } = useSession();
+  const { refresh } = useMe();
   const userId = session?.user.id;
   const qc = useQueryClient();
   const { showToast } = useToast();
 
+  const afterChange = async () => {
+    await Promise.all([qc.invalidateQueries({ queryKey: ['users', userId] }), refresh()]);
+  };
+
   const updateSessionUserDataMutation = useMutation({
-    mutationFn: async ({ data }: { data: UserAboutSchema }) => {
-      const res = await fetch(`/api/users/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ...data }),
-      });
-
-      const response = await res.json();
-      if (!res.ok) throw new Error(JSON.stringify(response));
-
-      return response as GetUser;
-    },
-    onSuccess: (updatedField) => {
-      qc.setQueryData<GetUser>(['users', userId], (oldUserData) => {
-        if (!oldUserData) return oldUserData;
-        return {
-          ...oldUserData,
-          ...updatedField,
-        };
-      });
-      showToast({
-        type: 'success',
-        title: 'Success',
-        message: 'Your profile information has been updated.',
-      });
+    mutationFn: ({ data }: { data: UserAboutSchema }) => updateMe(data),
+    onSuccess: async () => {
+      await afterChange();
+      showToast({ type: 'success', title: '资料已更新' });
     },
   });
 
   const updateSessionUserPhotosMutation = useMutation({
-    mutationFn: async ({ toUpdate, formData }: { toUpdate: 'profile' | 'cover'; formData: FormData }) => {
-      const res = await fetch(`/api/users/${userId}/${toUpdate === 'profile' ? 'profile-photo' : 'cover-photo'}`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        throw new Error(`Error updating ${toUpdate} photo.`);
-      }
-
-      const { uploadedTo } = (await res.json()) as { uploadedTo: string };
-      return {
-        type: `${toUpdate}Photo`,
-        uploadedTo,
-      };
+    mutationFn: async ({ toUpdate, file }: { toUpdate: 'profile' | 'cover'; file: File }) => {
+      if (toUpdate === 'profile') return uploadAvatar(file, file.name);
+      const upload = await uploadImage(file, file.name);
+      if (upload.status !== 'approved') throw new Error(upload.moderationReason || '图片未通过审核');
+      return updateMe({ backgroundImageUrl: upload.url });
     },
-    onSuccess: ({ type, uploadedTo }) => {
-      qc.setQueryData<GetUser>(['users', userId], (oldUserData) => {
-        if (!oldUserData) return oldUserData;
-        return {
-          ...oldUserData,
-          [type]: uploadedTo,
-        };
-      });
-    },
+    onSuccess: afterChange,
   });
 
   return { updateSessionUserDataMutation, updateSessionUserPhotosMutation };

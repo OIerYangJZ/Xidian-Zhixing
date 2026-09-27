@@ -1,6 +1,8 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { ApiError } from '@/lib/backend/client';
+import { consumeXidianAttempt, createXidianAttempt } from '@/lib/backend/endpoints';
+import { loginUrl, useAuthActions, useSession } from '@/lib/backend/session';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
@@ -31,6 +33,15 @@ const campusImages: Array<{ src: string; alt: [string, string]; title: [string, 
     place: ['图书馆 · 秋日', 'Library · Autumn'],
   },
 ];
+/** Attempts already exchanged for a token in this page load. */
+const consumedAttempts = new Set<string>();
+
+/** Only same-site paths, never back into the login page itself. */
+function safeNextPath(from: string | null): string {
+  if (!from || !from.startsWith('/') || from.startsWith('//') || from.startsWith('/login')) return '/feed';
+  return from;
+}
+
 const campusImageStyles = campusImages.map((image) => ({ backgroundImage: `url("${image.src}")` }));
 
 export function CampusLoginExperience() {
@@ -41,6 +52,8 @@ export function CampusLoginExperience() {
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const activeImage = campusImages[activeIndex];
+  const { signInWithToken } = useAuthActions();
+  const { status } = useSession();
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -51,49 +64,48 @@ export function CampusLoginExperience() {
   }, []);
 
   useEffect(() => {
+    // The IDS callback lands back here as /login?…&xidianAuthAttempt=<id>.
     const query = new URLSearchParams(window.location.search);
-    const attemptId = query.get('attempt');
-    const errorCode = query.get('xidianError');
-    if (!attemptId) {
-      if (errorCode)
-        setAuthError(t('学校统一认证未完成，请重新登录。', 'Xidian sign-in was not completed. Please try again.'));
-      return undefined;
-    }
+    const attemptId = query.get('xidianAuthAttempt');
+    if (!attemptId) return undefined;
+    // The backend hands the token out exactly once; a second read (React's
+    // dev double-effect, a re-render) would come back empty and look failed.
+    if (consumedAttempts.has(attemptId)) return undefined;
+    consumedAttempts.add(attemptId);
 
     let active = true;
     let timer: number | undefined;
     setLoading(true);
+    const fail = (message: string) => {
+      if (!active) return;
+      setAuthError(message);
+      setLoading(false);
+      window.history.replaceState(null, '', loginUrl(safeNextPath(query.get('from'))));
+    };
     const poll = async () => {
       try {
-        const response = await fetch(`/api/auth/xidian/session/${encodeURIComponent(attemptId)}`, {
-          cache: 'no-store',
-        });
-        const result = await response.json();
+        const result = await consumeXidianAttempt(attemptId);
         if (!active) return;
-        const status = result?.data?.status;
-        if (status === 'approved') {
-          const signedIn = await signIn('xidian-attempt', {
-            attemptId,
-            callbackUrl: result.data.callbackUrl || '/feed',
-            redirect: false,
-          });
-          if (signedIn?.ok && signedIn.url) window.location.assign(signedIn.url);
-          else {
-            setAuthError(t('登录状态已失效，请重新登录。', 'Your sign-in session has expired. Please try again.'));
-            setLoading(false);
-          }
-          return;
-        }
-        if (status === 'pending') {
+        if (result.status === 'pending') {
           timer = window.setTimeout(poll, 1000);
           return;
         }
-        setAuthError(t('学校统一认证已失效，请重新登录。', 'Xidian sign-in has expired. Please try again.'));
-        setLoading(false);
-      } catch {
-        if (!active) return;
-        setAuthError(t('暂时无法确认登录状态，请重新登录。', 'We could not confirm your sign-in. Please try again.'));
-        setLoading(false);
+        if (result.status !== 'authenticated' || !result.token) {
+          fail(
+            result.message ||
+              t('学校统一认证未完成，请重新登录。', 'Xidian sign-in was not completed. Please try again.'),
+          );
+          return;
+        }
+        const me = await signInWithToken(result.token);
+        const target = me?.banned || result.banned ? '/settings/account' : safeNextPath(query.get('from'));
+        window.location.replace(target);
+      } catch (error) {
+        fail(
+          error instanceof ApiError
+            ? error.message
+            : t('暂时无法确认登录状态，请重新登录。', 'We could not confirm your sign-in. Please try again.'),
+        );
       }
     };
     poll();
@@ -101,7 +113,14 @@ export function CampusLoginExperience() {
       active = false;
       if (timer) window.clearTimeout(timer);
     };
-  }, [t]);
+  }, [signInWithToken, t]);
+
+  useEffect(() => {
+    // Already signed in (and not in the middle of an IDS return): go on.
+    if (status === 'authenticated' && !new URLSearchParams(window.location.search).get('xidianAuthAttempt')) {
+      window.location.replace(safeNextPath(new URLSearchParams(window.location.search).get('from')));
+    }
+  }, [status]);
 
   useEffect(() => {
     if (reducedMotion || paused) return undefined;
@@ -116,38 +135,20 @@ export function CampusLoginExperience() {
   const login = useCallback(async () => {
     setLoading(true);
     setAuthError('');
-    const requestedPath = new URLSearchParams(window.location.search).get('from') || '/feed';
-    const callbackPath = requestedPath.startsWith('/') && !requestedPath.startsWith('//') ? requestedPath : '/feed';
-    const useLocalAccount = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_LOCAL_TEST_AUTH === 'true';
-    if (useLocalAccount) {
-      try {
-        const callbackUrl = new URL(callbackPath, window.location.origin).toString();
-        const result = await signIn('local-test', { callbackUrl, redirect: false });
-        if (!result?.ok || !result.url) throw new Error('local_login_failed');
-        window.location.assign(result.url);
-      } catch {
-        setAuthError(
-          t(
-            '本地登录暂不可用，请检查开发数据库是否已启动。',
-            'Local sign-in is unavailable. Check that the development database is running.',
-          ),
-        );
-        setLoading(false);
-      }
-      return;
-    }
+    const from = safeNextPath(new URLSearchParams(window.location.search).get('from'));
     try {
-      const response = await fetch('/api/auth/xidian/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ callbackUrl: callbackPath }),
-      });
-      const result = await response.json();
-      if (!response.ok || !result?.data?.authorizeUrl) throw new Error('auth_setup_failed');
-      window.location.assign(result.data.authorizeUrl);
-    } catch {
+      // IDS returns to this page; the backend appends xidianAuthAttempt=<id>.
+      const attempt = await createXidianAttempt(loginUrl(from));
+      if (!attempt.authorizeUrl) throw new Error('auth_setup_failed');
+      window.location.assign(attempt.authorizeUrl);
+    } catch (error) {
       setAuthError(
-        t('学校统一认证暂时不可用，请稍后重试。', 'Xidian sign-in is temporarily unavailable. Please try again later.'),
+        error instanceof ApiError && error.status !== 503
+          ? error.message
+          : t(
+              '学校统一认证暂时不可用，请稍后重试。',
+              'Xidian sign-in is temporarily unavailable. Please try again later.',
+            ),
       );
       setLoading(false);
     }

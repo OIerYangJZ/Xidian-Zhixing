@@ -27,7 +27,12 @@ export function useNotificationsQuery<T = NotificationsData>(select?: (data: Not
     refetchInterval: 30000,
     queryFn: async (): Promise<NotificationsData> => {
       const data = await listNotifications();
-      const me = { id: session?.user.id || '', username: session?.user.id || '', name: session?.user.name || '', profilePhoto: null };
+      const me = {
+        id: session?.user.id || '',
+        username: session?.user.id || '',
+        name: session?.user.name || '',
+        profilePhoto: null,
+      };
       return {
         items: data.items.map((item) => ({
           ...toGetActivity(item, me),

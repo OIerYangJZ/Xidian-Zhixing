@@ -8,7 +8,9 @@ import { useErrorNotifier } from '../useErrorNotifier';
 /** Every <Posts> timeline: the feed, hashtag pages, profiles and bookmarks. */
 function isPostTimeline(query: Query): boolean {
   const [head, second, third] = query.queryKey;
-  return (head === 'posts' && typeof second !== 'string') || (head === 'posts' && second === 'feed') || third === 'posts';
+  return (
+    (head === 'posts' && typeof second !== 'string') || (head === 'posts' && second === 'feed') || third === 'posts'
+  );
 }
 
 export function useDeletePostMutation() {

@@ -10,7 +10,7 @@ export function useNotificationsReadStatusMutations() {
     qc.setQueryData<NotificationsData>(NOTIFICATIONS_QUERY_KEY, (data) => {
       if (!data) return data;
       const unreadByType = { ...data.unreadByType };
-      let unreadCount = data.unreadCount;
+      let { unreadCount } = data;
       const items = data.items.map((item) => {
         if (item.isNotificationRead || !predicate(item)) return item;
         unreadByType[item.category] = Math.max(0, (unreadByType[item.category] || 0) - 1);

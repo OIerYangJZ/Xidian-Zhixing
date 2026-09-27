@@ -1,18 +1,15 @@
+'use client';
+
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { ResponsiveContainer } from '@/components/ui/ResponsiveContainer';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+import { useLanguage } from '@/hooks/useLanguage';
 
-export async function generateMetadata() {
-  const language = await getInterfaceLanguage();
-  return { title: language === 'en' ? 'Edit profile | Xidian Zhixing' : '编辑资料 | 西电知行' };
-}
-
-export default async function Page() {
-  const language = await getInterfaceLanguage();
+export default function Page() {
+  const { t } = useLanguage();
   return (
     <div>
-      <PageHeader title={language === 'en' ? 'Edit profile' : '编辑资料'} sticky />
+      <PageHeader title={t('编辑资料', 'Edit profile')} sticky />
       <ResponsiveContainer className="px-4 py-5 md:px-5">
         <EditProfileForm />
       </ResponsiveContainer>

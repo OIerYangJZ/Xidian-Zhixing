@@ -83,8 +83,8 @@ export function Posts(props: PostsProps) {
       type === 'hashtag' || type === 'search'
         ? ['posts', { hashtag, keyword, sort }]
         : type === 'feed'
-          ? ['posts', 'feed', { sort: sort || 'latest', sectionId: sectionId || '' }]
-          : ['users', userId, 'posts', { type }],
+        ? ['posts', 'feed', { sort: sort || 'latest', sectionId: sectionId || '' }]
+        : ['users', userId, 'posts', { type }],
     [type, userId, hashtag, keyword, sort, sectionId],
   );
   const topElRef = useRef<HTMLDivElement>(null);
@@ -98,30 +98,35 @@ export function Posts(props: PostsProps) {
   // `hasMore` per loaded page; getNextPageParam only sees the page's ids.
   const pageHasMore = useRef(new Map<PageParam, boolean>());
 
-  const { data, error, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } =
-    useInfiniteQuery<PostIds, Error, InfiniteData<PostIds>, QueryKey, PageParam>({
-      queryKey,
-      initialPageParam: 1,
-      queryFn: async ({ pageParam }): Promise<PostIds> => {
-        const { posts, hasMore } = await fetchPage(props, pageParam);
-        const postIds: PostIds = posts.map((post) => {
-          // Set query data for each `post`, these queries will be used by the <Post> component
-          qc.setQueryData(['posts', post.id], post);
+  const { data, isPending, isError, fetchNextPage, hasNextPage, isFetchingNextPage, refetch } = useInfiniteQuery<
+    PostIds,
+    Error,
+    InfiniteData<PostIds>,
+    QueryKey,
+    PageParam
+  >({
+    queryKey,
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }): Promise<PostIds> => {
+      const { posts, hasMore } = await fetchPage(props, pageParam);
+      const postIds: PostIds = posts.map((post) => {
+        // Set query data for each `post`, these queries will be used by the <Post> component
+        qc.setQueryData(['posts', post.id], post);
 
-          // If the `post` already exists in `data`, make sure to use its current `commentsShown`
-          // value to prevent the post's comment section from closing if it is already shown
-          const currentPostId = data?.pages.flat().find(({ id }) => id === post.id);
-          return { id: post.id, commentsShown: currentPostId?.commentsShown || false };
-        });
-        pageHasMore.current.set(pageParam, hasMore);
-        return postIds;
-      },
-      getNextPageParam: (_lastPage, _pages, lastPageParam) =>
-        pageHasMore.current.get(lastPageParam) ? lastPageParam + 1 : undefined,
-      refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
-    });
+        // If the `post` already exists in `data`, make sure to use its current `commentsShown`
+        // value to prevent the post's comment section from closing if it is already shown
+        const currentPostId = data?.pages.flat().find(({ id }) => id === post.id);
+        return { id: post.id, commentsShown: currentPostId?.commentsShown || false };
+      });
+      pageHasMore.current.set(pageParam, hasMore);
+      return postIds;
+    },
+    getNextPageParam: (_lastPage, _pages, lastPageParam) =>
+      pageHasMore.current.get(lastPageParam) ? lastPageParam + 1 : undefined,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+    retry: false,
+  });
 
   useEffect(() => {
     // Refresh pushed-to pages without clearing the cached timeline, so returning
@@ -140,7 +145,12 @@ export function Posts(props: PostsProps) {
     const interval = setInterval(async () => {
       try {
         const { posts } = await fetchPage(props, 1);
-        const seen = new Set(qc.getQueryData<InfiniteData<PostIds>>(queryKey)?.pages.flat().map(({ id }) => id));
+        const seen = new Set(
+          qc
+            .getQueryData<InfiniteData<PostIds>>(queryKey)
+            ?.pages.flat()
+            .map(({ id }) => id),
+        );
         setNumberOfNewPostsLoaded(posts.filter(({ id }) => !seen.has(id)).length);
       } catch {
         // Polling is best-effort.

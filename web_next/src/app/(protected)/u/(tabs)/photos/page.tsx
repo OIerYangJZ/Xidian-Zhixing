@@ -9,10 +9,11 @@ import { useProfileId } from '../../useProfileId';
 
 /** The newest images a user posted publicly under their own name. */
 const PHOTO_POST_LIMIT = 60;
+const NO_MEDIA: GetVisualMedia[] = [];
 
 function Photos() {
   const profileId = useProfileId();
-  const { data: visualMedia = [] } = useQuery({
+  const { data: visualMedia = NO_MEDIA } = useQuery({
     queryKey: ['users', profileId, 'photos'],
     enabled: !!profileId,
     queryFn: async (): Promise<GetVisualMedia[]> => {

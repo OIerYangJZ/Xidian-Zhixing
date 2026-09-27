@@ -1,48 +1,32 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMe } from '@/lib/backend/session';
+import { updateNotificationPreferences, updatePrivacy } from '@/lib/backend/endpoints';
 import { useState } from 'react';
 import { useLanguage } from '@/hooks/useLanguage';
 import { PageHeader } from '@/components/ui/PageHeader';
 
-type SettingsData = {
-  privacy: { allowStrangerDm: boolean; showContactable: boolean };
-  notifications: {
-    follows: boolean;
-    likes: boolean;
-    comments: boolean;
-    messages: boolean;
-    replies: boolean;
-    favorites: boolean;
-    reportResults: boolean;
-    system: boolean;
-  };
-};
-
 export function SettingsPreferences({ section }: { section: 'privacy' | 'notifications' }) {
   const { t } = useLanguage();
-  const qc = useQueryClient();
+  const { me, status, refresh } = useMe();
   const [saveError, setSaveError] = useState('');
-  const { data, isPending } = useQuery<SettingsData>({
-    queryKey: ['settings'],
-    queryFn: async () => {
-      const response = await fetch('/api/settings');
-      if (!response.ok) throw new Error('Settings could not be loaded.');
-      return response.json() as Promise<SettingsData>;
-    },
-  });
+  const [pending, setPending] = useState<Record<string, boolean>>({});
+  const isPending = status === 'loading';
   const toggle = async (group: 'privacy' | 'notifications', key: string, checked: boolean) => {
     setSaveError('');
+    setPending((current) => ({ ...current, [key]: checked }));
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [group]: { [key]: checked } }),
-      });
-      if (!response.ok) throw new Error('Settings could not be saved.');
-      await qc.invalidateQueries({ queryKey: ['settings'] });
+      if (group === 'privacy') await updatePrivacy({ [key]: checked });
+      else await updateNotificationPreferences({ [key]: checked });
+      await refresh();
     } catch {
       setSaveError(t('设置保存失败，请重试。', 'Settings could not be saved. Please try again.'));
+    } finally {
+      setPending((current) => {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      });
     }
   };
 
@@ -59,18 +43,17 @@ export function SettingsPreferences({ section }: { section: 'privacy' | 'notific
     },
   ] as const;
   const notificationItems = [
-    { key: 'follows', title: t('新关注', 'New followers') },
-    { key: 'comments', title: t('帖子评论', 'Post comments') },
-    { key: 'replies', title: t('评论回复', 'Comment replies') },
-    { key: 'likes', title: t('点赞', 'Likes') },
-    { key: 'favorites', title: t('收藏', 'Bookmarks') },
-    { key: 'messages', title: t('私信', 'Direct messages') },
-    { key: 'reportResults', title: t('举报处理结果', 'Report outcomes') },
-    { key: 'system', title: t('系统通知', 'System notifications') },
+    { key: 'notifyComment', title: t('帖子评论', 'Post comments') },
+    { key: 'notifyReply', title: t('评论回复', 'Comment replies') },
+    { key: 'notifyLike', title: t('点赞', 'Likes') },
+    { key: 'notifyFavorite', title: t('收藏', 'Bookmarks') },
+    { key: 'notifyReportResult', title: t('举报处理结果', 'Report outcomes') },
+    { key: 'notifySystem', title: t('系统通知', 'System notifications') },
   ] as const;
 
   const items = section === 'privacy' ? privacyItems : notificationItems;
-  const values = (section === 'privacy' ? data?.privacy : data?.notifications) as Record<string, boolean> | undefined;
+  const data = me;
+  const values = { ...(me as unknown as Record<string, boolean> | null), ...pending };
   const heading =
     section === 'privacy' ? t('隐私和安全', 'Privacy and safety') : t('通知偏好', 'Notification preferences');
   return (

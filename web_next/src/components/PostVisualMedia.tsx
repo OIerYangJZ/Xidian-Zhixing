@@ -1,6 +1,6 @@
 import { cn } from '@/lib/cn';
 import { Play } from '@/svg_components';
-import { VisualMediaType } from '@prisma/client';
+import type { VisualMediaType } from '@/types/definitions';
 import { useMemo } from 'react';
 import { mergeProps, useFocusRing, usePress } from 'react-aria';
 

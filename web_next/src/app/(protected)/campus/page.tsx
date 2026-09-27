@@ -1,21 +1,28 @@
-import { getServerUser } from '@/lib/getServerUser';
-import prisma from '@/lib/prisma/prisma';
-import { campusQuickLinks, getCampusServices } from '@/lib/campus/catalog';
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+'use client';
+
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
+import { campusQuickLinks, toCampusService } from '@/lib/campus/catalog';
+import { listCampusServices } from '@/lib/backend/endpoints';
+import { GenericLoading } from '@/components/GenericLoading';
+import { useLanguage } from '@/hooks/useLanguage';
 import { CampusDirectory } from './CampusDirectory';
 
-export async function generateMetadata() {
-  return { title: (await getInterfaceLanguage()) === 'en' ? 'Campus | Xidian Zhixing' : '校园 | 西电知行' };
-}
+export default function CampusPage() {
+  const { t } = useLanguage();
+  const { data, isPending } = useQuery({
+    queryKey: ['campus', 'services'],
+    queryFn: listCampusServices,
+    staleTime: 300000,
+  });
+  const groups = useMemo(() => {
+    const services = (data ?? []).filter((service) => service.enabled).map(toCampusService);
+    return Array.from(new Set(services.map((service) => service.groupName))).map((title) => ({
+      title,
+      services: services.filter((service) => service.groupName === title),
+    }));
+  }, [data]);
 
-export default async function CampusPage() {
-  const [user] = await getServerUser();
-  const identityCount = user?.id ? await prisma.institutionIdentity.count({ where: { userId: user.id } }) : 0;
-  const services = getCampusServices(identityCount > 0);
-  const campusGroups = Array.from(new Set(services.map((service) => service.groupName))).map((title) => ({
-    title,
-    services: services.filter((service) => service.groupName === title),
-  }));
-
-  return <CampusDirectory quickLinks={campusQuickLinks} groups={campusGroups} />;
+  if (isPending) return <GenericLoading>{t('正在加载校园服务', 'Loading campus services')}</GenericLoading>;
+  return <CampusDirectory quickLinks={campusQuickLinks} groups={groups} />;
 }

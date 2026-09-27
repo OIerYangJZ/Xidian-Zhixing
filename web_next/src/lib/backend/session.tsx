@@ -42,7 +42,9 @@ async function mirrorTokenIntoCookie() {
 
 export function loginUrl(from?: string) {
   const target = from ?? (typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search);
-  return target && target !== '/' && !target.startsWith('/login') ? `/login?from=${encodeURIComponent(target)}` : '/login';
+  return target && target !== '/' && !target.startsWith('/login')
+    ? `/login?from=${encodeURIComponent(target)}`
+    : '/login';
 }
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
@@ -107,7 +109,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ status, me, refresh: async () => void (await loadMe()), signInWithToken, signOut }),
+    () => ({
+      status,
+      me,
+      refresh: async () => {
+        await loadMe();
+      },
+      signInWithToken,
+      signOut,
+    }),
     [status, me, loadMe, signInWithToken, signOut],
   );
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
@@ -123,10 +133,7 @@ function useSessionContext(): SessionContextValue {
 export function useSession(): { data: Session | null; status: Status } {
   const { status, me } = useSessionContext();
   const data = useMemo<Session | null>(
-    () =>
-      me
-        ? { user: { id: me.id, name: me.nickname || me.alias, role: me.isAdmin ? 'ADMIN' : 'USER' } }
-        : null,
+    () => (me ? { user: { id: me.id, name: me.nickname || me.alias, role: me.isAdmin ? 'ADMIN' : 'USER' } } : null),
     [me],
   );
   return { data, status };

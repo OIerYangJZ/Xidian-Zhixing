@@ -20,33 +20,18 @@ export function useUpdateProfileAndCoverPhotoClient(toUpdate: 'profile' | 'cover
   };
 
   const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, files } = e.target;
-    const formData = new FormData();
-
-    if (files === null) return;
+    const { files } = e.target;
+    if (files === null || !files[0] || !userId) return;
     const file = files[0];
 
-    formData.append(name, file, file.name);
-
-    if (!userId) return;
     updateSessionUserPhotosMutation.mutate(
-      {
-        toUpdate,
-        formData,
-      },
+      { toUpdate, file },
       {
         onSuccess: () => {
-          showToast({
-            title: 'Success!',
-            message: `Your ${toUpdate} photo has been updated.`,
-            type: 'success',
-          });
+          showToast({ title: toUpdate === 'profile' ? '头像已更新' : '封面已更新', type: 'success' });
         },
-        onError: () => {
-          alert({
-            title: 'Upload Error',
-            message: 'There was an error uploading your photo.',
-          });
+        onError: (error) => {
+          alert({ title: '上传失败', message: error instanceof Error ? error.message : '请稍后重试。' });
         },
       },
     );

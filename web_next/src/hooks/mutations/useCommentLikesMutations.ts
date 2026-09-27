@@ -7,16 +7,18 @@ export function useCommentLikesMutations({ postId }: { postId: string }) {
   const queryKey = ['posts', postId, 'comments'];
 
   const setLiked = (commentId: string, isLiked: boolean) =>
-    qc.setQueriesData<GetComment[]>({ queryKey }, (oldComments) =>
-      oldComments?.map((comment) =>
-        comment.id === commentId && comment.isLiked !== isLiked
-          ? {
-              ...comment,
-              isLiked,
-              _count: { ...comment._count, commentLikes: comment._count.commentLikes + (isLiked ? 1 : -1) },
-            }
-          : comment,
-      ),
+    qc.setQueriesData<GetComment[]>(
+      { queryKey },
+      (oldComments) =>
+        oldComments?.map((comment) =>
+          comment.id === commentId && comment.isLiked !== isLiked
+            ? {
+                ...comment,
+                isLiked,
+                _count: { ...comment._count, commentLikes: comment._count.commentLikes + (isLiked ? 1 : -1) },
+              }
+            : comment,
+        ),
     );
 
   const mutationFor = (isLiked: boolean) => ({

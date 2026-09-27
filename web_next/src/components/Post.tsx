@@ -11,7 +11,6 @@ import { zhCN, enUS } from 'date-fns/locale';
 import SvgComment from '@/svg_components/Comment';
 import { AnimatePresence, motion } from 'framer-motion';
 import { GetPost, PostId } from '@/types/definitions';
-import { PostMeta } from './PostMeta';
 import { postHref } from '@/lib/profileHref';
 import { isEqual } from 'lodash';
 import SvgHeart from '@/svg_components/Heart';
@@ -23,6 +22,7 @@ import { useToast } from '@/hooks/useToast';
 import { getPost } from '@/lib/backend/endpoints';
 import { useReportDialog } from '@/hooks/useReportDialog';
 import Link from 'next/link';
+import { PostMeta } from './PostMeta';
 import { ToggleStepper } from './ui/ToggleStepper';
 import { Comments } from './Comments';
 import { PostVisualMediaContainer } from './PostVisualMediaContainer';
@@ -230,9 +230,7 @@ export const Post = memo(
               ) : null}
             </div>
             <div className="absolute right-0 top-0">
-              {isOwnPost && (
-                <PostOptions postId={postId} progress={progress} />
-              )}
+              {isOwnPost && <PostOptions postId={postId} progress={progress} />}
             </div>
           </div>
           <PostMeta post={data} />

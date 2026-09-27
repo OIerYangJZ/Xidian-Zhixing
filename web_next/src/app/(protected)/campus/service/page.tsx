@@ -1,35 +1,40 @@
-import { notFound } from 'next/navigation';
-import { getCampusServices } from '@/lib/campus/catalog';
-import { getInterfaceLanguage } from '@/lib/getInterfaceLanguage';
+'use client';
+
+import { Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useQueryParam } from '@/hooks/useQueryParam';
+import { useLanguage } from '@/hooks/useLanguage';
+import { getCampusService } from '@/lib/backend/endpoints';
 import { CampusDataPanel } from './CampusDataPanel';
 import { CampusServiceHeader } from './CampusServiceHeader';
 
-export async function generateMetadata(props: { params: Promise<{ service: string }> }) {
-  const params = await props.params;
-  const service = getCampusServices(false).find(({ slug }) => slug === params.service);
-  if ((await getInterfaceLanguage()) === 'en') {
-    const title =
-      service?.slug === 'network-usage'
-        ? 'Campus network usage'
-        : service?.slug === 'online-devices'
-        ? 'Online devices'
-        : service?.name || 'Campus services';
-    return { title: `${title} | Xidian Zhixing` };
-  }
-  return { title: service ? `${service.name} | 西电知行` : '校园服务 | 西电知行' };
-}
+function CampusService() {
+  const { t } = useLanguage();
+  const serviceId = useQueryParam('id');
+  const { data: service, isError } = useQuery({
+    queryKey: ['campus-service', serviceId],
+    queryFn: () => getCampusService(serviceId),
+    enabled: !!serviceId,
+  });
 
-export default async function CampusServicePage(props: { params: Promise<{ service: string }> }) {
-  const params = await props.params;
-  const service = getCampusServices(false).find(({ slug }) => slug === params.service);
-  if (!service) notFound();
+  if (!serviceId || isError)
+    return <p className="px-4 py-6 text-sm text-muted-foreground">{t('没有找到这项服务。', 'Service not found.')}</p>;
+  if (!service) return null;
 
   return (
     <main>
       <CampusServiceHeader slug={service.slug} title={service.name} />
       <div className="px-4 py-5 sm:px-5">
-        <CampusDataPanel serviceSlug={service.slug} />
+        <CampusDataPanel service={service} />
       </div>
     </main>
+  );
+}
+
+export default function CampusServicePage() {
+  return (
+    <Suspense>
+      <CampusService />
+    </Suspense>
   );
 }

@@ -44,7 +44,9 @@ function PostDetail() {
       {postId ? (
         <Post id={postId} commentsShown={commentsShown} toggleComments={toggleComments} />
       ) : (
-        <p className="px-4 py-6 text-sm text-muted-foreground">{t('这条动态已不存在。', 'This post is no longer available.')}</p>
+        <p className="px-4 py-6 text-sm text-muted-foreground">
+          {t('这条动态已不存在。', 'This post is no longer available.')}
+        </p>
       )}
     </div>
   );

@@ -17,10 +17,13 @@ import { useCreatePostModal } from '@/hooks/useCreatePostModal';
 import { useLanguage } from '@/hooks/useLanguage';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { profileHref } from '@/lib/profileHref';
 import { LogoText } from './LogoText';
 import { MenuBarItem } from './MenuBarItem';
 import { ProfilePhotoOwn } from './ui/ProfilePhotoOwn';
-import { profileHref } from '@/lib/profileHref';
+
+/** The Flutter admin console, published beside this site (see scripts/package_release.sh). */
+const ADMIN_CONSOLE_ROUTE = '/admin/';
 
 function DesktopComposeButton() {
   const { launchCreatePost } = useCreatePostModal();
@@ -71,7 +74,7 @@ export function MenuBar() {
     { children: t('我的', 'Profile'), Icon: Profile, route: profileRoute },
     { children: t('设置', 'Settings'), Icon: Settings, route: '/settings' },
     ...(session?.user?.role === 'ADMIN'
-      ? [{ children: t('内容审核', 'Moderation'), Icon: GridFeedCards, route: '/admin/moderation' }]
+      ? [{ children: t('管理后台', 'Admin console'), Icon: GridFeedCards, route: ADMIN_CONSOLE_ROUTE }]
       : []),
   ];
   const mobileRoutes = ['/feed', '/campus', '/ai', '/messages', profileRoute];

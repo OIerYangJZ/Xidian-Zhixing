@@ -32,7 +32,11 @@ function ReportDialog({ target, close }: { target: ReportTarget; close: () => vo
     setSubmitting(true);
     try {
       await createReport({ ...target, reason, description: description.trim() || undefined });
-      showToast({ title: t('举报已提交', 'Report submitted'), message: t('管理员会尽快处理。', 'A moderator will review it.'), type: 'success' });
+      showToast({
+        title: t('举报已提交', 'Report submitted'),
+        message: t('管理员会尽快处理。', 'A moderator will review it.'),
+        type: 'success',
+      });
       close();
     } catch (error) {
       showToast({

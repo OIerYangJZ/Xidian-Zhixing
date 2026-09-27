@@ -41,7 +41,9 @@ export function ProfileFollowList({ profileId, mode }: { profileId: string; mode
       <PageHeader title={title} sticky />
       <div className="px-4 pt-4 sm:px-5">
         {!isOwn ? (
-          <p className="py-6 text-sm text-muted-foreground">{t('只能查看自己的关注和粉丝列表。', 'Only your own lists can be viewed.')}</p>
+          <p className="py-6 text-sm text-muted-foreground">
+            {t('只能查看自己的关注和粉丝列表。', 'Only your own lists can be viewed.')}
+          </p>
         ) : isPending ? (
           <GenericLoading>{t('正在加载', 'Loading')}</GenericLoading>
         ) : isError ? (
@@ -55,13 +57,17 @@ export function ProfileFollowList({ profileId, mode }: { profileId: string; mode
                 Icon={SvgSearch}
               />
             </div>
-            {rows.length === 0 && <p className="py-4 text-sm text-muted-foreground">{t('这里还没有人。', 'No one here yet.')}</p>}
+            {rows.length === 0 && (
+              <p className="py-4 text-sm text-muted-foreground">{t('这里还没有人。', 'No one here yet.')}</p>
+            )}
             {rows.map((row) => (
               <article key={row.userId} className="feed-separator flex items-center gap-3 border-b py-3">
                 <div className="h-11 w-11 shrink-0">
                   <ProfilePhoto name={row.nickname} username={row.userId} photoUrl={row.avatarUrl || null} />
                 </div>
-                <Link href={profileHref(row.userId)!} className="min-w-0 flex-1 truncate text-sm font-semibold hover:underline">
+                <Link
+                  href={profileHref(row.userId)!}
+                  className="min-w-0 flex-1 truncate text-sm font-semibold hover:underline">
                   {row.nickname}
                 </Link>
                 <ProfileActionButtons targetUserId={row.userId} />

@@ -37,7 +37,9 @@ export function DiscoverProfiles({ keyword }: { keyword: string }) {
   if (isPending) return <GenericLoading>{t('正在查找同学', 'Finding people')}</GenericLoading>;
   if (isError) return <SomethingWentWrong />;
   if (data.length === 0)
-    return <p className="px-4 py-4 text-sm text-muted-foreground sm:px-5">{t('没有找到相关同学。', 'No people found.')}</p>;
+    return (
+      <p className="px-4 py-4 text-sm text-muted-foreground sm:px-5">{t('没有找到相关同学。', 'No people found.')}</p>
+    );
 
   return (
     <div className="flex flex-col">
